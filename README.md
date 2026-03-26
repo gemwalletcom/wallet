@@ -5,7 +5,7 @@
 [![License](https://badgen.net/github/license/gemwalletcom/wallet)](https://github.com/gemwalletcom/wallet/blob/main/LICENSE)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gemwalletcom/wallet)
 [![Gem Wallet Discord](https://img.shields.io/discord/974531300394434630?style=plastic)](https://discord.gg/aWkq5sj7SY)
-[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/GemWalletApp)](https://x.com/GemWalletApp)
+[![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/GemWallet)](https://x.com/GemWallet)
 
 Gem Wallet is an open-source mobile wallet for iOS and Android. This repository is the monorepo for both apps and the shared Rust core submodule they build against.
 
@@ -77,9 +77,11 @@ just generate
 just localize
 just bump patch
 just ios bootstrap
+just ios build
 just ios build-for-testing
 just ios test-without-building
 just android bootstrap
+just android build
 just android build-test
 just android test
 ```
@@ -96,14 +98,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and [android/
 
 ## Community
 
-- Install the app at [gemwallet.com](https://gemwallet.com)
-- Join [Discord](https://discord.gg/aWkq5sj7SY)
-- Follow [Twitter](https://twitter.com/GemWalletApp)
-- Join [Telegram](https://t.me/GemWallet)
-
-## Localization
-
-Join the localization effort via [Lokalise](https://app.lokalise.com/public/94865410644ee707546334.60736699/).
+- Install the app at [gemwallet.com](https://gemwallet.com) or Join [Discord](https://discord.gg/aWkq5sj7SY), [X](https://twitter.com/GemWallet), [Telegram](https://t.me/GemWallet)
 
 ## License
 

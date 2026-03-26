@@ -228,6 +228,15 @@ extension WalletConnectorService {
             let transactionId = try await signer.signTransaction(sessionId: sessionId, chain: chain.map(), transaction: transaction.map(), simulation: simulation)
             let response = walletConnect.encodeSignTransaction(chain: chain, transactionId: transactionId)
             return .response(response.map())
+        case .signAllTransactions(let chain, let type, let transactions):
+            guard transactions.count <= 1, let data = transactions.first else {
+                throw WalletConnectorServiceError.unresolvedMethod("signAllTransactions with multiple transactions is not yet supported")
+            }
+            let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
+            let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)
+            let signed = try await signer.signTransaction(sessionId: sessionId, chain: chain.map(), transaction: transaction.map(), simulation: simulation)
+            let response = walletConnect.encodeSignAllTransactions(signedTransactions: [signed])
+            return .response(response.map())
         case .sendTransaction(let chain, let type, let data):
             let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
             let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)

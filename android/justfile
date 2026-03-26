@@ -18,6 +18,9 @@ install-typeshare:
 install-ndk:
     @cd ../core && just gemstone install-ndk
 
+build:
+    @./gradlew assembleGoogleDebug --build-cache
+
 build-test:
     @./gradlew assembleGoogleDebugAndroidTest --build-cache
 
