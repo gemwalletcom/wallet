@@ -36,6 +36,10 @@ generate-models:
 generate-stone:
     @cd ios && just generate-stone
 
+localize:
+    @cd ios && just localize-all
+    @cd android && just localize
+
 bump TARGET="patch":
     @bash ./scripts/bump.sh {{TARGET}}
 
