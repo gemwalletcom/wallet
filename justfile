@@ -11,7 +11,9 @@ setup-git:
     @git config submodule.recurse true
 
 build:
+    @echo "==> Building iOS"
     @cd ios && just build-for-testing
+    @echo "==> Building Android"
     @cd android && just build-test
 
 generate: generate-models generate-stone
