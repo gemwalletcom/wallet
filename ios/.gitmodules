@@ -1,0 +1,16 @@
+[submodule "core"]
+	path = core
+	url = https://github.com/gemwalletcom/core
+	branch = main
+[submodule "Submodules/BigInt"]
+	path = Submodules/BigInt
+	url = https://github.com/gemwalletcom/BigInt.git
+[submodule "Submodules/GRDB"]
+	path = Submodules/GRDB
+	url = https://github.com/gemwalletcom/GRDB.swift.git
+[submodule "Submodules/GRDBQuery"]
+	path = Submodules/GRDBQuery
+	url = https://github.com/gemwalletcom/GRDBQuery.git
+[submodule "Submodules/reown-swift"]
+	path = Submodules/reown-swift
+	url = https://github.com/gemwalletcom/reown-swift.git

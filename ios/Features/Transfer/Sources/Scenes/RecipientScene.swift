@@ -1,0 +1,119 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import SwiftUI
+import Style
+import Components
+import Primitives
+import PrimitivesComponents
+import Store
+
+public struct RecipientScene: View {
+    public enum Field: Int, Hashable, Identifiable {
+        case address
+        case memo
+        public var id: String { String(rawValue) }
+    }
+
+    @FocusState private var focusedField: Field?
+
+    private var model: RecipientSceneViewModel
+
+    public init(model: RecipientSceneViewModel) {
+        self.model = model
+    }
+
+    public var body: some View {
+        @Bindable var model = model
+        List {
+            Section { } header: {
+                Group {
+                    switch model.type {
+                    case .asset(let asset):
+                        AssetPreviewView(model: AssetViewModel(asset: asset))
+                    case .nft(let nftAsset):
+                        NftPreviewView(
+                            assetImage: model.nftAssetImage(for: nftAsset),
+                            name: nftAsset.name,
+                            size: .image.semiLarge
+                        )
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, .small)
+            }
+            .cleanListRow()
+
+            Section {
+                AddressInputView(
+                    model: $model.addressInputModel,
+                    onSelectScan: { model.onSelectScan(field: .address) }
+                )
+                .focused($focusedField, equals: .address)
+            }
+
+            if model.showMemo {
+                Section {
+                    FloatTextField(
+                        model.memoField,
+                        text: $model.memo,
+                        allowClean: focusedField == .memo,
+                        trailingView: {
+                            ListButton(
+                                image: Images.System.qrCodeViewfinder,
+                                action: { model.onSelectScan(field: .memo) }
+                            )
+                        }
+                    )
+                    .focused($focusedField, equals: .memo)
+                    .keyboardType(.alphabet)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                }
+            }
+
+            ForEach(model.recipientSections) { section in
+                Section {
+                    ForEach(section.values) {
+                        let recipient = $0.value
+                        NavigationCustomLink(
+                            with: ListItemView(title: $0.title ?? $0.value.name, subtitle: $0.subtitle),
+                            action: { onSelectRecipient(recipient) }
+                        )
+                    }
+                } header: {
+                    HStack {
+                        section.image
+                            .frame(size: .image.small)
+                        Text(section.section)
+                    }
+                }
+            }
+        }
+        .safeAreaButton {
+            StateButton(
+                text: model.actionButtonTitle,
+                type: .primary(model.actionButtonState),
+                action: onSelectContinue
+            )
+        }
+        .contentMargins(.top, .scene.top, for: .scrollContent)
+        .listSectionSpacing(.compact)
+        .navigationTitle(model.tittle)
+        .bindQuery(model.contactsQuery)
+        .onChange(of: model.addressInputModel.text, model.onChangeAddressText)
+    }
+}
+
+// MARK: - Actions
+
+extension RecipientScene {
+    private func onSelectRecipient(_ recipient: RecipientAddress) {
+        focusedField = nil
+        model.onSelectRecipient(recipient)
+    }
+
+    private func onSelectContinue() {
+        focusedField = nil
+        model.onContinue()
+    }
+}

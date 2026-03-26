@@ -1,0 +1,54 @@
+# Xcode
+*.xcworkspace/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/contents.xcworkspacedata
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+xcuserdata/
+DerivedData/
+build/
+.build/
+.xcframework/
+
+# Swift Package Manager
+.swiftpm/
+.build/
+**/.swiftpm/**/package.xcworkspace/contents.xcworkspacedata
+.swiftpm/config/registries.json
+
+# General macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# General backup and temporary files
+*~
+*.swp
+*.swo
+*.orig
+*.temp
+*.tmp
+*.bak
+
+# VSCode settings
+.vscode/
+.vscode/settings.json
+
+# Claude Code settings
+.claude/settings.local.json
+
+# Dependency Management
+Packages/Gemstone/
+
+# Compressed files
+*.tar.bz2
+
+# PlantUML files
+sources.txt
+sources.png
+
+# Git-specific
+*.orig
+
+# rust
+target/

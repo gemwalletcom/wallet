@@ -1,0 +1,57 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import SwiftUI
+import Style
+
+public struct RoundButton: View {
+    let title: String
+    let image: Image
+    let isEnabled: Bool
+    var action: (() -> Void)?
+
+    public init(
+        title: String,
+        image: Image,
+        isEnabled: Bool = true,
+        action: (() -> Void)? = nil
+    ) {
+        self.action = action
+        self.image = image
+        self.isEnabled = isEnabled
+        self.title = title
+    }
+    
+    public var body: some View {
+        Button {
+            action?()
+        } label: {
+            VStack(alignment: .center) {
+                image
+                    .font(.app.title3)
+                    .foregroundStyle(Colors.whiteSolid)
+                    .frame(size: 48)
+                    .background(Colors.blue)
+                    .clipShape(Circle())
+                    .opacity(isEnabled ? 1 : .medium)
+                    .liquidGlass()
+                Text(title)
+                    .allowsTightening(true)
+                    .truncationMode(.tail)
+                    .foregroundStyle(Colors.secondaryText)
+                    .font(.app.body)
+                    .lineLimit(1)
+            }
+        }
+        .disabled(!isEnabled)
+        .buttonStyle(.borderless)
+    }
+}
+
+struct RoundButton_Previews: PreviewProvider {
+    static var previews: some View {
+        VStack {
+            RoundButton(title: "Buy", image: Images.System.eyeglasses)
+            RoundButton(title: "Swap", image: Images.System.share)
+        }
+    }
+}

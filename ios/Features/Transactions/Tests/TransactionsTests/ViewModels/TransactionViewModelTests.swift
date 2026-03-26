@@ -1,0 +1,246 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Testing
+import PrimitivesTestKit
+import PrimitivesComponents
+import Primitives
+
+@testable import Transactions
+
+final class TransactionViewModelTests {
+
+    @Test
+    func transactionTitle() {
+        testTransactionTitle(expectedTitle: "Received", transaction: .mock(state: .confirmed))
+        testTransactionTitle(expectedTitle: "Sent", transaction: .mock(state: .confirmed, direction: .outgoing))
+        testTransactionTitle(expectedTitle: "Transfer", transaction: .mock(state: .failed))
+        testTransactionTitle(expectedTitle: "Swap", transaction: .mock(type: .swap))
+    }
+    
+    @Test
+    func autoValueFormatter() {
+        let fromAsset = Asset.mockEthereum()
+        let toAsset = Asset.mockEthereumUSDT()
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue?.text == "+1.00 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue?.text == "+0.01 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue?.text == "+0.001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue?.text == "+0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue?.text == "+0.00 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue?.text == "+0.00 USDT")
+    }
+    
+    @Test
+    func participant_returnsCorrectAddress() {
+        let outgoingViewModel = TransactionViewModel.mock(
+            type: .transfer,
+            direction: .outgoing,
+            to: "to_address",
+            metadata: .encode(TransactionSwapMetadata.mock())
+        )
+        #expect(outgoingViewModel.participant == "to_address")
+
+        let selfTransferViewModel = TransactionViewModel.mock(
+            type: .transfer,
+            direction: .selfTransfer,
+            to: "self_address",
+            metadata: .encode(TransactionSwapMetadata.mock())
+        )
+        #expect(selfTransferViewModel.participant == "self_address")
+    }
+    
+    @Test
+    func titleExtraUsesAddressNames() {
+        let toAddress = AddressName.mock(address: "0x742d35cc6327c516e07e17dddaef8b48ca1e8c4a", name: "Hyperliquid")
+        let hyperliquidViewModel = TransactionViewModel.mock(
+            type: .transfer,
+            direction: .outgoing,
+            to: "0x742d35cc6327c516e07e17dddaef8b48ca1e8c4a",
+            toAddress: toAddress,
+            metadata: .encode(TransactionSwapMetadata.mock())
+        )
+        #expect(hyperliquidViewModel.titleExtraTextValue?.text.contains("Hyperliquid") == true)
+
+        let fromAddress = AddressName.mock(address: "0x1111111111111111111111111111111111111111", name: "Sender")
+        let incomingViewModel = TransactionViewModel.mock(
+            type: .transfer,
+            direction: .incoming,
+            from: "0x1111111111111111111111111111111111111111",
+            fromAddress: fromAddress,
+            metadata: .encode(TransactionSwapMetadata.mock())
+        )
+        #expect(incomingViewModel.titleExtraTextValue?.text.contains("Sender") == true)
+
+        let unknownViewModel = TransactionViewModel.mock(
+            type: .transfer,
+            direction: .outgoing,
+            to: "0x1234567890abcdef1234567890abcdef12345678",
+            metadata: .encode(TransactionSwapMetadata.mock())
+        )
+        #expect(unknownViewModel.titleExtraTextValue?.text.contains("0x1234") == true)
+        #expect(unknownViewModel.titleExtraTextValue?.text.contains("5678") == true)
+    }
+
+    @Test
+    func titleExtraPerpetualShowsPriceWithLabel() {
+        let openPositionModel = TransactionViewModel.mock(
+            type: .perpetualOpenPosition,
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock(price: 50000.50))
+        )
+        #expect(openPositionModel.titleExtraTextValue?.text == "Price: $50,000.50")
+
+        let closePositionModel = TransactionViewModel.mock(
+            type: .perpetualClosePosition,
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock(price: 49999.99))
+        )
+        #expect(closePositionModel.titleExtraTextValue?.text == "Price: $49,999.99")
+    }
+
+    @Test
+    func subtitlePerpetualOpenPositionShowsFiatValue() {
+        let model = TransactionViewModel.mock(
+            type: .perpetualOpenPosition,
+            value: "1000000",
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock())
+        )
+        #expect(model.subtitleTextValue?.text == "$1.00")
+    }
+
+    @Test
+    func subtitlePerpetualClosePositionShowsPnl() {
+        let profitModel = TransactionViewModel.mock(
+            type: .perpetualClosePosition,
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 125.50))
+        )
+        #expect(profitModel.subtitleTextValue?.text == "+$125.50")
+
+        let lossModel = TransactionViewModel.mock(
+            type: .perpetualClosePosition,
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock(pnl: -75.25))
+        )
+        #expect(lossModel.subtitleTextValue?.text == "-$75.25")
+    }
+
+    @Test
+    func subtitlePerpetualClosePositionNoPnl() {
+        let model = TransactionViewModel.mock(
+            type: .perpetualClosePosition,
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 0))
+        )
+        #expect(model.subtitleTextValue == nil)
+    }
+
+    @Test
+    func titleExtraFreeze() {
+        let bandwidthModel = TransactionViewModel.mock(
+            type: .stakeFreeze,
+            metadata: .object(["resourceType": .string("bandwidth")])
+        )
+        #expect(bandwidthModel.titleExtraTextValue?.text == "To Bandwidth")
+
+        let energyModel = TransactionViewModel.mock(
+            type: .stakeFreeze,
+            metadata: .object(["resourceType": .string("energy")])
+        )
+        #expect(energyModel.titleExtraTextValue?.text == "To Energy")
+    }
+
+    @Test
+    func titleExtraUnfreeze() {
+        let bandwidthModel = TransactionViewModel.mock(
+            type: .stakeUnfreeze,
+            metadata: .object(["resourceType": .string("bandwidth")])
+        )
+        #expect(bandwidthModel.titleExtraTextValue?.text == "From Bandwidth")
+
+        let energyModel = TransactionViewModel.mock(
+            type: .stakeUnfreeze,
+            metadata: .object(["resourceType": .string("energy")])
+        )
+        #expect(energyModel.titleExtraTextValue?.text == "From Energy")
+    }
+
+    @Test
+    func titleExtraFreezeNoMetadata() {
+        let model = TransactionViewModel.mock(
+            type: .stakeFreeze,
+            metadata: .null
+        )
+        #expect(model.titleExtraTextValue == nil)
+    }
+
+    @Test
+    func titleExtraHidesEmptyParticipant() {
+        let model = TransactionViewModel.mock(type: .stakeDelegate, direction: .outgoing, to: "")
+
+        #expect(model.titleExtraTextValue == nil)
+    }
+
+    @Test
+    func titleExtraHidesEmptySender() {
+        let model = TransactionViewModel(
+            explorerService: MockExplorerLink(),
+            transaction: .mock(
+                transaction: .mock(
+                    type: .transfer,
+                    direction: .incoming,
+                    from: "",
+                    to: "0x123"
+                )
+            ),
+            currency: "USD"
+        )
+
+        #expect(model.titleExtraTextValue == nil)
+    }
+
+    func testTransactionTitle(expectedTitle: String, transaction: Transaction) {
+        #expect(TransactionViewModel(explorerService: MockExplorerLink(), transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
+    }
+}
+
+extension TransactionViewModel {
+    static func mock(
+        type: TransactionType = .swap,
+        state: TransactionState = .confirmed,
+        direction: TransactionDirection = .incoming,
+        from: String = "",
+        to: String = "",
+        memo: String? = nil,
+        fromAddress: AddressName? = nil,
+        toAddress: AddressName? = nil,
+        value: String = "1000000000000000000",
+        asset: Asset = .mockEthereum(),
+        assets: [Asset] = [.mockEthereum(), .mockEthereumUSDT()],
+        metadata: AnyCodableValue? = nil
+    ) -> TransactionViewModel {
+        let transaction = Transaction.mock(
+            type: type,
+            state: state,
+            direction: direction,
+            from: from,
+            to: to,
+            value: value,
+            memo: memo,
+            metadata: metadata
+        )
+        let extended = TransactionExtended.mock(
+            transaction: transaction,
+            asset: asset,
+            assets: assets,
+            fromAddress: fromAddress,
+            toAddress: toAddress
+        )
+
+        return TransactionViewModel(
+            explorerService: MockExplorerLink(),
+            transaction: extended,
+            currency: "USD"
+        )
+    }
+}

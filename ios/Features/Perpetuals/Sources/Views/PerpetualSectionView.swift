@@ -1,0 +1,38 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import SwiftUI
+import Primitives
+
+struct PerpetualSectionView: View {
+    let perpetuals: [PerpetualData]
+    let onPin: (String, Bool) -> Void
+    let onSelect: (Asset) -> Void
+    let emptyText: String?
+
+    init(
+        perpetuals: [PerpetualData],
+        onPin: @escaping (String, Bool) -> Void,
+        onSelect: @escaping (Asset) -> Void,
+        emptyText: String? = nil
+    ) {
+        self.perpetuals = perpetuals
+        self.onPin = onPin
+        self.onSelect = onSelect
+        self.emptyText = emptyText
+    }
+
+    var body: some View {
+        if perpetuals.isEmpty, let emptyText {
+            Text(emptyText)
+                .foregroundStyle(.secondary)
+        } else {
+            ForEach(perpetuals) { perpetualData in
+                PerpetualListItem(
+                    perpetualData: perpetualData,
+                    onPin: onPin,
+                    onSelect: onSelect
+                )
+            }
+        }
+    }
+}

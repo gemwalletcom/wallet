@@ -1,0 +1,153 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import SwiftUI
+import Primitives
+import Components
+import Style
+import Store
+import PerpetualService
+import PrimitivesComponents
+import Preferences
+import Recents
+
+struct PerpetualsScene: View {
+    @Bindable private var model: PerpetualsSceneViewModel
+
+    init(model: PerpetualsSceneViewModel) {
+        self.model = model
+    }
+
+    var body: some View {
+        SearchableWrapper(
+            content: { list },
+            isSearching: $model.isSearching,
+            dismissSearch: .constant(false)
+        )
+        .searchable(
+            text: $model.searchQuery,
+            isPresented: $model.isSearchPresented,
+            placement: .navigationBarDrawer(displayMode: .automatic)
+        )
+        .onChange(of: model.searchQuery, model.onSearchQueryChange)
+        .onChange(of: model.isSearchPresented, model.onSearchPresentedChange)
+        .navigationTitle(model.navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: model.onSelectSearchButton) {
+                    model.searchImage
+                }
+            }
+        }
+        .taskOnce {
+            Task {
+                await model.fetch()
+            }
+        }
+        .onAppear {
+            Task { await model.onAppear() }
+        }
+        .onDisappear {
+            Task { await model.onDisappear() }
+        }
+        .refreshableTimer(every: .minutes(1)) {
+            await model.fetch()
+        }
+        .listSectionSpacing(.compact)
+        .sheet(isPresented: $model.isPresentingRecents) {
+            RecentsScene(
+                model: RecentsSceneViewModel(
+                    walletId: model.wallet.walletId,
+                    types: model.recentsQuery.request.types,
+                    filters: model.recentsQuery.request.filters,
+                    activityService: model.activityService,
+                    onSelect: model.onSelectRecent
+                )
+            )
+        }
+        .sheet(isPresented: $model.isPresentingPortfolio) {
+            PerpetualPortfolioScene(
+                model: PerpetualPortfolioSceneViewModel(
+                    wallet: model.wallet,
+                    perpetualService: model.perpetualService
+                )
+            )
+        }
+    }
+
+    var list: some View {
+        List {
+            if !model.isSearching {
+                Section { } header: {
+                    WalletHeaderView(
+                        model: model.headerViewModel,
+                        isPrivacyEnabled: .constant(false),
+                        balanceActionType: .action(model.onSelectBalance),
+                        onHeaderAction: model.onSelectHeaderAction,
+                        onInfoAction: .none
+                    )
+                    .padding(.top, Spacing.small)
+                }
+                .cleanListRow()
+            }
+
+            if model.showRecents {
+                RecentActivitySectionView(
+                    models: model.recentModels,
+                    onSelectRecents: model.onSelectRecents
+                ) { assetModel in
+                    Button {
+                        model.onSelectRecent(asset: assetModel.asset)
+                    } label: {
+                        AssetChipView(model: assetModel)
+                    }
+                }
+            }
+
+            if model.showPositions {
+                Section {
+                    PerpetualPositionsList(
+                        positions: model.positions,
+                        onSelect: model.onSelectPerpetual
+                    )
+                } header: {
+                    Text(model.positionsSectionTitle)
+                }
+                .listRowInsets(.assetListRowInsets)
+            }
+
+            if model.showPinned {
+                Section {
+                    PerpetualSectionView(
+                        perpetuals: model.sections.pinned,
+                        onPin: model.onPinPerpetual,
+                        onSelect: model.onSelectPerpetual
+                    )
+                } header: {
+                    HStack {
+                        model.pinImage
+                        Text(model.pinnedSectionTitle)
+                    }
+                }
+                .listRowInsets(.assetListRowInsets)
+            }
+
+            if model.showMarkets {
+                Section {
+                    PerpetualSectionView(
+                        perpetuals: model.sections.markets,
+                        onPin: model.onPinPerpetual,
+                        onSelect: model.onSelectPerpetual,
+                        emptyText: model.noMarketsText
+                    )
+                } header: {
+                    Text(model.marketsSectionTitle)
+                }
+                .listRowInsets(.assetListRowInsets)
+            }
+        }
+        .if(!model.isSearching) {
+            $0.contentMargins([.top], .space12, for: .scrollContent)
+        }
+    }
+}

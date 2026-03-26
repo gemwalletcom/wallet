@@ -1,0 +1,55 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import PerpetualService
+import Preferences
+import PreferencesTestKit
+import Primitives
+import Store
+import StoreTestKit
+
+public extension PerpetualService {
+    static func mock(
+        store: PerpetualStore = .mock(),
+        assetStore: AssetStore = .mock(),
+        priceStore: PriceStore = .mock(),
+        balanceStore: BalanceStore = .mock(),
+        provider: PerpetualProvidable = PerpetualProviderMock(),
+        preferences: Preferences = .mock()
+    ) -> PerpetualService {
+        PerpetualService(
+            store: store,
+            assetStore: assetStore,
+            priceStore: priceStore,
+            balanceStore: balanceStore,
+            provider: provider,
+            preferences: preferences
+        )
+    }
+}
+
+public struct PerpetualProviderMock: PerpetualProvidable {
+    public init() {}
+
+    public func provider() -> PerpetualProvider {
+        .hypercore
+    }
+
+    public func getPositions(address: String) async throws -> PerpetualPositionsSummary {
+        PerpetualPositionsSummary(
+            positions: [],
+            balance: PerpetualBalance(available: 0, reserved: 0, withdrawable: 0)
+        )
+    }
+
+    public func getPerpetualsData() async throws -> [PerpetualData] {
+        []
+    }
+
+    public func getCandlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {
+        []
+    }
+
+    public func getPortfolio(address: String) async throws -> PerpetualPortfolio {
+        PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil)
+    }
+}

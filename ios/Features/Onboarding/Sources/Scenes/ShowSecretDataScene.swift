@@ -1,0 +1,62 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import SwiftUI
+import Primitives
+import Components
+import Style
+import Localization
+import PrimitivesComponents
+
+struct ShowSecretDataScene: View {
+    
+    let model: any SecretPhraseViewableModel
+    @State private var isPresentingCopyToast = false
+
+    var body: some View {
+        List {
+            if let calloutViewStyle = model.calloutViewStyle {
+                Section {
+                    CalloutView(style: calloutViewStyle)
+                }
+                .cleanListRow()
+            }
+
+            Section {
+                SecretDataTypeView(type: model.type)
+            }
+            .cleanListRow()
+            
+            ListButton(
+                title: Localized.Common.copy,
+                image: Images.System.copy,
+                action: copy
+            )
+            .frame(maxWidth: .infinity, alignment: .center)
+            .cleanListRow()
+        }
+        .safeAreaButton(isVisible: model.continueAction != nil) {
+            StateButton(
+                text: Localized.Common.continue,
+                action: continueAction
+            )
+        }
+        .contentMargins([.top], .extraSmall, for: .scrollContent)
+        .listSectionSpacing(.custom(.medium))
+        .toolbarInfoButton(url: model.docsUrl)
+        .navigationTitle(model.title)
+        .copyToast(
+            model: model.copyModel,
+            isPresenting: $isPresentingCopyToast
+        )
+        .detectScreenshots(docsUrl: model.docsUrl)
+        .protectFromScreenRecording()
+    }
+    
+    private func copy() {
+        isPresentingCopyToast = true
+    }
+    
+    func continueAction() {
+        model.continueAction?()
+    }
+}

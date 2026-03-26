@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1640"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C30952AF299C39D70004C0F9"
+               BuildableName = "Gem.app"
+               BlueprintName = "Gem"
+               ReferencedContainer = "container:Gem.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:GemTests/unit_app.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:GemTests/unit_frameworks.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+      </TestPlans>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C30952C0299C39D80004C0F9"
+               BuildableName = "GemTests.xctest"
+               BlueprintName = "GemTests"
+               ReferencedContainer = "container:Gem.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D8A1F8722B17F21E00B15F54"
+               BuildableName = "Screenshots.xctest"
+               BlueprintName = "Screenshots"
+               ReferencedContainer = "container:Gem.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D83096AB2D5D4F1E00FFEE3E"
+               BuildableName = "GemUITests.xctest"
+               BlueprintName = "GemUITests"
+               ReferencedContainer = "container:Gem.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "ExplorerServiceTests"
+               BuildableName = "ExplorerServiceTests"
+               BlueprintName = "ExplorerServiceTests"
+               ReferencedContainer = "container:Services/ExplorerService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "FiatConnectTests"
+               BuildableName = "FiatConnectTests"
+               BlueprintName = "FiatConnectTests"
+               ReferencedContainer = "container:Features/FiatConnect">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DiscoverAssetsServiceTests"
+               BuildableName = "DiscoverAssetsServiceTests"
+               BlueprintName = "DiscoverAssetsServiceTests"
+               ReferencedContainer = "container:Services/DiscoverAssetsService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BalanceServiceTests"
+               BuildableName = "BalanceServiceTests"
+               BlueprintName = "BalanceServiceTests"
+               ReferencedContainer = "container:Services/BalanceService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "ChainServiceTests"
+               BuildableName = "ChainServiceTests"
+               BlueprintName = "ChainServiceTests"
+               ReferencedContainer = "container:Services/ChainService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AssetsServiceTests"
+               BuildableName = "AssetsServiceTests"
+               BlueprintName = "AssetsServiceTests"
+               ReferencedContainer = "container:Services/AssetsService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "NodeServiceTests"
+               BuildableName = "NodeServiceTests"
+               BlueprintName = "NodeServiceTests"
+               ReferencedContainer = "container:Services/NodeService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "LockManagerTests"
+               BuildableName = "LockManagerTests"
+               BlueprintName = "LockManagerTests"
+               ReferencedContainer = "container:Features/LockManager">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "ManageWalletsTest"
+               BuildableName = "ManageWalletsTest"
+               BlueprintName = "ManageWalletsTest"
+               ReferencedContainer = "container:Features/ManageWallets">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriceServiceTests"
+               BuildableName = "PriceServiceTests"
+               BlueprintName = "PriceServiceTests"
+               ReferencedContainer = "container:Services/PriceService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriceAlertsTests"
+               BuildableName = "PriceAlertsTests"
+               BlueprintName = "PriceAlertsTests"
+               ReferencedContainer = "container:Features/PriceAlerts">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriceAlertServiceTests"
+               BuildableName = "PriceAlertServiceTests"
+               BlueprintName = "PriceAlertServiceTests"
+               ReferencedContainer = "container:Services/PriceAlertService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "NFTServiceTests"
+               BuildableName = "NFTServiceTests"
+               BlueprintName = "NFTServiceTests"
+               ReferencedContainer = "container:Services/NFTService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "NativeProviderServiceTests"
+               BuildableName = "NativeProviderServiceTests"
+               BlueprintName = "NativeProviderServiceTests"
+               ReferencedContainer = "container:Services/NativeProviderService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "NFTTests"
+               BuildableName = "NFTTests"
+               BlueprintName = "NFTTests"
+               ReferencedContainer = "container:Features/NFT">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "QRScannerTests"
+               BuildableName = "QRScannerTests"
+               BlueprintName = "QRScannerTests"
+               ReferencedContainer = "container:Features/QRScanner">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PreferencesTest"
+               BuildableName = "PreferencesTest"
+               BlueprintName = "PreferencesTest"
+               ReferencedContainer = "container:Packages/Preferences">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WalletSessionServiceTests"
+               BuildableName = "WalletSessionServiceTests"
+               BlueprintName = "WalletSessionServiceTests"
+               ReferencedContainer = "container:Services/WalletSessionService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "TransactionServiceTests"
+               BuildableName = "TransactionServiceTests"
+               BlueprintName = "TransactionServiceTests"
+               ReferencedContainer = "container:Services/TransactionService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WalletTabTests"
+               BuildableName = "WalletTabTests"
+               BlueprintName = "WalletTabTests"
+               ReferencedContainer = "container:Features/WalletTab">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "TransactionsTests"
+               BuildableName = "TransactionsTests"
+               BlueprintName = "TransactionsTests"
+               ReferencedContainer = "container:Features/Transactions">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SwapServiceTests"
+               BuildableName = "SwapServiceTests"
+               BlueprintName = "SwapServiceTests"
+               ReferencedContainer = "container:Services/SwapService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SettingsTests"
+               BuildableName = "SettingsTests"
+               BlueprintName = "SettingsTests"
+               ReferencedContainer = "container:Features/Settings">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SwapTests"
+               BuildableName = "SwapTests"
+               BlueprintName = "SwapTests"
+               ReferencedContainer = "container:Features/Swap">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WalletConnectorTests"
+               BuildableName = "WalletConnectorTests"
+               BlueprintName = "WalletConnectorTests"
+               ReferencedContainer = "container:Features/WalletConnector">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "TransactionsServiceTests"
+               BuildableName = "TransactionsServiceTests"
+               BlueprintName = "TransactionsServiceTests"
+               ReferencedContainer = "container:Services/TransactionsService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WalletConnectorServiceTests"
+               BuildableName = "WalletConnectorServiceTests"
+               BlueprintName = "WalletConnectorServiceTests"
+               ReferencedContainer = "container:Services/WalletConnectorService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "TransferTests"
+               BuildableName = "TransferTests"
+               BlueprintName = "TransferTests"
+               ReferencedContainer = "container:Features/Transfer">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "StakeTests"
+               BuildableName = "StakeTests"
+               BlueprintName = "StakeTests"
+               ReferencedContainer = "container:Features/Stake">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "StakeServiceTests"
+               BuildableName = "StakeServiceTests"
+               BlueprintName = "StakeServiceTests"
+               ReferencedContainer = "container:Services/StakeService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AppServiceTests"
+               BuildableName = "AppServiceTests"
+               BlueprintName = "AppServiceTests"
+               ReferencedContainer = "container:Services/AppService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "WalletServiceTests"
+               BuildableName = "WalletServiceTests"
+               BlueprintName = "WalletServiceTests"
+               ReferencedContainer = "container:Services/WalletService">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "OnboardingTest"
+               BuildableName = "OnboardingTest"
+               BlueprintName = "OnboardingTest"
+               ReferencedContainer = "container:Features/Onboarding">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      language = "en"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "NO"
+      debugServiceExtension = "internal"
+      enableGPUFrameCaptureMode = "3"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "C30952AF299C39D70004C0F9"
+            BuildableName = "Gem.app"
+            BlueprintName = "Gem"
+            ReferencedContainer = "container:Gem.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "DB_LOG_ENABLED"
+            value = "true"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "C30952AF299C39D70004C0F9"
+            BuildableName = "Gem.app"
+            BlueprintName = "Gem"
+            ReferencedContainer = "container:Gem.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
