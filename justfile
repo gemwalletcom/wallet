@@ -36,5 +36,8 @@ generate-models:
 generate-stone:
     @cd ios && just generate-stone
 
+bump TARGET="patch":
+    @bash ./scripts/bump.sh {{TARGET}}
+
 core-upgrade:
     @git submodule update --recursive --remote

@@ -99,8 +99,8 @@ build-app-in-docker:
 core-upgrade:
 	@git submodule update --recursive --remote
 
-bump:
-	@sh ./scripts/bump.sh
+bump TARGET="patch":
+	@cd .. && just bump {{TARGET}}
 
 generate-verification-metadata:
 	#!/usr/bin/env bash
