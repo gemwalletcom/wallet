@@ -25,5 +25,16 @@ android-build-test:
 android-test:
     @cd android && just test
 
+generate: generate-model generate-stone
+
+generate-model: generate-models
+
+generate-models:
+    @cd ios && just generate-model
+    @cd android && just generate-models
+
+generate-stone:
+    @cd ios && just generate-stone
+
 core-upgrade:
     @git submodule update --recursive --remote
