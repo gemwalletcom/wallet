@@ -4,7 +4,6 @@
 
 package com.wallet.core.primitives.swap
 
-import com.wallet.core.primitives.SwapProvider
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
@@ -13,13 +12,6 @@ data class ApprovalData (
 	val token: String,
 	val spender: String,
 	val value: String
-)
-
-@Serializable
-data class QuoteAsset (
-	val id: String,
-	val symbol: String,
-	val decimals: UInt
 )
 
 @Serializable

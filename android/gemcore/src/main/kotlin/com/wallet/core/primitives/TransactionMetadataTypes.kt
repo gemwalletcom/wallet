@@ -18,6 +18,7 @@ data class TransactionPerpetualMetadata (
 	val pnl: Double,
 	val price: Double,
 	val direction: PerpetualDirection,
+	val isLiquidation: Boolean? = null,
 	val provider: PerpetualProvider? = null
 )
 

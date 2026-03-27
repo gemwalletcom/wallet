@@ -72,8 +72,6 @@ enum class SimulationSeverity(val string: String) {
 	Critical("critical"),
 }
 
-enum class SimulationWarningType
-
 @Serializable
 data class SimulationWarning (
 	val severity: SimulationSeverity,

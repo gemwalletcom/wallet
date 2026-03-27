@@ -8,12 +8,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-enum class FreezeType(val string: String) {
-	@SerialName("freeze")
-	Freeze("freeze"),
-	@SerialName("unfreeze")
-	Unfreeze("unfreeze"),
-}
+data class RedelegateData (
+	val delegation: Delegation,
+	val toValidator: DelegationValidator
+)
 
 @Serializable
 enum class Resource(val string: String) {
@@ -22,18 +20,6 @@ enum class Resource(val string: String) {
 	@SerialName("energy")
 	Energy("energy"),
 }
-
-@Serializable
-data class FreezeData (
-	val freezeType: FreezeType,
-	val resource: Resource
-)
-
-@Serializable
-data class RedelegateData (
-	val delegation: Delegation,
-	val toValidator: DelegationValidator
-)
 
 @Serializable
 data class TronUnfreeze (
@@ -66,7 +52,10 @@ sealed class StakeType {
 	data class Withdraw(val content: Delegation): StakeType()
 	@Serializable
 	@SerialName("Freeze")
-	data class Freeze(val content: FreezeData): StakeType()
+	data class Freeze(val content: Resource): StakeType()
+	@Serializable
+	@SerialName("Unfreeze")
+	data class Unfreeze(val content: Resource): StakeType()
 }
 
 @Serializable

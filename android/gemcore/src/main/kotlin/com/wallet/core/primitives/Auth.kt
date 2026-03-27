@@ -14,13 +14,6 @@ data class AuthNonce (
 )
 
 @Serializable
-data class AuthMessage (
-	val chain: Chain,
-	val address: String,
-	val authNonce: AuthNonce
-)
-
-@Serializable
 data class AuthPayload (
 	val deviceId: String,
 	val chain: Chain,

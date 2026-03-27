@@ -242,35 +242,32 @@ class AssetsRepository @Inject constructor(
             searchTokensCase.search(widgetAssetIds, currency)
         }
 
-        val prices = widgetAssetIds.map { assetId ->
+        val marketsByAssetId = widgetAssetIds.map { assetId ->
             async {
-                try {
-                    gemApi.getAsset(assetId.toIdentifier())
+                val market = try {
+                    gemApi.getMarket(assetId.toIdentifier(), currency.string)
                 } catch (_: Throwable) {
                     null
                 }
+                assetId to market
             }
         }
         .awaitAll()
-        .filterNotNull()
+        .toMap()
         (getTokensInfo(widgetAssetIds.map { it.toIdentifier() }).firstOrNull() ?: emptyList())
             .map { assetInfo ->
-                val price = prices.firstOrNull { it.asset.id == assetInfo.asset.id }
-                if (price == null) {
-                    assetInfo
-                } else {
-                    assetInfo.copy(
-                        price = AssetPriceInfo(
-                            currency = currency,
-                            price = AssetPrice(
-                                assetId = assetInfo.asset.id,
-                                price = price.price.price,
-                                priceChangePercentage24h = price.price.priceChangePercentage24h,
-                                updatedAt = System.currentTimeMillis()
-                            )
+                val marketPrice = marketsByAssetId[assetInfo.asset.id]?.price ?: return@map assetInfo
+                assetInfo.copy(
+                    price = AssetPriceInfo(
+                        currency = currency,
+                        price = AssetPrice(
+                            assetId = assetInfo.asset.id,
+                            price = marketPrice.price,
+                            priceChangePercentage24h = marketPrice.priceChangePercentage24h,
+                            updatedAt = System.currentTimeMillis()
                         )
                     )
-                }
+                )
             }
     }
 

@@ -278,7 +278,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 2500000000.0,
                     volume24h = 15000000000.0,
                     funding = 0.0001,
-                    maxLeverage = 100u
+                    maxLeverage = 100u,
+                    isIsolatedOnly = false
                 ),
                 asset = btcAsset,
                 metadata = PerpetualMetadata(isPinned = true)
@@ -295,7 +296,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 1200000000.0,
                     volume24h = 8000000000.0,
                     funding = 0.00008,
-                    maxLeverage = 50u
+                    maxLeverage = 50u,
+                    isIsolatedOnly = false
                 ),
                 asset = ethAsset,
                 metadata = PerpetualMetadata(isPinned = true)
@@ -312,7 +314,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 500000000.0,
                     volume24h = 3000000000.0,
                     funding = 0.00005,
-                    maxLeverage = 20u
+                    maxLeverage = 20u,
+                    isIsolatedOnly = false
                 ),
                 asset = solAsset,
                 metadata = PerpetualMetadata(isPinned = true)
@@ -329,7 +332,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 350000000.0,
                     volume24h = 2000000000.0,
                     funding = 0.00012,
-                    maxLeverage = 50u
+                    maxLeverage = 50u,
+                    isIsolatedOnly = false
                 ),
                 asset = bnbAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -346,7 +350,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 120000000.0,
                     volume24h = 800000000.0,
                     funding = 0.00006,
-                    maxLeverage = 25u
+                    maxLeverage = 25u,
+                    isIsolatedOnly = false
                 ),
                 asset = maticAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -363,7 +368,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 200000000.0,
                     volume24h = 1200000000.0,
                     funding = 0.00009,
-                    maxLeverage = 30u
+                    maxLeverage = 30u,
+                    isIsolatedOnly = false
                 ),
                 asset = avaxAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -380,7 +386,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 180000000.0,
                     volume24h = 950000000.0,
                     funding = 0.00007,
-                    maxLeverage = 20u
+                    maxLeverage = 20u,
+                    isIsolatedOnly = false
                 ),
                 asset = adaAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -397,7 +404,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 500000000.0,
                     volume24h = 3000000000.0,
                     funding = 0.00001,
-                    maxLeverage = 10u
+                    maxLeverage = 10u,
+                    isIsolatedOnly = false
                 ),
                 asset = usdtAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -414,7 +422,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 450000000.0,
                     volume24h = 2800000000.0,
                     funding = 0.00001,
-                    maxLeverage = 10u
+                    maxLeverage = 10u,
+                    isIsolatedOnly = false
                 ),
                 asset = usdcAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -431,7 +440,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 150000000.0,
                     volume24h = 900000000.0,
                     funding = 0.00008,
-                    maxLeverage = 25u
+                    maxLeverage = 25u,
+                    isIsolatedOnly = false
                 ),
                 asset = linkAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -448,7 +458,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 100000000.0,
                     volume24h = 600000000.0,
                     funding = 0.00007,
-                    maxLeverage = 20u
+                    maxLeverage = 20u,
+                    isIsolatedOnly = false
                 ),
                 asset = uniAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -465,7 +476,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 80000000.0,
                     volume24h = 450000000.0,
                     funding = 0.00009,
-                    maxLeverage = 20u
+                    maxLeverage = 20u,
+                    isIsolatedOnly = false
                 ),
                 asset = aaveAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -482,7 +494,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 50000000.0,
                     volume24h = 300000000.0,
                     funding = 0.00005,
-                    maxLeverage = 15u
+                    maxLeverage = 15u,
+                    isIsolatedOnly = false
                 ),
                 asset = cakeAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -499,7 +512,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 40000000.0,
                     volume24h = 250000000.0,
                     funding = 0.00006,
-                    maxLeverage = 15u
+                    maxLeverage = 15u,
+                    isIsolatedOnly = false
                 ),
                 asset = rayAsset,
                 metadata = PerpetualMetadata(isPinned = false)
@@ -516,7 +530,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
                     openInterest = 35000000.0,
                     volume24h = 200000000.0,
                     funding = 0.00004,
-                    maxLeverage = 15u
+                    maxLeverage = 15u,
+                    isIsolatedOnly = false
                 ),
                 asset = orcaAsset,
                 metadata = PerpetualMetadata(isPinned = false)

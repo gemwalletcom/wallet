@@ -15,3 +15,35 @@ enum class FiatQuoteType(val string: String) {
 	Sell("sell"),
 }
 
+@Serializable
+enum class FiatTransactionStatus(val string: String) {
+	@SerialName("complete")
+	Complete("complete"),
+	@SerialName("pending")
+	Pending("pending"),
+	@SerialName("failed")
+	Failed("failed"),
+	@SerialName("unknown")
+	Unknown("unknown"),
+}
+
+@Serializable
+data class FiatTransaction (
+	val id: String,
+	val assetId: AssetId,
+	val transactionType: FiatQuoteType,
+	val provider: FiatProviderName,
+	val status: FiatTransactionStatus,
+	val fiatAmount: Double,
+	val fiatCurrency: String,
+	val value: String,
+	val createdAt: SerializedDate
+)
+
+@Serializable
+data class FiatTransactionInfo (
+	val transaction: FiatTransaction,
+	val asset: Asset,
+	val detailsUrl: String? = null
+)
+

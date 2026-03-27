@@ -71,13 +71,6 @@ data class NFTAssetData (
 )
 
 @Serializable
-data class NFTAssetId (
-	val chain: Chain,
-	val contractAddress: String,
-	val tokenId: String
-)
-
-@Serializable
 data class NFTData (
 	val collection: NFTCollection,
 	val assets: List<NFTAsset>

@@ -34,9 +34,3 @@ data class ChainNodes (
 	val nodes: List<Node>
 )
 
-@Serializable
-data class NodesResponse (
-	val version: Int,
-	val nodes: List<ChainNodes>
-)
-

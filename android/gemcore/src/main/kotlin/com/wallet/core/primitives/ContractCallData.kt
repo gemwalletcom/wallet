@@ -4,7 +4,6 @@
 
 package com.wallet.core.primitives
 
-import com.wallet.core.primitives.swap.ApprovalData
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 

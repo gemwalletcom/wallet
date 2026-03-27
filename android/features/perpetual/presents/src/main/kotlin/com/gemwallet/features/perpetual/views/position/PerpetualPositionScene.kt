@@ -85,7 +85,7 @@ private fun PerpetualPositionScenePreview() {
         override val maxLeverage: Int = 40
         override val price: Double = 0.0
         override val identifier: String = "BTC-PERP"
-        override val onlyIsolated: Boolean = false
+        override val isIsolatedOnly: Boolean = false
     }
 
     val samplePosition = object : PerpetualPositionDetailsDataAggregate {

@@ -9,7 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class Transaction (
-	val id: String,
+	val id: TransactionId,
 	val assetId: AssetId,
 	val from: String,
 	val to: String,

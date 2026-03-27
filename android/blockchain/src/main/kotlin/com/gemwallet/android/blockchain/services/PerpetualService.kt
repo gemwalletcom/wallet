@@ -69,6 +69,7 @@ fun GemPerpetualData.toDTO(): PerpetualData? {
             volume24h = perpetual.volume24h,
             funding = perpetual.funding,
             maxLeverage = perpetual.maxLeverage,
+            isIsolatedOnly = perpetual.isIsolatedOnly,
         ),
         asset = asset.toDTO(),
         metadata = PerpetualMetadata(

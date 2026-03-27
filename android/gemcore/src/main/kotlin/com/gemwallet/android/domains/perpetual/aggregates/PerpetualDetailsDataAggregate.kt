@@ -15,7 +15,7 @@ interface PerpetualDetailsDataAggregate {
     val maxLeverage: Int
     val price: Double
     val identifier: String
-    val onlyIsolated: Boolean
+    val isIsolatedOnly: Boolean
     val marginType: PerpetualMarginType
-        get() = if (onlyIsolated) PerpetualMarginType.Isolated else PerpetualMarginType.Cross
+        get() = if (isIsolatedOnly) PerpetualMarginType.Isolated else PerpetualMarginType.Cross
 }

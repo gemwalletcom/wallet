@@ -4,7 +4,6 @@
 
 package com.wallet.core.primitives.swap
 
-import com.wallet.core.primitives.TransactionSwapMetadata
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 

@@ -42,7 +42,7 @@ data class StreamPriceAlertUpdate (
 @Serializable
 data class StreamTransactionsUpdate (
 	val walletId: WalletId,
-	val transactions: List<String>
+	val transactions: List<TransactionId>
 )
 
 @Serializable

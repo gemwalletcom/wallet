@@ -19,12 +19,6 @@ data class FiatQuote (
 )
 
 @Serializable
-data class FiatQuoteError (
-	val provider: String? = null,
-	val error: String
-)
-
-@Serializable
 data class FiatQuoteUrl (
 	val redirectUrl: String
 )
