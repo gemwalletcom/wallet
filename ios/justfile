@@ -114,8 +114,9 @@ test-all: (_test "test")
 
 test-without-building: (_test "test-without-building")
 
+# Example: just test
 # Example: just test PrimitivesTests
-test TARGET: (_test "test" TARGET)
+test TARGET="": (_test "test" TARGET)
 
 _test-ui action:
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \

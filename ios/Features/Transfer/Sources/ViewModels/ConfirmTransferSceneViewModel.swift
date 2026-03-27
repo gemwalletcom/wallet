@@ -133,7 +133,6 @@ public final class ConfirmTransferSceneViewModel {
         ConfirmDetailsViewModel(type: transferData.type, metadata: metadata)
     }
 
-
     private var headerType: TransactionHeaderType {
         if let headerData = simulationState.headerData {
             return .assetValue(headerData)

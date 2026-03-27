@@ -52,7 +52,6 @@ public final class ReceiveViewModel: Sendable {
         Localized.Common.copy
     }
 
-
     var warningMessage: String {
         [Localized.Receive.warning(assetModel.symbol.boldMarkdown(), assetModel.networkFullName.boldMarkdown()), memoWarningText]
             .compactMap { $0 }

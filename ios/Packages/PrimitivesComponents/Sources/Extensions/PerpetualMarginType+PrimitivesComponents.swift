@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
-extension PerpetualMarginType {
-    public var displayText: String {
+public extension PerpetualMarginType {
+    var title: String {
         switch self {
         case .cross: "Cross"
         case .isolated: "Isolated"

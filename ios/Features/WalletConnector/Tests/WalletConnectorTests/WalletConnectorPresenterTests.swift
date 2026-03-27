@@ -67,7 +67,6 @@ struct WalletConnectorPresenterTests {
     }
 }
 
-
 private func presentedSheet(from presenter: WalletConnectorPresenter) async -> WalletConnectorSheetType? {
     for _ in 0..<10 {
         if let sheet = await MainActor.run(body: { presenter.isPresentingSheet }) {

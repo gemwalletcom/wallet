@@ -134,7 +134,6 @@ struct LocalKeystoreTests {
         #expect(encoded == "5ZRaXVuDePowJjZmKaMjfcuqBVZet6e8QiCjTkGXBn7xhCvoEswUKXiGs2wmPxcqTfJUH28eCC91J1vLSjANNM9v")
     }
 
-
     @Test
     func deriveAddress() async {
         await #expect(throws: Never.self) {

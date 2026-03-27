@@ -48,7 +48,6 @@ import ContactService
 import FiatService
 import WebSocketClient
 
-
 struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let storeManager = StoreManager(db: storages.db)

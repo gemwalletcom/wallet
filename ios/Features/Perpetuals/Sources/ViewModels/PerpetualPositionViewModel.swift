@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Formatters
-import SwiftUI
-import Style
 import Components
-import PrimitivesComponents
+import Formatters
+import Foundation
 import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct PerpetualPositionViewModel {
     public let data: PerpetualPositionData
@@ -20,39 +20,39 @@ public struct PerpetualPositionViewModel {
         currencyStyle: CurrencyFormatterType = .currency
     ) {
         self.data = data
-        self.currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
-        self.percentFormatter = CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
-        self.autocloseFormatter = AutocloseFormatter(currencyFormatter: currencyFormatter)
+        currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
+        percentFormatter = CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
+        autocloseFormatter = AutocloseFormatter(currencyFormatter: currencyFormatter)
     }
-    
+
     public var assetImage: AssetImage {
         AssetIdViewModel(assetId: data.perpetual.assetId).assetImage
     }
-    
+
     public var nameText: String {
         data.perpetual.name
     }
-    
+
     public var symbolText: String {
         data.asset.symbol
     }
-    
+
     public var leverageText: String {
         "\(Int(data.position.leverage))x"
     }
-    
+
     public var directionText: String {
         PerpetualDirectionViewModel(direction: data.position.direction).title
     }
-    
+
     public var positionTypeText: String {
         "\(directionText.uppercased()) \(leverageText)"
     }
-    
+
     public var positionTypeColor: Color {
         PerpetualDirectionViewModel(direction: data.position.direction).color
     }
-    
+
     public var pnlViewModel: PnLViewModel {
         PnLViewModel(
             pnl: data.position.pnl,
@@ -61,12 +61,14 @@ public struct PerpetualPositionViewModel {
             percentFormatter: percentFormatter
         )
     }
+
     public var pnlField: ListItemField {
         ListItemField(
             title: TextValue(text: pnlViewModel.title, style: .body),
             value: TextValue(text: pnlViewModel.text ?? "", style: pnlViewModel.textStyle)
         )
     }
+
     public var pnlColor: Color { pnlViewModel.color }
     public var pnlPercent: Double { pnlViewModel.percent }
     public var pnlWithPercentText: String { pnlViewModel.text ?? "" }
@@ -85,7 +87,7 @@ public struct PerpetualPositionViewModel {
 
     public var marginField: ListItemField {
         let marginAmount = currencyFormatter.string(data.position.marginAmount)
-        return ListItemField(title: Localized.Perpetual.margin, value: "\(marginAmount) (\(data.position.marginType.displayText))")
+        return ListItemField(title: Localized.Perpetual.margin, value: "\(marginAmount) (\(data.position.marginType.title))")
     }
 
     public var fundingPaymentsField: ListItemField {
@@ -94,6 +96,7 @@ public struct PerpetualPositionViewModel {
             value: TextValue(text: fundingPaymentsModel.text ?? "-", style: fundingPaymentsModel.textStyle)
         )
     }
+
     public var fundingPaymentsColor: Color { fundingPaymentsModel.color }
 
     public var sizeField: ListItemField {

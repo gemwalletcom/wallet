@@ -168,9 +168,6 @@ public final class AssetsService: Sendable {
         }
     }
 
-
-
-
     public func setSwappableAssets(for chains: [Chain]) throws {
         try assetStore.setAssetIsSwappable(for: chains.map { $0.id }, value: true)
     }

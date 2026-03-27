@@ -112,7 +112,6 @@ public final class SignMessageSceneViewModel {
         TextMessageViewModel(message: plainMessage)
     }
 
-
     public var simulationWarnings: [SimulationWarning] {
         payload.simulation.warnings
     }
