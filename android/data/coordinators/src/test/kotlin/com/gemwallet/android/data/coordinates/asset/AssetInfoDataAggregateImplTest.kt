@@ -281,9 +281,11 @@ class AssetInfoDataAggregateImplTest {
                 isSellEnabled = true,
                 isSwapEnabled = true,
                 isStakeEnabled = false,
+                isEarnEnabled = false,
                 isPinned = true,
                 isActive = true,
                 stakingApr = null,
+                earnApr = null,
                 rankScore = 0
             )
         )
@@ -303,9 +305,11 @@ class AssetInfoDataAggregateImplTest {
                 isSellEnabled = true,
                 isSwapEnabled = true,
                 isStakeEnabled = false,
+                isEarnEnabled = false,
                 isPinned = false,
                 isActive = true,
                 stakingApr = null,
+                earnApr = null,
                 rankScore = 0
             )
         )

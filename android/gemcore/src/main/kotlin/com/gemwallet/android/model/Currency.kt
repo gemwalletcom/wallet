@@ -56,16 +56,17 @@ fun fiatFormat(
 }
 
 private fun cutFraction(value: BigDecimal, decimalPlace: Int, maxDecimals: Int, dynamicDecimal: Boolean = false): Pair<BigDecimal, Int> {
+    val absoluteValue = value.abs()
     val decimalPlace = when {
-        value < BigDecimal.valueOf(0.01) && value > BigDecimal.valueOf(0.0001) && dynamicDecimal && decimalPlace < 6 -> 6
-        value < BigDecimal.ONE && dynamicDecimal && decimalPlace < 4 -> 4
+        absoluteValue < BigDecimal.valueOf(0.01) && absoluteValue > BigDecimal.valueOf(0.0001) && dynamicDecimal && decimalPlace < 6 -> 6
+        absoluteValue < BigDecimal.ONE && dynamicDecimal && decimalPlace < 4 -> 4
         else -> decimalPlace
     }
     if (value.compareTo(BigDecimal.ZERO) == 0) {
         return Pair(value, decimalPlace)
     }
-    val whole = value.toBigInteger().abs().toBigDecimal()
-    val fraction = value.abs().minus(whole).stripTrailingZeros().toPlainString()
+    val whole = absoluteValue.toBigInteger().toBigDecimal()
+    val fraction = absoluteValue.minus(whole).stripTrailingZeros().toPlainString()
 
     val result = if (decimalPlace == -1) {
         value
@@ -82,7 +83,7 @@ private fun cutFraction(value: BigDecimal, decimalPlace: Int, maxDecimals: Int, 
             result.multiply(BigDecimal(-1.0))
         }
     }
-    return if (result <= BigDecimal.ZERO && dynamicDecimal && decimalPlace < fraction.length && (decimalPlace < maxDecimals || maxDecimals == -1)) {
+    return if (result.compareTo(BigDecimal.ZERO) == 0 && dynamicDecimal && decimalPlace < fraction.length && (decimalPlace < maxDecimals || maxDecimals == -1)) {
         cutFraction(value, decimalPlace * 3, maxDecimals, true)
     } else {
         Pair(result, decimalPlace)

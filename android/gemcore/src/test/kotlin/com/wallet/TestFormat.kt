@@ -29,10 +29,17 @@ class TestFormat {
         assertEquals(Currency.USD.format(2.0), "$2.00")
         assertEquals(Currency.USD.format(2.04E-6), "$0.00")
         assertEquals(Currency.USD.format(0.0123444, dynamicPlace = true), "$0.0123")
+        assertEquals(Currency.USD.format(-0.0123444, dynamicPlace = true), "-\$0.0123")
         assertEquals(Currency.USD.format(0.0023444, dynamicPlace = true), "$0.002344")
+        assertEquals(Currency.USD.format(-0.0023444, dynamicPlace = true), "-\$0.002344")
         assertEquals(Currency.USD.format(0.00023444, dynamicPlace = true), "$0.000234")
+        assertEquals(Currency.USD.format(-0.00023444, dynamicPlace = true), "-\$0.000234")
         assertEquals(Currency.USD.format(0.123456, dynamicPlace = true), "$0.1234")
+        assertEquals(Currency.USD.format(-0.123456, dynamicPlace = true), "-\$0.1234")
         assertEquals(Currency.USD.format(0.00123456, dynamicPlace = true), "$0.001234")
+        assertEquals(Currency.USD.format(-0.00123456, dynamicPlace = true), "-\$0.001234")
         assertEquals(Currency.USD.format(2.04E-6, dynamicPlace = true), "$0.00000204")
+        assertEquals(Currency.USD.format(-2.04E-6, dynamicPlace = true), "-\$0.00000204")
+        assertEquals(Currency.USD.format(-140.5699884368446, dynamicPlace = true), "-\$140.56")
     }
 }

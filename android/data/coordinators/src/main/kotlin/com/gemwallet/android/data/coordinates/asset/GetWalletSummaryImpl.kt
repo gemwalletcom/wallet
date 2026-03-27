@@ -5,6 +5,7 @@ import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositoreis.assets.AssetsRepository
 import com.gemwallet.android.data.repositoreis.config.UserConfig
 import com.gemwallet.android.data.repositoreis.session.SessionRepository
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ext.asset
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import java.math.BigDecimal
+import java.math.MathContext
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletSummaryImpl(
@@ -37,16 +39,17 @@ class GetWalletSummaryImpl(
             val wallet = session?.wallet ?: return@combine null
             val currency = session.currency
 
-            val (totalValue, changedValue) = assets.map {
+            val (totalValue, totalChangedValue) = assets.map {
                 val current = it.balance.fiatTotalAmount.toBigDecimal()
                 val changed = current * ((it.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
                 Pair(current, changed)
             }.fold(Pair(BigDecimal.ZERO, BigDecimal.ZERO)) { acc, pair ->
                 Pair(acc.first + pair.first, acc.second + pair.second)
             }
-            val changedPercentages = (changedValue.toDouble() / (totalValue.toDouble() / 100.0)).let {
-                if (it.isNaN()) 0.0 else it
-            }
+            val changedPercentage = calculateWalletChangedPercentage(
+                totalValue = totalValue,
+                changedValue = totalChangedValue,
+            )
             val icon = when (wallet.type) {
                 WalletType.Multicoin -> null
                 else -> wallet.accounts.firstOrNull()?.chain?.asset()
@@ -64,17 +67,37 @@ class GetWalletSummaryImpl(
                 walletName = wallet.name,
                 walletIcon = icon,
                 walletTotalValue = if (hideBalances) "✱✱✱✱✱✱" else currency.format(totalValue, dynamicPlace = true),
-                changedValue = if (hideBalances) null else object : EquivalentValue {
-                    override val currency: Currency = currency
-                    override val value: Double = changedValue.toDouble()
-                    override val changePercentage: Double = changedPercentages
-
-                },
+                changedValue = if (hideBalances) null else WalletSummaryEquivalentValue(
+                    currency = currency,
+                    value = totalChangedValue.toDouble(),
+                    changePercentage = changedPercentage,
+                ),
                 isOperationsAvailable = !hasMultiSign,
                 isSwapAvailable = isSwapEnabled,
             )
         }
     }
+}
+
+internal fun calculateWalletChangedPercentage(
+    totalValue: BigDecimal,
+    changedValue: BigDecimal,
+): Double {
+    if (totalValue.compareTo(BigDecimal.ZERO) == 0) {
+        return 0.0
+    }
+    return changedValue.multiply(BigDecimal.valueOf(100.0))
+        .divide(totalValue, MathContext.DECIMAL128)
+        .toDouble()
+}
+
+internal class WalletSummaryEquivalentValue(
+    override val currency: Currency,
+    override val value: Double?,
+    override val changePercentage: Double?,
+) : EquivalentValue {
+    override val changePercentageFormatted: String
+        get() = changePercentage.formatAsPercentage(isShowSign = false)
 }
 
 class WalletSummaryAggregateImpl(

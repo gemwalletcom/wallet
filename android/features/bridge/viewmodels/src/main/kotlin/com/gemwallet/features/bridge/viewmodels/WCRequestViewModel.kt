@@ -132,6 +132,7 @@ class WCRequestViewModel @Inject constructor(
             onReject(sessionRequest)
             onCancel(null)
         } catch (_: BridgeRequestError.ChainUnsupported) {
+            onReject(sessionRequest)
             onCancel(null)
         } catch (_: Throwable) {
             state.update { it.copy(error = "Unsupported method: ${sessionRequest.request.method}") }
@@ -244,7 +245,7 @@ class WCRequestViewModel @Inject constructor(
 
     private fun validateChain(chain: Chain, session: WalletConnectionSession) {
         if (!session.chains.contains(chain)) {
-            throw IllegalAccessException("Unresolve chain id")
+            throw BridgeRequestError.UnresolvedChainId
         }
     }
 }
@@ -286,4 +287,3 @@ sealed interface RequestSceneState {
         val request: WCRequest,
     ) : RequestSceneState
 }
-
