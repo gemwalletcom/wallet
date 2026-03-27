@@ -30,6 +30,24 @@ test:
 unit-test:
     @./gradlew testGoogleDebugUnitTest
 
+start-emulator:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    AVD_NAME="ci-emulator"
+    if ! avdmanager list avd -c | grep -q "$AVD_NAME"; then
+      echo "no" | avdmanager create avd -n "$AVD_NAME" -k "system-images;android-35;google_apis;arm64-v8a" --device "pixel_6"
+    fi
+    nohup emulator -avd "$AVD_NAME" -no-snapshot-save -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect > /dev/null 2>&1 &
+    adb wait-for-device
+    adb shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done'
+    adb shell settings put global window_animation_scale 0
+    adb shell settings put global transition_animation_scale 0
+    adb shell settings put global animator_duration_scale 0
+    echo "Emulator ready"
+
+stop-emulator:
+    adb emu kill || true
+
 mobsfscan:
     @command -v uv >/dev/null || { \
         echo "uv is not installed. Install it via 'curl -LsSf https://astral.sh/uv/install.sh | sh'."; \
