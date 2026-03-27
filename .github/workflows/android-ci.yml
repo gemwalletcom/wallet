@@ -91,9 +91,9 @@ jobs:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run tests
+      - name: Run unit tests
         working-directory: android
-        run: just test
+        run: just unit-test
         env:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -27,6 +27,9 @@ build-test:
 test:
     @./gradlew connectedGoogleDebugAndroidTest
 
+unit-test:
+    @./gradlew testGoogleDebugUnitTest
+
 mobsfscan:
     @command -v uv >/dev/null || { \
         echo "uv is not installed. Install it via 'curl -LsSf https://astral.sh/uv/install.sh | sh'."; \
