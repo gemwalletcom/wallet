@@ -59,19 +59,16 @@ fun RequestScene(
     val viewModel: WCRequestViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    DisposableEffect(request.request.id.toString()) {
+    DisposableEffect(request.topic, request.request.id) {
         viewModel.onRequest(request, verifyContext) { error ->
-            error?.let {
-                when (it) {
-                    BridgeRequestError.ScamSession -> Toast.makeText(
-                        context,
-                        R.string.errors_connections_malicious_origin,
-                        Toast.LENGTH_LONG
-                    ).show()
-                    else -> {}
-                }
+            when (error) {
+                BridgeRequestError.ScamSession -> Toast.makeText(
+                    context,
+                    R.string.errors_connections_malicious_origin,
+                    Toast.LENGTH_LONG
+                ).show()
+                else -> Unit
             }
-            onCancel()
         }
 
         onDispose { viewModel.reset() }
@@ -80,10 +77,12 @@ fun RequestScene(
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
 
     when (sceneState) {
-        RequestSceneState.Loading -> LoadingScene(stringResource(id = R.string.wallet_connect_title), onCancel)
+        RequestSceneState.Loading -> LoadingScene(stringResource(id = R.string.wallet_connect_title), viewModel::onReject)
         is RequestSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_title),
-            message = (sceneState as RequestSceneState.Error).message,
+            message = (sceneState as RequestSceneState.Error).message.ifBlank {
+                stringResource(id = R.string.errors_unknown_try_again)
+            },
             onCancel = viewModel::onReject
         )
         is RequestSceneState.Request -> (sceneState as RequestSceneState.Request).let { sceneState ->
@@ -101,8 +100,6 @@ fun RequestScene(
                     cancelAction = viewModel::onReject
                 )
             }
-
-
         }
         RequestSceneState.Cancel -> onCancel()
     }

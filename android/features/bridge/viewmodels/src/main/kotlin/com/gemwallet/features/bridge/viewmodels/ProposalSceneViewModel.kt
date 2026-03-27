@@ -119,7 +119,7 @@ class ProposalSceneViewModel @Inject constructor(
                     onError = { message -> state.update { ProposalSceneState.Fail(message) } }
                 )
             }
-            result.onFailure { err -> state.update { ProposalSceneState.Fail(err.message ?: "Wallet connect error") } }
+            result.onFailure { err -> state.update { ProposalSceneState.Fail(err.message ?: "Connection failed") } }
         }
     }
 

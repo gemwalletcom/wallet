@@ -114,7 +114,7 @@ sealed class WCRequest(
             verificationStatus = verificationStatus,
             transactionType = action.transactionType,
             data = action.transactions.singleOrNull()
-                ?: throw IllegalArgumentException("signAllTransactions with multiple transactions is not yet supported"),
+                ?: throw BridgeRequestError.MethodUnsupported,
         ) {
 
             override fun execute(result: String): String =

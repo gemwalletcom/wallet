@@ -99,9 +99,6 @@ build-app-in-docker:
 		docker cp "${container_name}":/root/wallet/android/app/build/outputs/. "${outputs_dir}/"
 	fi
 
-core-upgrade:
-	@git submodule update --recursive --remote
-
 bump TARGET="patch":
 	@cd .. && just bump {{TARGET}}
 

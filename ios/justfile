@@ -38,9 +38,6 @@ setup-git:
     @git submodule update --init --recursive
     @git config submodule.recurse true
 
-core-upgrade:
-    @git submodule update --recursive --remote
-
 spm-resolve:
     @xcodebuild -resolvePackageDependencies -project Gem.xcodeproj -scheme Gem -derivedDataPath {{DERIVED_DATA}} -clonedSourcePackagesDirPath {{SPM_CACHE}}
 

@@ -17,7 +17,11 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionSession
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
@@ -41,51 +45,61 @@ class WCRequestViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(RequestViewModelState())
+    private var requestJob: Job? = null
     val sceneState = state.map { it.toSceneState() }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     fun onRequest(
         sessionRequest: Wallet.Model.SessionRequest,
         verifyContext: Wallet.Model.VerifyContext,
-        onCancel: (BridgeRequestError?) -> Unit
-    ) = viewModelScope.launch {
-        try {
-            val verificationStatus = validateSession(sessionRequest, verifyContext)
-            val connection = bridgeRepository.getConnectionByTopic(sessionRequest.topic)
-            if (connection == null) {
-                onCancel(null)
-                return@launch
-            }
-            val wallet = walletsRepository.getWallet(connection.wallet.id).firstOrNull()
-            if (wallet == null) {
-                onCancel(null)
-                return@launch
-            }
-            val chain = Chain.getNamespace(sessionRequest.chainId)
-                ?: throw BridgeRequestError.ChainUnsupported
-
-            validateChain(chain, connection.session)
-
-            val account: Account = wallet.getAccount(chain) ?: throw BridgeRequestError.ChainUnsupported
-
-            val action = WalletConnect().parseRequest(
-                topic = sessionRequest.topic,
-                method = sessionRequest.request.method,
-                params = sessionRequest.request.params,
-                chainId = sessionRequest.chainId ?: return@launch,
-                domain = sessionRequest.peerMetaData?.url ?: ""
-            )
-            val request = when (action) {
-                is WalletConnectAction.ChainOperation -> {
-                    when (action.operation) {
-                        WalletConnectChainOperation.AddChain -> {}
-                        is WalletConnectChainOperation.SwitchChain -> onSwitch(sessionRequest)
-                        WalletConnectChainOperation.GetChainId -> {}
-                    }
-                    onCancel(null)
+        onNotify: (BridgeRequestError) -> Unit
+    ) {
+        requestJob?.cancel()
+        state.update { it.copy(sessionRequest = sessionRequest) }
+        val job = viewModelScope.launch {
+            try {
+                val verificationStatus = validateSession(sessionRequest, verifyContext)
+                val connection = bridgeRepository.getConnectionByTopic(sessionRequest.topic)
+                if (connection == null) {
+                    rejectRequest(sessionRequest)
                     return@launch
                 }
+                val wallet = walletsRepository.getWallet(connection.wallet.id).firstOrNull()
+                if (wallet == null) {
+                    rejectRequest(sessionRequest)
+                    return@launch
+                }
+                val chainId = sessionRequest.chainId ?: throw BridgeRequestError.UnresolvedChainId
+                val chain = Chain.getNamespace(chainId)
+                    ?: throw BridgeRequestError.ChainUnsupported
 
-                is WalletConnectAction.SignMessage -> {
+                validateChain(chain, connection.session)
+
+                val account: Account = wallet.getAccount(chain) ?: throw BridgeRequestError.ChainUnsupported
+
+                val action = WalletConnect().parseRequest(
+                    topic = sessionRequest.topic,
+                    method = sessionRequest.request.method,
+                    params = sessionRequest.request.params,
+                    chainId = chainId,
+                    domain = sessionRequest.peerMetaData?.url ?: ""
+                )
+                currentCoroutineContext().ensureActive()
+                val request = when (action) {
+                    is WalletConnectAction.ChainOperation -> {
+                        when (action.operation) {
+                            WalletConnectChainOperation.AddChain -> respondWithNull(sessionRequest)
+                            is WalletConnectChainOperation.SwitchChain -> respondWithNull(sessionRequest)
+                            WalletConnectChainOperation.GetChainId -> respondError(
+                                topic = sessionRequest.topic,
+                                id = sessionRequest.request.id,
+                                code = -32601,
+                                message = "The method does not exist / is not available."
+                            )
+                        }
+                        return@launch
+                    }
+
+                    is WalletConnectAction.SignMessage -> {
 //                    try {
 //                        WalletConnect().validateSignMessage( // TODO: Ask documentation
 //                            action.chain,
@@ -96,62 +110,69 @@ class WCRequestViewModel @Inject constructor(
 //                    } catch (_: Throwable) {
 //                        throw BridgeRequestError.ScamSession
 //                    }
-                    WCRequest.SignMessage(sessionRequest, account, verificationStatus, action)
+                        WCRequest.SignMessage(sessionRequest, account, verificationStatus, action)
+                    }
+
+                    is WalletConnectAction.SendTransaction -> WCRequest.Transaction.SendTransaction(
+                        sessionRequest,
+                        account,
+                        verificationStatus,
+                        action
+                    )
+
+                    is WalletConnectAction.SignTransaction -> WCRequest.Transaction.SignTransaction(
+                        sessionRequest,
+                        account,
+                        verificationStatus,
+                        action
+                    )
+
+                    is WalletConnectAction.SignAllTransactions -> WCRequest.Transaction.SignAllTransactions(
+                        sessionRequest,
+                        account,
+                        verificationStatus,
+                        action
+                    )
+
+                    is WalletConnectAction.Unsupported -> throw BridgeRequestError.MethodUnsupported
                 }
-
-                is WalletConnectAction.SendTransaction -> WCRequest.Transaction.SendTransaction(
-                    sessionRequest,
-                    account,
-                    verificationStatus,
-                    action
-                )
-
-                is WalletConnectAction.SignTransaction -> WCRequest.Transaction.SignTransaction(
-                    sessionRequest,
-                    account,
-                    verificationStatus,
-                    action
-                )
-
-                is WalletConnectAction.SignAllTransactions -> WCRequest.Transaction.SignAllTransactions(
-                    sessionRequest,
-                    account,
-                    verificationStatus,
-                    action
-                )
-
-                is WalletConnectAction.Unsupported -> throw BridgeRequestError.MethodUnsupported
+                currentCoroutineContext().ensureActive()
+                state.update {
+                    it.copy(
+                        request = request,
+                        wallet = wallet,
+                        chain = request.chain,
+                    )
+                }
+            } catch (err: Throwable) {
+                when (err) {
+                    is CancellationException -> throw err
+                    is BridgeRequestError -> handleRequestFailure(sessionRequest, err, onNotify)
+                    else -> state.update { it.copy(error = err.message ?: "Request failed") }
+                }
             }
-            state.update {
-                it.copy(
-                    request = request,
-                    wallet = wallet,
-                    chain = request.chain,
-                )
+        }
+        requestJob = job
+        job.invokeOnCompletion {
+            if (requestJob === job) {
+                requestJob = null
             }
-        } catch (err: BridgeRequestError.ScamSession) {
-            onCancel(err)
-        } catch (_: BridgeRequestError.MethodUnsupported) {
-            state.update { it.copy(error = "Unsupported method: ${sessionRequest.request.method}") }
-        } catch (_: BridgeRequestError.UnresolvedChainId) {
-            onReject(sessionRequest)
-            onCancel(null)
-        } catch (_: BridgeRequestError.ChainUnsupported) {
-            onReject(sessionRequest)
-            onCancel(null)
-        } catch (_: Throwable) {
-            state.update { it.copy(error = "Unsupported method: ${sessionRequest.request.method}") }
         }
     }
 
-    fun onSwitch(request: Wallet.Model.SessionRequest) {
+    private fun respondWithNull(request: Wallet.Model.SessionRequest) {
         response(request.topic, request.request.id, "null")
     }
 
     fun onTransactionResult(result: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val request = state.value.request as? WCRequest.Transaction ?: return@launch
-            val response = request.execute(result)
+            val response = try {
+                request.execute(result)
+            } catch (err: Throwable) {
+                state.update { it.copy(error = err.message ?: "Request failed") }
+                return@launch
+            }
             response(request.topic, request.requestId, response)
         }
     }
@@ -167,7 +188,7 @@ class WCRequestViewModel @Inject constructor(
             val sign = try {
                 request.execute(privateKey)
             } catch (err: Throwable) {
-                state.update { it.copy(error = err.message ?: "Sign error") }
+                state.update { it.copy(error = err.message ?: "Sign failed") }
                 return@launch
             } finally {
                 Arrays.fill(privateKey, 0)
@@ -192,7 +213,6 @@ class WCRequestViewModel @Inject constructor(
             }
             WalletConnectionVerificationStatus.INVALID,
             WalletConnectionVerificationStatus.MALICIOUS -> {
-                onReject(sessionRequest)
                 throw BridgeRequestError.ScamSession
             }
         }
@@ -206,34 +226,63 @@ class WCRequestViewModel @Inject constructor(
             ),
             onSuccess = { state.update { it.copy(canceled = true) } },
             onError = { error ->
-                state.update { it.copy(error = error.throwable.message ?: "On response error") }
+                state.update { it.copy(error = error.throwable.message ?: "Request failed") }
+            }
+        )
+    }
+
+    private fun respondError(topic: String, id: Long, code: Int, message: String) {
+        WalletKit.respondSessionRequest(
+            params = Wallet.Params.SessionRequestResponse(
+                sessionTopic = topic,
+                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(id, code, message)
+            ),
+            onSuccess = { state.update { it.copy(canceled = true) } },
+            onError = { error ->
+                state.update { it.copy(error = error.throwable.message ?: "Request failed") }
             }
         )
     }
 
     fun onReject() {
-        val sessionRequest = state.value.request?.sessionRequest ?: return
-        onReject(sessionRequest)
+        requestJob?.cancel()
+        val sessionRequest = state.value.sessionRequest ?: return
+        rejectRequest(sessionRequest)
     }
 
-    private fun onReject(sessionRequest: Wallet.Model.SessionRequest) {
+    private fun handleRequestFailure(
+        sessionRequest: Wallet.Model.SessionRequest,
+        error: BridgeRequestError,
+        onNotify: (BridgeRequestError) -> Unit
+    ) {
+        if (error is BridgeRequestError.ScamSession) {
+            onNotify(error)
+        }
+        rejectRequest(sessionRequest)
+    }
+
+    private fun rejectRequest(sessionRequest: Wallet.Model.SessionRequest) {
         val result = Wallet.Params.SessionRequestResponse(
             sessionTopic = sessionRequest.topic,
             jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
                 id = sessionRequest.request.id,
-                code = 500,
-                message = "Reject"
+                code = 4001,
+                message = "User rejected the request"
             )
         )
 
         WalletKit.respondSessionRequest(
             result,
             onSuccess = { state.update { it.copy(canceled = true) } },
-            onError = { state.update { it.copy(canceled = true) } }
+            onError = { error ->
+                state.update { it.copy(error = error.throwable.message ?: "Request failed") }
+            }
         )
     }
 
     fun reset() {
+        requestJob?.cancel()
+        requestJob = null
         state.update { RequestViewModelState() }
     }
 
@@ -245,12 +294,12 @@ class WCRequestViewModel @Inject constructor(
 }
 
 private data class RequestViewModelState(
+    val sessionRequest: Wallet.Model.SessionRequest? = null,
     val error: String? = null,
     val canceled: Boolean = false,
     val wallet: com.wallet.core.primitives.Wallet? = null,
     val request: WCRequest? = null,
     val chain: Chain? = null,
-    val params: String = "",
 ) {
     fun toSceneState(): RequestSceneState {
         if (canceled) {
