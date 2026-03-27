@@ -3,20 +3,8 @@ name: iOS Unit Tests
 on:
   push:
     branches: ["main"]
-    paths:
-      - "ios/**"
-      - "core"
-      - "core/**"
-      - ".gitmodules"
-      - ".github/workflows/ios-ci.yml"
   pull_request:
     branches: ["main"]
-    paths:
-      - "ios/**"
-      - "core"
-      - "core/**"
-      - ".gitmodules"
-      - ".github/workflows/ios-ci.yml"
 
 jobs:
   unit_test:

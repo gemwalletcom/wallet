@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import Formatters
 import Foundation
 @testable import Primitives
-import Formatters
+import Testing
 
 final class CurrencyFormatterTests {
-
     let currencyFormatterUS = CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue)
     let percentFormatterUS = CurrencyFormatter(type: .percent, locale: .US, currencyCode: Currency.usd.rawValue)
 
@@ -25,13 +24,13 @@ final class CurrencyFormatterTests {
         #expect(currencyFormatterUS.string(0) == "$0.00")
         #expect(currencyFormatterUS.string(11.12) == "$11.12")
         #expect(currencyFormatterUS.string(11) == "$11.00")
-        #expect(currencyFormatterUS.string(12000123) == "$12,000,123.00")
+        #expect(currencyFormatterUS.string(12_000_123) == "$12,000,123.00")
         #expect(currencyFormatterUS.string(0.0000000002) == "$0.0000000002")
         #expect(currencyFormatterUS.string(0.0000000000001) == "$0.00")
     }
 
     @Test
-    func testSmallValue() {
+    func smallValue() {
         #expect(currencyFormatterUS.string(0.10) == "$0.1")
         #expect(currencyFormatterUS.string(0.11) == "$0.11")
         #expect(currencyFormatterUS.string(0.2) == "$0.2")
@@ -49,17 +48,17 @@ final class CurrencyFormatterTests {
     }
 
     @Test
-    func testCurrencyIncludeSign() {
+    func currencyIncludeSign() {
         #expect(currencyFormatterUS.string(0) == "$0.00")
         #expect(currencyFormatterUS.string(-1.2) == "-$1.20")
     }
 
     @Test
-    func testCurrencyGBPLocale() {
+    func currencyGBPLocale() {
         #expect(currencyFormatterUK.string(0.0002) == "£0.0002")
         #expect(currencyFormatterUK.string(11.12) == "£11.12")
         #expect(currencyFormatterUK.string(11) == "£11.00")
-        #expect(currencyFormatterUK.string(12000123) == "£12,000,123.00")
+        #expect(currencyFormatterUK.string(12_000_123) == "£12,000,123.00")
     }
 
     @Test
@@ -67,12 +66,12 @@ final class CurrencyFormatterTests {
         #expect(percentFormatterUS.string(-1.23) == "-1.23%")
         #expect(percentFormatterUS.string(11.12) == "+11.12%")
         #expect(percentFormatterUS.string(11) == "+11.00%")
-        #expect(percentFormatterUS.string(12000123) == "+12,000,123.00%")
+        #expect(percentFormatterUS.string(12_000_123) == "+12,000,123.00%")
 
         #expect(percentFormatterUK.string(-1.23) == "-1.23%")
         #expect(percentFormatterUK.string(11.12) == "+11.12%")
         #expect(percentFormatterUK.string(11) == "+11.00%")
-        #expect(percentFormatterUK.string(12000123) == "+12,000,123.00%")
+        #expect(percentFormatterUK.string(12_000_123) == "+12,000,123.00%")
     }
 
     @Test
@@ -80,17 +79,17 @@ final class CurrencyFormatterTests {
         #expect(percentSignLess.string(-1.23) == "1.23%")
         #expect(percentSignLess.string(11.12) == "11.12%")
         #expect(percentSignLess.string(11) == "11.00%")
-        #expect(percentSignLess.string(12000123) == "12,000,123.00%")
+        #expect(percentSignLess.string(12_000_123) == "12,000,123.00%")
     }
 
     @Test
-    func testDecimal() {
+    func decimal() {
         #expect(cryptoFormatter.string(double: 0.12) == "0.12")
         #expect(cryptoFormatter.string(double: 0.00012) == "0.00012")
 
         #expect(cryptoFormatter.string(double: 11.12) == "11.12")
         #expect(cryptoFormatter.string(double: 11) == "11.00")
-        #expect(cryptoFormatter.string(double: 12000123) == "12,000,123.00")
+        #expect(cryptoFormatter.string(double: 12_000_123) == "12,000,123.00")
 
         #expect(cryptoFormatterUA.string(double: 0.003011) == cryptoFormatterUA.string(double: 0.003011).trimmingCharacters(in: .whitespaces))
         #expect(cryptoFormatterUA.string(double: 92500) == "92 500,00")
@@ -98,7 +97,7 @@ final class CurrencyFormatterTests {
     }
 
     @Test
-    func testStringDecimalWithSymbolVariants() {
+    func stringDecimalWithSymbolVariants() {
         #expect(cryptoFormatter.string(double: 1234.56, symbol: "BTC") == "1,234.56 BTC")
         #expect(cryptoFormatter.string(double: 0.0001234, symbol: "BTC") == "0.0001234 BTC")
     }
@@ -107,30 +106,30 @@ final class CurrencyFormatterTests {
     func testAbbreviated() {
         #expect(abbreviatedFormatterUS.string(0) == "$0.00")
         #expect(abbreviatedFormatterUS.string(12) == "$12.00")
-        #expect(abbreviatedFormatterUS.string(1_234) == "$1,234.00")
+        #expect(abbreviatedFormatterUS.string(1234) == "$1,234.00")
         #expect(abbreviatedFormatterUS.string(100_000) == "$100K")
         #expect(abbreviatedFormatterUS.string(-1234) == "-$1,234.00")
         #expect(abbreviatedFormatterUS.string(-5_600_000) == "-$5.6M")
 
-        #expect(abbreviatedFormatterUK.string(123_456) == "£123.46K")
-        #expect(abbreviatedFormatterUK.string(5_000_000) == "£5M")
-        #expect(abbreviatedFormatterUK.string(7_890_000_000) == "£7.89B")
-        #expect(abbreviatedFormatterUK.string(1_200_000_000_000) == "£1.2T")
-        #expect(abbreviatedFormatterUK.string(-9_999_999_999) == "-£10B")
+        #expect(abbreviatedFormatterUK.string(123_456) == "£123.46k")
+        #expect(abbreviatedFormatterUK.string(5_000_000) == "£5m")
+        #expect(abbreviatedFormatterUK.string(7_890_000_000) == "£7.89bn")
+        #expect(abbreviatedFormatterUK.string(1_200_000_000_000) == "£1.2tn")
+        #expect(abbreviatedFormatterUK.string(-9_999_999_999) == "-£10bn")
     }
-    
+
     @Test
     func abbreviatedStringSymbol() {
         #expect(abbreviatedFormatterUS.string(double: 0, symbol: "BTC") == "0.00 BTC")
         #expect(abbreviatedFormatterUS.string(double: 12, symbol: "BTC") == "12.00 BTC")
-        #expect(abbreviatedFormatterUS.string(double: 1_234, symbol: "BTC") == "1,234.00 BTC")
+        #expect(abbreviatedFormatterUS.string(double: 1234, symbol: "BTC") == "1,234.00 BTC")
         #expect(abbreviatedFormatterUS.string(double: 5_000_000, symbol: "BTC") == "5M BTC")
         #expect(abbreviatedFormatterUS.string(double: 7_890_000_000, symbol: "BTC") == "7.89B BTC")
-        
-        #expect(abbreviatedFormatterUS.string(double: 1_234) == "1,234.00")
+
+        #expect(abbreviatedFormatterUS.string(double: 1234) == "1,234.00")
         #expect(abbreviatedFormatterUS.string(double: 5_000_000) == "5M")
     }
-    
+
     @Test
     func testNormalizedDouble() {
         // Basic formatting
