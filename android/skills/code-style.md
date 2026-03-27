@@ -109,3 +109,22 @@ fun PerpetualPositionScene(
 ```
 
 Reference: `android/features/perpetual/presents/src/main/kotlin/com/gemwallet/features/perpetual/views/position/PerpetualPositionScene.kt`
+
+### ViewModel Unit Test
+
+Test ViewModels by verifying state emissions. Use JUnit 4, direct construction, and deterministic inputs:
+
+```kotlin
+class CalculatePriceImpactTest {
+    @Test
+    fun highSlippage_returnsExpectedImpact() {
+        val result = calculatePriceImpact(
+            inputAmount = BigDecimal("100"),
+            outputAmount = BigDecimal("95"),
+        )
+        assertEquals(BigDecimal("5.00"), result)
+    }
+}
+```
+
+Keep tests focused on one behavior. Use helper functions (e.g., `createAssetInfo()`) for reusable test data. See [testing.md](testing.md) for full conventions.

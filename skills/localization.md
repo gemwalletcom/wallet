@@ -1,6 +1,6 @@
 # Localization
 
-Use this skill for localization flow and platform-specific storage notes. 
+Use this skill for shared localization flow and generated output locations.
 ## Localization
 
 - Shared localization updates flow through the monorepo root:

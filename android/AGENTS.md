@@ -10,8 +10,9 @@ Read this file first, then load the relevant skills before editing Android code.
 - [Setup](skills/setup.md) — Prerequisites, bootstrap, and local credential requirements
 - [Development Commands](skills/development-commands.md) — Gradle and `just` workflows for build, test, generate, and lint
 - [Code Style](skills/code-style.md) — Kotlin, Compose, DI, and validation expectations
+- [Testing](skills/testing.md) — Test organization, mocks, unit and instrumented test patterns
 - [Release and Verification](skills/release-and-verification.md) — Docker, reproducible builds, artifact verification, and CI/release context
-- [Troubleshooting](skills/troubleshooting.md) — Common recovery commands and important file locations
+- [Troubleshooting](skills/troubleshooting.md) — Common pitfalls, recovery commands, and important file locations
 
 ## Related Guides
 

@@ -13,7 +13,7 @@ Read this file first, then load the relevant skills before editing iOS code. `de
 - [Code Style](skills/code-style.md) — SwiftUI, concurrency, organization, and clean-code expectations
 - [Platform Operations](skills/platform-operations.md) — Apple tooling notes, platform requirements, localization, and security
 - [Core Integration](skills/core-integration.md) — Rust core, generated bindings, and generated model rules
-- [Troubleshooting](skills/troubleshooting.md) — Build, test, package-resolution, and submodule recovery guidance
+- [Troubleshooting](skills/troubleshooting.md) — Common pitfalls, recovery commands, and submodule/build guidance
 
 ## Related Guides
 

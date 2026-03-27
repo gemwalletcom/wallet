@@ -4,7 +4,7 @@ Guidance for Coding Agents (Claude Code or Codex, etc.) collaborating in this mo
 
 ## Skills
 
-Read this file first, then load the relevant skills before making changes. `cross-platform-awareness.md` and `engineering-principles.md` apply to every task.
+Read this file first, then load only the skills relevant to your current task — you do not need to read all files upfront. `cross-platform-awareness.md` and `engineering-principles.md` apply to every task; the rest are load-on-demand.
 
 - [Project Overview](skills/project-overview.md) — Repo layout, ownership boundaries, and shared concepts
 - [Cross-Platform Awareness](skills/cross-platform-awareness.md) — Rules for changes that can affect both apps
@@ -14,7 +14,9 @@ Read this file first, then load the relevant skills before making changes. `cros
 - [Security](skills/security.md) — Wallet-critical security rules for key material, signing, auth, and transaction handling
 - [Quality Checks](skills/quality-checks.md) — Lint, format, and static-analysis commands for each platform
 - [Release Process](skills/release-process.md) — Branching, versioning, and commit expectations
-- [Localization](skills/localization.md) — Shared localization flow and platform security rules
+- [Localization](skills/localization.md) — Shared localization flow and generated output locations
+- [New Feature Workflow](skills/new-feature-workflow.md) — End-to-end sequence for cross-stack features (Core → bindings → iOS/Android)
+- [Decision Records](skills/decisions.md) — Non-obvious architectural choices and their rationale
 
 ## Platform Guides
 
