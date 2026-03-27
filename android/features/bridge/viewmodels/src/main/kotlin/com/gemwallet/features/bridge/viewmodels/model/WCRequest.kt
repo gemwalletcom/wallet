@@ -1,6 +1,5 @@
 package com.gemwallet.features.bridge.viewmodels.model
 
-import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.math.hexToBigInteger
@@ -50,63 +49,76 @@ sealed class WCRequest(
         val signer: MessageSigner
             get() = MessageSigner(walletConnect.decodeSignMessage(action.chain, action.signType, action.data))
 
-        suspend fun execute(
-            signClient: SignClientProxy,
-            privateKey: ByteArray
-        ): String {
+        suspend fun execute(privateKey: ByteArray): String {
             val signature = signer.sign(privateKey)
-            return walletConnect.encodeSignMessage(chain.string, signature).let { encoded ->
-                when (encoded) {
-                    is WalletConnectResponseType.Object -> encoded.json
-                    is WalletConnectResponseType.String -> encoded.value
-                }
-            }
+            return walletConnect.encodeSignMessage(chain.string, signature).payload()
         }
     }
 
     abstract class Transaction(
-        data: Wallet.Model.SessionRequest,
+        sessionRequest: Wallet.Model.SessionRequest,
         account: Account,
         verificationStatus: WalletConnectionVerificationStatus,
-    ) : WCRequest(data, account, verificationStatus) {
+        val isSendable: Boolean,
+        val inputType: ConfirmParams.TransferParams.InputType,
+        val transactionType: WalletConnectTransactionType,
+        val data: String,
+    ) : WCRequest(sessionRequest, account, verificationStatus) {
 
-        abstract val inputType: ConfirmParams.TransferParams.InputType
+        open val confirmParams: Generic
+            get() = walletConnect.decodeSendTransaction(transactionType, data).map(this, isSendable)
 
-        abstract val transactionType: WalletConnectTransactionType
+        abstract fun execute(result: String): String
 
-        abstract val data: String
-
-        abstract val confirmParams: Generic
+        abstract class Signing(
+            sessionRequest: Wallet.Model.SessionRequest,
+            account: Account,
+            verificationStatus: WalletConnectionVerificationStatus,
+            transactionType: WalletConnectTransactionType,
+            data: String,
+        ) : Transaction(
+            sessionRequest = sessionRequest,
+            account = account,
+            verificationStatus = verificationStatus,
+            isSendable = false,
+            inputType = ConfirmParams.TransferParams.InputType.Signature,
+            transactionType = transactionType,
+            data = data,
+        )
 
         class SignTransaction(
             sessionRequest: Wallet.Model.SessionRequest,
             account: Account,
             verificationStatus: WalletConnectionVerificationStatus,
             val action: WalletConnectAction.SignTransaction,
-        ) : Transaction(sessionRequest, account, verificationStatus) {
+        ) : Signing(
+            sessionRequest = sessionRequest,
+            account = account,
+            verificationStatus = verificationStatus,
+            transactionType = action.transactionType,
+            data = action.data,
+        ) {
 
-            override val inputType: ConfirmParams.TransferParams.InputType
-                get() = ConfirmParams.TransferParams.InputType.Signature
+            override fun execute(result: String): String =
+                walletConnect.encodeSignTransaction(action.chain, result).payload()
+        }
 
-            override val transactionType: WalletConnectTransactionType
-                get() = action.transactionType
+        class SignAllTransactions(
+            sessionRequest: Wallet.Model.SessionRequest,
+            account: Account,
+            verificationStatus: WalletConnectionVerificationStatus,
+            val action: WalletConnectAction.SignAllTransactions,
+        ) : Signing(
+            sessionRequest = sessionRequest,
+            account = account,
+            verificationStatus = verificationStatus,
+            transactionType = action.transactionType,
+            data = action.transactions.singleOrNull()
+                ?: throw IllegalArgumentException("signAllTransactions with multiple transactions is not yet supported"),
+        ) {
 
-            override val data: String
-                get() = action.data
-
-            override val confirmParams: Generic
-                get() {
-                    return walletConnect.decodeSendTransaction(transactionType, data).map(this, false)
-                }
-
-            fun execute(signature: String): String {
-                return WalletConnect().encodeSignTransaction(action.chain, signature).let {
-                    when (it) {
-                        is WalletConnectResponseType.Object -> it.json
-                        is WalletConnectResponseType.String -> it.value
-                    }
-                }
-            }
+            override fun execute(result: String): String =
+                walletConnect.encodeSignAllTransactions(listOf(result)).payload()
         }
 
         class SendTransaction(
@@ -114,32 +126,25 @@ sealed class WCRequest(
             account: Account,
             verificationStatus: WalletConnectionVerificationStatus,
             val action: WalletConnectAction.SendTransaction,
-        ) : Transaction(sessionRequest, account, verificationStatus) {
+        ) : Transaction(
+            sessionRequest = sessionRequest,
+            account = account,
+            verificationStatus = verificationStatus,
+            isSendable = true,
+            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
+            transactionType = action.transactionType,
+            data = action.data,
+        ) {
 
-            override val inputType: ConfirmParams.TransferParams.InputType
-                get() = ConfirmParams.TransferParams.InputType.EncodeTransaction
-
-            override val transactionType: WalletConnectTransactionType
-                get() = action.transactionType
-
-            override val data: String
-                get() = action.data
-
-            override val confirmParams: Generic
-                get() {
-                    return walletConnect.decodeSendTransaction(transactionType, data).map(this, true)
-                }
-
-            fun execute(hash: String): String {
-                return walletConnect.encodeSendTransaction(action.chain, hash).let {
-                    when (it) {
-                        is WalletConnectResponseType.Object -> it.json
-                        is WalletConnectResponseType.String -> it.value
-                    }
-                }
-            }
+            override fun execute(result: String): String =
+                walletConnect.encodeSendTransaction(action.chain, result).payload()
         }
     }
+}
+
+private fun WalletConnectResponseType.payload(): String = when (this) {
+    is WalletConnectResponseType.Object -> json
+    is WalletConnectResponseType.String -> value
 }
 
 private fun WalletConnectTransaction.map(

@@ -96,13 +96,7 @@ fun RequestScene(
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
                     params = (sceneState.request as WCRequest.Transaction).confirmParams,
-                    finishAction = { _, hash, _ ->
-                        when (sceneState.request) {
-                            is WCRequest.Transaction.SendTransaction -> viewModel.onSent(hash)
-                            is WCRequest.Transaction.SignTransaction -> viewModel.onSigned(hash)
-                            else -> {}
-                        }
-                    },
+                    finishAction = { _, hash, _ -> viewModel.onTransactionResult(hash) },
                     onBuy = onBuy,
                     cancelAction = viewModel::onReject
                 )

@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
-import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.data.repositoreis.bridge.BridgesRepository
 import com.gemwallet.android.data.repositoreis.bridge.getNamespace
 import com.gemwallet.android.data.repositoreis.wallets.WalletsRepository
@@ -39,7 +38,6 @@ class WCRequestViewModel @Inject constructor(
     private val bridgeRepository: BridgesRepository,
     private val passwordStore: PasswordStore,
     private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
-    val signClient: SignClientProxy,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(RequestViewModelState())
@@ -115,6 +113,13 @@ class WCRequestViewModel @Inject constructor(
                     action
                 )
 
+                is WalletConnectAction.SignAllTransactions -> WCRequest.Transaction.SignAllTransactions(
+                    sessionRequest,
+                    account,
+                    verificationStatus,
+                    action
+                )
+
                 is WalletConnectAction.Unsupported -> throw BridgeRequestError.MethodUnsupported
             }
             state.update {
@@ -139,26 +144,15 @@ class WCRequestViewModel @Inject constructor(
         }
     }
 
-    fun onSent(hash: String) {
-        val request = state.value.request as? WCRequest.Transaction.SendTransaction?: return
-        val response = request.execute(hash)
-
-        viewModelScope.launch(Dispatchers.IO) {
-            response(request.topic, request.requestId, response)
-        }
-    }
-
     fun onSwitch(request: Wallet.Model.SessionRequest) {
         response(request.topic, request.request.id, "null")
     }
 
-    fun onSigned(signature: String) {
-        val request = (state.value.request as? WCRequest.Transaction.SignTransaction) ?: return
-        val sessionRequest = state.value.request?.sessionRequest ?: return
-
+    fun onTransactionResult(result: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val response = request.execute(signature)
-            response(sessionRequest.topic, sessionRequest.request.id, response)
+            val request = state.value.request as? WCRequest.Transaction ?: return@launch
+            val response = request.execute(result)
+            response(request.topic, request.requestId, response)
         }
     }
 
@@ -171,7 +165,7 @@ class WCRequestViewModel @Inject constructor(
             val password = passwordStore.getPassword(wallet.id)
             val privateKey = loadPrivateKeyOperator(wallet, chain, password)
             val sign = try {
-                request.execute(signClient, privateKey)
+                request.execute(privateKey)
             } catch (err: Throwable) {
                 state.update { it.copy(error = err.message ?: "Sign error") }
                 return@launch
