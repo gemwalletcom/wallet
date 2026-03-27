@@ -11,6 +11,7 @@ import WalletSessionService
 public struct WalletService: Sendable {
     private let keystore: any Keystore
     private let walletStore: WalletStore
+    private let addressStore: AddressStore
     private let avatarService: AvatarService
     private let walletSessionService: any WalletSessionManageable
     private let preferences: ObservablePreferences
@@ -18,11 +19,13 @@ public struct WalletService: Sendable {
     public init(
         keystore: any Keystore,
         walletStore: WalletStore,
+        addressStore: AddressStore,
         preferences: ObservablePreferences,
         avatarService: AvatarService
     ) {
         self.keystore = keystore
         self.walletStore = walletStore
+        self.addressStore = addressStore
         self.avatarService = avatarService
         self.walletSessionService = WalletSessionService(walletStore: walletStore, preferences: preferences)
         self.preferences = preferences
@@ -83,6 +86,7 @@ public struct WalletService: Sendable {
             source: source
         )
         try walletStore.addWallet(wallet)
+        try addressStore.addWalletAddresses(wallet: wallet)
         preferences.invalidateSubscriptions()
         return wallet
     }
@@ -123,6 +127,7 @@ public struct WalletService: Sendable {
         let setupWallets = try keystore.setupChains(chains: chains, for: wallets)
         for wallet in setupWallets {
             try walletStore.addWallet(wallet)
+            try addressStore.addWalletAddresses(wallet: wallet)
         }
         if setupWallets.isNotEmpty {
             preferences.invalidateSubscriptions()
@@ -143,6 +148,7 @@ public struct WalletService: Sendable {
 
     public func rename(walletId: WalletId, newName: String) throws {
         try walletStore.renameWallet(walletId, name: newName)
+        try addressStore.renameWalletAddresses(walletId: walletId.id, name: newName)
     }
 
     public func getMnemonic(wallet: Wallet) async throws -> [String] {

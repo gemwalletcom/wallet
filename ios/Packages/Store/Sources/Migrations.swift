@@ -464,6 +464,20 @@ struct Migrations {
             }
         }
 
+        migrator.registerMigration("Add walletId to \(AddressRecord.databaseTableName) and populate wallet addresses") { db in
+            try? db.alter(table: AddressRecord.databaseTableName) {
+                $0.add(column: AddressRecord.Columns.walletId.name, .text)
+                    .references(WalletRecord.databaseTableName, onDelete: .cascade)
+            }
+            try? db.execute(sql: """
+                INSERT OR REPLACE INTO \(AddressRecord.databaseTableName) (chain, address, walletId, name, type, status)
+                SELECT wa.chain, wa.address, wa.walletId, w.name, 'internalWallet', 'verified'
+                FROM \(AccountRecord.databaseTableName) wa
+                JOIN \(WalletRecord.databaseTableName) w ON wa.walletId = w.id
+                JOIN \(AssetRecord.databaseTableName) a ON wa.chain = a.id
+            """)
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

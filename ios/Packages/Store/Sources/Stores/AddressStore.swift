@@ -41,7 +41,30 @@ public struct AddressStore: Sendable {
                 .filter(AddressRecord.Columns.chain == chain.rawValue)
                 .filter(AddressRecord.Columns.address == address)
                 .fetchOne(db)?
-                .asPrimitive()
+                .mapToAddressName()
+        }
+    }
+
+    public func addWalletAddresses(wallet: Wallet) throws {
+        try db.write { db in
+            for account in wallet.accounts {
+                try AddressRecord(
+                    chain: account.chain,
+                    address: account.address,
+                    walletId: wallet.id,
+                    name: wallet.name,
+                    type: .internalWallet,
+                    status: .verified
+                ).save(db, onConflict: .replace)
+            }
+        }
+    }
+
+    public func renameWalletAddresses(walletId: String, name: String) throws {
+        let _ = try db.write { db in
+            try AddressRecord
+                .filter(AddressRecord.Columns.walletId == walletId)
+                .updateAll(db, AddressRecord.Columns.name.set(to: name))
         }
     }
 }

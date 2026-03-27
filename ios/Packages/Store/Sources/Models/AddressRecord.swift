@@ -10,6 +10,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     enum Columns {
         static let chain = Column("chain")
         static let address = Column("address")
+        static let walletId = Column("walletId")
         static let name = Column("name")
         static let type = Column("type")
         static let status = Column("status")
@@ -17,6 +18,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
 
     let chain: Chain
     let address: String
+    let walletId: String?
     let name: String
     let type: AddressType?
     let status: VerificationStatus
@@ -24,12 +26,14 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     init(
         chain: Chain,
         address: String,
+        walletId: String? = nil,
         name: String,
         type: AddressType?,
         status: VerificationStatus
     ) {
         self.chain = chain
         self.address = address
+        self.walletId = walletId
         self.name = name
         self.type = type
         self.status = status
@@ -44,6 +48,8 @@ extension AddressRecord: CreateTable {
                 .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
             $0.column(Columns.address.name, .text)
                 .notNull()
+            $0.column(Columns.walletId.name, .text)
+                .references(WalletRecord.databaseTableName, onDelete: .cascade)
             $0.column(Columns.name.name, .text)
                 .notNull()
             $0.column(Columns.type.name, .text)
@@ -56,7 +62,7 @@ extension AddressRecord: CreateTable {
 }
 
 extension AddressRecord {
-    func asPrimitive() -> AddressName {
+    func mapToAddressName() -> AddressName {
         AddressName(
             chain: chain,
             address: address,

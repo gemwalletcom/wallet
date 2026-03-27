@@ -14,11 +14,13 @@ public extension WalletService {
     static func mock(
         keystore: any Keystore = LocalKeystore.mock(),
         walletStore: WalletStore = .mock(),
+        addressStore: AddressStore = .mock(),
         preferences: ObservablePreferences = .mock()
     ) -> WalletService {
         WalletService(
             keystore: keystore,
             walletStore: walletStore,
+            addressStore: addressStore,
             preferences: preferences,
             avatarService: AvatarService(store: walletStore)
         )

@@ -104,6 +104,7 @@ struct ServicesFactory {
             preferences: storages.observablePreferences,
             keystore: storages.keystore,
             walletStore: storeManager.walletStore,
+            addressStore: storeManager.addressStore,
             avatarService: avatarService
         )
         let balanceService = Self.makeBalanceService(
@@ -431,11 +432,13 @@ extension ServicesFactory {
         preferences: ObservablePreferences,
         keystore: any Keystore,
         walletStore: WalletStore,
+        addressStore: AddressStore,
         avatarService: AvatarService
     ) -> WalletService {
         WalletService(
             keystore: keystore,
             walletStore: walletStore,
+            addressStore: addressStore,
             preferences: preferences,
             avatarService: avatarService
         )
