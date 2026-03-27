@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.perpetual.aggregates
 
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
 
 interface PerpetualDetailsDataAggregate {
@@ -14,4 +15,7 @@ interface PerpetualDetailsDataAggregate {
     val maxLeverage: Int
     val price: Double
     val identifier: String
+    val onlyIsolated: Boolean
+    val marginType: PerpetualMarginType
+        get() = if (onlyIsolated) PerpetualMarginType.Isolated else PerpetualMarginType.Cross
 }

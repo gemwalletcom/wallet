@@ -14,7 +14,8 @@ public extension Perpetual {
         openInterest: Double = 1_000_000,
         volume24h: Double = 10_000_000,
         funding: Double = 0.0001,
-        maxLeverage: UInt8 = 50
+        maxLeverage: UInt8 = 50,
+        onlyIsolated: Bool = false
     ) -> Perpetual {
         Perpetual(
             id: id,
@@ -27,7 +28,8 @@ public extension Perpetual {
             openInterest: openInterest,
             volume24h: volume24h,
             funding: funding,
-            maxLeverage: maxLeverage
+            maxLeverage: maxLeverage,
+            onlyIsolated: onlyIsolated
         )
     }
 }

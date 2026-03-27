@@ -46,7 +46,8 @@ data class Perpetual (
 	val openInterest: Double,
 	val volume24h: Double,
 	val funding: Double,
-	val maxLeverage: UByte
+	val maxLeverage: UByte,
+	val onlyIsolated: Boolean = false
 )
 
 @Serializable
@@ -66,6 +67,7 @@ data class PerpetualBasic (
 @Serializable
 data class PerpetualConfirmData (
 	val direction: PerpetualDirection,
+	val marginType: PerpetualMarginType = PerpetualMarginType.Cross,
 	val baseAsset: Asset,
 	val assetIndex: Int,
 	val price: String,

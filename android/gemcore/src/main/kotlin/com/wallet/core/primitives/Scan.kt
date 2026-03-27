@@ -8,29 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-enum class AddressType(val string: String) {
-	@SerialName("address")
-	Address("address"),
-	@SerialName("contract")
-	Contract("contract"),
-	@SerialName("validator")
-	Validator("validator"),
-	@SerialName("contact")
-	Contact("contact"),
-}
-
-@Serializable
-data class ScanAddress (
-	val chain: Chain,
-	val address: String,
-	val name: String? = null,
-	val type: AddressType? = null,
-	val isMalicious: Boolean? = null,
-	val isMemoRequired: Boolean? = null,
-	val isVerified: Boolean? = null
-)
-
-@Serializable
 data class ScanAddressTarget (
 	val assetId: AssetId,
 	val address: String
@@ -49,4 +26,18 @@ data class ScanTransactionPayload (
 	val website: String? = null,
 	val type: TransactionType
 )
+
+@Serializable
+enum class AddressType(val string: String) {
+	@SerialName("address")
+	Address("address"),
+	@SerialName("contract")
+	Contract("contract"),
+	@SerialName("validator")
+	Validator("validator"),
+	@SerialName("contact")
+	Contact("contact"),
+	@SerialName("internalWallet")
+	InternalWallet("internalWallet"),
+}
 

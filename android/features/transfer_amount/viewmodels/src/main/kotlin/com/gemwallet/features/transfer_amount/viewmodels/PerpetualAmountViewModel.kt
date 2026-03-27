@@ -134,6 +134,7 @@ class PerpetualAmountViewModel @Inject constructor(
                 leverage = leverage.value,
                 baseAsset = asset, // USD
                 direction = params.perpetualDirection ?: PerpetualDirection.Long,
+                marginType = perpetual.marginType,
             )
             else -> throw IllegalArgumentException()
         }

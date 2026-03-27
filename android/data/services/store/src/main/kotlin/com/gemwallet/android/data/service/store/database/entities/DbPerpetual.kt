@@ -28,6 +28,7 @@ data class DbPerpetual(
     val volume24h: Double,
     val funding: Double,
     val maxLeverage: Int,
+    val onlyIsolated: Boolean = false,
 )
 
 
@@ -67,6 +68,7 @@ fun DbPerpetual.toDTO(): Perpetual? {
         volume24h = volume24h,
         funding = funding,
         maxLeverage = maxLeverage.toUByte(),
+        onlyIsolated = onlyIsolated,
     )
 }
 
@@ -87,6 +89,7 @@ fun Perpetual.toDB(): DbPerpetual {
         volume24h = volume24h,
         funding = funding,
         maxLeverage = maxLeverage.toInt(),
+        onlyIsolated = onlyIsolated,
     )
 }
 

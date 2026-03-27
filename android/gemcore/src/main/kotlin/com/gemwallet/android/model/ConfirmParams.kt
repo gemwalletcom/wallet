@@ -21,6 +21,7 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
@@ -155,6 +156,7 @@ sealed class ConfirmParams() {
             leverage: Int,
             baseAsset: Asset, // USD
             direction: PerpetualDirection,
+            marginType: PerpetualMarginType,
             slippage: Double = 2.0,
         ): PerpetualParams {
             val marginAmount = Crypto(amount).value(baseAsset.decimals).toDouble()
@@ -162,20 +164,21 @@ sealed class ConfirmParams() {
             val assetSize = fiatValue / perpetualPrice
 
             val slippageFraction = slippage / 100.0
-            val slippage = when (direction) {
-                PerpetualDirection.Short -> 1.0 - slippageFraction // TODO: Why we need slippage on Close = 1.0 + slippageFraction?
-                PerpetualDirection.Long -> 1.0 + slippageFraction // Close = 1.0 - slippageFraction
+            val slippageMultiplier = when (direction) {
+                PerpetualDirection.Short -> 1.0 - slippageFraction
+                PerpetualDirection.Long -> 1.0 + slippageFraction
             }
 
             val order = PerpetualParams.Order(
                 perpetualId = perpetualId,
                 provider = perpetualProvider,
                 direction = direction,
+                marginType = marginType,
                 baseAsset = baseAsset,
                 assetIndex = perpetualIdentifier.toInt(),
                 fiatValue = fiatValue,
                 size = assetSize,
-                slippage = slippage,
+                slippage = slippageMultiplier,
                 leverage = leverage,
                 marketPrice = perpetualPrice,
                 marginAmount = marginAmount,
@@ -600,6 +603,7 @@ sealed class ConfirmParams() {
             val perpetualId: String,
             val provider: PerpetualProvider,
             val direction: PerpetualDirection,
+            val marginType: PerpetualMarginType,
             val baseAsset: Asset,
             val assetIndex: Int,
 //            val price: String,
@@ -752,6 +756,10 @@ fun ConfirmParams.PerpetualParams.Order.toGem() = PerpetualConfirmData(
     direction = when (direction) {
         PerpetualDirection.Long -> uniffi.gemstone.PerpetualDirection.LONG
         PerpetualDirection.Short -> uniffi.gemstone.PerpetualDirection.SHORT
+    },
+    marginType = when (marginType) {
+        PerpetualMarginType.Cross -> uniffi.gemstone.GemPerpetualMarginType.CROSS
+        PerpetualMarginType.Isolated -> uniffi.gemstone.GemPerpetualMarginType.ISOLATED
     },
     baseAsset = baseAsset.toGem(),
     assetIndex = assetIndex,

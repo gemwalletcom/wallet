@@ -30,7 +30,7 @@ public struct PerpetualPositionViewModel {
     }
     
     public var nameText: String {
-        data.asset.name
+        data.perpetual.name
     }
     
     public var symbolText: String {
@@ -127,15 +127,4 @@ extension PerpetualPositionViewModel {
 
 extension PerpetualPositionViewModel: Identifiable {
     public var id: String { data.position.id }
-}
-
-extension PerpetualMarginType {
-    var displayText: String {
-        switch self {
-        case .cross:
-            return "cross"
-        case .isolated:
-            return "isolated"
-        }
-    }
 }

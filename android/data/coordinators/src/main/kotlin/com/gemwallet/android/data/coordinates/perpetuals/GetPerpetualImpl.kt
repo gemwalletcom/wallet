@@ -45,4 +45,6 @@ class PerpetualDetailsDataAggregateImpl(
     override val price: Double = data.perpetual.price
 
     override val identifier: String = data.perpetual.identifier
+
+    override val onlyIsolated: Boolean = data.perpetual.onlyIsolated
 }
