@@ -24,6 +24,8 @@ concurrency:
 
 env:
   UNIT_TESTS: "true"
+  JAVA_HOME: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+  ANDROID_HOME: /opt/homebrew/share/android-commandlinetools
 
 jobs:
   unit_test:
