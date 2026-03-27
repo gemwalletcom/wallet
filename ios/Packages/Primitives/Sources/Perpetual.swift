@@ -55,9 +55,9 @@ public struct Perpetual: Codable, Equatable, Hashable, Sendable {
 	public let volume24h: Double
 	public let funding: Double
 	public let maxLeverage: UInt8
-	public let onlyIsolated: Bool
+	public let isIsolatedOnly: Bool
 
-	public init(id: String, name: String, provider: PerpetualProvider, assetId: AssetId, identifier: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double, maxLeverage: UInt8, onlyIsolated: Bool) {
+	public init(id: String, name: String, provider: PerpetualProvider, assetId: AssetId, identifier: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double, maxLeverage: UInt8, isIsolatedOnly: Bool) {
 		self.id = id
 		self.name = name
 		self.provider = provider
@@ -69,7 +69,7 @@ public struct Perpetual: Codable, Equatable, Hashable, Sendable {
 		self.volume24h = volume24h
 		self.funding = funding
 		self.maxLeverage = maxLeverage
-		self.onlyIsolated = onlyIsolated
+		self.isIsolatedOnly = isIsolatedOnly
 	}
 }
 

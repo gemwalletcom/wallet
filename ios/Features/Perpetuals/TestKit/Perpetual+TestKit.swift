@@ -16,7 +16,7 @@ public extension Perpetual {
         openInterest: Double = 1000000,
         volume24h: Double = 5000000,
         funding: Double = 0.01,
-        onlyIsolated: Bool = false
+        isIsolatedOnly: Bool = false
     ) -> Perpetual {
         Perpetual(
             id: id,
@@ -30,7 +30,7 @@ public extension Perpetual {
             volume24h: volume24h,
             funding: funding,
             maxLeverage: maxLeverage,
-            onlyIsolated: onlyIsolated
+            isIsolatedOnly: isIsolatedOnly
         )
     }
 }

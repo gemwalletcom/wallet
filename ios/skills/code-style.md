@@ -126,7 +126,7 @@ public extension Perpetual {
             volume24h: 10_000_000,
             funding: 0.0001,
             maxLeverage: 50,
-            onlyIsolated: false
+            isIsolatedOnly: false
         )
     }
 }

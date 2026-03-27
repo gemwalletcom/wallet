@@ -18,7 +18,7 @@ extension GemPerpetual {
             volume24h: volume24h,
             funding: funding,
             maxLeverage: maxLeverage,
-            onlyIsolated: onlyIsolated
+            isIsolatedOnly: isIsolatedOnly
         )
     }
 }

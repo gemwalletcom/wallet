@@ -43,7 +43,7 @@ extension PerpetualData {
                 volume24h: .zero,
                 funding: .zero,
                 maxLeverage: 1,
-                onlyIsolated: false
+                isIsolatedOnly: false
             ),
             asset: Asset(id: .init(chain: .bitcoin, tokenId: .none), name: "", symbol: "", decimals: 0, type: .native),
             metadata: PerpetualMetadata(isPinned: false)

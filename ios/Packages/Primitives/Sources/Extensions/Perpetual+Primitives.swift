@@ -27,7 +27,7 @@ extension Perpetual {
         assetId.tokenId?.components(separatedBy: AssetId.subTokenSeparator).last ?? name
     }
 
-    public var marginType: PerpetualMarginType { onlyIsolated ? .isolated : .cross }
+    public var marginType: PerpetualMarginType { isIsolatedOnly ? .isolated : .cross }
 }
 
 extension PerpetualSearchData {
