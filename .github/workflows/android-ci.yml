@@ -80,6 +80,10 @@ jobs:
       #   with:
       #     cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
+      - name: Bootstrap
+        working-directory: android
+        run: just bootstrap
+
       - name: Build tests
         working-directory: android
         run: just build-test
