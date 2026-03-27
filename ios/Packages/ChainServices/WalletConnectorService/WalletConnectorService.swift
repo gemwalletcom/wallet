@@ -132,6 +132,10 @@ extension WalletConnectorService {
     }
 
     private func handleRejectSession(proposal: Session.Proposal, error: Error) async {
+        try? await WalletKit.instance.rejectSession(
+            proposalId: proposal.id,
+            reason: RejectionReason(from: error)
+        )
         try? await signer.sessionReject(id: proposal.pairingTopic, error: error)
     }
 
@@ -143,6 +147,7 @@ extension WalletConnectorService {
             let session = WalletKit.instance.getSessions().first { $0.topic == request.topic }
 
             guard let verifyContext, let session else {
+                try? await rejectRequest(request)
                 continue
             }
 
