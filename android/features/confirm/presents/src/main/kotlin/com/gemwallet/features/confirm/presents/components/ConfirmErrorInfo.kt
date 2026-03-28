@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkBalanceRequire
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.theme.Spacer4
+import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -106,7 +107,7 @@ internal fun ConfirmErrorInfo(state: ConfirmState, feeValue: String, isShowBotto
                         .clickable(onClick = { isShowInfoSheet = true }),
                     imageVector = Icons.Outlined.Info,
                     contentDescription = "",
-                    tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
+                    tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
                 )
                 Spacer8()
             }

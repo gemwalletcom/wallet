@@ -69,6 +69,7 @@ import com.gemwallet.android.ui.navigation.routes.navigateToWalletsScreen
 import com.gemwallet.android.ui.navigation.routes.nftRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.transactionsRoute
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.features.assets.views.AssetsScreen
 import com.gemwallet.features.nft.presents.NftListScene
 import com.gemwallet.features.settings.settings.presents.views.SettingsScene
@@ -191,7 +192,7 @@ fun MainScreen(
                                 selectedTextColor = MaterialTheme.colorScheme.onSurface,
                                 unselectedIconColor = MaterialTheme.colorScheme.secondary,
                                 unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                                selectedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                selectedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = alpha10),
                             )
                         )
                     }

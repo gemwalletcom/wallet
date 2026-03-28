@@ -27,6 +27,7 @@ import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PriceUIModel
 import com.gemwallet.android.ui.theme.Spacer2
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
 
@@ -163,7 +164,7 @@ fun PriceInfo(
         )
         Text(
             modifier = if (isHighlightPercentage) {
-                Modifier.background(color.copy(alpha = 0.15f), MaterialTheme.shapes.small)
+                Modifier.background(color.copy(alpha = alpha10), MaterialTheme.shapes.small)
             } else {
                 Modifier
             },//.padding(horizontal = 4.dp),
@@ -237,7 +238,7 @@ fun PriceInfo(
         Spacer(modifier = Modifier.width(internalPadding))
         Text(
             modifier = if (isHighlightPercentage) {
-                Modifier.background(highlightColor.copy(alpha = 0.15f), MaterialTheme.shapes.small)
+                Modifier.background(highlightColor.copy(alpha = alpha10), MaterialTheme.shapes.small)
             } else {
                 Modifier
             }.padding(4.dp),

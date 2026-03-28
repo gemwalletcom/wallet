@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.theme.alpha90
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
@@ -49,7 +50,7 @@ private fun RowScope.PeriodButton(title: String, isSelected: Boolean, onClick: (
             Button(
                 onClick = onClick,
                 colors = ButtonDefaults.buttonColors().copy(
-                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = alpha90),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
                 contentPadding = PaddingValues(0.dp)

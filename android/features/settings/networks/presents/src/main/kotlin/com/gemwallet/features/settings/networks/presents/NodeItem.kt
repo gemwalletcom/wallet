@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer6
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -101,7 +102,7 @@ private fun NodeItemStatus(nodeStatus: NodeStatus?) {
     Row(
         Modifier
             .padding(start = 5.dp)
-            .background(color = color.copy(alpha = 0.1f), shape = RoundedCornerShape(6.dp)),
+            .background(color = color.copy(alpha = alpha10), shape = RoundedCornerShape(6.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val text = if (nodeStatus?.inSync == true) {

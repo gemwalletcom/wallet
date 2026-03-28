@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.import_wallet.components
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +43,7 @@ import com.gemwallet.android.blockchain.operators.InvalidWords
 import com.gemwallet.android.blockchain.operators.walletcore.WCValidatePhraseOperator
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer16
@@ -155,28 +154,19 @@ internal fun ImportInput(
         Box(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Row(
+            FieldBottomAction(
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .clickable {
-                        val newValue = clipboardManager.getPlainText() ?: ""
-                        onValueChange(
-                            TextFieldValue("$newValue ", TextRange(newValue.length + 1))
-                        )
-                    }
                     .testTag("paste"),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                imageVector = Icons.Default.ContentPaste,
+                text = stringResource(id = R.string.common_paste),
             ) {
-                Icon(
-                    imageVector = Icons.Default.ContentPaste,
-                    contentDescription = "paste",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = stringResource(id = R.string.common_paste),
-                    maxLines = 1,
-                    color = MaterialTheme.colorScheme.onSurface,
+                val newValue = clipboardManager.getPlainText() ?: ""
+                onValueChange(
+                    TextFieldValue(
+                        text = "$newValue ",
+                        selection = TextRange(newValue.length + 1),
+                    )
                 )
             }
         }

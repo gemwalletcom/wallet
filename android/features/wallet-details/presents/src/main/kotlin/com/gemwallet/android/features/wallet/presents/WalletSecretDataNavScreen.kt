@@ -29,6 +29,7 @@ import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
@@ -65,7 +66,7 @@ fun WalletSecretDataNavScreen(
             Column(
                 modifier = Modifier
                     .background(
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.error.copy(alpha = alpha10),
                         shape = MaterialTheme.shapes.small
                     )
                     .padding(16.dp)

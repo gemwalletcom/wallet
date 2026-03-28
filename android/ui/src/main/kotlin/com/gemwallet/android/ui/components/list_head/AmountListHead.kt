@@ -68,6 +68,9 @@ import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.alpha50
+import com.gemwallet.android.ui.theme.alpha90
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
@@ -253,8 +256,8 @@ private fun AssetWatchOnly() {
         enabled = true,
         colors = ButtonDefaults
             .buttonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
+                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha50),
+                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha10)
             )
     ) {
         Row(
@@ -263,12 +266,12 @@ private fun AssetWatchOnly() {
             Icon(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = "",
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
             )
             Spacer8()
             Text(
                 text = stringResource(id = R.string.wallet_watch_tooltip_title),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
                 maxLines = 1,
             )
             Spacer8()
@@ -279,7 +282,7 @@ private fun AssetWatchOnly() {
                 Icon(
                     imageVector = Icons.Outlined.Info,
                     contentDescription = "",
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
                 )
             }
         }
@@ -312,7 +315,7 @@ fun AmountHeadAction(
             modifier = Modifier
                 .background(
                     color = MaterialTheme.colorScheme.primary.copy(
-                        alpha = if (enabled) 1f else 0.4f,
+                        alpha = if (enabled) 1f else alpha50,
                     ),
                     shape = CircleShape
                 )
@@ -321,7 +324,7 @@ fun AmountHeadAction(
             ,
             imageVector = imageVector,
             tint = MaterialTheme.colorScheme.onPrimary.copy(
-                alpha = if (enabled) 1f else 0.4f,
+                alpha = if (enabled) 1f else alpha50,
             ),
             contentDescription = contentDescription,
         )

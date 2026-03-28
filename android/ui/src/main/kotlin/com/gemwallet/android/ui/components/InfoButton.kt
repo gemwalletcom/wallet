@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.gemwallet.android.ui.theme.alpha50
 import androidx.compose.ui.draw.clip
 import com.gemwallet.android.ui.theme.trailingIconMedium
 
@@ -26,7 +27,7 @@ fun InfoButton(entity: InfoSheetEntity) {
             .clickable(onClick = { showBottomSheet = true }),
         imageVector = Icons.Outlined.Info,
         contentDescription = "",
-        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
+        tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
     )
     if (showBottomSheet) {
         InfoBottomSheet(entity) {

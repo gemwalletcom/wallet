@@ -15,6 +15,10 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
 
 val pendingColor = Color(0xffff9314)
+const val alpha10 = 0.1f
+const val alpha50 = 0.5f
+const val alpha70 = 0.7f
+const val alpha90 = 0.9f
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF2D5BE6),

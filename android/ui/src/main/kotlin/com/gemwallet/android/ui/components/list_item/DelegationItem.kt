@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.DelegationBalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer2
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.Delegation
@@ -62,7 +63,7 @@ fun DelegationItem(
                         Modifier
                             .padding(start = 5.dp)
                             .background(
-                                color = color.copy(alpha = 0.1f),
+                                color = color.copy(alpha = alpha10),
                                 shape = RoundedCornerShape(6.dp)
                             ),
                         verticalAlignment = Alignment.CenterVertically,

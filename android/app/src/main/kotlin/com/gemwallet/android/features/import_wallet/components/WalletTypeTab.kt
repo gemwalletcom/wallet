@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.theme.alpha10
 import com.wallet.core.primitives.WalletType
 
 @Composable
@@ -30,7 +31,7 @@ internal fun WalletTypeTab(
             .clip(RoundedCornerShape(4.dp))
             .background(
                 if (isSelected) {
-                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.09f)
+                    MaterialTheme.colorScheme.secondary.copy(alpha = alpha10)
                 } else {
                     Color.Transparent
                 }
@@ -48,7 +49,7 @@ internal fun WalletTypeTab(
                 color =  MaterialTheme.colorScheme.onSurface,
             )
         },
-        selectedContentColor =  MaterialTheme.colorScheme.secondary.copy(alpha = 0.09f),
+        selectedContentColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
         unselectedContentColor = Color.Transparent,
     )
 }

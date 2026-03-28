@@ -16,6 +16,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.models.BalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.alpha10
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -33,7 +34,7 @@ fun PropertyAssetInfoItem(
             Button(
                 onClick = onMaxAmount,
                 colors = ButtonDefaults.buttonColors().copy(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.09f),
+                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
                 contentPadding = PaddingValues(0.dp)

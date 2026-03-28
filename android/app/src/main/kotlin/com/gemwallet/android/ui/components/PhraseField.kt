@@ -58,10 +58,8 @@ private fun PhraseTextField(
             ) {
                 FieldBottomAction(
                     modifier = Modifier
-                        .fillMaxWidth(0.5f)
                         .align(Alignment.CenterEnd),
                     imageVector = Icons.Default.ContentPaste,
-                    contentDescription = "paste",
                     text = stringResource(id = R.string.common_paste),
                 ) {
                     onValueChange(clipboardManager.getPlainText() ?: "")

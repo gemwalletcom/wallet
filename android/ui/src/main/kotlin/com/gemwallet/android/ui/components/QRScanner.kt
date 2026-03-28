@@ -55,6 +55,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.theme.alpha70
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -364,7 +365,7 @@ private fun FinderView() {
             bottom = halfFullHeight + rectHalfSize - 10,
             clipOp = ClipOp.Difference
         ) {
-            drawRect(Color.Black.copy(alpha = 0.7f), topLeft = Offset.Zero, size)
+            drawRect(Color.Black.copy(alpha = alpha70), topLeft = Offset.Zero, size)
         }
         val path = Path()
         path.moveTo(halfFullWidth - rectHalfSize, halfFullHeight - viewFrameSize)

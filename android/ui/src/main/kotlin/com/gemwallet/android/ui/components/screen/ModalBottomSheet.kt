@@ -9,6 +9,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.alpha70
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,7 +23,7 @@ fun ModalBottomSheet(
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f),
+        scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = alpha70),
         containerColor = containerColor,
         dragHandle = dragHandle,
         content = content
