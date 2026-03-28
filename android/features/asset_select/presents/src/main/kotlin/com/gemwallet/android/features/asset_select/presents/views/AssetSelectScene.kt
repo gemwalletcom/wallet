@@ -1,4 +1,4 @@
-package com.gemwallet.features.asset_select.presents.views
+package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -61,7 +61,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.trailingIconMedium
-import com.gemwallet.features.asset_select.viewmodels.models.UIState
+import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain

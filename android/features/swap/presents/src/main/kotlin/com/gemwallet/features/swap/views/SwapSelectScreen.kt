@@ -11,7 +11,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
-import com.gemwallet.features.asset_select.presents.views.AssetSelectScene
+import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
 import com.gemwallet.features.swap.viewmodels.SwapSelectViewModel
 import com.gemwallet.features.swap.viewmodels.models.SwapItemType
 import com.wallet.core.primitives.AssetId

@@ -1,4 +1,4 @@
-package com.gemwallet.features.asset_select.viewmodels
+package com.gemwallet.android.features.asset_select.viewmodels
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
@@ -13,10 +13,10 @@ import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
-import com.gemwallet.features.asset_select.viewmodels.models.SearchState
-import com.gemwallet.features.asset_select.viewmodels.models.SelectAssetFilters
-import com.gemwallet.features.asset_select.viewmodels.models.SelectSearch
-import com.gemwallet.features.asset_select.viewmodels.models.UIState
+import com.gemwallet.android.features.asset_select.viewmodels.models.SearchState
+import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
+import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
+import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag

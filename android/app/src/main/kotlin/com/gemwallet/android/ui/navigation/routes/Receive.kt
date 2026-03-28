@@ -6,7 +6,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.features.asset_select.presents.views.SelectReceiveScreen
+import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveScreen
 import com.gemwallet.features.receive.presents.ReceiveScreen
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable

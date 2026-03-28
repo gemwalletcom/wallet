@@ -1,4 +1,4 @@
-package com.gemwallet.features.asset_select.viewmodels.models
+package com.gemwallet.android.features.asset_select.viewmodels.models
 
 sealed interface UIState {
     data object Idle : UIState

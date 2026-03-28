@@ -1,9 +1,9 @@
-package com.gemwallet.features.asset_select.viewmodels
+package com.gemwallet.android.features.asset_select.viewmodels
 
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.features.asset_select.viewmodels.models.BaseSelectSearch
+import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject

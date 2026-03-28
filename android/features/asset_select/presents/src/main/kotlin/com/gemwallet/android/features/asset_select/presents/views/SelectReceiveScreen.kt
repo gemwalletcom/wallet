@@ -1,4 +1,4 @@
-package com.gemwallet.features.asset_select.presents.views
+package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
-import com.gemwallet.features.asset_select.viewmodels.AssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.wallet.core.primitives.AssetId
 
 @Composable

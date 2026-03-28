@@ -13,9 +13,9 @@ import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.features.asset_select.viewmodels.BaseAssetSelectViewModel
-import com.gemwallet.features.asset_select.viewmodels.models.SelectAssetFilters
-import com.gemwallet.features.asset_select.viewmodels.models.SelectSearch
+import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
+import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.features.swap.viewmodels.models.SwapItemType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag

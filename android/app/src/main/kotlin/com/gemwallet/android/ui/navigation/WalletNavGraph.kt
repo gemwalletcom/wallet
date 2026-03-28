@@ -17,10 +17,10 @@ import androidx.navigation.navArgument
 import androidx.navigation.navOptions
 import androidx.navigation.navigation
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.create_wallet.navigation.assetsManageScreen
+import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
+import com.gemwallet.android.features.asset_select.presents.navigation.navigateToAssetsManageScreen
+import com.gemwallet.android.features.asset_select.presents.navigation.navigateToAssetsSearchScreen
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
-import com.gemwallet.android.features.create_wallet.navigation.navigateToAssetsManageScreen
-import com.gemwallet.android.features.create_wallet.navigation.navigateToAssetsSearchScreen
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletRulesScreen
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen

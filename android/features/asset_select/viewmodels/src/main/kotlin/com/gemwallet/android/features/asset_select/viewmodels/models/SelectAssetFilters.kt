@@ -1,4 +1,4 @@
-package com.gemwallet.features.asset_select.viewmodels.models
+package com.gemwallet.android.features.asset_select.viewmodels.models
 
 import com.gemwallet.android.model.Session
 import com.wallet.core.primitives.AssetTag

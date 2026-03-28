@@ -7,9 +7,9 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.features.asset_select.viewmodels.BaseAssetSelectViewModel
-import com.gemwallet.features.asset_select.viewmodels.models.SelectAssetFilters
-import com.gemwallet.features.asset_select.viewmodels.models.SelectSearch
+import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
+import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -1,11 +1,11 @@
-package com.gemwallet.android.features.create_wallet.navigation
+package com.gemwallet.android.features.asset_select.presents.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
-import com.gemwallet.features.asset_select.presents.views.AssetsManageScreen
+import com.gemwallet.android.features.asset_select.presents.views.AssetsManageScreen
 import com.wallet.core.primitives.AssetId
 
 const val assetsManageRoute = "manage_assets"
