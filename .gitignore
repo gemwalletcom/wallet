@@ -1,2 +1,3 @@
 /.DS_Store
 .idea/
+android/gradle/gradle-daemon-jvm.properties
