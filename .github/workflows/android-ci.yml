@@ -12,8 +12,6 @@ concurrency:
 
 env:
   UNIT_TESTS: "true"
-  JAVA_HOME: /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
-  ANDROID_HOME: /opt/homebrew/share/android-commandlinetools
 
 jobs:
   unit_test:
@@ -25,6 +23,13 @@ jobs:
         uses: actions/checkout@v5
         with:
           submodules: recursive
+
+      - name: Validate Runner Toolchain
+        run: |
+          [ -n "${JAVA_HOME:-}" ] || { echo "JAVA_HOME is not set on runner"; exit 1; }
+          [ -x "${JAVA_HOME}/bin/java" ] || { echo "JAVA_HOME is invalid: ${JAVA_HOME}"; exit 1; }
+          [ -n "${ANDROID_HOME:-}" ] || { echo "ANDROID_HOME is not set on runner"; exit 1; }
+          [ -d "${ANDROID_HOME}" ] || { echo "ANDROID_HOME does not exist: ${ANDROID_HOME}"; exit 1; }
 
       - name: Bootstrap
         working-directory: android
