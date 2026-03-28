@@ -37,12 +37,12 @@ android {
 
     sourceSets {
         getByName("main") {
-            java.srcDirs(generatedKotlinDir)
+            kotlin.srcDirs(generatedKotlinDir)
             jniLibs.srcDirs(jniLibsDir)
             manifest.srcFile(gemstoneSrc.resolve("main/AndroidManifest.xml"))
         }
         getByName("androidTest") {
-            java.srcDirs(gemstoneSrc.resolve("androidTest/java"))
+            kotlin.srcDirs(gemstoneSrc.resolve("androidTest/java"))
         }
     }
 }
