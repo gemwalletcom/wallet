@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.price.PriceState
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.ListPosition
@@ -40,13 +40,7 @@ fun AssetListItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
-        leading = @Composable {
-            IconWithBadge(
-                icon = asset.icon,
-                supportIcon = asset.supportIcon,
-            )
-
-        },
+        leading = @Composable { AssetIcon(asset.asset) },
         title = @Composable { ListItemTitleText(asset.title) },
         subtitle = asset.price?.let {
             {
@@ -73,7 +67,7 @@ fun AssetListItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
-        leading = @Composable { IconWithBadge(asset.asset) },
+        leading = @Composable { AssetIcon(asset.asset) },
         title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
         subtitle = support,
         trailing = if (trailing == null) null else {
@@ -94,7 +88,7 @@ fun AssetListItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
-        leading = @Composable { IconWithBadge(asset) },
+        leading = @Composable { AssetIcon(asset) },
         title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
         subtitle = if (support.isNullOrEmpty()) null else {
             { ListItemSupportText(support) }

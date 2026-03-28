@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.price.PriceState
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -37,7 +37,7 @@ fun PerpetualPositionItem(
     ListItem(
         modifier = modifier,//onClick?.let { modifier.clickable({ onClick(data.perpetualId) }) } ?: modifier,
         listPosition = listPosition,
-        leading = @Composable { IconWithBadge(data.asset) },
+        leading = @Composable { AssetIcon(data.asset) },
         title = @Composable { ListItemTitleText(data.name) },
         subtitle = { Text(data.direction.text(data.leverage), color = data.direction.color()) },
         trailing = {

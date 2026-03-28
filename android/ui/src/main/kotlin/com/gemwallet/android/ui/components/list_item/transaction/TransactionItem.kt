@@ -16,7 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -42,7 +42,7 @@ fun TransactionItem(
 ) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick).heightIn(72.dp),
-        leading = { IconWithBadge(asset = data.asset) },
+        leading = { AssetIcon(data.asset) },
         title = {
             ListItemTitleText(
                 text = data.getTitle(),

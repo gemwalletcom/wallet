@@ -49,12 +49,11 @@ class GetPriceAlertsImpl(
 @Stable
 class PriceAlertDataAggregateImpl(
     override val id: Int,
-    val asset: Asset,
+    override val asset: Asset,
     val assetPrice: AssetPriceInfo,
     val priceAlert: PriceAlert
 ) : PriceAlertDataAggregate {
     override val assetId: AssetId = asset.id
-    override val icon: Any = asset
     override val title: String = asset.name
     override val titleBadge: String = asset.symbol.uppercase()
 

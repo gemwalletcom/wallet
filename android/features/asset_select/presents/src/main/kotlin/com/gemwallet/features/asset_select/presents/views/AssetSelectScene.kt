@@ -46,7 +46,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.filters.AssetsFilter
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -339,7 +339,7 @@ private fun LazyListScope.recent(
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconWithBadge(item.asset, size = trailingIconMedium)
+                    AssetIcon(item.asset, size = trailingIconMedium)
                     Text(item.asset.symbol)
                 }
             }

@@ -41,7 +41,7 @@ import com.gemwallet.android.domains.asset.availableBalanceFormatted
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.models.ListPosition
@@ -131,7 +131,7 @@ private fun AssetInfo(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
     ) {
-        IconWithBadge(asset)
+        AssetIcon(asset)
         Text(
             text = asset.symbol,
             style = MaterialTheme.typography.titleMedium,

@@ -59,6 +59,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.theme.Spacer16
@@ -164,7 +165,7 @@ fun HeaderIcon(
     iconSize: Dp = headerIconSize,
 ) {
     if (asset == null) { return }
-    IconWithBadge(asset, size = iconSize)
+    AssetIcon(asset, size = iconSize)
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)

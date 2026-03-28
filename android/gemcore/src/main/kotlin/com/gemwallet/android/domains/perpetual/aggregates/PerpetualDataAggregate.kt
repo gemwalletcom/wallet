@@ -9,8 +9,6 @@ interface PerpetualDataAggregate {
 
     val name: String
 
-    val icon: Any
-
     val price: EquivalentValue
 
     val volume: String

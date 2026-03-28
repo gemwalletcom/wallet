@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -91,7 +91,7 @@ private fun RewardRedemptionOptionItem(
             PropertyTitleText(
                 text = stringResource(R.string.rewards_ways_spend_asset_title, option.formattedValue),
                 trailing = {
-                    IconWithBadge(option.asset ?: return@PropertyTitleText)
+                    AssetIcon(option.asset ?: return@PropertyTitleText)
                 },
             )
         },

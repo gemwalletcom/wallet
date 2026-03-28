@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.Badge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -216,7 +216,7 @@ private fun LazyListScope.assets(
                         minActionWidth = with(density) { it.height.toDp() }
                     },
                 listPosition = position,
-                leading = @Composable { IconWithBadge(item.icon) },
+                leading = @Composable { AssetIcon(item.asset) },
                 title = @Composable { ListItemTitleText(item.title, { Badge(text = item.titleBadge) }) },
                 subtitle = {
                     val (price, changes) = when (item.type) {

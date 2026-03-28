@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -80,7 +80,7 @@ fun PerpetualItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
-        leading = @Composable { IconWithBadge(item.asset) },
+        leading = @Composable { AssetIcon(item.asset) },
         title = @Composable { ListItemTitleText(item.asset.name) },
         subtitle = if (item.price.value == null || item.price.value == 0.0) {
             null
@@ -120,7 +120,6 @@ private fun PerpetualItemPreview() {
             type = AssetType.NATIVE
         )
         override val isPinned: Boolean = true
-        override val icon: Any = asset
         override val price = object : EquivalentValue {
             override val currency = Currency.USD
             override val value = 95420.50

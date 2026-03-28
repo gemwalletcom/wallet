@@ -61,11 +61,11 @@ class AssetInfoDataAggregateImplTest {
     }
 
     @Test
-    fun assetInfoDataAggregate_icon_returnsAsset() {
+    fun assetInfoDataAggregate_asset_returnsAsset() {
         val assetInfo = createAssetInfo(asset = btcAsset)
         val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
 
-        assertEquals(btcAsset, aggregate.icon)
+        assertEquals(btcAsset, aggregate.asset)
     }
 
     @Test

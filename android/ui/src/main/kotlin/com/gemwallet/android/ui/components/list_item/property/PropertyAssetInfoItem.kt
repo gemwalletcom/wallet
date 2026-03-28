@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -26,7 +26,7 @@ fun PropertyAssetInfoItem(
     onMaxAmount: () -> Unit,
 ) {
     ListItem(
-        leading = { IconWithBadge(asset) },
+        leading = { AssetIcon(asset) },
         title = { ListItemTitleText(asset.name) },
         subtitle = { ListItemSupportText(stringResource(id = R.string.transfer_balance, availableAmount)) },
         listPosition = ListPosition.Single,
@@ -52,7 +52,7 @@ fun PropertyAssetBalanceItem(
     listPosition: ListPosition = ListPosition.Single,
 ) {
     ListItem(
-        leading = { IconWithBadge(model.asset) },
+        leading = { AssetIcon(model.asset) },
         title = { ListItemTitleText(title ?: model.asset.name) },
         listPosition = listPosition,
         trailing = {

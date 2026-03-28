@@ -96,8 +96,8 @@ class PriceAlertDataAggregateImplTest {
         )
 
         assertEquals(123, aggregate.id)
+        assertEquals(ethAsset, aggregate.asset)
         assertEquals(ethAsset.id, aggregate.assetId)
-        assertEquals(ethAsset, aggregate.icon)
         assertEquals("Ethereum", aggregate.title)
     }
 
