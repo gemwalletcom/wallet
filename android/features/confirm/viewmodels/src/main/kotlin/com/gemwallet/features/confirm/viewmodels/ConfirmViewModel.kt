@@ -13,6 +13,8 @@ import com.gemwallet.android.data.repositoreis.assets.AssetsRepository
 import com.gemwallet.android.data.repositoreis.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositoreis.session.SessionRepository
 import com.gemwallet.android.data.repositoreis.stake.StakeRepository
+import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.service.store.database.getAddressName
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.isMemoSupport
 import com.gemwallet.android.domains.asset.stakeChain
@@ -42,6 +44,7 @@ import com.gemwallet.features.confirm.models.ConfirmState
 import com.gemwallet.features.confirm.models.FeeUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FeePriority
@@ -87,6 +90,7 @@ class ConfirmViewModel @Inject constructor(
     private val createTransactionsCase: CreateTransaction,
     private val stakeRepository: StakeRepository,
     private val perpetualRepository: PerpetualRepository,
+    private val addressDao: AddressesDao,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -205,9 +209,13 @@ class ConfirmViewModel @Inject constructor(
     val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
         request ?: return@combine emptyList()
         val assetInfo = assetsInfo?.getByAssetId(request.assetId) ?: return@combine emptyList()
+        val addressName = request.destination()?.let {
+            addressDao.getAddressName(assetInfo.asset.chain, it.address)
+        }
+        val destination = ConfirmProperty.Destination.map(request, getValidator(request), addressName)
         mutableListOf<ConfirmProperty?>().apply {
             add(ConfirmProperty.Source(assetInfo.walletName))
-            add(ConfirmProperty.Destination.map(request, getValidator(request)))
+            add(destination)
             add(request.memo()?.takeIf {
                 (request is ConfirmParams.TransferParams.Native || request is ConfirmParams.TransferParams.Token)
                         && assetInfo.asset.isMemoSupport()

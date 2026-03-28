@@ -4,11 +4,15 @@ import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.data.service.store.database.AccountsDao
+import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.WalletsDao
+import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
@@ -25,6 +29,7 @@ import javax.inject.Singleton
 class WalletsRepositoryImpl @Inject constructor(
     private val walletsDao: WalletsDao,
     private val accountsDao: AccountsDao,
+    private val addressDao: AddressesDao,
     private val createAccount: CreateAccountOperator,
     private val walletIdGenerator: WalletIdGenerator,
 ) : WalletsRepository {
@@ -108,6 +113,7 @@ class WalletsRepositoryImpl @Inject constructor(
 
     override suspend fun removeWallet(walletId: String) = withContext(Dispatchers.IO) {
         val wallet = walletsDao.getById(walletId).firstOrNull() ?: return@withContext false
+        addressDao.deleteByWalletId(wallet.id)
         accountsDao.deleteByWalletId(wallet.id)
         walletsDao.delete(wallet)
         true
@@ -124,6 +130,21 @@ class WalletsRepositoryImpl @Inject constructor(
     private suspend fun putWallet(wallet: Wallet): Wallet = withContext(Dispatchers.IO) {
         walletsDao.insert(wallet.toRecord())
         accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id) })
+        saveWalletAddresses(wallet)
         wallet
+    }
+
+    private suspend fun saveWalletAddresses(wallet: Wallet) {
+        val addresses = wallet.accounts.map { account ->
+            DbAddress(
+                chain = account.chain,
+                address = account.address,
+                walletId = wallet.id,
+                name = wallet.name,
+                type = AddressType.InternalWallet,
+                status = VerificationStatus.Verified,
+            )
+        }
+        addressDao.insert(addresses)
     }
 }

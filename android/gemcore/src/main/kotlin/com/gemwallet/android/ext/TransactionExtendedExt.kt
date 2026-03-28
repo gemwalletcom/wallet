@@ -4,6 +4,7 @@ import com.gemwallet.android.model.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 
@@ -14,6 +15,12 @@ fun Transaction.getAssociatedAssetIds(): List<AssetId> {
 
 val Transaction.hash: String
     get() = id.removePrefix("${assetId.chain.string}_")
+
+val Transaction.counterpartyAddress: String
+    get() = when (direction) {
+        TransactionDirection.Outgoing, TransactionDirection.SelfTransfer -> to
+        TransactionDirection.Incoming -> from
+    }
 
 fun Transaction.getSwapMetadata(): TransactionSwapMetadata? = getTransactionSwapMetadata(type, metadata)
 

@@ -36,6 +36,11 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
         is TransactionDetailsValue.Destination.Provider -> false
         else -> true
     }
+    val displayText = when (property) {
+        is TransactionDetailsValue.Destination.Recipient -> property.name ?: property.data
+        is TransactionDetailsValue.Destination.Sender -> property.name ?: property.data
+        is TransactionDetailsValue.Destination.Provider -> property.data
+    }
 
     PropertyItem(
         title = { PropertyTitleText(title) },
@@ -49,7 +54,7 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
             ) {
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = property.data,
+                    text = displayText,
                     textAlign = TextAlign.End,
                     maxLines = 1,
                     overflow = TextOverflow.MiddleEllipsis,

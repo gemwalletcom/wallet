@@ -3,13 +3,17 @@ package com.gemwallet.android.data.coordinates.transaction
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.data.repositoreis.transactions.TransactionRepository
+import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.service.store.database.getAddressName
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ext.counterpartyAddress
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.getAddressEllipsisText
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.map
 
 class GetTransactionsImpl(
     private val transactionsRepository: TransactionRepository,
+    private val addressDao: AddressesDao,
 ) : GetTransactions {
 
     override fun getTransactions(
@@ -57,13 +62,20 @@ class GetTransactionsImpl(
                         || swapMetadata?.fromAsset == assetId
             }
         }
-        .map { items -> items.map { TransactionDataAggregateImpl(it) } }
+        .map { items ->
+            items.map { tx ->
+                val resolved = addressDao.getAddressName(tx.asset.id.chain, tx.transaction.counterpartyAddress)
+                TransactionDataAggregateImpl(tx, resolved?.name, resolved?.type)
+            }
+        }
         .flowOn(Dispatchers.IO)
 }
 
 @Stable
 class TransactionDataAggregateImpl(
-    private val data: TransactionExtended
+    private val data: TransactionExtended,
+    override val addressName: String? = null,
+    override val addressType: AddressType? = null,
 ) : TransactionDataAggregate {
 
     override val id: String = data.transaction.id

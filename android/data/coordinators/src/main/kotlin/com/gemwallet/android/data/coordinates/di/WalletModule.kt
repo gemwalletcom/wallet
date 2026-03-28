@@ -22,6 +22,7 @@ import com.gemwallet.android.data.coordinates.wallet.ToggleWalletPinImpl
 import com.gemwallet.android.data.coordinates.wallet.WalletIdGeneratorImpl
 import com.gemwallet.android.data.repositoreis.session.SessionRepository
 import com.gemwallet.android.data.repositoreis.wallets.WalletsRepository
+import com.gemwallet.android.data.service.store.database.AddressesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -58,10 +59,11 @@ object WalletModule {
     @Singleton
     fun provideSetWalletName(
         walletsRepository: WalletsRepository,
+        addressDao: AddressesDao,
     ): SetWalletName {
-        return SetWalletNameImpl(walletsRepository)
+        return SetWalletNameImpl(walletsRepository, addressDao)
     }
-    
+
     @Provides
     @Singleton
     fun provideGetWalletSecretData(

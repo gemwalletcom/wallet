@@ -8,6 +8,7 @@ import com.gemwallet.android.data.coordinates.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.repositoreis.assets.AssetsRepository
 import com.gemwallet.android.data.repositoreis.session.SessionRepository
 import com.gemwallet.android.data.repositoreis.transactions.TransactionRepository
+import com.gemwallet.android.data.service.store.database.AddressesDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,8 +23,9 @@ object TransactionModule {
     @Singleton
     fun provideGetTransactions(
         transactionRepository: TransactionRepository,
+        addressDao: AddressesDao,
     ): GetTransactions {
-        return GetTransactionsImpl(transactionRepository)
+        return GetTransactionsImpl(transactionRepository, addressDao)
     }
     @Provides
     @Singleton
@@ -33,6 +35,7 @@ object TransactionModule {
         assetsRepository: AssetsRepository,
         getCurrentBlockExplorer: GetCurrentBlockExplorer,
         gemSwapper: GemSwapper,
+        addressDao: AddressesDao,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             sessionRepository = sessionRepository,
@@ -40,6 +43,7 @@ object TransactionModule {
             assetsRepository = assetsRepository,
             getCurrentBlockExplorer = getCurrentBlockExplorer,
             gemSwapper = gemSwapper,
+            addressDao = addressDao,
         )
     }
 }

@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.transaction.values
 
 import com.gemwallet.android.model.AssetInfo
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAsset
@@ -37,8 +38,8 @@ sealed interface TransactionDetailsValue {
     class Date(val data: String) : TransactionDetailsValue
 
     sealed class Destination(val data: String) : TransactionDetailsValue {
-        class Sender(data: String) : Destination(data)
-        class Recipient(data: String) : Destination(data)
+        class Sender(data: String, val name: String? = null, val addressType: AddressType? = null) : Destination(data)
+        class Recipient(data: String, val name: String? = null, val addressType: AddressType? = null) : Destination(data)
         class Provider(name: String) : Destination(name)
     }
 

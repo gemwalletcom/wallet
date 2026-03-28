@@ -6,9 +6,12 @@ import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositoreis.assets.AssetsRepository
 import com.gemwallet.android.data.repositoreis.session.SessionRepository
 import com.gemwallet.android.data.repositoreis.transactions.TransactionRepository
+import com.gemwallet.android.data.service.store.database.AddressesDao
+import com.gemwallet.android.data.service.store.database.getAddressName
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
+import com.gemwallet.android.ext.counterpartyAddress
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getSwapMetadata
@@ -17,6 +20,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
+import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
@@ -42,6 +46,7 @@ class GetTransactionDetailsImpl(
     private val assetsRepository: AssetsRepository,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val gemSwapper: GemSwapper,
+    private val addressDao: AddressesDao,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: String): Flow<TransactionDetailsAggregate?> {
@@ -57,6 +62,7 @@ class GetTransactionDetailsImpl(
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
                     val provider = gemSwapper.getProviders().firstOrNull { it.protocolId ==  swapMetadata?.provider }
+                    val addressName = addressDao.getAddressName(data.asset.id.chain, data.transaction.counterpartyAddress)
                     TransactionDetailsAggregateImpl(
                         data = data,
                         associatedAssets = assets,
@@ -64,11 +70,13 @@ class GetTransactionDetailsImpl(
                         currency = session.currency,
                         swapProvider = provider,
                         swapMetadata = swapMetadata,
+                        addressName = addressName,
                     )
                 }
             }
             .flowOn(Dispatchers.IO)
     }
+
 }
 
 @Stable
@@ -79,6 +87,7 @@ class TransactionDetailsAggregateImpl(
     override val explorer: TransactionDetailsValue.Explorer,
     override val currency: Currency,
     swapProvider: SwapperProviderType? = null,
+    private val addressName: AddressName? = null,
 ) : TransactionDetailsAggregate {
 
     override val id: String = data.transaction.id
@@ -186,8 +195,16 @@ class TransactionDetailsAggregateImpl(
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(data.transaction.to)
-            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(data.transaction.from)
+            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(
+                data = data.transaction.to,
+                name = addressName?.name,
+                addressType = addressName?.type,
+            )
+            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(
+                data = data.transaction.from,
+                name = addressName?.name,
+                addressType = addressName?.type,
+            )
         }
     }
 

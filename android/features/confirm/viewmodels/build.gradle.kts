@@ -52,6 +52,7 @@ dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
     implementation(project(":data:repositories"))
+    implementation(project(":data:services:store"))
     implementation(project(":gemcore"))
 
     implementation(libs.ktx.core)

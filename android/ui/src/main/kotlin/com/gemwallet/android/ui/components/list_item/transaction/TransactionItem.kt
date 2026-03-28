@@ -25,6 +25,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer2
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -116,6 +117,8 @@ fun PreviewTransactionItem() {
                     type = AssetType.NATIVE,
                 )
                 override val address = "btc12312sdfksdjfks"
+                override val addressName: String? = null
+                override val addressType: AddressType? = null
                 override val value = "-0.9998888999 BTC"
                 override val equivalentValue: String? = null
                 override val type = TransactionType.Transfer
@@ -144,6 +147,8 @@ fun PreviewSwapTransactionItem() {
                     type = AssetType.NATIVE,
                 )
                 override val address = "0xBA4D...50AC4"
+                override val addressName: String? = null
+                override val addressType: AddressType? = null
                 override val value = "+19 TON"
                 override val equivalentValue = "-0.09 BNB"
                 override val type = TransactionType.Swap
