@@ -30,6 +30,9 @@ test:
 unit-test:
     @./gradlew testGoogleDebugUnitTest
 
+provision-emulator:
+    @bash ./scripts/android_emulator.sh provision
+
 start-emulator:
     @bash ./scripts/android_emulator.sh setup
 

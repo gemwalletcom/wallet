@@ -12,6 +12,10 @@ concurrency:
 
 env:
   UNIT_TESTS: "true"
+  ANDROID_COMPILE_SDK: "36"
+  ANDROID_API: "35"
+  ANDROID_AVD_NAME: "ci-emulator"
+  ANDROID_EMULATOR_DEVICE: "pixel_6"
 
 jobs:
   unit_test:
@@ -24,16 +28,27 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Validate Runner Toolchain
+      - name: Resolve Runner Toolchain
         run: |
-          [ -n "${JAVA_HOME:-}" ] || { echo "JAVA_HOME is not set on runner"; exit 1; }
+          JAVA_HOME="$(/usr/libexec/java_home -v 17)"
+          ANDROID_HOME="/opt/homebrew/share/android-commandlinetools"
+
           [ -x "${JAVA_HOME}/bin/java" ] || { echo "JAVA_HOME is invalid: ${JAVA_HOME}"; exit 1; }
-          [ -n "${ANDROID_HOME:-}" ] || { echo "ANDROID_HOME is not set on runner"; exit 1; }
-          [ -d "${ANDROID_HOME}" ] || { echo "ANDROID_HOME does not exist: ${ANDROID_HOME}"; exit 1; }
+          [ -x "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" ] || { echo "sdkmanager is missing under ${ANDROID_HOME}"; exit 1; }
+
+          {
+            echo "JAVA_HOME=${JAVA_HOME}"
+            echo "ANDROID_HOME=${ANDROID_HOME}"
+            echo "ANDROID_SDK_ROOT=${ANDROID_HOME}"
+          } >> "${GITHUB_ENV}"
 
       - name: Bootstrap
         working-directory: android
         run: just bootstrap
+
+      - name: Provision Android SDK
+        working-directory: android
+        run: just provision-emulator
 
       - name: Build
         working-directory: android
