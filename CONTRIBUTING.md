@@ -31,6 +31,3 @@ This repository is a monorepo:
 * iOS application code lives under `ios/`
 * Android application code lives under `android/`
 * Shared Rust core is the `core/` submodule
-
-### Commit Convention
-We use [Conventional Commits](https://www.conventionalcommits.org/) for commit messages. Please read the guide through if you aren't familiar with it already.
