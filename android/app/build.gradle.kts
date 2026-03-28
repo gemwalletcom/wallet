@@ -3,12 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("com.android.application")
+    alias(libs.plugins.compose.compiler)
     id("com.google.dagger.hilt.android")
-    kotlin("android")
     id("kotlinx-serialization")
     id("com.google.devtools.ksp")
     id("androidx.room")
-    alias(libs.plugins.compose.compiler)
     id("com.google.gms.google-services")
 }
 
