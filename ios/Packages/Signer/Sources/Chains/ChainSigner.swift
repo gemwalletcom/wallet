@@ -43,6 +43,10 @@ final class ChainSigner: Signable {
         try signer.signStake(input: input.map(), privateKey: privateKey)
     }
 
+    func signEarn(input: SignerInput, privateKey: Data) throws -> [String] {
+        try signer.signEarn(input: input.map(), privateKey: privateKey)
+    }
+
     func signAccountAction(input: SignerInput, privateKey: Data) throws -> String {
         try signer.signAccountAction(input: input.map(), privateKey: privateKey)
     }
