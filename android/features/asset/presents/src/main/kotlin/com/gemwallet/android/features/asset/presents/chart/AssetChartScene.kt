@@ -43,7 +43,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
-import com.gemwallet.android.ui.theme.trailingIconMedium
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketInfoUIModel
@@ -115,7 +115,7 @@ private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
         val context = LocalContext.current
         PropertyItem(
             modifier = Modifier.clickable { uriHandler.open(context, item.url) },
-            title = { PropertyTitleText(item.label, trailing = { AsyncImage(item.icon, trailingIconMedium) }) },
+            title = { PropertyTitleText(item.label, trailing = { AsyncImage(item.icon, smallIconSize) }) },
             data = { PropertyDataText("", badge = { DataBadgeChevron() }) },
             listPosition = ListPosition.getPosition(index, links.size)
         )

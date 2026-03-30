@@ -15,7 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ui.theme.alpha50
 import androidx.compose.ui.draw.clip
-import com.gemwallet.android.ui.theme.trailingIconMedium
+import com.gemwallet.android.ui.theme.smallIconSize
 
 @Composable
 fun InfoButton(entity: InfoSheetEntity) {
@@ -23,7 +23,7 @@ fun InfoButton(entity: InfoSheetEntity) {
     Icon(
         modifier = Modifier
             .clip(RoundedCornerShape(percent = 50))
-            .size(trailingIconMedium)
+            .size(smallIconSize)
             .clickable(onClick = { showBottomSheet = true }),
         imageVector = Icons.Outlined.Info,
         contentDescription = "",

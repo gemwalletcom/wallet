@@ -29,8 +29,8 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingMiddle
-import com.gemwallet.android.ui.theme.trailingIconMedium
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.tinyIconSize
 
 @Composable
 fun PropertyItem(
@@ -59,7 +59,7 @@ fun PropertyItem(
 ) {
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
-        title = { PropertyTitleText(text = action, trailing = { AsyncImage(actionIconModel, 24.dp) }) },
+        title = { PropertyTitleText(text = action, trailing = { AsyncImage(actionIconModel, smallIconSize) }) },
         data = {
             PropertyDataText(
                 text = data ?: "",
@@ -207,7 +207,7 @@ fun DataBadgeChevron(isShowChevron: Boolean = true, content: (@Composable RowSco
         }
         if (isShowChevron) {
             Icon(
-                modifier = Modifier.offset(8.dp).size(trailingIconSmall),
+                modifier = Modifier.offset(8.dp).size(tinyIconSize),
                 painter = rememberVectorPainter(image = Icons.AutoMirrored.Default.ArrowForwardIos),
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.secondary
@@ -219,6 +219,6 @@ fun DataBadgeChevron(isShowChevron: Boolean = true, content: (@Composable RowSco
 @Composable
 fun DataBadgeChevron(icon: Any, isShowChevron: Boolean = true) {
     DataBadgeChevron(isShowChevron) {
-        AsyncImage(icon, size = trailingIconMedium)
+        AsyncImage(icon, size = smallIconSize)
     }
 }

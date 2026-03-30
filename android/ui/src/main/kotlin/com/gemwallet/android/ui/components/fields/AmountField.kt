@@ -35,7 +35,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.models.AmountInputType
-import com.gemwallet.android.ui.theme.headerSupportIconSize
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Currency
 
 @Composable
@@ -93,7 +93,7 @@ fun ColumnScope.AmountField(
             )
             if (onInputTypeClick != null) {
                 Icon(
-                    modifier = Modifier.size(headerSupportIconSize).clickable { onInputTypeClick() },
+                    modifier = Modifier.size(smallIconSize).clickable { onInputTypeClick() },
                     imageVector = Icons.Default.SwapVert,
                     contentDescription = ""
                 )

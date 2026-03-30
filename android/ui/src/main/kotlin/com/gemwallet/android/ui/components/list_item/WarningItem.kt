@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
-import com.gemwallet.android.ui.theme.trailingIconMedium
+import com.gemwallet.android.ui.theme.smallIconSize
 
 @Composable
 fun WarningItem(
@@ -39,7 +39,7 @@ fun WarningItem(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                modifier = Modifier.size(trailingIconMedium),
+                modifier = Modifier.size(smallIconSize),
                 imageVector = Icons.Outlined.Warning,
                 contentDescription = null,
                 tint = color,

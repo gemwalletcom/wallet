@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha50
-import com.gemwallet.android.ui.theme.trailingIconMedium
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.confirm.models.ConfirmError
 import com.gemwallet.android.features.confirm.models.ConfirmState
 import com.gemwallet.android.features.confirm.presents.toLabel
@@ -55,7 +55,7 @@ internal fun ConfirmErrorInfo(state: ConfirmState, feeValue: String, isShowBotto
                     Icon(
                         modifier = Modifier
                             .clip(RoundedCornerShape(percent = 50))
-                            .size(trailingIconMedium)
+                            .size(smallIconSize)
                             .clickable(onClick = { isShowInfoSheet = true }),
                         imageVector = Icons.Outlined.Info,
                         contentDescription = null,

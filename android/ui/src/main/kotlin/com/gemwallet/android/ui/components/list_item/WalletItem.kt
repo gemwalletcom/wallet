@@ -62,11 +62,7 @@ fun WalletItem(
         modifier = modifier.heightIn(72.dp),
         leading = @Composable {
             IconWithBadge(
-                icon = if (type == WalletType.Multicoin) {
-                    R.drawable.multicoin_wallet
-                } else {
-                    walletChain?.getIconUrl() ?: ""
-                },
+                icon = walletItemIconModel(type = type, walletChain = walletChain),
                 supportIcon = if (type == WalletType.View) {
                     "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
                 } else null,
@@ -116,6 +112,13 @@ fun WalletItem(
             }
         }
     )
+}
+
+private fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {
+    WalletType.Multicoin -> R.drawable.multicoin_wallet
+    WalletType.Single,
+    WalletType.PrivateKey,
+    WalletType.View -> walletChain?.getIconUrl()
 }
 
 @Preview
