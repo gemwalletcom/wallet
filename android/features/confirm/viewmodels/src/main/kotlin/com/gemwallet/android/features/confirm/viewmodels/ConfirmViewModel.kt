@@ -10,9 +10,10 @@ import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
+import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.isMemoSupport
 import com.gemwallet.android.domains.asset.stakeChain
@@ -90,7 +91,7 @@ class ConfirmViewModel @Inject constructor(
     private val broadcastService: BroadcastService,
     private val createTransactionsCase: CreateTransaction,
     private val stakeRepository: StakeRepository,
-    private val perpetualRepository: PerpetualRepository,
+    private val transactionBalanceService: TransactionBalanceService,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -175,8 +176,7 @@ class ConfirmViewModel @Inject constructor(
         val energyAsset = params.input.assetId == params.fee(feePriority).feeAssetId
         val finalAmount = when {
             params.input is ConfirmParams.Stake.RewardsParams -> stakeRepository.getRewards(params.input.assetId, params.input.from.address)
-                .map { BigInteger(it.base.rewards) }
-                .fold(BigInteger.ZERO) { acc, value -> acc + value }
+                .sumRewardsBalance()
 
             params.input.useMaxAmount && energyAsset -> {
                 val result = params.input.amount - params.fee(feePriority).amount
@@ -437,36 +437,7 @@ class ConfirmViewModel @Inject constructor(
     }
 
     private suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
-        return when (params) {
-            is ConfirmParams.TransferParams,
-            is ConfirmParams.SwapParams,
-            is ConfirmParams.TokenApprovalParams,
-            is ConfirmParams.Activate,
-            is ConfirmParams.NftParams,
-            is ConfirmParams.Stake.Freeze -> assetInfo.balance.balance.available.toBigInteger()
-            is ConfirmParams.Stake.DelegateParams -> if (assetInfo.stakeChain?.freezed() == true) {
-                 assetInfo.balance.balance.getDelegatePreparedAmount()
-            } else {
-                assetInfo.balance.balance.available.toBigInteger()
-            }
-            is ConfirmParams.Stake.Unfreeze -> if (params.resource == Resource.Energy) {
-                assetInfo.balance.balance.locked.toBigInteger()
-            } else {
-                assetInfo.balance.balance.frozen.toBigInteger()
-            }
-            is ConfirmParams.Stake.RedelegateParams -> BigInteger(stakeRepository.getDelegation(params.delegation.validator.id).firstOrNull()?.base?.balance ?: "0")
-            is ConfirmParams.Stake.UndelegateParams -> BigInteger(stakeRepository.getDelegation(params.delegation.validator.id, params.delegation.base.delegationId).firstOrNull()?.base?.balance ?: "0")
-            is ConfirmParams.Stake.WithdrawParams -> BigInteger(stakeRepository.getDelegation(params.delegation.validator.id, params.delegation.base.delegationId).firstOrNull()?.base?.balance ?: "0")
-            is ConfirmParams.Stake.RewardsParams -> stakeRepository.getRewards(assetInfo.asset.id, assetInfo.owner?.address ?: "")
-                .fold(BigInteger.ZERO) { acc, delegation -> acc + BigInteger(delegation.base.balance) }
-            is ConfirmParams.PerpetualParams.Open -> {
-                val amount = perpetualRepository.getBalance(assetInfo.owner?.address ?: "").firstOrNull()?.available ?: 0.0
-                Crypto(amount.toBigDecimal(), assetInfo.asset.decimals).atomicValue
-            }
-
-            is ConfirmParams.PerpetualParams.Close -> TODO()
-            is ConfirmParams.PerpetualParams.Modify -> TODO()
-        }
+        return transactionBalanceService.getBalance(assetInfo, params)
     }
 
     private suspend fun getValidator(params: ConfirmParams): DelegationValidator? {
