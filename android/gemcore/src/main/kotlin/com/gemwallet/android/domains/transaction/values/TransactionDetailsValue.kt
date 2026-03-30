@@ -3,7 +3,7 @@ package com.gemwallet.android.domains.transaction.values
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
 
 sealed interface TransactionDetailsValue {
@@ -17,7 +17,7 @@ sealed interface TransactionDetailsValue {
             val currency: Currency,
         ) : Amount
 
-        class NFT(val asset: NFTAsset) : Amount
+        class NFT(val metadata: TransactionNFTTransferMetadata) : Amount
 
         class Plain(
             val asset: Asset,

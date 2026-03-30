@@ -9,6 +9,8 @@ import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatProvider
+import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import uniffi.gemstone.SwapperProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
@@ -93,3 +95,9 @@ fun SwapperProvider.getSwapProviderIcon(): String {
     }
     return "file:///android_asset/swap/${iconName.lowercase()}.svg"
 }
+
+fun NFTAsset.getImageUrl(): String = nftImageUrl(id)
+
+fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId)
+
+private fun nftImageUrl(assetId: String): String = "https://api.gemwallet.com/v1/nft/assets/$assetId/image_preview"
