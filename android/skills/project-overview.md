@@ -10,8 +10,6 @@ Gem Wallet Android is a Kotlin and Jetpack Compose application backed by the sha
 - Gradle with Kotlin DSL
 - Hilt for dependency injection
 - Rust core via JNI
-- Docker for reproducible/release build workflows
-
 ## Repository Structure
 
 ```
@@ -23,8 +21,7 @@ android/
 ├── gemcore/         # JNI bindings to the Rust core
 ├── gemstone/        # Shared library integration
 ├── ui/              # Shared UI components and themes
-├── flavors/         # Store and distribution variants
-└── reproducible/    # Reproducible build tooling
+└── flavors/         # Store and distribution variants
 ```
 
 ## Module Responsibilities

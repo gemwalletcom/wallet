@@ -69,13 +69,6 @@ cd .. && just setup-git
 ```
 Then rebuild: `./gradlew clean && just bootstrap`.
 
-### Docker and Verification Issues
-
-- Docker needs sufficient memory (8GB+) for reproducible release builds
-- Check that the base image is available or rebuild it locally
-- Verify `gpr.username` and `gpr.token` are present in `local.properties` when dependency or verification jobs fail
-- See `skills/release-and-verification.md` for details
-
 ## Useful Paths
 
 - `app/src/main/kotlin/com/gemwallet/android/MainActivity.kt`
