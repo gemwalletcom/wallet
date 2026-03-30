@@ -21,10 +21,10 @@ fun AssetIcon(
     asset: Asset,
     size: Dp = listItemIconSize,
 ) {
-    BadgedIcon(
+    IconWithBadge(
         icon = asset.getIconUrl(),
-        supportIcon = asset.getSupportIconUrl(),
         placeholder = asset.type.string,
+        supportIcon = asset.getSupportIconUrl(),
         size = size,
     )
 }
@@ -40,35 +40,47 @@ fun IconWithBadge(
     BadgedIcon(
         icon = icon,
         placeholder = placeholder,
-        supportIcon = supportIcon,
         size = size,
+        badge = supportIcon?.let { url -> { AsyncImage(model = url, contentDescription = "list_item_support_icon") } },
     )
+}
+
+@Composable
+fun IconWithBadge(
+    icon: Any?,
+    placeholder: String? = null,
+    size: Dp = listItemIconSize,
+    badge: @Composable () -> Unit,
+) {
+    icon ?: return
+    BadgedIcon(icon = icon, placeholder = placeholder, size = size, badge = badge)
 }
 
 @Composable
 private fun BadgedIcon(
     icon: Any,
     placeholder: String?,
-    supportIcon: Any?,
     size: Dp,
+    badge: (@Composable () -> Unit)? = null,
 ) {
+    val badgeSize = size / 2.5f
     Box {
         AsyncImage(
             model = icon,
             placeholderText = placeholder,
             contentDescription = "list_item_icon",
-            size = size
+            size = size,
         )
-        supportIcon?.let {
-            AsyncImage(
+        if (badge != null) {
+            Box(
                 modifier = Modifier
                     .offset(2.dp, 2.dp)
-                    .size(size / 2.5f)
-                    .align(Alignment.Companion.BottomEnd)
+                    .size(badgeSize)
+                    .align(Alignment.BottomEnd)
                     .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape),
-                model = supportIcon,
-                contentDescription = "list_item_support_icon",
-            )
+            ) {
+                badge()
+            }
         }
     }
 }
