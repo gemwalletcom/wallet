@@ -18,13 +18,15 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.lockTime
-import com.gemwallet.android.domains.asset.title
+import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.list_head.CenteredListHead
+import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.availableIn
@@ -75,7 +77,11 @@ fun StakeScene(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
-                    SubheaderItem(title = assetInfo.title)
+                    CenteredListHead(
+                        title = assetInfo.asset.name,
+                        subtitle = assetInfo.asset.subtitleSymbol,
+                        leading = { HeaderIcon(assetInfo.asset) },
+                    )
                 }
                 minAmount(assetInfo.asset.chain)
                 apr(assetInfo.stakeApr ?: 0.0)

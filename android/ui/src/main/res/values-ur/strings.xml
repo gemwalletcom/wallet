@@ -572,7 +572,7 @@
   <string name="charts.price.change">تبدیلی</string>
   <string name="contacts.add_to_contacts">رابطوں میں شامل کریں۔</string>
   <string name="common.method">طریقہ</string>
-  <string name="simulation.header.unlimited_asset">لا محدود %@</string>
+  <string name="simulation.header.unlimited_asset">لا محدود %s</string>
   <string name="common.token">ٹوکن</string>
   <string name="common.suspicious_address">مشکوک پتہ</string>
   <string name="simulation.warning.unlimited_token_approval.description">یہ خرچ کرنے والے کو اس ٹوکن کو استعمال کرنے تک رسائی دیتا ہے جب تک کہ آپ منظوری منسوخ نہیں کرتے یا اس کی میعاد ختم نہیں ہوجاتی۔</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">لامحدود ٹوکن کی منظوری</string>
   <string name="transfer.review_request">نظرثانی کی درخواست</string>
   <string name="wallet.portfolio.title">پورٹ فولیو</string>
-  <string name="wallet.portfolio.footer">موجودہ ہولڈنگز اور مارکیٹ کی قیمتوں کی بنیاد پر تخمینی قیمت۔</string>
+  <string name="wallet_connect.permissions.title">اجازتیں</string>
+  <string name="wallet_connect.permissions.view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
+  <string name="wallet_connect.permissions.approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
 </resources>

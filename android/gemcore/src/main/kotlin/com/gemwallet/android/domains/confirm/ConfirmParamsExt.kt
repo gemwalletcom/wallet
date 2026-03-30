@@ -30,7 +30,8 @@ fun ConfirmParams.SwapParams.toGem(): GemSwapData {
                 GemApprovalData(
                     token = it.token,
                     spender = it.spender,
-                    value = it.value
+                    value = it.value,
+                    isUnlimited = it.isUnlimited,
                 )
             },
             value = value,

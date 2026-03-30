@@ -1,19 +1,14 @@
-import Testing
 import BigInt
-import PrimitivesTestKit
 @testable import Primitives
+import PrimitivesTestKit
+import Testing
 
 struct ApprovalValueTests {
     @Test
-    func initRawValue() {
-        #expect(ApprovalValue(rawValue: "Unlimited") == .unlimited)
-        #expect(ApprovalValue(rawValue: "1000000") == .exact(BigInt(1000000)))
-        #expect(ApprovalValue(rawValue: "invalid") == nil)
-    }
-
-    @Test
-    func rawValue() {
-        #expect(ApprovalValue.unlimited.rawValue == "Unlimited")
-        #expect(ApprovalValue.exact(BigInt(42)).rawValue == "42")
+    func initValue() {
+        #expect(ApprovalValue(value: "0", isUnlimited: true) == .unlimited)
+        #expect(ApprovalValue(value: "1000000", isUnlimited: false) == .exact(BigInt(1_000_000)))
+        #expect(ApprovalValue(value: "invalid", isUnlimited: false) == nil)
+        #expect(ApprovalValue(value: "", isUnlimited: true) == .unlimited)
     }
 }

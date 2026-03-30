@@ -17,10 +17,12 @@ public struct SimulationBalanceChange: Codable, Equatable, Hashable, Sendable {
 public struct SimulationHeader: Codable, Equatable, Hashable, Sendable {
 	public let assetId: AssetId
 	public let value: String
+	public let isUnlimited: Bool
 
-	public init(assetId: AssetId, value: String) {
+	public init(assetId: AssetId, value: String, isUnlimited: Bool) {
 		self.assetId = assetId
 		self.value = value
+		self.isUnlimited = isUnlimited
 	}
 }
 
@@ -66,6 +68,96 @@ public enum SimulationSeverity: String, Codable, Equatable, Hashable, Sendable {
 	case critical
 }
 
+public enum SimulationWarningType: Codable, Equatable, Hashable, Sendable {
+	case tokenApproval(SimulationWarningApproval)
+	case suspiciousSpender
+	case externallyOwnedSpender
+	case nftCollectionApproval(AssetId)
+	case permitApproval(SimulationWarningApproval)
+	case permitBatchApproval(String?)
+	case validationError
+
+	enum CodingKeys: String, CodingKey, Codable {
+		case tokenApproval,
+			suspiciousSpender,
+			externallyOwnedSpender,
+			nftCollectionApproval,
+			permitApproval,
+			permitBatchApproval,
+			validationError
+	}
+
+	private enum ContainerCodingKeys: String, CodingKey {
+		case type, content
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
+		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
+			switch type {
+			case .tokenApproval:
+				if let content = try? container.decode(SimulationWarningApproval.self, forKey: .content) {
+					self = .tokenApproval(content)
+					return
+				}
+			case .suspiciousSpender:
+				self = .suspiciousSpender
+				return
+			case .externallyOwnedSpender:
+				self = .externallyOwnedSpender
+				return
+			case .nftCollectionApproval:
+				if let content = try? container.decode(AssetId.self, forKey: .content) {
+					self = .nftCollectionApproval(content)
+					return
+				}
+			case .permitApproval:
+				if let content = try? container.decode(SimulationWarningApproval.self, forKey: .content) {
+					self = .permitApproval(content)
+					return
+				}
+            case .permitBatchApproval:
+				if let content = try? container.decode(String?.self, forKey: .content) {
+					self = .permitBatchApproval(content)
+					return
+				}
+				else if let isNil = try? container.decodeNil(forKey: .content), isNil {
+					self = .permitBatchApproval(nil)
+					return
+				}
+			case .validationError:
+				self = .validationError
+				return
+			}
+		}
+		throw DecodingError.typeMismatch(SimulationWarningType.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for SimulationWarningType"))
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
+		switch self {
+		case .tokenApproval(let content):
+			try container.encode(CodingKeys.tokenApproval, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .suspiciousSpender:
+			try container.encode(CodingKeys.suspiciousSpender, forKey: .type)
+		case .externallyOwnedSpender:
+			try container.encode(CodingKeys.externallyOwnedSpender, forKey: .type)
+		case .nftCollectionApproval(let content):
+			try container.encode(CodingKeys.nftCollectionApproval, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .permitApproval(let content):
+			try container.encode(CodingKeys.permitApproval, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .permitBatchApproval(let content):
+			try container.encode(CodingKeys.permitBatchApproval, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .validationError:
+			try container.encode(CodingKeys.validationError, forKey: .type)
+		}
+	}
+}
+
 public struct SimulationWarning: Codable, Equatable, Hashable, Sendable {
 	public let severity: SimulationSeverity
 	public let warning: SimulationWarningType
@@ -89,5 +181,15 @@ public struct SimulationResult: Codable, Equatable, Hashable, Sendable {
 		self.balanceChanges = balanceChanges
 		self.payload = payload
 		self.header = header
+	}
+}
+
+public struct SimulationWarningApproval: Codable, Equatable, Hashable, Sendable {
+	public let assetId: AssetId
+	public let value: String?
+
+	public init(assetId: AssetId, value: String?) {
+		self.assetId = assetId
+		self.value = value
 	}
 }

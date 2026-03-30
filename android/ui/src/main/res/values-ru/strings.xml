@@ -572,7 +572,7 @@
   <string name="charts.price.change">Изменение</string>
   <string name="contacts.add_to_contacts">Добавить в контакты</string>
   <string name="common.method">Метод</string>
-  <string name="simulation.header.unlimited_asset">Без ограничений %@</string>
+  <string name="simulation.header.unlimited_asset">Без ограничений %s</string>
   <string name="common.token">Токен</string>
   <string name="common.suspicious_address">Подозрительный адрес</string>
   <string name="simulation.warning.unlimited_token_approval.description">Это дает плательщику доступ к использованию этого токена до тех пор, пока вы не отзовете разрешение или он не истечет.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">Неограниченное количество одобрений токенов</string>
   <string name="transfer.review_request">Подтвердить запрос</string>
   <string name="wallet.portfolio.title">Портфель</string>
-  <string name="wallet.portfolio.footer">Оценочная стоимость рассчитана на основе текущих активов и рыночных цен.</string>
+  <string name="wallet_connect.permissions.title">Разрешения</string>
+  <string name="wallet_connect.permissions.view_balance">Просматривать баланс и активность</string>
+  <string name="wallet_connect.permissions.approval_requests">Отправлять запросы на подтверждение</string>
 </resources>

@@ -29,9 +29,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.wallet.core.primitives.SimulationResult
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
-import uniffi.gemstone.WalletConnectChainOperation
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import java.util.Arrays
 import javax.inject.Inject
@@ -42,8 +42,10 @@ class WCRequestViewModel @Inject constructor(
     private val bridgeRepository: BridgesRepository,
     private val passwordStore: PasswordStore,
     private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
+    private val simulationService: com.gemwallet.android.blockchain.services.WalletConnectSimulationService,
 ) : ViewModel() {
 
+    private val walletConnect = WalletConnect()
     private val state = MutableStateFlow(RequestViewModelState())
     private var requestJob: Job? = null
     val sceneState = state.map { it.toSceneState() }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
@@ -57,18 +59,47 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(sessionRequest = sessionRequest) }
         val job = viewModelScope.launch {
             try {
-                val verificationStatus = validateSession(sessionRequest, verifyContext)
                 val connection = bridgeRepository.getConnectionByTopic(sessionRequest.topic)
                 if (connection == null) {
                     rejectRequest(sessionRequest)
                     return@launch
                 }
+
+                val appMetadata = connection.session.metadata
+                validateSession(appMetadata.url, verifyContext)
+                val chainId = sessionRequest.chainId ?: throw BridgeRequestError.UnresolvedChainId
+                val sessionDomain = appMetadata.url
+                val action = walletConnect.parseRequest(
+                    topic = sessionRequest.topic,
+                    method = sessionRequest.request.method,
+                    params = sessionRequest.request.params,
+                    chainId = chainId,
+                    domain = sessionDomain,
+                )
+                if (action is WalletConnectAction.ChainOperation) {
+                    when (action.operation) {
+                        uniffi.gemstone.WalletConnectChainOperation.AddChain,
+                        is uniffi.gemstone.WalletConnectChainOperation.SwitchChain -> {
+                            respondWithNull(sessionRequest)
+                        }
+
+                        uniffi.gemstone.WalletConnectChainOperation.GetChainId -> {
+                            respondError(
+                                topic = sessionRequest.topic,
+                                id = sessionRequest.request.id,
+                                code = -32601,
+                                message = "The method does not exist / is not available."
+                            )
+                        }
+                    }
+                    return@launch
+                }
+
                 val wallet = walletsRepository.getWallet(connection.wallet.id).firstOrNull()
                 if (wallet == null) {
                     rejectRequest(sessionRequest)
                     return@launch
                 }
-                val chainId = sessionRequest.chainId ?: throw BridgeRequestError.UnresolvedChainId
                 val chain = Chain.getNamespace(chainId)
                     ?: throw BridgeRequestError.ChainUnsupported
 
@@ -76,64 +107,45 @@ class WCRequestViewModel @Inject constructor(
 
                 val account: Account = wallet.getAccount(chain) ?: throw BridgeRequestError.ChainUnsupported
 
-                val action = WalletConnect().parseRequest(
-                    topic = sessionRequest.topic,
-                    method = sessionRequest.request.method,
-                    params = sessionRequest.request.params,
-                    chainId = chainId,
-                    domain = sessionRequest.peerMetaData?.url ?: ""
-                )
                 currentCoroutineContext().ensureActive()
                 val request = when (action) {
-                    is WalletConnectAction.ChainOperation -> {
-                        when (action.operation) {
-                            WalletConnectChainOperation.AddChain -> respondWithNull(sessionRequest)
-                            is WalletConnectChainOperation.SwitchChain -> respondWithNull(sessionRequest)
-                            WalletConnectChainOperation.GetChainId -> respondError(
-                                topic = sessionRequest.topic,
-                                id = sessionRequest.request.id,
-                                code = -32601,
-                                message = "The method does not exist / is not available."
-                            )
-                        }
-                        return@launch
-                    }
-
-                    is WalletConnectAction.SignMessage -> {
-//                    try {
-//                        WalletConnect().validateSignMessage( // TODO: Ask documentation
-//                            action.chain,
-//                            signType = action.signType,
-//                            action.data,
-//                            sessionDomain = sessionRequest.peerMetaData?.url ?: ""
-//                        )
-//                    } catch (_: Throwable) {
-//                        throw BridgeRequestError.ScamSession
-//                    }
-                        WCRequest.SignMessage(sessionRequest, account, verificationStatus, action)
-                    }
+                    is WalletConnectAction.SignMessage -> WCRequest.SignMessage(
+                        sessionRequest = sessionRequest,
+                        account = account,
+                        appMetadata = appMetadata,
+                        action = action,
+                        simulation = simulationService.simulateSignMessage(action.chain, action.signType, action.data, sessionDomain),
+                    )
 
                     is WalletConnectAction.SendTransaction -> WCRequest.Transaction.SendTransaction(
                         sessionRequest,
                         account,
-                        verificationStatus,
-                        action
+                        appMetadata,
+                        action,
+                        simulationService.simulateSendTransaction(action.chain, action.transactionType, action.data),
                     )
 
                     is WalletConnectAction.SignTransaction -> WCRequest.Transaction.SignTransaction(
                         sessionRequest,
                         account,
-                        verificationStatus,
-                        action
+                        appMetadata,
+                        action,
+                        simulationService.simulateSendTransaction(action.chain, action.transactionType, action.data),
                     )
 
-                    is WalletConnectAction.SignAllTransactions -> WCRequest.Transaction.SignAllTransactions(
-                        sessionRequest,
-                        account,
-                        verificationStatus,
-                        action
-                    )
+                    is WalletConnectAction.SignAllTransactions -> {
+                        val data = action.transactions.singleOrNull() ?: throw BridgeRequestError.MethodUnsupported
+                        WCRequest.Transaction.SignAllTransactions(
+                            sessionRequest = sessionRequest,
+                            account = account,
+                            appMetadata = appMetadata,
+                            transactionType = action.transactionType,
+                            data = data,
+                            simulation = simulationService.simulateSendTransaction(action.chain, action.transactionType, data),
+                        )
+                    }
 
+                    is WalletConnectAction.ChainOperation -> error("Immediate WalletConnect responses must be handled before request resolution")
                     is WalletConnectAction.Unsupported -> throw BridgeRequestError.MethodUnsupported
                 }
                 currentCoroutineContext().ensureActive()
@@ -198,18 +210,18 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun validateSession(
-        sessionRequest: Wallet.Model.SessionRequest,
+        metadataUrl: String,
         verifyContext: Wallet.Model.VerifyContext
-    ): WalletConnectionVerificationStatus {
-        val validation = WalletConnect().validateOrigin(
-            sessionRequest.peerMetaData?.url ?: "",
+    ) {
+        val validation = walletConnect.validateOrigin(
+            metadataUrl,
             verifyContext.origin,
             verifyContext.map()
         )
         when (validation) {
             WalletConnectionVerificationStatus.UNKNOWN,
             WalletConnectionVerificationStatus.VERIFIED -> {
-                return validation
+                return
             }
             WalletConnectionVerificationStatus.INVALID,
             WalletConnectionVerificationStatus.MALICIOUS -> {

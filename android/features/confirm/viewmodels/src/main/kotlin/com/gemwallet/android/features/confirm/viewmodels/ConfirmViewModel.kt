@@ -19,6 +19,7 @@ import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.math.MAX_256
 import com.gemwallet.android.model.AssetInfo
@@ -57,16 +58,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.Config
+import com.gemwallet.android.ext.getMinimumAccountBalance
+import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import java.util.Arrays
 import javax.inject.Inject
@@ -77,7 +81,7 @@ internal const val txTypeArg = "tx_type"
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConfirmViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
     private val signerPreload: SignerPreloaderProxy,
     private val passwordStore: PasswordStore,
@@ -93,6 +97,7 @@ class ConfirmViewModel @Inject constructor(
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
     val feePriority = MutableStateFlow(FeePriority.Normal)
+    private val walletConnectSimulationState = MutableStateFlow<SimulationResult?>(null)
 
     private val request = savedStateHandle.getStateFlow<String?>(paramsArg, null)
         .combine(restart) { request, _ -> request }
@@ -105,6 +110,30 @@ class ConfirmViewModel @Inject constructor(
 
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val walletConnectHeaderAssetInfo = walletConnectSimulationState
+        .map { it?.header?.assetId }
+        .distinctUntilChanged()
+        .flatMapLatest { assetId ->
+            if (assetId == null) return@flatMapLatest flowOf(null)
+            assetsRepository.getTokenInfo(assetId).also {
+                if (assetId.tokenId != null && it.firstOrNull() == null) {
+                    assetsRepository.searchToken(assetId, sessionRepository.getCurrentCurrency())
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val walletConnectReview = combine(walletConnectSimulationState, walletConnectHeaderAssetInfo, request) { simulation, headerAssetInfo, params ->
+        val review = simulation?.toWalletConnectReview() ?: WalletConnectReview()
+        val headerAssetId = simulation?.header?.assetId
+        val asset = when {
+            headerAssetId == null -> null
+            headerAssetId == params?.assetId -> params?.asset
+            else -> headerAssetInfo?.asset
+        }
+        review.copy(headerAsset = asset)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, WalletConnectReview())
 
     private val assetsInfo = request.filterNotNull().mapNotNull {
         if (it is ConfirmParams.SwapParams) {
@@ -273,9 +302,10 @@ class ConfirmViewModel @Inject constructor(
     val allFee = preloadData.filterNotNull().map { it.allFee() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun init(params: ConfirmParams) {
+    fun init(params: ConfirmParams, walletConnectSimulation: SimulationResult? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             state.update { ConfirmState.Prepare }
+            walletConnectSimulationState.value = walletConnectSimulation
             // reset
             savedStateHandle[txTypeArg] = null
             savedStateHandle[paramsArg] = null
@@ -551,7 +581,7 @@ class ConfirmViewModel @Inject constructor(
                 throw ConfirmError.InsufficientFee(chain = feeAssetInfo.asset.chain)
             }
 
-            val minimumAssetBalance = (Config().getChainConfig(assetInfo.chain.string).minimumAccountBalance?.toLong() ?: 0L)
+            val minimumAssetBalance = assetInfo.chain.getMinimumAccountBalance()
 
             if (!signerParams.input.useMaxAmount
                 && assetInfo.asset.type == AssetType.NATIVE

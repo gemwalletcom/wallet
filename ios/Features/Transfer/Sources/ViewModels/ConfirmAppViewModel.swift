@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
-import Foundation
 
 public struct ConfirmAppViewModel: ItemModelProvidable {
     private let type: TransferDataType

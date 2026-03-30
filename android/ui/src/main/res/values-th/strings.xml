@@ -572,7 +572,7 @@
   <string name="charts.price.change">เปลี่ยน</string>
   <string name="contacts.add_to_contacts">เพิ่มลงในรายชื่อติดต่อ</string>
   <string name="common.method">วิธี</string>
-  <string name="simulation.header.unlimited_asset">ไม่จำกัด %@</string>
+  <string name="simulation.header.unlimited_asset">ไม่จำกัด %s</string>
   <string name="common.token">โทเค็น</string>
   <string name="common.suspicious_address">ที่อยู่น่าสงสัย</string>
   <string name="simulation.warning.unlimited_token_approval.description">これにより ผู้ใช้สามารถใช้โทเค็นนี้ได้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">อนุมัติโทเค็นได้ไม่จำกัดจำนวน</string>
   <string name="transfer.review_request">คำขอตรวจสอบ</string>
   <string name="wallet.portfolio.title">ผลงาน</string>
-  <string name="wallet.portfolio.footer">มูลค่าโดยประมาณคำนวณจากสินทรัพย์ที่มีอยู่และราคาตลาด</string>
+  <string name="wallet_connect.permissions.title">สิทธิ์การเข้าถึง</string>
+  <string name="wallet_connect.permissions.view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
+  <string name="wallet_connect.permissions.approval_requests">ส่งคำขออนุมัติ</string>
 </resources>

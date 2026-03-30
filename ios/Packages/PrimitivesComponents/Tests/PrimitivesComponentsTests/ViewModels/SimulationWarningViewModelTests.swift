@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Testing
-import BigInt
 import Localization
 import Primitives
 import PrimitivesTestKit
@@ -28,7 +27,7 @@ struct SimulationWarningViewModelTests {
     func titleUsesWarningTitleWhenDefaultMessageExists() {
         let warning = SimulationWarning(
             severity: .warning,
-            warning: .permitApproval(assetId: Asset.mockEthereumUSDT().id, value: nil),
+            warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: nil)),
             message: nil
         )
         let model = SimulationWarningViewModel(warning: warning)
@@ -53,7 +52,7 @@ struct SimulationWarningViewModelTests {
         #expect(SimulationWarningViewModel(
             warning: SimulationWarning(
                 severity: .warning,
-                warning: .tokenApproval(assetId: Asset.mockEthereumUSDT().id, value:  BigInt(1)),
+                warning: .tokenApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: "1")),
                 message: nil
             )
         ).isVisible == false)
@@ -61,7 +60,7 @@ struct SimulationWarningViewModelTests {
         #expect(SimulationWarningViewModel(
             warning: SimulationWarning(
                 severity: .warning,
-                warning: .permitApproval(assetId: Asset.mockEthereumUSDT().id, value: BigInt(1)),
+                warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: "1")),
                 message: nil
             )
         ).isVisible == false)

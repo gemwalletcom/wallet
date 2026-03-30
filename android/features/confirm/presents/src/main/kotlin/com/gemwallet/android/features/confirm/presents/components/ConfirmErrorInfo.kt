@@ -1,15 +1,11 @@
 package com.gemwallet.android.features.confirm.presents.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,24 +14,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkBalanceRequiredInfo
-import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.components.list_item.WarningItem
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AssetIdAction
-import com.gemwallet.android.ui.theme.Spacer4
-import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.ui.theme.defaultPadding
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.trailingIconMedium
 import com.gemwallet.android.features.confirm.models.ConfirmError
 import com.gemwallet.android.features.confirm.models.ConfirmState
@@ -49,75 +41,48 @@ internal fun ConfirmErrorInfo(state: ConfirmState, feeValue: String, isShowBotto
         return
     }
     val message = state.message
-    val infoSheetEntity = when (message) {
-        is ConfirmError.InsufficientFee -> NetworkBalanceRequiredInfo(
-            chain = message.chain,
-            value = feeValue,
-            actionLabel = stringResource(R.string.asset_buy_asset, message.chain.asset().symbol),
-            action = { onBuy(message.chain.asset().id) },
-        )
-        is ConfirmError.MinimumAccountBalanceTooLow -> InfoSheetEntity.MinimumAccountBalanceInfo(
-            asset = message.asset,
-            value = message.asset.format(message.required.toBigInteger(), dynamicPlace = true),
-        )
-        is ConfirmError.BroadcastError,
-        is ConfirmError.Init,
-        is ConfirmError.InsufficientBalance,
+    val infoSheetEntity = message.toInfoSheetEntity(feeValue, onBuy)
 
-        ConfirmError.None,
-        is ConfirmError.PreloadError,
-        ConfirmError.RecipientEmpty,
-        is ConfirmError.SignFail,
-        is ConfirmError.DustThreshold,
-        ConfirmError.TransactionIncorrect -> null
-    }
-    Column(
-        modifier = Modifier
-            .listItem()
-            .padding(horizontal = paddingDefault)
-            .fillMaxWidth()
-            .defaultPadding()
-            .clickable(
-                enabled = infoSheetEntity != null,
-                onClick = { isShowInfoSheet = true }
-            ),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                modifier = Modifier.size(trailingIconMedium),
-                imageVector = Icons.Outlined.Warning,
-                tint = MaterialTheme.colorScheme.error,
-                contentDescription = ""
-            )
-            Spacer8()
-            Text(
-                text = stringResource(R.string.errors_error_occured),
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.W500),
-            )
-        }
-        Spacer4()
-        Row {
-            infoSheetEntity?.let {
-                Icon(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(percent = 50))
-                        .size(trailingIconMedium)
-                        .clickable(onClick = { isShowInfoSheet = true }),
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
-                )
-                Spacer8()
+    WarningItem(
+        title = stringResource(R.string.errors_error_occured),
+        message = message.toLabel(),
+        color = MaterialTheme.colorScheme.error,
+        position = ListPosition.Single,
+        onClick = infoSheetEntity?.let { { isShowInfoSheet = true } },
+        trailing = infoSheetEntity?.let {
+            {
+                Row {
+                    Icon(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(percent = 50))
+                            .size(trailingIconMedium)
+                            .clickable(onClick = { isShowInfoSheet = true }),
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
+                    )
+                    Spacer8()
+                }
             }
-            Text(
-                text = state.message.toLabel(),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
+        },
+    )
+
     if (isShowInfoSheet) {
         InfoBottomSheet(item = infoSheetEntity) { isShowInfoSheet = false }
     }
+}
+
+@Composable
+private fun ConfirmError.toInfoSheetEntity(feeValue: String, onBuy: AssetIdAction): InfoSheetEntity? = when (this) {
+    is ConfirmError.InsufficientFee -> NetworkBalanceRequiredInfo(
+        chain = chain,
+        value = feeValue,
+        actionLabel = stringResource(R.string.asset_buy_asset, chain.asset().symbol),
+        action = { onBuy(chain.asset().id) },
+    )
+    is ConfirmError.MinimumAccountBalanceTooLow -> InfoSheetEntity.MinimumAccountBalanceInfo(
+        asset = asset,
+        value = asset.format(required.toBigInteger(), dynamicPlace = true),
+    )
+    else -> null
 }
