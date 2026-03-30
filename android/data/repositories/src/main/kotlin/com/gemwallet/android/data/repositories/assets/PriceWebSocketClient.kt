@@ -79,7 +79,7 @@ class PriceWebSocketClient(
             }
             client.wss(
                 method = HttpMethod.Get,
-                host = Constants.API_URL.removePrefix("https://"),
+                host = Constants.API_HOST,
                 port = 443,
                 path = "/v1/ws/prices",
             ) {
