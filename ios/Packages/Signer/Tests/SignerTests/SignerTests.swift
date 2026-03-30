@@ -15,6 +15,6 @@ struct SignerTests {
     func testSignMessage() async throws {
         let signer = Signer(wallet: .mock(), keystore: LocalKeystore.mock()).signer(for: .ethereum)
         
-        #expect(type(of: signer) == EthereumSigner.self)
+        #expect(type(of: signer) == ChainSigner.self)
     }
 }
