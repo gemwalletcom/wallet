@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -125,7 +126,11 @@ fun Scene(
         },
         bottomBar = {
             if (mainAction != null) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
+                Box(
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surface)
+                        .navigationBarsPadding()
+                ) {
                     Box(modifier = Modifier.padding(mainActionPadding)) {
                         mainAction()
                     }
@@ -139,8 +144,11 @@ fun Scene(
         }
     ) { paddingValues ->
         Box(
-            modifier = (if (navigationBarPadding) Modifier.navigationBarsPadding() else Modifier)
-                .padding(top = paddingValues.calculateTopPadding())
+            modifier = Modifier
+                .padding(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = if (navigationBarPadding) paddingValues.calculateBottomPadding() else 0.dp,
+                )
                 .fillMaxSize(),
         ) {
             Column(
