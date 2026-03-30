@@ -6,6 +6,7 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.wallet.core.primitives.Asset
+import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
 
@@ -23,7 +24,7 @@ class HeadDelegationInfo(
 ) : DelegationInfoUIModel, CryptoFormattedUIModel, FiatFormattedUIModel {
 
     override val iconUrl: String
-        get() = "https://assets.gemwallet.com/blockchains/${delegation.validator.chain.string}/validators/${delegation.validator.id}/logo.png"
+        get() = "${Constants.ASSETS_URL}/blockchains/${delegation.validator.chain.string}/validators/${delegation.validator.id}/logo.png"
 
     override val cryptoAmount: Double by lazy {
         Crypto(delegation.base.balance).value(asset.decimals).toDouble()

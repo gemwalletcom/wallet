@@ -7,6 +7,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
+import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.NFTAsset
@@ -33,7 +34,7 @@ fun AssetId.getIconUrl(): String = when {
         Chain.Manta -> "file:///android_asset/chains/icons/${Chain.Ethereum.string}.svg"
         else -> chain.getIconUrl()
     }
-    else -> "https://assets.gemwallet.com/blockchains/${chain.string}/assets/${tokenId}/logo.png"
+    else -> "${Constants.ASSETS_URL}/blockchains/${chain.string}/assets/${tokenId}/logo.png"
 }
 
 fun AssetId.getSupportIconUrl(): String? = when (type()) {
@@ -100,4 +101,4 @@ fun NFTAsset.getImageUrl(): String = nftImageUrl(id)
 
 fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId)
 
-private fun nftImageUrl(assetId: String): String = "https://api.gemwallet.com/v1/nft/assets/$assetId/image_preview"
+private fun nftImageUrl(assetId: String): String = "${Constants.API_URL}/v1/nft/assets/$assetId/image_preview"

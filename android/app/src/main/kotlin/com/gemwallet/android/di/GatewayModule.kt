@@ -1,6 +1,7 @@
 package com.gemwallet.android.di
 
 import android.content.Context
+import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
@@ -44,7 +45,7 @@ object GatewayModule {
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
             securePreferences = SecurityGemPreferences(context),
-            apiUrl = "https://api.gemwallet.com"
+            apiUrl = Constants.API_URL
         )
     }
 }

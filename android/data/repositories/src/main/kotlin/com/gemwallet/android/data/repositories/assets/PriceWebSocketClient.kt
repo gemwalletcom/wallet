@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.assets
 
 import android.os.Build
+import com.gemwallet.android.Constants
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
@@ -78,7 +79,7 @@ class PriceWebSocketClient(
             }
             client.wss(
                 method = HttpMethod.Get,
-                host = "api.gemwallet.com",
+                host = Constants.API_URL.removePrefix("https://"),
                 port = 443,
                 path = "/v1/ws/prices",
             ) {
