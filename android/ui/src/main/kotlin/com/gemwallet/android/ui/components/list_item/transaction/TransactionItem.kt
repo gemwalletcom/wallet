@@ -85,6 +85,8 @@ private fun TransactionIcon(data: TransactionDataAggregate) = when (data.type) {
     else -> AssetIcon(data.asset)
 }
 
+private const val BADGE_ICON_SCALE = 0.65f
+
 @Composable
 private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
     val icon = when (data.direction) {
@@ -100,7 +102,7 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
         placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.type.string,
     ) {
         Box(Modifier.fillMaxSize().clip(CircleShape).background(color), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.fillMaxSize(0.65f))
+            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.fillMaxSize(BADGE_ICON_SCALE))
         }
     }
 }

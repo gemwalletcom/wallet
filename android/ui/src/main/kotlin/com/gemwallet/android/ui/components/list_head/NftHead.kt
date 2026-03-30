@@ -12,7 +12,9 @@ import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.headerLargeImageSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
@@ -28,10 +30,10 @@ fun NftHead(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AsyncImage(
-            size = 128.dp,
+            size = headerLargeImageSize,
             model = imageUrl,
             placeholderText = name,
-            transformation = RoundedCornersTransformation(32f, 32f, 32f, 32f),
+            transformation = RoundedCornersTransformation(paddingLarge.value, paddingLarge.value, paddingLarge.value, paddingLarge.value),
             contentDescription = "header_icon",
         )
         if (name != null) {

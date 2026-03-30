@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -56,6 +57,8 @@ fun IconWithBadge(
     BadgedIcon(icon = icon, placeholder = placeholder, size = size, badge = badge)
 }
 
+private const val BADGE_SIZE_RATIO = 2.5f
+
 @Composable
 private fun BadgedIcon(
     icon: Any,
@@ -63,7 +66,6 @@ private fun BadgedIcon(
     size: Dp,
     badge: (@Composable () -> Unit)? = null,
 ) {
-    val badgeSize = size / 2.5f
     Box {
         AsyncImage(
             model = icon,
@@ -74,8 +76,8 @@ private fun BadgedIcon(
         if (badge != null) {
             Box(
                 modifier = Modifier
-                    .offset(2.dp, 2.dp)
-                    .size(badgeSize)
+                    .offset(space2, space2)
+                    .size(size / BADGE_SIZE_RATIO)
                     .align(Alignment.BottomEnd)
                     .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape),
             ) {
