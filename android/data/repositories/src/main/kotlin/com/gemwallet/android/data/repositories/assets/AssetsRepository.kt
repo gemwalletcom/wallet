@@ -56,6 +56,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -101,6 +102,15 @@ class AssetsRepository @Inject constructor(
             sessionRepository.session().collectLatest {
                 changeCurrency(it?.currency ?: return@collectLatest)
             }
+        }
+        scope.launch(Dispatchers.IO) {
+            sessionRepository.session()
+                .map { it?.wallet?.id }
+                .distinctUntilChanged()
+                .collectLatest { walletId ->
+                    walletId ?: return@collectLatest
+                    sync()
+                }
         }
 
         scope.launch(Dispatchers.IO) {
