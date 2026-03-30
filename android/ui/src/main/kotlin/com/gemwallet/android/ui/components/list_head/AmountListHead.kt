@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -314,6 +315,7 @@ fun AmountHeadAction(
     ) {
         Icon(
             modifier = Modifier
+                .requiredSize(54.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primary.copy(
                         alpha = if (enabled) 1f else alpha50,
@@ -321,7 +323,6 @@ fun AmountHeadAction(
                     shape = CircleShape
                 )
                 .padding(16.dp)
-                .size(22.dp)
             ,
             imageVector = imageVector,
             tint = MaterialTheme.colorScheme.onPrimary.copy(
