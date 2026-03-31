@@ -16,10 +16,16 @@ build:
     @echo "==> Building Android app"
     @cd android && just build
 
+test:
+    @echo "==> Test iOS app"
+    @cd ios && just test
+    @echo "==> Test Android app"
+    @cd android && just test
+
 generate: generate-models generate-stone
 
 generate-models:
-    @cd ios && just generate-model
+    @cd ios && just generate-models
     @cd android && just generate-models
 
 generate-stone:
