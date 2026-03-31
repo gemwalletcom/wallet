@@ -92,13 +92,13 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
 
     public func updateSessions(sessions: [WalletConnectionSession]) throws {
         if sessions.isEmpty {
-            let _ = try? connectionsStore.deleteAll()
+            _ = try? connectionsStore.deleteAll()
         } else {
             let newSessionIds = sessions.map(\.id).asSet()
             let sessionIds = try connectionsStore.getSessions().filter { $0.state == .active }.map(\.id).asSet()
             let deleteIds = sessionIds.subtracting(newSessionIds).asArray()
 
-            let _ = try? connectionsStore.delete(ids: deleteIds)
+            _ = try? connectionsStore.delete(ids: deleteIds)
 
             for session in sessions {
                 try? connectionsStore.updateConnectionSession(session)
@@ -107,7 +107,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     public func sessionReject(id: String, error: any Error) async throws {
-        let _ = try connectionsStore.delete(ids: [id])
+        _ = try connectionsStore.delete(ids: [id])
         await walletConnectorInteractor.sessionReject(error: error)
     }
 

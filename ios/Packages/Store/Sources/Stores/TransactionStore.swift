@@ -95,9 +95,9 @@ public struct TransactionStore: Sendable {
     public func updateTransactionId(oldTransactionId: String, transactionId: String, hash: String) throws {
         if try isExist(transactionId: transactionId) {
             // should not exist in most cases. delete
-            let _ = try deleteTransactionId(ids: [oldTransactionId])
+            _ = try deleteTransactionId(ids: [oldTransactionId])
         } else {
-            let _ = try db.write { db in
+            _ = try db.write { db in
                 try TransactionRecord
                     .filter(TransactionRecord.Columns.transactionId == oldTransactionId)
                     .updateAll(db, [
