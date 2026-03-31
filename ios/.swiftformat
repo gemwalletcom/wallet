@@ -1,2 +1,2 @@
 --exclude ./Submodules
---exclude ./Packages/Primitives/Sources
+--exclude ./Packages/Primitives/Sources/Generated
