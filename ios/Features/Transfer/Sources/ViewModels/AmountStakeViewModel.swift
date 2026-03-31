@@ -25,14 +25,29 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     private static func makeValidatorSelection(action: StakeAmountType) -> SelectionState<DelegationValidator> {
         switch action {
         case let .stake(validators, recommended):
-            SelectionState(options: validators, selected: recommended ?? validators[0], isEnabled: true, title: Localized.Stake.validator)
+            SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
         case let .unstake(delegation):
             SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
         case let .redelegate(_, validators, recommended):
-            SelectionState(options: validators, selected: recommended ?? validators[0], isEnabled: true, title: Localized.Stake.validator)
+            SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
         case let .withdraw(delegation):
             SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
         }
+    }
+
+    private static func selectedValidator(
+        from validators: [DelegationValidator],
+        recommended: DelegationValidator?,
+    ) -> DelegationValidator {
+        if let recommended {
+            return recommended
+        }
+
+        guard let selected = validators.first else {
+            preconditionFailure("Stake validator selection requires at least one validator")
+        }
+
+        return selected
     }
 
     public var validatorSelectType: ValidatorSelectType {

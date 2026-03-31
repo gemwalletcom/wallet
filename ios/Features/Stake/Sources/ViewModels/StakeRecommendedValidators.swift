@@ -3,6 +3,7 @@
 import Foundation
 import enum GemstonePrimitives.GemstoneConfig
 import enum Primitives.Chain
+import struct Primitives.DelegationValidator
 
 public struct StakeRecommendedValidators {
     private var list: [Chain: Set<String>] {
@@ -23,5 +24,21 @@ public struct StakeRecommendedValidators {
 
     public func validatorsSet(chain: Chain) -> Set<String> {
         list[chain] ?? Set()
+    }
+
+    public func randomValidator(
+        chain: Chain,
+        from validators: [DelegationValidator],
+    ) -> DelegationValidator? {
+        let recommendedIds = validatorsSet(chain: chain)
+
+        if let validator = validators
+            .filter({ recommendedIds.contains($0.id) })
+            .randomElement()
+        {
+            return validator
+        }
+
+        return validators.first
     }
 }

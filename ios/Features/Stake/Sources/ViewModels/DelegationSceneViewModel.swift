@@ -179,9 +179,9 @@ extension DelegationSceneViewModel {
     }
 
     private var recommendedValidator: DelegationValidator? {
-        guard let validatorId = StakeRecommendedValidators().randomValidatorId(chain: model.delegation.base.assetId.chain) else {
-            return .none
-        }
-        return validators.first(where: { $0.id == validatorId })
+        StakeRecommendedValidators().randomValidator(
+            chain: model.delegation.base.assetId.chain,
+            from: validators,
+        )
     }
 }

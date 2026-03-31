@@ -294,6 +294,7 @@ extension SwapSceneViewModel {
 
     private func setFetchTrigger(isImmediate: Bool) {
         guard let input = currentInput else {
+            resetToValue()
             swapState.quotes = .noData
             swapState.swapTransferData = .noData
             selectedSwapQuote = nil
@@ -346,6 +347,7 @@ extension SwapSceneViewModel {
                 useMaxAmount: input.useMaxAmount,
             )
 
+            guard currentInput == input else { return }
             swapState.quotes = .data(swapQuotes)
             selectedSwapQuote = swapQuotes.first(where: { $0 == selectedSwapQuote }) ?? swapQuotes.first
             if let selectedSwapQuote, let asset = toAsset?.asset {
@@ -353,6 +355,7 @@ extension SwapSceneViewModel {
             }
         } catch {
             if !error.isCancelled, !Task.isCancelled {
+                guard currentInput == input else { return }
                 swapState.quotes = .error(error)
                 selectedSwapQuote = nil
                 amountInputModel.update(error: nil)

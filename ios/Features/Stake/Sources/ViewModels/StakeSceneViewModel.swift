@@ -105,8 +105,7 @@ public final class StakeSceneViewModel {
     }
 
     var recommendedCurrentValidator: DelegationValidator? {
-        let ids = recommendedValidators.validatorsSet(chain: chain.chain)
-        return validators.first { ids.contains($0.id) }
+        recommendedValidators.randomValidator(chain: chain.chain, from: validators)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {

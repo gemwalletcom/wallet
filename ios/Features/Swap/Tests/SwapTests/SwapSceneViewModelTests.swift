@@ -103,6 +103,44 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func clearingInputResetsQuoteImmediately() async throws {
+        let model = await model()
+
+        #expect(model.toValue.isNotEmpty)
+        #expect(model.selectedSwapQuote != nil)
+
+        model.amountInputModel.text = .empty
+        model.onChangeFromValue("1", .empty)
+
+        #expect(model.swapState.quotes.isNoData)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
+    }
+
+    @Test
+    func emptyInputDoesNotApplyLateError() async throws {
+        let swapper = GemSwapperMock(
+            fetchQuoteDelay: .milliseconds(100),
+            fetchQuoteError: SwapperError.NoQuoteAvailable,
+        )
+        let model = SwapSceneViewModel.mock(swapper: swapper)
+
+        let task = Task {
+            await model.fetch()
+        }
+
+        try await Task.sleep(for: .milliseconds(50))
+        model.amountInputModel.text = "0"
+        model.onChangeFromValue("1", "0")
+
+        await task.value
+
+        #expect(model.swapState.quotes.isNoData)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
+    }
+
+    @Test
     func fetchTriggerIsImmediate() {
         let model = SwapSceneViewModel.mock()
 
