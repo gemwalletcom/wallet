@@ -5,7 +5,9 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ext.getAddressEllipsisText
+import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
@@ -140,6 +142,8 @@ class TransactionDataAggregateImpl(
         }
         else -> null
     }
+
+    override val nftImageUrl: String? = data.transaction.getNftMetadata()?.getImageUrl()
 
     override val type: TransactionType = data.transaction.type
 

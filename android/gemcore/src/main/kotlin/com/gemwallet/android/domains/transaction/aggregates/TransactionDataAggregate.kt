@@ -14,6 +14,8 @@ interface TransactionDataAggregate {
     val type: TransactionType
     val direction: TransactionDirection
     val state: TransactionState
+    val nftImageUrl: String?
+        get() = null
 
     val isPending: Boolean
         get() = state == TransactionState.Pending

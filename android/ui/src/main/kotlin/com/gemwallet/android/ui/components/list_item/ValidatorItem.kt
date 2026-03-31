@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.Constants
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
@@ -82,7 +83,7 @@ fun DelegationValidator.formatApr(): String {
 }
 
 fun DelegationValidator.getIconUrl(): String {
-    return "https://assets.gemwallet.com/blockchains/${chain.string}/validators/${id}/logo.png"
+    return "${Constants.ASSETS_URL}/blockchains/${chain.string}/validators/${id}/logo.png"
 }
 
 fun availableIn(delegation: Delegation?): String {

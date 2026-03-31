@@ -1,44 +1,54 @@
 package com.gemwallet.android.ui.components.list_head
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil3.transform.RoundedCornersTransformation
+import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.headerLargeImageSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 
 @Composable
 fun NftHead(
-    nftAsset: NFTAsset
+    name: String?,
+    imageUrl: String,
 ) {
-    Column {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            AsyncImage(
-                size = 128.dp,
-                model = nftAsset.images.preview.url,
-                placeholderText = nftAsset.name,
-                transformation = RoundedCornersTransformation(32f, 32f, 32f, 32f),
-                contentDescription = "header_icon",
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        AsyncImage(
+            size = headerLargeImageSize,
+            model = imageUrl,
+            placeholderText = name,
+            transformation = RoundedCornersTransformation(paddingLarge.value, paddingLarge.value, paddingLarge.value, paddingLarge.value),
+            contentDescription = "header_icon",
+        )
+        if (name != null) {
             Spacer16()
-            DisplayText(text = nftAsset.name, modifier = Modifier.fillMaxWidth())
+            DisplayText(text = name, modifier = Modifier.fillMaxWidth())
         }
-        Spacer(modifier = Modifier.size(0.dp))
-        HorizontalDivider(thickness = 0.4.dp)
     }
+}
+
+@Composable
+fun NftHead(nftAsset: NFTAsset) {
+    NftHead(name = nftAsset.name, imageUrl = nftAsset.images.preview.url)
+}
+
+@Composable
+fun NftHead(metadata: TransactionNFTTransferMetadata) {
+    NftHead(name = metadata.name, imageUrl = metadata.getImageUrl())
 }

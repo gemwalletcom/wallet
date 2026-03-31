@@ -11,11 +11,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.NFTImages
-import com.wallet.core.primitives.NFTResource
-import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.Price
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.SwapProvider
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
@@ -272,25 +269,11 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testAmountNFT_withMetadata() {
-        val nftAsset = NFTAsset(
-            id = "nft-123",
-            collectionId = "collection-1",
-            contractAddress = "0xcontract",
-            tokenId = "123",
-            tokenType = NFTType.ERC721,
+        val metadata = TransactionNFTTransferMetadata(
+            assetId = "ethereum_0xcontract_123",
             name = "NFT Name",
-            description = "NFT Description",
-            chain = Chain.Ethereum,
-            resource = NFTResource(url = "https://example.com/image.png", mimeType = "image/png"),
-            images = NFTImages(
-                preview = NFTResource(
-                    url = "https://example.com/image.png",
-                    mimeType = "image/png"
-                )
-            ),
-            attributes = emptyList(),
         )
-        val nftMetadata = jsonEncoder.encodeToString(NFTAsset.serializer(), nftAsset)
+        val nftMetadata = jsonEncoder.encodeToString(TransactionNFTTransferMetadata.serializer(), metadata)
 
         val transaction = createTransaction(
             type = TransactionType.TransferNFT,
@@ -303,8 +286,8 @@ class TransactionDetailsAggregateImplTest {
         val amount = aggregate.amount
         Assert.assertTrue(amount is TransactionDetailsValue.Amount.NFT)
         val nftAmount = amount as TransactionDetailsValue.Amount.NFT
-        Assert.assertEquals("NFT Name", nftAmount.asset.name)
-        Assert.assertEquals("123", nftAmount.asset.tokenId)
+        Assert.assertEquals("NFT Name", nftAmount.metadata.name)
+        Assert.assertEquals("ethereum_0xcontract_123", nftAmount.metadata.assetId)
     }
 
     @Test

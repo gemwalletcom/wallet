@@ -50,6 +50,7 @@ import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -476,7 +477,9 @@ class ConfirmViewModel @Inject constructor(
                 )
             )
         }
-        is ConfirmParams.NftParams -> jsonEncoder.encodeToString(input.nftAsset)
+        is ConfirmParams.NftParams -> jsonEncoder.encodeToString(
+            TransactionNFTTransferMetadata(input.nftAsset.id, input.nftAsset.name)
+        )
         else -> null
     }
 
