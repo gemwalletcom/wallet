@@ -30,8 +30,7 @@ class CreateWalletViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val generatedNameIndex = walletsRepository.getNextWalletNumber()
-            val isExistingWallets = generatedNameIndex > 1
-            state.update { it.copy(generatedNameIndex = generatedNameIndex, isExistingWallets = isExistingWallets) }
+            state.update { it.copy(generatedNameIndex = generatedNameIndex) }
             createWalletOperator()
                 .onSuccess { data ->
                     state.update { it.copy(data = data.split(" ")) }
@@ -64,7 +63,7 @@ class CreateWalletViewModel @Inject constructor(
             val newState = try {
                 val wallet = importWalletService.createWallet(state.value.name, phrase)
                 withContext(Dispatchers.Main){
-                    onCreated(if (state.value.isExistingWallets) wallet.id else null)
+                    onCreated(if (state.value.isExistingWallets()) wallet.id else null)
                 }
                 state.value.copy(loading = false)
             } catch (err: Throwable) {
@@ -84,8 +83,9 @@ data class CreateWalletViewModelState(
     val data: List<String> = emptyList(),
     val dataError: String = "",
     val isShowSafeMessage: Boolean = false,
-    val isExistingWallets: Boolean = false,
 ) {
+    fun isExistingWallets() = generatedNameIndex > 1
+
     fun toUIState() = CreateWalletUIState(
         loading = loading,
         name = name,
