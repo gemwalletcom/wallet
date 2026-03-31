@@ -2,11 +2,9 @@ package com.gemwallet.android.ui.components.filters
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircleOutline
-import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -26,7 +24,7 @@ fun LazyListScope.selectFilterTransactionType(
             title = { PropertyTitleText(item.getLabel()) },
             data = {
                 if (filter.contains(item)) {
-                    Icon(Icons.Default.CheckCircleOutline, contentDescription = "")
+                    SelectionCheckmark()
                 }
             },
             listPosition = position,

@@ -177,9 +177,10 @@ private fun SignMessageScene(
                     onDismissRequest = { sheetType = null },
                     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                     dragHandle = {
-                        DialogBar(stringResource(R.string.common_details)) {
-                            sheetType = null
-                        }
+                        DialogBar(
+                            title = stringResource(R.string.common_details),
+                            onDismissRequest = { sheetType = null },
+                        )
                     },
                 ) {
                     LazyColumn {
@@ -207,9 +208,10 @@ private fun SignMessageScene(
                     onDismissRequest = { sheetType = null },
                     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                     dragHandle = {
-                        DialogBar(stringResource(R.string.sign_message_view_full_message)) {
-                            sheetType = null
-                        }
+                        DialogBar(
+                            title = stringResource(R.string.sign_message_view_full_message),
+                            onDismissRequest = { sheetType = null },
+                        )
                     },
                 ) {
                     Box(

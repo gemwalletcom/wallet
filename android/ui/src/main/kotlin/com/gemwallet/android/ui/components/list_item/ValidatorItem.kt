@@ -2,14 +2,9 @@ package com.gemwallet.android.ui.components.list_item
 
 import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,10 +35,7 @@ fun ValidatorItem(
         trailingIcon = {
             if (isSelected) {
                 Spacer(modifier = Modifier.size(space4))
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "selected_delegation",
-                )
+                SelectionCheckmark()
             }
         },
         onClick = onClick
@@ -70,9 +62,7 @@ fun ValidatorItem(
         trailing = {
             Row (verticalAlignment = Alignment.CenterVertically) {
                 ListItemSupportText(R.string.stake_apr, " ${data.formatApr()}")
-                Box(modifier = Modifier.padding(bottom = 2.dp)) {
-                    trailingIcon()
-                }
+                trailingIcon()
             }
         },
     )

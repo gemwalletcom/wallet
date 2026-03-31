@@ -10,19 +10,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.theme.mainActionHeight
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 
 @Composable
 internal fun SwapAction(
     swapState: SwapState,
-    pay: AssetInfo?,
     onSwap: () -> Unit,
 ) {
     Button(
@@ -45,7 +43,7 @@ internal fun SwapAction(
             SwapState.Approving -> CircularProgressIndicator20(color = Color.White)
 
             is SwapState.Error -> Text(
-                modifier = Modifier.padding(4.dp),
+                modifier = Modifier.padding(paddingHalfSmall),
                 text = when(swapState.error) {
                     is SwapError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, (swapState.error as SwapError.InsufficientBalance).symbol)
                     is SwapError.InputAmountTooSmall -> stringResource(R.string.stake_minimum_amount)

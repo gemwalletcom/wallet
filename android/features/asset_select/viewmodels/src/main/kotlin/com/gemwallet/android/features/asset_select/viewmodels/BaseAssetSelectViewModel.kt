@@ -67,13 +67,13 @@ open class BaseAssetSelectViewModel(
         selectedTag,
         chainFilter,
         balanceFilter,
-    ) {
+    ) { session, query, tag, chainFilter, hasBalance ->
         SelectAssetFilters(
-            session = it[0] as Session?,
-            query = it[1].toString(),
-            tag = (it[2] as? AssetTag?),
-            chainFilter = (it[3] as? List<Chain>) ?: emptyList(),
-            hasBalance = it[4] as Boolean,
+            session = session,
+            query = query,
+            tag = tag,
+            chainFilter = chainFilter,
+            hasBalance = hasBalance,
         )
     }.onEach { filters ->
         searchState.update { if (it != SearchState.Init) SearchState.Searching else it }

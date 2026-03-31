@@ -12,7 +12,7 @@ class AmountUIModel(
     val asset: AssetInfo,
     val fromAsset: AssetInfo,
     val toAsset: AssetInfo?,
-    val fromAmount: String?,
+    val fromAmount: String,
     val toAmount: String?,
     val nftAsset: NFTAsset?,
     val currency: Currency = Currency.USD,

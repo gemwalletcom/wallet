@@ -6,6 +6,7 @@ import uniffi.gemstone.SwapperQuote
 
 internal data class QuotesState(
     val items: List<SwapperQuote> = emptyList(),
+    val requestKey: QuoteRequestKey,
     val pay: AssetInfo,
     val receive: AssetInfo,
     val err: Throwable? = null,
@@ -13,3 +14,6 @@ internal data class QuotesState(
 
 internal fun QuotesState.getQuote(provider: SwapperProvider?): SwapperQuote? =
     items.firstOrNull { it.data.provider.id == provider } ?: items.firstOrNull()
+
+internal fun QuotesState.matches(params: QuoteRequestParams?): Boolean =
+    params?.key == requestKey

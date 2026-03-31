@@ -80,10 +80,10 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func emptyInputCancelsInFlightRequest() async throws {
+    func emptyInputDoesNotApplyLateQuote() async throws {
         let swapper = GemSwapperMock(
-            fetchQuoteDelay: .milliseconds(100),
-            fetchQuoteError: SwapperError.NoQuoteAvailable
+            quotes: [.mock()],
+            fetchQuoteDelay: .milliseconds(100)
         )
         let model = SwapSceneViewModel.mock(swapper: swapper)
 
@@ -92,12 +92,14 @@ struct SwapSceneViewModelTests {
         }
 
         try await Task.sleep(for: .milliseconds(50))
-        task.cancel()
-        model.swapState.quotes = .noData
+        model.amountInputModel.text = "0"
+        model.onChangeFromValue("1", "0")
 
         await task.value
 
         #expect(model.swapState.quotes.isNoData)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
     }
 
     @Test

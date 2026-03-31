@@ -53,7 +53,6 @@ dependencies {
     implementation(project(":data:repositories"))
     implementation(project(":gemcore"))
 
-    implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.savedstate)
 
