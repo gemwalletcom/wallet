@@ -322,7 +322,7 @@ fun AmountHeadAction(
                     ),
                     shape = CircleShape
                 )
-                .padding(16.dp)
+                .padding(paddingDefault)
             ,
             imageVector = imageVector,
             tint = MaterialTheme.colorScheme.onPrimary.copy(
