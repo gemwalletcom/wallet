@@ -110,6 +110,7 @@ internal fun CheckPhrase(
             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
         ) {
             Text(
+                modifier = Modifier.padding(horizontal = paddingDefault),
                 text = stringResource(id = R.string.secret_phrase_confirm_quick_test_title),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,

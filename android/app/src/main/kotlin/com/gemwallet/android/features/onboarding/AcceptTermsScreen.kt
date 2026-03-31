@@ -97,9 +97,12 @@ fun AcceptTermsScreen(
         ) {
             item {
                 Text(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = paddingDefault),
                     text = stringResource(R.string.onboarding_accept_terms_message),
                     textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary,
                 )
                 Spacer(Modifier.size(if (isSmallScreen) paddingDefault else 24.dp))
             }
@@ -158,7 +161,7 @@ private fun LazyListScope.termItem(
                         color = if (isUnderstand) {
                             MaterialTheme.colorScheme.onSurface
                         } else {
-                            MaterialTheme.colorScheme.secondary
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         },
                     )
                 }

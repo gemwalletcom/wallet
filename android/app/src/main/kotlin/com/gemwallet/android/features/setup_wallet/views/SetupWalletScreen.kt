@@ -50,7 +50,6 @@ fun SetupWalletScreen(
     Scene(
         title = title,
         backHandle = true,
-        padding = PaddingValues(horizontal = paddingDefault),
         actions = {
             IconButton(onClick = handleDone) {
                 Icon(imageVector = Icons.Default.Close, contentDescription = "")

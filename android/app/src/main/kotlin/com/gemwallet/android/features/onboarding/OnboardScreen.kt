@@ -6,18 +6,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -26,6 +27,8 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.largeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space24
+
+private const val BrandmarkCornerPercent = 29
 
 @Composable
 fun OnboardScreen(
@@ -37,28 +40,20 @@ fun OnboardScreen(
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.align(Alignment.Center),
-        ) {
-            Image(
-                painterResource(id = R.drawable.brandmark),
-                contentDescription = "welcome_icon",
-                modifier = Modifier.size(largeIconSize),
-            )
-            Spacer(modifier = Modifier.size(paddingDefault))
-            Text(
-                text = stringResource(id = R.string.welcome_title),
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.displaySmall,
-            )
-        }
+        Image(
+            painterResource(id = R.drawable.brandmark),
+            contentDescription = "welcome_icon",
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(largeIconSize)
+                .clip(RoundedCornerShape(BrandmarkCornerPercent)),
+        )
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
                 .padding(bottom = paddingDefault),
         ) {
             MainActionButton(
