@@ -35,7 +35,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -45,7 +44,6 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
-import com.gemwallet.android.ui.theme.isSmallScreen
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import uniffi.gemstone.Config
@@ -61,8 +59,6 @@ fun AcceptTermsScreen(
     var isUnderstand1 by remember { mutableStateOf(false) }
     var isUnderstand2 by remember { mutableStateOf(false) }
     var isUnderstand3 by remember { mutableStateOf(false) }
-    val isSmallScreen = isSmallScreen()
-
     Scene(
         title = stringResource(R.string.onboarding_accept_terms_title),
         onClose = { onCancel() },
@@ -104,7 +100,7 @@ fun AcceptTermsScreen(
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary,
                 )
-                Spacer(Modifier.size(if (isSmallScreen) paddingDefault else 24.dp))
+                Spacer(Modifier.size(paddingDefault))
             }
             termItem(
                 isUnderstand1,
@@ -167,7 +163,7 @@ private fun LazyListScope.termItem(
                 }
             }
         }
-        Spacer(Modifier.size(if (isSmallScreen()) paddingDefault else 24.dp))
+        Spacer(Modifier.size(paddingDefault))
     }
 }
 
