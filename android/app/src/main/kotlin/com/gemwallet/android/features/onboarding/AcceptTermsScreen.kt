@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -105,14 +106,17 @@ fun AcceptTermsScreen(
             termItem(
                 isUnderstand1,
                 R.string.onboarding_accept_terms_item1_message,
+                testTag = "term_1",
             ) { isUnderstand1 = !isUnderstand1 }
             termItem(
                 isUnderstand2,
                 R.string.onboarding_accept_terms_item2_message,
+                testTag = "term_2",
             ) { isUnderstand2 = !isUnderstand2 }
             termItem(
                 isUnderstand3,
                 R.string.onboarding_accept_terms_item3_message,
+                testTag = "term_3",
             ) { isUnderstand3 = !isUnderstand3 }
 
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }
@@ -123,11 +127,15 @@ fun AcceptTermsScreen(
 private fun LazyListScope.termItem(
     isUnderstand: Boolean,
     @StringRes description: Int,
+    testTag: String,
     onClick: () -> Unit,
 ) {
     item {
         Card(
-            modifier = Modifier.clip(shape = RoundedCornerShape(paddingDefault)).clickable(onClick = onClick),
+            modifier = Modifier
+                .testTag(testTag)
+                .clip(shape = RoundedCornerShape(paddingDefault))
+                .clickable(onClick = onClick),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             elevation = CardDefaults.cardElevation(paddingHalfSmall),
             shape = RoundedCornerShape(paddingDefault),
