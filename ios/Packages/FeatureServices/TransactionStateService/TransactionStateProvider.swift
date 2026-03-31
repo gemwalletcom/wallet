@@ -43,7 +43,7 @@ struct TransactionStateProvider: Sendable {
             let transactionId = transaction.id.identifier
             switch change {
             case let .networkFee(networkFee):
-                try transactionStore.updateNetworkFee(
+                let _ = try transactionStore.updateNetworkFee(
                     transactionId: transaction.id.identifier,
                     networkFee: networkFee.description,
                 )
@@ -55,17 +55,17 @@ struct TransactionStateProvider: Sendable {
                     hash: newHash,
                 )
             case let .blockNumber(block):
-                try transactionStore.updateBlockNumber(transactionId: transactionId, block: block)
+                let _ = try transactionStore.updateBlockNumber(transactionId: transactionId, block: block)
             case let .createdAt(date):
-                try transactionStore.updateCreatedAt(transactionId: transactionId, date: date)
+                let _ = try transactionStore.updateCreatedAt(transactionId: transactionId, date: date)
             case let .metadata(metadata):
-                try transactionStore.updateMetadata(transactionId: transactionId, metadata: metadata)
+                let _ = try transactionStore.updateMetadata(transactionId: transactionId, metadata: metadata)
             }
         }
     }
 
     func updateState(state: TransactionState, for transaction: Transaction) throws {
-        try transactionStore.updateState(
+        let _ =  try transactionStore.updateState(
             id: transaction.id.identifier,
             state: state,
         )

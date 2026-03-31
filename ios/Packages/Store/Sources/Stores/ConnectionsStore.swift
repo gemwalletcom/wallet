@@ -50,7 +50,7 @@ public struct ConnectionsStore: Sendable {
         }
     }
 
-    public func delete(ids: [String]) throws {
+    public func delete(ids: [String]) throws -> Int {
         try db.write { db in
             try WalletConnectionRecord
                 .filter(ids.contains(WalletConnectionRecord.Columns.id) || ids.contains(WalletConnectionRecord.Columns.sessionId))
@@ -58,7 +58,7 @@ public struct ConnectionsStore: Sendable {
         }
     }
 
-    public func deleteAll() throws {
+    public func deleteAll() throws -> Int {
         try db.write { db in
             try WalletConnectionRecord.deleteAll(db)
         }
