@@ -87,7 +87,8 @@ fun TransactionType.getTitle(direction: TransactionDirection? = null, state: Tra
         TransactionType.StakeUndelegate -> R.string.transfer_unstake_title
         TransactionType.StakeRedelegate -> R.string.transfer_redelegate_title
         TransactionType.StakeRewards -> R.string.transfer_rewards_title
-        TransactionType.Transfer -> when (state) {
+        TransactionType.Transfer,
+        TransactionType.TransferNFT -> when (state) {
             TransactionState.Failed,
             TransactionState.Reverted,
             TransactionState.Pending -> R.string.transfer_title
@@ -101,7 +102,6 @@ fun TransactionType.getTitle(direction: TransactionDirection? = null, state: Tra
         TransactionType.Swap -> R.string.wallet_swap
         TransactionType.TokenApproval -> R.string.transfer_approve_title
         TransactionType.AssetActivation -> R.string.transfer_activate_asset_title
-        TransactionType.TransferNFT -> R.string.transfer_title
         TransactionType.SmartContractCall -> R.string.transfer_smart_contract_title
         TransactionType.PerpetualOpenPosition -> R.string.perpetual_position
         TransactionType.PerpetualClosePosition -> R.string.perpetual_close_position
