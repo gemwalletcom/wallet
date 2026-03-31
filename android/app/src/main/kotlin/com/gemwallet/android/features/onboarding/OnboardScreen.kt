@@ -1,15 +1,14 @@
 package com.gemwallet.android.features.onboarding
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,37 +19,35 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.largeIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space24
 
 @Composable
 fun OnboardScreen(
     onCreateWallet: () -> Unit,
     onImportWallet: () -> Unit,
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 48.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.align(Alignment.Center),
         ) {
             Image(
                 painterResource(id = R.drawable.brandmark),
                 contentDescription = "welcome_icon",
-                modifier = Modifier.size(100.dp),
+                modifier = Modifier.size(largeIconSize),
             )
-            Spacer16()
+            Spacer(modifier = Modifier.size(paddingDefault))
             Text(
-                modifier = Modifier.fillMaxWidth(),
                 text = stringResource(id = R.string.welcome_title),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -59,29 +56,28 @@ fun OnboardScreen(
         }
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = paddingDefault),
         ) {
-            OnboardAction(text = R.string.wallet_create_new_wallet, testTag = "create", onClick = onCreateWallet)
-            OnboardAction(text = R.string.wallet_import_existing_wallet, testTag = "import", onClick = onImportWallet)
+            MainActionButton(
+                title = stringResource(id = R.string.wallet_create_new_wallet),
+                modifier = Modifier
+                    .widthIn(max = SceneSizing.buttonMaxWidth)
+                    .testTag("create"),
+                onClick = onCreateWallet,
+            )
+            Spacer(modifier = Modifier.size(space24))
+            MainActionButton(
+                title = stringResource(id = R.string.wallet_import_existing_wallet),
+                modifier = Modifier
+                    .widthIn(max = SceneSizing.buttonMaxWidth)
+                    .testTag("import"),
+                onClick = onImportWallet,
+            )
         }
     }
-}
-
-@Composable
-private fun OnboardAction(
-    @StringRes text: Int,
-    testTag: String,
-    onClick: () -> Unit,
-) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(testTag)
-    ) {
-        Text(text = stringResource(id = text))
-    }
-    Spacer16()
 }
 
 @Preview

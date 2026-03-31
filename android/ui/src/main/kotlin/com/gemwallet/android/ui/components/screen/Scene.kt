@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.isSmallScreen
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -128,10 +130,16 @@ fun Scene(
             if (mainAction != null) {
                 Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.surface)
-                        .navigationBarsPadding()
+                        .navigationBarsPadding(),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(modifier = Modifier.padding(mainActionPadding)) {
+                    Box(
+                        modifier = Modifier
+                            .widthIn(max = SceneSizing.buttonMaxWidth)
+                            .padding(mainActionPadding)
+                    ) {
                         mainAction()
                     }
                 }

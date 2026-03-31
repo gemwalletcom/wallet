@@ -40,6 +40,9 @@ class AppViewModel @Inject constructor(
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppUIState())
 
+    val isTermsAccepted = userConfig.isTermsAccepted()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val askNotifications = combine(
         userConfig.isAskNotifications(),
         sessionRepository.session(),
@@ -96,6 +99,12 @@ class AppViewModel @Inject constructor(
         userConfig.setLatestVersion(lastVersion)
         if (lastVersion.compareTo(BuildConfig.VERSION_NAME) > 0 && skipVersion != lastVersion/* && current.store != PlatformStore.ApkUniversal*/) {
             state.update { it.copy(intent = AppIntent.ShowUpdate, version = lastVersion) }
+        }
+    }
+
+    fun acceptTerms() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userConfig.acceptTerms()
         }
     }
 

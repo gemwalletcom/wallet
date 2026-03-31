@@ -33,7 +33,7 @@ fun NavController.navigateToImportWalletScreen(importType: ImportType? = null, n
 
 fun NavGraphBuilder.importWalletScreen(
     onCancel: () -> Unit,
-    onImported: () -> Unit,
+    onImported: (walletId: String) -> Unit,
     onSelectType: (ImportType?) -> Unit,
 ) {
     navigation(startDestination = importSelectType, route = importWalletRoute) {

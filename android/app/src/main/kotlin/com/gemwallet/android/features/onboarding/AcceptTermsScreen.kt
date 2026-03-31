@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.onboarding
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -34,7 +35,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -69,13 +69,7 @@ fun AcceptTermsScreen(
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
                 enabled = isUnderstand1 && isUnderstand2 && isUnderstand3,
-                onClick = {
-                    context.getSharedPreferences("terms", Context.MODE_PRIVATE)
-                        .edit {
-                            putBoolean("is_accepted", true)
-                        }
-                    onAccept()
-                }
+                onClick = { onAccept() }
             )
         },
         actions = {
@@ -138,9 +132,9 @@ private fun LazyListScope.termItem(
             elevation = CardDefaults.cardElevation(paddingHalfSmall),
             shape = RoundedCornerShape(paddingDefault),
         ) {
-            Row(modifier = Modifier.defaultPadding()) {
+            Row(modifier = Modifier.defaultPadding(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.CheckCircleOutline,
+                    imageVector = if (isUnderstand) Icons.Default.CheckCircleOutline else Icons.Outlined.Circle,
                     contentDescription = "Accept term",
                     tint = if (isUnderstand) {
                         MaterialTheme.colorScheme.primary
@@ -153,6 +147,11 @@ private fun LazyListScope.termItem(
                     Text(
                         text = stringResource(description),
                         style = MaterialTheme.typography.bodyLarge,
+                        color = if (isUnderstand) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.secondary
+                        },
                     )
                 }
             }

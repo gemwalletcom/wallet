@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.largeIconSize
 import coil3.compose.AsyncImage
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.asset
@@ -241,12 +242,12 @@ fun InfoBottomSheet(
         ) {
             Spacer16()
             Box(
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier.size(largeIconSize),
                 contentAlignment = Alignment.BottomEnd
             ) {
                 AsyncImage(
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(largeIconSize)
                         .clip(CircleShape),
                     model = item.icon,
                     contentDescription = ""
