@@ -31,10 +31,10 @@ class SyncTransactionsService @Inject constructor(
             }
             result
         }
-        val txs: List<Transaction> = response.getOrNull() ?: return
-        prefetchAssets(wallet, txs)
+        val transactions: List<Transaction> = response.getOrNull() ?: return
+        prefetchAssets(wallet, transactions)
 
-        putTransactions.putTransactions(walletId = wallet.id, txs.toList())
+        putTransactions.putTransactions(walletId = wallet.id, transactions.toList())
     }
 
     override suspend fun syncTransactions(wallet: Wallet, assetId: AssetId) = withContext(Dispatchers.IO) {
@@ -47,15 +47,15 @@ class SyncTransactionsService @Inject constructor(
             }
             result
         }
-        val txs: List<Transaction> = response.getOrNull() ?: return@withContext
-        prefetchAssets(wallet, txs)
+        val transactions: List<Transaction> = response.getOrNull() ?: return@withContext
+        prefetchAssets(wallet, transactions)
 
-        putTransactions.putTransactions(walletId = wallet.id, txs.toList())
+        putTransactions.putTransactions(walletId = wallet.id, transactions.toList())
     }
 
-    private suspend fun prefetchAssets(wallet: Wallet, txs: List<Transaction>) {
-        val notAvailableAssetIds = txs.map { txs ->
-            txs.getAssociatedAssetIds().filter { assetsRepository.getAsset(it) == null }.toSet()
+    private suspend fun prefetchAssets(wallet: Wallet, transactions: List<Transaction>) {
+        val notAvailableAssetIds = transactions.map { transaction ->
+            transaction.getAssociatedAssetIds().filter { assetsRepository.getAsset(it) == null }.toSet()
         }.flatten()
         assetsRepository.resolve(wallet, notAvailableAssetIds)
     }
