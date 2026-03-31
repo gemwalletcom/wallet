@@ -16,6 +16,8 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.WalletConnectSimulationClient
+import uniffi.gemstone.WalletConnectSimulationClientInterface
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -48,4 +50,11 @@ object GatewayModule {
             apiUrl = Constants.API_URL
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideWalletConnectSimulationService(
+        alienProvider: AlienProvider,
+    ): com.gemwallet.android.blockchain.services.WalletConnectSimulationService =
+        com.gemwallet.android.blockchain.services.WalletConnectSimulationService(WalletConnectSimulationClient(alienProvider))
 }

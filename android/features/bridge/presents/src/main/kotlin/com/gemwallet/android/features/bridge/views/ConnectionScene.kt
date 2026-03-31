@@ -11,15 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionViewModel
@@ -42,12 +37,7 @@ fun ConnectionScene(
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 onClick = { viewModel.disconnect(onCancel) },
             ) {
-                Text(
-                    modifier = Modifier.padding(4.dp),
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center,
-                    text = stringResource(id = R.string.wallet_connect_disconnect).uppercase(),
-                )
+                Text(text = stringResource(id = R.string.wallet_connect_disconnect).uppercase())
             }
         },
         onClose = onCancel,
@@ -55,20 +45,11 @@ fun ConnectionScene(
         LazyColumn {
             connection?.let {
                 item { ConnectionItem(it, ListPosition.Single) }
+                item { PropertyItem(R.string.common_wallet, it.wallet.name, listPosition = ListPosition.First) }
                 item {
-                    ListItem(
-                        title = { ListItemTitleText(stringResource(id = R.string.common_wallet)) },
-                        trailing = { ListItemSupportText(it.wallet.name) },
-                        listPosition = ListPosition.First,
-                    )
-                }
-                item {
-                    ListItem(
-                        title = { ListItemTitleText(stringResource(id = R.string.transaction_date)) },
-                        trailing = {
-                            val expire = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(it.session.expireAt))
-                            ListItemSupportText(expire)
-                        },
+                    PropertyItem(
+                        title = R.string.transaction_date,
+                        data = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(it.session.expireAt)),
                         listPosition = ListPosition.Last,
                     )
                 }

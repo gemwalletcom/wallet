@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -26,11 +25,12 @@ import com.gemwallet.android.ui.components.InfoButton
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingMiddle
-import com.gemwallet.android.ui.theme.trailingIconMedium
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.tinyIconSize
 
 @Composable
 fun PropertyItem(
@@ -59,7 +59,7 @@ fun PropertyItem(
 ) {
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
-        title = { PropertyTitleText(text = action, trailing = { AsyncImage(actionIconModel, 24.dp) }) },
+        title = { PropertyTitleText(text = action, trailing = { AsyncImage(actionIconModel, smallIconSize) }) },
         data = {
             PropertyDataText(
                 text = data ?: "",
@@ -127,10 +127,11 @@ fun PropertyItem(
     listPosition: ListPosition = ListPosition.Middle,
 ) {
     ListItem(
-        modifier = modifier.then(Modifier.height(56.dp)),
+        modifier = modifier,
         title = title,
         trailing = data,
         listPosition = listPosition,
+        minHeight = ListItemDefaults.plainMinHeight,
     )
 }
 
@@ -207,7 +208,7 @@ fun DataBadgeChevron(isShowChevron: Boolean = true, content: (@Composable RowSco
         }
         if (isShowChevron) {
             Icon(
-                modifier = Modifier.offset(8.dp).size(trailingIconSmall),
+                modifier = Modifier.offset(8.dp).size(tinyIconSize),
                 painter = rememberVectorPainter(image = Icons.AutoMirrored.Default.ArrowForwardIos),
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.secondary
@@ -219,6 +220,6 @@ fun DataBadgeChevron(isShowChevron: Boolean = true, content: (@Composable RowSco
 @Composable
 fun DataBadgeChevron(icon: Any, isShowChevron: Boolean = true) {
     DataBadgeChevron(isShowChevron) {
-        AsyncImage(icon, size = trailingIconMedium)
+        AsyncImage(icon, size = smallIconSize)
     }
 }

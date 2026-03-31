@@ -17,6 +17,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionState
+import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -125,7 +126,13 @@ class BridgesRepository(
             ?: emptyList()
         return localConnections.firstOrNull { it.session.sessionId == session?.pairingTopic }
             ?.let { connection ->
-                connection.copy(session = connection.session.copy(chains = sessionChains))
+                connection.copy(
+                    session = connection.session.copy(
+                        chains = sessionChains,
+                        metadata = session?.metaData?.toConnectionMetadata()
+                            ?: connection.session.metadata,
+                    )
+                )
             }
     }
 
@@ -329,4 +336,11 @@ class BridgesRepository(
         = icons.firstOrNull{ it.endsWith("png", true) || it.endsWith("jpg", true) }
             ?: icons.firstOrNull()
             ?: ""
+
+    private fun Core.Model.AppMetaData.toConnectionMetadata(): WalletConnectionSessionAppMetadata = WalletConnectionSessionAppMetadata(
+        name = name,
+        description = description,
+        url = url,
+        icon = getIcon(),
+    )
 }

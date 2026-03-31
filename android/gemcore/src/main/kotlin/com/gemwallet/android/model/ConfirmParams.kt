@@ -28,6 +28,7 @@ import com.wallet.core.primitives.TransactionType
 import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import uniffi.gemstone.GemAccountDataType
+import com.wallet.core.primitives.swap.ApprovalData
 import uniffi.gemstone.GemApprovalData
 import uniffi.gemstone.GemResource
 import uniffi.gemstone.GemStakeType
@@ -227,7 +228,9 @@ sealed class ConfirmParams() {
             val icon: String,
             val gasLimit: String?,
         ) : TransferParams() {
-            override fun toDto(): GemTransactionInputType = Generic(
+            override fun toDto(): GemTransactionInputType {
+                val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
+                return Generic(
                 asset = asset.toGem(),
                 metadata = GemWalletConnectionSessionAppMetadata(
                     name = name,
@@ -246,19 +249,18 @@ sealed class ConfirmParams() {
                         }
                         data.toByteArray()
                     },
-                    outputType = when (inputType) {
+                    outputType = when (type) {
                         InputType.Signature -> TransferDataOutputType.SIGNATURE
                         InputType.EncodeTransaction -> TransferDataOutputType.ENCODED_TRANSACTION
-                        null -> throw IllegalArgumentException("Not supported $inputType")
                     },
-                    outputAction = when (inputType) {
+                    outputAction = when (type) {
                         InputType.Signature -> TransferDataOutputAction.SIGN
                         InputType.EncodeTransaction -> TransferDataOutputAction.SEND
-                        null -> throw IllegalArgumentException("Not supported $inputType")
                     },
                     to = destination().address
                 ),
             )
+            }
 
             override fun hashCode(): Int {
                 var result = asset.hashCode()
@@ -329,6 +331,7 @@ sealed class ConfirmParams() {
                 assetId.tokenId!!,
                 spender = contract,
                 value = amount.toString(),
+                isUnlimited = true,
             )
         )
 
@@ -381,12 +384,6 @@ sealed class ConfirmParams() {
 
         override fun memo(): String? = memo
 
-        @Serializable
-        data class ApprovalData(
-            val token: String,
-            var spender: String,
-            var value: String
-        )
     }
 
     @Serializable
@@ -744,11 +741,12 @@ sealed class ConfirmParams() {
     }
 }
 
-fun GemApprovalData.toModel(): ConfirmParams.SwapParams.ApprovalData {
-    return ConfirmParams.SwapParams.ApprovalData(
+fun GemApprovalData.toModel(): ApprovalData {
+    return ApprovalData(
         token = this.token,
         spender = this.spender,
         value = this.value,
+        isUnlimited = this.isUnlimited,
     )
 }
 

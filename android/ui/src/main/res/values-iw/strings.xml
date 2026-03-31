@@ -572,7 +572,7 @@
   <string name="charts.price.change">לְשַׁנוֹת</string>
   <string name="contacts.add_to_contacts">הוסף לאנשי קשר</string>
   <string name="common.method">שִׁיטָה</string>
-  <string name="simulation.header.unlimited_asset">בִּלתִי מוּגבָּל %@</string>
+  <string name="simulation.header.unlimited_asset">בִּלתִי מוּגבָּל %s</string>
   <string name="common.token">אֲסִימוֹן</string>
   <string name="common.suspicious_address">כתובת חשודה</string>
   <string name="simulation.warning.unlimited_token_approval.description">זה נותן למוציא גישה להשתמש באסימון זה עד שתבטל את האישור או שהוא יפוג תוקפו.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">אישור אסימונים ללא הגבלה</string>
   <string name="transfer.review_request">בקשת סקירה</string>
   <string name="wallet.portfolio.title">תִיק</string>
-  <string name="wallet.portfolio.footer">שווי משוער המבוסס על אחזקות נוכחיות ומחירי שוק.</string>
+  <string name="wallet_connect.permissions.title">הרשאות</string>
+  <string name="wallet_connect.permissions.view_balance">צפה ביתרה ובפעילות שלך</string>
+  <string name="wallet_connect.permissions.approval_requests">שלח בקשות אישור</string>
 </resources>

@@ -11,7 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  UNIT_TESTS: "true"
   ANDROID_COMPILE_SDK: "36"
   ANDROID_API: "35"
   ANDROID_AVD_NAME: "ci-emulator"
@@ -19,8 +18,13 @@ env:
 
 jobs:
   unit_test:
-    name: Build and Test
+    name: Unit Tests
     runs-on: [self-hosted, macOS]
+    env:
+      UNIT_TESTS: "true"
+    defaults:
+      run:
+        working-directory: android
 
     steps:
       - name: Checkout
@@ -28,59 +32,63 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Resolve Runner Toolchain
-        run: |
-          JAVA_HOME="$(/usr/libexec/java_home -v 17)"
-          ANDROID_HOME="/opt/homebrew/share/android-commandlinetools"
-
-          [ -x "${JAVA_HOME}/bin/java" ] || { echo "JAVA_HOME is invalid: ${JAVA_HOME}"; exit 1; }
-          [ -x "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" ] || { echo "sdkmanager is missing under ${ANDROID_HOME}"; exit 1; }
-
-          {
-            echo "JAVA_HOME=${JAVA_HOME}"
-            echo "ANDROID_HOME=${ANDROID_HOME}"
-            echo "ANDROID_SDK_ROOT=${ANDROID_HOME}"
-          } >> "${GITHUB_ENV}"
-
       - name: Bootstrap
-        working-directory: android
         run: just bootstrap
 
       - name: Clean Android build outputs
-        working-directory: android
         run: just clean
 
-      - name: Provision Android SDK
-        working-directory: android
-        run: just provision-emulator
-
       - name: Build
-        working-directory: android
         run: just build
         env:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run unit tests
-        working-directory: android
         run: just unit-test
         env:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Start emulator
+  instrumented_test:
+    name: Instrumented Tests
+    needs: unit_test
+    runs-on: [self-hosted, macOS]
+    defaults:
+      run:
         working-directory: android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Bootstrap
+        run: just bootstrap
+
+      - name: Clean Android build outputs
+        run: just clean
+
+      - name: Provision Android SDK and emulator
+        run: just provision-emulator
+
+      - name: Build
+        run: just build
+        env:
+          GPR_USERNAME: ${{ github.actor }}
+          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Start emulator
         run: just start-emulator
 
       - name: Build instrumented tests
-        working-directory: android
         run: just build-test
         env:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run instrumented tests
-        working-directory: android
         run: just test
         env:
           GPR_USERNAME: ${{ github.actor }}
@@ -88,5 +96,4 @@ jobs:
 
       - name: Stop emulator
         if: always()
-        working-directory: android
         run: just stop-emulator

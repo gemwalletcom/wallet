@@ -17,6 +17,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.models.ListPosition
@@ -25,10 +26,17 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import kotlin.math.max
 
+object ListItemDefaults {
+    val plainMinHeight: Dp = 56.dp
+    val defaultMinHeight: Dp = 72.dp
+    val supportingContentMinHeight: Dp = 88.dp
+}
+
 @Composable
 fun ListItem(
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
+    minHeight: Dp = ListItemDefaults.defaultMinHeight,
     leading: (@Composable RowScope.() -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     subtitle: (@Composable () -> Unit)? = null,
@@ -48,7 +56,7 @@ fun ListItem(
         leading?.invoke(this)
         ListItemLayout(
             modifier = Modifier
-                .heightIn(min = 72.dp)
+                .heightIn(min = minHeight)
                 .padding(top = paddingMiddle, end = paddingDefault, bottom = paddingMiddle)
                 .fillMaxWidth(),
         ) {

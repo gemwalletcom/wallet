@@ -572,7 +572,7 @@
   <string name="charts.price.change">Modifica</string>
   <string name="contacts.add_to_contacts">Aggiungi ai contatti</string>
   <string name="common.method">Metodo</string>
-  <string name="simulation.header.unlimited_asset">Illimitato %@</string>
+  <string name="simulation.header.unlimited_asset">Illimitato %s</string>
   <string name="common.token">Gettone</string>
   <string name="common.suspicious_address">Indirizzo sospetto</string>
   <string name="simulation.warning.unlimited_token_approval.description">Ciò consente allo spender di utilizzare questo token finché non revochi l\'approvazione o finché non scade.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">Approvazione token illimitata</string>
   <string name="transfer.review_request">Richiesta di revisione</string>
   <string name="wallet.portfolio.title">Portfolio</string>
-  <string name="wallet.portfolio.footer">Valore stimato in base alle partecipazioni attuali e ai prezzi di mercato.</string>
+  <string name="wallet_connect.permissions.title">Autorizzazioni</string>
+  <string name="wallet_connect.permissions.view_balance">Visualizza il tuo saldo e la tua attività</string>
+  <string name="wallet_connect.permissions.approval_requests">Invia richieste di approvazione</string>
 </resources>

@@ -25,7 +25,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingLarge
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.gemwallet.android.features.confirm.models.FeeRateUIModel
 import com.gemwallet.android.features.confirm.models.FeeUIModel
 import com.wallet.core.primitives.FeePriority
@@ -86,12 +86,12 @@ private fun FeePriorityView(fee: FeeRateUIModel, isSelected: Boolean, position: 
                 trailing = {
                     if (isSelected) {
                         Icon(
-                            modifier = Modifier.size(trailingIconSmall),
+                            modifier = Modifier.size(tinyIconSize),
                             imageVector = Icons.Outlined.Done,
                             contentDescription = ""
                         )
                     } else {
-                        Box(modifier = Modifier.size(trailingIconSmall))
+                        Box(modifier = Modifier.size(tinyIconSize))
                     }
                 }
             )

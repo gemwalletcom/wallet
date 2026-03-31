@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.ReferralActivation
 import com.wallet.core.primitives.ReferralAllowance
 import com.wallet.core.primitives.ReferralCodeActivation
@@ -51,7 +51,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, onConfirm: (Str
                 text = R.string.rewards_pending_title,
                 trailing = {
                     Icon(
-                        modifier = Modifier.size(trailingIconSmall),
+                        modifier = Modifier.size(tinyIconSize),
                         imageVector = Icons.Default.Info,
                         tint = pendingColor,
                         contentDescription = "",

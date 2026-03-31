@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.tinyIconSize
 
 @Composable
 fun WelcomeBanner(
@@ -89,7 +89,7 @@ fun WelcomeBanner(
                 .align(Alignment.TopEnd)
                 .clip(CircleShape)
                 .clickable(onClick = onClose)
-                .size(trailingIconSmall)
+                .size(tinyIconSize)
             ,
             imageVector = Icons.Default.Close,
             contentDescription = "",

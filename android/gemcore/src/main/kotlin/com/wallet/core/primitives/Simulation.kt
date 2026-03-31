@@ -16,7 +16,8 @@ data class SimulationBalanceChange (
 @Serializable
 data class SimulationHeader (
 	val assetId: AssetId,
-	val value: String
+	val value: String,
+	val isUnlimited: Boolean
 )
 
 @Serializable
@@ -73,6 +74,31 @@ enum class SimulationSeverity(val string: String) {
 }
 
 @Serializable
+sealed class SimulationWarningType {
+	@Serializable
+	@SerialName("tokenApproval")
+	data class TokenApproval(val content: SimulationWarningApproval): SimulationWarningType()
+	@Serializable
+	@SerialName("suspiciousSpender")
+	object SuspiciousSpender: SimulationWarningType()
+	@Serializable
+	@SerialName("externallyOwnedSpender")
+	object ExternallyOwnedSpender: SimulationWarningType()
+	@Serializable
+	@SerialName("nftCollectionApproval")
+	data class NftCollectionApproval(val content: AssetId): SimulationWarningType()
+	@Serializable
+	@SerialName("permitApproval")
+	data class PermitApproval(val content: SimulationWarningApproval): SimulationWarningType()
+	@Serializable
+	@SerialName("permitBatchApproval")
+	data class PermitBatchApproval(val content: String?): SimulationWarningType()
+	@Serializable
+	@SerialName("validationError")
+	object ValidationError: SimulationWarningType()
+}
+
+@Serializable
 data class SimulationWarning (
 	val severity: SimulationSeverity,
 	val warning: SimulationWarningType,
@@ -85,5 +111,11 @@ data class SimulationResult (
 	val balanceChanges: List<SimulationBalanceChange>,
 	val payload: List<SimulationPayloadField>,
 	val header: SimulationHeader? = null
+)
+
+@Serializable
+data class SimulationWarningApproval (
+	val assetId: AssetId,
+	val value: String? = null
 )
 

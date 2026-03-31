@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Testing
-import BigInt
 import Foundation
 import Primitives
 import PrimitivesComponents
@@ -192,7 +191,7 @@ struct SignMessageSceneViewModelTests {
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
             simulation: .mock(warnings: [SimulationWarning(
                 severity: .warning,
-                warning: .tokenApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil),
+                warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil)),
                 message: nil
             )])
         )
@@ -218,12 +217,12 @@ struct SignMessageSceneViewModelTests {
             simulation: .mock(warnings: [
                 SimulationWarning(
                     severity: .warning,
-                    warning: .tokenApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: BigInt(1000)),
+                    warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: "1000")),
                     message: nil
                 ),
                 SimulationWarning(
                     severity: .warning,
-                    warning: .tokenApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil),
+                    warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil)),
                     message: nil
                 ),
             ])
@@ -237,7 +236,7 @@ struct SignMessageSceneViewModelTests {
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
-        #expect(viewModel.simulationWarnings.last?.warning == .tokenApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil))
+        #expect(viewModel.simulationWarnings.last?.warning == .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil)))
     }
 
     @Test
@@ -272,7 +271,7 @@ struct SignMessageSceneViewModelTests {
             simulation: .mock(warnings: [
                 SimulationWarning(
                     severity: .warning,
-                    warning: .permitApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: BigInt(1000)),
+                    warning: .permitApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: "1000")),
                     message: nil
                 ),
                 SimulationWarning(
@@ -377,7 +376,7 @@ struct SignMessageSceneViewModelTests {
             simulation: .mock(warnings: [
                 SimulationWarning(
                     severity: .warning,
-                    warning: .permitApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: BigInt(1000)),
+                    warning: .permitApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: "1000")),
                     message: nil
                 ),
                 SimulationWarning(

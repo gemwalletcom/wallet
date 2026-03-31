@@ -23,7 +23,7 @@ object BridgesModule {
     ): BridgesRepository = BridgesRepository(
         context = context,
         walletsRepository = walletsRepository,
-        connectionsDao = connectionsDao
+        connectionsDao = connectionsDao,
     )
 }
 

@@ -572,7 +572,7 @@
   <string name="charts.price.change">Değiştirmek</string>
   <string name="contacts.add_to_contacts">Kişilere Ekle</string>
   <string name="common.method">Yöntem</string>
-  <string name="simulation.header.unlimited_asset">Sınırsız %@</string>
+  <string name="simulation.header.unlimited_asset">Sınırsız %s</string>
   <string name="common.token">Token</string>
   <string name="common.suspicious_address">Şüpheli adres</string>
   <string name="simulation.warning.unlimited_token_approval.description">Bu, harcama yapan kişiye, siz onayı iptal edene veya süresi dolana kadar bu belirteci kullanma erişimi sağlar.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">Sınırsız token onayı</string>
   <string name="transfer.review_request">İnceleme Talebi</string>
   <string name="wallet.portfolio.title">Portföy</string>
-  <string name="wallet.portfolio.footer">Mevcut varlıklar ve piyasa fiyatlarına göre tahmini değer.</string>
+  <string name="wallet_connect.permissions.title">İzinler</string>
+  <string name="wallet_connect.permissions.view_balance">Bakiyenizi ve işlemlerinizi görüntüleyin.</string>
+  <string name="wallet_connect.permissions.approval_requests">Onay isteklerini gönderin</string>
 </resources>

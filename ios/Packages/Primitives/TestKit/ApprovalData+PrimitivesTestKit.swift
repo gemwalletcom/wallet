@@ -3,9 +3,9 @@
 import Foundation
 import Primitives
 
-extension ApprovalData {
-    public static func mock(
+public extension ApprovalData {
+    static func mock(
     ) -> ApprovalData {
-        ApprovalData(token: "", spender: "", value: "")
+        ApprovalData(token: "", spender: "", value: "", isUnlimited: false)
     }
 }

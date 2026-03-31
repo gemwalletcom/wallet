@@ -73,8 +73,9 @@ private extension ConfirmSimulationService {
     }
 
     func approvalHeaderData(for transferType: TransferDataType) -> AssetValueHeaderData? {
-        guard case .tokenApprove(let asset, let approval) = transferType,
-              let value = ApprovalValue(rawValue: approval.value) else {
+        guard case let .tokenApprove(asset, approval) = transferType,
+              let value = approval.approvalValue
+        else {
             return nil
         }
 
@@ -87,7 +88,8 @@ private extension ConfirmSimulationService {
         }
 
         guard case .generic = data.type,
-              let headerValue = simulationHeaderValue(simulation) else {
+              let headerValue = simulationHeaderValue(simulation)
+        else {
             return nil
         }
 
@@ -98,7 +100,7 @@ private extension ConfirmSimulationService {
         } catch {
             return nil
         }
-        
+
         return nil
     }
 
@@ -108,7 +110,8 @@ private extension ConfirmSimulationService {
         }
 
         guard case .generic = data.type,
-              let headerValue = simulationHeaderValue(simulation) else {
+              let headerValue = simulationHeaderValue(simulation)
+        else {
             return nil
         }
 
@@ -155,7 +158,8 @@ private extension ConfirmSimulationService {
 
     func simulationHeaderValue(_ simulation: SimulationResult?) -> (assetId: AssetId, value: ApprovalValue)? {
         guard let header = simulation?.header,
-              let value = ApprovalValue(rawValue: header.value) else {
+              let value = header.approvalValue
+        else {
             return nil
         }
         return (header.assetId, value)

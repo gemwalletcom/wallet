@@ -11,7 +11,8 @@ import kotlinx.serialization.SerialName
 data class ApprovalData (
 	val token: String,
 	val spender: String,
-	val value: String
+	val value: String,
+	val isUnlimited: Boolean
 )
 
 @Serializable

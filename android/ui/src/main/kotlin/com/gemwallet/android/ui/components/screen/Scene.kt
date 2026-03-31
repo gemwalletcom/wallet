@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,6 +40,7 @@ fun Scene(
     backHandle: Boolean = false,
     padding: PaddingValues = PaddingValues(horizontal = 0.dp),
     onClose: (() -> Unit)? = null,
+    closeIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
     mainAction: (@Composable () -> Unit)? = null,
     mainActionPadding: PaddingValues = if (isSmallScreen()) {
@@ -62,6 +64,7 @@ fun Scene(
         backHandle = backHandle,
         contentPadding = padding,
         onClose = onClose,
+        closeIcon = closeIcon,
         actions = actions,
         mainAction = mainAction,
         mainActionPadding = mainActionPadding,
@@ -78,6 +81,7 @@ fun Scene(
     backHandle: Boolean = false,
     contentPadding: PaddingValues = PaddingValues(horizontal = 0.dp),
     onClose: (() -> Unit)? = null,
+    closeIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
     mainAction: (@Composable () -> Unit)? = null,
     mainActionPadding: PaddingValues = PaddingValues(paddingDefault),
@@ -101,7 +105,10 @@ fun Scene(
                     navigationIcon = {
                         if (onClose != null) {
                             IconButton(onClick = onClose) {
-                                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "back")
+                                Icon(
+                                    imageVector = if (closeIcon) Icons.Default.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = null,
+                                )
                             }
                         }
                     },

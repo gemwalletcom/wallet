@@ -60,6 +60,7 @@ dependencies {
     api(libs.kotlinx.serialization.json)
     implementation(libs.compose.runtime.android)
 
+    testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
