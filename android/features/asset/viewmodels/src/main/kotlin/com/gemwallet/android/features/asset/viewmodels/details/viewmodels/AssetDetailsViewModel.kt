@@ -9,6 +9,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsSta
 import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.cases.transactions.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -74,6 +75,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val getPriceAlerts: GetPriceAlerts,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val hasMultiSign: HasMultiSign,
+    private val syncTransactions: SyncTransactions,
 ) : ViewModel() {
 
     val session = sessionRepository.session()
@@ -162,11 +164,13 @@ class AssetDetailsViewModel @Inject constructor(
             )
         }
         viewModelScope.launch { // TODO: Review coroutines
+            val wallet = session.value?.wallet ?: return@launch
             syncPriceAlerts.syncPriceAlerts()
             assetsRepository.syncAssetInfo(
                 assetId = assetId,
-                wallet = session.value?.wallet ?: return@launch,
+                wallet = wallet,
             )
+            syncTransactions.syncTransactions(wallet, assetId)
         }
         viewModelScope.launch {
             delay(300)

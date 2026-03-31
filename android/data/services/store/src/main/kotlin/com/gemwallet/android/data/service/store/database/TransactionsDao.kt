@@ -55,6 +55,9 @@ interface TransactionsDao {
     @Query("SELECT MAX(createdAt) FROM transactions WHERE walletId = :walletId")
     fun getUpdateTime(walletId: String): Long
 
+    @Query("SELECT MAX(createdAt) FROM transactions WHERE walletId = :walletId AND assetId = :assetId")
+    fun getUpdateTime(walletId: String, assetId: String): Long
+
     @Query("DELETE FROM transactions WHERE state = 'Pending'")
     fun removePendingTransactions()
 }

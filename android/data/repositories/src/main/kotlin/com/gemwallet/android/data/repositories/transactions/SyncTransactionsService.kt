@@ -6,8 +6,12 @@ import com.gemwallet.android.cases.transactions.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAssociatedAssetIds
+import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class SyncTransactionsService @Inject constructor(
@@ -28,6 +32,22 @@ class SyncTransactionsService @Inject constructor(
             result
         }
         val txs: List<Transaction> = response.getOrNull() ?: return
+        prefetchAssets(wallet, txs)
+
+        putTransactions.putTransactions(walletId = wallet.id, txs.toList())
+    }
+
+    override suspend fun syncTransactions(wallet: Wallet, assetId: AssetId) = withContext(Dispatchers.IO) {
+        val lastSyncTime = getTransactionUpdateTime.getTransactionUpdateTime(wallet.id, assetId.identifier) / 1000L
+        val response = runCatching {
+            val result: List<Transaction>? = try {
+                gemDeviceApiClient.getTransactions(wallet.id, assetId.identifier, lastSyncTime)?.transactions
+            } catch (_: Throwable) {
+                null
+            }
+            result
+        }
+        val txs: List<Transaction> = response.getOrNull() ?: return@withContext
         prefetchAssets(wallet, txs)
 
         putTransactions.putTransactions(walletId = wallet.id, txs.toList())

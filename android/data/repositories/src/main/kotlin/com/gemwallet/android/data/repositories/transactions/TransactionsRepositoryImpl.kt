@@ -73,6 +73,10 @@ class TransactionsRepositoryImpl(
         return transactionsDao.getUpdateTime(walletId)
     }
 
+    override fun getTransactionUpdateTime(walletId: String, assetId: String): Long {
+        return transactionsDao.getUpdateTime(walletId, assetId)
+    }
+
     override fun getPendingTransactionsCount(): Flow<Int?> {
         return transactionsDao.getPendingCount()
     }
