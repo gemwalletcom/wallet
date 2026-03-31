@@ -16,7 +16,7 @@ val headerLargeImageSize = 128.dp
 val iconSize = 32.dp
 
 val space2 = 2.dp
-private val space6 = 6.dp
+val space6 = 6.dp
 val space4 = 4.dp
 val space8 = 8.dp
 private val space16 = 16.dp
