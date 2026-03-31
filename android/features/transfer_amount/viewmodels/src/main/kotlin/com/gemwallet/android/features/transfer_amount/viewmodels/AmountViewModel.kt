@@ -9,8 +9,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
+import com.gemwallet.android.domains.transaction.TransactionBalanceContext
+import com.gemwallet.android.domains.transaction.balance
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.model.AmountParams
@@ -18,7 +21,6 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
-import com.gemwallet.android.model.getDelegatePreparedAmount
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.wallet.core.primitives.Asset
@@ -40,6 +42,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -56,6 +59,7 @@ private const val paramsArg = "params"
 class AmountViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val stakeRepository: StakeRepository,
+    private val transactionBalanceService: TransactionBalanceService,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -138,37 +142,38 @@ class AmountViewModel @Inject constructor(
         selected ?: src
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableBalance = combine(params, delegation, assetInfo, resource) { params, delegation, assetInfo, resource ->
+    private val balanceContext = combine(params, assetInfo, delegation, resource) { params, assetInfo, delegation, resource ->
+        BalanceRequest(
+            params = params,
+            assetInfo = assetInfo,
+            delegation = delegation,
+            resource = resource,
+        )
+    }
+    .mapLatest { request ->
+        val params = request.params ?: return@mapLatest null
+        val assetInfo = request.assetInfo ?: return@mapLatest null
+        transactionBalanceService.getContext(
+            assetInfo = assetInfo,
+            params = params,
+            delegation = request.delegation,
+            resource = request.resource,
+        )
+    }
+    .flowOn(Dispatchers.IO)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val availableBalance = combine(params, assetInfo, balanceContext) { params, assetInfo, balanceContext ->
         assetInfo ?: return@combine ""
-        val value = when (params?.txType) {
-            TransactionType.Transfer,
-            TransactionType.Swap,
-            TransactionType.StakeFreeze -> Crypto(assetInfo.balance.balance.available)
-            TransactionType.EarnDeposit,
-            TransactionType.StakeDelegate -> if (assetInfo.stakeChain?.freezed() == true) {
-                Crypto(assetInfo.balance.balance.getDelegatePreparedAmount())
-            } else {
-                Crypto(assetInfo.balance.balance.available)
-            }
-            TransactionType.StakeUnfreeze, -> if (resource == Resource.Energy) {
-                Crypto(assetInfo.balance.balance.locked)
-            } else {
-                Crypto(assetInfo.balance.balance.frozen)
-            }
-            TransactionType.StakeRewards -> Crypto(BigInteger(delegation?.base?.rewards ?: "0"))
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRedelegate,
-            TransactionType.EarnWithdraw,
-            TransactionType.StakeWithdraw -> Crypto(BigInteger(delegation?.base?.balance ?: "0"))
-            TransactionType.PerpetualOpenPosition -> throw IllegalArgumentException() // TODO: HyperCore
-            TransactionType.PerpetualClosePosition -> throw IllegalArgumentException() // TODO: HyperCore
-            TransactionType.AssetActivation,
-            TransactionType.TransferNFT,
-            TransactionType.SmartContractCall,
-            TransactionType.TokenApproval,
-            TransactionType.PerpetualModifyPosition,
-            null -> Crypto(BigInteger.ZERO)
-        }
+        val txType = params?.txType
+        val value = txType?.let {
+            Crypto(
+                assetInfo.balance(
+                    txType = it,
+                    context = balanceContext ?: TransactionBalanceContext(),
+                )
+            )
+        } ?: Crypto(BigInteger.ZERO)
         assetInfo.asset.format(value, 8)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
@@ -222,35 +227,25 @@ class AmountViewModel @Inject constructor(
 
     fun onMaxAmount() = viewModelScope.launch {
         val assetInfo = this@AmountViewModel.assetInfo.value ?: return@launch
-        val txType = params.value?.txType ?: return@launch
+        val params = params.value ?: return@launch
+        val txType = params.txType
         val reserveForFee = getReserveForFee(txType = txType, assetInfo.asset.chain)
+        val baseBalance = transactionBalanceService.getBalance(
+            assetInfo = assetInfo,
+            params = params,
+            delegation = delegation.value,
+            resource = resource.value,
+        )
 
         val balance = when (txType) {
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRedelegate -> Crypto(delegation.value?.base?.balance?.toBigIntegerOrNull() ?: BigInteger.ZERO)
-            TransactionType.StakeUnfreeze -> when (resource.value) {
-                Resource.Bandwidth -> Crypto(assetInfo.balance.balance.frozen)
-                Resource.Energy -> Crypto(assetInfo.balance.balance.locked)
-            }
             TransactionType.EarnDeposit,
             TransactionType.StakeDelegate -> if (assetInfo.stakeChain?.freezed() == true) {
-                Crypto(assetInfo.balance.balance.getDelegatePreparedAmount())
+                Crypto(baseBalance)
             } else {
-                Crypto(assetInfo.balance.balance.available.toBigInteger() - reserveForFee)
+                Crypto(baseBalance - reserveForFee)
             }
-            TransactionType.StakeFreeze -> Crypto(assetInfo.balance.balance.available.toBigInteger() - reserveForFee)
-            TransactionType.Transfer,
-            TransactionType.TransferNFT,
-            TransactionType.Swap,
-            TransactionType.TokenApproval,
-            TransactionType.StakeRewards,
-            TransactionType.StakeWithdraw,
-            TransactionType.EarnWithdraw,
-            TransactionType.AssetActivation,
-            TransactionType.SmartContractCall,
-            TransactionType.PerpetualOpenPosition,
-            TransactionType.PerpetualModifyPosition,
-            TransactionType.PerpetualClosePosition -> Crypto(assetInfo.balance.balance.available)
+            TransactionType.StakeFreeze -> Crypto(baseBalance - reserveForFee)
+            else -> Crypto(baseBalance)
         }
 
         updateAmount(balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString(), true)
@@ -304,7 +299,7 @@ class AmountViewModel @Inject constructor(
         validateAmount(asset, rawAmount, minimumValue)
 
         val amount = inputType.getAmount(rawAmount, decimals, price)
-        validateBalance(assetInfo, params.txType, delegation, resource.value, amount)
+        validateBalance(assetInfo, params, delegation, resource.value, amount)
 
         errorUIState.update { AmountError.None }
 
@@ -386,9 +381,9 @@ class AmountViewModel @Inject constructor(
         }
     }
 
-    private fun validateBalance(
+    private suspend fun validateBalance(
         assetInfo: AssetInfo,
-        txType: TransactionType,
+        params: AmountParams,
         delegation: Delegation?,
         resource: Resource?,
         amount: Crypto
@@ -396,38 +391,14 @@ class AmountViewModel @Inject constructor(
         if (amount.atomicValue == BigInteger.ZERO) {
             throw AmountError.ZeroAmount
         }
-        val availableAmount = when (txType) {
-            TransactionType.Transfer,
-            TransactionType.Swap,
-            TransactionType.TokenApproval,
-            TransactionType.StakeFreeze,
-            TransactionType.StakeRewards -> Crypto(assetInfo.balance.balance.available)
-            TransactionType.EarnDeposit,
-            TransactionType.StakeDelegate -> if (assetInfo.stakeChain?.freezed() == true) {
-                Crypto(assetInfo.balance.balance.getDelegatePreparedAmount())
-            } else {
-                Crypto(assetInfo.balance.balance.available)
-            }
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRedelegate,
-            TransactionType.EarnWithdraw,
-            TransactionType.StakeWithdraw -> if (BigInteger(assetInfo.balance.balance.frozen) > BigInteger.ZERO) {
-                Crypto(assetInfo.balance.balance.frozen)
-            } else {
-                Crypto(BigInteger(delegation?.base?.balance ?: "0"))
-            }
-            TransactionType.StakeUnfreeze -> if (resource == Resource.Energy) {
-                Crypto(assetInfo.balance.balance.locked)
-            } else {
-                Crypto(assetInfo.balance.balance.frozen)
-            }
-            TransactionType.AssetActivation,
-            TransactionType.TransferNFT,
-            TransactionType.PerpetualOpenPosition,
-            TransactionType.PerpetualClosePosition,
-            TransactionType.PerpetualModifyPosition,
-            TransactionType.SmartContractCall -> throw IllegalArgumentException()
-        }
+        val availableAmount = Crypto(
+            transactionBalanceService.getBalance(
+                assetInfo = assetInfo,
+                params = params,
+                delegation = delegation,
+                resource = resource,
+            )
+        )
         if (amount.atomicValue > availableAmount.atomicValue) {
             throw  AmountError.InsufficientBalance(assetInfo.asset.name)
         }
@@ -453,3 +424,10 @@ class AmountViewModel @Inject constructor(
         else -> BigInteger.ZERO
     }
 }
+
+private data class BalanceRequest(
+    val params: AmountParams?,
+    val assetInfo: AssetInfo?,
+    val delegation: Delegation?,
+    val resource: Resource,
+)

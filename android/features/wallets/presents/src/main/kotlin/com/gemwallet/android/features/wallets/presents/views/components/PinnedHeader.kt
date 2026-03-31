@@ -18,7 +18,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.tinyIconSize
 
 internal fun LazyListScope.pinnedHeader() {
     item {
@@ -32,7 +32,7 @@ internal fun LazyListScope.pinnedHeader() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                modifier = Modifier.size(trailingIconSmall),
+                modifier = Modifier.size(tinyIconSize),
                 imageVector = Icons.Default.PushPin,
                 tint = MaterialTheme.colorScheme.secondary,
                 contentDescription = "pinned_section",

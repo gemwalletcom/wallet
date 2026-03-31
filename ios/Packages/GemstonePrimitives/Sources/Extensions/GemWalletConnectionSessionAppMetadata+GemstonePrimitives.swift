@@ -24,4 +24,8 @@ extension WalletConnectionSessionAppMetadata {
             icon: self.icon
         )
     }
+
+    public var shortName: String {
+        Gemstone.walletConnectAppShortName(metadata: self.map())
+    }
 }

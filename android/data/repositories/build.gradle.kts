@@ -73,7 +73,9 @@ dependencies {
     api(libs.ktor.json)
 
     implementation(libs.ktx.core)
+    testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
+    testImplementation(libs.mockk.android)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.mockk.android)

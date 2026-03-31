@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.Constants
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.DelegationBalanceInfoUIModel
@@ -43,7 +44,7 @@ fun DelegationItem(
         listPosition = listPosition,
         leading = {
             IconWithBadge(
-                icon = "https://assets.gemwallet.com/blockchains/${delegation.validator.chain.string}/validators/${delegation.validator.id}/logo.png",
+                icon = "${Constants.ASSETS_URL}/blockchains/${delegation.validator.chain.string}/validators/${delegation.validator.id}/logo.png",
                 placeholder = delegation.validator.name.firstOrNull()?.toString() ?: delegation.validator.id.firstOrNull()?.toString() ?: "",
             )
         },

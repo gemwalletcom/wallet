@@ -44,7 +44,6 @@ fun PerpetualItem(
     DropDownContextItem(
         modifier = modifier,
         isExpanded = longPressState.value == item.id,
-        imeCompensate = false,
         onDismiss = { longPressState.value = null },
         content = {
             PerpetualItem(

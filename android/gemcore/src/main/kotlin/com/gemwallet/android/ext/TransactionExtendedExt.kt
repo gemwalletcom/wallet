@@ -3,7 +3,7 @@ package com.gemwallet.android.ext
 import com.gemwallet.android.model.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.NFTAsset
+import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 
@@ -31,8 +31,8 @@ fun getTransactionSwapMetadata(
     }
 }
 
-fun Transaction.getNftMetadata(): NFTAsset? {
-    if (type != TransactionType.TransferNFT ||  metadata.isNullOrEmpty()) {
+fun Transaction.getNftMetadata(): TransactionNFTTransferMetadata? {
+    if (type != TransactionType.TransferNFT || metadata.isNullOrEmpty()) {
         return null
     }
     return try {

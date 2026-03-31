@@ -572,7 +572,7 @@
   <string name="charts.price.change">Badilisha</string>
   <string name="contacts.add_to_contacts">Ongeza kwenye Anwani</string>
   <string name="common.method">Mbinu</string>
-  <string name="simulation.header.unlimited_asset">Isiyo na kikomo %@</string>
+  <string name="simulation.header.unlimited_asset">Isiyo na kikomo %s</string>
   <string name="common.token">Tokeni</string>
   <string name="common.suspicious_address">Anwani ya kutiliwa shaka</string>
   <string name="simulation.warning.unlimited_token_approval.description">Hii inampa mtumiaji uwezo wa kutumia tokeni hii hadi utakapobatilisha idhini au itakapoisha muda wake.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">Idhini ya tokeni isiyo na kikomo</string>
   <string name="transfer.review_request">Ombi la Uhakiki</string>
   <string name="wallet.portfolio.title">Kwingineko</string>
-  <string name="wallet.portfolio.footer">Thamani inayokadiriwa kulingana na hisa za sasa na bei za soko.</string>
+  <string name="wallet_connect.permissions.title">Ruhusa</string>
+  <string name="wallet_connect.permissions.view_balance">Tazama salio na shughuli zako</string>
+  <string name="wallet_connect.permissions.approval_requests">Tuma maombi ya idhini</string>
 </resources>

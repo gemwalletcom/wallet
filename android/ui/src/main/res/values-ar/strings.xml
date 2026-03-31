@@ -572,7 +572,7 @@
   <string name="charts.price.change">يتغير</string>
   <string name="contacts.add_to_contacts">أضف إلى جهات الاتصال</string>
   <string name="common.method">طريقة</string>
-  <string name="simulation.header.unlimited_asset">غير محدود %@</string>
+  <string name="simulation.header.unlimited_asset">غير محدود %s</string>
   <string name="common.token">رمز مميز</string>
   <string name="common.suspicious_address">عنوان مشبوه</string>
   <string name="simulation.warning.unlimited_token_approval.description">يمنح هذا المنفق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">الموافقة على الرموز المميزة غير محدودة</string>
   <string name="transfer.review_request">طلب مراجعة</string>
   <string name="wallet.portfolio.title">مَلَفّ</string>
-  <string name="wallet.portfolio.footer">القيمة التقديرية مبنية على الحيازات الحالية وأسعار السوق.</string>
+  <string name="wallet_connect.permissions.title">الأذونات</string>
+  <string name="wallet_connect.permissions.view_balance">اطلع على رصيدك ونشاطك</string>
+  <string name="wallet_connect.permissions.approval_requests">إرسال طلبات الموافقة</string>
 </resources>

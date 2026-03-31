@@ -53,4 +53,17 @@ class GetWalletSummaryImplTest {
         assertEquals("2.84%", value.changePercentageFormatted)
         assertEquals(PriceState.Up, value.state)
     }
+
+    @Test
+    fun buildWalletSummaryDisplayState_withZeroBalance_showsZeroTotalAndHidesChange() {
+        val state = buildWalletSummaryDisplayState(
+            currency = Currency.USD,
+            totalValue = BigDecimal.ZERO,
+            totalChangedValue = BigDecimal.ZERO,
+            hideBalances = false,
+        )
+
+        assertEquals("\$0.00", state.totalValue)
+        assertEquals(null, state.changedValue)
+    }
 }

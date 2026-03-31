@@ -60,7 +60,7 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.trailingIconMedium
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
@@ -339,7 +339,7 @@ private fun LazyListScope.recent(
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AssetIcon(item.asset, size = trailingIconMedium)
+                    AssetIcon(item.asset, size = smallIconSize)
                     Text(item.asset.symbol)
                 }
             }

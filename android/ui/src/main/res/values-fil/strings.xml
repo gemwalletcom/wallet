@@ -572,7 +572,7 @@
   <string name="charts.price.change">Pagbabago</string>
   <string name="contacts.add_to_contacts">Idagdag sa Mga Kontak</string>
   <string name="common.method">Paraan</string>
-  <string name="simulation.header.unlimited_asset">Walang limitasyon %@</string>
+  <string name="simulation.header.unlimited_asset">Walang limitasyon %s</string>
   <string name="common.token">Token</string>
   <string name="common.suspicious_address">Kahina-hinalang address</string>
   <string name="simulation.warning.unlimited_token_approval.description">Nagbibigay ito sa gumagastos ng access na gamitin ang token na ito hanggang sa bawiin mo ang pag-apruba o hanggang sa mag-expire ito.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">Walang limitasyong pag-apruba ng token</string>
   <string name="transfer.review_request">Kahilingan sa Pagsusuri</string>
   <string name="wallet.portfolio.title">Portfolio</string>
-  <string name="wallet.portfolio.footer">Tinatayang halaga batay sa kasalukuyang mga hawak at presyo sa merkado.</string>
+  <string name="wallet_connect.permissions.title">Mga Pahintulot</string>
+  <string name="wallet_connect.permissions.view_balance">Tingnan ang iyong balanse at aktibidad</string>
+  <string name="wallet_connect.permissions.approval_requests">Magpadala ng mga kahilingan sa pag-apruba</string>
 </resources>

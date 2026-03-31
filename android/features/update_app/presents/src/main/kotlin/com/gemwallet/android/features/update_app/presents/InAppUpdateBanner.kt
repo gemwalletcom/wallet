@@ -75,7 +75,6 @@ fun InAppUpdateBanner() {
 
     DropDownContextItem(
         isExpanded = isShowContextMenu,
-        imeCompensate = false,
         onDismiss = { isShowContextMenu = false },
         content = {
             UpdateInfo(

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.features.recipient.presents.components.destinationView
 import com.gemwallet.android.features.recipient.presents.components.walletsDestination
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
@@ -31,6 +32,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.keyboardAsState
+import com.gemwallet.android.ui.components.list_head.CenteredListHead
+import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -119,6 +122,13 @@ fun RecipientScreen(
             modifier = Modifier.padding(bottom = 72.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            item {
+                CenteredListHead(
+                    title = assetInfo.asset.name,
+                    subtitle = assetInfo.asset.subtitleSymbol,
+                    leading = { HeaderIcon(assetInfo.asset) },
+                )
+            }
             destinationView(
                 asset = assetInfo,
                 hasMemo = hasMemo,

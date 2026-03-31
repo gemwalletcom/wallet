@@ -1,27 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Foundation
-import Store
-@testable import Transfer
-import Primitives
-import PrimitivesTestKit
-import PrimitivesComponents
+import ActivityServiceTestKit
+import AddressNameServiceTestKit
 import AssetsServiceTestKit
+import BalanceServiceTestKit
 import ChainServiceTestKit
-import ScanServiceTestKit
+import EventPresenterServiceTestKit
+import Foundation
+import GemAPITestKit
 import KeystoreTestKit
 import PriceServiceTestKit
-import BalanceServiceTestKit
-import TransactionStateServiceTestKit
-import AddressNameServiceTestKit
-import ActivityServiceTestKit
-import EventPresenterServiceTestKit
+import Primitives
+import PrimitivesComponents
+import PrimitivesTestKit
+import ScanServiceTestKit
+import Store
 import StoreTestKit
-import GemAPITestKit
+import Testing
+import TransactionStateServiceTestKit
+@testable import Transfer
 
 struct ConfirmServiceTests {
-
     @Test
     func simulationStateUsesTransferApprovalValue() {
         let service = ConfirmSimulationServiceFactory.create(
@@ -30,13 +29,13 @@ struct ConfirmServiceTests {
         )
 
         let state = service.makeState(
-            data: TransferData.mock(type: .tokenApprove(.mockEthereumUSDT(), ApprovalData(token: "", spender: "", value: "1000000"))),
+            data: TransferData.mock(type: .tokenApprove(.mockEthereumUSDT(), ApprovalData(token: "", spender: "", value: "1000000", isUnlimited: false))),
             simulation: SimulationResult.mock(payload: [
                 SimulationPayloadField.standard(kind: .value, value: "1000000", fieldType: .text, display: .primary),
             ])
         )
 
-        #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(1000000)))
+        #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(1_000_000)))
         #expect(state.primaryFields.isEmpty)
         #expect(state.secondaryFields.isEmpty)
     }
@@ -48,12 +47,12 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore),
+            assetsService: .mock(assetStore: assetStore)
         )
 
         let state = await service.updateState(
             data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
-            simulation: SimulationResult.mock(header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "Unlimited"))
+            simulation: SimulationResult.mock(header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true))
         )
 
         #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited))
@@ -66,7 +65,7 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore),
+            assetsService: .mock(assetStore: assetStore)
         )
 
         let state = service.makeState(
@@ -74,9 +73,9 @@ struct ConfirmServiceTests {
             simulation: SimulationResult.mock(
                 payload: [
                     SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
-                    SimulationPayloadField.standard(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
+                    SimulationPayloadField.standard(kind: .value, value: "1", fieldType: .text, display: .primary),
                 ],
-                header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "Unlimited")
+                header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true)
             )
         )
 
@@ -99,7 +98,7 @@ struct ConfirmServiceTests {
         let state = await service.updateState(
             data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
             simulation: SimulationResult.mock(payload: [
-                SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary)
+                SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
             ])
         )
 

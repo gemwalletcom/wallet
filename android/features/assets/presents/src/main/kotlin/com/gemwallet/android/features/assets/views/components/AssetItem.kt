@@ -41,7 +41,6 @@ internal fun AssetItem(
     DropDownContextItem(
         modifier = modifier.testTag(item.id.toIdentifier()),
         isExpanded = longPressState.value == item.id,
-        imeCompensate = false,
         onDismiss = { longPressState.value = null },
         menuItems = {
             DropdownMenuItem(

@@ -2,6 +2,7 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getShortUrl
+import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
@@ -9,20 +10,24 @@ import com.gemwallet.android.model.DestinationAddress
 import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import uniffi.gemstone.MessageSigner
+import com.gemwallet.android.blockchain.gemstone.toGem
+import com.gemwallet.android.blockchain.gemstone.toPrimitives
+import com.wallet.core.primitives.SimulationPayloadField
+import com.wallet.core.primitives.SimulationResult
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
 import uniffi.gemstone.WalletConnectResponseType
 import uniffi.gemstone.WalletConnectTransaction
 import uniffi.gemstone.WalletConnectTransactionType
-import uniffi.gemstone.WalletConnectionVerificationStatus
 import java.math.BigInteger
 
 sealed class WCRequest(
     internal val sessionRequest: Wallet.Model.SessionRequest,
     internal val account: Account,
-    val verificationStatus: WalletConnectionVerificationStatus,
+    private val appMetadata: WalletConnectionSessionAppMetadata,
 ) {
     internal val walletConnect = WalletConnect()
 
@@ -30,27 +35,48 @@ sealed class WCRequest(
 
     val topic: String get() = sessionRequest.topic
 
-    val name: String get() = sessionRequest.peerMetaData?.name ?: ""
-
-    val icon: String get() = sessionRequest.peerMetaData?.icons?.firstOrNull() ?: ""
-    val description: String get() = sessionRequest.peerMetaData?.description ?: ""
-    val uri: String get() = sessionRequest.peerMetaData?.url?.getShortUrl() ?: ""
-    val method: String get() = sessionRequest.request.method
+    val name: String get() = appMetadata.shortName
+    val icon: String get() = appMetadata.icon
+    val description: String get() = appMetadata.description
+    val url: String get() = appMetadata.url
+    val uri: String get() = url.getShortUrl() ?: url
 
     val chain: Chain get() = account.chain
 
     class SignMessage(
         sessionRequest: Wallet.Model.SessionRequest,
         account: Account,
-        verificationStatus: WalletConnectionVerificationStatus,
+        appMetadata: WalletConnectionSessionAppMetadata,
         val action: WalletConnectAction.SignMessage,
-    ) : WCRequest(sessionRequest, account, verificationStatus) {
+        val simulation: SimulationResult,
+    ) : WCRequest(sessionRequest, account, appMetadata) {
 
-        val signer: MessageSigner
-            get() = MessageSigner(walletConnect.decodeSignMessage(action.chain, action.signType, action.data))
+        private val signer by lazy {
+            runCatching {
+                MessageSigner(walletConnect.decodeSignMessage(action.chain, action.signType, action.data))
+            }
+        }
+
+        private val payloadPreview by lazy {
+            signer.getOrNull()?.let { signer ->
+                runCatching { signer.payloadPreview(simulation.payload.map { it.toGem() }) }.getOrNull()
+            }
+        }
+
+        val plainMessage: String
+            get() = signer.getOrNull()?.plainPreview() ?: action.data
+
+        val primaryPayloadFields: List<SimulationPayloadField>
+            get() = payloadPreview?.primary?.map { it.toPrimitives() }.orEmpty()
+
+        val secondaryPayloadFields: List<SimulationPayloadField>
+            get() = payloadPreview?.secondary?.map { it.toPrimitives() }.orEmpty()
+
+        val hasPayload: Boolean
+            get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 
         suspend fun execute(privateKey: ByteArray): String {
-            val signature = signer.sign(privateKey)
+            val signature = signer.getOrThrow().sign(privateKey)
             return walletConnect.encodeSignMessage(chain.string, signature).payload()
         }
     }
@@ -58,12 +84,13 @@ sealed class WCRequest(
     abstract class Transaction(
         sessionRequest: Wallet.Model.SessionRequest,
         account: Account,
-        verificationStatus: WalletConnectionVerificationStatus,
+        appMetadata: WalletConnectionSessionAppMetadata,
         val isSendable: Boolean,
         val inputType: ConfirmParams.TransferParams.InputType,
         val transactionType: WalletConnectTransactionType,
         val data: String,
-    ) : WCRequest(sessionRequest, account, verificationStatus) {
+        val simulation: SimulationResult,
+    ) : WCRequest(sessionRequest, account, appMetadata) {
 
         open val confirmParams: Generic
             get() = walletConnect.decodeSendTransaction(transactionType, data).map(this, isSendable)
@@ -73,30 +100,34 @@ sealed class WCRequest(
         abstract class Signing(
             sessionRequest: Wallet.Model.SessionRequest,
             account: Account,
-            verificationStatus: WalletConnectionVerificationStatus,
+            appMetadata: WalletConnectionSessionAppMetadata,
             transactionType: WalletConnectTransactionType,
             data: String,
+            simulation: SimulationResult,
         ) : Transaction(
             sessionRequest = sessionRequest,
             account = account,
-            verificationStatus = verificationStatus,
+            appMetadata = appMetadata,
             isSendable = false,
             inputType = ConfirmParams.TransferParams.InputType.Signature,
             transactionType = transactionType,
             data = data,
+            simulation = simulation,
         )
 
         class SignTransaction(
             sessionRequest: Wallet.Model.SessionRequest,
             account: Account,
-            verificationStatus: WalletConnectionVerificationStatus,
+            appMetadata: WalletConnectionSessionAppMetadata,
             val action: WalletConnectAction.SignTransaction,
+            simulation: SimulationResult,
         ) : Signing(
             sessionRequest = sessionRequest,
             account = account,
-            verificationStatus = verificationStatus,
+            appMetadata = appMetadata,
             transactionType = action.transactionType,
             data = action.data,
+            simulation = simulation,
         ) {
 
             override fun execute(result: String): String =
@@ -106,15 +137,17 @@ sealed class WCRequest(
         class SignAllTransactions(
             sessionRequest: Wallet.Model.SessionRequest,
             account: Account,
-            verificationStatus: WalletConnectionVerificationStatus,
-            val action: WalletConnectAction.SignAllTransactions,
+            appMetadata: WalletConnectionSessionAppMetadata,
+            transactionType: WalletConnectTransactionType,
+            data: String,
+            simulation: SimulationResult,
         ) : Signing(
             sessionRequest = sessionRequest,
             account = account,
-            verificationStatus = verificationStatus,
-            transactionType = action.transactionType,
-            data = action.transactions.singleOrNull()
-                ?: throw BridgeRequestError.MethodUnsupported,
+            appMetadata = appMetadata,
+            transactionType = transactionType,
+            data = data,
+            simulation = simulation,
         ) {
 
             override fun execute(result: String): String =
@@ -124,16 +157,18 @@ sealed class WCRequest(
         class SendTransaction(
             sessionRequest: Wallet.Model.SessionRequest,
             account: Account,
-            verificationStatus: WalletConnectionVerificationStatus,
+            appMetadata: WalletConnectionSessionAppMetadata,
             val action: WalletConnectAction.SendTransaction,
+            simulation: SimulationResult,
         ) : Transaction(
             sessionRequest = sessionRequest,
             account = account,
-            verificationStatus = verificationStatus,
+            appMetadata = appMetadata,
             isSendable = true,
             inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
             transactionType = action.transactionType,
             data = action.data,
+            simulation = simulation,
         ) {
 
             override fun execute(result: String): String =
@@ -160,7 +195,7 @@ private fun WalletConnectTransaction.map(
             memo = data.data,
             name = request.name,
             description = request.description,
-            url = request.uri,
+            url = request.url,
             icon = request.icon,
             gasLimit = data.gasLimit,
             inputType = request.inputType,
@@ -175,7 +210,7 @@ private fun WalletConnectTransaction.map(
             memo = data.transaction,
             name = request.name,
             description = request.description,
-            url = request.uri,
+            url = request.url,
             icon = request.icon,
             gasLimit = "",
             inputType = when (outputType) {
@@ -193,7 +228,7 @@ private fun WalletConnectTransaction.map(
             memo = data.transaction,
             name = request.name,
             description = request.description,
-            url = request.uri,
+            url = request.url,
             icon = request.icon,
             gasLimit = "",
             inputType = when (outputType) {
@@ -208,9 +243,10 @@ private fun WalletConnectTransaction.map(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
+            memo = data,
             name = request.name,
             description = request.description,
-            url = request.uri,
+            url = request.url,
             icon = request.icon,
             gasLimit = "",
             inputType = when (outputType) {
@@ -225,9 +261,10 @@ private fun WalletConnectTransaction.map(
             requestId = request.requestId.toString(),
             asset = asset,
             from = request.account,
+            memo = messages,
             name = request.name,
             description = request.description,
-            url = request.uri,
+            url = request.url,
             icon = request.icon,
             gasLimit = "",
             inputType = when (outputType) {
@@ -238,7 +275,6 @@ private fun WalletConnectTransaction.map(
             amount = BigInteger.ZERO,
             isSendable = isSendable,
         )
-
         is WalletConnectTransaction.Tron -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,
@@ -246,7 +282,7 @@ private fun WalletConnectTransaction.map(
             from = request.account,
             name = request.name,
             description = request.description,
-            url = request.uri,
+            url = request.url,
             icon = request.icon,
             gasLimit = "",
             inputType = when (outputType) {

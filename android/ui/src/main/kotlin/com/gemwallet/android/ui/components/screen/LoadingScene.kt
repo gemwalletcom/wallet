@@ -10,11 +10,16 @@ import androidx.compose.ui.Modifier
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
-fun LoadingScene(title: String, onCancel: () -> Unit) {
+fun LoadingScene(
+    title: String,
+    onCancel: () -> Unit,
+    closeIcon: Boolean = false,
+) {
     Scene(
         title = title,
         padding = PaddingValues(paddingDefault),
-        onClose = onCancel
+        onClose = onCancel,
+        closeIcon = closeIcon,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))

@@ -1,6 +1,6 @@
 
 public extension ApprovalData {
     var approvalValue: ApprovalValue? {
-        ApprovalValue(rawValue: value)
+        ApprovalValue(value: value, isUnlimited: isUnlimited)
     }
 }

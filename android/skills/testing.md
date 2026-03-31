@@ -25,7 +25,7 @@
 
 ## Shared TestKit
 
-Reusable test data factories live in `:gemcore`'s `testFixtures` source set (`gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/`). Use these instead of duplicating private `create*()` helpers in each test file.
+Reusable test data factories live in `:gemcore`'s `testFixtures` source set (`gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/`). Use these instead of duplicating private `create*()` helpers in each test file. If a local helper starts getting reused or reviewed as shared test data, promote it into `testFixtures`.
 
 Consumer modules add: `testImplementation(testFixtures(project(":gemcore")))`
 
@@ -48,7 +48,7 @@ Rules: `mockType()` returns a sensible default, expose only fields tests vary, u
 
 ## Test Data
 
-- Use shared testkit factories for common types (`mockAsset()`, `mockAssetPriceInfo()`, etc.)
+- Use shared testkit factories for common types (`mockAsset()`, `mockAssetInfo()`, `mockAssetPriceInfo()`, `mockDelegation()`, etc.)
 - Use MockK for complex interfaces that can't be constructed directly
 - Do not mock what you can construct directly
 

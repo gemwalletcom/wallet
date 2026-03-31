@@ -1,30 +1,18 @@
-import Foundation
 import BigInt
+import Foundation
 
 public enum ApprovalValue: Sendable, Equatable, Hashable {
     case exact(BigInt)
     case unlimited
 
-    private static let unlimitedMarker = "Unlimited"
-
-    public init?(rawValue: String) {
-        switch rawValue {
-        case Self.unlimitedMarker:
+    public init?(value: String, isUnlimited: Bool) {
+        if isUnlimited {
             self = .unlimited
-        default:
-            guard let value = BigInt(rawValue, radix: 10) else {
+        } else {
+            guard let value = BigInt(value, radix: 10) else {
                 return nil
             }
             self = .exact(value)
-        }
-    }
-
-    public var rawValue: String {
-        switch self {
-        case .exact(let value):
-            value.description
-        case .unlimited:
-            Self.unlimitedMarker
         }
     }
 }

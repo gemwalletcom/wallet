@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.domains.stake.rewardsBalance
+import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.ext.claimed
@@ -72,18 +74,15 @@ class StakeViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val rewardsAmount = delegations
-        .mapLatest { delegations ->
-            delegations.map { BigInteger(it.base.rewards) }
-                .reduceOrNull { acc, delegation -> acc + delegation } ?: BigInteger.ZERO
-        }
+    val rewardsBalance = delegations
+        .mapLatest { delegations -> delegations.sumRewardsBalance() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
 
     val actions = combine(
         session.mapLatest { it?.wallet?.type }.filterNotNull(),
-        rewardsAmount,
+        rewardsBalance,
         assetInfo,
-    ) { walletType, rewardsAmount, assetInfo ->
+    ) { walletType, rewardsBalance, assetInfo ->
         if (walletType == WalletType.View) {
             return@combine emptyList()
         }
@@ -91,9 +90,9 @@ class StakeViewModel @Inject constructor(
             StakeAction.Stake,
             StakeAction.Freeze.takeIf { assetInfo?.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo?.stakeChain?.freezed() == true },
-            rewardsAmount
-                .takeIf { assetInfo?.chain?.claimed == true && rewardsAmount > BigInteger.ZERO }
-                ?.let { StakeAction.Rewards(assetInfo?.asset?.format(Crypto(rewardsAmount)) ?: "") },
+            rewardsBalance
+                .takeIf { assetInfo?.chain?.claimed == true && rewardsBalance > BigInteger.ZERO }
+                ?.let { StakeAction.Rewards(assetInfo?.asset?.format(Crypto(rewardsBalance)) ?: "") },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -124,7 +123,7 @@ class StakeViewModel @Inject constructor(
     fun onRewards(onConfirm: (ConfirmParams) -> Unit) {
         val assetInfo = assetInfo.value ?: return
         val account = account.value ?: return
-        val validators = delegations.value.filter { BigInteger(it.base.rewards) > BigInteger.ZERO }
+        val validators = delegations.value.filter { it.rewardsBalance() > BigInteger.ZERO }
             .map { it.validator }
             .toSet()
             .toList()
@@ -133,7 +132,7 @@ class StakeViewModel @Inject constructor(
                 asset = assetInfo.asset,
                 from = account,
                 validators = validators,
-                amount = rewardsAmount.value
+                amount = rewardsBalance.value
             )
         )
     }
