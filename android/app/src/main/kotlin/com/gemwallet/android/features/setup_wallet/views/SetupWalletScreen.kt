@@ -10,7 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +52,7 @@ fun SetupWalletScreen(
         backHandle = true,
         actions = {
             IconButton(onClick = handleDone) {
-                Icon(imageVector = Icons.Default.Close, contentDescription = "")
+                Icon(imageVector = Icons.Default.Check, contentDescription = "")
             }
         },
         mainAction = {
