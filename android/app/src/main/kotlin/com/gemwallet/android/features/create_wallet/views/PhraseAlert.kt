@@ -15,8 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
@@ -61,8 +60,9 @@ fun PhraseAlertDialog(
             )
         },
         actions = {
-            IconButton(
-                {
+            ToolbarIconButton(
+                imageVector = Icons.Outlined.Info,
+                onClick = {
                     uriHandler.open(
                         context,
                         Config().getPublicUrl(PublicUrl.TERMS_OF_SERVICE).toUri()
@@ -71,10 +71,8 @@ fun PhraseAlertDialog(
                             .build()
                             .toString()
                     )
-                }
-            ) {
-                Icon(Icons.Outlined.Info, "")
-            }
+                },
+            )
         },
         onClose = { onCancel() }
     ) {

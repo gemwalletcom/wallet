@@ -4,12 +4,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.features.activities.presents.details.components.DestinationPropertyItem
 import com.gemwallet.android.features.activities.presents.details.components.TransactionExplorer
@@ -35,9 +34,7 @@ fun TransactionDetailsScene(
     Scene(
         title = data.getTitle(),
         actions = {
-            IconButton(onShare) {
-                Icon(Icons.Default.Share, "")
-            }
+            ToolbarIconButton(imageVector = Icons.Default.Share, onClick = onShare)
         },
         onClose = onCancel,
     ) {

@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -65,16 +65,12 @@ internal fun AssetsTopBar(
             }
         },
         actions = {
-            IconButton(
+            ToolbarIconButton(
+                imageVector = Icons.Default.Search,
+                modifier = Modifier.testTag("assetsManageAction"),
+                contentDescription = "asset_select",
                 onClick = onSearch,
-                Modifier.testTag("assetsManageAction")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "asset_select",
-                )
-            }
+            )
         }
     )
 }

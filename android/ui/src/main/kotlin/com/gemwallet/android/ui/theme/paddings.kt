@@ -18,6 +18,7 @@ val tinyIconSize = 16.dp
 val listItemIconSize = 44.dp
 val headerLargeImageSize = 128.dp
 val iconSize = 32.dp
+val toolbarButtonSize = 36.dp
 
 val space0 = 0.dp
 val space2 = 2.dp

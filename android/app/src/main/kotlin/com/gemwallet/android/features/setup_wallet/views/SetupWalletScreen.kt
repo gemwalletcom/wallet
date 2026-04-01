@@ -9,10 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +23,7 @@ import com.gemwallet.android.features.setup_wallet.viewmodels.SetupWalletViewMod
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.buttons.ToolbarCheckmarkButton
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -51,9 +48,7 @@ fun SetupWalletScreen(
         title = title,
         backHandle = true,
         actions = {
-            IconButton(onClick = handleDone) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "")
-            }
+            ToolbarCheckmarkButton(onClick = handleDone)
         },
         mainAction = {
             MainActionButton(

@@ -83,7 +83,7 @@ fun ConnectionsScene(
             ) {
                 Icon(imageVector = Icons.Default.ContentPaste, contentDescription = "paste_uri")
             }
-            IconButton(onClick = { scannerShowed  = true }) {
+            IconButton(onClick = { scannerShowed = true }) {
                 Icon(imageVector = Icons.Default.QrCodeScanner, contentDescription = "scan_qr")
             }
             IconButton(onClick = { uriHandler.open(context, Config().getDocsUrl(DocsUrl.WalletConnect)) }) {

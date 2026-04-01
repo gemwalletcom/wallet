@@ -15,11 +15,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.components.buttons.ToolbarCloseButton
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.isSmallScreen
@@ -107,10 +106,12 @@ fun Scene(
                     title = titleContent,
                     navigationIcon = {
                         if (onClose != null) {
-                            IconButton(onClick = onClose) {
-                                Icon(
-                                    imageVector = if (closeIcon) Icons.Default.Close else Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = null,
+                            if (closeIcon) {
+                                ToolbarCloseButton(onClick = onClose)
+                            } else {
+                                ToolbarIconButton(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    onClick = onClose,
                                 )
                             }
                         }

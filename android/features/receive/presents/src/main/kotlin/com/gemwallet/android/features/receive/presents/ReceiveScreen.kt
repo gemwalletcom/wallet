@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +43,7 @@ import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
@@ -105,9 +105,7 @@ private fun ReceiveScene(
         title = stringResource(id = R.string.receive_title, ""),
         onClose = onCancel,
         actions = {
-            IconButton(onShare) {
-                Icon(Icons.Default.Share, "")
-            }
+            ToolbarIconButton(imageVector = Icons.Default.Share, onClick = onShare)
         },
         mainAction = {
             MainActionButton(onClick = onCopyClick) {

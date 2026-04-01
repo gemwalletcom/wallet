@@ -21,8 +21,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +52,8 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.gemwallet.android.ui.R
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.alpha70
 import com.gemwallet.android.ui.theme.defaultPadding

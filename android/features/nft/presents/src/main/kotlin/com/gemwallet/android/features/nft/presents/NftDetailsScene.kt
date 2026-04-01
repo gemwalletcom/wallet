@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -19,6 +17,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -53,9 +52,11 @@ fun NFTDetailsScene(
         title = model.assetName,
         actions = {
             if (assetData?.asset?.chain == Chain.Ethereum) {
-                IconButton( { onRecipient(AssetId(model.asset.chain), model.asset.id) } ) {
-                    Icon(Icons.Default.ArrowUpward, contentDescription = "Send nft")
-                }
+                ToolbarIconButton(
+                    imageVector = Icons.Default.ArrowUpward,
+                    contentDescription = "Send nft",
+                    onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) },
+                )
             }
         },
         onClose = { cancelAction() },

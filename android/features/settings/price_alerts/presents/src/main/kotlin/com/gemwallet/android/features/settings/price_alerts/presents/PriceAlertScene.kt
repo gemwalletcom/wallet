@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.Badge
@@ -80,11 +80,12 @@ fun PriceAlertScene(
     Scene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
-            IconButton(onClick = if (assetId == null) onAdd else {
-                { onAddTarget(assetId) }
-            }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "")
-            }
+            ToolbarIconButton(
+                imageVector = Icons.Default.Add,
+                onClick = if (assetId == null) onAdd else {
+                    { onAddTarget(assetId) }
+                },
+            )
         },
         onClose = onCancel
     ) {

@@ -11,8 +11,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -29,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
@@ -58,9 +57,7 @@ fun NetworkScene(
         title = chain.asset().name,
         actions = {
             if (state.availableAddNode) {
-                IconButton(onClick = { isShowAddSource = true }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "")
-                }
+                ToolbarIconButton(imageVector = Icons.Default.Add, onClick = { isShowAddSource = true })
             }
         },
         onClose = onCancel,

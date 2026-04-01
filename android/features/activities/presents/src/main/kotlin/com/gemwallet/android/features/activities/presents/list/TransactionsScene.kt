@@ -12,9 +12,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -32,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.ToolbarIconButton
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.Scene
@@ -60,16 +58,13 @@ internal fun TransactionsScene(
         title = stringResource(id = R.string.activity_title),
         mainActionPadding = PaddingValues(0.dp),
         actions = {
-            IconButton(onClick = { showFilters = !showFilters }) {
-                Icon(
-                    imageVector = Icons.Default.FilterAlt,
-                    tint = if (chainsFilter.isEmpty() && typeFilter.isEmpty())
-                        LocalContentColor.current
-                    else
-                        MaterialTheme.colorScheme.primary,
-                    contentDescription = "Filter by networks",
-                )
-            }
+            ToolbarIconButton(
+                imageVector = Icons.Default.FilterAlt,
+                contentDescription = "Filter by networks",
+                tint = if (chainsFilter.isEmpty() && typeFilter.isEmpty()) null
+                    else MaterialTheme.colorScheme.primary,
+                onClick = { showFilters = !showFilters },
+            )
         },
         navigationBarPadding = false,
     ) {
