@@ -9,7 +9,6 @@ import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.GetTransaction
-import com.gemwallet.android.cases.transactions.GetTransactionUpdateTime
 import com.gemwallet.android.cases.transactions.PutTransactions
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
@@ -56,7 +55,6 @@ class TransactionsRepositoryImpl(
     GetTransaction,
     CreateTransaction,
     PutTransactions,
-    GetTransactionUpdateTime,
     ClearPendingTransactions
 {
 
@@ -67,14 +65,6 @@ class TransactionsRepositoryImpl(
 
     init {
         handlePendingTransactions()
-    }
-
-    override fun getTransactionUpdateTime(walletId: String): Long {
-        return transactionsDao.getUpdateTime(walletId)
-    }
-
-    override fun getTransactionUpdateTime(walletId: String, assetId: String): Long {
-        return transactionsDao.getUpdateTime(walletId, assetId)
     }
 
     override fun getPendingTransactionsCount(): Flow<Int?> {

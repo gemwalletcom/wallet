@@ -1,4 +1,4 @@
-package com.gemwallet.android.cases.transactions
+package com.gemwallet.android.application.transactions.coordinators
 
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
