@@ -26,3 +26,9 @@ fun Asset.isMemoSupport() = chain.isMemoSupport()
 
 val Asset.subtype: AssetSubtype
     get() = id.type()
+
+val Asset.networkFullName: String
+    get() = when (id.type()) {
+        AssetSubtype.NATIVE -> chain.asset().name
+        AssetSubtype.TOKEN -> "${chain.asset().name} (${type})"
+    }
