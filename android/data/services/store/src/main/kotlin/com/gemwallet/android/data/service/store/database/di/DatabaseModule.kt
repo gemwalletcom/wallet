@@ -9,6 +9,7 @@ import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
+import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.NodesDao
@@ -65,6 +66,7 @@ object DatabaseModule {
         .addMigrations(Migration_65_66)
         .addMigrations(Migration_66_67)
         .addMigrations(Migration_67_68)
+        .addMigrations(Migration_68_69)
         .build()
 
     @Singleton
@@ -134,4 +136,8 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun providePerpetualBalanceDao(db: GemDatabase): PerpetualBalanceDao = db.perpetualBalanceDao()
+
+    @Singleton
+    @Provides
+    fun provideFiatTransactionsDao(db: GemDatabase): FiatTransactionsDao = db.fiatTransactionsDao()
 }

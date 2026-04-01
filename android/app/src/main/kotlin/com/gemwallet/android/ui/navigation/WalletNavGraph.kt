@@ -60,6 +60,7 @@ import com.gemwallet.android.ui.navigation.routes.navigateToAssetScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToBridgeScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToBridgesScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToBuyScreen
+import com.gemwallet.android.ui.navigation.routes.navigateToFiatTransactions
 import com.gemwallet.android.ui.navigation.routes.navigateToConfirmScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToCurrenciesScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToDelegation
@@ -221,7 +222,8 @@ fun WalletNavGraph(
 
         fiatScreen(
             cancelAction = onCancel,
-            onBuy = navController::navigateToBuyScreen
+            onBuy = navController::navigateToBuyScreen,
+            onFiatTransactions = navController::navigateToFiatTransactions,
         )
 
         receiveScreen(
