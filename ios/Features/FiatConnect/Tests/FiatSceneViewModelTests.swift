@@ -103,10 +103,10 @@ final class FiatSceneViewModelTests {
     func fiatValidation() {
         let model = FiatSceneViewModelTests.mock()
 
-        model.inputValidationModel.text = "24"
+        model.inputValidationModel.text = "4"
         #expect(model.inputValidationModel.update() == false)
 
-        model.inputValidationModel.text = "25"
+        model.inputValidationModel.text = "5"
         #expect(model.inputValidationModel.update() == true)
 
         model.inputValidationModel.text = "10000"
@@ -121,10 +121,10 @@ final class FiatSceneViewModelTests {
         let model = FiatSceneViewModelTests.mock()
         model.type = .sell
 
-        model.inputValidationModel.text = "24"
+        model.inputValidationModel.text = "4"
         #expect(model.inputValidationModel.update() == false)
 
-        model.inputValidationModel.text = "25"
+        model.inputValidationModel.text = "5"
         #expect(model.inputValidationModel.update() == true)
 
         model.inputValidationModel.text = "10000"

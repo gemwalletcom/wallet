@@ -170,8 +170,7 @@ fun Scene(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .imePadding(),
+                            .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         content(paddingValues)
