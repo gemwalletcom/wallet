@@ -117,15 +117,15 @@ fun WalletNavGraph(
         popExitTransition = popExitTransition,
     ) {
         composable(
-            route = "/",
+            route = walletRootRoute,
             arguments = listOf(
-                navArgument("reset") {
+                navArgument(walletResetArg) {
                     type = NavType.BoolType
                     defaultValue = false
                 }
             )
         ) {
-            val reset = it.arguments?.getBoolean("reset") == true
+            val reset = it.arguments?.getBoolean(walletResetArg) == true
             if (reset) {
                 currentTab.value = assetsRoute
             }
@@ -314,7 +314,7 @@ fun WalletNavGraph(
                     navController.navigateToRoot()
                 } catch (_: Throwable) {
                     navController.navigate(
-                        route = "/",
+                        route = walletRootRoute,
                         navOptions = navOptions {
                             popUpTo(0) {
                                 inclusive = true
@@ -349,7 +349,7 @@ fun WalletNavGraph(
 
 fun NavController.navigateToRoot() {
     navigate(
-        route = "/?reset=true",
+        route = "$walletRootRoute?$walletResetArg=true",
         navOptions = navOptions {
             popUpTo(0) {
                 inclusive = true

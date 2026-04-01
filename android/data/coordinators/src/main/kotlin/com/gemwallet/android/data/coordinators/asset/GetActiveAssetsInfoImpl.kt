@@ -10,15 +10,22 @@ import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class GetActiveAssetsInfoImpl(
     private val assetsRepository: AssetsRepository,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetActiveAssetsInfo {
+    private val assetsInfo = assetsRepository.getAssetsInfo()
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> {
-        return assetsRepository.getAssetsInfo().map { items -> items.map { AssetInfoDataAggregateImpl(it, hideBalance) } }
+        return assetsInfo.map { items -> items.map { AssetInfoDataAggregateImpl(it, hideBalance) } }
     }
 }
 

@@ -10,12 +10,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -32,26 +27,15 @@ import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.theme.Spacer16
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @Composable
 fun WalletApp(
     navController: NavHostController = rememberNavController(),
-    viewModel: AppViewModel = hiltViewModel()
+    viewModel: AppViewModel = hiltViewModel(),
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-
-    var startDestination by remember { mutableStateOf<String?>(null) }
-
+    val startDestination by viewModel.startDestinationState.collectAsStateWithLifecycle()
     val askNotifications by viewModel.askNotifications.collectAsStateWithLifecycle()
-
-    LaunchedEffect(Unit) {
-        coroutineScope.launch(Dispatchers.IO) {
-            startDestination = viewModel.getStartDestination()
-        }
-    }
 
     WalletNavGraph(
         navController = navController,

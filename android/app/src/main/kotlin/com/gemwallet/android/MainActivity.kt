@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,24 +39,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.gemwallet.android.cases.security.AuthRequester
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.AuthState
+import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
 import com.gemwallet.android.ui.components.RootWarningDialog
 import com.gemwallet.android.ui.components.isDeviceRooted
+import com.gemwallet.android.ui.theme.largeIconSize
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.bridge.views.ProposalScene
 import com.gemwallet.android.features.bridge.views.RequestScene
@@ -73,6 +79,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
     }
 
     private val viewModel: MainViewModel by viewModels()
+    private val appViewModel: AppViewModel by viewModels()
     private val walletConnectViewModel: WalletConnectViewModel by viewModels()
 
     private lateinit var executor: Executor
@@ -81,7 +88,10 @@ class MainActivity : FragmentActivity(), AuthRequester {
     private var onSuccessAuth: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splashScreen.setKeepOnScreenCondition { !appViewModel.launchReadyState.value }
+        splashScreen.setOnExitAnimationListener { it.remove() }
         enableEdgeToEdge()
         prepareBiometricAuth()
 
@@ -109,7 +119,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun MainContent() {
+    private fun MainContent() {
         val navController = rememberNavController()
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val intent by viewModel.intent.collectAsStateWithLifecycle()
@@ -128,19 +138,30 @@ class MainActivity : FragmentActivity(), AuthRequester {
         }
         WalletTheme {
             if (state.initialAuth == AuthState.Success || !enableSysAuth) {
-                WalletApp(navController)
+                WalletApp(navController = navController)
                 OnWalletConnect()
             } else {
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)) {
-                    Image(
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface)
+                ) {
+                    Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.Center),
-                        painter = painterResource(id = R.drawable.ic_splash),
-                        contentDescription = "splash",
-                    )
+                            .size(largeIconSize)
+                            .align(Alignment.Center)
+                            .background(
+                                colorResource(id = com.gemwallet.android.R.color.splash_icon_background),
+                                CircleShape,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Image(
+                            modifier = Modifier.size(listItemIconSize),
+                            painter = painterResource(id = R.drawable.ic_gem_foreground),
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
 

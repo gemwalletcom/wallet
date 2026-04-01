@@ -15,11 +15,15 @@ import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -29,36 +33,38 @@ class GetWalletSummaryImpl(
     private val assetsRepository: AssetsRepository,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
+    private val walletSummary = sessionRepository.session().flatMapLatest { session ->
+        val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
+
+        combine(
+            assetsRepository.getAssetsInfo(),
+            hasMultiSign.hasMultiSign(wallet),
+            userConfig.isHideBalances(),
+        ) { assets, hasMultiSign, hideBalances ->
+            val (totalValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
+                val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
+                val currentChangedValue = currentValue * ((asset.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
+
+                (total + currentValue) to (changed + currentChangedValue)
+            }
+
+            WalletSummaryAggregateImpl(
+                wallet = wallet,
+                displayState = buildWalletSummaryDisplayState(
+                    currency = session.currency,
+                    totalValue = totalValue,
+                    totalChangedValue = totalChangedValue,
+                    hideBalances = hideBalances,
+                ),
+                isOperationsAvailable = !hasMultiSign,
+            )
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override fun getWalletSummary(): Flow<WalletSummaryAggregate?> {
-        return sessionRepository.session().flatMapLatest { session ->
-            val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
-
-            combine(
-                assetsRepository.getAssetsInfo(),
-                hasMultiSign.hasMultiSign(wallet),
-                userConfig.isHideBalances(),
-            ) { assets, hasMultiSign, hideBalances ->
-                val (totalValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
-                    val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
-                    val currentChangedValue = currentValue * ((asset.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
-
-                    (total + currentValue) to (changed + currentChangedValue)
-                }
-
-                WalletSummaryAggregateImpl(
-                    wallet = wallet,
-                    displayState = buildWalletSummaryDisplayState(
-                        currency = session.currency,
-                        totalValue = totalValue,
-                        totalChangedValue = totalChangedValue,
-                        hideBalances = hideBalances,
-                    ),
-                    isOperationsAvailable = !hasMultiSign,
-                )
-            }
-        }
+        return walletSummary
     }
 }
 

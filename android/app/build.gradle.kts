@@ -256,6 +256,7 @@ dependencies {
     implementation(project(":features:referral:presents"))
 
     implementation(libs.ktx.core)
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.tink)
 
