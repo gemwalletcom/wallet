@@ -37,8 +37,10 @@ import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PricePoint
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 
-private val chartFrameHeight = 320.dp
-private val dateRowHeight = 16.dp
+private object ChartSceneMetrics {
+    val frameHeight = 320.dp
+    val dateRowHeight = 16.dp
+}
 
 @Composable
 fun Chart(
@@ -54,7 +56,7 @@ fun Chart(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(chartFrameHeight),
+                    .height(ChartSceneMetrics.frameHeight),
             ) {
                 val chartPoints = uiModel.chartPoints
                 val isReady = !state.loading && state.period == uiModel.period && chartPoints.isNotEmpty()
@@ -134,7 +136,7 @@ private fun ChartHeader(
             }
         }
 
-        Box(modifier = Modifier.height(dateRowHeight), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.height(ChartSceneMetrics.dateRowHeight), contentAlignment = Alignment.Center) {
             if (isScrubbing && point != null) {
                 Text(
                     text = getRelativeDate(point.timestamp),

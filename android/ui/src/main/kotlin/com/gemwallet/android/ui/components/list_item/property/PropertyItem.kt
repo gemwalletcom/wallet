@@ -29,6 +29,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.tinyIconSize
 
@@ -156,7 +157,7 @@ fun PropertyTitleText(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingMiddle)
+        horizontalArrangement = Arrangement.spacedBy(space4)
     ) {
         trailing?.let {
             it()
