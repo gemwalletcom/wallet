@@ -16,6 +16,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -30,27 +31,27 @@ import java.math.BigDecimal
 
 class QuoteRequesterTest {
 
+    private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    private val refreshEnabled = MutableStateFlow(true)
+
     @Test
     fun `canceled in flight quote request does not trigger error callback`() = runBlocking {
-        val getSwapQuotes = FakeGetSwapQuotes()
-        val requester = QuoteRequester(getSwapQuotes)
+        val fakeQuotes = StubGetSwapQuotes(delayOnFirst = 5_000)
+        val requester = QuoteRequester(fakeQuotes)
         val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
-        val refreshState = MutableStateFlow(0L)
         val results = mutableListOf<QuotesState?>()
         val errors = mutableListOf<Throwable>()
 
         val job = launch {
             requester.requestQuotes(
                 requestParams = requestParams,
-                refreshState = refreshState,
-                onStart = {},
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
                 onError = { errors += it },
             ).collect { results += it }
         }
 
-        withTimeout(2_000) {
-            getSwapQuotes.firstRequestStarted.await()
-        }
+        awaitCondition { fakeQuotes.requestCount >= 1 }
         requestParams.value = quoteRequestParams(BigDecimal("12"))
         delay(700)
         job.cancelAndJoin()
@@ -61,25 +62,22 @@ class QuoteRequesterTest {
 
     @Test
     fun `invalid input clears quote and late success is ignored`() = runBlocking {
-        val getSwapQuotes = NonCancellableGetSwapQuotes()
-        val requester = QuoteRequester(getSwapQuotes)
+        val fakeQuotes = StubGetSwapQuotes(nonCancellableOnFirst = true)
+        val requester = QuoteRequester(fakeQuotes)
         val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
-        val refreshState = MutableStateFlow(0L)
         val results = mutableListOf<QuotesState?>()
         val errors = mutableListOf<Throwable>()
 
         val job = launch {
             requester.requestQuotes(
                 requestParams = requestParams,
-                refreshState = refreshState,
-                onStart = {},
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
                 onError = { errors += it },
             ).collect { results += it }
         }
 
-        withTimeout(2_000) {
-            getSwapQuotes.firstRequestStarted.await()
-        }
+        awaitCondition { fakeQuotes.requestCount >= 1 }
         requestParams.value = null
         delay(300)
         job.cancelAndJoin()
@@ -110,6 +108,144 @@ class QuoteRequesterTest {
         assertTrue(quotesState.matches(QuoteRequestParams(BigDecimal("1.0"), pay, receive)))
     }
 
+    @Test
+    fun `successful quote refresh waits for the configured interval`() = runBlocking {
+        val fakeQuotes = StubGetSwapQuotes()
+        val requester = QuoteRequester(fakeQuotes)
+        val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+
+        val job = launch {
+            requester.requestQuotes(
+                requestParams = requestParams,
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
+                onError = {},
+                refreshIntervalMillis = 100,
+            ).collect()
+        }
+
+        awaitCondition { fakeQuotes.requestCount >= 1 }
+        delay(70)
+        assertEquals(1, fakeQuotes.requestCount)
+        awaitCondition { fakeQuotes.requestCount >= 2 }
+
+        job.cancelAndJoin()
+    }
+
+    @Test
+    fun `quote errors do not schedule automatic retries`() = runBlocking {
+        val fakeQuotes = StubGetSwapQuotes(shouldFail = true)
+        val requester = QuoteRequester(fakeQuotes)
+        val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val errors = mutableListOf<Throwable>()
+
+        val job = launch {
+            requester.requestQuotes(
+                requestParams = requestParams,
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
+                onError = { errors += it },
+                refreshIntervalMillis = 100,
+            ).collect()
+        }
+
+        awaitCondition { fakeQuotes.requestCount >= 1 }
+        delay(200)
+        job.cancelAndJoin()
+
+        assertEquals(1, fakeQuotes.requestCount)
+        assertEquals(1, errors.size)
+    }
+
+    @Test
+    fun `automatic refresh stops in background and resumes in foreground`() = runBlocking {
+        val fakeQuotes = StubGetSwapQuotes()
+        val requester = QuoteRequester(fakeQuotes)
+        val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+
+        val job = launch {
+            requester.requestQuotes(
+                requestParams = requestParams,
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
+                onError = {},
+                refreshIntervalMillis = 100,
+            ).collect()
+        }
+
+        awaitCondition { fakeQuotes.requestCount >= 1 }
+
+        refreshEnabled.value = false
+        delay(200)
+        assertEquals(1, fakeQuotes.requestCount)
+
+        refreshEnabled.value = true
+        awaitCondition { fakeQuotes.requestCount >= 2 }
+
+        job.cancelAndJoin()
+    }
+
+    @Test
+    fun `null params emits null without calling quotes service`() = runBlocking {
+        val fakeQuotes = StubGetSwapQuotes()
+        val requester = QuoteRequester(fakeQuotes)
+        val requestParams = MutableStateFlow<QuoteRequestParams?>(null)
+        val results = mutableListOf<QuotesState?>()
+
+        val job = launch {
+            requester.requestQuotes(
+                requestParams = requestParams,
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
+                onError = {},
+            ).collect { results += it }
+        }
+
+        delay(100)
+        job.cancelAndJoin()
+
+        assertEquals(listOf(null), results)
+        assertEquals(0, fakeQuotes.requestCount)
+    }
+
+    @Test
+    fun `changing params during debounce does not emit stale result`() = runBlocking {
+        val fakeQuotes = StubGetSwapQuotes()
+        val requester = QuoteRequester(fakeQuotes)
+        val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val results = mutableListOf<QuotesState?>()
+
+        val job = launch {
+            requester.requestQuotes(
+                requestParams = requestParams,
+                refreshRequests = refreshRequests,
+                refreshEnabled = refreshEnabled,
+                onError = {},
+            ).collect { results += it }
+        }
+
+        // Change params during the 500ms debounce — before first fetch completes
+        delay(200)
+        assertEquals(0, fakeQuotes.requestCount)
+        requestParams.value = quoteRequestParams(BigDecimal("2"))
+
+        // Wait for the second request to complete
+        awaitCondition { fakeQuotes.requestCount >= 1 }
+        delay(100)
+        job.cancelAndJoin()
+
+        // Only one result — no stale emission from the first cancelled debounce
+        assertEquals(1, results.size)
+    }
+
+    private suspend fun awaitCondition(timeoutMs: Long = 2_000, condition: () -> Boolean) {
+        withTimeout(timeoutMs) {
+            while (!condition()) {
+                delay(10)
+            }
+        }
+    }
+
     private fun assetInfo(symbol: String, tokenId: String): AssetInfo {
         val asset = Asset(
             id = AssetId(chain = Chain.SmartChain, tokenId = tokenId),
@@ -136,8 +272,13 @@ class QuoteRequesterTest {
         )
     }
 
-    private class FakeGetSwapQuotes : GetSwapQuotes {
-        val firstRequestStarted = CompletableDeferred<Unit>()
+    private class StubGetSwapQuotes(
+        private val shouldFail: Boolean = false,
+        private val delayOnFirst: Long = 0,
+        private val nonCancellableOnFirst: Boolean = false,
+    ) : GetSwapQuotes {
+        private val firstRequestStarted = CompletableDeferred<Unit>()
+        var requestCount = 0
 
         override suspend fun getQuotes(
             ownerAddress: String,
@@ -147,31 +288,15 @@ class QuoteRequesterTest {
             amount: String,
             useMaxAmount: Boolean,
         ): List<SwapperQuote> {
+            requestCount += 1
+
             if (!firstRequestStarted.isCompleted) {
                 firstRequestStarted.complete(Unit)
-                delay(5_000)
+                if (delayOnFirst > 0) delay(delayOnFirst)
+                if (nonCancellableOnFirst) withContext(NonCancellable) { delay(200) }
             }
-            return emptyList()
-        }
-    }
 
-    private class NonCancellableGetSwapQuotes : GetSwapQuotes {
-        val firstRequestStarted = CompletableDeferred<Unit>()
-
-        override suspend fun getQuotes(
-            ownerAddress: String,
-            destination: String,
-            from: Asset,
-            to: Asset,
-            amount: String,
-            useMaxAmount: Boolean,
-        ): List<SwapperQuote> {
-            if (!firstRequestStarted.isCompleted) {
-                firstRequestStarted.complete(Unit)
-                withContext(NonCancellable) {
-                    delay(200)
-                }
-            }
+            if (shouldFail) throw IllegalStateException("boom")
             return emptyList()
         }
     }

@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
@@ -29,7 +29,6 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 import com.gemwallet.android.features.swap.views.components.SwapAction
 import com.gemwallet.android.features.swap.views.components.SwapError
 import com.gemwallet.android.features.swap.views.components.SwapItem
-import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.theme.iconSize
 
@@ -136,8 +135,7 @@ internal fun SwapScene(
 private fun SwapSectionHeader(resId: Int) {
     Text(
         modifier = Modifier
-            .fillMaxWidth()
-            .listItem(ListPosition.Subhead),
+            .sectionHeaderItem(),
         text = stringResource(resId),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.secondary,

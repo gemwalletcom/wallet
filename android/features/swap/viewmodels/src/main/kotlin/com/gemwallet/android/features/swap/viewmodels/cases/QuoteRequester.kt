@@ -10,11 +10,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.transformLatest
 import javax.inject.Inject
 import java.math.BigInteger
 
@@ -25,20 +28,35 @@ class QuoteRequester @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     internal fun requestQuotes(
         requestParams: Flow<QuoteRequestParams?>,
-        refreshState: Flow<Long>,
-        onStart: (QuoteRequestParams?) -> Unit,
-        onError: (Throwable) -> Unit
+        refreshRequests: Flow<Unit>,
+        refreshEnabled: Flow<Boolean>,
+        onError: (Throwable) -> Unit,
+        refreshIntervalMillis: Long = QUOTE_REFRESH_INTERVAL_MS,
     ): Flow<QuotesState?> {
-        return combine(requestParams, refreshState) { params, _ -> params }
-        .onEach { onStart(it) }
-        .mapLatest { params ->
-            params?.let {
-                delay(500)
-                fetchQuotes(it)
+        return requestParams.flatMapLatest { params ->
+            if (params == null) {
+                return@flatMapLatest flowOf<QuotesState?>(null)
             }
-        }
-        .onEach { data ->
-            data?.err?.let { onError(it) }
+
+            refreshEnabled.flatMapLatest { isEnabled ->
+                if (!isEnabled) {
+                    return@flatMapLatest emptyFlow()
+                }
+
+                merge(flowOf(Unit), refreshRequests)
+                    .transformLatest {
+                        while (currentCoroutineContext().isActive) {
+                            delay(500)
+                            val data = fetchQuotes(params)
+                            emit(data)
+                            if (data.err != null) {
+                                onError(data.err)
+                                break
+                            }
+                            delay(refreshIntervalMillis)
+                        }
+                    }
+            }
         }
         .flowOn(Dispatchers.IO)
     }
@@ -59,5 +77,9 @@ class QuoteRequester @Inject constructor(
         throw err
     } catch (err: Throwable) {
         QuotesState(requestKey = params.key, pay = params.pay, receive = params.receive, err = err)
+    }
+
+    private companion object {
+        const val QUOTE_REFRESH_INTERVAL_MS = 30_000L
     }
 }

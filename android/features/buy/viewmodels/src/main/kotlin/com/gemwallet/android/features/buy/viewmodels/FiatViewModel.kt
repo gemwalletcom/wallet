@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -124,9 +123,7 @@ class FiatViewModel @Inject constructor(
     val state: StateFlow<FiatSceneState?> get() = _state
     private val _selectedQuote = MutableStateFlow<FiatQuote?>(null)
 
-    private val ticker = tickerFlow(true, 1 * DateUtils.MINUTE_IN_MILLIS, onTick = {})
-        .filter { it.complete }
-        .map { it.timeMillis }
+    private val ticker = tickerFlow(DateUtils.MINUTE_IN_MILLIS) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     @OptIn(ExperimentalCoroutinesApi::class)

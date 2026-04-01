@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -58,9 +57,8 @@ class ChartViewModel @Inject constructor(
     val chartUIState = combine(selectedPeriod, chartState) { period, state ->
         ChartUIModel.State(state.loading, period, state.empty)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel.State())
-    val ticker = tickerFlow(true, 1 * DateUtils.MINUTE_IN_MILLIS, onTick = {})
-        .filter { it.complete }
-        .map { it.timeMillis }
+
+    private val ticker = tickerFlow(DateUtils.MINUTE_IN_MILLIS) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     val chartUIModel = combine(assetInfo, selectedPeriod, ticker) { assetInfo, period, _ ->
@@ -80,7 +78,7 @@ class ChartViewModel @Inject constructor(
             }
         }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChartUIModel())
 
     private suspend fun request(assetInfo: AssetInfo, period: ChartPeriod): ChartUIModel {
         val currency = assetInfo.price?.currency ?: Currency.USD

@@ -13,7 +13,7 @@ import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
-import com.gemwallet.android.features.swap.views.dialogs.SwapProviderListDialog
+import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.wallet.core.primitives.AssetId
 
@@ -32,13 +32,12 @@ fun SwapScreen(
     val fromEquivalent by viewModel.payEquivalentFormatted.collectAsStateWithLifecycle()
     val toEquivalent by viewModel.toEquivalentFormatted.collectAsStateWithLifecycle()
     val swapState by viewModel.uiSwapScreenState.collectAsStateWithLifecycle()
-    val currentProvider by viewModel.currentProvider.collectAsStateWithLifecycle()
-    val providers by viewModel.providers.collectAsStateWithLifecycle()
     val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
 
-    var isShowProviderSelect by remember { mutableStateOf(false) }
     var isShowPriceImpactAlert by remember { mutableStateOf(false) }
     var isShowDetails by remember { mutableStateOf(false) }
+
+    ObserveStartedState(viewModel::setRefreshEnabled)
 
     LaunchedEffect(payId, receiveId, select) {
         select ?: return@LaunchedEffect
@@ -91,18 +90,9 @@ fun SwapScreen(
         isLoading = swapState == SwapState.GetQuote,
         model = swapDetails,
         onDismiss = { isShowDetails = false },
-        onProviderClick = {
-            isShowDetails = false
-            isShowProviderSelect = true
+        skipPartiallyExpanded = true,
+        onProviderSelect = { provider ->
+            viewModel.setProvider(provider)
         },
-    )
-
-    SwapProviderListDialog(
-        isVisible = isShowProviderSelect,
-        isUpdated = swapState == SwapState.GetQuote,
-        currentProvider = currentProvider,
-        providers = providers,
-        onDismiss = { isShowProviderSelect = false },
-        onProviderSelect = viewModel::setProvider,
     )
 }

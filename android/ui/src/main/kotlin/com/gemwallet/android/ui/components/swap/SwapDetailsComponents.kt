@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.swap
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.R
@@ -90,15 +89,19 @@ fun SwapDetailsBottomSheet(
     isLoading: Boolean,
     model: SwapDetailsUIModel?,
     onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    skipPartiallyExpanded: Boolean = false,
     showProviderSectionHeader: Boolean = false,
-    onProviderClick: (() -> Unit)? = null,
+    onProviderSelect: ((SwapperProvider) -> Unit)? = null,
 ) {
-    if (!isVisible || model == null) {
-        return
-    }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+    if (model == null) return
 
     ModalBottomSheet(
+        isVisible = isVisible,
         onDismissRequest = onDismiss,
+        modifier = modifier,
+        sheetState = sheetState,
         dragHandle = { DialogBar(onDismissRequest = onDismiss, showDismissAction = false) },
     ) {
         if (isLoading) {
@@ -109,17 +112,36 @@ fun SwapDetailsBottomSheet(
         }
 
         LazyColumn {
-            if (showProviderSectionHeader) {
+            val providers = model.inlineProviders(onProviderSelect != null)
+            val providerSectionTitle = when {
+                onProviderSelect != null -> R.string.buy_providers_title
+                showProviderSectionHeader -> R.string.common_provider
+                else -> null
+            }
+
+            if (providerSectionTitle != null && providers.isNotEmpty()) {
                 item {
-                    SubheaderItem(R.string.common_provider)
+                    SubheaderItem(providerSectionTitle)
                 }
             }
-            item {
-                SwapCurrentProviderRow(
-                    provider = model.provider,
-                    isSelectable = model.isProviderSelectable,
-                    onClick = onProviderClick,
-                )
+            if (providers.size > 1 && onProviderSelect != null) {
+                itemsIndexed(providers) { index, provider ->
+                    SwapProviderListItemView(
+                        provider = provider,
+                        listPosition = ListPosition.getPosition(index, providers.size),
+                        isSelected = provider.id == model.provider.id,
+                        onProviderSelect = { selected ->
+                            onDismiss()
+                            onProviderSelect(selected)
+                        },
+                    )
+                }
+            } else {
+                item {
+                    SwapCurrentProviderRow(
+                        provider = providers.firstOrNull() ?: model.provider,
+                    )
+                }
             }
             item {
                 SwapRatePropertyItem(model.rate, ListPosition.First)
@@ -158,7 +180,7 @@ fun SwapDetailsBottomSheet(
 }
 
 @Composable
-fun SwapProviderListItemView(
+private fun SwapProviderListItemView(
     provider: SwapProviderUIModel,
     listPosition: ListPosition,
     isSelected: Boolean,
@@ -184,23 +206,14 @@ fun SwapProviderListItemView(
 @Composable
 private fun SwapCurrentProviderRow(
     provider: SwapProviderUIModel,
-    isSelectable: Boolean,
-    onClick: (() -> Unit)?,
 ) {
-    val modifier = if (isSelectable && onClick != null) {
-        Modifier.clickable(onClick = onClick)
-    } else {
-        Modifier
-    }
-
     ListItem(
-        modifier = modifier,
         leading = { SwapProviderIcon(provider.icon, listItemIconSize) },
         title = {
             ListItemTitleText(provider.title)
         },
         trailing = {
-            SwapProviderTrailing(provider, isSelectable)
+            SwapProviderAmounts(provider)
         },
         listPosition = ListPosition.Single,
     )
@@ -245,19 +258,26 @@ private fun SwapProviderAmounts(provider: SwapProviderUIModel) {
 }
 
 @Composable
-private fun SwapProviderTrailing(provider: SwapProviderUIModel, showChevron: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        SwapProviderAmounts(provider)
-        if (showChevron) {
-            DataBadgeChevron()
-        }
-    }
-}
-
-@Composable
 private fun SwapProviderIcon(icon: Any, size: Dp) {
     AsyncImage(model = icon, size = size)
 }
+
+private fun SwapDetailsUIModel.inlineProviders(isSelectionEnabled: Boolean): List<SwapProviderUIModel> {
+    if (!isSelectionEnabled || !isProviderSelectable) {
+        return listOf(provider)
+    }
+
+    val topProviders = providers.take(MAX_INLINE_PROVIDERS).toMutableList()
+    if (topProviders.none { it.id == provider.id }) {
+        topProviders.add(0, provider)
+    }
+
+    return topProviders
+        .distinctBy { it.id }
+        .take(MAX_INLINE_PROVIDERS)
+}
+
+private const val MAX_INLINE_PROVIDERS = 3
 
 @Composable
 private fun PriceImpactPropertyItem(

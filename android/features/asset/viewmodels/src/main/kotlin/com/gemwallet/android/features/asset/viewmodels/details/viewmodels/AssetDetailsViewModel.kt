@@ -81,11 +81,7 @@ class AssetDetailsViewModel @Inject constructor(
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val tickerState = tickerFlow(true, 5 * DateUtils.MINUTE_IN_MILLIS) {
-            if (it.complete) {
-                refresh()
-            }
-        }
+    val tickerState = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) { refresh() }
         .stateIn(viewModelScope, started = WhileSubscribed(5000), null)
 
     val uiState = MutableStateFlow<AssetInfoUIState>(AssetInfoUIState.Idle(AssetInfoUIState.SyncState.Process))
