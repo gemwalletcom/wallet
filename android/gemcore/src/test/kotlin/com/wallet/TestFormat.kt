@@ -2,6 +2,11 @@ package com.wallet
 
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
+import com.gemwallet.android.model.formatSupply
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
@@ -41,5 +46,12 @@ class TestFormat {
         assertEquals(Currency.USD.format(2.04E-6, dynamicPlace = true), "$0.00000204")
         assertEquals(Currency.USD.format(-2.04E-6, dynamicPlace = true), "-\$0.00000204")
         assertEquals(Currency.USD.format(-140.5699884368446, dynamicPlace = true), "-\$140.56")
+    }
+
+    @Test
+    fun testFormatSupply() {
+        val btc = Asset(AssetId(Chain.Bitcoin), "Bitcoin", "BTC", 8, AssetType.NATIVE)
+        assertEquals("\u221E BTC", btc.formatSupply(0.0))
+        assertEquals("21,000,000.00 BTC", btc.formatSupply(21_000_000.0))
     }
 }

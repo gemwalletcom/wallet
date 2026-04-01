@@ -26,6 +26,7 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.ext.getAddressEllipsisText
 import com.gemwallet.android.model.compactFormatter
+import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.clipboard.setPlainText
@@ -159,21 +160,21 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
         marketInfo.circulatingSupply?.let {
             MarketInfoUIModel(
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
-                value = currency.compactFormatter(it),
+                value = asset.compactFormatter(it),
                 info = InfoSheetEntity.CirculatingSupply,
             )
         },
         marketInfo.totalSupply?.let {
             MarketInfoUIModel(
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
-                value = currency.compactFormatter(it),
+                value = asset.compactFormatter(it),
                 info = InfoSheetEntity.TotalSupply,
             )
         },
         marketInfo.maxSupply?.let {
             MarketInfoUIModel(
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
-                value = currency.compactFormatter(it),
+                value = asset.formatSupply(it),
                 info = InfoSheetEntity.MaxSupply,
             )
         },

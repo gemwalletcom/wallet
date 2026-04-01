@@ -355,3 +355,6 @@ fun Asset.compactFormatter(
     formatter.maximumFractionDigits = 2
     return "${formatter.format(value)} $symbol"
 }
+
+fun Asset.formatSupply(value: Double): String =
+    if (value == 0.0) "\u221E $symbol" else compactFormatter(value)
