@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -38,12 +39,9 @@ fun PropertyDestination(
             PropertyTitleText(title)
         },
         data = {
+            val text = recipientName ?: AddressFormatter(model.data).value()
             Column(horizontalAlignment = Alignment.End) {
-                if (recipientName == null) {
-                    Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.data) }
-                } else {
-                    Row(horizontalArrangement = Arrangement.End) { PropertyDataText(recipientName) }
-                }
+                Row(horizontalArrangement = Arrangement.End) { PropertyDataText(text) }
             }
         },
         listPosition = listPosition,

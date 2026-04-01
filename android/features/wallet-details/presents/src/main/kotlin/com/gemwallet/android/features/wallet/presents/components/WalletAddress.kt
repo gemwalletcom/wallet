@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -50,7 +51,7 @@ internal fun WalletAddress(
         title = { PropertyTitleText(R.string.common_address) },
         data = {
             PropertyDataText(
-                text = address,
+                text = AddressFormatter(address).value(),
             )
         },
         listPosition = ListPosition.Single,

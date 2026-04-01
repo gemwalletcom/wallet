@@ -6,7 +6,7 @@ import com.gemwallet.android.data.repositories.transactions.TransactionRepositor
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getImageUrl
-import com.gemwallet.android.ext.getAddressEllipsisText
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
@@ -76,8 +76,8 @@ class TransactionDataAggregateImpl(
         TransactionType.TransferNFT,
         TransactionType.Transfer -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> data.transaction.to.getAddressEllipsisText(chain = data.transaction.assetId.chain)
-            TransactionDirection.Incoming -> data.transaction.from.getAddressEllipsisText(chain = data.transaction.assetId.chain)
+            TransactionDirection.Outgoing -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
+            TransactionDirection.Incoming -> AddressFormatter(data.transaction.from, chain = data.transaction.assetId.chain).value()
         }
         TransactionType.Swap,
         TransactionType.TokenApproval,
