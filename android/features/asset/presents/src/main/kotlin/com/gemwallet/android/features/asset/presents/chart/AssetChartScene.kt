@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.asset.presents.chart
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -28,7 +30,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.AsyncImage
-import com.gemwallet.android.ui.components.list_item.Badge
+import com.gemwallet.android.ui.components.list_item.ChipBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -199,7 +201,7 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
                 title = {
                     PropertyTitleText(
                         text = item.type.label,
-                        badge = item.badge?.let { { Badge(it) } }
+                        badge = item.badge?.let { { ChipBadge(it) } }
                     )
                 },
                 data = { PropertyDataText(item.value) },
