@@ -3,11 +3,12 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,9 @@ import com.gemwallet.android.ui.theme.Spacer2
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
+
+private val balanceInfoMinWidth = 96.dp
+private val balanceInfoMaxWidth = 136.dp
 
 @Composable
 fun AssetListItem(
@@ -177,16 +182,11 @@ fun getBalanceInfo(crypto: CryptoFormattedUIModel, fiatFormattedUIModel: FiatFor
         val color = MaterialTheme.colorScheme.let {
             if (crypto.isZeroAmount) it.secondary else it.onSurface
         }
-        Column(
-            modifier = Modifier.defaultMinSize(40.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-            ListItemTitleText(crypto.cryptoFormatted, color = color)
-            if (!crypto.isZeroAmount && fiatFormattedUIModel.fiatFormatted.isNotEmpty()) {
-                Spacer2()
-                ListItemSupportText(fiatFormattedUIModel.fiatFormatted)
-            }
-        }
+        BalanceInfo(
+            crypto = crypto.cryptoFormatted,
+            equivalent = fiatFormattedUIModel.fiatFormatted.takeIf { !crypto.isZeroAmount }.orEmpty(),
+            color = color,
+        )
     })
 }
 
@@ -195,17 +195,51 @@ fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Compos
         val color = MaterialTheme.colorScheme.let {
             if (isZero) it.secondary else it.onSurface
         }
-        Column(
-            modifier = Modifier.defaultMinSize(40.dp),
-            horizontalAlignment = Alignment.End
-        ) {
-            ListItemTitleText(crypto, color = color)
-            if (!isZero && equivalent.isNotEmpty()) {
-                Spacer2()
-                ListItemSupportText(equivalent)
-            }
-        }
+        BalanceInfo(
+            crypto = crypto,
+            equivalent = equivalent.takeIf { !isZero }.orEmpty(),
+            color = color,
+        )
     })
+}
+
+@Composable
+private fun BalanceInfo(
+    crypto: String,
+    equivalent: String,
+    color: Color,
+) {
+    Column(
+        modifier = Modifier.widthIn(
+            min = balanceInfoMinWidth,
+            max = balanceInfoMaxWidth,
+        ),
+        horizontalAlignment = Alignment.End
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = crypto,
+            maxLines = 1,
+            overflow = TextOverflow.MiddleEllipsis,
+            textAlign = TextAlign.End,
+            style = MaterialTheme.typography.titleMedium,
+            color = color,
+        )
+        if (equivalent.isNotEmpty()) {
+            Spacer2()
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 0.dp, bottom = 2.dp),
+                text = equivalent,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
 }
 
 @Composable
