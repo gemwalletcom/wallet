@@ -17,7 +17,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,10 +36,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.create_wallet.viewmodels.CreateWalletViewModel
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -47,7 +49,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 @Composable
 fun CreateWalletScreen(
     onCancel: () -> Unit,
-    onCreated: () -> Unit,
+    onCreated: (walletId: String?) -> Unit,
 ) {
     DisableScreenShooting()
 
@@ -153,12 +155,13 @@ fun UI(
                     color = MaterialTheme.colorScheme.secondary,
                 )
                 Spacer16()
-                PhraseLayout(words = data)
+                PhraseLayout(
+                    words = data,
+                    modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
+                )
             }
             Spacer16()
-            TextButton(onClick = { clipboardManager.setPlainText(context, data.joinToString(" "), true) }) {
-                Text(text = stringResource(id = R.string.common_copy))
-            }
+            CopyButton(onClick = { clipboardManager.setPlainText(context, data.joinToString(" "), true) })
         }
     }
 }

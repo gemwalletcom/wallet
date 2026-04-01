@@ -27,7 +27,7 @@ fun NavGraphBuilder.createWalletScreen(
     onAcceptRules: () -> Unit,
     onCreateWallet: (Boolean, navOptions: NavOptions?) -> Unit,
     onCancel: () -> Unit,
-    onCreated: () -> Unit,
+    onCreated: (walletId: String?) -> Unit,
 ) {
 
     composable<CreateWalletAlertRoute> {

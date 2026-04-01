@@ -39,8 +39,8 @@ public struct SetupWalletScene: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("", systemImage: SystemImage.xmark, action: model.onComplete)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("", systemImage: SystemImage.checkmark, action: model.onComplete)
             }
         }
         .listSectionSpacing(.compact)

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalPermissionsApi::class)
-
 package com.gemwallet.android.ui
 
 import android.content.Context
@@ -24,6 +22,8 @@ import com.gemwallet.android.features.import_wallet.navigation.navigateToImportW
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
+import com.gemwallet.android.features.onboarding.AcceptTermsDestination
+import com.gemwallet.android.features.onboarding.navigateToAcceptTerms
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.theme.Spacer16
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -36,14 +36,28 @@ fun WalletApp(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val startDestination by viewModel.startDestinationState.collectAsStateWithLifecycle()
     val askNotifications by viewModel.askNotifications.collectAsStateWithLifecycle()
+    val isTermsAccepted by viewModel.isTermsAccepted.collectAsStateWithLifecycle()
 
     WalletNavGraph(
         navController = navController,
         startDestination = startDestination ?: return,
+        onAcceptTerms = viewModel::acceptTerms,
         onboard = {
             OnboardScreen(
-                onCreateWallet = navController::navigateToCreateWalletRulesScreen,
-                onImportWallet = navController::navigateToImportWalletScreen,
+                onCreateWallet = {
+                    if (isTermsAccepted) {
+                        navController.navigateToCreateWalletRulesScreen()
+                    } else {
+                        navController.navigateToAcceptTerms(AcceptTermsDestination.Create)
+                    }
+                },
+                onImportWallet = {
+                    if (isTermsAccepted) {
+                        navController.navigateToImportWalletScreen()
+                    } else {
+                        navController.navigateToAcceptTerms(AcceptTermsDestination.Import)
+                    }
+                },
             )
         },
     )
@@ -64,7 +78,7 @@ fun WalletApp(
         PushRequest(
             showRequestDialog = true,
             onNotificationEnable = viewModel::onNotificationsEnable,
-            onDismiss = viewModel::laterAskNotifications
+            onDismiss = viewModel::laterAskNotifications,
         )
     }
 }
