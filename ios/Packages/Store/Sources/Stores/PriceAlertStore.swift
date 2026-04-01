@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct PriceAlertStore: Sendable {
-
     let db: DatabaseQueue
 
     public init(db: DB) {
@@ -19,7 +18,7 @@ public struct PriceAlertStore: Sendable {
                 .map { $0.map() }
         }
     }
-    
+
     public func getPriceAlerts(for assetId: String) throws -> [PriceAlert] {
         try db.read { db in
             try PriceAlertRecord
@@ -47,16 +46,16 @@ public struct PriceAlertStore: Sendable {
                 .deleteAll(db)
         }
     }
-    
+
     public func diffPriceAlerts(deleteIds: [String], alerts: [PriceAlert]) throws {
-        if deleteIds.isEmpty && alerts.isEmpty {
+        if deleteIds.isEmpty, alerts.isEmpty {
             return
         }
         try db.write { (db: Database) in
             try PriceAlertRecord
                 .filter(deleteIds.contains(PriceAlertRecord.Columns.id))
                 .deleteAll(db)
-            
+
             for alert in alerts {
                 try alert
                     .mapToRecord()

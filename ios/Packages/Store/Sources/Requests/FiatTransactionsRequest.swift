@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct FiatTransactionsRequest: DatabaseQueryable {
-
     public let walletId: WalletId
 
     public init(walletId: WalletId) {

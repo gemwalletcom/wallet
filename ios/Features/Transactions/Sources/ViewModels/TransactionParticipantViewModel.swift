@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
-import Localization
-import Components
 
 struct TransactionParticipantViewModel {
     private let transactionViewModel: TransactionViewModel
@@ -44,15 +44,15 @@ extension TransactionParticipantViewModel {
             chain: chain,
             address: address,
             assetImage: nil,
-            addressType: addressName?.type
+            addressType: addressName?.type,
         )
 
         return .participant(
             TransactionParticipantItemModel(
                 title: participantTitle,
                 account: account,
-                addressLink: transactionViewModel.addressLink(account: account)
-            )
+                addressLink: transactionViewModel.addressLink(account: account),
+            ),
         )
     }
 
@@ -85,7 +85,7 @@ extension TransactionParticipantViewModel {
         case .earnDeposit, .earnWithdraw:
             Localized.Common.provider
         case .swap, .stakeUndelegate, .stakeRedelegate, .stakeRewards, .stakeWithdraw,
-                .assetActivation, .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: nil
+             .assetActivation, .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: nil
         }
     }
 }

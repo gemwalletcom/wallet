@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Localization
 import Primitives
 import Style
+import SwiftUI
 
 public struct SimulationPayloadDetailsScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -22,7 +22,7 @@ public struct SimulationPayloadDetailsScene: View {
         fieldViewModel: @escaping (SimulationPayloadField) -> SimulationPayloadFieldViewModel,
         contextMenuItems: @escaping (SimulationPayloadField) -> [ContextMenuItemType],
         actionTitle: String? = nil,
-        actionDestination: AnyView? = nil
+        actionDestination: AnyView? = nil,
     ) {
         self.primaryFields = primaryFields
         self.secondaryFields = secondaryFields
@@ -73,7 +73,7 @@ public struct SimulationPayloadDetailsScene: View {
         SimulationPayloadFieldsContent(
             fields: fields,
             fieldViewModel: fieldViewModel,
-            contextMenuItems: contextMenuItems
+            contextMenuItems: contextMenuItems,
         )
     }
 }

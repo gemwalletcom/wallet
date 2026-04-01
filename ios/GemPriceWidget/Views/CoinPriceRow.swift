@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Style
+import SwiftUI
 
 struct CoinPriceRow: View {
     private let model: CoinPriceRowViewModel
@@ -40,4 +40,3 @@ struct CoinPriceRow: View {
         .padding(.vertical, Spacing.tiny)
     }
 }
-

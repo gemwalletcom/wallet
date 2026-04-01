@@ -85,6 +85,8 @@ fun Balance<String>.hasAvailable() = try {
     false
 }
 
+fun Balance<String>.rewardsBalance() = rewards.toBigIntegerOrNull() ?: BigInteger.ZERO
+
 fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards
 
 fun Balance<Double>.getStackedAmount() = frozen + staked + pending + rewards + locked

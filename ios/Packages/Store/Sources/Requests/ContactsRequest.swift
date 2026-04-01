@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct ContactsRequest: DatabaseQueryable {
-
     public let chain: Chain?
 
     public init(chain: Chain? = nil) {
@@ -23,6 +22,6 @@ public struct ContactsRequest: DatabaseQueryable {
             .order(ContactRecord.Columns.name.asc)
             .asRequest(of: ContactRecordInfo.self)
             .fetchAll(db)
-            .map { $0.contactData }
+            .map(\.contactData)
     }
 }

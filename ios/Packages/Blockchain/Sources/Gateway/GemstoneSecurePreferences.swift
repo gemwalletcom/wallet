@@ -10,21 +10,21 @@ final class GemstoneSecurePreferences: GemPreferences, @unchecked Sendable {
 
     init(
         namespace: String,
-        keychain: Keychain = KeychainDefault()
+        keychain: Keychain = KeychainDefault(),
     ) {
         self.namespace = namespace
         self.keychain = keychain
     }
 
-    public func get(key: String) throws -> String? {
-        return try keychain.get(namespace + key)
+    func get(key: String) throws -> String? {
+        try keychain.get(namespace + key)
     }
 
-    public func set(key: String, value: String) throws {
+    func set(key: String, value: String) throws {
         try keychain.set(value, key: namespace + key)
     }
 
-    public func remove(key: String) throws {
+    func remove(key: String) throws {
         try keychain.remove(namespace + key)
     }
 }

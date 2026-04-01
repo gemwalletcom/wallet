@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import Localization
-import Components
 
 struct TransactionHeaderViewModel: Sendable {
     private let transaction: TransactionExtended
     private let infoModel: TransactionInfoViewModel
-    
+
     init(
         transaction: TransactionExtended,
-        infoModel: TransactionInfoViewModel
+        infoModel: TransactionInfoViewModel,
     ) {
         self.transaction = transaction
         self.infoModel = infoModel
@@ -26,8 +26,8 @@ struct TransactionHeaderViewModel: Sendable {
             metadata: TransactionExtendedMetadata(
                 assets: transaction.assets,
                 assetPrices: transaction.prices,
-                metadata: transaction.transaction.metadata
-            )
+                metadata: transaction.transaction.metadata,
+            ),
         )
     }
 
@@ -53,8 +53,8 @@ extension TransactionHeaderViewModel: ItemModelProvidable {
         .header(
             TransactionHeaderItemModel(
                 headerType: headerType,
-                showClearHeader: showClearHeader
-            )
+                showClearHeader: showClearHeader,
+            ),
         )
     }
 }

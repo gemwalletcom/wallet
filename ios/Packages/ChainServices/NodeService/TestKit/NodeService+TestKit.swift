@@ -7,7 +7,7 @@ import StoreTestKit
 
 public extension NodeService {
     static func mock(
-        nodeStore: NodeStore = .mock()
+        nodeStore: NodeStore = .mock(),
     ) -> NodeService {
         NodeService(nodeStore: nodeStore)
     }

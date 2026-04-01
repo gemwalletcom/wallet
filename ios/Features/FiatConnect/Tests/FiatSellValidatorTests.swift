@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import FiatConnect
-import PrimitivesTestKit
-import Primitives
 import BigInt
+import FiatConnect
+import Primitives
+import PrimitivesTestKit
+import Testing
 import Validators
 
 @testable import FiatConnect
 
 struct FiatSellValidatorTests {
-
     @Test
     func validationPassesWhenQuoteIsNil() throws {
         let validator = FiatSellValidator.mock(quote: nil)
@@ -24,7 +23,7 @@ struct FiatSellValidatorTests {
     func validationPassesWhenCryptoAmountLessThanBalance() throws {
         let validator = FiatSellValidator.mock(
             quote: .mock(fiatAmount: 100, cryptoAmount: 0.5, type: .sell),
-            availableBalance: BigInt(100_000_000)
+            availableBalance: BigInt(100_000_000),
         )
 
         #expect(throws: Never.self) {
@@ -38,7 +37,7 @@ struct FiatSellValidatorTests {
         let validator = FiatSellValidator.mock(
             quote: .mock(fiatAmount: 100, cryptoAmount: 2.0, type: .sell),
             availableBalance: BigInt(100_000_000),
-            asset: asset
+            asset: asset,
         )
 
         #expect(throws: TransferAmountCalculatorError.insufficientBalance(asset)) {
@@ -51,7 +50,7 @@ struct FiatSellValidatorTests {
         let validator = FiatSellValidator.mock(
             quote: .mock(fiatAmount: 1000, cryptoAmount: 0.5, type: .sell),
             availableBalance: BigInt(stringLiteral: "1000000000000000000"),
-            asset: .mock(decimals: 18)
+            asset: .mock(decimals: 18),
         )
 
         #expect(throws: Never.self) {
@@ -64,12 +63,12 @@ extension FiatSellValidator {
     static func mock(
         quote: FiatQuote? = .mock(type: .sell),
         availableBalance: BigInt = BigInt(100_000_000),
-        asset: Asset = .mock(decimals: 8)
+        asset: Asset = .mock(decimals: 8),
     ) -> FiatSellValidator {
         FiatSellValidator(
             quote: quote,
             availableBalance: availableBalance,
-            asset: asset
+            asset: asset,
         )
     }
 }

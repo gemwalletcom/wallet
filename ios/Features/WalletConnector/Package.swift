@@ -5,11 +5,12 @@ import PackageDescription
 let package = Package(
     name: "WalletConnector",
     platforms: [.iOS(.v17),
-        .macOS(.v15)],
+                .macOS(.v15)],
     products: [
         .library(
             name: "WalletConnector",
-            targets: ["WalletConnector"]),
+            targets: ["WalletConnector"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -47,7 +48,7 @@ let package = Package(
                 "Gemstone",
                 "Formatters",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "WalletConnectorTests",
@@ -61,9 +62,9 @@ let package = Package(
                 .product(name: "WalletConnectorServiceTestKit", package: "ChainServices"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
                 "WalletConnector",
-                "Gemstone"
+                "Gemstone",
             ],
-            resources: [.process("Resources")]
+            resources: [.process("Resources")],
         ),
-    ]
+    ],
 )

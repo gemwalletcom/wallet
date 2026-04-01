@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -21,8 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +34,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.availableBalance
 import com.gemwallet.android.domains.asset.availableBalanceFormatted
 import com.gemwallet.android.model.AssetInfo
@@ -45,8 +43,11 @@ import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.defaultPadding
+import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.smallPadding
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.wallet.core.primitives.Asset
@@ -60,25 +61,15 @@ internal fun SwapItem(
     state: TextFieldState = rememberTextFieldState(),
     onAssetSelect: (SwapItemType) -> Unit,
 ) {
-    val title by remember {
-        derivedStateOf {
-            when (type) {
-                SwapItemType.Pay -> R.string.swap_you_pay
-                SwapItemType.Receive -> R.string.swap_you_receive
-            }
-        }
-    }
-
     Column(
         modifier = Modifier
-            .listItem(ListPosition.Single, paddingVertical = 0.dp)
-            .defaultPadding()
+            .listItem(ListPosition.Single)
+            .padding(horizontal = paddingDefault, vertical = paddingMiddle)
             .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(space2)
     ) {
-        Text(text = stringResource(title), style = MaterialTheme.typography.labelMedium)
         Row(
-            modifier = Modifier.height(44.dp).fillMaxWidth(),
+            modifier = Modifier.height(listItemIconSize).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SwapItemInput(calculating, type, state)
@@ -117,7 +108,7 @@ private fun SelectAssetInfo(onClick: () -> Unit) {
             text = stringResource(R.string.assets_select_asset),
             style = MaterialTheme.typography.bodyLarge,
         )
-        Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = "")
+        AssetPickerChevron()
     }
 }
 
@@ -129,15 +120,23 @@ private fun AssetInfo(
     Row(
         modifier = Modifier.clickable(onClick).smallPadding(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.End),
     ) {
         AssetIcon(asset)
         Text(
             text = asset.symbol,
             style = MaterialTheme.typography.titleMedium,
         )
-        Icon(imageVector = Icons.Default.KeyboardArrowDown, contentDescription = "")
+        AssetPickerChevron()
     }
+}
+
+@Composable
+private fun AssetPickerChevron() {
+    Icon(
+        imageVector = Icons.Default.KeyboardArrowDown,
+        contentDescription = null,
+    )
 }
 
 @Composable
@@ -182,6 +181,10 @@ private fun RowScope.SwapItemInput(
     state: TextFieldState = rememberTextFieldState(),
 ) {
     val focusRequester = remember { FocusRequester() }
+    val amountTextStyle = MaterialTheme.typography.headlineSmall
+    val inputTextStyle = amountTextStyle.copy(
+        color = MaterialTheme.colorScheme.onSurface
+    )
 
     LaunchedEffect(Unit) {
         if (type == SwapItemType.Pay) {
@@ -199,9 +202,7 @@ private fun RowScope.SwapItemInput(
             BasicTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 state = state,
-                textStyle = MaterialTheme.typography.headlineSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
+                textStyle = inputTextStyle,
                 lineLimits = TextFieldLineLimits.SingleLine,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -212,7 +213,7 @@ private fun RowScope.SwapItemInput(
                     if (state.text.isEmpty()) {
                         Text(
                             text = "0",
-                            style = MaterialTheme.typography.headlineLarge,
+                            style = amountTextStyle,
                             color = MaterialTheme.colorScheme.secondary,
                         )
                     }

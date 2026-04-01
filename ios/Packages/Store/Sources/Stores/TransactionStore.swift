@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct TransactionStore: Sendable {
-
     let db: DatabaseQueue
 
     public init(db: DB) {
@@ -13,7 +12,7 @@ public struct TransactionStore: Sendable {
     }
 
     public func getTransactionWallets(
-        states: [TransactionState]
+        states: [TransactionState],
     ) throws -> [TransactionWallet] {
         try db.read { db in
             try TransactionRecord
@@ -42,7 +41,7 @@ public struct TransactionStore: Sendable {
                 .fetchAll(db)
         }
     }
-    
+
     public func getTransaction(walletId: WalletId, transactionId: String) throws -> TransactionExtended {
         try db.read { db in
             try TransactionRequest(walletId: walletId, transactionId: transactionId).fetch(db)
@@ -60,7 +59,7 @@ public struct TransactionStore: Sendable {
                     try TransactionAssetAssociationRecord
                         .filter(TransactionAssetAssociationRecord.Columns.transactionId == id)
                         .deleteAll(db)
-                    
+
                     try transaction.assetIds.forEach {
                         try TransactionAssetAssociationRecord(transactionId: id, assetId: $0).upsert(db)
                     }
@@ -69,36 +68,36 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func updateState(id: String, state: TransactionState) throws {
+    public func updateState(id: String, state: TransactionState) throws -> Int {
         try updateValues(id: id, values: [TransactionRecord.Columns.state.set(to: state.rawValue)])
     }
 
-    public func updateNetworkFee(transactionId: String, networkFee: String) throws {
+    public func updateNetworkFee(transactionId: String, networkFee: String) throws -> Int {
         try updateValues(id: transactionId, values: [TransactionRecord.Columns.fee.set(to: networkFee)])
     }
 
-    public func updateBlockNumber(transactionId: String, block: Int) throws {
+    public func updateBlockNumber(transactionId: String, block: Int) throws -> Int {
         try updateValues(id: transactionId, values: [TransactionRecord.Columns.blockNumber.set(to: block)])
     }
 
-    public func updateCreatedAt(transactionId: String, date: Date) throws {
+    public func updateCreatedAt(transactionId: String, date: Date) throws -> Int {
         try updateValues(id: transactionId, values: [TransactionRecord.Columns.createdAt.set(to: date)])
     }
 
-    public func updateMetadata(transactionId: String, metadata: AnyCodableValue) throws {
+    public func updateMetadata(transactionId: String, metadata: AnyCodableValue) throws -> Int {
         let string = try JSONEncoder().encode(metadata).encodeString()
-        try updateValues(
+        return try updateValues(
             id: transactionId,
-            values: [TransactionRecord.Columns.metadata.set(to: string)]
+            values: [TransactionRecord.Columns.metadata.set(to: string)],
         )
     }
 
     public func updateTransactionId(oldTransactionId: String, transactionId: String, hash: String) throws {
         if try isExist(transactionId: transactionId) {
             // should not exist in most cases. delete
-            try deleteTransactionId(ids: [oldTransactionId])
+            _ = try deleteTransactionId(ids: [oldTransactionId])
         } else {
-            return try db.write { db in
+            _ = try db.write { db in
                 try TransactionRecord
                     .filter(TransactionRecord.Columns.transactionId == oldTransactionId)
                     .updateAll(db, [
@@ -110,23 +109,23 @@ public struct TransactionStore: Sendable {
     }
 
     private func isExist(transactionId: String) throws -> Bool {
-        return try db.read { db in
+        try db.read { db in
             try TransactionRecord
                 .filter(TransactionRecord.Columns.transactionId == transactionId)
                 .fetchCount(db) > 0
         }
     }
 
-    public func deleteTransactionId(ids: [String]) throws {
-        return try db.write { db in
+    public func deleteTransactionId(ids: [String]) throws -> Int {
+        try db.write { db in
             try TransactionRecord
                 .filter(ids.contains(TransactionRecord.Columns.transactionId))
                 .deleteAll(db)
         }
     }
 
-    private func updateValues(id: String, values: [ColumnAssignment]) throws {
-        return try db.write { db in
+    private func updateValues(id: String, values: [ColumnAssignment]) throws -> Int {
+        try db.write { db in
             try TransactionRecord
                 .filter(TransactionRecord.Columns.transactionId == id)
                 .updateAll(db, values)

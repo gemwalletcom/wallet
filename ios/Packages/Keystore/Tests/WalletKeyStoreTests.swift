@@ -33,7 +33,7 @@ final class WalletKeyStoreTests {
             key: testBase58Key,
             chain: .solana,
             password: "test",
-            source: .import
+            source: .import,
         )
 
         #expect(wallet.type == .privateKey)
@@ -42,8 +42,8 @@ final class WalletKeyStoreTests {
                 chain: .solana,
                 address: expectedAddress,
                 derivationPath: "m/44\'/501\'/0\'",
-                extendedPublicKey: .none
-            )
+                extendedPublicKey: .none,
+            ),
         ])
     }
 
@@ -80,7 +80,7 @@ final class WalletKeyStoreTests {
 
         #expect(address == "GADB4BDKTOE36L6QN2JLIPNNJ7EZPSY5BIVKWXLWYZLIPXNQWIRQQZKT")
     }
-    
+
     @Test func addImportWallet() async throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(
@@ -89,12 +89,12 @@ final class WalletKeyStoreTests {
             words: words.components(separatedBy: " "),
             chains: [.bitcoin, .ethereum],
             password: password,
-            source: .import
+            source: .import,
         )
 
-        #expect(newWallet.accounts.map { $0.chain } == [.bitcoin, .ethereum])
+        #expect(newWallet.accounts.map(\.chain) == [.bitcoin, .ethereum])
     }
-    
+
     @Test func addCoinsMany() async throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
@@ -103,12 +103,12 @@ final class WalletKeyStoreTests {
             wallet: newWallet,
             existingChains: [],
             newChains: [.ethereum, .bitcoin],
-            password: password
+            password: password,
         )
 
-        #expect(wallet.accounts.map { $0.chain } == [.ethereum, .bitcoin])
+        #expect(wallet.accounts.map(\.chain) == [.ethereum, .bitcoin])
     }
-    
+
     @Test func addCoinsEmptyChain() async throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
@@ -117,7 +117,7 @@ final class WalletKeyStoreTests {
 
         #expect(wallet.accounts.isEmpty)
     }
-    
+
     @Test func addCoinsSingleChain() async throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .single(chain: .algorand, address: address(for: .algorand)), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
@@ -126,22 +126,22 @@ final class WalletKeyStoreTests {
             wallet: newWallet,
             existingChains: [],
             newChains: [.algorand],
-            password: password
+            password: password,
         )
 
-        #expect(wallet.accounts.map { $0.chain } == [.algorand])
+        #expect(wallet.accounts.map(\.chain) == [.algorand])
     }
-    
+
     @Test func addCoinsWhenSolana() async throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
 
         let wallet = try store.addChains(wallet: newWallet, existingChains: [], newChains: [.solana], password: password)
 
-        #expect(wallet.accounts.map { $0.chain } == [.solana])
-        #expect(wallet.accounts.map { $0.address } == ["9fb52fTJpTzYqV4be7u31TxxFfzs9ub9RehwLYuxhP6C"])
+        #expect(wallet.accounts.map(\.chain) == [.solana])
+        #expect(wallet.accounts.map(\.address) == ["9fb52fTJpTzYqV4be7u31TxxFfzs9ub9RehwLYuxhP6C"])
     }
-    
+
     @Test func addCoinsManyTries() async throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
@@ -150,19 +150,19 @@ final class WalletKeyStoreTests {
             wallet: newWallet,
             existingChains: [],
             newChains: [.ethereum],
-            password: password
+            password: password,
         )
 
-        #expect(wallet.accounts.map { $0.chain } == [.ethereum])
+        #expect(wallet.accounts.map(\.chain) == [.ethereum])
 
         let wallet2 = try store.addChains(
             wallet: newWallet,
             existingChains: [.bitcoin],
             newChains: [.ethereum],
-            password: password
+            password: password,
         )
 
-        #expect(wallet2.accounts.map { $0.chain } == [.bitcoin, .ethereum])
+        #expect(wallet2.accounts.map(\.chain) == [.bitcoin, .ethereum])
     }
 }
 

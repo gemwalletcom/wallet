@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Style
+import SwiftUI
 
 public protocol AssetPreviewable {
     var assetImage: AssetImage { get }
@@ -40,7 +40,7 @@ public struct AssetPreviewView<Model: AssetPreviewable>: View {
             }
         }
     }
-    
+
     private var layout: AnyLayout {
         switch subtitleLayout {
         case .horizontal: AnyLayout(HStackLayout(alignment: .lastTextBaseline, spacing: .tiny))

@@ -24,8 +24,8 @@ struct ChartBounds {
         let priceRange = max(candleMax, overlayMax) - min(candleMin, overlayMin)
         let padding = priceRange * 0.05
 
-        self.minPrice = min(candleMin, overlayMin) - padding
-        self.maxPrice = max(candleMax, overlayMax) + padding
+        minPrice = min(candleMin, overlayMin) - padding
+        maxPrice = max(candleMax, overlayMax) + padding
         self.visibleLines = visibleLines.sorted { $0.price < $1.price }
     }
 

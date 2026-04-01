@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
-import Localization
-import PrimitivesComponents
 import GemstonePrimitives
+import Localization
+import Primitives
+import PrimitivesComponents
 
 public struct ChainListSettingsViewModel {
-    public init() { }
-    
+    public init() {}
+
     var title: String {
         Localized.Settings.Networks.title
     }
@@ -25,4 +25,3 @@ extension ChainListSettingsViewModel: ChainFilterable {
         AssetConfiguration.allChains.sortByRank()
     }
 }
-

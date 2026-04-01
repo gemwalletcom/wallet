@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 struct RandomOverlayView: View {
     private let cornerRadius: CGFloat
@@ -18,12 +18,12 @@ struct RandomOverlayView: View {
                         Color(hex: "#2A32FF"),
                         Color(hex: "#6CB8FF"),
                         Color(hex: "#F213F6"),
-                        Color(hex: "FFF963")
+                        Color(hex: "FFF963"),
                     ]),
                     startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+                    endPoint: .bottomTrailing,
                 ),
-                lineWidth: 3
+                lineWidth: 3,
             )
     }
 }

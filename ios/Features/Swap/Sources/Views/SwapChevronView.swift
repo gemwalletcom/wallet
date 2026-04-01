@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 struct SwapChevronView: View {
     init() {}

@@ -3,8 +3,8 @@
 import Gemstone
 import Primitives
 
-extension GemResource {
-    public func map() -> Primitives.Resource {
+public extension GemResource {
+    func map() -> Primitives.Resource {
         switch self {
         case .bandwidth: .bandwidth
         case .energy: .energy
@@ -12,8 +12,8 @@ extension GemResource {
     }
 }
 
-extension Primitives.Resource {
-    public func map() -> GemResource {
+public extension Primitives.Resource {
+    func map() -> GemResource {
         switch self {
         case .bandwidth: .bandwidth
         case .energy: .energy
@@ -21,45 +21,45 @@ extension Primitives.Resource {
     }
 }
 
-extension GemStakeType {
-    public func map() throws -> StakeType {
+public extension GemStakeType {
+    func map() throws -> StakeType {
         switch self {
-        case .delegate(let validator):
-            return .stake(try validator.map())
-        case .undelegate(let delegation):
-            return .unstake(try delegation.map())
-        case .redelegate(let delegation, let toValidator):
-            return .redelegate(RedelegateData(delegation: try delegation.map(), toValidator: try toValidator.map()))
-        case .withdrawRewards(let validators):
+        case let .delegate(validator):
+            return try .stake(validator.map())
+        case let .undelegate(delegation):
+            return try .unstake(delegation.map())
+        case let .redelegate(delegation, toValidator):
+            return try .redelegate(RedelegateData(delegation: delegation.map(), toValidator: toValidator.map()))
+        case let .withdrawRewards(validators):
             let mappedValidators = try validators.map { try $0.map() }
             return .rewards(mappedValidators)
-        case .withdraw(let delegation):
-            return .withdraw(try delegation.map())
-        case .freeze(let resource):
+        case let .withdraw(delegation):
+            return try .withdraw(delegation.map())
+        case let .freeze(resource):
             return .freeze(resource.map())
-        case .unfreeze(let resource):
+        case let .unfreeze(resource):
             return .unfreeze(resource.map())
         }
     }
 }
 
-extension StakeType {
-    public func map() -> GemStakeType {
+public extension StakeType {
+    func map() -> GemStakeType {
         switch self {
-        case .stake(let validator):
-            return .delegate(validator: validator.map())
-        case .unstake(let delegation):
-            return .undelegate(delegation: delegation.map())
-        case .redelegate(let data):
-            return .redelegate(delegation: data.delegation.map(), toValidator: data.toValidator.map())
-        case .rewards(let validators):
-            return .withdrawRewards(validators: validators.map { $0.map() })
-        case .withdraw(let delegation):
-            return .withdraw(delegation: delegation.map())
-        case .freeze(let resource):
-            return .freeze(resource: resource.map())
-        case .unfreeze(let resource):
-            return .unfreeze(resource: resource.map())
+        case let .stake(validator):
+            .delegate(validator: validator.map())
+        case let .unstake(delegation):
+            .undelegate(delegation: delegation.map())
+        case let .redelegate(data):
+            .redelegate(delegation: data.delegation.map(), toValidator: data.toValidator.map())
+        case let .rewards(validators):
+            .withdrawRewards(validators: validators.map { $0.map() })
+        case let .withdraw(delegation):
+            .withdraw(delegation: delegation.map())
+        case let .freeze(resource):
+            .freeze(resource: resource.map())
+        case let .unfreeze(resource):
+            .unfreeze(resource: resource.map())
         }
     }
 }

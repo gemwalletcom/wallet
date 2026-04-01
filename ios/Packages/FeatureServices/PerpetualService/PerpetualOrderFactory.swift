@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
-import Primitives
+import Foundation
 import GemstonePrimitives
+import Primitives
 
 public struct PerpetualOrderFactory {
     private enum OrderAction {
@@ -22,7 +22,7 @@ public struct PerpetualOrderFactory {
         leverage: UInt8,
         slippage: Double = 2.0,
         takeProfit: String? = nil,
-        stopLoss: String? = nil
+        stopLoss: String? = nil,
     ) -> PerpetualType {
         let perpetual = positionAction.transferData
 
@@ -30,7 +30,7 @@ public struct PerpetualOrderFactory {
             marketPrice: perpetual.price,
             direction: perpetual.direction,
             action: .open,
-            slippage: slippage
+            slippage: slippage,
         )
 
         let usdAmount = Double(usdcAmount) / pow(10.0, Double(usdcDecimals))
@@ -55,13 +55,13 @@ public struct PerpetualOrderFactory {
             marketPrice: perpetual.price,
             marginAmount: marginAmount,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
 
         return switch positionAction {
         case .open: .open(data)
         case .increase: .increase(data)
-        case .reduce(_, _, let positionDirection): .reduce(PerpetualReduceData(data: data, positionDirection: positionDirection))
+        case let .reduce(_, _, positionDirection): .reduce(PerpetualReduceData(data: data, positionDirection: positionDirection))
         }
     }
 
@@ -71,13 +71,13 @@ public struct PerpetualOrderFactory {
         position: PerpetualPosition,
         asset: Asset,
         baseAsset: Asset,
-        slippage: Double = 2.0
+        slippage: Double = 2.0,
     ) -> PerpetualConfirmData {
         let positionPrice = calculateSlippagePrice(
             marketPrice: perpetual.price,
             direction: position.direction,
             action: .close,
-            slippage: slippage
+            slippage: slippage,
         )
 
         return makePerpetualConfirmData(
@@ -95,20 +95,20 @@ public struct PerpetualOrderFactory {
             pnl: position.pnl,
             entryPrice: position.entryPrice,
             marketPrice: perpetual.price,
-            marginAmount: position.marginAmount
+            marginAmount: position.marginAmount,
         )
     }
-    
+
     // MARK: - Private methods
 
     private func calculateSlippagePrice(
         marketPrice: Double,
         direction: PerpetualDirection,
         action: OrderAction,
-        slippage: Double
+        slippage: Double,
     ) -> Double {
         let slippageFraction = slippage / 100.0
-        let multiplier: Double = switch (direction, action) {
+        let multiplier = switch (direction, action) {
         case (.long, .open), (.short, .close): 1.0 + slippageFraction
         case (.long, .close), (.short, .open): 1.0 - slippageFraction
         }
@@ -121,7 +121,7 @@ public struct PerpetualOrderFactory {
         baseAsset: Asset,
         fiatValue: Double,
         assetIndex: Int32,
-        provider: PerpetualProvider,
+        provider _: PerpetualProvider,
         slippagePrice: Double,
         sizeAsDouble: Double,
         assetDecimals: Int32,
@@ -132,16 +132,16 @@ public struct PerpetualOrderFactory {
         marketPrice: Double,
         marginAmount: Double,
         takeProfit: String? = nil,
-        stopLoss: String? = nil
+        stopLoss: String? = nil,
     ) -> PerpetualConfirmData {
         let price = formatter.formatPrice(
             slippagePrice,
-            decimals: assetDecimals
+            decimals: assetDecimals,
         )
 
         let size = formatter.formatSize(
             sizeAsDouble,
-            decimals: assetDecimals
+            decimals: assetDecimals,
         )
 
         return PerpetualConfirmData(
@@ -159,7 +159,7 @@ public struct PerpetualOrderFactory {
             marketPrice: marketPrice,
             marginAmount: marginAmount,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
     }
 }

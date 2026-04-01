@@ -11,11 +11,11 @@ enum WalletSearchMode: Sendable {
 }
 
 struct WalletSearchModel {
-    struct Limits {
+    enum Limits {
         static let fetch = 100
         static let perpetuals = 3
 
-        struct Assets {
+        enum Assets {
             static let initial = 12
             static let tagBrowse = 18
             static let search = 25
@@ -40,7 +40,7 @@ struct WalletSearchModel {
     }
 
     init(selectType: SelectAssetType) {
-        self.assetSearch = AssetSearchViewModel(selectType: selectType)
+        assetSearch = AssetSearchViewModel(selectType: selectType)
     }
 }
 

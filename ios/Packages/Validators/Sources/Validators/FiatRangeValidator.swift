@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Localization
+import Primitives
 
 public struct FiatRangeValidator<T: Comparable & Sendable>: ValueValidator {
     public typealias Formatted = T
-    
+
     private let range: ClosedRange<T>
     private let minimumValueText: String
     private let maximumValueText: String
@@ -14,7 +14,7 @@ public struct FiatRangeValidator<T: Comparable & Sendable>: ValueValidator {
     public init(
         range: ClosedRange<T>,
         minimumValueText: String,
-        maximumValueText: String
+        maximumValueText: String,
     ) {
         self.range = range
         self.minimumValueText = minimumValueText

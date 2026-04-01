@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct NftImagePlaceholderView: View {
-    private struct Layout {
+    private enum Layout {
         static let nameVisibilityThreshold: CGFloat = 250
         static let circleSizeRatioWithText: CGFloat = 0.3
         static let circleSizeRatioDefault: CGFloat = 0.35

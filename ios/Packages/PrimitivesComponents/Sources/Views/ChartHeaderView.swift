@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ChartHeaderView: View {
     let model: ChartHeaderViewModel

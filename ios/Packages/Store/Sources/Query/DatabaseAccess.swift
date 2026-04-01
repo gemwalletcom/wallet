@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import GRDB
+import SwiftUI
 
 public struct DatabaseAccess: Sendable {
     private let _dbQueue: DatabaseQueue?
@@ -10,7 +10,7 @@ public struct DatabaseAccess: Sendable {
     public static let notConfigured = DatabaseAccess(nil)
 
     public init(_ dbQueue: DatabaseQueue?) {
-        self._dbQueue = dbQueue
+        _dbQueue = dbQueue
     }
 
     public var dbQueue: DatabaseQueue {

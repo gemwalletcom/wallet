@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import BigInt
+import Foundation
 import Primitives
+import Testing
 
 @testable import Validators
 
@@ -12,20 +12,20 @@ struct MinimumValueValidatorTests {
     private let asset = Asset.mockBNB()
 
     @Test
-    func testPassesEqualOrGreater() throws {
+    func passesEqualOrGreater() throws {
         let validator = MinimumValueValidator<BigInt>(
             minimumValue: min,
-            asset: asset
+            asset: asset,
         )
         try validator.validate(min)
         try validator.validate(min + 1)
     }
 
     @Test
-    func testThrowsBelowMinimum() {
+    func throwsBelowMinimum() {
         let validator = MinimumValueValidator<BigInt>(
             minimumValue: min,
-            asset: asset
+            asset: asset,
         )
         #expect(throws: TransferError.minimumAmount(asset: asset, required: min)) {
             try validator.validate(min - 1)

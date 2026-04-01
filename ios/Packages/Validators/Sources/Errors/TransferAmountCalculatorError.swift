@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
-import Primitives
-import Localization
 import Formatters
+import Foundation
+import Localization
+import Primitives
 
 public enum TransferAmountCalculatorError: Equatable {
     case insufficientBalance(Asset)
@@ -15,21 +15,21 @@ public enum TransferAmountCalculatorError: Equatable {
 extension TransferAmountCalculatorError: LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case .insufficientBalance(let asset):
+        case let .insufficientBalance(asset):
             Localized.Transfer.insufficientBalance(Self.title(asset: asset))
-        case .insufficientNetworkFee(let asset, _):
+        case let .insufficientNetworkFee(asset, _):
             Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
-        case .minimumAccountBalanceTooLow(let asset, let required):
+        case let .minimumAccountBalanceTooLow(asset, required):
             Localized.Transfer.minimumAccountBalance(Self.formattedValue(required, asset: asset))
         }
     }
 
-    static private func title(asset: Asset) -> String {
+    private static func title(asset: Asset) -> String {
         let title = asset.name == asset.symbol ? asset.name : String(format: "%@ (%@)", asset.name, asset.symbol)
         return title.boldMarkdown()
     }
 
-    static private func formattedValue(_ value: BigInt, asset: Asset) -> String {
+    private static func formattedValue(_ value: BigInt, asset: Asset) -> String {
         ValueFormatter(style: .full).string(value, asset: asset).boldMarkdown()
     }
 }

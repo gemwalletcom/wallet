@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
 import Foundation
+import Primitives
+import Testing
 
 struct String_PrimitivesTests {
     @Test

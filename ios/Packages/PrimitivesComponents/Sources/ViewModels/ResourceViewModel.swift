@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Localization
+import Primitives
 
 public struct ResourceViewModel: Hashable, Identifiable {
     public let resource: Resource
@@ -19,5 +19,4 @@ public struct ResourceViewModel: Hashable, Identifiable {
     }
 
     public var id: Resource { resource }
-
 }

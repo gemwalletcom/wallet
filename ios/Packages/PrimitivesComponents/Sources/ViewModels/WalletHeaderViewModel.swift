@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Style
 import Components
 import Formatters
+import Primitives
+import Style
+import SwiftUI
 
 public struct WalletHeaderViewModel {
     private let walletType: WalletType
@@ -16,13 +16,13 @@ public struct WalletHeaderViewModel {
         walletType: WalletType,
         totalValue: TotalFiatValue,
         currencyCode: String,
-        bannerEventsViewModel: HeaderBannerEventViewModel
+        bannerEventsViewModel: HeaderBannerEventViewModel,
     ) {
         self.walletType = walletType
         self.totalValue = totalValue
         self.bannerEventsViewModel = bannerEventsViewModel
         let formatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
-        self.totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter)
+        totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter)
     }
 }
 
@@ -37,6 +37,7 @@ extension WalletHeaderViewModel: HeaderViewModel {
         guard let percentage = totalValueViewModel.pnlPercentageText else { return amount }
         return "\(amount) (\(percentage))"
     }
+
     public var subtitleColor: Color { totalValueViewModel.pnlColor }
 
     public var subtitleImage: Image? {
@@ -47,7 +48,7 @@ extension WalletHeaderViewModel: HeaderViewModel {
         [
             HeaderButton(type: .send, isEnabled: bannerEventsViewModel.isButtonsEnabled),
             HeaderButton(type: .receive, isEnabled: bannerEventsViewModel.isButtonsEnabled),
-            HeaderButton(type: .buy, isEnabled: bannerEventsViewModel.isButtonsEnabled)
+            HeaderButton(type: .buy, isEnabled: bannerEventsViewModel.isButtonsEnabled),
         ]
     }
 }

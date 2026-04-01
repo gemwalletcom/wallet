@@ -5,16 +5,15 @@ import GRDB
 import Primitives
 
 public struct BalanceStore: Sendable {
-    
     let db: DatabaseQueue
 
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     public func addBalance(
         _ balances: [AddBalance],
-        for walletId: WalletId
+        for walletId: WalletId,
     ) throws {
         try db.write { (db: Database) in
             for balance in balances {
@@ -26,26 +25,26 @@ public struct BalanceStore: Sendable {
 
     public func updateBalances(
         _ balances: [UpdateBalance],
-        for walletId: WalletId
+        for walletId: WalletId,
     ) throws {
         try db.write { (db: Database) in
             for balance in balances {
                 let balanceFields: [ColumnAssignment] = switch balance.type {
-                case .coin(let balance):
+                case let .coin(balance):
                     [
                         BalanceRecord.Columns.available.set(to: balance.available.value),
                         BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
                         BalanceRecord.Columns.reserved.set(to: balance.reserved.value),
                         BalanceRecord.Columns.reservedAmount.set(to: balance.reserved.amount),
                         BalanceRecord.Columns.pendingUnconfirmed.set(to: balance.pendingUnconfirmed.value),
-                        BalanceRecord.Columns.pendingUnconfirmedAmount.set(to: balance.pendingUnconfirmed.amount)
+                        BalanceRecord.Columns.pendingUnconfirmedAmount.set(to: balance.pendingUnconfirmed.amount),
                     ]
-                case .token(let balance):
+                case let .token(balance):
                     [
                         BalanceRecord.Columns.available.set(to: balance.available.value),
                         BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
                     ]
-                case .stake(let balance):
+                case let .stake(balance):
                     [
                         BalanceRecord.Columns.staked.set(to: balance.staked.value),
                         BalanceRecord.Columns.stakedAmount.set(to: balance.staked.amount),
@@ -58,19 +57,19 @@ public struct BalanceStore: Sendable {
                         BalanceRecord.Columns.rewards.set(to: balance.rewards.value),
                         BalanceRecord.Columns.rewardsAmount.set(to: balance.rewards.amount),
                     ]
-                case .perpetual(let balance):
+                case let .perpetual(balance):
                     [
                         BalanceRecord.Columns.available.set(to: balance.available.value),
                         BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
                         BalanceRecord.Columns.reserved.set(to: balance.reserved.value),
                         BalanceRecord.Columns.reservedAmount.set(to: balance.reserved.amount),
                         BalanceRecord.Columns.withdrawable.set(to: balance.withdrawable.value),
-                        BalanceRecord.Columns.withdrawableAmount.set(to: balance.withdrawable.amount)
+                        BalanceRecord.Columns.withdrawableAmount.set(to: balance.withdrawable.amount),
                     ]
-                case .earn(let balance):
+                case let .earn(balance):
                     [
                         BalanceRecord.Columns.earn.set(to: balance.balance.value),
-                        BalanceRecord.Columns.earnAmount.set(to: balance.balance.amount)
+                        BalanceRecord.Columns.earnAmount.set(to: balance.balance.amount),
                     ]
                 }
 
@@ -88,7 +87,7 @@ public struct BalanceStore: Sendable {
                 }()
 
                 let assignments = balanceFields + defaultFields
-                
+
                 try BalanceRecord
                     .filter(BalanceRecord.Columns.walletId == walletId.id)
                     .filter(BalanceRecord.Columns.assetId == balance.assetId.identifier)
@@ -100,7 +99,7 @@ public struct BalanceStore: Sendable {
     @discardableResult
     public func getBalance(walletId: WalletId, assetId: AssetId) throws -> Balance? {
         try db.read { db in
-            return try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.assetId == assetId.identifier)
                 .fetchOne(db)?.mapToBalance()
@@ -110,19 +109,19 @@ public struct BalanceStore: Sendable {
     @discardableResult
     func getBalanceRecord(walletId: WalletId, assetId: AssetId) throws -> BalanceRecord? {
         try db.read { db in
-            return try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.assetId == assetId.identifier)
                 .fetchOne(db)
         }
     }
-    
+
     @discardableResult
     public func getBalances(walletId: WalletId, assetIds: [AssetId]) throws -> [AssetBalance] {
         try db.read { db in
-            return try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(assetIds.map { $0.identifier }.contains(BalanceRecord.Columns.assetId))
+                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
                 .distinct()
                 .fetchAll(db)
                 .map { $0.mapToAssetBalance() }
@@ -132,7 +131,7 @@ public struct BalanceStore: Sendable {
     @discardableResult
     public func isBalanceExist(walletId: WalletId, assetId: AssetId) throws -> Bool {
         try db.read { db in
-            return try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.assetId == assetId.identifier)
                 .fetchCount(db) > 0
@@ -144,16 +143,17 @@ public struct BalanceStore: Sendable {
         try db.write { db in
             let assignments = switch value {
             case true: [
-                BalanceRecord.Columns.isEnabled.set(to: true),
-            ]
+                    BalanceRecord.Columns.isEnabled.set(to: true),
+                ]
             case false: [
-                BalanceRecord.Columns.isEnabled.set(to: false),
-                BalanceRecord.Columns.isPinned.set(to: false)
-            ]}
+                    BalanceRecord.Columns.isEnabled.set(to: false),
+                    BalanceRecord.Columns.isPinned.set(to: false),
+                ]
+            }
 
             return try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(assetIds.map { $0.identifier }.contains(BalanceRecord.Columns.assetId))
+                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
                 .updateAll(db, assignments)
         }
     }
@@ -161,7 +161,7 @@ public struct BalanceStore: Sendable {
     @discardableResult
     public func pinAsset(walletId: WalletId, assetId: AssetId, value: Bool) throws -> Int {
         try db.write { db in
-            return try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.assetId == assetId.identifier)
                 .updateAll(db, BalanceRecord.Columns.isPinned.set(to: value))
@@ -172,7 +172,7 @@ public struct BalanceStore: Sendable {
         try db.read { db in
             let existingAssetIds = try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(assetIds.map { $0.identifier }.contains(BalanceRecord.Columns.assetId))
+                .filter(assetIds.map(\.identifier).contains(BalanceRecord.Columns.assetId))
                 .select(BalanceRecord.Columns.assetId)
                 .fetchAll(db)
                 .map { $0[BalanceRecord.Columns.assetId] as String }

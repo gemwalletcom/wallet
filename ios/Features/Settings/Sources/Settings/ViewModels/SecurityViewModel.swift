@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Keystore
-import Components
 import Localization
-import Store
 import Preferences
+import Store
 
 @Observable
 @MainActor
@@ -37,14 +37,14 @@ public final class SecurityViewModel {
 
     public init(
         service: any BiometryAuthenticatable = BiometryAuthenticationService(),
-        preferences: ObservablePreferences = .default
+        preferences: ObservablePreferences = .default,
     ) {
         self.service = service
         self.preferences = preferences
 
-        self.lockPeriod = service.lockPeriod
-        self.isEnabled = service.isAuthenticationEnabled
-        self.isPrivacyLockEnabled = service.isPrivacyLockEnabled
+        lockPeriod = service.lockPeriod
+        isEnabled = service.isAuthenticationEnabled
+        isPrivacyLockEnabled = service.isPrivacyLockEnabled
     }
 
     var title: String { Localized.Settings.security }
@@ -70,7 +70,7 @@ extension SecurityViewModel {
         do {
             try await service.enableAuthentication(isEnabled, reason: SecurityViewModel.reason)
             isPrivacyLockEnabled = service.isPrivacyLockEnabled
-            lockPeriod = service.lockPeriod 
+            lockPeriod = service.lockPeriod
         } catch let error as BiometryAuthenticationError {
             if !error.isAuthenticationCancelled {
                 isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
@@ -91,7 +91,7 @@ extension SecurityViewModel {
             isPrivacyLockEnabled.toggle()
         }
     }
-    
+
     func updateLockPeriod() {
         do {
             try service.update(period: lockPeriod)

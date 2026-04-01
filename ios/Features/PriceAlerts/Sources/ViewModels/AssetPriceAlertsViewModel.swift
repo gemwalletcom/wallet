@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Store
-import Primitives
-import Localization
-import PriceAlertService
-import PrimitivesComponents
 import Components
-import Style
+import Localization
 import Preferences
+import PriceAlertService
+import Primitives
+import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 @Observable
 @MainActor
@@ -27,22 +27,22 @@ public final class AssetPriceAlertsViewModel: Sendable {
     public init(
         priceAlertService: PriceAlertService,
         walletId: WalletId,
-        asset: Asset
+        asset: Asset,
     ) {
         self.priceAlertService = priceAlertService
         self.walletId = walletId
         self.asset = asset
-        self.query = ObservableQuery(PriceAlertsRequest(assetId: asset.id), initialValue: [])
-        self.priceQuery = ObservableQuery(PriceRequest(assetId: asset.id), initialValue: nil)
+        query = ObservableQuery(PriceAlertsRequest(assetId: asset.id), initialValue: [])
+        priceQuery = ObservableQuery(PriceRequest(assetId: asset.id), initialValue: nil)
     }
-    
+
     var title: String { Localized.Settings.PriceAlerts.title }
 
     var autoAlertItemModel: PriceAlertItemViewModel {
         PriceAlertItemViewModel(data: PriceAlertData(
             asset: asset,
             price: priceQuery.value?.price,
-            priceAlert: .default(for: asset.id, currency: Preferences.standard.currency)
+            priceAlert: .default(for: asset.id, currency: Preferences.standard.currency),
         ))
     }
 
@@ -51,7 +51,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
             get: { self.priceAlerts.contains(where: { $0.priceAlert.type == .auto }) },
             set: { newValue in
                 Task { await self.toggleAutoAlert(enabled: newValue) }
-            }
+            },
         )
     }
 
@@ -61,7 +61,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
             .sorted(using: [
                 KeyPathComparator(\.priceAlert.price, order: .reverse),
                 KeyPathComparator(\.priceAlert.priceDirection, order: .reverse),
-                KeyPathComparator(\.priceAlert.pricePercentChange, order: .reverse)
+                KeyPathComparator(\.priceAlert.pricePercentChange, order: .reverse),
             ])
             .map { PriceAlertItemViewModel(data: $0) }
     }
@@ -77,7 +77,7 @@ extension AssetPriceAlertsViewModel {
             debugLog("fetch error: \(error)")
         }
     }
-    
+
     func toggleAutoAlert(enabled: Bool) async {
         let currency = Preferences.standard.currency
         do {
@@ -100,11 +100,11 @@ extension AssetPriceAlertsViewModel {
             debugLog("deletePriceAlert error: \(error)")
         }
     }
-    
+
     func onSelectSetPriceAlert() {
         isPresentingSetPriceAlert = true
     }
-    
+
     func onSetPriceAlertComplete(message: String) {
         isPresentingSetPriceAlert = false
         isPresentingToastMessage = .priceAlert(message: message)

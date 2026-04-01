@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import Localization
 import Primitives
 import Style
-import Localization
+import SwiftUI
 
 struct ImportWalletTypeScene: View {
-
     let model: ImportWalletTypeViewModel
     @State private var searchQuery = ""
 
     init(
-        model: ImportWalletTypeViewModel
+        model: ImportWalletTypeViewModel,
     ) {
         self.model = model
     }
@@ -23,11 +22,11 @@ struct ImportWalletTypeScene: View {
                 NavigationLink(value: ImportWalletType.multicoin) {
                     ListItemView(
                         title: Localized.Wallet.multicoin,
-                        imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo))
+                        imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)),
                     )
                 }
             }
-            
+
             if model.items(for: searchQuery).isEmpty {
                 StateEmptyView(title: Localized.Common.noResultsFound)
             } else {
@@ -36,7 +35,7 @@ struct ImportWalletTypeScene: View {
                         NavigationLink(value: ImportWalletType.chain(chain)) {
                             ListItemView(
                                 title: Asset(chain).name,
-                                imageStyle: .asset(assetImage: AssetImage.resourceImage(image: chain.rawValue))
+                                imageStyle: .asset(assetImage: AssetImage.resourceImage(image: chain.rawValue)),
                             )
                         }
                     }
@@ -48,7 +47,7 @@ struct ImportWalletTypeScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .searchable(
             text: $searchQuery,
-            placement: .navigationBarDrawer(displayMode: .always)
+            placement: .navigationBarDrawer(displayMode: .always),
         )
         .autocorrectionDisabled(true)
         .scrollDismissesKeyboard(.interactively)

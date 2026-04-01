@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
-import SwiftUI
 import Primitives
 import Style
-import Formatters
-import Components
+import SwiftUI
 
 public struct ChartHeaderViewModel {
     public let period: ChartPeriod
@@ -24,7 +24,7 @@ public struct ChartHeaderViewModel {
         priceChangePercentage: Double,
         headerValue: Double? = nil,
         formatter: CurrencyFormatter,
-        type: ChartValueType = .price
+        type: ChartValueType = .price,
     ) {
         self.period = period
         self.date = date

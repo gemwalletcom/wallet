@@ -12,7 +12,7 @@ public extension NFTCollection {
         contractAddress: String = "0x123456789abcdef",
         images: NFTImages = NFTImages(preview: .mock()),
         status: VerificationStatus = .verified,
-        links: [AssetLink] = []
+        links: [AssetLink] = [],
     ) -> NFTCollection {
         NFTCollection(
             id: id,
@@ -22,7 +22,7 @@ public extension NFTCollection {
             contractAddress: contractAddress,
             images: images,
             status: status,
-            links: links
+            links: links,
         )
     }
 }

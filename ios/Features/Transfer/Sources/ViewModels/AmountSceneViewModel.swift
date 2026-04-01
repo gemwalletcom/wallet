@@ -44,15 +44,15 @@ public final class AmountSceneViewModel {
         service: AmountService,
         fiatService: FiatService,
         preferences: Preferences = .standard,
-        onTransferAction: TransferDataAction
+        onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.onTransferAction = onTransferAction
         self.fiatService = fiatService
-        self.currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
-        self.provider = .make(from: input, wallet: wallet, service: service)
-        self.assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: input.asset.id), initialValue: .with(asset: input.asset))
-        self.amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
+        provider = .make(from: input, wallet: wallet, service: service)
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: input.asset.id), initialValue: .with(asset: input.asset))
+        amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
 
         if let amount = provider.recipientData().amount {
@@ -73,7 +73,7 @@ public final class AmountSceneViewModel {
         ValueFormatter(style: .medium).string(
             provider.availableValue(from: assetData),
             decimals: asset.decimals.asInt,
-            currency: asset.symbol
+            currency: asset.symbol,
         )
     }
 
@@ -99,7 +99,7 @@ public final class AmountSceneViewModel {
             currencyFormatter: currencyFormatter,
             numberSanitizer: NumberSanitizer(),
             secondaryText: secondaryText,
-            onTapActionButton: onSelectInputButton
+            onTapActionButton: onSelectInputButton,
         )
     }
 }
@@ -172,13 +172,13 @@ extension AmountSceneViewModel {
 
     func infoAction(for error: Error) -> (() -> Void)? {
         guard let transferError = error as? TransferError,
-              case .minimumAmount(let asset, let required) = transferError
+              case let .minimumAmount(asset, required) = transferError
         else {
             return nil
         }
         return { [weak self] in
             guard let self else { return }
-            self.isPresentingSheet = .infoAction(.stakeMinimumAmount(asset, required: required, action: self.onSelectBuy))
+            isPresentingSheet = .infoAction(.stakeMinimumAmount(asset, required: required, action: onSelectBuy))
         }
     }
 }
@@ -229,9 +229,9 @@ private extension AmountSceneViewModel {
                 validators: [
                     PositiveValueValidator<BigInt>().silent,
                     MinimumValueValidator<BigInt>(minimumValue: provider.minimumValue, asset: asset),
-                    BalanceValueValidator<BigInt>(available: provider.availableValue(from: assetData), asset: asset)
-                ]
-            )
+                    BalanceValueValidator<BigInt>(available: provider.availableValue(from: assetData), asset: asset),
+                ],
+            ),
         ]
     }
 
@@ -247,7 +247,7 @@ private extension AmountSceneViewModel {
         return (try? valueConverter.convertToAmount(
             fiatValue: amountInputModel.text,
             price: price.mapToAssetPrice(assetId: asset.id),
-            decimals: asset.decimals.asInt
+            decimals: asset.decimals.asInt,
         )).or(.zero)
     }
 
@@ -255,7 +255,7 @@ private extension AmountSceneViewModel {
         guard let price = assetData.price else { return .zero }
         return (try? valueConverter.convertToFiat(
             amount: amountInputModel.text,
-            price: price.mapToAssetPrice(assetId: asset.id)
+            price: price.mapToAssetPrice(assetId: asset.id),
         )).or(.zero)
     }
 

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Foundation
 import FiatService
+import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -24,7 +24,7 @@ public final class FiatTransactionsViewModel {
     public init(walletId: WalletId, service: FiatService) {
         self.walletId = walletId
         self.service = service
-        self.query = ObservableQuery(FiatTransactionsRequest(walletId: walletId), initialValue: [])
+        query = ObservableQuery(FiatTransactionsRequest(walletId: walletId), initialValue: [])
     }
 
     var title: String { Localized.Activity.title }

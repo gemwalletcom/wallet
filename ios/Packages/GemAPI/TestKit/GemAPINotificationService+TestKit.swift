@@ -11,7 +11,7 @@ public final class GemAPINotificationServiceMock: GemAPINotificationService, @un
         self.notifications = notifications
     }
 
-    public func getNotifications(fromTimestamp: Int) async throws -> [Primitives.InAppNotification] {
+    public func getNotifications(fromTimestamp _: Int) async throws -> [Primitives.InAppNotification] {
         notifications
     }
 

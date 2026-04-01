@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftHTTPClient
 import Primitives
+import SwiftHTTPClient
 
 public enum GemDeviceAPI: TargetType {
     case getDevice
@@ -56,70 +56,70 @@ public enum GemDeviceAPI: TargetType {
     public var method: HTTPMethod {
         switch self {
         case .getDevice,
-            .getSubscriptions,
-            .getTransactions,
-            .getAssetsList,
-            .getPriceAlerts,
-            .getDeviceNFTAssets,
-            .getAuthNonce,
-            .getDeviceToken,
-            .getDeviceRewards,
-            .getDeviceRewardsEvents,
-            .getDeviceRedemptionOption,
-            .getNotifications,
-            .isDeviceRegistered,
-            .getFiatAssets,
-            .getFiatQuotes,
-            .getFiatQuoteUrl,
-            .getFiatTransactions,
-            .getNameRecord:
-            return .GET
+             .getSubscriptions,
+             .getTransactions,
+             .getAssetsList,
+             .getPriceAlerts,
+             .getDeviceNFTAssets,
+             .getAuthNonce,
+             .getDeviceToken,
+             .getDeviceRewards,
+             .getDeviceRewardsEvents,
+             .getDeviceRedemptionOption,
+             .getNotifications,
+             .isDeviceRegistered,
+             .getFiatAssets,
+             .getFiatQuotes,
+             .getFiatQuoteUrl,
+             .getFiatTransactions,
+             .getNameRecord:
+            .GET
         case .addDevice,
-            .addSubscriptions,
-            .addPriceAlerts,
-            .scanTransaction,
-            .reportNft,
-            .migrateDevice,
-            .createDeviceReferral,
-            .useDeviceReferralCode,
-            .redeemDeviceRewards,
-            .markNotificationsRead,
-            .getPortfolioAssets,
-            .getAddressNames:
-            return .POST
+             .addSubscriptions,
+             .addPriceAlerts,
+             .scanTransaction,
+             .reportNft,
+             .migrateDevice,
+             .createDeviceReferral,
+             .useDeviceReferralCode,
+             .redeemDeviceRewards,
+             .markNotificationsRead,
+             .getPortfolioAssets,
+             .getAddressNames:
+            .POST
         case .updateDevice:
-            return .PUT
+            .PUT
         case .deleteSubscriptions,
-            .deletePriceAlerts:
-            return .DELETE
+             .deletePriceAlerts:
+            .DELETE
         }
     }
 
     public var path: String {
         switch self {
         case .addDevice,
-            .getDevice,
-            .updateDevice:
+             .getDevice,
+             .updateDevice:
             return "/v2/devices"
         case .isDeviceRegistered:
             return "/v2/devices/is_registered"
         case .migrateDevice:
             return "/v2/devices/migrate"
         case .getSubscriptions,
-            .addSubscriptions,
-            .deleteSubscriptions:
+             .addSubscriptions,
+             .deleteSubscriptions:
             return "/v2/devices/subscriptions"
         case .getPriceAlerts,
-            .addPriceAlerts,
-            .deletePriceAlerts:
+             .addPriceAlerts,
+             .deletePriceAlerts:
             return "/v2/devices/price_alerts"
-        case .getTransactions(_, let assetId, let fromTimestamp):
+        case let .getTransactions(_, assetId, fromTimestamp):
             var path = "/v2/devices/transactions?from_timestamp=\(fromTimestamp)"
             if let assetId {
                 path += "&asset_id=\(assetId)"
             }
             return path
-        case .getAssetsList(_, let fromTimestamp):
+        case let .getAssetsList(_, fromTimestamp):
             return "/v2/devices/assets?from_timestamp=\(fromTimestamp)"
         case .getDeviceNFTAssets:
             return "/v2/devices/nft_assets"
@@ -135,7 +135,7 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/rewards"
         case .getDeviceRewardsEvents:
             return "/v2/devices/rewards/events"
-        case .getDeviceRedemptionOption(let code):
+        case let .getDeviceRedemptionOption(code):
             return "/v2/devices/rewards/redemptions/\(code)"
         case .createDeviceReferral:
             return "/v2/devices/rewards/referrals/create"
@@ -143,23 +143,23 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/rewards/referrals/use"
         case .redeemDeviceRewards:
             return "/v2/devices/rewards/redeem"
-        case .getNotifications(let fromTimestamp):
+        case let .getNotifications(fromTimestamp):
             return "/v2/devices/notifications?from_timestamp=\(fromTimestamp)"
         case .markNotificationsRead:
             return "/v2/devices/notifications/read"
-        case .getFiatAssets(let type):
+        case let .getFiatAssets(type):
             return "/v2/devices/fiat/assets/\(type.rawValue)"
-        case .getFiatQuotes(_, let type, let assetId, _):
+        case let .getFiatQuotes(_, type, assetId, _):
             return "/v2/devices/fiat/quotes/\(type.rawValue)/\(assetId.identifier)"
-        case .getFiatQuoteUrl(_, let quoteId):
+        case let .getFiatQuoteUrl(_, quoteId):
             return "/v2/devices/fiat/quotes/\(quoteId)/url"
         case .getFiatTransactions:
             return "/v2/devices/fiat/transactions"
-        case .getNameRecord(let name, let chain):
+        case let .getNameRecord(name, chain):
             return "/v2/devices/name/resolve/\(name)?chain=\(chain)"
         case .getAddressNames:
             return "/v2/devices/address_names"
-        case .getPortfolioAssets(let period, _):
+        case let .getPortfolioAssets(period, _):
             return "/v2/devices/portfolio/assets?period=\(period.rawValue)"
         }
     }
@@ -170,79 +170,79 @@ public enum GemDeviceAPI: TargetType {
 
     public var walletId: String? {
         switch self {
-        case .getTransactions(let walletId, _, _),
-            .getAssetsList(let walletId, _),
-            .getDeviceNFTAssets(let walletId),
-            .getDeviceRewards(let walletId),
-            .getDeviceRewardsEvents(let walletId),
-            .createDeviceReferral(let walletId, _),
-            .useDeviceReferralCode(let walletId, _),
-            .redeemDeviceRewards(let walletId, _),
-            .getFiatQuotes(let walletId, _, _, _),
-            .getFiatQuoteUrl(let walletId, _),
-            .getFiatTransactions(let walletId):
-            return walletId
+        case let .getTransactions(walletId, _, _),
+             let .getAssetsList(walletId, _),
+             let .getDeviceNFTAssets(walletId),
+             let .getDeviceRewards(walletId),
+             let .getDeviceRewardsEvents(walletId),
+             let .createDeviceReferral(walletId, _),
+             let .useDeviceReferralCode(walletId, _),
+             let .redeemDeviceRewards(walletId, _),
+             let .getFiatQuotes(walletId, _, _, _),
+             let .getFiatQuoteUrl(walletId, _),
+             let .getFiatTransactions(walletId):
+            walletId
         default:
-            return nil
+            nil
         }
     }
 
     public var data: RequestData {
         switch self {
         case .getDevice,
-            .getSubscriptions,
-            .getAssetsList,
-            .getDeviceNFTAssets,
-            .getAuthNonce,
-            .getDeviceToken,
-            .getDeviceRewards,
-            .getDeviceRewardsEvents,
-            .getDeviceRedemptionOption,
-            .getNotifications,
-            .markNotificationsRead,
-            .getTransactions,
-            .isDeviceRegistered,
-            .getFiatAssets,
-            .getFiatQuoteUrl,
-            .getFiatTransactions,
-            .getNameRecord:
+             .getSubscriptions,
+             .getAssetsList,
+             .getDeviceNFTAssets,
+             .getAuthNonce,
+             .getDeviceToken,
+             .getDeviceRewards,
+             .getDeviceRewardsEvents,
+             .getDeviceRedemptionOption,
+             .getNotifications,
+             .markNotificationsRead,
+             .getTransactions,
+             .isDeviceRegistered,
+             .getFiatAssets,
+             .getFiatQuoteUrl,
+             .getFiatTransactions,
+             .getNameRecord:
             return .plain
-        case .getPriceAlerts(let assetId):
+        case let .getPriceAlerts(assetId):
             let params: [String: Any] = [
                 "asset_id": assetId,
             ].compactMapValues { $0 }
             return .params(params)
-        case .getFiatQuotes(_, _, _, let request):
+        case let .getFiatQuotes(_, _, _, request):
             let params: [String: Any] = [
                 "amount": request.amount,
-                "currency": request.currency
+                "currency": request.currency,
             ]
             return .params(params)
-        case .addDevice(let device),
-            .updateDevice(let device):
+        case let .addDevice(device),
+             let .updateDevice(device):
             return .encodable(device)
-        case .migrateDevice(let request):
+        case let .migrateDevice(request):
             return .encodable(request)
-        case .addSubscriptions(let subscriptions):
+        case let .addSubscriptions(subscriptions):
             return .encodable(subscriptions)
-        case .deleteSubscriptions(let subscriptions):
+        case let .deleteSubscriptions(subscriptions):
             return .encodable(subscriptions)
-        case .addPriceAlerts(let priceAlerts),
-            .deletePriceAlerts(let priceAlerts):
+        case let .addPriceAlerts(priceAlerts),
+             let .deletePriceAlerts(priceAlerts):
             return .encodable(priceAlerts)
-        case .scanTransaction(let payload):
+        case let .scanTransaction(payload):
             return .encodable(payload)
-        case .reportNft(let report):
+        case let .reportNft(report):
             return .encodable(report)
-        case .createDeviceReferral(_, let request):
+        case let .createDeviceReferral(_, request):
             return .encodable(request)
-        case .useDeviceReferralCode(_, let request):
+        case let .useDeviceReferralCode(_, request):
             return .encodable(request)
-        case .redeemDeviceRewards(_, let request):
+        case let .redeemDeviceRewards(_, request):
             return .encodable(request)
-        case .getPortfolioAssets(_, let request):
+        case let .getPortfolioAssets(_, request):
             return .encodable(request)
-        case .getAddressNames(let requests):
+        case let .getAddressNames(requests):
             return .encodable(requests)
         }
     }

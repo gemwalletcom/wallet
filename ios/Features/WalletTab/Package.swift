@@ -6,17 +6,17 @@ let package = Package(
     name: "WalletTab",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "WalletTab",
-            targets: ["WalletTab"]
+            targets: ["WalletTab"],
         ),
         .library(
             name: "WalletTabTestKit",
-            targets: ["WalletTabTestKit"]
-        )
+            targets: ["WalletTabTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -55,9 +55,9 @@ let package = Package(
                 .product(name: "DiscoverAssetsService", package: "FeatureServices"),
                 .product(name: "PriceService", package: "FeatureServices"),
                 "Perpetuals",
-                "Recents"
+                "Recents",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "WalletTabTestKit",
@@ -71,9 +71,9 @@ let package = Package(
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 .product(name: "PerpetualServiceTestKit", package: "FeatureServices"),
                 .product(name: "DiscoverAssetsServiceTestKit", package: "FeatureServices"),
-                "WalletTab"
+                "WalletTab",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "WalletTabTests",
@@ -92,8 +92,8 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 "WalletTab",
-                "WalletTabTestKit"
-            ]
+                "WalletTabTestKit",
+            ],
         ),
-    ]
+    ],
 )

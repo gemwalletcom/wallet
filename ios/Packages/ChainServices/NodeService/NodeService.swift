@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import Primitives
 import ChainService
+import Foundation
 import class Gemstone.Config
 import GemstonePrimitives
+import Primitives
+import Store
 
 public final class NodeService: Sendable {
     public let nodeStore: NodeStore
 
     public init(
-        nodeStore: NodeStore
+        nodeStore: NodeStore,
     ) {
         self.nodeStore = nodeStore
     }
@@ -44,13 +44,13 @@ public final class NodeService: Sendable {
         ] + nodes).unique()
     }
 
-    func update(chain: Chain, force: Bool = false) throws {
+    func update(chain _: Chain, force _: Bool = false) throws {
         // TODO: - implement later
         /*
-        guard !requestedChains.contains(chain) else { return }
-        let nodes = try nodeStore.nodeRecords(chain: chain)
-        requestedChains.insert(chain)
-         */
+         guard !requestedChains.contains(chain) else { return }
+         let nodes = try nodeStore.nodeRecords(chain: chain)
+         requestedChains.insert(chain)
+          */
     }
 
     public func importDefaultNodes() throws {
@@ -71,13 +71,13 @@ extension NodeService: NodeURLFetchable {
 
 // MARK: - Static
 
-extension NodeService {
-    public static func defaultNodes(chain: Chain) -> [ChainNode] {
+public extension NodeService {
+    static func defaultNodes(chain: Chain) -> [ChainNode] {
         let nodes = Config.shared.getNodes()[chain.rawValue] ?? []
-        return nodes.map({ ChainNode(chain: chain.rawValue, node: $0.node) })
+        return nodes.map { ChainNode(chain: chain.rawValue, node: $0.node) }
     }
 
-    public static func isValid(netoworkId: String, for chain: Chain) -> Bool {
+    static func isValid(netoworkId: String, for chain: Chain) -> Bool {
         ChainConfig.config(chain: chain).networkId == netoworkId
     }
 }

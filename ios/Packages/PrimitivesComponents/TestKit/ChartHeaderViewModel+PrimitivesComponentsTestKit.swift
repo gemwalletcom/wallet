@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Formatters
+import Foundation
 import Primitives
 @testable import PrimitivesComponents
 
@@ -12,7 +12,7 @@ public extension ChartHeaderViewModel {
         price: Double = 100,
         priceChangePercentage: Double = 5,
         headerValue: Double? = nil,
-        type: ChartValueType = .price
+        type: ChartValueType = .price,
     ) -> ChartHeaderViewModel {
         ChartHeaderViewModel(
             period: period,
@@ -21,7 +21,7 @@ public extension ChartHeaderViewModel {
             priceChangePercentage: priceChangePercentage,
             headerValue: headerValue,
             formatter: CurrencyFormatter(type: .currency, currencyCode: "USD"),
-            type: type
+            type: type,
         )
     }
 }

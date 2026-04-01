@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct TransactionsFilterScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -18,11 +18,11 @@ public struct TransactionsFilterScene: View {
         List {
             SelectFilterView(
                 typeModel: model.chainsFilter.typeModel,
-                action: model.onSelectChainsFilter
+                action: model.onSelectChainsFilter,
             )
             SelectFilterView(
                 typeModel: model.transactionTypesFilter.typeModel,
-                action: model.onSelectTypesFilter
+                action: model.onSelectTypesFilter,
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
@@ -45,7 +45,7 @@ public struct TransactionsFilterScene: View {
             SelectableSheet(
                 model: model.networksModel,
                 onFinishSelection: onFinishSelection(value:),
-                listContent: { ChainView(model: ChainViewModel(chain: $0)) }
+                listContent: { ChainView(model: ChainViewModel(chain: $0)) },
             )
         }
         .sheet(isPresented: $model.isPresentingTypes) {
@@ -54,7 +54,7 @@ public struct TransactionsFilterScene: View {
                 onFinishSelection: onFinishSelection(value:),
                 listContent: {
                     ListItemView(title: TransactionFilterTypeViewModel(type: $0).title)
-                }
+                },
             )
         }
     }

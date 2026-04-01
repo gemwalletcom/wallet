@@ -93,6 +93,8 @@ fun Chain.getTokenActivationFee(): BigInteger = Config().getChainConfig(this.str
 
 fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
 
+fun Chain.getMinimumAccountBalance(): Long = Config().getChainConfig(this.string).minimumAccountBalance?.toLong() ?: 0L
+
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
 fun Chain.asset(): Asset {

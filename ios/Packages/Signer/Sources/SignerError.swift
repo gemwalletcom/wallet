@@ -6,4 +6,3 @@ import Primitives
 enum SignerError: Error {
     case incompleteData
 }
-

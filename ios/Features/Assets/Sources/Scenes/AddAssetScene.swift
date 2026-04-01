@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import QRScanner
-import Primitives
-import Style
-import PrimitivesComponents
 import Localization
+import Primitives
+import PrimitivesComponents
+import QRScanner
+import Style
+import SwiftUI
 
 public struct AddAssetScene: View {
     @State private var model: AddAssetSceneViewModel
@@ -32,7 +32,7 @@ public struct AddAssetScene: View {
                 StateButton(
                     text: model.actionButtonTitle,
                     type: .primary(model.state),
-                    action: onSelectImportToken
+                    action: onSelectImportToken,
                 )
             }
             .toolbarInfoButton(url: model.customTokenUrl)
@@ -45,7 +45,7 @@ public struct AddAssetScene: View {
             .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
                 NetworkSelectorScene(
                     model: $networksModel,
-                    onFinishSelection: onFinishChainSelection(chains:)
+                    onFinishSelection: onFinishChainSelection(chains:),
                 )
             }
             .sheet(isPresented: $model.isPresentingScanner) {
@@ -92,7 +92,7 @@ extension AddAssetScene {
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
-            case .data(let asset):
+            case let .data(asset):
                 Section {
                     ListItemView(title: asset.nameTitle, subtitle: asset.name)
                     ListItemView(title: asset.symbolTitle, subtitle: asset.symbol)
@@ -112,16 +112,16 @@ extension AddAssetScene {
                         titleStyle: .headline,
                         titleExtra: Localized.Asset.Verification.warningMessage,
                         titleStyleExtra: .bodySecondary,
-                        imageStyle: model.warningImageStyle
+                        imageStyle: model.warningImageStyle,
                     ) {
                         isPresentingUrl = model.tokenVerificationUrl
                     }
                 }
-            case .error(let error):
+            case let .error(error):
                 ListItemErrorView(
                     errorTitle: model.errorTitle,
                     errorSystemNameImage: model.errorSystemImage,
-                    error: error
+                    error: error,
                 )
             }
         }
@@ -158,7 +158,7 @@ extension AddAssetScene {
         fetch()
     }
 
-    private func onAddressClean(_ oldValue: String?, _ newValue: String?) {
+    private func onAddressClean(_: String?, _ newValue: String?) {
         guard newValue == nil else { return }
         model.input.address = newValue
         fetch()

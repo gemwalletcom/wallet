@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import BigInt
 import Components
-@testable import Transfer
 @testable import Primitives
-import PrimitivesTestKit
 import PrimitivesComponents
+import PrimitivesTestKit
+import Testing
+@testable import Transfer
 
 struct ConfirmHeaderViewModelTests {
-
     @Test
     func amountShowsClearHeader() {
         let model = ConfirmHeaderViewModel(
@@ -17,13 +16,13 @@ struct ConfirmHeaderViewModelTests {
                 .numeric(
                     NumericViewModel(
                         data: AssetValuePrice(asset: .mockEthereumUSDT(), value: BigInt(1), price: nil),
-                        style: AmountDisplayStyle(currencyCode: "USD")
-                    )
-                )
-            )
+                        style: AmountDisplayStyle(currencyCode: "USD"),
+                    ),
+                ),
+            ),
         )
 
-        guard case .header(let item) = model.itemModel else { return }
+        guard case let .header(item) = model.itemModel else { return }
         guard case .amount = item.headerType else { return }
         #expect(item.showClearHeader == true)
     }
@@ -33,11 +32,11 @@ struct ConfirmHeaderViewModelTests {
         let model = ConfirmHeaderViewModel(
             headerType: .swap(
                 from: SwapAmountField(assetImage: AssetImage(), amount: "1 ETH", fiatAmount: "$1"),
-                to: SwapAmountField(assetImage: AssetImage(), amount: "2 USDC", fiatAmount: "$2")
-            )
+                to: SwapAmountField(assetImage: AssetImage(), amount: "2 USDC", fiatAmount: "$2"),
+            ),
         )
 
-        guard case .header(let item) = model.itemModel else { return }
+        guard case let .header(item) = model.itemModel else { return }
         guard case .swap = item.headerType else { return }
         #expect(item.showClearHeader == false)
     }
@@ -45,10 +44,10 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func nftShowsClearHeader() {
         let model = ConfirmHeaderViewModel(
-            headerType: .nft(name: nil, image: AssetImage())
+            headerType: .nft(name: nil, image: AssetImage()),
         )
 
-        guard case .header(let item) = model.itemModel else { return }
+        guard case let .header(item) = model.itemModel else { return }
         guard case .nft = item.headerType else { return }
         #expect(item.showClearHeader == true)
     }
@@ -56,13 +55,13 @@ struct ConfirmHeaderViewModelTests {
     @Test
     func assetValueShowsClearHeader() {
         let model = ConfirmHeaderViewModel(
-            headerType: .assetValue(AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(BigInt(1000000))))
+            headerType: .assetValue(AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(BigInt(1_000_000)))),
         )
 
-        guard case .header(let item) = model.itemModel else { return }
-        guard case .assetValue(let data) = item.headerType else { return }
+        guard case let .header(item) = model.itemModel else { return }
+        guard case let .assetValue(data) = item.headerType else { return }
         #expect(data.asset == .mockEthereumUSDT())
-        #expect(data.value == .exact(BigInt(1000000)))
+        #expect(data.value == .exact(BigInt(1_000_000)))
         #expect(item.showClearHeader == true)
     }
 
@@ -70,7 +69,7 @@ struct ConfirmHeaderViewModelTests {
     func assetShowsClearHeader() {
         let model = ConfirmHeaderViewModel(headerType: .asset(image: AssetImage()))
 
-        guard case .header(let item) = model.itemModel else { return }
+        guard case let .header(item) = model.itemModel else { return }
         guard case .asset = item.headerType else { return }
         #expect(item.showClearHeader == true)
     }

@@ -8,5 +8,5 @@ public protocol RequestInterceptable: Sendable {
 
 public struct EmptyRequestInterceptor: RequestInterceptable {
     public init() {}
-    public func intercept(request: inout URLRequest) {}
+    public func intercept(request _: inout URLRequest) {}
 }

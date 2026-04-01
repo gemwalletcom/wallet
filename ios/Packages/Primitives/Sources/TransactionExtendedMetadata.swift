@@ -10,7 +10,7 @@ public struct TransactionExtendedMetadata: Sendable {
     public init(
         assets: [Asset],
         assetPrices: [AssetPrice],
-        metadata: AnyCodableValue?
+        metadata: AnyCodableValue?,
     ) {
         self.assets = assets
         self.assetPrices = assetPrices

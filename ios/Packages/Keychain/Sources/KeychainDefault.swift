@@ -27,14 +27,14 @@ public final class KeychainDefault: Keychain {
     // MARK: - Public (Set Options) methods
 
     public func accessibility(_ accessibility: Accessibility, authenticationPolicy: AuthenticationPolicy) -> Keychain {
-        var options = self.options
+        var options = options
         options.accessibility = accessibility
         options.authenticationPolicy = authenticationPolicy
         return KeychainDefault(options)
     }
 
     public func authenticationContext(_ authenticationContext: LAContext) -> Keychain {
-        var options = self.options
+        var options = options
         options.authenticationContext = authenticationContext
         return KeychainDefault(options)
     }
@@ -46,7 +46,7 @@ public final class KeychainDefault: Keychain {
     }
 
     public func getString(_ key: String, ignoringAttributeSynchronizable: Bool = true) throws -> String? {
-        guard let data = try getData(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable) else  {
+        guard let data = try getData(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable) else {
             return nil
         }
         guard let string = String(data: data, encoding: .utf8) else {
@@ -91,32 +91,32 @@ public final class KeychainDefault: Keychain {
     public func set(_ value: Data, key: String, ignoringAttributeSynchronizable: Bool = true) throws {
         var query = options.query(ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
         query[AttributeAccount] = key
-        
+
         var status = SecItemCopyMatching(query as CFDictionary, nil)
         switch status {
         case errSecSuccess, errSecInteractionNotAllowed:
             var query = options.query()
             query[AttributeAccount] = key
-            
+
             var (attributes, error) = options.attributes(key: nil, value: value)
-            if let error = error {
+            if let error {
                 throw error
             }
-            
+
             options.attributes.forEach { attributes.updateValue($1, forKey: $0) }
-            
+
             status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
             if status != errSecSuccess {
                 throw securityError(status: status)
             }
         case errSecItemNotFound:
             var (attributes, error) = options.attributes(key: key, value: value)
-            if let error = error {
+            if let error {
                 throw error
             }
-            
+
             options.attributes.forEach { attributes.updateValue($1, forKey: $0) }
-            
+
             status = SecItemAdd(attributes as CFDictionary, nil)
             if status != errSecSuccess {
                 throw securityError(status: status)
@@ -133,7 +133,7 @@ public final class KeychainDefault: Keychain {
         query[AttributeAccount] = key
 
         let status = SecItemDelete(query as CFDictionary)
-        if status != errSecSuccess && status != errSecItemNotFound {
+        if status != errSecSuccess, status != errSecItemNotFound {
             throw securityError(status: status)
         }
     }

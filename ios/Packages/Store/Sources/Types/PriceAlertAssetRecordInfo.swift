@@ -19,7 +19,7 @@ extension PriceAlertAssetRecordInfo {
                 chain: asset.chain,
                 address: .empty,
                 derivationPath: .empty,
-                extendedPublicKey: nil
+                extendedPublicKey: nil,
             ),
             price: price?.mapToPrice(),
             priceAlerts: priceAlerts.or([]).compactMap { $0.map() },
@@ -35,8 +35,8 @@ extension PriceAlertAssetRecordInfo {
                 isActive: false,
                 stakingApr: asset.stakingApr,
                 earnApr: asset.earnApr,
-                rankScore: asset.rank.asInt32
-            )
+                rankScore: asset.rank.asInt32,
+            ),
         )
     }
 }

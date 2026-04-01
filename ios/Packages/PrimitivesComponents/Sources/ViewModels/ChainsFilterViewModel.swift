@@ -7,17 +7,16 @@ public struct ChainsFilterViewModel: Sendable, Equatable {
     public var selectedChains: [Primitives.Chain]
 
     public init(chains: [Primitives.Chain]) {
-        self.allChains = chains
-        self.selectedChains = []
+        allChains = chains
+        selectedChains = []
     }
 
     public var typeModel: ChainsFilterTypeViewModel {
         ChainsFilterTypeViewModel(
-            type: ChainsFilterType(selectedChains: selectedChains)
+            type: ChainsFilterType(selectedChains: selectedChains),
         )
     }
 
     public var isAnySelected: Bool { !selectedChains.isEmpty }
     public var isEmpty: Bool { allChains.isEmpty }
 }
-

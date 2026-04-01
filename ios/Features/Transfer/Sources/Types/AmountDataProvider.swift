@@ -13,24 +13,24 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     static func make(
         from input: AmountInput,
         wallet: Wallet,
-        service: AmountService
+        service: AmountService,
     ) -> AmountDataProvider {
         switch input.type {
-        case .transfer(let recipient):
+        case let .transfer(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient)))
-        case .deposit(let recipient):
+        case let .deposit(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient)))
-        case .withdraw(let recipient):
+        case let .withdraw(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
-        case .stake(let stakeType):
+        case let .stake(stakeType):
             .stake(AmountStakeViewModel(asset: input.asset, action: stakeType))
-        case .freeze(let resource):
+        case let .freeze(resource):
             .freeze(AmountFreezeViewModel(asset: input.asset, action: .freeze, resource: resource))
-        case .unfreeze(let resource):
+        case let .unfreeze(resource):
             .freeze(AmountFreezeViewModel(asset: input.asset, action: .unfreeze, resource: resource))
-        case .perpetual(let data):
+        case let .perpetual(data):
             .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data))
-        case .earn(let earnType):
+        case let .earn(earnType):
             .earn(AmountEarnViewModel(asset: input.asset, action: earnType, earnService: service.earnDataProvider, wallet: wallet))
         }
     }
@@ -68,11 +68,11 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
 extension AmountDataProvider {
     private var provider: any AmountDataProvidable {
         switch self {
-        case .transfer(let provider): provider
-        case .stake(let provider): provider
-        case .freeze(let provider): provider
-        case .perpetual(let provider): provider
-        case .earn(let provider): provider
+        case let .transfer(provider): provider
+        case let .stake(provider): provider
+        case let .freeze(provider): provider
+        case let .perpetual(provider): provider
+        case let .earn(provider): provider
         }
     }
 }

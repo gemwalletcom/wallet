@@ -47,29 +47,27 @@ class ImportViewModel @Inject constructor(
                 importType = importType,
                 generatedNameIndex = generatedNameIndex,
                 chainName = chainName,
-                walletName = "",
             )
         }
     }
 
     fun import(
-        name: String,
-        generatedName:String,
+        generatedName: String,
         data: String,
         nameRecord: NameRecord?,
-        onImported: () -> Unit
+        onImported: (walletId: String) -> Unit
     ) = viewModelScope.launch(Dispatchers.IO) {
         state.update { it.copy(loading = true) }
 
         try {
-            importWalletService.importWallet(
+            val wallet = importWalletService.importWallet(
                 importType = state.value.importType,
-                walletName = name.ifEmpty { generatedName },
+                walletName = generatedName,
                 data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
             )
             state.update { it.copy(dataError = null, loading = false) }
             withContext(Dispatchers.Main) {
-                onImported()
+                onImported(wallet.id)
             }
         } catch (err: Throwable) {
             state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
@@ -83,8 +81,6 @@ data class ImportViewModelState(
     val importType: ImportType = ImportType(WalletType.Multicoin),
     val generatedNameIndex: Int = 0,
     val chainName: String = "",
-    val walletName: String = "",
-    val walletNameError: String = "",
     val data: String = "",
     val nameRecord: NameRecord? = null,
     val dataError: ImportError? = null,
@@ -96,9 +92,6 @@ data class ImportViewModelState(
             generatedNameIndex = generatedNameIndex,
             chainName = chainName,
             importType = importType,
-            walletName = walletName,
-            walletNameError = walletNameError,
-            data = data,
             nameRecord = nameRecord,
             dataError = dataError,
         )
@@ -111,10 +104,6 @@ data class ImportUIState(
     val importType: ImportType = ImportType(WalletType.Multicoin),
     val generatedNameIndex: Int = 0,
     val chainName: String = "",
-    val walletName: String = "",
-    val walletNameError: String = "",
-    val data: String = "",
     val nameRecord: NameRecord? = null,
     val dataError: ImportError? = null,
-    val isShowSafeMessage: Boolean = false,
 )

@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
@@ -24,8 +23,9 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.gemwallet.android.features.confirm.models.FeeRateUIModel
 import com.gemwallet.android.features.confirm.models.FeeUIModel
 import com.wallet.core.primitives.FeePriority
@@ -52,7 +52,7 @@ fun FeeDetails(
                 }
                 item {
                     Text(
-                        modifier = Modifier.padding(horizontal = paddingLarge, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = paddingLarge, vertical = paddingHalfSmall),
                         text = stringResource(R.string.fee_rates_info),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
@@ -86,12 +86,12 @@ private fun FeePriorityView(fee: FeeRateUIModel, isSelected: Boolean, position: 
                 trailing = {
                     if (isSelected) {
                         Icon(
-                            modifier = Modifier.size(trailingIconSmall),
+                            modifier = Modifier.size(tinyIconSize),
                             imageVector = Icons.Outlined.Done,
-                            contentDescription = ""
+                            contentDescription = null,
                         )
                     } else {
-                        Box(modifier = Modifier.size(trailingIconSmall))
+                        Box(modifier = Modifier.size(tinyIconSize))
                     }
                 }
             )

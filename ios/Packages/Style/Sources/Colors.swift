@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct Colors {
+public enum Colors {
     public static let white = Color.dynamicColor("#FFFFFF", dark: "#222222")
     public static let whiteSolid = Color.dynamicColor("FFFFFF")
     public static let black = Color.dynamicColor("#222222", dark: "FFFFFF")
@@ -24,8 +24,8 @@ public struct Colors {
 
 // MARK: - Empty
 
-extension Colors {
-    public struct Empty {
+public extension Colors {
+    enum Empty {
         public static let imageBackground = Color(.quaternaryLabel)
         public static let image = Color.dynamicColor("#767A81")
         public static let buttonsBackground = Color(.quaternaryLabel)
@@ -35,18 +35,18 @@ extension Colors {
 
 // MARK: - Faded Variants
 
-extension Colors {
-    public static let blueFaded = Color.dynamicColor("#6BA3F1", dark: "#5A96ED")
-    public static let blueDarkFaded = Color.dynamicColor("#6085E9", dark: "#5A7CE6")
-    public static let whiteFaded = Color.dynamicColor("#F0F0F0", dark: "#444444")
-    public static let grayFaded = Color.dynamicColor("#C0C0C0", dark: "#606060")
-    public static let grayLightFaded = Color.dynamicColor("#CACBCA", dark: "#4D524D")
-    public static let grayVeryLightFaded = Color.dynamicColor("#F9F9F9", dark: "#666666")
-    public static let blackFaded = Color.dynamicColor("#919191", dark: "#7F7F7F")
-    public static let redFaded = Color.dynamicColor("#FB7676", dark: "#FB7676")
-    public static let redFadedLight = Color.dynamicColor("#FC8E8E", dark: "#FC8E8E")
-    public static let greenFaded = Color.dynamicColor("#4EAC84", dark: "#4EAC84")
-    public static let greenFadedLight = Color.dynamicColor("#67B593", dark: "#67B593")
+public extension Colors {
+    static let blueFaded = Color.dynamicColor("#6BA3F1", dark: "#5A96ED")
+    static let blueDarkFaded = Color.dynamicColor("#6085E9", dark: "#5A7CE6")
+    static let whiteFaded = Color.dynamicColor("#F0F0F0", dark: "#444444")
+    static let grayFaded = Color.dynamicColor("#C0C0C0", dark: "#606060")
+    static let grayLightFaded = Color.dynamicColor("#CACBCA", dark: "#4D524D")
+    static let grayVeryLightFaded = Color.dynamicColor("#F9F9F9", dark: "#666666")
+    static let blackFaded = Color.dynamicColor("#919191", dark: "#7F7F7F")
+    static let redFaded = Color.dynamicColor("#FB7676", dark: "#FB7676")
+    static let redFadedLight = Color.dynamicColor("#FC8E8E", dark: "#FC8E8E")
+    static let greenFaded = Color.dynamicColor("#4EAC84", dark: "#4EAC84")
+    static let greenFadedLight = Color.dynamicColor("#67B593", dark: "#67B593")
 }
 
 #Preview {
@@ -76,12 +76,12 @@ extension Colors {
                 Text(color.name)
                     .multilineTextAlignment(.leading)
                     .frame(width: 174)
-                
+
                 RoundedRectangle(cornerRadius: 4)
                     .fill(color.color)
                     .padding(.extraSmall)
                     .colorScheme(.light)
-                
+
                 RoundedRectangle(cornerRadius: 4)
                     .fill(color.color)
                     .padding(.extraSmall)
@@ -92,4 +92,3 @@ extension Colors {
     }
     .listStyle(InsetGroupedListStyle())
 }
-

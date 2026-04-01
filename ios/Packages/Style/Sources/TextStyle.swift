@@ -8,12 +8,12 @@ public struct TextStyle: Sendable {
     public let fontWeight: Font.Weight?
     public let color: Color
     public let background: Color
-    
+
     public init(
         font: Font,
         color: Color,
         fontWeight: Font.Weight? = nil,
-        background: Color = Colors.black
+        background: Color = Colors.black,
     ) {
         self.font = font
         self.color = color
@@ -26,28 +26,28 @@ public struct TextStyle: Sendable {
             font: font,
             color: color,
             fontWeight: weight,
-            background: background
+            background: background,
         )
     }
 }
 
 // MARK: - TextStyle Static
 
-extension TextStyle {
-    public static let title = TextStyle(font: .title, color: Colors.black)
-    public static let title2 = TextStyle(font: .title2, color: Colors.black)
-    public static let title3 = TextStyle(font: .title3, color: Colors.black)
-    public static let headline = TextStyle(font: .headline, color: Colors.black)
-    public static let subHeadline = TextStyle(font: .subheadline, color: Colors.secondaryText)
-    public static let body = TextStyle(font: .body, color: Colors.black)
-    public static let bodySecondary = TextStyle(font: .body, color: Colors.secondaryText)
-    public static let callout = TextStyle(font: .callout, color: Colors.black)
-    public static let calloutSecondary = TextStyle(font: .callout, color: Colors.secondaryText)
-    public static let footnote = TextStyle(font: .footnote, color: Colors.secondaryText)
-    public static let caption = TextStyle(font: .caption, color: Colors.secondaryText)
-    public static let largeTitle = TextStyle(font: .largeTitle, color: Colors.black)
-    public static let boldTitle = TextStyle(font: .title, color: Colors.black, fontWeight: .bold)
-    public static let highlighted = TextStyle(font: .headline, color: .white, background: Colors.blue)
+public extension TextStyle {
+    static let title = TextStyle(font: .title, color: Colors.black)
+    static let title2 = TextStyle(font: .title2, color: Colors.black)
+    static let title3 = TextStyle(font: .title3, color: Colors.black)
+    static let headline = TextStyle(font: .headline, color: Colors.black)
+    static let subHeadline = TextStyle(font: .subheadline, color: Colors.secondaryText)
+    static let body = TextStyle(font: .body, color: Colors.black)
+    static let bodySecondary = TextStyle(font: .body, color: Colors.secondaryText)
+    static let callout = TextStyle(font: .callout, color: Colors.black)
+    static let calloutSecondary = TextStyle(font: .callout, color: Colors.secondaryText)
+    static let footnote = TextStyle(font: .footnote, color: Colors.secondaryText)
+    static let caption = TextStyle(font: .caption, color: Colors.secondaryText)
+    static let largeTitle = TextStyle(font: .largeTitle, color: Colors.black)
+    static let boldTitle = TextStyle(font: .title, color: Colors.black, fontWeight: .bold)
+    static let highlighted = TextStyle(font: .headline, color: .white, background: Colors.blue)
 }
 
 // MARK: - Modifier
@@ -65,15 +65,15 @@ struct TextStyleModifier: ViewModifier {
 
 // MARK: -
 
-extension View {
-    public func textStyle(_ style: TextStyle) -> some View {
-        self.modifier(TextStyleModifier(style: style))
+public extension View {
+    func textStyle(_ style: TextStyle) -> some View {
+        modifier(TextStyleModifier(style: style))
     }
 }
 
-extension Text {
-    public func textStyle(_ style: TextStyle) -> some View {
-        self.modifier(TextStyleModifier(style: style))
+public extension Text {
+    func textStyle(_ style: TextStyle) -> some View {
+        modifier(TextStyleModifier(style: style))
     }
 }
 

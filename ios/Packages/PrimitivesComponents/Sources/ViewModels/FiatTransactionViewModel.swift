@@ -32,10 +32,10 @@ public struct FiatTransactionViewModel: Sendable {
             subtitleStyle: TextStyle(font: .callout, color: subtitleColor, fontWeight: .semibold),
             subtitleExtra: fiatValueText,
             subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
-            imageStyle: .asset(assetImage: assetImage)
+            imageStyle: .asset(assetImage: assetImage),
         )
     }
-    
+
     public var detailsUrl: URL? {
         info.detailsUrl?.asURL
     }
@@ -66,7 +66,7 @@ extension FiatTransactionViewModel {
         TextStyle(
             font: Font.system(.footnote, weight: .medium),
             color: model.color,
-            background: model.background
+            background: model.background,
         )
     }
 

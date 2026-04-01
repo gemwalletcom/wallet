@@ -1,12 +1,12 @@
-import SwiftUI
-import Primitives
 import Components
-import Style
-import Store
-import PerpetualService
 import Perpetuals
-import WalletTab
+import PerpetualService
+import Primitives
+import Store
+import Style
+import SwiftUI
 import TransactionsService
+import WalletTab
 
 public struct PerpetualNavigationView: View {
     @State private var model: PerpetualSceneViewModel
@@ -18,7 +18,7 @@ public struct PerpetualNavigationView: View {
         perpetualService: any PerpetualServiceable,
         transactionsService: TransactionsService,
         observerService: any PerpetualObservable<HyperliquidSubscription>,
-        isPresentingSheet: Binding<WalletSheetType?>
+        isPresentingSheet: Binding<WalletSheetType?>,
     ) {
         _isPresentingSheet = isPresentingSheet
         _model = State(initialValue: PerpetualSceneViewModel(
@@ -28,7 +28,7 @@ public struct PerpetualNavigationView: View {
             transactionsService: transactionsService,
             observerService: observerService,
             onTransferData: { isPresentingSheet.wrappedValue = .transferData($0) },
-            onPerpetualRecipientData: { isPresentingSheet.wrappedValue = .perpetualRecipientData($0) }
+            onPerpetualRecipientData: { isPresentingSheet.wrappedValue = .perpetualRecipientData($0) },
         ))
     }
 
@@ -39,7 +39,7 @@ public struct PerpetualNavigationView: View {
                     AutocloseNavigationStack(
                         position: position,
                         wallet: model.wallet,
-                        onComplete: model.onAutocloseComplete
+                        onComplete: model.onAutocloseComplete,
                     )
                 }
             }

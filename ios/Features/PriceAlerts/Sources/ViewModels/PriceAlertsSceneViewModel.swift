@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Store
-import Primitives
 import Localization
+import Preferences
 import PriceAlertService
 import PriceService
-import Preferences
+import Primitives
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 @Observable
 @MainActor
@@ -20,11 +20,11 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     public init(
         preferences: ObservablePreferences = .default,
-        priceAlertService: PriceAlertService
+        priceAlertService: PriceAlertService,
     ) {
         self.preferences = preferences
         self.priceAlertService = priceAlertService
-        self.query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
+        query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
     var title: String { Localized.Settings.PriceAlerts.title }
@@ -43,7 +43,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
         EmptyContentTypeViewModel(type: .priceAlerts)
     }
 
-    func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {        
+    func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
         let (autoAlerts, manualGroups) = alerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
             switch alert.priceAlert.type {
             case .auto:
@@ -56,7 +56,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
         return PriceAlertsSections(
             autoAlerts: autoAlerts,
-            manualAlerts: manualGroups
+            manualAlerts: manualGroups,
         )
     }
 }

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import PrimitivesComponents
 import Style
+import SwiftUI
 
 public struct PreferencesScene: View {
     @Environment(\.openURL) private var openURL
@@ -23,7 +23,7 @@ public struct PreferencesScene: View {
                         ListItemView(
                             title: model.currencyTitle,
                             subtitle: model.currencyValue,
-                            imageStyle: .settings(assetImage: model.currencyImage)
+                            imageStyle: .settings(assetImage: model.currencyImage),
                         )
                     }
 
@@ -31,16 +31,16 @@ public struct PreferencesScene: View {
                         with: ListItemView(
                             title: model.languageTitle,
                             subtitle: model.languageValue,
-                            imageStyle: .settings(assetImage: model.languageImage)
+                            imageStyle: .settings(assetImage: model.languageImage),
                         ),
-                        action: onSelectLanguage
+                        action: onSelectLanguage,
                     )
 
                     if model.supportsAlternateIcons {
                         NavigationLink(value: Scenes.AppIcon()) {
                             ListItemView(
                                 title: model.appIconTitle,
-                                imageStyle: .settings(assetImage: model.appIconImage)
+                                imageStyle: .settings(assetImage: model.appIconImage),
                             )
                         }
                     }
@@ -48,7 +48,7 @@ public struct PreferencesScene: View {
                     NavigationLink(value: Scenes.Chains()) {
                         ListItemView(
                             title: model.networksTitle,
-                            imageStyle: .settings(assetImage: model.networksImage)
+                            imageStyle: .settings(assetImage: model.networksImage),
                         )
                     }
                 }
@@ -56,16 +56,16 @@ public struct PreferencesScene: View {
                     ListItemToggleView(
                         isOn: $model.isPerpetualEnabled,
                         title: model.perpetualsTitle,
-                        imageStyle: .settings(assetImage: model.perpetualsImage)
+                        imageStyle: .settings(assetImage: model.perpetualsImage),
                     )
 
                     if model.isPerpetualEnabled {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.defaultLeverageTitle,
-                                subtitle: model.defaultLeverageValue
+                                subtitle: model.defaultLeverageValue,
                             ),
-                            action: model.onSelectLeverage
+                            action: model.onSelectLeverage,
                         )
                         .padding(.leading, Sizing.image.asset - .tiny)
                     }
@@ -80,7 +80,7 @@ public struct PreferencesScene: View {
             LeveragePickerSheet(
                 title: model.defaultLeverageTitle,
                 leverageOptions: model.leverageOptions,
-                selectedLeverage: $model.perpetualLeverage
+                selectedLeverage: $model.perpetualLeverage,
             )
         }
     }

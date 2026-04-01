@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct GridPosterView: View {
-
     private let model: GridPosterViewModel
 
     public init(model: GridPosterViewModel) {
@@ -57,10 +56,10 @@ public struct GridPosterView: View {
             assetImage: AssetImage(
                 imageURL: URL(string: "https://metadata.nftscan.com/eth/0x47a00fc8590c11be4c419d9ae50dec267b6e24ee/0x0000000000000000000000000000000000000000000000000000000000002e5f.png"),
                 placeholder: nil,
-                chainPlaceholder: nil
+                chainPlaceholder: nil,
             ),
-            title: "gemcoder.eth"
-        )
+            title: "gemcoder.eth",
+        ),
     )
     .frame(width: 300, height: 300)
 }

@@ -18,7 +18,7 @@ struct StateView<Content: View, T: Hashable & Sendable>: View {
         @ViewBuilder emptyView: @escaping () -> AnyView,
         @ViewBuilder noDataView: @escaping () -> AnyView,
         @ViewBuilder loadingView: @escaping () -> AnyView,
-        @ViewBuilder errorView: @escaping () -> AnyView
+        @ViewBuilder errorView: @escaping () -> AnyView,
     ) {
         self.state = state
         self.content = content
@@ -34,9 +34,9 @@ struct StateView<Content: View, T: Hashable & Sendable>: View {
             noDataView
         case .loading:
             loadingView
-        case .data(let model):
+        case let .data(model):
             content(model)
-        case .error(let error):
+        case let .error(error):
             Text("Error: \(error.localizedDescription)")
                 .foregroundStyle(.red)
         }

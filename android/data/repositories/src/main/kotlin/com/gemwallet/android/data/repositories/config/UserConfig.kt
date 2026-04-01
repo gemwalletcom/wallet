@@ -105,6 +105,15 @@ class UserConfig(
         }
     }
 
+    fun isTermsAccepted(): Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[Key.IsTermsAccepted] == true }
+
+    suspend fun acceptTerms() {
+        context.dataStore.edit { preferences ->
+            preferences[Key.IsTermsAccepted] = true
+        }
+    }
+
     fun isAskNotifications(): Flow<Boolean> = context.dataStore.data.map {
         (it[Key.AskNotifications] ?: 0L) < System.currentTimeMillis() - 30 * DateUtils.DAY_IN_MILLIS
     }
@@ -165,6 +174,7 @@ class UserConfig(
         val LockInterval = intPreferencesKey("lock_interval")
         val AppVersionSkip = stringPreferencesKey("app-version-skip")
         val IsWelcomeBannerHidden = stringSetPreferencesKey("is_welcome_banner_state")
+        val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
         val IsRequestNotifications = booleanPreferencesKey("is_request_notifications")
         val AskNotifications = longPreferencesKey("ask_notifications")
     }

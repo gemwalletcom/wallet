@@ -2,7 +2,7 @@
 
 import Foundation
 
-public struct Scenes {
+public enum Scenes {
     public struct CreateWallet: Hashable, Codable {
         public init() {}
     }
@@ -10,11 +10,11 @@ public struct Scenes {
     public struct ImportWallet: Hashable, Codable {
         public init() {}
     }
-    
+
     public struct ImportWalletType: Hashable, Codable {
         public init() {}
     }
-    
+
     public struct SecurityReminder: Hashable, Codable {
         public init() {}
     }
@@ -126,7 +126,7 @@ public struct Scenes {
             self.chain = chain
         }
     }
-    
+
     public struct Collection: Hashable, Codable, Sendable {
         public let id: String
         public let name: String
@@ -148,7 +148,7 @@ public struct Scenes {
             self.assetData = assetData
         }
     }
-    
+
     public struct Perpetuals: Hashable, Codable {
         public init() {}
     }
@@ -172,7 +172,7 @@ public struct Scenes {
             self.giftCode = giftCode
         }
     }
-    
+
     public struct Perpetual: Hashable, Codable {
         public let asset: Primitives.Asset
 
@@ -181,10 +181,10 @@ public struct Scenes {
         }
 
         public init(_ perpetualData: PerpetualData) {
-            self.asset = perpetualData.asset
+            asset = perpetualData.asset
         }
     }
-    
+
     public struct Transaction: Hashable, Codable {
         public let transaction: TransactionExtended
 

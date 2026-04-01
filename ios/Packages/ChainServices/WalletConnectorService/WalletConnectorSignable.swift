@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.SignMessage
 import Primitives
 import WalletConnectSign
-import struct Gemstone.SignMessage
 
 public protocol WalletConnectorSignable: Sendable {
     var allChains: [Primitives.Chain] { get }

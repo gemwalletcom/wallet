@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Transfer
 
 struct AmountTransferViewModelTests {
-
     @Test
     func title() {
         #expect(AmountTransferViewModel(asset: .mock(), action: .send(.mock())).title == "Send")

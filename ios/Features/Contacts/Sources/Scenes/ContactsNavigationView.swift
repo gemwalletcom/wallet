@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
 import ContactService
+import Primitives
 import Style
+import SwiftUI
 
 public struct ContactsNavigationView: View {
-
     @State private var model: ContactsViewModel
     @Binding private var navigationPath: NavigationPath
 
     public init(
         model: ContactsViewModel,
-        navigationPath: Binding<NavigationPath>
+        navigationPath: Binding<NavigationPath>,
     ) {
         _model = State(initialValue: model)
         _navigationPath = navigationPath
@@ -40,15 +39,15 @@ public struct ContactsNavigationView: View {
                 manageContact(for: .edit($0.contact))
             }
     }
-    
+
     @ViewBuilder
     func manageContact(for mode: ManageContactViewModel.Mode) -> some View {
         ManageContactScene(
             model: ManageContactViewModel(
                 service: model.service,
                 nameService: model.nameService,
-                mode: mode
-            )
+                mode: mode,
+            ),
         )
     }
 }

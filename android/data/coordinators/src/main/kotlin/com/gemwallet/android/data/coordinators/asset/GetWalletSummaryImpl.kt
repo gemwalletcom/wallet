@@ -1,23 +1,30 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.format
+import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import java.math.MathContext
 
@@ -27,56 +34,70 @@ class GetWalletSummaryImpl(
     private val assetsRepository: AssetsRepository,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
+    private val walletSummary = sessionRepository.session().flatMapLatest { session ->
+        val wallet = session?.wallet ?: return@flatMapLatest flowOf(null)
 
-    override fun getWalletSummary(): Flow<WalletSummaryAggregate?> {
-        return combine(
-            sessionRepository.session(),
+        combine(
             assetsRepository.getAssetsInfo(),
-            sessionRepository.session().filterNotNull().flatMapLatest { hasMultiSign.hasMultiSign(it.wallet) },
+            hasMultiSign.hasMultiSign(wallet),
             userConfig.isHideBalances(),
-        ) { session, assets, hasMultiSign, hideBalances ->
-            val wallet = session?.wallet ?: return@combine null
-            val currency = session.currency
+        ) { assets, hasMultiSign, hideBalances ->
+            val (totalValue, totalChangedValue) = assets.fold(BigDecimal.ZERO to BigDecimal.ZERO) { (total, changed), asset ->
+                val currentValue = asset.balance.fiatTotalAmount.toBigDecimal()
+                val currentChangedValue = currentValue * ((asset.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
 
-            val (totalValue, totalChangedValue) = assets.map {
-                val current = it.balance.fiatTotalAmount.toBigDecimal()
-                val changed = current * ((it.price?.price?.priceChangePercentage24h ?: 0.0) / 100).toBigDecimal()
-                Pair(current, changed)
-            }.fold(Pair(BigDecimal.ZERO, BigDecimal.ZERO)) { acc, pair ->
-                Pair(acc.first + pair.first, acc.second + pair.second)
-            }
-            val changedPercentage = calculateWalletChangedPercentage(
-                totalValue = totalValue,
-                changedValue = totalChangedValue,
-            )
-            val icon = when (wallet.type) {
-                WalletType.Multicoin -> null
-                else -> wallet.accounts.firstOrNull()?.chain?.asset()
-            }
-
-            val isSwapEnabled = when (wallet.type) {
-                WalletType.Multicoin -> true
-                WalletType.Single,
-                WalletType.PrivateKey -> wallet.accounts.firstOrNull()?.chain?.isSwapSupport() == true
-                WalletType.View -> false
+                (total + currentValue) to (changed + currentChangedValue)
             }
 
             WalletSummaryAggregateImpl(
-                walletType = wallet.type,
-                walletName = wallet.name,
-                walletIcon = icon,
-                walletTotalValue = if (hideBalances) "✱✱✱✱✱✱" else currency.format(totalValue, dynamicPlace = true),
-                changedValue = if (hideBalances) null else WalletSummaryEquivalentValue(
-                    currency = currency,
-                    value = totalChangedValue.toDouble(),
-                    changePercentage = changedPercentage,
+                wallet = wallet,
+                displayState = buildWalletSummaryDisplayState(
+                    currency = session.currency,
+                    totalValue = totalValue,
+                    totalChangedValue = totalChangedValue,
+                    hideBalances = hideBalances,
                 ),
                 isOperationsAvailable = !hasMultiSign,
-                isSwapAvailable = isSwapEnabled,
             )
         }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
+
+    override fun getWalletSummary(): Flow<WalletSummaryAggregate?> {
+        return walletSummary
     }
+}
+
+internal fun buildWalletSummaryDisplayState(
+    currency: Currency,
+    totalValue: BigDecimal,
+    totalChangedValue: BigDecimal,
+    hideBalances: Boolean,
+): WalletSummaryDisplayState {
+    if (hideBalances) {
+        return WalletSummaryDisplayState(
+            totalValue = "✱✱✱✱✱✱",
+            changedValue = null,
+        )
+    }
+    if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
+        return WalletSummaryDisplayState(
+            totalValue = currency.format(BigDecimal.ZERO, dynamicPlace = true),
+            changedValue = null,
+        )
+    }
+    return WalletSummaryDisplayState(
+        totalValue = currency.format(totalValue, dynamicPlace = true),
+        changedValue = WalletSummaryEquivalentValue(
+            currency = currency,
+            value = totalChangedValue.toDouble(),
+            changePercentage = calculateWalletChangedPercentage(
+                totalValue = totalValue,
+                changedValue = totalChangedValue,
+            ),
+        ),
+    )
 }
 
 internal fun calculateWalletChangedPercentage(
@@ -97,15 +118,41 @@ internal class WalletSummaryEquivalentValue(
     override val changePercentage: Double?,
 ) : EquivalentValue {
     override val changePercentageFormatted: String
-        get() = changePercentage.formatAsPercentage(isShowSign = false)
+        get() = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 }
 
-class WalletSummaryAggregateImpl(
-    override val walletType: WalletType,
-    override val walletName: String,
-    override val walletIcon: Any?,
-    override val walletTotalValue: String,
-    override val changedValue: EquivalentValue?,
+internal data class WalletSummaryDisplayState(
+    val totalValue: String,
+    val changedValue: EquivalentValue?,
+)
+
+@Stable
+internal class WalletSummaryAggregateImpl(
+    wallet: Wallet,
+    displayState: WalletSummaryDisplayState,
     override val isOperationsAvailable: Boolean,
-    override val isSwapAvailable: Boolean,
-) : WalletSummaryAggregate
+) : WalletSummaryAggregate {
+    private val walletAccount = wallet.accounts.firstOrNull()
+
+    override val walletType: WalletType = wallet.type
+
+    override val walletName: String = wallet.name
+
+    override val walletIcon: Any? = when (wallet.type) {
+        WalletType.Multicoin -> null
+        WalletType.Single,
+        WalletType.PrivateKey,
+        WalletType.View -> walletAccount?.chain?.asset()
+    }
+
+    override val walletTotalValue: String = displayState.totalValue
+
+    override val changedValue: EquivalentValue? = displayState.changedValue
+
+    override val isSwapAvailable: Boolean = when (wallet.type) {
+        WalletType.Multicoin -> true
+        WalletType.Single,
+        WalletType.PrivateKey -> walletAccount?.chain?.isSwapSupport() == true
+        WalletType.View -> false
+    }
+}

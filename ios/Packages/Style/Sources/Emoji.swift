@@ -2,7 +2,7 @@
 
 import SwiftUI
 
-public struct Emoji {
+public enum Emoji {
     public static let greenCircle = "🟢"
     public static let orangeCircle = "🟠"
     public static let redCircle = "🔴"
@@ -14,7 +14,7 @@ public struct Emoji {
     public static let gem = "💎"
     public static let party = "🎉"
 
-    public struct Flags {
+    public enum Flags {
         public static let flagsByIdentifier: [String: String] = [
             "MXN": "🇲🇽",
             "CHF": "🇨🇭",
@@ -61,10 +61,10 @@ public struct Emoji {
             "XDR": "🏳️",
             "MYR": "🇲🇾",
             "AED": "🇦🇪",
-            "SEK": "🇸🇪"
+            "SEK": "🇸🇪",
         ]
     }
-    
+
     public enum WalletAvatar: String, CaseIterable {
         case gem = "💎"
         case unicorn = "🦄"
@@ -143,7 +143,7 @@ public struct Emoji {
         case pumpkin = "🎃"
         case package = "📦"
     }
-    
+
     public enum FeeRate: String {
         case slow = "⏱️"
         case normal = "💎"

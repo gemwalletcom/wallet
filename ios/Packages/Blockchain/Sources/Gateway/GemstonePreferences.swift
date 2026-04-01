@@ -9,21 +9,21 @@ final class GemstonePreferences: GemPreferences, @unchecked Sendable {
 
     init(
         namespace: String,
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
     ) {
         self.namespace = namespace
         self.userDefaults = userDefaults
     }
 
-    public func get(key: String) throws -> String? {
-        return userDefaults.string(forKey: namespace + key)
+    func get(key: String) throws -> String? {
+        userDefaults.string(forKey: namespace + key)
     }
 
-    public func set(key: String, value: String) throws {
+    func set(key: String, value: String) throws {
         userDefaults.set(value, forKey: namespace + key)
     }
 
-    public func remove(key: String) throws {
+    func remove(key: String) throws {
         userDefaults.removeObject(forKey: namespace + key)
     }
 }

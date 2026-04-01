@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Formatters
+import Foundation
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
-import PrimitivesComponents
-import Formatters
 
 struct OpenPositionItemViewModel: ListAssetItemViewable {
     private let data: AutocloseOpenData
@@ -16,7 +16,7 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
 
     init(data: AutocloseOpenData) {
         self.data = data
-        self.currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
     }
 
     var name: String { data.symbol }
@@ -30,8 +30,8 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
         .type(
             TextValue(
                 text: positionTypeText,
-                style: TextStyle(font: .footnote, color: directionViewModel.color)
-            )
+                style: TextStyle(font: .footnote, color: directionViewModel.color),
+            ),
         )
     }
 
@@ -39,12 +39,12 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
         .balance(
             balance: TextValue(
                 text: data.size.isZero ? "" : currencyFormatter.string(data.size),
-                style: TextStyle(font: .body, color: .primary, fontWeight: .medium)
+                style: TextStyle(font: .body, color: .primary, fontWeight: .medium),
             ),
             totalFiat: TextValue(
                 text: "",
-                style: TextStyle(font: .footnote, color: Colors.secondaryText)
-            )
+                style: TextStyle(font: .footnote, color: Colors.secondaryText),
+            ),
         )
     }
 }

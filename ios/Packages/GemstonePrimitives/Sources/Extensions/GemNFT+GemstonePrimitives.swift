@@ -4,8 +4,8 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemNftType {
-    public func map() -> NFTType {
+public extension GemNftType {
+    func map() -> NFTType {
         switch self {
         case .erc721: .erc721
         case .erc1155: .erc1155
@@ -15,8 +15,8 @@ extension GemNftType {
     }
 }
 
-extension NFTType {
-    public func map() -> GemNftType {
+public extension NFTType {
+    func map() -> GemNftType {
         switch self {
         case .erc721: .erc721
         case .erc1155: .erc1155
@@ -26,45 +26,45 @@ extension NFTType {
     }
 }
 
-extension GemNftResource {
-    public func map() -> NFTResource {
+public extension GemNftResource {
+    func map() -> NFTResource {
         NFTResource(url: url, mimeType: mimeType)
     }
 }
 
-extension NFTResource {
-    public func map() -> GemNftResource {
+public extension NFTResource {
+    func map() -> GemNftResource {
         GemNftResource(url: url, mimeType: mimeType)
     }
 }
 
-extension GemNftImages {
-    public func map() -> NFTImages {
+public extension GemNftImages {
+    func map() -> NFTImages {
         NFTImages(preview: preview.map())
     }
 }
 
-extension NFTImages {
-    public func map() -> GemNftImages {
+public extension NFTImages {
+    func map() -> GemNftImages {
         GemNftImages(preview: preview.map())
     }
 }
 
-extension GemNftAttribute {
-    public func map() -> NFTAttribute {
+public extension GemNftAttribute {
+    func map() -> NFTAttribute {
         NFTAttribute(name: name, value: value, percentage: percentage)
     }
 }
 
-extension NFTAttribute {
-    public func map() -> GemNftAttribute {
+public extension NFTAttribute {
+    func map() -> GemNftAttribute {
         GemNftAttribute(name: name, value: value, percentage: percentage)
     }
 }
 
-extension GemNftAsset {
-    public func map() throws -> NFTAsset {
-        return NFTAsset(
+public extension GemNftAsset {
+    func map() throws -> NFTAsset {
+        try NFTAsset(
             id: id,
             collectionId: collectionId,
             contractAddress: contractAddress,
@@ -72,17 +72,17 @@ extension GemNftAsset {
             tokenType: tokenType.map(),
             name: name,
             description: description,
-            chain: try chain.map(),
+            chain: chain.map(),
             resource: resource.map(),
             images: images.map(),
-            attributes: attributes.map { $0.map() }
+            attributes: attributes.map { $0.map() },
         )
     }
 }
 
-extension NFTAsset {
-    public func map() -> GemNftAsset {
-        return GemNftAsset(
+public extension NFTAsset {
+    func map() -> GemNftAsset {
+        GemNftAsset(
             id: id,
             collectionId: collectionId,
             contractAddress: contractAddress,
@@ -93,7 +93,7 @@ extension NFTAsset {
             chain: chain.rawValue,
             resource: resource.map(),
             images: images.map(),
-            attributes: attributes.map { $0.map() }
+            attributes: attributes.map { $0.map() },
         )
     }
 }

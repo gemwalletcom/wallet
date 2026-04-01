@@ -31,7 +31,7 @@ public enum AnyCodableValue: Codable, Equatable, Hashable, Sendable {
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container,
-                debugDescription: "Unable to decode AnyCodableValue"
+                debugDescription: "Unable to decode AnyCodableValue",
             )
         }
     }
@@ -42,38 +42,40 @@ public enum AnyCodableValue: Codable, Equatable, Hashable, Sendable {
         switch self {
         case .null:
             try container.encodeNil()
-        case .bool(let value):
+        case let .bool(value):
             try container.encode(value)
-        case .int(let value):
+        case let .int(value):
             try container.encode(value)
-        case .double(let value):
+        case let .double(value):
             try container.encode(value)
-        case .string(let value):
+        case let .string(value):
             try container.encode(value)
-        case .array(let value):
+        case let .array(value):
             try container.encode(value)
-        case .object(let value):
+        case let .object(value):
             try container.encode(value)
         }
     }
 }
 
-extension AnyCodableValue {
-    public func decode<T: Decodable>(_ type: T.Type) -> T? {
+public extension AnyCodableValue {
+    func decode<T: Decodable>(_: T.Type) -> T? {
         // Try direct decode first
         if let data = try? JSONEncoder().encode(self),
-           let result = try? JSONDecoder().decode(T.self, from: data) {
+           let result = try? JSONDecoder().decode(T.self, from: data)
+        {
             return result
         }
         // If value is a string containing JSON, try to parse it
-        if case .string(let jsonString) = self,
-           let data = jsonString.data(using: .utf8) {
+        if case let .string(jsonString) = self,
+           let data = jsonString.data(using: .utf8)
+        {
             return try? JSONDecoder().decode(T.self, from: data)
         }
         return nil
     }
 
-    public static func encode<T: Encodable>(_ value: T) -> AnyCodableValue? {
+    static func encode(_ value: some Encodable) -> AnyCodableValue? {
         guard let data = try? JSONEncoder().encode(value) else { return nil }
         return try? JSONDecoder().decode(AnyCodableValue.self, from: data)
     }

@@ -8,19 +8,19 @@ let package = Package(
     products: [
         .library(
             name: "SwiftHTTPClient",
-            targets: ["SwiftHTTPClient"]
+            targets: ["SwiftHTTPClient"],
         ),
         .library(
             name: "SwiftHTTPClientTestKit",
-            targets: ["SwiftHTTPClientTestKit"]
+            targets: ["SwiftHTTPClientTestKit"],
         ),
         .library(
             name: "WebSocketClient",
-            targets: ["WebSocketClient"]
+            targets: ["WebSocketClient"],
         ),
         .library(
             name: "WebSocketClientTestKit",
-            targets: ["WebSocketClientTestKit"]
+            targets: ["WebSocketClientTestKit"],
         ),
     ],
     dependencies: [],
@@ -29,33 +29,33 @@ let package = Package(
             name: "SwiftHTTPClient",
             dependencies: [],
             path: "SwiftHTTPClient",
-            exclude: ["TestKit", "Tests"]
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "SwiftHTTPClientTestKit",
             dependencies: ["SwiftHTTPClient"],
-            path: "SwiftHTTPClient/TestKit"
+            path: "SwiftHTTPClient/TestKit",
         ),
         .testTarget(
             name: "SwiftHTTPClientTests",
             dependencies: ["SwiftHTTPClient"],
-            path: "SwiftHTTPClient/Tests"
+            path: "SwiftHTTPClient/Tests",
         ),
         .target(
             name: "WebSocketClient",
             dependencies: [],
             path: "WebSocketClient",
-            exclude: ["TestKit", "Tests"]
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "WebSocketClientTestKit",
             dependencies: ["WebSocketClient"],
-            path: "WebSocketClient/TestKit"
+            path: "WebSocketClient/TestKit",
         ),
         .testTarget(
             name: "WebSocketClientTests",
             dependencies: ["WebSocketClient"],
-            path: "WebSocketClient/Tests"
+            path: "WebSocketClient/Tests",
         ),
-    ]
+    ],
 )

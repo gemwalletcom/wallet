@@ -6,10 +6,10 @@ import Primitives
 public struct TransactionHeaderItemModel {
     public let headerType: TransactionHeaderType
     public let showClearHeader: Bool
-    
+
     public init(
         headerType: TransactionHeaderType,
-        showClearHeader: Bool
+        showClearHeader: Bool,
     ) {
         self.headerType = headerType
         self.showClearHeader = showClearHeader

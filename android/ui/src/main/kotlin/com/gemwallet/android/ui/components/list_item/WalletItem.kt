@@ -1,9 +1,7 @@
 package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -13,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.getAddressEllipsisText
 import com.gemwallet.android.ui.R
@@ -59,14 +56,11 @@ fun WalletItem(
     onEdit: ((String) -> Unit)? = null,
 ) {
     ListItem(
-        modifier = modifier.heightIn(72.dp),
+        modifier = modifier,
+        minHeight = ListItemDefaults.defaultMinHeight,
         leading = @Composable {
             IconWithBadge(
-                icon = if (type == WalletType.Multicoin) {
-                    R.drawable.multicoin_wallet
-                } else {
-                    walletChain?.getIconUrl() ?: ""
-                },
+                icon = walletItemIconModel(type = type, walletChain = walletChain),
                 supportIcon = if (type == WalletType.View) {
                     "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
                 } else null,
@@ -86,7 +80,7 @@ fun WalletItem(
             ListItemSupportText(
                 when (type) {
                     WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
-                    else -> walletAddress?.getAddressEllipsisText() ?: ""
+                    else -> walletAddress?.getAddressEllipsisText(chain = walletChain) ?: ""
                 },
             )
         },
@@ -97,11 +91,7 @@ fun WalletItem(
             ) {
                 Spacer16()
                 if (isCurrent) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "checked",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
+                    SelectionCheckmark()
                 }
                 if (onEdit != null) {
                     Spacer8()
@@ -116,6 +106,13 @@ fun WalletItem(
             }
         }
     )
+}
+
+private fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {
+    WalletType.Multicoin -> R.drawable.multicoin_wallet
+    WalletType.Single,
+    WalletType.PrivateKey,
+    WalletType.View -> walletChain?.getIconUrl()
 }
 
 @Preview

@@ -16,7 +16,7 @@ public extension ToastMessage {
     static func pin(_ name: String, pinned: Bool) -> ToastMessage {
         ToastMessage(
             title: pinned ? "\(Localized.Common.pinned) \(name)" : "\(Localized.Common.unpin) \(name)",
-            image: pinned ? SystemImage.pin : SystemImage.unpin
+            image: pinned ? SystemImage.pin : SystemImage.unpin,
         )
     }
 
@@ -27,14 +27,14 @@ public extension ToastMessage {
     static func showAsset(visible: Bool) -> ToastMessage {
         ToastMessage(
             title: visible ? Localized.Asset.addToWallet : Localized.Asset.hideFromWallet,
-            image: visible ? SystemImage.plusCircle : SystemImage.minusCircle
+            image: visible ? SystemImage.plusCircle : SystemImage.minusCircle,
         )
     }
 
     static func priceAlert(for assetName: String, enabled: Bool) -> ToastMessage {
         ToastMessage(
             title: enabled ? Localized.PriceAlerts.enabledFor(assetName) : Localized.PriceAlerts.disabledFor(assetName),
-            image: SystemImage.bellFill
+            image: SystemImage.bellFill,
         )
     }
 

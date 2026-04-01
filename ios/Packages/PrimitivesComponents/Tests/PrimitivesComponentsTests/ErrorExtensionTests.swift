@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Foundation
+import Testing
 
 @testable import PrimitivesComponents
 
 struct ErrorExtensionTests {
-
     @Test
     func networkErrorDescription() {
         let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorNotConnectedToInternet)

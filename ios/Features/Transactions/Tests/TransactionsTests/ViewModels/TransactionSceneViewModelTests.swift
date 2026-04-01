@@ -1,20 +1,19 @@
-import Testing
+import Components
 import Foundation
 import Localization
-import Primitives
-import PrimitivesTestKit
 import Preferences
 import PreferencesTestKit
+import Primitives
 import PrimitivesComponents
+import PrimitivesTestKit
 import Style
-import Components
+import Testing
 
-@testable import Transactions
 @testable import Store
+@testable import Transactions
 
 @MainActor
 struct TransactionSceneViewModelTests {
-
     @Test
     func itemModelReturnsNonEmpty() {
         let model = TransactionSceneViewModel.mock()
@@ -31,7 +30,7 @@ struct TransactionSceneViewModelTests {
     func headerItemModel() {
         let model = TransactionSceneViewModel.mock(
             type: TransactionType.transfer,
-            direction: TransactionDirection.outgoing
+            direction: TransactionDirection.outgoing,
         )
         let itemModel = model.item(for: TransactionItem.header)
 
@@ -60,10 +59,10 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func dateItemModel() {
-        let testDate = Date(timeIntervalSince1970: 1609459200)
+        let testDate = Date(timeIntervalSince1970: 1_609_459_200)
         let model = TransactionSceneViewModel.mock(createdAt: testDate)
 
-        if case .listItem(let item) = model.item(for: TransactionItem.date) {
+        if case let .listItem(item) = model.item(for: TransactionItem.date) {
             #expect(item.title == Localized.Transaction.date)
             #expect(item.subtitle != nil)
         } else {
@@ -74,7 +73,7 @@ struct TransactionSceneViewModelTests {
     @Test
     func statusItemModel() {
         let confirmedModel = TransactionSceneViewModel.mock(state: TransactionState.confirmed)
-        if case .listItem(let item) = confirmedModel.item(for: TransactionItem.status) {
+        if case let .listItem(item) = confirmedModel.item(for: TransactionItem.status) {
             #expect(item.title == Localized.Transaction.status)
             #expect(item.subtitleStyle.color == Colors.green)
         } else {
@@ -82,7 +81,7 @@ struct TransactionSceneViewModelTests {
         }
 
         let pendingModel = TransactionSceneViewModel.mock(state: TransactionState.pending)
-        if case .listItem(let item) = pendingModel.item(for: TransactionItem.status) {
+        if case let .listItem(item) = pendingModel.item(for: TransactionItem.status) {
             if case .progressView = item.titleTagType {
             } else {
                 Issue.record("Expected progress indicator for pending status")
@@ -100,16 +99,16 @@ struct TransactionSceneViewModelTests {
                 type: .transfer,
                 direction: .incoming,
                 from: "0xSenderAddress",
-                to: "0xRecipientAddress"
-            )
+                to: "0xRecipientAddress",
+            ),
         )
         let modelWithAddresses = TransactionSceneViewModel(
             transaction: transaction,
             walletId: .mock(),
-            preferences: Preferences.standard
+            preferences: Preferences.standard,
         )
 
-        if case .participant(let item) = modelWithAddresses.item(for: TransactionItem.participant) {
+        if case let .participant(item) = modelWithAddresses.item(for: TransactionItem.participant) {
             #expect(item.title == Localized.Transaction.sender)
             #expect(item.account.address == "0xSenderAddress")
         } else {
@@ -126,7 +125,7 @@ struct TransactionSceneViewModelTests {
     @Test
     func memoItemModel() {
         let modelWithMemo = TransactionSceneViewModel.mock(assetId: .mock(.cosmos), memo: "Test memo")
-        if case .listItem(let item) = modelWithMemo.item(for: TransactionItem.memo) {
+        if case let .listItem(item) = modelWithMemo.item(for: TransactionItem.memo) {
             #expect(item.title == Localized.Transfer.memo)
             #expect(item.subtitle == "Test memo")
         } else {
@@ -150,7 +149,7 @@ struct TransactionSceneViewModelTests {
     func networkItemModel() {
         let model = TransactionSceneViewModel.mock()
 
-        if case .network(let title, let subtitle, _) = model.item(for: TransactionItem.network) {
+        if case let .network(title, subtitle, _) = model.item(for: TransactionItem.network) {
             #expect(title == Localized.Transfer.network)
             #expect(subtitle == "Bitcoin")
         } else {
@@ -171,7 +170,7 @@ struct TransactionSceneViewModelTests {
     func feeItemModel() {
         let model = TransactionSceneViewModel.mock()
 
-        if case .fee(let item) = model.item(for: TransactionItem.fee) {
+        if case let .fee(item) = model.item(for: TransactionItem.fee) {
             #expect(item.title == Localized.Transfer.networkFee)
             #expect(item.infoAction != nil)
         } else {
@@ -183,7 +182,7 @@ struct TransactionSceneViewModelTests {
     func explorerLinkItemModel() {
         let model = TransactionSceneViewModel.mock()
 
-        if case .explorer(let url, let text) = model.item(for: TransactionItem.explorerLink) {
+        if case let .explorer(url, text) = model.item(for: TransactionItem.explorerLink) {
             #expect(url.absoluteString == "https://blockchair.com/bitcoin/transaction/1")
             #expect(text == "View on Blockchair")
         } else {
@@ -213,7 +212,7 @@ struct TransactionSceneViewModelTests {
             TransactionItem.pnl,
             TransactionItem.price,
             TransactionItem.provider,
-            TransactionItem.fee
+            TransactionItem.fee,
         ])
         #expect(sections[3].values == [TransactionItem.explorerLink])
     }
@@ -233,7 +232,7 @@ extension TransactionSceneViewModel {
         assetId: AssetId = .mock(),
         toAddress: String = "participant_address",
         memo: String? = nil,
-        createdAt: Date = Date()
+        createdAt _: Date = Date(),
     ) -> TransactionSceneViewModel {
         TransactionSceneViewModel(
             transaction: TransactionExtended.mock(
@@ -243,11 +242,11 @@ extension TransactionSceneViewModel {
                     direction: direction,
                     assetId: assetId,
                     to: toAddress,
-                    memo: memo
-                )
+                    memo: memo,
+                ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard
+            preferences: Preferences.standard,
         )
     }
 }

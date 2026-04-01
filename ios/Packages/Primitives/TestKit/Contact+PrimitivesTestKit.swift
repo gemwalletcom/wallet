@@ -9,7 +9,7 @@ public extension Contact {
         name: String = "John Doe",
         description: String? = nil,
         createdAt: Date = .now,
-        updatedAt: Date = .now
+        updatedAt: Date = .now,
     ) -> Contact {
         Contact(id: id, name: name, description: description, createdAt: createdAt, updatedAt: updatedAt)
     }
@@ -21,14 +21,14 @@ public extension ContactAddress {
         contactId: String = "contact-1",
         address: String = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
         chain: Chain = .bitcoin,
-        memo: String? = nil
+        memo: String? = nil,
     ) -> ContactAddress {
         ContactAddress(
             id: id,
             contactId: contactId,
             address: address,
             chain: chain,
-            memo: memo
+            memo: memo,
         )
     }
 }
@@ -36,7 +36,7 @@ public extension ContactAddress {
 public extension ContactData {
     static func mock(
         contact: Contact = .mock(),
-        addresses: [ContactAddress] = [.mock()]
+        addresses: [ContactAddress] = [.mock()],
     ) -> ContactData {
         ContactData(contact: contact, addresses: addresses)
     }

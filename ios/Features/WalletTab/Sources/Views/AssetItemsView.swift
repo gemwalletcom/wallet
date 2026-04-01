@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
+import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 struct AssetItemsView: View {
     let items: [AssetData]
@@ -19,11 +19,11 @@ struct AssetItemsView: View {
                         showBalancePrivacy: .constant(false),
                         assetData: assetData,
                         formatter: .abbreviated,
-                        currencyCode: currencyCode
-                    )
+                        currencyCode: currencyCode,
+                    ),
                 )
                 .contextMenu(contextMenuItems(assetData)),
-                action: { onSelect(assetData.asset) }
+                action: { onSelect(assetData.asset) },
             )
         }
     }

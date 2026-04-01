@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WidgetKit
 import Primitives
 import Style
+import WidgetKit
 
-internal struct PriceWidgetEntry: TimelineEntry, Sendable {
+struct PriceWidgetEntry: TimelineEntry, Sendable {
     let date: Date
     let coinPrices: [CoinPrice]
     let currency: String
@@ -17,7 +17,7 @@ internal struct PriceWidgetEntry: TimelineEntry, Sendable {
         coinPrices: [CoinPrice],
         currency: String = "USD",
         error: String? = .none,
-        widgetFamily: WidgetFamily = .systemMedium
+        widgetFamily: WidgetFamily = .systemMedium,
     ) {
         self.date = date
         self.coinPrices = coinPrices
@@ -31,7 +31,7 @@ internal struct PriceWidgetEntry: TimelineEntry, Sendable {
             date: Date(),
             coinPrices: [],
             error: error,
-            widgetFamily: widgetFamily
+            widgetFamily: widgetFamily,
         )
     }
 
@@ -43,7 +43,7 @@ internal struct PriceWidgetEntry: TimelineEntry, Sendable {
                 symbol: "BTC",
                 price: 69000,
                 priceChangePercentage24h: 2.5,
-                image: Images.name(Chain.bitcoin.rawValue)
+                image: Images.name(Chain.bitcoin.rawValue),
             ),
             CoinPrice(
                 assetId: AssetId(chain: .ethereum, tokenId: nil),
@@ -51,7 +51,7 @@ internal struct PriceWidgetEntry: TimelineEntry, Sendable {
                 symbol: "ETH",
                 price: 3500,
                 priceChangePercentage24h: 1.2,
-                image: Images.name(Chain.ethereum.rawValue)
+                image: Images.name(Chain.ethereum.rawValue),
             ),
             CoinPrice(
                 assetId: AssetId(chain: .solana, tokenId: nil),
@@ -59,15 +59,15 @@ internal struct PriceWidgetEntry: TimelineEntry, Sendable {
                 symbol: "SOL",
                 price: 150,
                 priceChangePercentage24h: -0.8,
-                image: Images.name(Chain.solana.rawValue)
-            )
+                image: Images.name(Chain.solana.rawValue),
+            ),
         ]
 
         return PriceWidgetEntry(
             date: Date(),
             coinPrices: widgetFamily == .systemSmall ? Array(placeholderCoins.prefix(1)) : placeholderCoins,
             error: .none,
-            widgetFamily: widgetFamily
+            widgetFamily: widgetFamily,
         )
     }
 }

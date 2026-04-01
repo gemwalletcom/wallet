@@ -6,12 +6,12 @@ let package = Package(
     name: "NativeProviderService",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "NativeProviderService",
-            targets: ["NativeProviderService"]
+            targets: ["NativeProviderService"],
         ),
     ],
     dependencies: [
@@ -25,7 +25,7 @@ let package = Package(
                 "Primitives",
                 "Gemstone",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
-    ]
+    ],
 )

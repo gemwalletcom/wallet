@@ -3,10 +3,10 @@
 import Foundation
 
 internal import CryptoKit
-import protocol Gemstone.AlienProvider
-import struct Gemstone.AlienTarget
-import struct Gemstone.AlienResponse
 import enum Gemstone.AlienError
+import protocol Gemstone.AlienProvider
+import struct Gemstone.AlienResponse
+import struct Gemstone.AlienTarget
 import typealias Gemstone.Chain
 import Primitives
 
@@ -20,7 +20,7 @@ public actor NativeProvider {
         session: URLSession,
         nodeProvider: any NodeURLFetchable,
         requestInterceptor: any RequestInterceptable,
-        cache: MemoryCache = MemoryCache()
+        cache: MemoryCache = MemoryCache(),
     ) {
         self.session = session
         self.nodeProvider = nodeProvider
@@ -30,12 +30,12 @@ public actor NativeProvider {
 
     public init(
         session: URLSession = .shared,
-        nodeProvider: any NodeURLFetchable
+        nodeProvider: any NodeURLFetchable,
     ) {
         self.init(
             session: session,
             nodeProvider: nodeProvider,
-            requestInterceptor: nodeProvider.requestInterceptor
+            requestInterceptor: nodeProvider.requestInterceptor,
         )
     }
 
@@ -43,7 +43,7 @@ public actor NativeProvider {
         self.init(
             session: session,
             nodeProvider: StaticNode(url: url),
-            requestInterceptor: requestInterceptor
+            requestInterceptor: requestInterceptor,
         )
     }
 }
@@ -55,24 +55,24 @@ struct StaticNode: NodeURLFetchable {
         self.url = url
     }
 
-    func node(for chain: Primitives.Chain) -> URL {
+    func node(for _: Primitives.Chain) -> URL {
         url
     }
 }
 
 extension NativeProvider: AlienProvider {
     public func request(target: AlienTarget) async throws -> AlienResponse {
-        if let data = await self.cache.get(key: target.cacheKey) {
+        if let data = await cache.get(key: target.cacheKey) {
             return AlienResponse(status: 200, data: data)
         }
         do {
             var request = try target.asRequest()
             requestInterceptor.intercept(request: &request)
-            let (data, response) = try await self.session.data(for: request)
+            let (data, response) = try await session.data(for: request)
             let statusCode = (response as? HTTPURLResponse)?.statusCode
-            
+
             if let ttl = target.headers?["x-cache-ttl"], let duration = Int(ttl) {
-                await self.cache.set(key: target.cacheKey, value: data, ttl: Duration.seconds(duration))
+                await cache.set(key: target.cacheKey, value: data, ttl: Duration.seconds(duration))
             }
 
             return AlienResponse(status: statusCode.map(UInt16.init), data: data)
@@ -85,14 +85,14 @@ extension NativeProvider: AlienProvider {
     }
 
     public nonisolated func getEndpoint(chain: Chain) throws -> String {
-        self.nodeProvider.node(for: try Primitives.Chain(id: chain)).absoluteString
+        try nodeProvider.node(for: Primitives.Chain(id: chain)).absoluteString
     }
 }
 
 extension AlienTarget {
     var cacheKey: String {
         let bodyHex = body?.map { String(format: "%02x", $0) }.joined() ?? ""
-        let string = [url, method.hashValue.asString, headers?.description, bodyHex].compactMap { $0 }.joined()
+        let string = [url, method.hashValue.asString, headers?.description, bodyHex].compactMap(\.self).joined()
         return SHA256.hash(data: Data(string.utf8)).description
     }
 }

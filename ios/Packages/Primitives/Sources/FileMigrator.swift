@@ -13,7 +13,7 @@ public struct FileMigrator {
         name: String,
         fromDirectory: FileManager.SearchPathDirectory,
         toDirectory: FileManager.SearchPathDirectory,
-        isDirectory: Bool
+        isDirectory: Bool,
     ) throws -> URL {
         let directoryHint: URL.DirectoryHint = isDirectory ? .isDirectory : .notDirectory
 

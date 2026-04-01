@@ -41,7 +41,8 @@ public final class LockWindowManager: LockWindowManageable {
 extension LockWindowManager {
     private func presentLockWindow() {
         if overlayWindow == nil,
-           let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+           let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        {
             overlayWindow = makeOverlayWindow(in: scene)
         }
 

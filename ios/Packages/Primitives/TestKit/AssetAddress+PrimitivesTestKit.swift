@@ -6,11 +6,11 @@ import Primitives
 public extension AssetAddress {
     static func mock(
         asset: Asset = .mock(),
-        address: String = ""
+        address: String = "",
     ) -> AssetAddress {
         AssetAddress(
             asset: asset,
-            address: address
+            address: address,
         )
     }
 }

@@ -18,13 +18,17 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.lockTime
-import com.gemwallet.android.domains.asset.title
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.list_head.CenteredListHead
+import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.availableIn
@@ -32,7 +36,6 @@ import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.PriceUIState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.features.stake.models.StakeAction
 import com.gemwallet.android.features.stake.presents.components.stakeActions
@@ -46,6 +49,7 @@ fun StakeScene(
     inSync: Boolean,
     assetInfo: AssetInfo,
     actions: List<StakeAction>,
+    isStakeEnabled: Boolean,
     delegations: List<Delegation>,
     amountAction: AmountTransactionAction,
     onRefresh: () -> Unit,
@@ -75,7 +79,11 @@ fun StakeScene(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item {
-                    SubheaderItem(title = assetInfo.title)
+                    CenteredListHead(
+                        title = assetInfo.asset.name,
+                        subtitle = assetInfo.asset.subtitleSymbol,
+                        leading = { HeaderIcon(assetInfo.asset) },
+                    )
                 }
                 minAmount(assetInfo.asset.chain)
                 apr(assetInfo.stakeApr ?: 0.0)
@@ -83,6 +91,7 @@ fun StakeScene(
 
                 stakeActions(
                     actions = actions,
+                    isStakeEnabled = isStakeEnabled,
                     assetId = assetInfo.id(),
                     amountAction = amountAction,
                     onConfirm = onConfirm,
@@ -120,7 +129,7 @@ internal fun LazyListScope.apr(apr: Double) {
     item {
         PropertyItem(
             title = stringResource(id = R.string.stake_apr, ""),
-            data = PriceUIState.formatPercentage(apr, false),
+            data = apr.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
             listPosition = ListPosition.Middle
         )
     }

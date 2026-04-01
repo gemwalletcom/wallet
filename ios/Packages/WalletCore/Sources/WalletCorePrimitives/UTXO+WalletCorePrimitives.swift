@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 public extension UTXO {
     func mapToUnspendTransaction(address: String, coinType: CoinType) -> BitcoinUnspentTransaction {
@@ -15,11 +15,11 @@ public extension UTXO {
     }
 }
 
-public extension Array where Element == BitcoinUnspentTransaction {
-    func mapToScripts(address: String, coinType: CoinType) -> [String : Data] {
-        return reduce(into: [String: Data]()) { map, data in
+public extension [BitcoinUnspentTransaction] {
+    func mapToScripts(address: String, coinType: CoinType) -> [String: Data] {
+        reduce(into: [String: Data]()) { map, _ in
             let script = BitcoinScript.lockScriptForAddress(address: address, coin: coinType)
-            
+
             guard coinType != .bitcoin, !script.data.isEmpty else {
                 return
             }
@@ -28,6 +28,6 @@ public extension Array where Element == BitcoinUnspentTransaction {
             } else if let scriptHash = script.matchPayToWitnessPublicKeyHash() {
                 map[scriptHash.hexString] = script.matchPayToPubkeyHash()
             }
-       }
+        }
     }
 }

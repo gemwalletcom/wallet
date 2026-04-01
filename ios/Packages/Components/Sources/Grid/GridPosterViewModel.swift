@@ -12,7 +12,7 @@ public struct GridPosterViewModel: Sendable {
         assetImage: AssetImage,
         title: String?,
         count: Int? = nil,
-        isVerified: Bool = false
+        isVerified: Bool = false,
     ) {
         self.assetImage = assetImage
         self.title = title

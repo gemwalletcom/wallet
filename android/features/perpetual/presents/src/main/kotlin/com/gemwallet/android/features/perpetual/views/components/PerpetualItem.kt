@@ -44,7 +44,6 @@ fun PerpetualItem(
     DropDownContextItem(
         modifier = modifier,
         isExpanded = longPressState.value == item.id,
-        imeCompensate = false,
         onDismiss = { longPressState.value = null },
         content = {
             PerpetualItem(
@@ -87,7 +86,7 @@ fun PerpetualItem(
         } else {
             {
                 PriceInfo(
-                    price = item.price.valueFormated,
+                    price = item.price.valueFormatted,
                     changes = item.price.changePercentageFormatted,
                     state = item.price.state,
                     style = MaterialTheme.typography.bodyMedium,

@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "Formatters",
-            targets: ["Formatters"]),
+            targets: ["Formatters"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
@@ -21,14 +22,14 @@ let package = Package(
             name: "Formatters",
             dependencies: [
                 "Primitives",
-            ]
+            ],
         ),
         .testTarget(
             name: "FormattersTests",
             dependencies: [
                 "Formatters",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

@@ -6,8 +6,8 @@ import Primitives
 
 struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "perpetuals_positions"
-    
-    struct Columns {
+
+    enum Columns {
         static let id = Column("id")
         static let walletId = Column("walletId")
         static let perpetualId = Column("perpetualId")
@@ -26,7 +26,7 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
         static let funding = Column("funding")
         static let updatedAt = Column("updatedAt")
     }
-    
+
     var id: String
     var walletId: String
     var perpetualId: String
@@ -44,7 +44,7 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
     var pnl: Double
     var funding: Float?
     var updatedAt: Date
-    
+
     init(
         id: String,
         walletId: String,
@@ -62,7 +62,7 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
         stopLoss: PerpetualTriggerOrder?,
         pnl: Double,
         funding: Float? = nil,
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
     ) {
         self.id = id
         self.walletId = walletId
@@ -82,15 +82,15 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
         self.funding = funding
         self.updatedAt = updatedAt
     }
-    
+
     // MARK: - Associations
-    
+
     static let perpetual = belongsTo(PerpetualRecord.self, using: ForeignKey([Columns.perpetualId]))
 }
 
 extension PerpetualPositionRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName) {
+        try db.create(table: databaseTableName) {
             $0.column(Columns.id.name, .text).notNull()
             $0.column(Columns.walletId.name, .text).notNull().indexed()
                 .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
@@ -123,7 +123,7 @@ extension PerpetualPositionRecord: CreateTable {
 
 extension PerpetualPositionRecord {
     func mapToPerpetualPosition() -> PerpetualPosition {
-        return PerpetualPosition(
+        PerpetualPosition(
             id: id,
             perpetualId: perpetualId,
             assetId: assetId,
@@ -138,14 +138,14 @@ extension PerpetualPositionRecord {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
             pnl: pnl,
-            funding: funding
+            funding: funding,
         )
     }
 }
 
 extension PerpetualPosition {
     func record(walletId: String) -> PerpetualPositionRecord {
-        return PerpetualPositionRecord(
+        PerpetualPositionRecord(
             id: id,
             walletId: walletId,
             perpetualId: perpetualId,
@@ -161,7 +161,7 @@ extension PerpetualPosition {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
             pnl: pnl,
-            funding: funding
+            funding: funding,
         )
     }
 }

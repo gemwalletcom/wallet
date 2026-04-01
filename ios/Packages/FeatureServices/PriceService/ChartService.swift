@@ -11,7 +11,7 @@ public struct ChartService: Sendable {
     public init(chartProvider: any GemAPIChartService = GemAPIService.shared) {
         self.chartProvider = chartProvider
     }
-    
+
     public func getCharts(assetId: AssetId, period: ChartPeriod) async throws -> Primitives.Charts {
         try await chartProvider
             .getCharts(assetId: assetId, period: period.rawValue)

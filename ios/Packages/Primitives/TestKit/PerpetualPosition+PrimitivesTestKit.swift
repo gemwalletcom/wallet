@@ -19,7 +19,7 @@ public extension PerpetualPosition {
         takeProfit: PerpetualTriggerOrder? = nil,
         stopLoss: PerpetualTriggerOrder? = nil,
         pnl: Double = 0,
-        funding: Float? = nil
+        funding: Float? = nil,
     ) -> PerpetualPosition {
         let direction = direction ?? (size >= 0 ? .long : .short)
 
@@ -38,7 +38,7 @@ public extension PerpetualPosition {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
             pnl: pnl,
-            funding: funding
+            funding: funding,
         )
     }
 }

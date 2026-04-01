@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Primitives
 import Localization
+import Primitives
 import PrimitivesComponents
 import Support
+import SwiftUI
 
 public struct SettingsScene: View {
-
     @Environment(\.openURL) private var openURL
 
     @State private var model: SettingsViewModel
@@ -20,7 +19,7 @@ public struct SettingsScene: View {
         model: SettingsViewModel,
         isPresentingWallets: Binding<Bool>,
         isPresentingSupport: Binding<Bool>,
-        deviceId: String
+        deviceId: String,
     ) {
         _model = State(initialValue: model)
         _isPresentingWallets = isPresentingWallets
@@ -49,8 +48,8 @@ public struct SettingsScene: View {
         .sheet(isPresented: $isPresentingSupport) {
             SupportScene(model: SupportSceneViewModel(
                 deviceId: deviceId,
-                isPresentingSupport: $isPresentingSupport)
-            )
+                isPresentingSupport: $isPresentingSupport,
+            ))
         }
     }
 }
@@ -64,15 +63,15 @@ extension SettingsScene {
                 with: ListItemView(
                     title: model.walletsTitle,
                     subtitle: model.walletsValue,
-                    imageStyle: .settings(assetImage: model.walletsImage)
+                    imageStyle: .settings(assetImage: model.walletsImage),
                 ),
-                action: onOpenWallets
+                action: onOpenWallets,
             )
 
             NavigationLink(value: Scenes.Security()) {
                 ListItemView(
                     title: model.securityTitle,
-                    imageStyle: .settings(assetImage: model.securityImage)
+                    imageStyle: .settings(assetImage: model.securityImage),
                 )
             }
         }
@@ -83,7 +82,7 @@ extension SettingsScene {
             NavigationLink(value: Scenes.Referral()) {
                 ListItemView(
                     title: model.rewardsTitle,
-                    imageStyle: .settings(assetImage: model.rewardsImage)
+                    imageStyle: .settings(assetImage: model.rewardsImage),
                 )
             }
         }
@@ -94,28 +93,28 @@ extension SettingsScene {
             NavigationLink(value: Scenes.Notifications()) {
                 ListItemView(
                     title: model.notificationsTitle,
-                    imageStyle: .settings(assetImage: model.notificationsImage)
+                    imageStyle: .settings(assetImage: model.notificationsImage),
                 )
             }
 
             NavigationLink(value: Scenes.PriceAlerts()) {
                 ListItemView(
                     title: model.priceAlertsTitle,
-                    imageStyle: .settings(assetImage: model.priceAlertsImage)
+                    imageStyle: .settings(assetImage: model.priceAlertsImage),
                 )
             }
 
             NavigationLink(value: Scenes.Contacts()) {
                 ListItemView(
                     title: model.contactsTitle,
-                    imageStyle: .settings(assetImage: model.contactsImage)
+                    imageStyle: .settings(assetImage: model.contactsImage),
                 )
             }
 
             NavigationLink(value: Scenes.Preferences()) {
                 ListItemView(
                     title: model.preferencesTitle,
-                    imageStyle: .settings(assetImage: model.preferencesImage)
+                    imageStyle: .settings(assetImage: model.preferencesImage),
                 )
             }
         }
@@ -126,7 +125,7 @@ extension SettingsScene {
             NavigationLink(value: Scenes.WalletConnect()) {
                 ListItemView(
                     title: model.walletConnectTitle,
-                    imageStyle: .settings(assetImage: model.walletConnectImage)
+                    imageStyle: .settings(assetImage: model.walletConnectImage),
                 )
             }
         }
@@ -143,15 +142,15 @@ extension SettingsScene {
             NavigationCustomLink(
                 with: ListItemView(
                     title: model.supportTitle,
-                    imageStyle: .settings(assetImage: model.supportImage)
+                    imageStyle: .settings(assetImage: model.supportImage),
                 ),
-                action: onOpenSupport
+                action: onOpenSupport,
             )
 
             NavigationLink(value: Scenes.AboutUs()) {
                 ListItemView(
                     title: model.aboutUsTitle,
-                    imageStyle: .settings(assetImage: model.aboutUsImage)
+                    imageStyle: .settings(assetImage: model.aboutUsImage),
                 )
             }
 
@@ -159,7 +158,7 @@ extension SettingsScene {
                 NavigationLink(value: Scenes.Developer()) {
                     ListItemView(
                         title: model.developerModeTitle,
-                        imageStyle: .settings(assetImage: model.developerModeImage)
+                        imageStyle: .settings(assetImage: model.developerModeImage),
                     )
                 }
             }

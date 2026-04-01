@@ -9,19 +9,19 @@ public protocol TransferMetadataProvidable: Sendable {
     func metadata(
         walletId: WalletId,
         asset: Asset,
-        extraIds: [AssetId]
+        extraIds: [AssetId],
     ) throws -> TransferDataMetadata
 }
 
 public extension TransferMetadataProvidable {
     func metadata(
         wallet: Wallet,
-        data: TransferData
+        data: TransferData,
     ) throws -> TransferDataMetadata {
         try metadata(
             walletId: wallet.walletId,
             asset: data.type.asset,
-            extraIds: data.type.assetIds
+            extraIds: data.type.assetIds,
         )
     }
 }
@@ -32,7 +32,7 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
 
     public init(
         balanceService: BalanceService,
-        priceService: PriceService
+        priceService: PriceService,
     ) {
         self.balanceService = balanceService
         self.priceService = priceService
@@ -41,7 +41,7 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
     public func metadata(
         walletId: WalletId,
         asset: Asset,
-        extraIds: [AssetId] = []
+        extraIds: [AssetId] = [],
     ) throws -> TransferDataMetadata {
         let assetId = asset.id
         let feeAssetId = asset.feeAsset.id
@@ -62,7 +62,7 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
             feeAssetId: feeAssetId,
             assetBalance: balance,
             assetFeeBalance: fee,
-            assetPrices: prices
+            assetPrices: prices,
         )
     }
 }

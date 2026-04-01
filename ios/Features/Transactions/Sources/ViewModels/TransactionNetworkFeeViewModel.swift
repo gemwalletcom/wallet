@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
-import Localization
-import Components
 
 struct TransactionNetworkFeeViewModel {
     private let feeDisplay: AmountDisplay?
@@ -12,7 +12,7 @@ struct TransactionNetworkFeeViewModel {
 
     init(
         feeDisplay: AmountDisplay?,
-        onInfoAction: VoidAction = nil
+        onInfoAction: VoidAction = nil,
     ) {
         self.feeDisplay = feeDisplay
         self.onInfoAction = onInfoAction
@@ -28,8 +28,8 @@ extension TransactionNetworkFeeViewModel: ItemModelProvidable {
                 title: Localized.Transfer.networkFee,
                 subtitle: feeDisplay?.fiat?.text ?? feeDisplay?.amount.text ?? "-",
                 subtitleExtra: nil,
-                infoAction: onInfoAction
-            )
+                infoAction: onInfoAction,
+            ),
         )
     }
 }

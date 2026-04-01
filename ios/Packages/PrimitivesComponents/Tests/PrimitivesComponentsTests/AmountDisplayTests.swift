@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import BigInt
+import Formatters
 import Primitives
 import PrimitivesTestKit
-import Formatters
+import Testing
 
 @testable import PrimitivesComponents
 
@@ -22,14 +22,14 @@ struct AmountDisplayTests {
             value: value,
             direction: .incoming,
             currency: currency,
-            formatter: .full
+            formatter: .full,
         )
-        
-        guard case .numeric(let viewModel) = display else {
+
+        guard case let .numeric(viewModel) = display else {
             Issue.record("Expected numeric display type")
             return
         }
-        
+
         #expect(viewModel.amount.text.contains(asset.symbol))
         #expect(viewModel.amount.text == "+1 BTC")
         #expect(viewModel.fiat?.text == "$1.50")
@@ -38,12 +38,12 @@ struct AmountDisplayTests {
     @Test
     func symbolFactory() {
         let display = AmountDisplay.symbol(asset: asset)
-        
-        guard case .symbol(let viewModel) = display else {
+
+        guard case let .symbol(viewModel) = display else {
             Issue.record("Expected symbol display type")
             return
         }
-        
+
         #expect(viewModel.amount.text == asset.symbol)
     }
 
@@ -53,10 +53,10 @@ struct AmountDisplayTests {
             asset: asset,
             price: price,
             value: value,
-            currency: currency
+            currency: currency,
         )
         let symbolDisplay = AmountDisplay.symbol(asset: asset)
-        
+
         #expect(numericDisplay.amount.text.contains(asset.symbol))
         #expect(symbolDisplay.amount.text == asset.symbol)
         #expect(numericDisplay.fiat?.text == "$1.50")
@@ -69,12 +69,12 @@ struct AmountDisplayTests {
             asset: asset,
             price: price,
             value: value,
-            currency: currency
+            currency: currency,
         )
-        
+
         let withFiat = display.fiatVisibility(true)
         let withoutFiat = display.fiatVisibility(false)
-        
+
         #expect(withFiat.fiat?.text == "$1.50")
         #expect(withoutFiat.fiat == nil)
     }

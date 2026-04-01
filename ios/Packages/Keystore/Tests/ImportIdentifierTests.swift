@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import KeystoreTestKit
 @testable import Keystore
+import KeystoreTestKit
+import Primitives
+import Testing
 
 struct ImportIdentifierTests {
-
     @Test
     func phraseDeriveAddress() throws {
         let identifier = ImportIdentifier.phrase(words: LocalKeystore.words)

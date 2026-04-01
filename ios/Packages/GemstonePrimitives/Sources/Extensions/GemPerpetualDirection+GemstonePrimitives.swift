@@ -4,8 +4,8 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.PerpetualDirection {
-    public func map() -> Primitives.PerpetualDirection {
+public extension Gemstone.PerpetualDirection {
+    func map() -> Primitives.PerpetualDirection {
         switch self {
         case .short: .short
         case .long: .long
@@ -13,8 +13,8 @@ extension Gemstone.PerpetualDirection {
     }
 }
 
-extension Primitives.PerpetualDirection {
-    public func map() -> Gemstone.PerpetualDirection {
+public extension Primitives.PerpetualDirection {
+    func map() -> Gemstone.PerpetualDirection {
         switch self {
         case .short: .short
         case .long: .long

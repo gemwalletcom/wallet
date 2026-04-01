@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
-import RewardsService
-import PrimitivesComponents
 import Localization
+import Primitives
+import PrimitivesComponents
+import RewardsService
 
 @Observable
 @MainActor
@@ -21,11 +21,11 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
         rewardsService: RewardsServiceable,
         wallet: Wallet,
         code: String = "",
-        onSuccess: @escaping (String) -> Void
+        onSuccess: @escaping (String) -> Void,
     ) {
         self.rewardsService = rewardsService
         self.wallet = wallet
-        self.text = code
+        text = code
         self.onSuccess = onSuccess
     }
 

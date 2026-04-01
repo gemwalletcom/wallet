@@ -7,14 +7,14 @@ public enum StateViewType<T: Sendable>: Sendable {
     case loading
     case data(T)
     case error(Error)
-    
+
     public var isLoading: Bool {
         switch self {
         case .loading: true
         default: false
         }
     }
-    
+
     public var isNoData: Bool {
         switch self {
         case .noData: true
@@ -30,18 +30,18 @@ public enum StateViewType<T: Sendable>: Sendable {
     }
 
     public var value: T? {
-        guard case .data(let t) = self else {
+        guard case let .data(t) = self else {
             return nil
         }
         return t
     }
-    
+
     public func map<U: Sendable>(_ transform: (T) -> U) -> StateViewType<U> {
         switch self {
         case .noData: .noData
         case .loading: .loading
-        case .data(let value): .data(transform(value))
-        case .error(let error): .error(error)
+        case let .data(value): .data(transform(value))
+        case let .error(error): .error(error)
         }
     }
 }

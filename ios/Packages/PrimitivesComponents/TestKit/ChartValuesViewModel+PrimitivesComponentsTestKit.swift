@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Formatters
+import Foundation
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
+import SwiftUI
 
 public extension ChartValuesViewModel {
     static func mock(
@@ -13,7 +13,7 @@ public extension ChartValuesViewModel {
         price: Price? = .mock(),
         values: ChartValues = .mock(),
         type: ChartValueType = .price,
-        headerValue: Double? = nil
+        headerValue: Double? = nil,
     ) -> ChartValuesViewModel {
         ChartValuesViewModel(
             period: period,
@@ -21,7 +21,7 @@ public extension ChartValuesViewModel {
             values: values,
             formatter: CurrencyFormatter(type: .currency, currencyCode: "USD"),
             type: type,
-            headerValue: headerValue
+            headerValue: headerValue,
         )
     }
 }

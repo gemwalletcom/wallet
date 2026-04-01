@@ -45,7 +45,7 @@ fun TransactionDetailsScene(
             data.valueGroups.forEach { group ->
                 itemsPositioned(group.items) { position, item ->
                     when (item) {
-                        is TransactionDetailsValue.Amount.NFT -> NftHead(item.asset)
+                        is TransactionDetailsValue.Amount.NFT -> NftHead(item.metadata)
                         TransactionDetailsValue.Amount.None -> {}
                         is TransactionDetailsValue.Amount.Plain -> AmountListHead(
                             icon = item.asset,

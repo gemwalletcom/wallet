@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public protocol SimpleListItemViewable {
     var title: String { get }
@@ -46,8 +46,8 @@ public struct SimpleListItemView: View {
             imageStyle: ListItemImageStyle(
                 assetImage: model.assetImage,
                 imageSize: model.imageSize,
-                cornerRadiusType: .custom(model.cornerRadius)
-            )
+                cornerRadiusType: .custom(model.cornerRadius),
+            ),
         )
     }
 }

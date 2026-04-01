@@ -2,7 +2,7 @@
 
 import Foundation
 
-public struct JSONDateDecoder {
+public enum JSONDateDecoder {
     public static let standard = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601WithFractionalSeconds

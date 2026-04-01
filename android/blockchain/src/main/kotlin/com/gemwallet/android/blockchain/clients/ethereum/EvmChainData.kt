@@ -26,6 +26,7 @@ data class EvmChainData(
                             token = it.token,
                             spender = it.spender,
                             value = it.value,
+                            isUnlimited = it.isUnlimited,
                         )
                     },
                     gasLimit = it.gasLimit,
@@ -49,6 +50,7 @@ fun GemTransactionLoadMetadata.Evm.toChainData(): EvmChainData {
                         token = it.token,
                         spender = it.spender,
                         value = it.value,
+                        isUnlimited = it.isUnlimited,
                     )
                 },
                 gasLimit = it.gasLimit,

@@ -9,7 +9,7 @@ public extension ScanTransactionPayload {
             origin: .mock(assetId: assetId, address: "orig"),
             target: .mock(assetId: assetId, address: "tgt"),
             website: nil,
-            type: type
+            type: type,
         )
     }
 }

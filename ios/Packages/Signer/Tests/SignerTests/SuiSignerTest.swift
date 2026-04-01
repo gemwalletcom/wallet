@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import Testing
 import WalletCore
-import Foundation
 
 @testable import Signer
 

@@ -62,12 +62,12 @@ final class ChainSigner: Signable {
     func signMessage(message: SignMessage, privateKey: Data) throws -> String {
         let messageData: Data
         switch message {
-        case .typed(let typed):
+        case let .typed(typed):
             guard let data = typed.data(using: .utf8) else {
                 throw AnyError("Typed message is not valid UTF-8")
             }
             messageData = data
-        case .raw(let data):
+        case let .raw(data):
             messageData = data
         }
 

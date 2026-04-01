@@ -1,26 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 
-public struct TransactionHeaderTypeBuilder {
+public enum TransactionHeaderTypeBuilder {
     public static func build(
         infoModel: TransactionInfoViewModel,
         transaction: Transaction,
-        metadata: TransactionExtendedMetadata?
+        metadata: TransactionExtendedMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
             switch transaction.type {
             case .transfer,
-                    .stakeDelegate,
-                    .stakeUndelegate,
-                    .stakeRedelegate,
-                    .stakeRewards,
-                    .stakeWithdraw,
-                    .smartContractCall,
-                    .stakeFreeze,
-                    .stakeUnfreeze:
+                 .stakeDelegate,
+                 .stakeUndelegate,
+                 .stakeRedelegate,
+                 .stakeRewards,
+                 .stakeWithdraw,
+                 .smartContractCall,
+                 .stakeFreeze,
+                 .stakeUnfreeze:
                 return .amount(showFiat: true)
             case .swap:
                 guard let metadata, let input = SwapMetadataViewModel(metadata: metadata).headerInput else {
@@ -48,31 +48,31 @@ public struct TransactionHeaderTypeBuilder {
     public static func build(
         infoModel: TransactionInfoViewModel,
         dataType: TransferDataType,
-        metadata: TransferDataMetadata?
+        metadata: TransferDataMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
             switch dataType {
             case .transfer,
-                    .deposit,
-                    .withdrawal,
-                    .stake,
-                    .generic:
+                 .deposit,
+                 .withdrawal,
+                 .stake,
+                 .generic:
                 return .amount(
-                    showFiat: true
+                    showFiat: true,
                 )
             case .tokenApprove:
                 return .assetImage
-            case .transferNft(let asset):
+            case let .transferNft(asset):
                 return .nft(name: asset.name, id: asset.id)
-            case .account(_, let type):
+            case let .account(_, type):
                 switch type {
                 case .activate:
                     return .amount(
-                        showFiat: false
+                        showFiat: false,
                     )
                 }
-            case .swap(let fromAsset, let toAsset, let data):
-                let assetPrices = (metadata?.assetPrices ?? [:]).map { (assetId, price) in
+            case let .swap(fromAsset, toAsset, data):
+                let assetPrices = (metadata?.assetPrices ?? [:]).map { assetId, price in
                     price.mapToAssetPrice(assetId: assetId)
                 }
 
@@ -85,9 +85,9 @@ public struct TransactionHeaderTypeBuilder {
                             fromValue: data.quote.fromValue,
                             toAsset: toAsset.id,
                             toValue: data.quote.toValue,
-                            provider: data.quote.providerData.provider.rawValue
-                        ))
-                    )
+                            provider: data.quote.providerData.provider.rawValue,
+                        )),
+                    ),
                 )
 
                 guard let input = model.headerInput else {

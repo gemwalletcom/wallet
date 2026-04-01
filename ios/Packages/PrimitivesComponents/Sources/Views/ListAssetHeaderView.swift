@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Style
+import SwiftUI
 
 public struct ListAssetHeaderView<Model: AssetPreviewable>: View {
     private let model: Model
@@ -14,7 +14,7 @@ public struct ListAssetHeaderView<Model: AssetPreviewable>: View {
     }
 
     public var body: some View {
-        Section { } header: {
+        Section {} header: {
             AssetPreviewView(model: model, subtitleLayout: subtitleLayout)
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, .small)

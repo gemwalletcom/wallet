@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
+import Primitives
+import SwiftUI
 
 public struct AssetIdViewModel: Sendable {
     private let assetId: AssetId
@@ -10,7 +10,7 @@ public struct AssetIdViewModel: Sendable {
 
     public init(
         assetId: AssetId,
-        assetFormatter: AssetImageFormatter = AssetImageFormatter()
+        assetFormatter: AssetImageFormatter = AssetImageFormatter(),
     ) {
         self.assetId = assetId
         self.assetFormatter = assetFormatter
@@ -21,7 +21,7 @@ public struct AssetIdViewModel: Sendable {
             type: .empty,
             imageURL: .none,
             placeholder: ChainImage(chain: assetId.chain).l2Image ?? imagePlaceholder,
-            chainPlaceholder: .none
+            chainPlaceholder: .none,
         )
     }
 
@@ -30,17 +30,17 @@ public struct AssetIdViewModel: Sendable {
             type: assetId.assetType?.rawValue ?? .empty,
             imageURL: imageURL,
             placeholder: imagePlaceholder,
-            chainPlaceholder: chainPlaceholder
+            chainPlaceholder: chainPlaceholder,
         )
         switch (assetId.chain, assetId.type) {
         case (.hyperCore, .token):
-            if let token = try? assetId.twoSubTokenIds(), let chain = Chain.allCases.first(where: { $0.asset.symbol == token.1} ) {
+            if let token = try? assetId.twoSubTokenIds(), let chain = Chain.allCases.first(where: { $0.asset.symbol == token.1 }) {
                 let chainAssetImage = AssetIdViewModel(assetId: chain.assetId).assetImage
                 return AssetImage(
                     type: defaultAssetImage.type,
                     imageURL: chainAssetImage.imageURL,
                     placeholder: chainAssetImage.placeholder,
-                    chainPlaceholder: chainPlaceholder
+                    chainPlaceholder: chainPlaceholder,
                 )
             }
         default: return defaultAssetImage

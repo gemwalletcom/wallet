@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
-import Primitives
+import Foundation
 import struct Gemstone.SwapperQuote
+import Primitives
 
 public struct SwapState: Sendable {
     public var quotes: StateViewType<[SwapperQuote]>
@@ -11,7 +11,7 @@ public struct SwapState: Sendable {
 
     public init(
         quotes: StateViewType<[SwapperQuote]> = .noData,
-        swapTransferData: StateViewType<TransferData> = .noData
+        swapTransferData: StateViewType<TransferData> = .noData,
     ) {
         self.quotes = quotes
         self.swapTransferData = swapTransferData
@@ -22,10 +22,10 @@ public struct SwapState: Sendable {
     }
 
     public var error: (any Error)? {
-        if case .error(let error) = quotes {
+        if case let .error(error) = quotes {
             return error
         }
-        if case .error(let error) = swapTransferData {
+        if case let .error(error) = swapTransferData {
             return error
         }
         return nil

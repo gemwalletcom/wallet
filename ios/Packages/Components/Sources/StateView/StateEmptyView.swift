@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct StateEmptyView<Content: View>: View {
     var title: TextValue
@@ -16,7 +16,7 @@ public struct StateEmptyView<Content: View>: View {
         description: String? = nil,
         descriptionTextStyle: TextStyle = .subHeadline,
         image: Image? = nil,
-        @ViewBuilder buttons: (() -> Content) = { EmptyView() }
+        @ViewBuilder buttons: (() -> Content) = { EmptyView() },
     ) {
         // set regular font if we have only title
         let titleStyle = (image == nil && description == nil) ? TextStyle(font: .body, color: titleTextStyle.color) : titleTextStyle
@@ -27,7 +27,7 @@ public struct StateEmptyView<Content: View>: View {
             titleValue: titleValue,
             descriptionValue: descriptionValue,
             image: image,
-            buttons: buttons
+            buttons: buttons,
         )
     }
 
@@ -35,57 +35,57 @@ public struct StateEmptyView<Content: View>: View {
         titleValue: TextValue,
         descriptionValue: TextValue? = nil,
         image: Image? = nil,
-        @ViewBuilder buttons: () -> Content = { EmptyView() }
+        @ViewBuilder buttons: () -> Content = { EmptyView() },
     ) {
-        self.title = titleValue
-        self.description = descriptionValue
+        title = titleValue
+        description = descriptionValue
         self.image = image
-        self.buttonsView = buttons()
+        buttonsView = buttons()
     }
 
-     public var body: some View {
-         VStack(spacing: .medium) {
-             if let image {
-                 ZStack {
-                     Circle()
-                         .foregroundStyle(Colors.Empty.imageBackground)
-                     image
-                         .resizable()
-                         .aspectRatio(contentMode: .fit)
-                         .frame(
+    public var body: some View {
+        VStack(spacing: .medium) {
+            if let image {
+                ZStack {
+                    Circle()
+                        .foregroundStyle(Colors.Empty.imageBackground)
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(
                             width: Sizing.image.medium,
-                            height: Sizing.image.medium
-                         )
-                         .foregroundStyle(Colors.Empty.image)
-                 }
-                 .frame(
+                            height: Sizing.image.medium,
+                        )
+                        .foregroundStyle(Colors.Empty.image)
+                }
+                .frame(
                     width: .image.large,
-                    height: .image.large
-                 )
-             }
+                    height: .image.large,
+                )
+            }
 
-             VStack(spacing: description == nil ? 0 : .tiny) {
-                 HStack(spacing: 0.0) {
-                     Text(title.text)
-                         .textStyle(title.style)
-                         .multilineTextAlignment(.center)
-                     if description == nil && image == nil {
-                         Spacer()
-                     }
-                 }
-                 .frame(maxWidth: .infinity)
+            VStack(spacing: description == nil ? 0 : .tiny) {
+                HStack(spacing: 0.0) {
+                    Text(title.text)
+                        .textStyle(title.style)
+                        .multilineTextAlignment(.center)
+                    if description == nil, image == nil {
+                        Spacer()
+                    }
+                }
+                .frame(maxWidth: .infinity)
 
-                 if let description {
-                     Text(description.text)
-                         .textStyle(description.style)
-                         .multilineTextAlignment(.center)
-                         .padding(.horizontal, Spacing.medium)
-                 }
-             }
-             buttonsView
-         }
-         .tint(Colors.black)
-     }
+                if let description {
+                    Text(description.text)
+                        .textStyle(description.style)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Spacing.medium)
+                }
+            }
+            buttonsView
+        }
+        .tint(Colors.black)
+    }
 }
 
 // MARK: - Previews
@@ -96,14 +96,14 @@ public struct StateEmptyView<Content: View>: View {
             StateEmptyView(
                 title: "No Results Found",
                 description: "Try adjusting your search or filter to find what you're looking for.",
-                image: Images.EmptyContent.nft
+                image: Images.EmptyContent.nft,
             )
         }
 
         Section(header: Text("View with Title and Image")) {
             StateEmptyView(
                 title: "No Results Found",
-                image: Images.EmptyContent.search
+                image: Images.EmptyContent.search,
             )
         }
 
@@ -113,20 +113,20 @@ public struct StateEmptyView<Content: View>: View {
                 titleTextStyle: .title,
                 description: "Try adjusting your search or filter to find what you're looking for.",
                 descriptionTextStyle: .body,
-                image: Images.EmptyContent.search
+                image: Images.EmptyContent.search,
             )
         }
 
         Section(header: Text("View with Title and Description")) {
             StateEmptyView(
                 title: "No Results Found",
-                description: "Try adjusting your search or filter to find what you're looking for."
+                description: "Try adjusting your search or filter to find what you're looking for.",
             )
         }
 
         Section(header: Text("View with Only Title")) {
             StateEmptyView(
-                title: "No Results Found"
+                title: "No Results Found",
             )
         }
     }

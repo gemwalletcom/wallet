@@ -12,7 +12,7 @@ enum TransferAction {
 
     var recipient: RecipientData {
         switch self {
-        case .send(let data), .deposit(let data), .withdraw(let data):
+        case let .send(data), let .deposit(data), let .withdraw(data):
             data
         }
     }
@@ -37,9 +37,9 @@ public final class AmountTransferViewModel: AmountDataProvidable {
 
     var amountType: AmountType {
         switch action {
-        case .send(let recipient): .transfer(recipient: recipient)
-        case .deposit(let recipient): .deposit(recipient: recipient)
-        case .withdraw(let recipient): .withdraw(recipient: recipient)
+        case let .send(recipient): .transfer(recipient: recipient)
+        case let .deposit(recipient): .deposit(recipient: recipient)
+        case let .withdraw(recipient): .withdraw(recipient: recipient)
         }
     }
 
@@ -54,7 +54,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
     var canChangeValue: Bool { true }
     var reserveForFee: BigInt { .zero }
 
-    func shouldReserveFee(from assetData: AssetData) -> Bool { false }
+    func shouldReserveFee(from _: AssetData) -> Bool { false }
 
     func availableValue(from assetData: AssetData) -> BigInt {
         switch action {
@@ -77,7 +77,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
             type: transferType,
             recipientData: action.recipient,
             value: value,
-            canChangeValue: true
+            canChangeValue: true,
         )
     }
 }

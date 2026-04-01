@@ -1,10 +1,10 @@
-import Foundation
-import Primitives
 import Components
-import SwiftUI
-import Style
+import Foundation
+import GemstonePrimitives
 import Localization
-import Formatters
+import Primitives
+import Style
+import SwiftUI
 
 public struct WalletViewModel: Sendable {
     public let wallet: Wallet
@@ -26,7 +26,7 @@ public struct WalletViewModel: Sendable {
             return AddressFormatter(style: .extra(1), address: account.address, chain: account.chain).value()
         }
     }
-    
+
     public var image: Image {
         switch wallet.type {
         case .multicoin:
@@ -36,29 +36,29 @@ public struct WalletViewModel: Sendable {
             return Images.name(name)
         }
     }
-    
+
     public var subImage: Image? {
         switch wallet.type {
         case .multicoin, .single, .privateKey: .none
         case .view: Images.Wallets.watch
         }
     }
-    
+
     public var hasAvatar: Bool {
         imageUrl() != nil
     }
-    
+
     public var avatarImage: AssetImage {
         AssetImage(
             type: wallet.name,
             imageURL: imageUrl(),
             placeholder: image,
-            chainPlaceholder: subImage
+            chainPlaceholder: subImage,
         )
     }
-    
+
     // MARK: - Private methods
-    
+
     private func imageUrl() -> URL? {
         guard let imageUrl = wallet.imageUrl else {
             return nil

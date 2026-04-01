@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import Primitives
-import GemAPI
-import ChainService
 import Blockchain
+import ChainService
+import Foundation
+import GemAPI
 import GemstonePrimitives
+import Primitives
+import Store
 
 public final class AssetsService: Sendable {
     public let assetStore: AssetStore
@@ -18,7 +18,7 @@ public final class AssetsService: Sendable {
         assetStore: AssetStore,
         balanceStore: BalanceStore,
         chainServiceFactory: any ChainServiceFactorable,
-        assetsProvider: any GemAPIAssetsService = GemAPIService.shared
+        assetsProvider: any GemAPIAssetsService = GemAPIService.shared,
     ) {
         self.assetStore = assetStore
         self.balanceStore = balanceStore
@@ -65,7 +65,7 @@ public final class AssetsService: Sendable {
         try addAssets(assets: [asset.defaultBasic])
         return asset
     }
-    
+
     public func getAssets(for assetIds: [AssetId]) throws -> [Asset] {
         try assetStore.getAssets(for: assetIds.ids)
     }
@@ -78,18 +78,18 @@ public final class AssetsService: Sendable {
 
     @discardableResult
     public func prefetchAssets(assetIds: [AssetId]) async throws -> [AssetId] {
-        let assets = try getAssets(for: assetIds).map { $0.id }.asSet()
+        let assets = try getAssets(for: assetIds).map(\.id).asSet()
         let missingAssetIds = assetIds.asSet().subtracting(assets)
 
         if missingAssetIds.isEmpty {
             return []
         }
-        
+
         // add missing assets to local storage
         let newAssets = try await getAssets(assetIds: missingAssetIds.asArray())
         try addAssets(assets: newAssets)
 
-        return newAssets.map { $0.asset.id }
+        return newAssets.map(\.asset.id)
     }
 
     public func addBalanceIfMissing(walletId: WalletId, assetId: AssetId) throws {
@@ -109,7 +109,7 @@ public final class AssetsService: Sendable {
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: assetId, asset.links)
     }
-    
+
     public func addAssets(assetIds: [AssetId]) async throws {
         let assets = try await getAssets(assetIds: assetIds)
         try assetStore.add(assets: assets)
@@ -139,7 +139,7 @@ public final class AssetsService: Sendable {
             }
 
             for try await result in group {
-                if let result = result, result.count > 0 {
+                if let result, result.count > 0 {
                     assets.append(contentsOf: result)
                 }
             }
@@ -154,7 +154,7 @@ public final class AssetsService: Sendable {
 
     func searchNetworkAsset(tokenId: String, chains: [Chain]) async throws -> [AssetBasic] {
         try await withThrowingTaskGroup(of: AssetBasic?.self) { group in
-            chains.forEach { chain in
+            for chain in chains {
                 group.addTask {
                     let service = self.chainServiceFactory.service(for: chain)
                     guard try await service.getIsTokenAddress(tokenId: tokenId),
@@ -169,6 +169,6 @@ public final class AssetsService: Sendable {
     }
 
     public func setSwappableAssets(for chains: [Chain]) throws {
-        try assetStore.setAssetIsSwappable(for: chains.map { $0.id }, value: true)
+        try assetStore.setAssetIsSwappable(for: chains.map(\.id), value: true)
     }
 }

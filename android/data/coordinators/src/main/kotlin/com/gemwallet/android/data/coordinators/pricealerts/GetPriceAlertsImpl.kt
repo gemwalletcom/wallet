@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
@@ -85,7 +86,7 @@ class PriceAlertDataAggregateImpl(
             Currency.entries.firstOrNull { it.string == priceAlert.currency }?.format(it) ?: ""
         } ?: assetPrice.currency.format(assetPrice.price.price)
 
-    override val percentage: String = priceAlert.pricePercentChange?.formatAsPercentage(isShowSign = false)
+    override val percentage: String = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
         ?: assetPrice.price.priceChangePercentage24h.formatAsPercentage()
 
     override val type: PriceAlertType get() {

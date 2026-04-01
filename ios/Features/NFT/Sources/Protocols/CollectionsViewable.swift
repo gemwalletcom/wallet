@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Store
 import Components
+import Foundation
+import Primitives
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 @MainActor
 public protocol CollectionsViewable: AnyObject, Observable {
@@ -26,29 +26,29 @@ public protocol CollectionsViewable: AnyObject, Observable {
     func onSelectReceive()
 }
 
-extension CollectionsViewable {
-    public var columns: [GridItem] {
+public extension CollectionsViewable {
+    var columns: [GridItem] {
         Array(repeating: GridItem(spacing: .medium), count: 2)
     }
 
-    public var emptyContentModel: EmptyContentTypeViewModel {
+    var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .nfts(action: onSelectReceive))
     }
 
-    public func fetch() async {}
+    func fetch() async {}
 
-    public func onSelectReceive() {
+    func onSelectReceive() {
         isPresentingReceiveSelectAssetType = .receive(.collection)
     }
 
-    public func onChangeWallet(_ oldWallet: Wallet?, _ newWallet: Wallet?) {
+    func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
         if let newWallet, wallet != newWallet {
             wallet = newWallet
             query.request = NFTRequest(walletId: newWallet.walletId, filter: .all)
         }
     }
 
-    public func buildGridItem(from data: NFTData) -> GridPosterViewItem {
+    func buildGridItem(from data: NFTData) -> GridPosterViewItem {
         if data.assets.count == 1, let asset = data.assets.first {
             return buildGridItem(collection: data.collection, asset: asset)
         }
@@ -59,20 +59,20 @@ extension CollectionsViewable {
                 assetImage: AssetImage(type: data.collection.name, imageURL: data.collection.images.preview.url.asURL),
                 title: data.collection.name,
                 count: data.assets.count,
-                isVerified: data.collection.status == .verified
-            )
+                isVerified: data.collection.status == .verified,
+            ),
         )
     }
 
-    public func buildGridItem(collection: NFTCollection, asset: NFTAsset) -> GridPosterViewItem {
+    func buildGridItem(collection: NFTCollection, asset: NFTAsset) -> GridPosterViewItem {
         GridPosterViewItem(
             id: asset.id,
             destination: Scenes.Collectible(assetData: NFTAssetData(collection: collection, asset: asset)),
             model: GridPosterViewModel(
                 assetImage: AssetImage(type: collection.name, imageURL: asset.images.preview.url.asURL),
                 title: asset.name,
-                isVerified: collection.status == .verified
-            )
+                isVerified: collection.status == .verified,
+            ),
         )
     }
 }

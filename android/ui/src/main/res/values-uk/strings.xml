@@ -572,7 +572,7 @@
   <string name="charts.price.change">Зміна</string>
   <string name="contacts.add_to_contacts">Додати до контактів</string>
   <string name="common.method">Метод</string>
-  <string name="simulation.header.unlimited_asset">Безлімітний %@</string>
+  <string name="simulation.header.unlimited_asset">Безлімітний %s</string>
   <string name="common.token">Токен</string>
   <string name="common.suspicious_address">Підозріла адреса</string>
   <string name="simulation.warning.unlimited_token_approval.description">Це надає споживачеві доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.</string>
@@ -580,5 +580,7 @@
   <string name="simulation.warning.unlimited_token_approval.title">Необмежене схвалення токенів</string>
   <string name="transfer.review_request">Запит на перегляд</string>
   <string name="wallet.portfolio.title">Портфоліо</string>
-  <string name="wallet.portfolio.footer">Оціночна вартість базується на поточних запасах та ринкових цінах.</string>
+  <string name="wallet_connect.permissions.title">Дозволи</string>
+  <string name="wallet_connect.permissions.view_balance">Перегляд вашого балансу та активності</string>
+  <string name="wallet_connect.permissions.approval_requests">Надсилати запити на схвалення</string>
 </resources>

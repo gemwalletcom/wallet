@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -19,18 +18,19 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallet.viewmodels.WalletSecretDataViewModel
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space8
 
 @Composable
 fun WalletSecretDataNavScreen(
@@ -69,10 +69,9 @@ fun WalletSecretDataNavScreen(
                         color = MaterialTheme.colorScheme.error.copy(alpha = alpha10),
                         shape = MaterialTheme.shapes.small
                     )
-                    .padding(16.dp)
-                ,
+                    .padding(paddingDefault),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(space8)
             ) {
                 Text(
                     text = stringResource(id = R.string.secret_phrase_do_not_share_title),
@@ -95,11 +94,7 @@ fun WalletSecretDataNavScreen(
                 )
             } ?: PhraseLayout(words = value?.phrase() ?: emptyList())
 
-            TextButton(
-                onClick = { clipboardManager.setPlainText(context, value.toString(), true) }
-            ) {
-                Text(text = stringResource(id = R.string.common_copy))
-            }
+            CopyButton(onClick = { clipboardManager.setPlainText(context, value.toString(), true) })
         }
     }
 }

@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct TransactionRequest: DatabaseQueryable {
-
     private let walletId: WalletId
     private let transactionId: String
 
@@ -13,7 +12,7 @@ public struct TransactionRequest: DatabaseQueryable {
 
     public init(
         walletId: WalletId,
-        transactionId: String
+        transactionId: String,
     ) {
         self.walletId = walletId
         self.transactionId = transactionId
@@ -25,21 +24,21 @@ public struct TransactionRequest: DatabaseQueryable {
             type: .transaction(id: transactionId),
             filters: filters,
             walletId: walletId,
-            limit: 1
+            limit: 1,
         ).first ?? .empty
     }
 }
 
 extension TransactionRequest: Equatable {}
 
-extension TransactionExtended {
-    public static let empty: TransactionExtended = {
-        let asset: Asset = Asset(
+public extension TransactionExtended {
+    static let empty: TransactionExtended = {
+        let asset = Asset(
             id: AssetId(chain: .bitcoin, tokenId: nil),
             name: "",
             symbol: "",
             decimals: 0,
-            type: .native
+            type: .native,
         )
 
         return TransactionExtended(
@@ -61,7 +60,7 @@ extension TransactionExtended {
                 utxoInputs: [],
                 utxoOutputs: [],
                 metadata: nil,
-                createdAt: .now
+                createdAt: .now,
             ),
             asset: asset,
             feeAsset: asset,
@@ -70,8 +69,7 @@ extension TransactionExtended {
             assets: [],
             prices: [],
             fromAddress: nil,
-            toAddress: nil
+            toAddress: nil,
         )
     }()
 }
-

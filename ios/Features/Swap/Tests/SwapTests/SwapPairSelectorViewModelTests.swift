@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Swap
 
 struct SwapPairSelectorViewModelTests {
     @Test
-    func testDefaultPairNative() {
+    func defaultPairNative() {
         let native = Asset.mockEthereum()
         let result = SwapPairSelectorViewModel.defaultSwapPair(for: native)
 
@@ -17,7 +17,7 @@ struct SwapPairSelectorViewModelTests {
     }
 
     @Test
-    func testDefaultPairToken() {
+    func defaultPairToken() {
         let token = Asset.mockEthereumUSDT()
         let result = SwapPairSelectorViewModel.defaultSwapPair(for: token)
 

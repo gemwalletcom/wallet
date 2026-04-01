@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import AssetsService
+import Foundation
+import Primitives
+import SwiftUI
 import TransactionsService
 import WalletService
 
@@ -23,7 +23,7 @@ final class NavigationHandler: Sendable {
         presenter: NavigationPresenter,
         assetsService: AssetsService,
         transactionsService: TransactionsService,
-        walletService: WalletService
+        walletService: WalletService,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
@@ -61,31 +61,31 @@ extension NavigationHandler {
         case .walletConnect:
             return
 
-        case .asset(let assetId):
+        case let .asset(assetId):
             try await navigateToAsset(assetId)
 
-        case .swap(let fromId, let toId):
+        case let .swap(fromId, toId):
             try await presentSwap(from: fromId, to: toId)
             return
 
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
 
-        case .rewards(let code):
+        case let .rewards(code):
             navigationState.settings.append(Scenes.Referral(code: code))
 
-        case .gift(let code):
+        case let .gift(code):
             navigationState.settings.append(Scenes.Referral(code: nil, giftCode: code))
 
-        case .buy(let assetId, let amount):
+        case let .buy(assetId, amount):
             try await presentBuy(assetId: assetId, amount: amount)
             return
 
-        case .sell(let assetId, let amount):
+        case let .sell(assetId, amount):
             try await presentSell(assetId: assetId, amount: amount)
             return
 
-        case .setPriceAlert(let assetId, let price):
+        case let .setPriceAlert(assetId, price):
             try await presentSetPriceAlert(assetId: assetId, price: price)
             return
         }
@@ -100,22 +100,22 @@ extension NavigationHandler {
 extension NavigationHandler {
     private func handle(_ notification: PushNotification) async throws {
         switch notification {
-        case .asset(let assetId):
+        case let .asset(assetId):
             try await navigateToAsset(assetId)
-        case .transaction(let walletId, let assetId, let transaction):
+        case let .transaction(walletId, assetId, transaction):
             try await navigateToTransaction(walletId: walletId, assetId: assetId, transaction: transaction)
-        case .priceAlert(let assetId):
+        case let .priceAlert(assetId):
             try await navigateToAsset(assetId)
-        case .buyAsset(let assetId, let amount):
+        case let .buyAsset(assetId, amount):
             try await presentBuy(assetId: assetId, amount: amount)
-        case .swapAsset(let fromId, let toId):
+        case let .swapAsset(fromId, toId):
             try await presentSwap(from: fromId, to: toId)
         case .support:
             presenter.isPresentingSupport.wrappedValue = true
         case .rewards:
             navigationState.settings.append(Scenes.Referral(code: nil))
         case .stake: break
-            //TODO: Select wallet and open stake screen of an asset
+        // TODO: Select wallet and open stake screen of an asset
         case .test, .unknown: break
         }
 
@@ -187,7 +187,7 @@ extension NavigationHandler {
         let account = try wallet.account(for: asset.chain)
         presenter.isPresentingAssetInput.wrappedValue = SelectedAssetInput(
             type: type,
-            assetAddress: AssetAddress(asset: account.chain.asset, address: account.address)
+            assetAddress: AssetAddress(asset: account.chain.asset, address: account.address),
         )
     }
 

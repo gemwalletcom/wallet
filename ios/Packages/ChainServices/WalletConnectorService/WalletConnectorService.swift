@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@preconcurrency import WalletConnectPairing
-@preconcurrency import ReownWalletKit
-import Primitives
 import Gemstone
-import GemstonePrimitives
-import NativeProviderService
-import struct Gemstone.SignMessage
 import enum Gemstone.SignDigestType
+import struct Gemstone.SignMessage
 import class Gemstone.WalletConnect
-import class Gemstone.WalletConnectSimulationClient
 import enum Gemstone.WalletConnectAction
-import enum Gemstone.WalletConnectTransaction
-import enum Gemstone.WalletConnectTransactionType
 import enum Gemstone.WalletConnectChainOperation
 import enum Gemstone.WalletConnectResponseType
+import class Gemstone.WalletConnectSimulationClient
+import enum Gemstone.WalletConnectTransaction
+import enum Gemstone.WalletConnectTransactionType
+import GemstonePrimitives
+import NativeProviderService
+import Primitives
+@preconcurrency import ReownWalletKit
+@preconcurrency import WalletConnectPairing
 
 public final class WalletConnectorService {
     private let interactor = WCConnectionsInteractor()
@@ -26,7 +26,7 @@ public final class WalletConnectorService {
 
     public init(signer: WalletConnectorSignable, nodeProvider: any NodeURLFetchable) {
         self.signer = signer
-        self.simulationClient = WalletConnectSimulationClient(provider: NativeProvider(nodeProvider: nodeProvider))
+        simulationClient = WalletConnectSimulationClient(provider: NativeProvider(nodeProvider: nodeProvider))
     }
 }
 
@@ -37,7 +37,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
         Networking.configure(
             groupIdentifier: Constants.WalletConnect.groupIdentifier,
             projectId: Constants.WalletConnect.projectId,
-            socketFactory: DefaultSocketFactory()
+            socketFactory: DefaultSocketFactory(),
         )
 
         try WalletKit.configure(
@@ -48,10 +48,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
                 icons: ["https://gemwallet.com/images/gem-logo-256x256.png"],
                 redirect: AppMetadata.Redirect(
                     native: "gem://",
-                    universal: .none
-                )
+                    universal: .none,
+                ),
             ),
-            crypto: DefaultCryptoProvider()
+            crypto: DefaultCryptoProvider(),
         )
     }
 
@@ -90,7 +90,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
 
 extension WalletConnectorService {
     private func simulateSignMessage(chain: Gemstone.Chain, signType: SignDigestType, data: String, sessionDomain: String) async throws -> Primitives.SimulationResult {
-        return try await simulationClient
+        try await simulationClient
             .simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
             .map()
     }
@@ -98,9 +98,9 @@ extension WalletConnectorService {
     private func simulateSendTransaction(
         chain: Gemstone.Chain,
         transactionType: WalletConnectTransactionType,
-        data: String
+        data: String,
     ) async throws -> Primitives.SimulationResult {
-        return try await simulationClient
+        try await simulationClient
             .simulateSendTransaction(chain: chain, transactionType: transactionType, data: data)
             .map()
     }
@@ -116,7 +116,7 @@ extension WalletConnectorService {
             debugLog("Session proposal received: \(proposal)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
-            guard let verifyContext = verifyContext else {
+            guard let verifyContext else {
                 await handleRejectSession(proposal: proposal, error: WalletConnectorServiceError.invalidOrigin)
                 continue
             }
@@ -134,7 +134,7 @@ extension WalletConnectorService {
     private func handleRejectSession(proposal: Session.Proposal, error: Error) async {
         try? await WalletKit.instance.rejectSession(
             proposalId: proposal.id,
-            reason: RejectionReason(from: error)
+            reason: RejectionReason(from: error),
         )
         try? await signer.sessionReject(id: proposal.pairingTopic, error: error)
     }
@@ -175,7 +175,7 @@ extension WalletConnectorService {
     private func updateSessions(_ sessions: [Session]) {
         debugLog("Received sessions: \(sessions)")
         do {
-            try signer.updateSessions(sessions: sessions.map { $0.asSession })
+            try signer.updateSessions(sessions: sessions.map(\.asSession))
         } catch {
             debugLog("Error updating sessions: \(error)")
         }
@@ -199,7 +199,7 @@ extension WalletConnectorService {
                 method: request.method,
                 params: params,
                 chainId: request.chainId.absoluteString,
-                domain: session.peer.metadata.url
+                domain: session.peer.metadata.url,
             )
 
             debugLog("parse request result: \(action)")
@@ -216,24 +216,24 @@ extension WalletConnectorService {
 
     private func handleAction(action: WalletConnectAction, sessionId: String, sessionDomain: String) async throws -> RPCResult {
         switch action {
-        case .signMessage(let chain, let signType, let data):
+        case let .signMessage(chain, signType, data):
             let simulation = try await simulateSignMessage(chain: chain, signType: signType, data: data, sessionDomain: sessionDomain)
             let message = walletConnect.decodeSignMessage(chain: chain, signType: signType, data: data)
             let signature = try await signer.signMessage(
                 sessionId: sessionId,
                 chain: chain.map(),
                 message: message,
-                simulation: simulation
+                simulation: simulation,
             )
             let response = walletConnect.encodeSignMessage(chain: chain, signature: signature)
             return .response(response.map())
-        case .signTransaction(let chain, let type, let data):
+        case let .signTransaction(chain, type, data):
             let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
             let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)
             let transactionId = try await signer.signTransaction(sessionId: sessionId, chain: chain.map(), transaction: transaction.map(), simulation: simulation)
             let response = walletConnect.encodeSignTransaction(chain: chain, transactionId: transactionId)
             return .response(response.map())
-        case .signAllTransactions(let chain, let type, let transactions):
+        case let .signAllTransactions(chain, type, transactions):
             guard transactions.count <= 1, let data = transactions.first else {
                 throw WalletConnectorServiceError.unresolvedMethod("signAllTransactions with multiple transactions is not yet supported")
             }
@@ -242,20 +242,20 @@ extension WalletConnectorService {
             let signed = try await signer.signTransaction(sessionId: sessionId, chain: chain.map(), transaction: transaction.map(), simulation: simulation)
             let response = walletConnect.encodeSignAllTransactions(signedTransactions: [signed])
             return .response(response.map())
-        case .sendTransaction(let chain, let type, let data):
+        case let .sendTransaction(chain, type, data):
             let simulation = try await simulateSendTransaction(chain: chain, transactionType: type, data: data)
             let transaction = try walletConnect.decodeSendTransaction(transactionType: type, data: data)
             let transactionId = try await signer.sendTransaction(
                 sessionId: sessionId,
                 chain: chain.map(),
                 transaction: transaction.map(),
-                simulation: simulation
+                simulation: simulation,
             )
             let response = walletConnect.encodeSendTransaction(chain: chain, transactionId: transactionId)
             return .response(response.map())
-        case .chainOperation(let operation):
+        case let .chainOperation(operation):
             return handleChainOperation(operation: operation)
-        case .unsupported(let method):
+        case let .unsupported(method):
             throw WalletConnectorServiceError.unresolvedMethod(method)
         }
     }
@@ -300,13 +300,13 @@ extension WalletConnectorService {
         let payload = WalletConnectionSessionProposal(
             defaultWallet: preselectedWallet,
             wallets: wallets,
-            metadata: metadata
+            metadata: metadata,
         )
 
         let payloadTopic = WCPairingProposal(
             pairingId: proposal.pairingTopic,
             proposal: payload,
-            verificationStatus: status
+            verificationStatus: status,
         )
         let approvedWalletId = try await signer.sessionApproval(payload: payloadTopic)
         let selectedWallet = try signer.getWallet(id: approvedWalletId)
@@ -320,25 +320,25 @@ extension WalletConnectorService {
         let accounts = signer.getAccounts(wallet: wallet, chains: chains)
         let events = signer.getEvents()
         let methods = signer.getMethods()
-        let supportedAccounts = accounts.compactMap { $0.blockchain }
-        let supportedChains = chains.compactMap { $0.blockchain }
+        let supportedAccounts = accounts.compactMap(\.blockchain)
+        let supportedChains = chains.compactMap(\.blockchain)
 
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
             chains: supportedChains,
-            methods: methods.map { $0.rawValue },
-            events: events.map { $0.rawValue },
-            accounts: supportedAccounts
+            methods: methods.map(\.rawValue),
+            events: events.map(\.rawValue),
+            accounts: supportedAccounts,
         )
         let sessionProperties = walletConnect.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
-            chains: chains.map { $0.id }
+            chains: chains.map(\.id),
         )
 
         return try await WalletKit.instance.approve(
             proposalId: proposal.id,
             namespaces: sessionNamespaces,
-            sessionProperties: sessionProperties
+            sessionProperties: sessionProperties,
         )
     }
 }

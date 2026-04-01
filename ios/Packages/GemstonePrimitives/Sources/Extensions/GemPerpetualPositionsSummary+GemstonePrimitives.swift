@@ -4,11 +4,11 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPerpetualPositionsSummary {
-    public func map() throws -> PerpetualPositionsSummary {
-        PerpetualPositionsSummary(
-            positions: try positions.map { try $0.map() },
-            balance: balance.map()
+public extension GemPerpetualPositionsSummary {
+    func map() throws -> PerpetualPositionsSummary {
+        try PerpetualPositionsSummary(
+            positions: positions.map { try $0.map() },
+            balance: balance.map(),
         )
     }
 }

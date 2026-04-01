@@ -23,7 +23,7 @@ public struct ListItemLoadingView: View {
 }
 
 #Preview {
-    return List {
+    List {
         Text("any text")
         Text("some text")
         Text("more text")

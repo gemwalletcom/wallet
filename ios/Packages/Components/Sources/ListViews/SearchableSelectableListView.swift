@@ -4,7 +4,7 @@ import SwiftUI
 
 public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & ItemFilterable, Content: View>: View {
     public typealias ListContent = (ViewModel.Item) -> Content
-    public typealias FinishSelection = (([ViewModel.Item]) -> Void)
+    public typealias FinishSelection = ([ViewModel.Item]) -> Void
 
     @Binding private var model: ViewModel
 
@@ -14,7 +14,7 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
     public init(
         model: Binding<ViewModel>,
         onFinishSelection: FinishSelection? = nil,
-        listContent: @escaping ListContent
+        listContent: @escaping ListContent,
     ) {
         _model = model
         self.listContent = listContent
@@ -34,7 +34,7 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
                         action: onSelect(item:),
                         content: {
                             listContent(item)
-                        }
+                        },
                     )
                 case .navigationLink:
                     NavigationCustomLink(with: listContent(item)) {
@@ -46,13 +46,13 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
                 if let model = model.emptyCotentModel {
                     EmptyContentView(model: model)
                 }
-            }
+            },
         )
     }
 
     private func onSelect(item: ViewModel.Item) {
         model.toggle(item: item)
-        
+
         switch model.selectionType {
         case .multiSelection:
             break

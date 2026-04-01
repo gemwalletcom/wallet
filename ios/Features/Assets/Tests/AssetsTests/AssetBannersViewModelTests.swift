@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import BigInt
 import Primitives
 import PrimitivesTestKit
-import BigInt
+import Testing
 
 @testable import Assets
 
 @MainActor
 struct AssetBannersViewModelTests {
-
     @Test
     func stakingBannerFiltering() {
         let withStake = AssetSceneBannersViewModel(assetData: .mock(balance: Balance(staked: BigInt(100))), banners: [.mock(event: .stake)])
@@ -42,12 +41,12 @@ struct AssetBannersViewModelTests {
     func accountActivationBanner() {
         #expect(AssetSceneBannersViewModel(
             assetData: .mock(asset: .mockXRP(), balance: .zero, metadata: .mock(rankScore: 16)),
-            banners: [.mock(event: .accountActivation)]
+            banners: [.mock(event: .accountActivation)],
         ).allBanners.first?.event == .accountActivation)
 
         #expect(AssetSceneBannersViewModel(
             assetData: .mock(balance: Balance(available: BigInt(1)), metadata: .mock(rankScore: 16)),
-            banners: [.mock(event: .accountActivation)]
+            banners: [.mock(event: .accountActivation)],
         ).allBanners.isEmpty)
     }
 
@@ -55,7 +54,7 @@ struct AssetBannersViewModelTests {
     func nonClosableBannersShowFirst() {
         let model = AssetSceneBannersViewModel(
             assetData: .mock(metadata: .mock(rankScore: 5)),
-            banners: [.mock(event: .stake, state: .active), .mock(event: .accountActivation, state: .alwaysActive)]
+            banners: [.mock(event: .stake, state: .active), .mock(event: .accountActivation, state: .alwaysActive)],
         )
 
         #expect(model.allBanners.count == 3)
@@ -71,8 +70,8 @@ struct AssetBannersViewModelTests {
             banners: [
                 .mock(event: .stake, state: .active),
                 .mock(event: .enableNotifications, state: .cancelled),
-                .mock(event: .accountActivation, state: .alwaysActive)
-            ]
+                .mock(event: .accountActivation, state: .alwaysActive),
+            ],
         )
 
         #expect(model.allBanners.first?.state == .alwaysActive)

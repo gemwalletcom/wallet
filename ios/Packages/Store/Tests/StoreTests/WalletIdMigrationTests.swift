@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Foundation
 import GRDB
 import Primitives
 import PrimitivesTestKit
-import StoreTestKit
 @testable import Store
+import StoreTestKit
+import Testing
 
 private extension UserDefaults {
     static func mock() -> UserDefaults {
@@ -19,7 +19,6 @@ private extension UserDefaults {
 
 @Suite(.serialized)
 struct WalletIdMigrationTests {
-
     private let currentWalletKey = "currentWallet"
 
     @Test
@@ -33,7 +32,7 @@ struct WalletIdMigrationTests {
         let wallet = Wallet.mock(
             id: oldId,
             type: .multicoin,
-            accounts: [.mock(chain: .ethereum, address: ethAddress), .mock(chain: .bitcoin)]
+            accounts: [.mock(chain: .ethereum, address: ethAddress), .mock(chain: .bitcoin)],
         )
         try walletStore.addWallet(wallet)
 
@@ -58,7 +57,7 @@ struct WalletIdMigrationTests {
         let wallet = Wallet.mock(
             id: oldId,
             type: .view,
-            accounts: [.mock(chain: .ethereum, address: address)]
+            accounts: [.mock(chain: .ethereum, address: address)],
         )
         try walletStore.addWallet(wallet)
 
@@ -83,7 +82,7 @@ struct WalletIdMigrationTests {
         let wallet = Wallet.mock(
             id: oldId,
             type: .single,
-            accounts: [.mock(chain: .bitcoin, address: address)]
+            accounts: [.mock(chain: .bitcoin, address: address)],
         )
         try walletStore.addWallet(wallet)
 
@@ -108,7 +107,7 @@ struct WalletIdMigrationTests {
         let wallet = Wallet.mock(
             id: oldId,
             type: .privateKey,
-            accounts: [.mock(chain: .ethereum, address: address)]
+            accounts: [.mock(chain: .ethereum, address: address)],
         )
         try walletStore.addWallet(wallet)
 
@@ -134,19 +133,19 @@ struct WalletIdMigrationTests {
             id: "uuid-1",
             type: .multicoin,
             accounts: [.mock(chain: .ethereum, address: ethAddress)],
-            order: 0
+            order: 0,
         )
         let wallet2 = Wallet.mock(
             id: "uuid-2",
             type: .multicoin,
             accounts: [.mock(chain: .ethereum, address: ethAddress)],
-            order: 1
+            order: 1,
         )
         let wallet3 = Wallet.mock(
             id: "uuid-3",
             type: .multicoin,
             accounts: [.mock(chain: .ethereum, address: ethAddress)],
-            order: 2
+            order: 2,
         )
 
         try walletStore.addWallet(wallet1)
@@ -173,19 +172,19 @@ struct WalletIdMigrationTests {
             id: "uuid-multicoin",
             type: .multicoin,
             accounts: [.mock(chain: .ethereum, address: "0xmulti")],
-            order: 0
+            order: 0,
         )
         let single = Wallet.mock(
             id: "uuid-single",
             type: .single,
             accounts: [.mock(chain: .bitcoin, address: "bc1single")],
-            order: 1
+            order: 1,
         )
         let view = Wallet.mock(
             id: "uuid-view",
             type: .view,
             accounts: [.mock(chain: .solana, address: "solview")],
-            order: 2
+            order: 2,
         )
 
         try walletStore.addWallet(multicoin)
@@ -199,7 +198,7 @@ struct WalletIdMigrationTests {
         let wallets = try walletStore.getWallets()
         #expect(wallets.count == 3)
 
-        let ids = Set(wallets.map { $0.id })
+        let ids = Set(wallets.map(\.id))
         #expect(ids.contains("multicoin_0xmulti"))
         #expect(ids.contains("single_bitcoin_bc1single"))
         #expect(ids.contains("view_solana_solview"))
@@ -218,7 +217,7 @@ struct WalletIdMigrationTests {
         let wallet = Wallet.mock(
             id: oldId,
             type: .multicoin,
-            accounts: [.mock(chain: .ethereum, address: ethAddress)]
+            accounts: [.mock(chain: .ethereum, address: ethAddress)],
         )
         try walletStore.addWallet(wallet)
 
@@ -227,7 +226,7 @@ struct WalletIdMigrationTests {
         try db.dbQueue.write { db in
             try db.execute(
                 sql: "INSERT INTO balances (assetId, walletId, isEnabled) VALUES (?, ?, ?)",
-                arguments: [asset.asset.id.identifier, oldId, true]
+                arguments: [asset.asset.id.identifier, oldId, true],
             )
         }
 
@@ -265,7 +264,7 @@ struct WalletIdMigrationTests {
         let wallets = try walletStore.getWallets()
         #expect(wallets.count == 3)
 
-        let ids = Set(wallets.map { $0.id })
+        let ids = Set(wallets.map(\.id))
         #expect(ids.contains("multicoin_\(address1)"))
         #expect(ids.contains("multicoin_\(address2)"))
         #expect(ids.contains("multicoin_\(address3)"))
@@ -364,8 +363,8 @@ struct WalletIdMigrationTests {
             type: .multicoin,
             accounts: [
                 .mock(chain: .ethereum, address: ethAddress),
-                .mock(chain: .bitcoin, address: btcAddress)
-            ]
+                .mock(chain: .bitcoin, address: btcAddress),
+            ],
         )
         try walletStore.addWallet(wallet)
 
@@ -377,7 +376,7 @@ struct WalletIdMigrationTests {
         #expect(wallets.count == 1)
         #expect(wallets.first?.accounts.count == 2)
 
-        let chains = Set(wallets.first?.accounts.map { $0.chain } ?? [])
+        let chains = Set(wallets.first?.accounts.map(\.chain) ?? [])
         #expect(chains.contains(.ethereum))
         #expect(chains.contains(.bitcoin))
     }
@@ -394,7 +393,7 @@ struct WalletIdMigrationTests {
             id: newFormatId,
             externalId: "old-uuid",
             type: .multicoin,
-            accounts: [.mock(chain: .ethereum, address: ethAddress)]
+            accounts: [.mock(chain: .ethereum, address: ethAddress)],
         )
         try walletStore.addWallet(wallet)
 
@@ -436,8 +435,8 @@ struct WalletIdMigrationTests {
             type: .single,
             accounts: [
                 .mock(chain: .bitcoin, address: btcAddress),
-                .mock(chain: .ethereum, address: ethAddress)
-            ]
+                .mock(chain: .ethereum, address: ethAddress),
+            ],
         )
         try walletStore.addWallet(wallet)
 
@@ -453,7 +452,6 @@ struct WalletIdMigrationTests {
 
 @Suite(.serialized)
 struct WalletIdMigrationPreferenceTests {
-
     private let currentWalletKey = "currentWallet"
 
     @Test
@@ -467,7 +465,7 @@ struct WalletIdMigrationPreferenceTests {
         let wallet = Wallet.mock(
             id: oldId,
             type: .multicoin,
-            accounts: [.mock(chain: .ethereum, address: ethAddress)]
+            accounts: [.mock(chain: .ethereum, address: ethAddress)],
         )
         try walletStore.addWallet(wallet)
 

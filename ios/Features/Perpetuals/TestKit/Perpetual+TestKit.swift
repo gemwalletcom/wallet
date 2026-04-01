@@ -13,10 +13,10 @@ public extension Perpetual {
         price: Double = 50000,
         pricePercentChange24h: Double = 5.0,
         maxLeverage: UInt8 = 25,
-        openInterest: Double = 1000000,
-        volume24h: Double = 5000000,
+        openInterest: Double = 1_000_000,
+        volume24h: Double = 5_000_000,
         funding: Double = 0.01,
-        isIsolatedOnly: Bool = false
+        isIsolatedOnly: Bool = false,
     ) -> Perpetual {
         Perpetual(
             id: id,
@@ -30,7 +30,7 @@ public extension Perpetual {
             volume24h: volume24h,
             funding: funding,
             maxLeverage: maxLeverage,
-            isIsolatedOnly: isIsolatedOnly
+            isIsolatedOnly: isIsolatedOnly,
         )
     }
 }

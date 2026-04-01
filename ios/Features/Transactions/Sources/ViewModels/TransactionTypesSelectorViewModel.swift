@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import Primitives
 import Localization
+import Primitives
 import Style
 import SwiftUI
-import Components
 
 public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
     public var items: [TransactionFilterType] { state.value?.items ?? [] }
-    
+
     public let selectionType: SelectionType
     public let state: StateViewType<SelectableListType<TransactionFilterType>>
 
@@ -18,7 +18,7 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
     public init(
         state: StateViewType<SelectableListType<TransactionFilterType>>,
         selectedItems: [TransactionFilterType],
-        selectionType: SelectionType
+        selectionType: SelectionType,
     ) {
         self.selectionType = selectionType
         self.state = state
@@ -34,4 +34,3 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
     public var emptyCotentModel: (any EmptyContentViewable)? { .none }
     public var confirmButtonTitle: String { Localized.Transfer.confirm }
 }
-

@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import RewardsService
-import PrimitivesComponents
-import Components
-import Preferences
-import Localization
-import Style
-import GemstonePrimitives
 import BalanceService
+import Components
+import Foundation
+import GemstonePrimitives
+import Localization
+import Preferences
+import Primitives
+import PrimitivesComponents
+import RewardsService
+import Style
 
 @Observable
 @MainActor
@@ -41,11 +41,11 @@ public final class RewardsViewModel: Sendable {
         wallet: Wallet,
         wallets: [Wallet],
         activateCode: String? = nil,
-        giftCode: String? = nil
+        giftCode: String? = nil,
     ) {
         self.rewardsService = rewardsService
         self.assetsEnabler = assetsEnabler
-        self.selectedWallet = wallet
+        selectedWallet = wallet
         self.wallets = wallets
         self.activateCode = activateCode
         self.giftCode = giftCode
@@ -64,6 +64,7 @@ public final class RewardsViewModel: Sendable {
     var createCodeDescription: String {
         Localized.Rewards.InviteFriends.description(100.description.boldMarkdown())
     }
+
     var activateCodeFooterTitle: String { Localized.Rewards.ActivateReferralCode.title }
     var activateCodeFooterDescription: String { Localized.Rewards.ActivateReferralCode.description }
     var statsSectionTitle: String { Localized.Common.info }
@@ -77,7 +78,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var rewards: Rewards? {
-        if case .data(let rewards) = state {
+        if case let .data(rewards) = state {
             return rewards
         }
         return nil
@@ -164,7 +165,7 @@ public final class RewardsViewModel: Sendable {
     var createCodeViewModel: CreateRewardsCodeViewModel {
         CreateRewardsCodeViewModel(
             rewardsService: rewardsService,
-            wallet: selectedWallet
+            wallet: selectedWallet,
         ) { [weak self] rewards in
             self?.state = .data(rewards)
         }
@@ -174,7 +175,7 @@ public final class RewardsViewModel: Sendable {
         RedeemRewardsCodeViewModel(
             rewardsService: rewardsService,
             wallet: selectedWallet,
-            code: code
+            code: code,
         ) { [weak self] _ in
             guard let self else { return }
             showActivatedToast()
@@ -256,8 +257,8 @@ public final class RewardsViewModel: Sendable {
                         await self?.fetch()
                     }
                 },
-                .cancel(title: Localized.Common.cancel)
-            ]
+                .cancel(title: Localized.Common.cancel),
+            ],
         )
     }
 
@@ -287,7 +288,7 @@ public final class RewardsViewModel: Sendable {
         isPresentingAlert = AlertMessage(
             title: Localized.Errors.errorOccured,
             message: message,
-            actions: [.cancel(title: Localized.Common.done)]
+            actions: [.cancel(title: Localized.Common.done)],
         )
     }
 
@@ -300,5 +301,4 @@ public final class RewardsViewModel: Sendable {
             state = .noData
         }
     }
-
 }

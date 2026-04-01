@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Blockchain
 import Primitives
 import ScanService
-import BigInt
 import Validators
 
 public protocol TransferTransactionProvidable: Sendable {
@@ -11,7 +11,7 @@ public protocol TransferTransactionProvidable: Sendable {
         wallet: Wallet,
         data: TransferData,
         priority: FeePriority,
-        available: BigInt
+        available: BigInt,
     ) async throws -> TransferTransactionData
 }
 
@@ -22,9 +22,9 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
 
     public init(
         chainService: any ChainServiceable,
-        scanService: ScanService
+        scanService: ScanService,
     ) {
-        self.feeRatesProvider = FeeRateService(service: chainService)
+        feeRatesProvider = FeeRateService(service: chainService)
         self.chainService = chainService
         self.scanService = scanService
     }
@@ -33,7 +33,7 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
         wallet: Wallet,
         data: TransferData,
         priority: FeePriority,
-        available: BigInt
+        available: BigInt,
     ) async throws -> TransferTransactionData {
         async let getFeeRates = getFeeRates(type: data.type, priority: priority)
         async let getTransactionMetadata = getTransactionMetadata(wallet: wallet, data: data)
@@ -41,11 +41,11 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
 
         let (rates, metadata, scanResult) = try await (getFeeRates, getTransactionMetadata, getTransactionScan)
 
-        if let scanResult = scanResult {
+        if let scanResult {
             try ScanTransactionValidator.validate(
                 transaction: scanResult,
                 asset: data.type.asset,
-                memo: data.recipientData.recipient.memo
+                memo: data.recipientData.recipient.memo,
             )
         }
 
@@ -56,9 +56,9 @@ public struct TransferTransactionProvider: TransferTransactionProvidable {
                 data: data,
                 available: available,
                 rate: rates.selected,
-                metadata: metadata
+                metadata: metadata,
             ),
-            scanResult: scanResult
+            scanResult: scanResult,
         )
     }
 }
@@ -71,41 +71,41 @@ extension TransferTransactionProvider {
         data: TransferData,
         available: BigInt,
         rate: FeeRate,
-        metadata: TransactionLoadMetadata
+        metadata: TransactionLoadMetadata,
     ) async throws -> TransactionData {
-        let input = TransactionInput(
+        let input = try TransactionInput(
             type: data.type,
             asset: data.type.asset,
-            senderAddress: try wallet.account(for: data.chain).address,
+            senderAddress: wallet.account(for: data.chain).address,
             destinationAddress: data.recipientData.recipient.address,
             value: data.value,
             balance: available,
             gasPrice: rate.gasPriceType,
             memo: data.recipientData.recipient.memo,
-            metadata: metadata
+            metadata: metadata,
         )
 
         return try await chainService.load(input: input)
     }
-    
+
     private func getTransactionMetadata(wallet: Wallet, data: TransferData) async throws -> TransactionLoadMetadata {
         try await chainService.preload(
             input: TransactionPreloadInput(
                 inputType: data.type,
-                senderAddress: try wallet.account(for: data.chain).address,
-                destinationAddress: data.recipientData.recipient.address
-            )
+                senderAddress: wallet.account(for: data.chain).address,
+                destinationAddress: data.recipientData.recipient.address,
+            ),
         )
     }
 
     private func getTransactionScan(wallet: Wallet, data: TransferData) async throws -> ScanTransaction? {
-        await scanService.getScanTransaction(
+        try await scanService.getScanTransaction(
             chain: data.chain,
             input: TransactionPreloadInput(
                 inputType: data.type,
-                senderAddress: try wallet.account(for: data.chain).address,
-                destinationAddress: data.recipientData.recipient.address
-            )
+                senderAddress: wallet.account(for: data.chain).address,
+                destinationAddress: data.recipientData.recipient.address,
+            ),
         )
     }
 

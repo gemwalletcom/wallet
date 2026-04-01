@@ -24,11 +24,11 @@ public struct SwapQuoteDataProvider: SwapQuoteDataProvidable {
         switch try await swapService.getPermit2Approval(quote: quote) {
         case .none:
             return try await swapService.getQuoteData(quote, data: .none)
-        case .some(let approval):
+        case let .some(approval):
             let permit2Data = try await permit2DataProvider.getPermit2Data(
                 wallet: wallet,
                 chain: AssetId(id: quote.request.fromAsset.id).chain,
-                approval: approval
+                approval: approval,
             )
             return try await swapService.getQuoteData(quote, data: .permit2(permit2Data))
         }

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import ContactService
-import PrimitivesComponents
 import Components
-import Store
+import ContactService
+import Foundation
 import Localization
+import Primitives
+import PrimitivesComponents
+import Store
 import Style
 
 @Observable
@@ -22,11 +22,11 @@ public final class ContactsViewModel {
 
     public init(
         service: ContactService,
-        nameService: any NameServiceable
+        nameService: any NameServiceable,
     ) {
         self.service = service
         self.nameService = nameService
-        self.query = ObservableQuery(ContactsRequest(), initialValue: [])
+        query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
 
     var title: String { Localized.Contacts.title }
@@ -42,7 +42,7 @@ public final class ContactsViewModel {
             titleExtra: contact.contact.description,
             titleStyleExtra: .calloutSecondary,
             titleExtraLineLimit: 1,
-            imageStyle: .asset(assetImage: AssetImage(type: String(contact.contact.name.prefix(2))))
+            imageStyle: .asset(assetImage: AssetImage(type: String(contact.contact.name.prefix(2)))),
         )
     }
 

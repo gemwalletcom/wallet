@@ -8,12 +8,12 @@ public final class NavigationPathState {
     private static let encoder = JSONEncoder()
     private static let decoder = JSONDecoder()
 
-    private(set) public var path = NavigationPath()
+    public private(set) var path = NavigationPath()
 
     public var binding: Binding<NavigationPath> {
         Binding(
             get: { self.path },
-            set: { self.path = $0 }
+            set: { self.path = $0 },
         )
     }
 
@@ -23,7 +23,7 @@ public final class NavigationPathState {
     public init() {}
 
     @discardableResult
-    public func append<T: Hashable & Codable>(_ value: T) -> Bool {
+    public func append(_ value: some Hashable & Codable) -> Bool {
         if isLastElement(value) {
             return false
         }
@@ -50,7 +50,8 @@ public final class NavigationPathState {
 extension NavigationPathState {
     private func encodedElements(_ codable: NavigationPath.CodableRepresentation) -> [String] {
         guard let data = try? Self.encoder.encode(codable),
-              let elements = try? Self.decoder.decode([String].self, from: data) else {
+              let elements = try? Self.decoder.decode([String].self, from: data)
+        else {
             return []
         }
         return elements
@@ -64,7 +65,8 @@ extension NavigationPathState {
         guard currentElements.count >= 2,
               currentElements[0] == String(reflecting: T.self),
               let data = currentElements[1].data(using: .utf8),
-              let lastValue = try? Self.decoder.decode(T.self, from: data) else {
+              let lastValue = try? Self.decoder.decode(T.self, from: data)
+        else {
             return false
         }
 

@@ -19,7 +19,7 @@ extension ListItemValue: Identifiable {
     public var id: T.ID { value.id }
 }
 
-// MARK: - 
+// MARK: -
 
 public struct ListItemValueSection<T: Identifiable> {
     public let section: String
@@ -31,7 +31,7 @@ public struct ListItemValueSection<T: Identifiable> {
         section: String,
         image: Image? = .none,
         footer: String? = .none,
-        values: [ListItemValue<T>]
+        values: [ListItemValue<T>],
     ) {
         self.section = section
         self.image = image
@@ -44,18 +44,18 @@ extension ListItemValueSection: Identifiable {
     public var id: String { section }
 }
 
-public struct ListItemValueSectionList <Item: Identifiable, Content: View>: View {
+public struct ListItemValueSectionList<Item: Identifiable, Content: View>: View {
     private let list: [ListItemValueSection<Item>]
     private let content: (Item) -> Content
-    
+
     public init(
         list: [ListItemValueSection<Item>],
-        @ViewBuilder content: @escaping (Item) -> Content
+        @ViewBuilder content: @escaping (Item) -> Content,
     ) {
         self.list = list
         self.content = content
     }
-    
+
     public var body: some View {
         ForEach(list) { section in
             Section {

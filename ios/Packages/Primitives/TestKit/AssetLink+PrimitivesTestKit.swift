@@ -6,11 +6,11 @@ import Primitives
 public extension AssetLink {
     static func mock(
         type: LinkType = .website,
-        url: String = "https://example.com"
+        url: String = "https://example.com",
     ) -> AssetLink {
         AssetLink(
             name: type.rawValue,
-            url: url
+            url: url,
         )
     }
 }

@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Style
 import Components
 @testable import PrimitivesComponents
+import Style
+import Testing
 
 struct ToastMessageTests {
-
     @Test
     func copy() {
         #expect(ToastMessage.copy("Copied").image == SystemImage.copy)

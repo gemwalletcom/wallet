@@ -14,7 +14,7 @@ public extension Gemstone.GemSwapQuoteData {
             data: data,
             memo: memo,
             approval: approval?.map(),
-            gasLimit: gasLimit
+            gasLimit: gasLimit,
         )
     }
 }
@@ -28,7 +28,7 @@ extension Primitives.SwapQuoteData {
             data: data,
             memo: memo,
             approval: approval?.map(),
-            gasLimit: gasLimit
+            gasLimit: gasLimit,
         )
     }
 }

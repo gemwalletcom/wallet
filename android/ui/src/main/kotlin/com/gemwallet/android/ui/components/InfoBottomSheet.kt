@@ -12,9 +12,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +37,6 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
-import kotlinx.coroutines.launch
 import uniffi.gemstone.Config
 import uniffi.gemstone.DocsUrl
 
@@ -86,7 +87,6 @@ sealed class InfoSheetEntity(
 
     class StakeLockTimeInfo(icon: Any) : InfoSheetEntity(
         icon = icon,
-        badgeIcon = null,
         title = R.string.stake_lock_time,
         description = R.string.info_lock_time_description,
         infoUrl = { Config().getDocsUrl(DocsUrl.StakingLockTime) },
@@ -216,99 +216,95 @@ sealed class InfoSheetEntity(
     )
 }
 
-/// https://gist.github.com/binrebin/f3dad29956eb8dcb760a38ce86a9553b
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfoBottomSheet(
     item: InfoSheetEntity?,
-    onClose: (() -> Unit)
+    onClose: () -> Unit,
 ) {
-    if (item == null) return
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
+    var displayItem by remember { mutableStateOf(item) }
+    if (item != null) displayItem = item
+    val shownItem = displayItem ?: return
+
     ModalBottomSheet(
-        sheetState = sheetState,
+        isVisible = item != null,
         containerColor = MaterialTheme.colorScheme.background,
-        onDismissRequest = {
-            scope.launch { sheetState.hide() }.invokeOnCompletion { onClose.invoke() }
-        },
+        onDismissRequest = onClose,
     ) {
         Column(
-            modifier = Modifier .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer16()
-            Box(
-                modifier = Modifier.size(120.dp),
-                contentAlignment = Alignment.BottomEnd
-            ) {
-                AsyncImage(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape),
-                    model = item.icon,
-                    contentDescription = ""
-                )
-                if (item.badgeIcon != null) {
-                    AsyncImage(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .border(
-                                border = BorderStroke(
-                                    4.dp,
-                                    color = MaterialTheme.colorScheme.background
-                                ),
-                                shape = CircleShape,
-                            )
-                            .clip(CircleShape),
-                        model = item.badgeIcon,
-                        contentDescription = ""
-                    )
-                }
-            }
+            InfoSheetIcon(shownItem)
             Spacer16()
             Text(
-                text = parseMarkdownToAnnotatedString(
-                    markdown = item.titleArgs?.takeIf { it.isNotEmpty() }
-                        ?.let { stringResource(item.title, *it.toTypedArray()) }
-                        ?: stringResource(item.title)
-                ),
+                text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.title, shownItem.titleArgs)),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
             )
-
             Text(
                 modifier = Modifier.padding(vertical = 8.dp, horizontal = 32.dp),
-                text = parseMarkdownToAnnotatedString(
-                    markdown = item.descriptionArgs?.takeIf { it.isNotEmpty() }
-                        ?.let { stringResource(item.description, *it.toTypedArray()) }
-                        ?: stringResource(item.description)
-                ),
+                text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.description, shownItem.descriptionArgs)),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
-
-            if (item.action != null || item.infoUrl != null) {
+            if (shownItem.action != null || shownItem.infoUrl != null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp, horizontal = 32.dp),
                 ) {
                     MainActionButton(
-                        title = item.actionLabel ?: stringResource(R.string.common_learn_more),
+                        title = shownItem.actionLabel ?: stringResource(R.string.common_learn_more),
                         onClick = {
-                            scope.launch { sheetState.hide() }
-                                .invokeOnCompletion { onClose.invoke() }
-                            item.action?.let { it() }
-                                ?: item.infoUrl?.let { uriHandler.open(context, it()) }
+                            onClose()
+                            shownItem.action?.invoke()
+                                ?: shownItem.infoUrl?.let { uriHandler.open(context, it()) }
                         },
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun InfoSheetIcon(item: InfoSheetEntity) {
+    Box(
+        modifier = Modifier.size(120.dp),
+        contentAlignment = Alignment.BottomEnd,
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape),
+            model = item.icon,
+            contentDescription = "",
+        )
+        if (item.badgeIcon != null) {
+            AsyncImage(
+                modifier = Modifier
+                    .size(48.dp)
+                    .border(
+                        border = BorderStroke(4.dp, color = MaterialTheme.colorScheme.background),
+                        shape = CircleShape,
+                    )
+                    .clip(CircleShape),
+                model = item.badgeIcon,
+                contentDescription = "",
+            )
+        }
+    }
+}
+
+@Composable
+private fun resolveStringResource(@StringRes resId: Int, args: List<Any>?): String {
+    return args?.takeIf { it.isNotEmpty() }
+        ?.let { stringResource(resId, *it.toTypedArray()) }
+        ?: stringResource(resId)
 }

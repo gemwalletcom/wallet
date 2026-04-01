@@ -4,24 +4,24 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.TpslOrderData {
-    public func map() throws -> Primitives.TPSLOrderData {
+public extension Gemstone.TpslOrderData {
+    func map() throws -> Primitives.TPSLOrderData {
         Primitives.TPSLOrderData(
             direction: direction.map(),
             takeProfit: takeProfit,
             stopLoss: stopLoss,
-            size: size
+            size: size,
         )
     }
 }
 
-extension Primitives.TPSLOrderData {
-    public func map() -> Gemstone.TpslOrderData {
+public extension Primitives.TPSLOrderData {
+    func map() -> Gemstone.TpslOrderData {
         Gemstone.TpslOrderData(
             direction: direction.map(),
             takeProfit: takeProfit,
             stopLoss: stopLoss,
-            size: size
+            size: size,
         )
     }
 }

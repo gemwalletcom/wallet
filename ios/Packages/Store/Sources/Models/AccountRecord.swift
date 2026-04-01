@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct AccountRecord: Codable, FetchableRecord, PersistableRecord  {
-    
+struct AccountRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "wallets_accounts"
 
     enum Columns {
@@ -27,7 +26,7 @@ struct AccountRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension AccountRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.walletId.name, .text)
                 .notNull()
                 .indexed()
@@ -47,7 +46,7 @@ extension AccountRecord: CreateTable {
                 Columns.walletId.name,
                 Columns.chain.name,
                 Columns.derivationPath.name,
-                Columns.address.name
+                Columns.address.name,
             ])
         }
     }
@@ -55,11 +54,11 @@ extension AccountRecord: CreateTable {
 
 extension AccountRecord {
     func mapToAccount() -> Account {
-        return Account(
+        Account(
             chain: chain,
             address: address,
             derivationPath: derivationPath,
-            extendedPublicKey: extendedPublicKey
+            extendedPublicKey: extendedPublicKey,
         )
     }
 }

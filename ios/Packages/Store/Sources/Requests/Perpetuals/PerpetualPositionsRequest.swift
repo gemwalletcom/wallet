@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct PerpetualPositionsRequest: DatabaseQueryable {
-
     public var walletId: WalletId
     public var filter: PositionsRequestFilter?
     public var searchQuery: String
@@ -13,7 +12,7 @@ public struct PerpetualPositionsRequest: DatabaseQueryable {
     public init(
         walletId: WalletId,
         filter: PositionsRequestFilter? = nil,
-        searchQuery: String = ""
+        searchQuery: String = "",
     ) {
         self.walletId = walletId
         self.filter = filter
@@ -27,9 +26,9 @@ public struct PerpetualPositionsRequest: DatabaseQueryable {
                 .filter(PerpetualPositionRecord.Columns.walletId == walletId.id))
 
         switch filter {
-        case .perpetualId(let perpetualId):
+        case let .perpetualId(perpetualId):
             query = query.filter(PerpetualRecord.Columns.id == perpetualId)
-        case .assetId(let assetId):
+        case let .assetId(assetId):
             query = query.filter(PerpetualRecord.Columns.assetId == assetId.identifier)
         case .none:
             break
@@ -38,9 +37,9 @@ public struct PerpetualPositionsRequest: DatabaseQueryable {
         if !searchQuery.isEmpty {
             query = query.filter(
                 PerpetualRecord.Columns.name.like("%%\(searchQuery)%%") ||
-                PerpetualRecord.Columns.identifier.like("%%\(searchQuery)%%") ||
-                TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.name].like("%%\(searchQuery)%%") ||
-                TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.symbol].like("%%\(searchQuery)%%")
+                    PerpetualRecord.Columns.identifier.like("%%\(searchQuery)%%") ||
+                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.name].like("%%\(searchQuery)%%") ||
+                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.symbol].like("%%\(searchQuery)%%"),
             )
         }
 

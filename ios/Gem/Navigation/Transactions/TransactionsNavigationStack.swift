@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Style
-import Components
-import Transactions
-import Store
 import Assets
 import AssetsService
+import Components
+import Primitives
+import Store
+import Style
+import SwiftUI
+import Transactions
 
 struct TransactionsNavigationStack: View {
     @Environment(\.navigationState) private var navigationState
@@ -33,13 +33,14 @@ struct TransactionsNavigationStack: View {
                 .onChange(
                     of: model.currentWallet,
                     initial: true,
-                    model.onChangeWallet
+                    model.onChangeWallet,
                 )
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         FilterButton(
                             isActive: model.filterModel.isAnyFilterSpecified,
-                            action: model.onSelectFilterButton)
+                            action: model.onSelectFilterButton,
+                        )
                     }
                 }
                 .navigationBarTitleDisplayMode(.inline)
@@ -48,8 +49,8 @@ struct TransactionsNavigationStack: View {
                     TransactionNavigationView(
                         model: TransactionSceneViewModel(
                             transaction: $0.transaction,
-                            walletId: model.wallet.walletId
-                        )
+                            walletId: model.wallet.walletId,
+                        ),
                     )
                 }
                 .sheet(item: $model.isPresentingSheet) { type in
@@ -61,7 +62,7 @@ struct TransactionsNavigationStack: View {
                         .presentationDetentsForCurrentDeviceSize(expandable: true)
                         .presentationDragIndicator(.visible)
                         .presentationBackground(Colors.grayBackground)
-                    case .selectAsset(let selectType):
+                    case let .selectAsset(selectType):
                         SelectAssetSceneNavigationStack(
                             model: SelectAssetViewModel(
                                 wallet: model.wallet,
@@ -69,8 +70,8 @@ struct TransactionsNavigationStack: View {
                                 searchService: assetSearchService,
                                 assetsEnabler: assetsEnabler,
                                 priceAlertService: priceAlertService,
-                                activityService: activityService
-                            )
+                                activityService: activityService,
+                            ),
                         )
                     }
                 }

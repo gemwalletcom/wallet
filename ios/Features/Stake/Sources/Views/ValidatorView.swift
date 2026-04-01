@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import SwiftUI
-import Components
 
 public struct ValidatorView: View {
-
     private let model: ValidatorViewModel
 
     public init(model: ValidatorViewModel) {
@@ -17,7 +16,7 @@ public struct ValidatorView: View {
             ValidatorImageView(model: model)
             ListItemView(
                 title: model.name,
-                subtitle: model.aprModel.text
+                subtitle: model.aprModel.text,
             )
         }
     }

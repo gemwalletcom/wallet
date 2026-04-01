@@ -7,14 +7,14 @@ public extension Contact {
         id: String,
         name: String,
         description: String?,
-        createdAt: Date = .now
+        createdAt: Date = .now,
     ) -> Contact {
         Contact(
             id: id,
             name: name,
             description: description,
             createdAt: createdAt,
-            updatedAt: .now
+            updatedAt: .now,
         )
     }
 }
@@ -24,14 +24,14 @@ public extension ContactAddress {
         contactId: String,
         chain: Chain,
         address: String,
-        memo: String?
+        memo: String?,
     ) -> ContactAddress {
         ContactAddress(
-            id: contactId + "_"  + chain.rawValue + "_" + address,
+            id: contactId + "_" + chain.rawValue + "_" + address,
             contactId: contactId,
             address: address,
             chain: chain,
-            memo: memo
+            memo: memo,
         )
     }
 }

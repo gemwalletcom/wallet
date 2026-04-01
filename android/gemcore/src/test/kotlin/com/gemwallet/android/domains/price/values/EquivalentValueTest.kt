@@ -57,7 +57,7 @@ class EquivalentValueTest {
         val price = createTestPriceableValue(dayChangePercentage = 0.0)
         val formatted = price.changePercentageFormatted
 
-        assertEquals("0.00%", formatted)
+        assertEquals("+0.00%", formatted)
     }
 
     @Test
@@ -65,13 +65,13 @@ class EquivalentValueTest {
         val price = createTestPriceableValue(dayChangePercentage = null)
         val formatted = price.changePercentageFormatted
 
-        assertEquals("0.00%", formatted)
+        assertEquals("", formatted)
     }
 
     @Test
     fun testPriceableValue_priceValueFormattedWithNull() {
         val price = createTestPriceableValue(priceValue = null)
-        val formatted = price.valueFormated
+        val formatted = price.valueFormatted
 
         assertEquals("", formatted)
     }
@@ -79,7 +79,15 @@ class EquivalentValueTest {
     @Test
     fun testPriceableValue_priceValueFormattedWithNaN() {
         val price = createTestPriceableValue(priceValue = Double.NaN)
-        val formatted = price.valueFormated
+        val formatted = price.valueFormatted
+
+        assertEquals("", formatted)
+    }
+
+    @Test
+    fun testPriceableValue_priceValueFormattedWithInfinity() {
+        val price = createTestPriceableValue(priceValue = Double.POSITIVE_INFINITY)
+        val formatted = price.valueFormatted
 
         assertEquals("", formatted)
     }
@@ -87,7 +95,7 @@ class EquivalentValueTest {
     @Test
     fun testPriceableValue_priceValueFormattedWithZero() {
         val price = createTestPriceableValue(priceValue = 0.0)
-        val formatted = price.valueFormated
+        val formatted = price.valueFormatted
 
         assertTrue("Formatted zero price should not be empty", formatted.isNotEmpty())
     }
@@ -95,7 +103,7 @@ class EquivalentValueTest {
     @Test
     fun testPriceableValue_priceValueFormattedWithLowValue() {
         val price = createTestPriceableValue(priceValue = 0.0025)
-        val formatted = price.valueFormated
+        val formatted = price.valueFormatted
 
         assertTrue("Formatted low price should not be empty", formatted.isNotEmpty())
     }
@@ -103,7 +111,7 @@ class EquivalentValueTest {
     @Test
     fun testPriceableValue_priceValueFormattedWithNegative() {
         val price = createTestPriceableValue(priceValue = -100.0)
-        val formatted = price.valueFormated
+        val formatted = price.valueFormatted
 
         assertTrue("Formatted negative price should not be empty", formatted.isNotEmpty())
     }
@@ -135,10 +143,12 @@ class EquivalentValueTest {
     @Test
     fun testPriceableValue_stateWithVerySmallChange() {
         val priceSmallUp = createTestPriceableValue(dayChangePercentage = 0.001)
-        assertEquals(PriceState.None, priceSmallUp.state)
+        assertEquals(PriceState.Up, priceSmallUp.state)
+        assertEquals("+0.00%", priceSmallUp.changePercentageFormatted)
 
         val priceSmallDown = createTestPriceableValue(dayChangePercentage = -0.001)
-        assertEquals(PriceState.None, priceSmallDown.state)
+        assertEquals(PriceState.Down, priceSmallDown.state)
+        assertEquals("-0.00%", priceSmallDown.changePercentageFormatted)
     }
 
     @Test

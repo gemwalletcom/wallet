@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.ext.TickerState
 import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.components.list_item.energyItem
@@ -49,7 +48,7 @@ internal fun AssetDetailsScene(
     priceAlertEnabled: Boolean,
     priceAlertsCount: Int,
     syncState: AssetInfoUIState.SyncState,
-    tickerState: TickerState?,
+    tickerState: Long?,
     onRefresh: () -> Unit,
     onCancel: () -> Unit,
     onTransfer: AssetIdAction,
@@ -82,7 +81,7 @@ internal fun AssetDetailsScene(
                 )
             }
         },
-        progress = null, // tickerState?.percentage?.let { { (it / 100.0).toFloat() } },
+        progress = null,
         actions = {
             AssetDetailsMenu(
                 uiState = uiState,

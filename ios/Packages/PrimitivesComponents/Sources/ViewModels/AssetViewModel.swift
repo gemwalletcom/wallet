@@ -1,6 +1,6 @@
+import Components
 import Foundation
 import Primitives
-import Components
 
 public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     public let asset: Asset
@@ -32,15 +32,15 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     public var assetImage: AssetImage {
         AssetIdViewModel(assetId: asset.id).assetImage
     }
-    
+
     public var networkAssetImage: AssetImage {
         AssetIdViewModel(assetId: asset.id).networkAssetImage
     }
-    
+
     public var networkName: String {
         asset.chain.asset.name
     }
-    
+
     public var networkFullName: String {
         switch asset.id.type {
         case .native: networkName

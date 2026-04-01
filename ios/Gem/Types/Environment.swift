@@ -1,40 +1,40 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import GRDB
-import Store
-import Keystore
-import BannerService
-import NotificationService
-import DeviceService
-import PriceAlertService
-import ChainService
-import StakeService
-import NodeService
-import PriceService
-import StreamService
-import WalletConnector
-import ConnectionsService
-import ExplorerService
-import NFTService
-import BalanceService
+import ActivityService
+import AddressNameService
+import AppService
 import AssetsService
-import TransactionsService
+import AvatarService
+import BalanceService
+import BannerService
+import ChainService
+import ConnectionsService
+import ContactService
+import DeviceService
 import DiscoverAssetsService
+import EventPresenterService
+import ExplorerService
+import Foundation
+import GRDB
+import Keystore
+import NameService
+import NFTService
+import NodeService
+import NotificationService
+import PerpetualService
+import PriceAlertService
+import PriceService
+import RewardsService
+import ScanService
+import StakeService
+import Store
+import StreamService
+import SwiftUI
+import TransactionsService
+import TransactionStateService
+import WalletConnector
 import WalletService
 import WalletSessionService
-import AvatarService
-import AppService
-import ScanService
-import NameService
-import PerpetualService
-import TransactionStateService
-import AddressNameService
-import ActivityService
-import RewardsService
-import EventPresenterService
-import ContactService
 
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
@@ -51,7 +51,7 @@ extension EnvironmentValues {
     @Entry var deviceService: DeviceService = AppResolver.main.services.deviceService
     @Entry var balanceService: BalanceService = AppResolver.main.services.balanceService
     @Entry var bannerService: BannerService = AppResolver.main.services.bannerService
-    @Entry var transactionsService: TransactionsService =  AppResolver.main.services.transactionsService
+    @Entry var transactionsService: TransactionsService = AppResolver.main.services.transactionsService
     @Entry var assetsService: AssetsService = AppResolver.main.services.assetsService
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var stakeService: StakeService = AppResolver.main.services.stakeService

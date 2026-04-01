@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import Localization
+import Style
+import SwiftUI
 
 public extension StateEmptyView where Content == EmptyView {
     static func noData() -> StateEmptyView<EmptyView> {
@@ -14,7 +14,7 @@ public extension StateEmptyView where Content == EmptyView {
         StateEmptyView(
             title: Localized.Errors.errorOccured,
             description: error.localizedDescription,
-            image: Images.ErrorConent.error
+            image: Images.ErrorConent.error,
         )
     }
 }

@@ -14,7 +14,7 @@ public struct ListItemField {
     public init(title: String, value: String) {
         self.init(
             title: TextValue(text: title, style: .body),
-            value: TextValue(text: value, style: .calloutSecondary)
+            value: TextValue(text: value, style: .calloutSecondary),
         )
     }
 }

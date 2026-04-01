@@ -4,15 +4,15 @@ import Foundation
 import Primitives
 
 struct DeepLinkViewModel {
-    public let assetLink: AssetLink
-    
-    public init(_ assetLink: AssetLink) {
+    let assetLink: AssetLink
+
+    init(_ assetLink: AssetLink) {
         self.assetLink = assetLink
     }
-    
-    public var deepLink: URL? {
+
+    var deepLink: URL? {
         guard let path = assetLink.url.asURL?.path().trimmingPrefix("/") else { return nil }
-        
+
         return switch assetLink.linkType {
         case .telegram: URL(string: "tg://resolve?domain=\(path)")
         case .x: URL(string: "twitter://user?screen_name=\(path)")

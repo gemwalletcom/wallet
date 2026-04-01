@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import Primitives
+import PrimitivesTestKit
 import Store
 import StoreTestKit
-import PrimitivesTestKit
-import Primitives
+import Testing
 
 struct ChainAssetRequestTests {
-
     @Test
     func fetchNativeAsset() throws {
         let db = DB.mockAssets()

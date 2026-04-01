@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Transfer
 
 struct AmountPerpetualViewModelTests {
-
     @Test
     func title() {
         let openLong = AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .open(.mock(direction: .long))))

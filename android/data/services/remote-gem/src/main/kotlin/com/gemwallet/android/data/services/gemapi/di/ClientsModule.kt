@@ -2,6 +2,7 @@ package com.gemwallet.android.data.services.gemapi.di
 
 import android.content.Context
 import android.os.Build
+import com.gemwallet.android.Constants
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
@@ -60,7 +61,7 @@ object ClientsModule {
     @Singleton
     fun provideGemApiClient(httpClient: OkHttpClient): GemApiClient =
         Retrofit.Builder()
-            .baseUrl("https://api.gemwallet.com")
+            .baseUrl(Constants.API_URL)
             .client(httpClient)
             .addConverterFactory(jsonEncoder.asConverterFactory(Mime.Json.value))
             .build()
@@ -76,7 +77,7 @@ object ClientsModule {
             .addInterceptor(securityInterceptor)
             .build()
         return Retrofit.Builder()
-            .baseUrl("https://api.gemwallet.com")
+            .baseUrl(Constants.API_URL)
             .client(httpClient)
             .addConverterFactory(jsonEncoder.asConverterFactory(Mime.Json.value))
             .build()
@@ -87,7 +88,7 @@ object ClientsModule {
     @Singleton
     fun provideGemApiStaticClient(httpClient: OkHttpClient): GemApiStaticClient {
         return Retrofit.Builder()
-            .baseUrl("https://assets.gemwallet.com")
+            .baseUrl(Constants.ASSETS_URL)
             .client(httpClient)
             .addConverterFactory(jsonEncoder.asConverterFactory(Mime.Json.value))
             .build()

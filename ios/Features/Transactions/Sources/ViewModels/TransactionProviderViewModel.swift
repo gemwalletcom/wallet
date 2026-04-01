@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import class Gemstone.SwapProviderConfig
+import Localization
 import Primitives
 import PrimitivesComponents
-import Localization
-import Components
-import class Gemstone.SwapProviderConfig
 
 struct TransactionProviderViewModel: Sendable {
     private let metadata: TransactionSwapMetadata?
@@ -24,8 +24,8 @@ extension TransactionProviderViewModel: ItemModelProvidable {
         return .listItem(
             .text(
                 title: Localized.Common.provider,
-                subtitle: SwapProviderConfig.fromString(id: providerId).inner().name
-            )
+                subtitle: SwapProviderConfig.fromString(id: providerId).inner().name,
+            ),
         )
     }
 }

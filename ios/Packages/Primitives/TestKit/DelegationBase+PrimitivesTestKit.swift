@@ -12,7 +12,7 @@ public extension DelegationBase {
         rewards: String = .empty,
         completionDate: Date? = nil,
         delegationId: String = .empty,
-        validatorId: String = .empty
+        validatorId: String = .empty,
     ) -> DelegationBase {
         DelegationBase(
             assetId: assetId,
@@ -22,7 +22,7 @@ public extension DelegationBase {
             rewards: rewards,
             completionDate: completionDate,
             delegationId: delegationId,
-            validatorId: validatorId
+            validatorId: validatorId,
         )
     }
 }

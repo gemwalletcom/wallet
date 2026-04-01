@@ -5,7 +5,6 @@ import Primitives
 import WalletConnectRelay
 
 final class WebSocket: NSObject, @unchecked Sendable {
-
     @Locked var request: URLRequest
     @Locked private(set) var isConnected: Bool = false
     @Locked var onConnect: (() -> Void)?
@@ -22,7 +21,7 @@ final class WebSocket: NSObject, @unchecked Sendable {
     }()
 
     init(request: URLRequest) {
-        self._request = Locked(wrappedValue: request)
+        _request = Locked(wrappedValue: request)
         super.init()
     }
 
@@ -34,29 +33,29 @@ final class WebSocket: NSObject, @unchecked Sendable {
         task?.receive { [weak self] result in
             guard let self else { return }
             switch result {
-            case .success(let message):
+            case let .success(message):
                 switch message {
-                case .string(let text):
-                    self.onText?(text)
-                case .data(let data):
+                case let .string(text):
+                    onText?(text)
+                case let .data(data):
                     if let text = try? data.encodeString() {
-                        self.onText?(text)
+                        onText?(text)
                     }
                 @unknown default:
                     break
                 }
-                self.receiveMessage()
+                receiveMessage()
             case .failure:
                 break
             }
         }
     }
-    
+
     private func closeConnection(_ closeCode: URLSessionWebSocketTask.CloseCode) {
         task?.cancel(with: closeCode, reason: nil)
         session?.invalidateAndCancel()
     }
-    
+
     private func handleDisconnect(error: Error?) {
         guard isConnected else { return }
         isConnected = false
@@ -98,18 +97,18 @@ extension WebSocket: WebSocketConnecting {
 // MARK: - URLSessionWebSocketDelegate
 
 extension WebSocket: URLSessionWebSocketDelegate {
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+    func urlSession(_: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol _: String?) {
         guard isCurrentTask(webSocketTask) else { return }
         isConnected = true
         onConnect?()
     }
 
-    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+    func urlSession(_: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
         guard isCurrentTask(webSocketTask) else { return }
         handleDisconnect(error: nil)
     }
 
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    func urlSession(_: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard isCurrentTask(task) else { return }
         handleDisconnect(error: error)
     }

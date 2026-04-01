@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import PrimitivesTestKit
-import PerpetualsTestKit
 import Formatters
 import Localization
 @testable import Perpetuals
+import PerpetualsTestKit
+import Primitives
+import PrimitivesTestKit
+import Testing
 
 struct CandleTooltipViewModelTests {
-
     @Test
     func tooltipContent() {
-        let model = CandleTooltipViewModel.mock(candle: .mock(open: 67_715, high: 68_181, low: 67_714, close: 68_087, volume: 500))
+        let model = CandleTooltipViewModel.mock(candle: .mock(open: 67715, high: 68181, low: 67714, close: 68087, volume: 500))
 
         #expect(model.openField.title.text == Localized.Charts.Price.open)
         #expect(model.openField.value.text == "67,715.00")

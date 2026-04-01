@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
+import SwiftUI
 
 @resultBuilder
 enum ActionMenuBuilder {
     static func buildBlock(
-        _ components: ActionMenuItemType...
+        _ components: ActionMenuItemType...,
     ) -> [ActionMenuItemType] { components }
 }
 
@@ -16,7 +16,7 @@ public struct ActionMenu<Label: View>: View {
 
     public init(
         items: [ActionMenuItemType],
-        @ViewBuilder label: () -> Label
+        @ViewBuilder label: () -> Label,
     ) {
         self.items = items
         self.label = label()
@@ -24,7 +24,7 @@ public struct ActionMenu<Label: View>: View {
 
     public init(
         @ActionMenuBuilder items: () -> [ActionMenuItemType],
-        @ViewBuilder label: () -> Label
+        @ViewBuilder label: () -> Label,
     ) {
         self.init(items: items(), label: label)
     }

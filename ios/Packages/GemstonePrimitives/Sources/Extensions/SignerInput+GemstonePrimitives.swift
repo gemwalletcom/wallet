@@ -7,7 +7,7 @@ public extension Primitives.SignerInput {
     func map() throws -> GemSignerInput {
         try GemSignerInput(
             input: GemTransactionLoadInput.map(signerInput: self),
-            fee: fee.map()
+            fee: fee.map(),
         )
     }
 }

@@ -5,19 +5,18 @@ import GRDB
 import Primitives
 
 public struct StakeStore: Sendable {
-    
     let db: DatabaseQueue
-    
+
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     public func getStakeApr(assetId: AssetId) throws -> Double? {
         try db.read { db in
             try AssetRecord
                 .filter(key: assetId.identifier)
                 .fetchOne(db)
-                .map { $0.stakingApr } ?? .none
+                .map(\.stakingApr) ?? .none
         }
     }
 
@@ -26,10 +25,10 @@ public struct StakeStore: Sendable {
             try AssetRecord
                 .filter(key: assetId.identifier)
                 .fetchOne(db)
-                .map { $0.earnApr } ?? .none
+                .map(\.earnApr) ?? .none
         }
     }
-    
+
     public func updateDelegations(walletId: WalletId, delegations: [DelegationBase]) throws {
         try db.write { db in
             for delegation in delegations {
@@ -57,10 +56,10 @@ public struct StakeStore: Sendable {
                 .filter(StakeValidatorRecord.Columns.assetId == assetId.identifier)
                 .filter(StakeValidatorRecord.Columns.validatorId == validatorId)
                 .fetchOne(db)
-                .map { $0.validator }
+                .map(\.validator)
         }
     }
-    
+
     public func getValidatorsActive(assetId: AssetId, providerType: StakeProviderType) throws -> [DelegationValidator] {
         try db.read { db in
             try ValidatorsRequest(chain: assetId.chain, providerType: providerType).fetch(db)
@@ -74,10 +73,10 @@ public struct StakeStore: Sendable {
                 .filter(StakeValidatorRecord.Columns.providerType == providerType.rawValue)
                 .order(StakeValidatorRecord.Columns.apr.desc)
                 .fetchAll(db)
-                .map { $0.validator }
+                .map(\.validator)
         }
     }
-    
+
     public func updateValidators(_ validators: [DelegationValidator]) throws {
         try db.write { db in
             for validator in validators {
@@ -85,7 +84,7 @@ public struct StakeStore: Sendable {
             }
         }
     }
-    
+
     public func getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [Delegation] {
         try db.read { db in
             try DelegationsRequest(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)
@@ -108,17 +107,16 @@ public struct StakeStore: Sendable {
             try StakeDelegationRecord.deleteAll(db)
         }
     }
-    
+
     @discardableResult
     public func clearValidators() throws -> Int {
         try db.write { db in
             try StakeValidatorRecord.deleteAll(db)
         }
     }
-    
+
     public func clear() throws {
         try clearDelegations()
         try clearValidators()
     }
 }
-

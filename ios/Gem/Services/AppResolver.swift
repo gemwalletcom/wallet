@@ -7,15 +7,15 @@ struct AppResolver: Sendable {
     let navigation: NavigationStateManager
     let services: Services
 
-    public static let main: AppResolver = AppResolver()
+    static let main: AppResolver = .init()
 
     private init(
         storages: Storages = Storages(),
         factory: ServicesFactory = ServicesFactory(),
-        navigation: NavigationStateManager = NavigationStateManager()
+        navigation: NavigationStateManager = NavigationStateManager(),
     ) {
         self.storages = storages
         self.navigation = navigation
-        self.services = factory.makeServices(storages: storages, navigation: navigation)
+        services = factory.makeServices(storages: storages, navigation: navigation)
     }
 }

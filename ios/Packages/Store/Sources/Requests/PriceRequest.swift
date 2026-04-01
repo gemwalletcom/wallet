@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct PriceRequest: DatabaseQueryable {
-
     public var assetId: AssetId
 
     public init(assetId: AssetId) {
@@ -20,7 +19,7 @@ public struct PriceRequest: DatabaseQueryable {
             .filter(AssetRecord.Columns.id == assetId.identifier)
             .asRequest(of: PriceRecordInfo.self)
             .fetchOne(db)
-            .map { $0.priceData }
+            .map(\.priceData)
     }
 }
 

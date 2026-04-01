@@ -14,7 +14,7 @@ public actor GemAPIAssetsListServiceMock: GemAPIAssetsListService {
         assetsByDeviceIdResult: [AssetId]? = nil,
         buyableFiatAssetsResult: FiatAssets? = nil,
         sellableFiatAssetsResult: FiatAssets? = nil,
-        swapAssetsResult: FiatAssets? = nil
+        swapAssetsResult: FiatAssets? = nil,
     ) {
         self.assetsByDeviceIdResult = assetsByDeviceIdResult
         self.buyableFiatAssetsResult = buyableFiatAssetsResult
@@ -22,7 +22,7 @@ public actor GemAPIAssetsListServiceMock: GemAPIAssetsListService {
         self.swapAssetsResult = swapAssetsResult
     }
 
-    public func getDeviceAssets(walletId: String, fromTimestamp: Int) async throws -> [AssetId] {
+    public func getDeviceAssets(walletId _: String, fromTimestamp _: Int) async throws -> [AssetId] {
         assetsByDeviceIdResult!
     }
 

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-import SwiftUI
 import Components
+import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 struct ListAssetItemSelectionView: View {
     private let assetData: AssetData
@@ -15,7 +15,7 @@ struct ListAssetItemSelectionView: View {
         assetData: AssetData,
         currencyCode: String,
         type: AssetListType,
-        action: @escaping (ListAssetItemAction, AssetData) -> Void
+        action: @escaping (ListAssetItemAction, AssetData) -> Void,
     ) {
         self.assetData = assetData
         self.currencyCode = currencyCode
@@ -30,13 +30,13 @@ struct ListAssetItemSelectionView: View {
                 assetDataModel: AssetDataViewModel(
                     assetData: assetData,
                     formatter: .abbreviated,
-                    currencyCode: currencyCode
+                    currencyCode: currencyCode,
                 ),
                 type: type,
                 action: {
                     action($0, assetData)
-                }
-            )
+                },
+            ),
         )
     }
 }

@@ -1,23 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import StoreTestKit
-import StreamService
-import PriceService
-import PriceServiceTestKit
-import PriceAlertService
-import PriceAlertServiceTestKit
 import BalanceService
 import BalanceServiceTestKit
-import TransactionsService
-import TransactionsServiceTestKit
+import Foundation
 import NFTService
 import NFTServiceTestKit
 import PerpetualService
 import PerpetualServiceTestKit
 import Preferences
 import PreferencesTestKit
+import PriceAlertService
+import PriceAlertServiceTestKit
+import PriceService
+import PriceServiceTestKit
+import Store
+import StoreTestKit
+import StreamService
+import TransactionsService
+import TransactionsServiceTestKit
 
 public extension StreamEventService {
     static func mock(
@@ -29,7 +29,7 @@ public extension StreamEventService {
         transactionsService: TransactionsService = .mock(),
         nftService: NFTService = .mock(),
         perpetualService: any HyperliquidPerpetualServiceable = PerpetualServiceMock(),
-        preferences: Preferences = .mock()
+        preferences: Preferences = .mock(),
     ) -> StreamEventService {
         StreamEventService(
             walletStore: walletStore,
@@ -40,7 +40,7 @@ public extension StreamEventService {
             transactionsService: transactionsService,
             nftService: nftService,
             perpetualService: perpetualService,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-import SwiftUI
-import Style
 import Components
-import PrimitivesComponents
-import Localization
 import InfoSheet
+import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct CollectibleScene: View {
     @State private var model: CollectibleViewModel
@@ -51,10 +51,10 @@ public struct CollectibleScene: View {
                 model: ReportNftViewModel(
                     nftService: model.nftService,
                     assetData: model.assetData,
-                    onComplete: model.onReportComplete
-                )
+                    onComplete: model.onReportComplete,
+                ),
             )
-		}
+        }
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(model: InfoSheetModelFactory.create(from: $0))
         }
@@ -68,7 +68,7 @@ extension CollectibleScene {
         Section {
             NftImageView(
                 assetImage: model.assetImage,
-                isImageLoaded: $model.isImageLoaded
+                isImageLoaded: $model.isImageLoaded,
             )
             .aspectRatio(1, contentMode: .fill)
         } header: {
@@ -98,7 +98,7 @@ extension CollectibleScene {
             ListItemImageView(
                 title: model.networkField.title.text,
                 subtitle: model.networkField.value.text,
-                assetImage: model.networkAssetImage
+                assetImage: model.networkAssetImage,
             )
 
             if let contractRow = model.contractRow {
@@ -125,10 +125,10 @@ extension CollectibleScene {
     @ViewBuilder
     private func infoRowView(_ row: CollectibleInfoRow) -> some View {
         switch row.action {
-        case .explorer(let explorerContext):
+        case let .explorer(explorerContext):
             ListItemView(field: row.field)
                 .explorerContext(explorerContext)
-        case .copy(let copyValue):
+        case let .copy(copyValue):
             ListItemView(field: row.field)
                 .contextMenu(.copy(value: copyValue, onCopy: model.onSelectCopyValue))
         }

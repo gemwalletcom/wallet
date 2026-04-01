@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 
 struct MinimumAccountReserveValidator<V>: ValueValidator where V: ValueValidatable & SignedNumeric {
-
     private let available: V
     private let requiredReserve: V
     private let asset: Asset
 
     init(available: V, reserve: V, asset: Asset) {
         self.available = available
-        self.requiredReserve = reserve
+        requiredReserve = reserve
         self.asset = asset
     }
 

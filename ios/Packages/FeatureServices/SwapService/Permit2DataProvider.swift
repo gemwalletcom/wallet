@@ -16,7 +16,7 @@ protocol Permit2DataProvidable: Sendable {
     func getPermit2Data(
         wallet: Wallet,
         chain: Chain,
-        approval: Permit2ApprovalData
+        approval: Permit2ApprovalData,
     ) async throws -> Permit2Data
 }
 
@@ -30,14 +30,13 @@ struct Permit2DataProvider: Permit2DataProvidable {
     func getPermit2Data(
         wallet: Wallet,
         chain: Chain,
-        approval: Permit2ApprovalData
+        approval: Permit2ApprovalData,
     ) async throws -> Permit2Data {
-
         let permitSingle = permitSingle(approval: approval)
         let json = try Gemstone.permit2DataToEip712Json(
             chain: chain.rawValue,
             data: permitSingle,
-            contract: approval.permit2Contract
+            contract: approval.permit2Contract,
         )
 
         let signer = Signer(wallet: wallet, keystore: keystore)
@@ -59,10 +58,10 @@ extension Permit2DataProvider {
                 token: approval.token,
                 amount: approval.value,
                 expiration: UInt64(now) + config.permit2Expiration,
-                nonce: approval.permit2Nonce
+                nonce: approval.permit2Nonce,
             ),
             spender: approval.spender,
-            sigDeadline: UInt64(now) + config.permit2SigDeadline
+            sigDeadline: UInt64(now) + config.permit2SigDeadline,
         )
     }
 }

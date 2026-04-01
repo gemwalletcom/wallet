@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Foundation
+import Primitives
+import PrimitivesTestKit
 import Store
 import StoreTestKit
-import PrimitivesTestKit
-import Primitives
+import Testing
 
 struct RecentActivityRequestTests {
-
     @Test
     func fetchRecentAssets() throws {
         let db = DB.mockAssets()

@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import SwiftUI
-import Components
 
 struct InsightLink {
-
     let title: String
     let subtitle: String?
     var url: URL
@@ -17,7 +16,7 @@ struct InsightLink {
         subtitle: String?,
         url: URL,
         deepLink: URL?,
-        image: AssetImage
+        image: AssetImage,
     ) {
         self.title = title
         self.subtitle = subtitle

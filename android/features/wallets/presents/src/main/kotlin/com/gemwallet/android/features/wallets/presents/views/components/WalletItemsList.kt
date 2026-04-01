@@ -38,7 +38,6 @@ internal fun LazyListScope.wallets(
     itemsIndexed(items = wallets, key = { _, item -> item.id }) { index, item ->
         DropDownContextItem(
             isExpanded = longPressedWallet.value == item.id,
-            imeCompensate = true,
             onDismiss = { longPressedWallet.value = "" },
             content = {
                 WalletItem(

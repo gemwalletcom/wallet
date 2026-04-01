@@ -26,8 +26,8 @@ class SignService : SignClient {
         chain: Chain,
         input: ByteArray,
         privateKey: ByteArray
-    ): ByteArray {
-        return GemChainSigner(chain.string).signMessage(input, privateKey).toByteArray()
+    ): String {
+        return GemChainSigner(chain.string).signMessage(input, privateKey)
     }
 
     override suspend fun signActivate(
@@ -307,9 +307,8 @@ class SignService : SignClient {
         )
         return listOf(getSigner(params).signWithdrawal(data, privateKey).toByteArray())
     }
-    
     override fun supported(chain: Chain): Boolean {
-        return when(chain.toChainType()) {
+        return when (chain.toChainType()) {
             ChainType.Ethereum,
             ChainType.Aptos,
             ChainType.Sui,

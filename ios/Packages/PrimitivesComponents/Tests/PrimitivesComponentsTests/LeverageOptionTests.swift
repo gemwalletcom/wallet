@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 @testable import PrimitivesComponents
+import Testing
 
 struct LeverageOptionTests {
-
     @Test
-    func testLeverageOption() {
+    func leverageOption() {
         let allOptions = LeverageOption.allOptions
         let maxLeverage4 = allOptions.filter { $0.value <= 4 }
 

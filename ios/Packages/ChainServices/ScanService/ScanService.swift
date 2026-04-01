@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Blockchain
 import Foundation
 import Primitives
-import Blockchain
 
 public struct ScanService: Sendable {
     private let gatewayService: GatewayService

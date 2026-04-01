@@ -20,7 +20,7 @@ public final class NetworkFeeSceneViewModel {
         priority: FeePriority,
         rates: [FeeRate] = [],
         value: String? = nil,
-        fiatValue: String? = nil
+        fiatValue: String? = nil,
     ) {
         self.chain = chain
         self.priority = priority
@@ -38,7 +38,7 @@ public final class NetworkFeeSceneViewModel {
                 feeRate: $0,
                 unitType: chain.feeUnitType,
                 decimals: chain.asset.decimals.asInt,
-                symbol: chain.asset.symbol
+                symbol: chain.asset.symbol,
             )
         }.sorted()
     }
@@ -54,18 +54,18 @@ public final class NetworkFeeSceneViewModel {
 
 // MARK: - Business Logic
 
-extension NetworkFeeSceneViewModel {
-    public func update(rates: [FeeRate]) {
+public extension NetworkFeeSceneViewModel {
+    func update(rates: [FeeRate]) {
         self.rates = rates
     }
 
-    public func update(value: String?, fiatValue: String?) {
+    func update(value: String?, fiatValue: String?) {
         self.value = value
         self.fiatValue = fiatValue
     }
 
-    public func reset() {
-        self.value = nil
-        self.fiatValue = nil
+    func reset() {
+        value = nil
+        fiatValue = nil
     }
 }

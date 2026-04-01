@@ -33,13 +33,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetInfo
@@ -47,6 +46,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.LoadingScene
@@ -139,30 +139,12 @@ private fun ReceiveScene(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(imagePadding)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(paddingSmall)
-                        ) {
-                            HeaderIcon(assetInfo.asset)
-                            Row(horizontalArrangement = Arrangement.spacedBy(paddingSmall)) {
-                                Text(
-                                    text = assetInfo.asset.name,
-                                    overflow = TextOverflow.MiddleEllipsis,
-                                    maxLines = 1,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = assetInfo.asset.symbol,
-                                    overflow = TextOverflow.MiddleEllipsis,
-                                    maxLines = 1,
-                                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Normal),
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
+                        CenteredListHead(
+                            title = assetInfo.asset.name,
+                            subtitle = assetInfo.asset.subtitleSymbol,
+                            bottomPadding = 0.dp,
+                            leading = { HeaderIcon(assetInfo.asset) },
+                        )
                         ElevatedCard(
                             modifier = Modifier.width(imageSize),
                             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
@@ -219,4 +201,3 @@ private fun ReceiveScene(
         }
     }
 }
-

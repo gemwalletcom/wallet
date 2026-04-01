@@ -3,10 +3,10 @@
 import Components
 import Primitives
 import PrimitivesComponents
+import struct Stake.ValidatorView
+import struct Stake.ValidatorViewModel
 import Style
 import SwiftUI
-import struct Stake.ValidatorViewModel
-import struct Stake.ValidatorView
 
 public struct AmountScene: View {
     @FocusState private var focusedField: Bool
@@ -23,7 +23,7 @@ public struct AmountScene: View {
             CurrencyInputValidationView(
                 model: $model.amountInputModel,
                 config: model.inputConfig,
-                infoAction: model.infoAction(for:)
+                infoAction: model.infoAction(for:),
             )
             .padding(.top, .medium)
             .listGroupRowStyle()
@@ -40,7 +40,7 @@ public struct AmountScene: View {
                             Button(model.maxTitle, action: onSelectMaxButton)
                                 .buttonStyle(.listEmpty(paddingHorizontal: .medium, paddingVertical: .small))
                                 .fixedSize()
-                        }
+                        },
                     )
                 }
             }
@@ -93,9 +93,9 @@ public struct AmountScene: View {
                             with: ListItemView(
                                 title: leverageSelection.title,
                                 subtitle: leverageSelection.selected.displayText,
-                                subtitleStyle: perpetual.leverageTextStyle
+                                subtitleStyle: perpetual.leverageTextStyle,
                             ),
-                            action: model.onSelectLeverage
+                            action: model.onSelectLeverage,
                         )
                     }
                 }
@@ -106,9 +106,9 @@ public struct AmountScene: View {
                             with: ListItemView(
                                 title: perpetual.autocloseTitle,
                                 subtitle: perpetual.autocloseText.subtitle,
-                                subtitleExtra: perpetual.autocloseText.subtitleExtra
+                                subtitleExtra: perpetual.autocloseText.subtitleExtra,
                             ),
-                            action: model.onSelectAutoclose
+                            action: model.onSelectAutoclose,
                         )
                     }
                 }
@@ -126,7 +126,7 @@ public struct AmountScene: View {
             StateButton(
                 text: model.continueTitle,
                 type: .primary(model.actionButtonState),
-                action: onSelectNextButton
+                action: onSelectNextButton,
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)

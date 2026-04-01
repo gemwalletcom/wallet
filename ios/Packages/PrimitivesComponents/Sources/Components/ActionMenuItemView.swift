@@ -16,7 +16,7 @@ struct ActionMenuItemView: View {
                 title: title,
                 systemImage: systemImage,
                 role: role,
-                action: { action?() }
+                action: { action?() },
             )
         }
     }

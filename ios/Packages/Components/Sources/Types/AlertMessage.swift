@@ -5,15 +5,15 @@ import SwiftUI
 
 public struct AlertMessage: Identifiable, Sendable {
     public var id: String { (title ?? "") + message + actions.map(\.title).joined() }
-    
+
     public let title: String?
     public let message: String
     public let actions: [AlertAction]
-    
+
     public init(
         title: String? = nil,
         message: String,
-        actions: [AlertAction] = []
+        actions: [AlertAction] = [],
     ) {
         self.title = title
         self.message = message
@@ -26,12 +26,12 @@ public struct AlertAction: Sendable {
     public let role: ButtonRole?
     public let isDefaultAction: Bool
     public let action: @Sendable () -> Void
-    
+
     public init(
         title: String,
         role: ButtonRole? = nil,
         isDefaultAction: Bool = false,
-        action: @escaping @Sendable () -> Void = {}
+        action: @escaping @Sendable () -> Void = {},
     ) {
         self.title = title
         self.role = role

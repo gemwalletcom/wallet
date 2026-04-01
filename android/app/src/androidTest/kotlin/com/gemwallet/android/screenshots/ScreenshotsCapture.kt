@@ -168,6 +168,17 @@ class ScreenshotsCapture {
         device.findObject(By.res("import")).click()
         runBlocking { delay(SCREEN_TIMEOUT) }
 
+        // Accept terms if shown
+        if (device.wait(Until.hasObject(By.res("term_1")), SCREEN_TIMEOUT * 2) == true) {
+            device.findObject(By.res("term_1")).click()
+            device.findObject(By.res("term_2")).click()
+            device.findObject(By.res("term_3")).click()
+            runBlocking { delay(SCREEN_TIMEOUT / 2) }
+            device.findObject(By.res("main_action")).click()
+            runBlocking { delay(SCREEN_TIMEOUT) }
+        }
+
+        device.wait(Until.hasObject(By.res("multicoin_item")), LAUNCH_TIMEOUT)
         device.findObject(By.res("multicoin_item")).click()
         runBlocking { delay(SCREEN_TIMEOUT) }
 
@@ -178,5 +189,11 @@ class ScreenshotsCapture {
         runBlocking { delay(SCREEN_TIMEOUT / 2) }
         device.findObject(By.res("main_action")).click()
         runBlocking { delay(SCREEN_TIMEOUT * 15) }
+
+        // Dismiss setup wallet name screen if shown
+        if (device.wait(Until.hasObject(By.res("main_action")), SCREEN_TIMEOUT * 2) == true) {
+            device.findObject(By.res("main_action")).click()
+            runBlocking { delay(SCREEN_TIMEOUT) }
+        }
     }
 }

@@ -3,6 +3,7 @@
 package com.gemwallet.android.features.bridge.views
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -24,30 +26,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.dialog.DialogBar
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.listItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
-import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.screen.FatalStateScene
-import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.components.screen.ModalBottomSheet
-import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.actions.AssetIdAction
-import com.gemwallet.android.ui.requestAuth
-import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.features.bridge.viewmodels.RequestSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
+import com.gemwallet.android.model.AuthRequest
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.dialog.DialogBar
+import com.gemwallet.android.ui.components.list_head.CenteredListHead
+import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
+import com.gemwallet.android.ui.components.screen.FatalStateScene
+import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
+import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
+import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
+import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.actions.AssetIdAction
+import com.gemwallet.android.ui.models.hasCriticalWarning
+import com.gemwallet.android.ui.requestAuth
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.reown.walletkit.client.Wallet
-import uniffi.gemstone.MessagePreview
 
 @Composable
 fun RequestScene(
@@ -77,7 +83,11 @@ fun RequestScene(
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
 
     when (sceneState) {
-        RequestSceneState.Loading -> LoadingScene(stringResource(id = R.string.wallet_connect_title), viewModel::onReject)
+        RequestSceneState.Loading -> LoadingScene(
+            title = stringResource(id = R.string.transfer_review_request),
+            onCancel = viewModel::onReject,
+            closeIcon = true,
+        )
         is RequestSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_title),
             message = (sceneState as RequestSceneState.Error).message.ifBlank {
@@ -86,15 +96,17 @@ fun RequestScene(
             onCancel = viewModel::onReject
         )
         is RequestSceneState.Request -> (sceneState as RequestSceneState.Request).let { sceneState ->
-            when (sceneState.request) {
+            val request = sceneState.request
+            when (request) {
                 is WCRequest.SignMessage -> SignMessageScene(
                     sceneState.walletName,
-                    sceneState.request as WCRequest.SignMessage,
+                    request,
                     viewModel::onSign,
                     viewModel::onReject
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
-                    params = (sceneState.request as WCRequest.Transaction).confirmParams,
+                    params = request.confirmParams,
+                    walletConnectSimulation = request.simulation,
                     finishAction = { _, hash, _ -> viewModel.onTransactionResult(hash) },
                     onBuy = onBuy,
                     cancelAction = viewModel::onReject
@@ -113,55 +125,116 @@ private fun SignMessageScene(
     onReject: () -> Unit,
 ) {
     val context = LocalContext.current
-    var isShowFullMessage by remember { mutableStateOf(false) }
-
-    val preview = request.signer.preview()
+    var sheetType by remember { mutableStateOf<SignMessageSheetType?>(null) }
 
     Scene(
-        title = stringResource(id = R.string.wallet_connect_title),
+        title = stringResource(id = R.string.transfer_review_request),
+        backHandle = true,
+        closeIcon = true,
         mainAction = {
-            MainActionButton(title = stringResource(id = R.string.transfer_approve_title)) {
+            MainActionButton(
+                title = stringResource(id = R.string.transfer_confirm),
+                enabled = !request.simulation.warnings.hasCriticalWarning(),
+            ) {
                 context.requestAuth(AuthRequest.Phrase) {
                     onApprove()
                 }
             }
         },
         onClose = onReject,
-    ) {
-        LazyColumn {
-            item { PropertyItem(R.string.wallet_connect_app, "${request.name} (${request.uri})", listPosition = ListPosition.First) }
-            item { PropertyItem(R.string.common_wallet, walletName, listPosition = ListPosition.Middle) }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding() + paddingDefault),
+        ) {
+            item {
+                CenteredListHead(
+                    icon = request.icon,
+                    title = request.name,
+                    subtitle = request.uri,
+                    contentDescription = "wallet_connect_app_icon",
+                    subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
+                )
+            }
+            item { PropertyItem(R.string.common_wallet, walletName, listPosition = ListPosition.First) }
             item { PropertyNetworkItem(request.chain, listPosition = ListPosition.Last) }
+            simulationWarningsContent(request.simulation.warnings)
+            if (request.hasPayload) {
+                simulationPayloadFieldsContent(
+                    fields = request.primaryPayloadFields,
+                    onDetailsClick = { sheetType = SignMessageSheetType.Details },
+                )
+            }
 
-            when (preview) {
-                is MessagePreview.Eip712 -> domainMessage(preview) { isShowFullMessage = true }
-                is MessagePreview.Text -> textMessage(preview)
-                is MessagePreview.Siwe -> siweMessage(preview) { isShowFullMessage = true }
+            if (!request.hasPayload) {
+                textMessage(request.plainMessage)
             }
         }
 
-        if (isShowFullMessage) {
-            ModalBottomSheet(
-                onDismissRequest = { isShowFullMessage = false },
-                dragHandle = { DialogBar(stringResource(R.string.common_done)) { isShowFullMessage = false } },
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(paddingDefault)
+        when (sheetType) {
+            SignMessageSheetType.Details -> {
+                ModalBottomSheet(
+                    onDismissRequest = { sheetType = null },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    dragHandle = {
+                        DialogBar(
+                            onDismissRequest = { sheetType = null },
+                        )
+                    },
                 ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = request.signer.plainPreview()
-                    )
+                    LazyColumn {
+                        item {
+                            SubheaderItem(R.string.common_details)
+                        }
+                        simulationPayloadDetailsContent(
+                            primaryFields = request.primaryPayloadFields,
+                            secondaryFields = request.secondaryPayloadFields,
+                        )
+                        item {
+                            PropertyItem(
+                                action = R.string.sign_message_view_full_message,
+                                listPosition = if (request.primaryPayloadFields.isEmpty() && request.secondaryPayloadFields.isEmpty()) {
+                                    ListPosition.Single
+                                } else {
+                                    ListPosition.Last
+                                },
+                                onClick = { sheetType = SignMessageSheetType.FullMessage },
+                            )
+                        }
+                    }
                 }
             }
+
+            SignMessageSheetType.FullMessage -> {
+                ModalBottomSheet(
+                    onDismissRequest = { sheetType = null },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    dragHandle = {
+                        DialogBar(
+                            onDismissRequest = { sheetType = null },
+                        )
+                    },
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(paddingDefault)
+                    ) {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = request.plainMessage
+                        )
+                    }
+                }
+            }
+
+            null -> Unit
         }
     }
 }
 
-private fun LazyListScope.textMessage(message: MessagePreview.Text) {
+private fun LazyListScope.textMessage(message: String) {
     item {
         SubheaderItem(R.string.sign_message_message)
         Text(
@@ -169,44 +242,12 @@ private fun LazyListScope.textMessage(message: MessagePreview.Text) {
                 .fillMaxWidth()
                 .listItem()
                 .padding(paddingDefault),
-            text = message.v1,
+            text = message,
         )
     }
 }
 
-private fun LazyListScope.domainMessage(message: MessagePreview.Eip712, onFullMessage: () -> Unit) {
-    val message = message.v1
-    item {
-        SubheaderItem(R.string.wallet_connect_domain)
-        PropertyItem(R.string.application_name, message.domain.name, listPosition = ListPosition.First)
-        PropertyItem(R.string.asset_contract, message.domain.verifyingContract, listPosition = ListPosition.Last)
-    }
-    message.message.firstOrNull()?.let { section ->
-        item { SubheaderItem(section.name) }
-        itemsPositioned(section.values) { position, item ->
-            PropertyItem(item.name, item.value, listPosition = position)
-        }
-    }
-    item {
-        PropertyItem(
-            R.string.sign_message_view_full_message,
-            listPosition = ListPosition.Single,
-            onClick = onFullMessage,
-        )
-    }
-}
-
-private fun LazyListScope.siweMessage(message: MessagePreview.Siwe, onFullMessage: () -> Unit) {
-    item {
-        SubheaderItem(R.string.wallet_connect_domain)
-        PropertyItem(R.string.application_name, message.v1.domain, listPosition = ListPosition.First)
-        PropertyItem(R.string.asset_contract, message.v1.uri, listPosition = ListPosition.Last)
-    }
-    item {
-        PropertyItem(
-            R.string.sign_message_view_full_message,
-            listPosition = ListPosition.Single,
-            onClick = onFullMessage,
-        )
-    }
+private enum class SignMessageSheetType {
+    Details,
+    FullMessage,
 }

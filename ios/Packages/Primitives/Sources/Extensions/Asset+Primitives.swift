@@ -4,50 +4,49 @@ import Foundation
 
 extension Asset: Identifiable {}
 
-extension Asset {
-    
-    public var chain: Chain {
-        return id.chain
+public extension Asset {
+    var chain: Chain {
+        id.chain
     }
-    
-    public var tokenId: String? {
-        return id.tokenId
+
+    var tokenId: String? {
+        id.tokenId
     }
-    
-    public var feeAssetId: AssetId {
+
+    var feeAssetId: AssetId {
         switch id.type {
         case .native:
-            return self.id
+            id
         case .token:
-            return id.chain.assetId
+            id.chain.assetId
         }
     }
-    
-    public func getTokenId() throws -> String {
+
+    func getTokenId() throws -> String {
         try id.getTokenId()
     }
-    
-    public func getTokenIdAsInt() throws -> Int {
-        guard let tokenId = tokenId, let tokenId = UInt64(tokenId) else {
+
+    func getTokenIdAsInt() throws -> Int {
+        guard let tokenId, let tokenId = UInt64(tokenId) else {
             throw AnyError("tokenId is null")
         }
         return Int(tokenId)
     }
 }
 
-public extension Array where Element == Asset {
+public extension [Asset] {
     var ids: [String] {
-        return self.map { $0.id.identifier }
+        map(\.id.identifier)
     }
-    
+
     var assetIds: [AssetId] {
-        return self.map { $0.id }
+        map(\.id)
     }
 }
 
-public extension Array where Element == Chain {
+public extension [Chain] {
     var ids: [AssetId] {
-        return self.compactMap { $0.assetId }
+        compactMap(\.assetId)
     }
 }
 
@@ -57,32 +56,31 @@ public extension AssetFull {
             asset: asset,
             properties: properties,
             score: score,
-            price: nil
+            price: nil,
         )
     }
 }
 
 // MARK: - Assets
 
-extension Asset {
-    
-    public static func hypercoreUSDC() -> Asset {
+public extension Asset {
+    static func hypercoreUSDC() -> Asset {
         Asset(
             id: AssetId(chain: .hyperCore, tokenId: "perpetual::USDC"),
             name: "USDC",
             symbol: "USDC",
             decimals: 6,
-            type: .perpetual
+            type: .perpetual,
         )
     }
-    
-    public static func hypercoreSpotUSDC() -> Asset {
+
+    static func hypercoreSpotUSDC() -> Asset {
         Asset(
             id: AssetId(chain: .hyperCore, tokenId: "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
             name: "USDC",
             symbol: "USDC",
             decimals: 8,
-            type: .token
+            type: .token,
         )
     }
 }

@@ -11,7 +11,7 @@ public struct Signer: Sendable {
 
     public init(
         wallet: Primitives.Wallet,
-        keystore: any Keystore
+        keystore: any Keystore,
     ) {
         self.wallet = wallet
         self.keystore = keystore
@@ -20,7 +20,7 @@ public struct Signer: Sendable {
     func sign(input: SignerInput, chain: Chain, privateKey: Data) throws -> [String] {
         let signer = signer(for: chain)
         switch input.type {
-        case .transfer(let asset), .deposit(let asset):
+        case let .transfer(asset), let .deposit(asset):
             switch asset.id.type {
             case .native:
                 return try [signer.signTransfer(input: input, privateKey: privateKey)]
@@ -31,7 +31,7 @@ public struct Signer: Sendable {
             return try [signer.signNftTransfer(input: input, privateKey: privateKey)]
         case .tokenApprove:
             return try [signer.signTokenTransfer(input: input, privateKey: privateKey)]
-        case .swap(let fromAsset, _, let swapData):
+        case let .swap(fromAsset, _, swapData):
             let swapSigner = SwapSigner()
             if swapSigner.isTransferSwap(fromAsset: fromAsset, data: swapData) {
                 return try swapSigner
@@ -40,7 +40,7 @@ public struct Signer: Sendable {
                         input: input,
                         fromAsset: fromAsset,
                         swapData: swapData,
-                        privateKey: privateKey
+                        privateKey: privateKey,
                     )
             }
             return try signer.signSwap(input: input, privateKey: privateKey)

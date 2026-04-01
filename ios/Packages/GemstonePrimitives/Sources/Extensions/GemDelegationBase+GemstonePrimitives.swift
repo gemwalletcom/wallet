@@ -4,49 +4,49 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemDelegationState {
-    public func map() -> DelegationState {
+public extension GemDelegationState {
+    func map() -> DelegationState {
         switch self {
-        case .active: return .active
-        case .pending: return .pending
-        case .inactive: return .inactive
-        case .activating: return .activating
-        case .deactivating: return .deactivating
-        case .awaitingWithdrawal: return .awaitingWithdrawal
+        case .active: .active
+        case .pending: .pending
+        case .inactive: .inactive
+        case .activating: .activating
+        case .deactivating: .deactivating
+        case .awaitingWithdrawal: .awaitingWithdrawal
         }
     }
 }
 
-extension DelegationState {
-    public func map() -> GemDelegationState {
+public extension DelegationState {
+    func map() -> GemDelegationState {
         switch self {
-        case .active: return .active
-        case .pending: return .pending
-        case .inactive: return .inactive
-        case .activating: return .activating
-        case .deactivating: return .deactivating
-        case .awaitingWithdrawal: return .awaitingWithdrawal
+        case .active: .active
+        case .pending: .pending
+        case .inactive: .inactive
+        case .activating: .activating
+        case .deactivating: .deactivating
+        case .awaitingWithdrawal: .awaitingWithdrawal
         }
     }
 }
 
-extension GemDelegationBase {
-    public func map() throws -> DelegationBase {
-        DelegationBase(
-            assetId: try AssetId(id: assetId),
+public extension GemDelegationBase {
+    func map() throws -> DelegationBase {
+        try DelegationBase(
+            assetId: AssetId(id: assetId),
             state: state.map(),
             balance: balance,
             shares: shares,
             rewards: rewards,
             completionDate: completionDate.map { Date(timeIntervalSince1970: TimeInterval($0)) },
             delegationId: delegationId,
-            validatorId: validatorId
+            validatorId: validatorId,
         )
     }
 }
 
-extension DelegationBase {
-    public func map() -> GemDelegationBase {
+public extension DelegationBase {
+    func map() -> GemDelegationBase {
         GemDelegationBase(
             assetId: assetId.identifier,
             state: state.map(),
@@ -55,7 +55,7 @@ extension DelegationBase {
             rewards: rewards,
             completionDate: completionDate.map { Int64($0.timeIntervalSince1970) },
             delegationId: delegationId,
-            validatorId: validatorId
+            validatorId: validatorId,
         )
     }
 }

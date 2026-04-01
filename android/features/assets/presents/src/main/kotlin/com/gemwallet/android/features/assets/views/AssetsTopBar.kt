@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.assets.views
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -19,43 +18,55 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AssetsTopBar(
-    walletInfo: WalletSummaryAggregate?,
+    walletSummary: WalletSummaryAggregate?,
     onShowWallets: () -> Unit,
-    onShowAssetManage: () -> Unit,
+    onSearch: () -> Unit,
 ) {
+    val walletIcon = when {
+        walletSummary?.walletIcon != null -> walletSummary.walletIcon
+        walletSummary?.walletType == WalletType.Multicoin -> R.drawable.multicoin_wallet
+        else -> null
+    }
+
     CenterAlignedTopAppBar(
         title = {
-            Box {
-                TextButton(onClick = onShowWallets) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        AsyncImage(model = walletInfo?.walletIcon, size = 24.dp)
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = walletInfo?.walletName ?: "",
-                            maxLines = 1,
-                            overflow = TextOverflow.Companion.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.titleLarge,
+            TextButton(onClick = onShowWallets) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (walletIcon != null) {
+                        AsyncImage(
+                            model = walletIcon,
+                            size = smallIconSize,
                         )
-                        Icon(
-                            imageVector = Icons.Default.ExpandMore,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            contentDescription = "select_wallet",
-                        )
+                        Spacer(modifier = Modifier.size(paddingSmall))
                     }
+                    Text(
+                        text = walletSummary?.walletName ?: "",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        contentDescription = "select_wallet",
+                    )
                 }
             }
         },
         actions = {
             IconButton(
-                onClick = onShowAssetManage,
+                onClick = onSearch,
                 Modifier.testTag("assetsManageAction")
             ) {
                 Icon(

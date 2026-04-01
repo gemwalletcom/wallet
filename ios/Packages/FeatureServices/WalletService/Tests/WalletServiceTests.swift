@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Observation
-import Testing
-import Primitives
 import Keystore
 import KeystoreTestKit
-import Store
-import StoreTestKit
+import Observation
 import Preferences
 import PreferencesTestKit
-import WalletServiceTestKit
+import Primitives
+import Store
+import StoreTestKit
+import Testing
 @testable import WalletService
+import WalletServiceTestKit
 
 struct WalletServiceTests {
-
     @Test
     func importSecretPhraseDuplicateSameChain() async throws {
         let service = WalletService.mock(walletStore: .mock(db: .mockWithChains([.ethereum, .aptos])))
@@ -21,14 +20,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "First Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "Second Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum, .aptos]),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -44,7 +43,7 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "First Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
@@ -52,7 +51,7 @@ struct WalletServiceTests {
         let wallet2 = try await service.loadOrCreateWallet(
             name: "Second Wallet",
             type: .phrase(words: differentWords, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -66,14 +65,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "First Single",
             type: .single(words: LocalKeystore.words, chain: .bitcoin),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "Second Single",
             type: .single(words: LocalKeystore.words, chain: .bitcoin),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -89,14 +88,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "BTC Single",
             type: .single(words: LocalKeystore.words, chain: .bitcoin),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "LTC Single",
             type: .single(words: LocalKeystore.words, chain: .litecoin),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -110,14 +109,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "First Wallet",
             type: .privateKey(text: LocalKeystore.privateKey, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "Second Wallet",
             type: .privateKey(text: LocalKeystore.privateKey, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -133,14 +132,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "ETH Wallet",
             type: .privateKey(text: LocalKeystore.privateKey, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "BSC Wallet",
             type: .privateKey(text: LocalKeystore.privateKey, chain: .smartChain),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -154,14 +153,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "First View",
             type: .address(address: LocalKeystore.address, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "Second View",
             type: .address(address: LocalKeystore.address, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -177,14 +176,14 @@ struct WalletServiceTests {
         let wallet1 = try await service.loadOrCreateWallet(
             name: "ETH View",
             type: .address(address: LocalKeystore.address, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet1)
 
         let wallet2 = try await service.loadOrCreateWallet(
             name: "Polygon View",
             type: .address(address: LocalKeystore.address, chain: .polygon),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet2)
 
@@ -198,14 +197,14 @@ struct WalletServiceTests {
         let mnemonicWallet = try await service.loadOrCreateWallet(
             name: "Mnemonic",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum, .aptos]),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: mnemonicWallet)
 
         let privateKeyWallet = try await service.loadOrCreateWallet(
             name: "Private Key",
             type: .privateKey(text: LocalKeystore.privateKey, chain: .ethereum),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: privateKeyWallet)
 
@@ -222,7 +221,7 @@ struct WalletServiceTests {
         let wallet = try await service.loadOrCreateWallet(
             name: "Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
         try await service.setCurrent(wallet: wallet)
 
@@ -244,13 +243,13 @@ struct WalletServiceTests {
 
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
-            preferences: .mock(preferences: rawPreferences)
+            preferences: .mock(preferences: rawPreferences),
         )
 
         _ = try await service.loadOrCreateWallet(
             name: "Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
 
         #expect(rawPreferences.subscriptionsVersion == 5)
@@ -262,18 +261,18 @@ struct WalletServiceTests {
         let rawPreferences = Preferences.mock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
-            preferences: .mock(preferences: rawPreferences)
+            preferences: .mock(preferences: rawPreferences),
         )
 
         let wallet = try await service.loadOrCreateWallet(
             name: "Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
         _ = try await service.loadOrCreateWallet(
             name: "Second Wallet",
-            type: .phrase(words: try service.createWallet(), chains: [.ethereum]),
-            source: .import
+            type: .phrase(words: service.createWallet(), chains: [.ethereum]),
+            source: .import,
         )
 
         rawPreferences.subscriptionsVersion = 7
@@ -290,13 +289,13 @@ struct WalletServiceTests {
         let rawPreferences = Preferences.mock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum])),
-            preferences: .mock(preferences: rawPreferences)
+            preferences: .mock(preferences: rawPreferences),
         )
 
         let wallet = try await service.loadOrCreateWallet(
             name: "Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
 
         rawPreferences.subscriptionsVersion = 7
@@ -313,13 +312,13 @@ struct WalletServiceTests {
         let rawPreferences = Preferences.mock()
         let service = WalletService.mock(
             walletStore: .mock(db: .mockWithChains([.ethereum, .bitcoin])),
-            preferences: .mock(preferences: rawPreferences)
+            preferences: .mock(preferences: rawPreferences),
         )
 
         _ = try await service.loadOrCreateWallet(
             name: "Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
-            source: .import
+            source: .import,
         )
 
         rawPreferences.subscriptionsVersion = 10

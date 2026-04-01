@@ -20,16 +20,16 @@ public struct AutocloseEstimator {
 
     public init(type: AutocloseType) {
         switch type {
-        case .modify(let position, _):
-            self.entryPrice = position.position.entryPrice
-            self.positionSize = position.position.size
-            self.direction = position.position.direction
-            self.leverage = position.position.leverage
-        case .open(let data, _):
-            self.entryPrice = data.marketPrice
-            self.positionSize = data.marketPrice > 0 ? (data.size * Double(data.leverage)) / data.marketPrice : 0
-            self.direction = data.direction
-            self.leverage = data.leverage
+        case let .modify(position, _):
+            entryPrice = position.position.entryPrice
+            positionSize = position.position.size
+            direction = position.position.direction
+            leverage = position.position.leverage
+        case let .open(data, _):
+            entryPrice = data.marketPrice
+            positionSize = data.marketPrice > 0 ? (data.size * Double(data.leverage)) / data.marketPrice : 0
+            direction = data.direction
+            leverage = data.leverage
         }
     }
 

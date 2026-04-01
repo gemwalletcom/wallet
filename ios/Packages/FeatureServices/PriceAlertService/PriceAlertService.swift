@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import GemAPI
-import Primitives
-import NotificationService
 import DeviceService
-import PriceService
+import Foundation
+import GemAPI
+import NotificationService
 import Preferences
+import PriceService
+import Primitives
+import Store
 
 public struct PriceAlertService: Sendable {
-
     private let store: PriceAlertStore
     private let apiService: any GemAPIPriceAlertService
     private let deviceService: any DeviceServiceable
@@ -23,14 +22,14 @@ public struct PriceAlertService: Sendable {
         apiService: any GemAPIPriceAlertService,
         deviceService: any DeviceServiceable,
         priceUpdater: any PriceUpdater,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.store = store
         self.apiService = apiService
         self.deviceService = deviceService
         self.priceUpdater = priceUpdater
         self.preferences = preferences
-        self.pushNotificationService = PushNotificationEnablerService(preferences: preferences)
+        pushNotificationService = PushNotificationEnablerService(preferences: preferences)
     }
 
     @discardableResult
@@ -57,12 +56,12 @@ public struct PriceAlertService: Sendable {
     private func syncChanges(remote: [PriceAlert], local: [PriceAlert]) throws {
         let changes = SyncDiff.calculate(
             primary: .remote,
-            local: local.map { $0.id }.asSet(),
-            remote: remote.map { $0.id }.asSet()
+            local: local.map(\.id).asSet(),
+            remote: remote.map(\.id).asSet(),
         )
         try store.diffPriceAlerts(
             deleteIds: changes.toDelete.asArray(),
-            alerts: remote
+            alerts: remote,
         )
     }
 
@@ -71,11 +70,11 @@ public struct PriceAlertService: Sendable {
         try await add(priceAlerts: [priceAlert])
         try await priceUpdater.addPrices(assetIds: [priceAlert.assetId])
     }
-    
+
     public func add(priceAlerts: [PriceAlert]) async throws {
         try await apiService.addPriceAlerts(priceAlerts: priceAlerts)
     }
-    
+
     public func enablePriceAlerts() async throws {
         if !preferences.isPriceAlertsEnabled {
             preferences.isPriceAlertsEnabled = true
@@ -84,7 +83,7 @@ public struct PriceAlertService: Sendable {
     }
 
     public func delete(priceAlerts: [PriceAlert]) async throws {
-        try store.deletePriceAlerts(priceAlerts.ids )
+        try store.deletePriceAlerts(priceAlerts.ids)
         try await apiService.deletePriceAlerts(priceAlerts: priceAlerts)
     }
 }

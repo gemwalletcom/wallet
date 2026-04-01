@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
 import BigInt
 import Components
-import Localization
 import Formatters
-import Style
+import Foundation
 import GemstonePrimitives
+import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Chain)
@@ -76,7 +76,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case .maxSupply: "maxSupply"
         }
     }
-    
+
     public static func == (lhs: InfoSheetType, rhs: InfoSheetType) -> Bool {
         lhs.id == rhs.id
     }

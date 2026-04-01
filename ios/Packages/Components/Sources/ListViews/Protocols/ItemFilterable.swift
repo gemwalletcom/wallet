@@ -11,7 +11,7 @@ public protocol ItemFilterable {
 }
 
 public extension ItemFilterable {
-    func filter(_ item: Item, query: String) -> Bool {
+    func filter(_: Item, query _: String) -> Bool {
         fatalError("not implemented")
     }
 }

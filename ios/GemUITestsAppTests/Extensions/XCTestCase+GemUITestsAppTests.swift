@@ -3,7 +3,6 @@
 import XCTest
 
 extension XCTestCase {
-
     @MainActor
     func setupPermissionHandler() {
         addUIInterruptionMonitor(withDescription: "Permission Alert") { alert in

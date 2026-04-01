@@ -1,33 +1,32 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 // https://github.com/trustwallet/wallet-core/blob/master/swift/Tests/Blockchains/THORChainTests.swift#L27
 struct CosmosSigner: Signable {
-
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
         let chain = try CosmosChain.from(string: input.asset.chain.rawValue)
         let message = getTransferMessage(input: input, denom: chain.denom.rawValue)
         return try sign(input: input, messages: [message], chain: chain, memo: input.memo, privateKey: privateKey)
     }
-    
+
     func signTokenTransfer(input: SignerInput, privateKey: Data) throws -> String {
         let chain = try CosmosChain.from(string: input.asset.chain.rawValue)
         let denom = try input.asset.getTokenId()
         let message = getTransferMessage(input: input, denom: denom)
         return try sign(input: input, messages: [message], chain: chain, memo: input.memo, privateKey: privateKey)
     }
-    
+
     private func sign(input: SignerInput, messages: [CosmosMessage], chain: CosmosChain, memo: String?, privateKey: Data) throws -> String {
         let fee = switch chain {
         case .cosmos,
-                .osmosis,
-                .celestia,
-                .injective,
-                .sei,
-                .noble:
+             .osmosis,
+             .celestia,
+             .injective,
+             .sei,
+             .noble:
             CosmosFee.with {
                 $0.gas = UInt64(messages.count * input.fee.gasLimit.asInt)
                 $0.amounts = [CosmosAmount.with {
@@ -43,7 +42,7 @@ struct CosmosSigner: Signable {
 
         let signerInput = try CosmosSigningInput.with {
             $0.mode = .sync
-            $0.accountNumber = UInt64(try input.metadata.getAccountNumber())
+            $0.accountNumber = try UInt64(input.metadata.getAccountNumber())
             $0.chainID = try input.metadata.getChainId()
             $0.memo = memo.valueOrEmpty
             $0.sequence = try input.metadata.getSequence()
@@ -52,65 +51,65 @@ struct CosmosSigner: Signable {
             $0.privateKey = privateKey
             $0.signingMode = .protobuf
         }
-        
+
         let output: CosmosSigningOutput = AnySigner.sign(input: signerInput, coin: input.coinType)
-        
+
         if !output.errorMessage.isEmpty {
             throw AnyError(output.errorMessage)
         }
-        
+
         return output.serialized
     }
-    
+
     func signSwap(input: SignerInput, privateKey: Data) throws -> [String] {
         try ChainSigner(chain: input.asset.chain).signSwap(input: input, privateKey: privateKey)
     }
 
-    func signData(input: Primitives.SignerInput, privateKey: Data) throws -> String {
+    func signData(input _: Primitives.SignerInput, privateKey _: Data) throws -> String {
         fatalError()
     }
-    
+
     func signStake(input: SignerInput, privateKey: Data) throws -> [String] {
-        guard case .stake(_, let type) = input.type else {
+        guard case let .stake(_, type) = input.type else {
             throw AnyError("invalid type")
         }
         let messages: [CosmosMessage]
         let chain = try CosmosChain.from(string: input.asset.chain.rawValue)
         let denom = chain.denom.rawValue
         switch type {
-        case .stake(let validator):
+        case let .stake(validator):
             let amount = getAmount(input: input, denom: denom)
             messages = [
-                getStakeMessage(delegatorAddress: input.senderAddress, validatorAddress: validator.id, amount: amount)
+                getStakeMessage(delegatorAddress: input.senderAddress, validatorAddress: validator.id, amount: amount),
             ]
-        case .unstake(let delegation):
+        case let .unstake(delegation):
             let amount = getAmount(input: input, denom: denom)
             messages = getRewardMessage(delegatorAddress: input.senderAddress, validators: [delegation.validator]) + [
-                getUnstakeMessage(delegatorAddress: input.senderAddress, validatorAddress: delegation.validator.id, amount: amount)
+                getUnstakeMessage(delegatorAddress: input.senderAddress, validatorAddress: delegation.validator.id, amount: amount),
             ]
-        case .redelegate(let data):
+        case let .redelegate(data):
             let amount = getAmount(input: input, denom: denom)
             messages = getRewardMessage(delegatorAddress: input.senderAddress, validators: [data.delegation.validator]) + [
                 getRedelegateMessage(
                     delegatorAddress: input.senderAddress,
                     validatorSourceAddress: data.delegation.validator.id,
                     validatorDestinationAddress: data.toValidator.id,
-                    amount: amount
-                )
+                    amount: amount,
+                ),
             ]
-        case .rewards(let validators):
+        case let .rewards(validators):
             messages = getRewardMessage(delegatorAddress: input.senderAddress, validators: validators)
         case .withdraw:
             fatalError()
         case .freeze, .unfreeze:
             throw AnyError("Cosmos does not support freeze operations")
         }
-        
-        return [
-            try sign(input: input, messages: messages, chain: chain, memo: input.memo, privateKey: privateKey),
+
+        return try [
+            sign(input: input, messages: messages, chain: chain, memo: input.memo, privateKey: privateKey),
         ]
     }
-    
+
     func getUnstakeMessage(delegatorAddress: String, validatorAddress: String, amount: CosmosAmount) -> CosmosMessage {
         .with {
             $0.unstakeMessage = .with {
@@ -120,7 +119,7 @@ struct CosmosSigner: Signable {
             }
         }
     }
-    
+
     func getRedelegateMessage(delegatorAddress: String, validatorSourceAddress: String, validatorDestinationAddress: String, amount: CosmosAmount) -> CosmosMessage {
         .with {
             $0.restakeMessage = .with {
@@ -131,7 +130,7 @@ struct CosmosSigner: Signable {
             }
         }
     }
-    
+
     func getStakeMessage(delegatorAddress: String, validatorAddress: String, amount: CosmosAmount) -> CosmosMessage {
         .with {
             $0.stakeMessage = .with {
@@ -141,9 +140,9 @@ struct CosmosSigner: Signable {
             }
         }
     }
-    
+
     func getRewardMessage(delegatorAddress: String, validators: [DelegationValidator]) -> [CosmosMessage] {
-        return validators.map { validator in
+        validators.map { validator in
             .with {
                 $0.withdrawStakeRewardMessage = .with {
                     $0.delegatorAddress = delegatorAddress
@@ -152,17 +151,17 @@ struct CosmosSigner: Signable {
             }
         }
     }
-    
+
     func getAmount(input: SignerInput, denom: String) -> CosmosAmount {
-        return CosmosAmount.with {
+        CosmosAmount.with {
             $0.amount = input.value.description
             $0.denom = denom
         }
     }
-    
+
     func getTransferMessage(input: SignerInput, denom: String) -> CosmosMessage {
         let amounts = [getAmount(input: input, denom: denom)]
-        
+
         return CosmosMessage.with {
             $0.sendCoinsMessage = CosmosMessage.Send.with {
                 $0.fromAddress = input.senderAddress

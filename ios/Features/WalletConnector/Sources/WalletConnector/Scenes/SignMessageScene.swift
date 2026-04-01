@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import Localization
-import PrimitivesComponents
 import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct SignMessageScene: View {
     @State private var model: SignMessageSceneViewModel
@@ -13,7 +13,7 @@ public struct SignMessageScene: View {
 
     public init(
         model: SignMessageSceneViewModel,
-        onComplete: @escaping () -> Void
+        onComplete: @escaping () -> Void,
     ) {
         _model = State(wrappedValue: model)
         self.onComplete = onComplete
@@ -27,12 +27,12 @@ public struct SignMessageScene: View {
                 ListItemImageView(
                     title: Localized.Common.wallet,
                     subtitle: model.walletText,
-                    assetImage: model.walletAssetImage
+                    assetImage: model.walletAssetImage,
                 )
                 ListItemImageView(
                     title: Localized.Transfer.network,
                     subtitle: model.networkText,
-                    assetImage: model.networkAssetImage
+                    assetImage: model.networkAssetImage,
                 )
             }
 
@@ -47,14 +47,14 @@ public struct SignMessageScene: View {
                     SimulationPayloadFieldsContent(
                         fields: model.primaryPayloadFields,
                         fieldViewModel: model.payloadFieldViewModel(for:),
-                        contextMenuItems: model.contextMenuItems(for:)
+                        contextMenuItems: model.contextMenuItems(for:),
                     )
 
                     NavigationCustomLink(with: ListItemView(title: Localized.Common.details)) {
                         model.onViewPayloadDetails()
                     }
                 }
-            } else if case .text(let string) = model.messageDisplayType {
+            } else if case let .text(string) = model.messageDisplayType {
                 Section(Localized.SignMessage.message) {
                     Text(string)
                 }
@@ -67,7 +67,7 @@ public struct SignMessageScene: View {
             StateButton(
                 text: model.buttonTitle,
                 type: model.buttonType,
-                action: sign
+                action: sign,
             )
         }
         .navigationTitle(model.title)
@@ -81,7 +81,7 @@ public struct SignMessageScene: View {
                         fieldViewModel: model.payloadFieldViewModel(for:),
                         contextMenuItems: model.contextMenuItems(for:),
                         actionTitle: Localized.SignMessage.viewFullMessage,
-                        actionDestination: AnyView(TextMessageScene(model: model.textMessageViewModel))
+                        actionDestination: AnyView(TextMessageScene(model: model.textMessageViewModel)),
                     )
                     .presentationDetents([.large])
                     .presentationBackground(Colors.grayBackground)

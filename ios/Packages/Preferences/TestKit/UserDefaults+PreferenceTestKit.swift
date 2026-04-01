@@ -12,7 +12,7 @@ public extension UserDefaults {
     static func mockWithValues(suiteName: String = UUID().uuidString, values: [String: Any]) -> UserDefaults {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
-        values.forEach { key, value in
+        for (key, value) in values {
             defaults.setValue(value, forKey: key)
         }
         return defaults

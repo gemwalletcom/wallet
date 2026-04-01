@@ -4,7 +4,7 @@ import Components
 import Foundation
 import Primitives
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 
 public protocol SecretPhraseViewableModel {
     var title: String { get }

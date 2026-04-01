@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct TransferAmount: Equatable, Sendable {
     public let value: BigInt
     public let networkFee: BigInt
     public let useMaxAmount: Bool
-    
+
     public init(
         value: BigInt,
         networkFee: BigInt,
-        useMaxAmount: Bool
+        useMaxAmount: Bool,
     ) {
         self.value = value
         self.networkFee = networkFee

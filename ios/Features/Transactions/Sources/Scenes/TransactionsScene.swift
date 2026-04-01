@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import Localization
 import Primitives
+import PrimitivesComponents
 import Store
 import Style
-import Localization
-import PrimitivesComponents
+import SwiftUI
 
 public struct TransactionsScene: View {
     private var model: TransactionsViewModel
@@ -21,7 +21,7 @@ public struct TransactionsScene: View {
                 TransactionsList(
                     explorerService: model.explorerService,
                     model.transactions,
-                    currency: model.currency
+                    currency: model.currency,
                 )
                 .listRowInsets(.assetListRowInsets)
             }

@@ -2,16 +2,16 @@
 
 import Foundation
 
-extension BitcoinChain {
-    public init(id: String) throws {
+public extension BitcoinChain {
+    init(id: String) throws {
         if let chain = BitcoinChain(rawValue: id) {
             self = chain
         } else {
             throw AnyError("invalid chain id: \(id)")
         }
     }
-    
-    public var chain: Chain {
-        Chain(rawValue: self.rawValue)!
+
+    var chain: Chain {
+        Chain(rawValue: rawValue)!
     }
 }

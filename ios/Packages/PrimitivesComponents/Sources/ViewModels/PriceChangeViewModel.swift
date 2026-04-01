@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Formatters
-import Style
 import Components
+import Formatters
+import Foundation
+import Style
+import SwiftUI
 
 public struct PriceChangeViewModel {
     private let value: Double?

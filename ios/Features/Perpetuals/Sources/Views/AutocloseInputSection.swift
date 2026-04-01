@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct AutocloseInputSection<Field: Hashable>: View {
     @Binding var inputModel: InputValidationViewModel
@@ -15,9 +15,9 @@ public struct AutocloseInputSection<Field: Hashable>: View {
         inputModel: Binding<InputValidationViewModel>,
         sectionModel: AutocloseViewModel,
         field: Field,
-        focusedField: FocusState<Field?>.Binding
+        focusedField: FocusState<Field?>.Binding,
     ) {
-        self._inputModel = inputModel
+        _inputModel = inputModel
         self.sectionModel = sectionModel
         self.field = field
         self.focusedField = focusedField
@@ -28,7 +28,7 @@ public struct AutocloseInputSection<Field: Hashable>: View {
             InputValidationField(
                 model: $inputModel,
                 placeholder: sectionModel.priceTitle,
-                allowClean: true
+                allowClean: true,
             )
             .keyboardType(.decimalPad)
             .textInputAutocapitalization(.never)

@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import Components
+import Foundation
+import Localization
+import Primitives
 
 struct FiatProvidersViewModel: SelectableListAdoptable {
-    public typealias Item = FiatQuoteViewModel
+    typealias Item = FiatQuoteViewModel
     let state: StateViewType<SelectableListType<FiatQuoteViewModel>>
     var selectedItems: Set<FiatQuoteViewModel>
     let selectionType: SelectionType
-    
+
     init(
         state: StateViewType<SelectableListType<FiatQuoteViewModel>>,
         selectedItems: [FiatQuoteViewModel],
-        selectionType: SelectionType
+        selectionType: SelectionType,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

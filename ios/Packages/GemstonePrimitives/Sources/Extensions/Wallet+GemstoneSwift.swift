@@ -5,12 +5,12 @@ import Primitives
 
 public extension Wallet {
     var chains: [Chain] {
-        let walletChains = accounts.map { $0.chain }.asSet()
+        let walletChains = accounts.map(\.chain).asSet()
         return walletChains.intersection(AssetConfiguration.allChains).asArray().sortByRank()
     }
 
     var chainsWithTokens: [Chain] {
-        let walletChains = accounts.map { $0.chain }.asSet()
+        let walletChains = accounts.map(\.chain).asSet()
         return walletChains.intersection(AssetConfiguration.supportedChainsWithTokens).asArray().sortByRank()
     }
 }

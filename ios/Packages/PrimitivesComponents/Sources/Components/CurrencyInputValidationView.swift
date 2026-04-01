@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Style
+import SwiftUI
 import Validators
 
 public struct CurrencyInputValidationView: View {
@@ -14,9 +14,9 @@ public struct CurrencyInputValidationView: View {
     public init(
         model: Binding<InputValidationViewModel>,
         config: CurrencyInputConfigurable,
-        infoAction: @escaping (any Error) -> (() -> Void)? = { _ in nil }
+        infoAction: @escaping (any Error) -> (() -> Void)? = { _ in nil },
     ) {
-        _model  = model
+        _model = model
         self.config = config
         self.infoAction = infoAction
     }
@@ -25,7 +25,7 @@ public struct CurrencyInputValidationView: View {
         VStack(spacing: .small) {
             CurrencyInputView(
                 text: $model.text,
-                config: config
+                config: config,
             )
 
             if let error = model.error, !(error is SilentValidationError) {

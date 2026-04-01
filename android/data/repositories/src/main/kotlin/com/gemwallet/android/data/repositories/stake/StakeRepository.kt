@@ -76,13 +76,13 @@ class StakeRepository(
         val validators = getValidators(chain)
         val recommendedId = getRecommendValidators(chain)
         return validators.map { items ->
-            items.firstOrNull { it.name.isNotEmpty() && recommendedId.contains(it.id) } ?: items.firstOrNull { it.name.isNotEmpty() }
+            pickRecommendedValidator(items, recommendedId)
         }
     }
 
     fun getValidators(chain: Chain): Flow<List<DelegationValidator>> {
         return stakeDao.getValidators(chain)
-            .map { items -> items.toDTO().filter { it.isActive }.sortedByDescending { it.apr } }
+            .map { items -> selectableValidators(items.toDTO()) }
     }
 
     fun getDelegations(assetId: AssetId, owner: String): Flow<List<Delegation>> {
@@ -120,4 +120,20 @@ class StakeRepository(
     suspend fun update(validators: List<DelegationValidator>) {
         stakeDao.updateValidators(validators.toRecord())
     }
+}
+
+internal fun pickRecommendedValidator(
+    validators: List<DelegationValidator>,
+    recommendedIds: Collection<String>,
+): DelegationValidator? {
+    return validators
+        .filter { recommendedIds.contains(it.id) }
+        .randomOrNull()
+        ?: validators.firstOrNull()
+}
+
+internal fun selectableValidators(validators: List<DelegationValidator>): List<DelegationValidator> {
+    return validators
+        .filter { it.isActive && it.name.isNotEmpty() }
+        .sortedByDescending { it.apr }
 }

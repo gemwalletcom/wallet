@@ -11,11 +11,11 @@ public enum WalletId: Equatable, Hashable, Sendable {
     public var id: String {
         switch self {
         case let .multicoin(address):
-            return "\(walletType.rawValue)_\(address)"
+            "\(walletType.rawValue)_\(address)"
         case let .single(chain, address),
              let .privateKey(chain, address),
              let .view(chain, address):
-            return "\(walletType.rawValue)_\(chain.rawValue)_\(address)"
+            "\(walletType.rawValue)_\(chain.rawValue)_\(address)"
         }
     }
 
@@ -34,18 +34,18 @@ public enum WalletId: Equatable, Hashable, Sendable {
              let .single(_, address),
              let .privateKey(_, address),
              let .view(_, address):
-            return address
+            address
         }
     }
 
     public var chain: Chain? {
         switch self {
         case .multicoin:
-            return nil
+            nil
         case let .single(chain, _),
              let .privateKey(chain, _),
              let .view(chain, _):
-            return chain
+            chain
         }
     }
 

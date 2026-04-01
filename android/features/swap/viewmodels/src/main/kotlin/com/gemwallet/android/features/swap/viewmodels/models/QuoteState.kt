@@ -4,10 +4,8 @@ import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
-import com.gemwallet.android.features.swap.viewmodels.cases.estimateSwapRate
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
-import java.text.NumberFormat
 
 data class QuoteState(
     val quote: SwapperQuote,
@@ -28,18 +26,5 @@ internal fun QuoteState.validate(): SwapState {
     }
 }
 
-internal val QuoteState.rates: SwapProperty.Rate?
-    get() = estimateSwapRate(pay.asset, receive.asset, quote.fromValue, quote.toValue)
-
-internal val QuoteState.estimateTime: String?
-    get() = quote.etaInSeconds?.let { it.toDouble() / 60.0 }?.takeIf { it > 0 }?.let {
-        val format = NumberFormat.getInstance()
-        format.maximumFractionDigits = 2
-        format.format(it)
-    }
-
 internal val QuoteState.receiveEquivalent: BigDecimal
     get() = receive.calculateFiat(quote.toValue)
-
-internal val QuoteState.payEquivalent: BigDecimal
-    get() = pay.calculateFiat(quote.fromValue)

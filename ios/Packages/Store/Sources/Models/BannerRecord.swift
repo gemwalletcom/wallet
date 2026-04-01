@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-public struct BannerRecord: Codable, FetchableRecord, PersistableRecord  {
-
+public struct BannerRecord: Codable, FetchableRecord, PersistableRecord {
     public static let databaseTableName: String = "banners"
 
     public enum Columns {
@@ -31,7 +30,7 @@ public struct BannerRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension BannerRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.primaryKey(Columns.id.name, .text)
                 .notNull()
                 .indexed()
@@ -51,8 +50,8 @@ extension BannerRecord: CreateTable {
                     Columns.walletId.name,
                     Columns.assetId.name,
                     Columns.chain.name,
-                    Columns.event.name
-                ]
+                    Columns.event.name,
+                ],
             )
         }
     }
@@ -66,7 +65,7 @@ extension Banner {
             assetId: asset?.id,
             chain: chain?.id,
             event: event,
-            state: state
+            state: state,
         )
     }
 }
@@ -91,7 +90,7 @@ extension NewBanner {
             asset: asset,
             chain: chain,
             event: event,
-            state: state
+            state: state,
         ).record
     }
 }
@@ -108,7 +107,7 @@ public struct NewBanner {
         assetId: AssetId? = .none,
         chain: Chain? = .none,
         event: BannerEvent,
-        state: BannerState
+        state: BannerState,
     ) {
         self.walletId = walletId
         self.assetId = assetId
@@ -123,7 +122,7 @@ public extension NewBanner {
         NewBanner(
             assetId: assetId,
             event: .stake,
-            state: .active
+            state: .active,
         )
     }
 
@@ -131,7 +130,7 @@ public extension NewBanner {
         NewBanner(
             assetId: assetId,
             event: .accountActivation,
-            state: .active
+            state: .active,
         )
     }
 
@@ -140,7 +139,7 @@ public extension NewBanner {
             walletId: walletId.id,
             chain: chain,
             event: .accountBlockedMultiSignature,
-            state: .alwaysActive
+            state: .alwaysActive,
         )
     }
 
@@ -148,7 +147,7 @@ public extension NewBanner {
         NewBanner(
             walletId: walletId.id,
             event: .onboarding,
-            state: .active
+            state: .active,
         )
     }
 
@@ -156,7 +155,7 @@ public extension NewBanner {
         NewBanner(
             assetId: assetId,
             event: .tradePerpetuals,
-            state: .active
+            state: .active,
         )
     }
 }

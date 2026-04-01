@@ -17,4 +17,4 @@ public enum TransactionsFilterType {
     }
 }
 
-extension TransactionsFilterType: Equatable { }
+extension TransactionsFilterType: Equatable {}

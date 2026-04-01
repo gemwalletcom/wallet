@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import ExplorerService
+import Foundation
+import Localization
+import Primitives
 
 struct AddAssetViewModel {
     let asset: Asset
@@ -29,7 +29,7 @@ struct AddAssetViewModel {
     var symbol: String { asset.symbol }
     var decimals: String { asset.decimals.asString }
     var type: String { asset.id.assetType?.rawValue ?? "" }
-    
+
     var explorerUrl: URL? {
         tokenLink?.url
     }

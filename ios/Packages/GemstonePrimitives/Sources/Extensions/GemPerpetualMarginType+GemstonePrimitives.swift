@@ -4,8 +4,8 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.GemPerpetualMarginType {
-    public func map() -> Primitives.PerpetualMarginType {
+public extension Gemstone.GemPerpetualMarginType {
+    func map() -> Primitives.PerpetualMarginType {
         switch self {
         case .cross: .cross
         case .isolated: .isolated
@@ -13,8 +13,8 @@ extension Gemstone.GemPerpetualMarginType {
     }
 }
 
-extension Primitives.PerpetualMarginType {
-    public func map() -> Gemstone.GemPerpetualMarginType {
+public extension Primitives.PerpetualMarginType {
+    func map() -> Gemstone.GemPerpetualMarginType {
         switch self {
         case .cross: .cross
         case .isolated: .isolated

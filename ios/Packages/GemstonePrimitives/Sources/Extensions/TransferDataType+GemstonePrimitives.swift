@@ -6,19 +6,19 @@ import Primitives
 public extension TransferDataType {
     var asset: Asset {
         switch self {
-        case .transfer(let asset),
-             .deposit(let asset),
-             .withdrawal(let asset),
-             .swap(let asset, _, _),
-             .stake(let asset, _),
-             .account(let asset, _),
-             .perpetual(let asset, _),
-             .earn(let asset, _, _),
-             .tokenApprove(let asset, _),
-             .generic(let asset, _, _):
-            return asset
-        case .transferNft(let asset):
-            return asset.chain.asset
+        case let .transfer(asset),
+             let .deposit(asset),
+             let .withdrawal(asset),
+             let .swap(asset, _, _),
+             let .stake(asset, _),
+             let .account(asset, _),
+             let .perpetual(asset, _),
+             let .earn(asset, _, _),
+             let .tokenApprove(asset, _),
+             let .generic(asset, _, _):
+            asset
+        case let .transferNft(asset):
+            asset.chain.asset
         }
     }
 }

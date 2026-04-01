@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 
 public struct AssetRateFormatter {
@@ -9,11 +9,11 @@ public struct AssetRateFormatter {
         case direct
         case inverse
     }
-    
+
     private let formatter: ValueFormatter
-    
+
     public init(
-        formatter: ValueFormatter = ValueFormatter.full
+        formatter: ValueFormatter = ValueFormatter.full,
     ) {
         self.formatter = formatter
     }
@@ -23,16 +23,14 @@ public struct AssetRateFormatter {
         toAsset: Asset,
         fromValue: BigInt,
         toValue: BigInt,
-        direction: Direction = .direct
+        direction: Direction = .direct,
     ) throws -> String {
-        let (baseAsset, quoteAsset, baseValue, quoteValue): (Asset, Asset, BigInt, BigInt) = {
-            switch direction {
-            case .direct: (fromAsset, toAsset, fromValue, toValue)
-            case .inverse: (toAsset, fromAsset, toValue, fromValue)
-            }
-        }()
+        let (baseAsset, quoteAsset, baseValue, quoteValue): (Asset, Asset, BigInt, BigInt) = switch direction {
+        case .direct: (fromAsset, toAsset, fromValue, toValue)
+        case .inverse: (toAsset, fromAsset, toValue, fromValue)
+        }
 
-        let baseAmount  = try formatter.double(from: baseValue,  decimals: baseAsset.decimals.asInt)
+        let baseAmount = try formatter.double(from: baseValue, decimals: baseAsset.decimals.asInt)
         let quoteAmount = try formatter.double(from: quoteValue, decimals: quoteAsset.decimals.asInt)
 
         let amount = quoteAmount / baseAmount

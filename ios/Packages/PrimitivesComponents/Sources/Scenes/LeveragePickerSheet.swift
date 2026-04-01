@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import SwiftUI
 
 public struct LeveragePickerSheet: View {
     private let title: String
@@ -18,14 +18,14 @@ public struct LeveragePickerSheet: View {
         NavigationStack {
             LeveragePickerView(
                 leverageOptions: leverageOptions,
-                selectedLeverage: $selectedLeverage
+                selectedLeverage: $selectedLeverage,
             )
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(title)
             .toolbar {
                 ToolbarDismissItem(
                     type: .close,
-                    placement: .topBarLeading
+                    placement: .topBarLeading,
                 )
             }
         }

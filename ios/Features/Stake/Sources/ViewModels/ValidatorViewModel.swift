@@ -1,24 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import Components
-import Style
-import Localization
-import Formatters
 import ExplorerService
+import Foundation
+import GemstonePrimitives
+import Localization
+import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct ValidatorViewModel {
-
     public let validator: DelegationValidator
     private let imageFormatter = AssetImageFormatter()
     private let exploreService: ExplorerService
 
     public init(
         validator: DelegationValidator,
-        exploreService: ExplorerService = .standard
+        exploreService: ExplorerService = .standard,
     ) {
         self.validator = validator
         self.exploreService = exploreService
@@ -64,12 +63,12 @@ public struct ValidatorViewModel {
     public var validatorImage: AssetImage {
         switch validator.providerType {
         case .stake:
-            return AssetImage(
+            AssetImage(
                 type: String(name.first ?? " "),
-                imageURL: imageUrl
+                imageURL: imageUrl,
             )
         case .earn:
-            return AssetImage(placeholder: image)
+            AssetImage(placeholder: image)
         }
     }
 

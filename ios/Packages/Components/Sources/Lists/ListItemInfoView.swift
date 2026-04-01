@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemInfoView: View {
     let title: String
@@ -13,7 +13,7 @@ public struct ListItemInfoView: View {
         title: String,
         description: String? = nil,
         icon: Image = Images.System.info,
-        iconColor: Color = Colors.orange
+        iconColor: Color = Colors.orange,
     ) {
         self.title = title
         self.description = description
@@ -43,14 +43,14 @@ public struct ListItemInfoView: View {
         Section {
             ListItemInfoView(
                 title: "Pending Verification",
-                description: "Activate in 23 hours to receive your rewards."
+                description: "Activate in 23 hours to receive your rewards.",
             )
         }
 
         Section {
             ListItemInfoView(
                 title: "Info Only",
-                description: nil
+                description: nil,
             )
         }
 
@@ -59,7 +59,7 @@ public struct ListItemInfoView: View {
                 title: "Custom Icon",
                 description: "With warning icon",
                 icon: Images.System.exclamationmarkTriangle,
-                iconColor: Colors.red
+                iconColor: Colors.red,
             )
         }
     }

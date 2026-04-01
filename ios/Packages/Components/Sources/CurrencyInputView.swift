@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public protocol CurrencyInputConfigurable {
     var placeholder: String { get }
@@ -35,7 +35,7 @@ public struct CurrencyInputView: View {
         keyboardType: UIKeyboardType,
         actionStyle: CurrencyInputActionStyle? = nil,
         onTapActionButton: (() -> Void)? = nil,
-        sanitizer: ((String) -> String)? = nil
+        sanitizer: ((String) -> String)? = nil,
     ) {
         _text = text
         self.secondaryText = secondaryText
@@ -58,7 +58,7 @@ public struct CurrencyInputView: View {
             keyboardType: config.keyboardType,
             actionStyle: config.actionStyle,
             onTapActionButton: config.onTapActionButton,
-            sanitizer: config.sanitizer
+            sanitizer: config.sanitizer,
         )
     }
 
@@ -74,7 +74,7 @@ public struct CurrencyInputView: View {
                     text: $text,
                     currencySymbol: currencySymbol,
                     currencyPosition: currencyPosition,
-                    keyboardType: keyboardType
+                    keyboardType: keyboardType,
                 )
                 .ifLet(sanitizer) { view, sanitize in
                     view.onChange(of: text) { _, newValue in
@@ -109,12 +109,12 @@ public struct CurrencyInputView: View {
             }
         }
         .buttonStyle(.plain)
-        .disabled(self.actionStyle == nil)
+        .disabled(actionStyle == nil)
     }
-    
+
     @ViewBuilder
     var actionImage: some View {
-        if let actionStyle = actionStyle {
+        if let actionStyle {
             actionStyle.image
                 .resizable()
                 .frame(width: actionStyle.imageSize, height: actionStyle.imageSize)

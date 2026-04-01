@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import Components
+import Foundation
+import Localization
+import Primitives
 import Style
 
 public struct SelectWalletViewModel: SelectableListAdoptable {
@@ -16,28 +16,28 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
 
     public init(
         wallets: [Wallet],
-        selectedWallet: Wallet
+        selectedWallet: Wallet,
     ) {
         let sections: [ListSection<Wallet>] = [
-            (Localized.Common.pinned, Images.System.pin, wallets.filter { $0.isPinned }),
-            (nil, nil, wallets.filter { !$0.isPinned })
+            (Localized.Common.pinned, Images.System.pin, wallets.filter(\.isPinned)),
+            (nil, nil, wallets.filter { !$0.isPinned }),
         ]
-            .filter { $0.2.isNotEmpty }
-            .map { title, image, items in
-                ListSection(id: items.ids.joined(), title: title, image: image, values: items)
-            }
-        
+        .filter(\.2.isNotEmpty)
+        .map { title, image, items in
+            ListSection(id: items.ids.joined(), title: title, image: image, values: items)
+        }
+
         self.init(
             state: .data(.section(sections)),
             selectedItems: [selectedWallet],
-            selectionType: .checkmark
+            selectionType: .checkmark,
         )
     }
 
     public init(
         state: StateViewType<SelectableListType<Wallet>>,
         selectedItems: [Wallet],
-        selectionType: SelectionType
+        selectionType _: SelectionType,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

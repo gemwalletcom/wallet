@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
-import Testing
 import PriceServiceTestKit
+import Primitives
 @testable import Settings
+import Testing
 
 private final class MockCurrencyStorage: CurrencyStorable, @unchecked Sendable {
     var currency: String
@@ -17,27 +17,27 @@ struct CurrencySceneViewModelTests {
     private var storage = MockCurrencyStorage()
 
     @Test
-    func testUSDCurrencyValue() {
+    func uSDCurrencyValue() {
         let usdCurrencyStorage = MockCurrencyStorage()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: .mock())
-        
+
         #expect(viewModel.selectedCurrencyValue == "🇺🇸 USD")
     }
 
     @Test
-    func testGBPCurrencyValue() {
+    func gBPCurrencyValue() {
         let gbpCurrancyStorage = MockCurrencyStorage(currency: "GBP")
         let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrancyStorage, priceService: .mock())
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
 
     @Test
-    func testSetNewCurrency() {
+    func setNewCurrency() {
         let usdCurrencyStorage = MockCurrencyStorage()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: .mock())
-        
+
         try? viewModel.setCurrency(.ars)
-        
+
         #expect(usdCurrencyStorage.currency == Currency.ars.id)
         #expect(usdCurrencyStorage.currency == viewModel.currency.id)
     }

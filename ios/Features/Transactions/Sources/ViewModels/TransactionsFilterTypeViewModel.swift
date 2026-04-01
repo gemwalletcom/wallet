@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Foundation
 import Localization
-import Style
 import PrimitivesComponents
-import Components
+import Style
+import SwiftUI
 
 public struct TransactionsFilterTypeViewModel: FilterTypeRepresentable {
     private let type: TransactionsFilterType

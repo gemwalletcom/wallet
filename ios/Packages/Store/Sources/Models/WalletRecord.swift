@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct WalletRecord: Codable, TableRecord, FetchableRecord, PersistableRecord  {
+struct WalletRecord: Codable, TableRecord, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "wallets"
-    
-    struct Columns {
+
+    enum Columns {
         static let id = Column("id")
         static let externalId = Column("externalId")
         static let name = Column("name")
@@ -37,7 +37,7 @@ struct WalletRecord: Codable, TableRecord, FetchableRecord, PersistableRecord  {
 
 extension WalletRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName) {
+        try db.create(table: databaseTableName) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
                 .notNull()

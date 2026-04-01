@@ -9,7 +9,7 @@ struct BannerInfo: Codable, FetchableRecord {
     let asset: AssetRecord?
     let chain: AssetRecord?
     let wallet: WalletRecord?
-    
+
     init(row: Row) throws {
         banner = try BannerRecord(row: row)
         asset = row["asset"]
@@ -25,7 +25,7 @@ extension BannerInfo {
             asset: asset?.mapToAsset(),
             chain: chain?.chain,
             event: banner.event,
-            state: banner.state
+            state: banner.state,
         )
     }
 }

@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import AppService
-import Primitives
-import PrimitivesTestKit
-import Preferences
-import PreferencesTestKit
 import AssetsService
 import AssetsServiceTestKit
+import Foundation
+import Preferences
+import PreferencesTestKit
+import Primitives
+import PrimitivesTestKit
 
 public extension AssetsUpdateRunner {
     static func mock(
@@ -15,14 +15,14 @@ public extension AssetsUpdateRunner {
         importAssetsService: ImportAssetsService = .mock(),
         assetsService: AssetsService = .mock(),
         swappableChainsProvider: any SwappableChainsProvider = SwappableChainsProviderMock.mock(),
-        preferences: Preferences = .mock()
+        preferences: Preferences = .mock(),
     ) -> AssetsUpdateRunner {
         AssetsUpdateRunner(
             configService: configService,
             importAssetsService: importAssetsService,
             assetsService: assetsService,
             swappableChainsProvider: swappableChainsProvider,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

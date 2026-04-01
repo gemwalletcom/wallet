@@ -4,12 +4,12 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.PerpetualConfirmData {
-    public func map() throws -> Primitives.PerpetualConfirmData {
-        Primitives.PerpetualConfirmData(
+public extension Gemstone.PerpetualConfirmData {
+    func map() throws -> Primitives.PerpetualConfirmData {
+        try Primitives.PerpetualConfirmData(
             direction: direction.map(),
             marginType: marginType.map(),
-            baseAsset: try baseAsset.map(),
+            baseAsset: baseAsset.map(),
             assetIndex: assetIndex,
             price: price,
             fiatValue: fiatValue,
@@ -21,13 +21,13 @@ extension Gemstone.PerpetualConfirmData {
             marketPrice: marketPrice,
             marginAmount: marginAmount,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
     }
 }
 
-extension Primitives.PerpetualConfirmData {
-    public func map() -> Gemstone.PerpetualConfirmData {
+public extension Primitives.PerpetualConfirmData {
+    func map() -> Gemstone.PerpetualConfirmData {
         Gemstone.PerpetualConfirmData(
             direction: direction.map(),
             marginType: marginType.map(),
@@ -43,7 +43,7 @@ extension Primitives.PerpetualConfirmData {
             marketPrice: marketPrice,
             marginAmount: marginAmount,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
     }
 }

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Primitives
 import Localization
+import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 public struct EarnScene: View {
     private let model: EarnSceneViewModel
@@ -29,10 +29,10 @@ public struct EarnScene: View {
                 Section {
                     ListItemView(
                         title: model.aprModel.title,
-                        subtitle: model.aprModel.subtitle
+                        subtitle: model.aprModel.subtitle,
                     )
                 }
-            case .error(let error):
+            case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccured, error: error)
             }
 

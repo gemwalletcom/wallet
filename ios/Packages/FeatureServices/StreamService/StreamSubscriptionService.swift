@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import PriceService
+import Primitives
 import WebSocketClient
 
 public actor StreamSubscriptionService: Sendable {
@@ -15,7 +15,7 @@ public actor StreamSubscriptionService: Sendable {
 
     public init(
         priceService: PriceService,
-        webSocket: any WebSocketConnectable
+        webSocket: any WebSocketConnectable,
     ) {
         self.priceService = priceService
         self.webSocket = webSocket

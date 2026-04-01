@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Formatters
 import Style
-import Components
+import SwiftUI
 
 @Observable
 @MainActor
-internal final class CoinPriceRowViewModel {
+final class CoinPriceRowViewModel {
     private let coin: CoinPrice
     private let currencyFormatter: CurrencyFormatter
     private let percentFormatter: CurrencyFormatter
 
-    internal init(
+    init(
         coin: CoinPrice,
         currencyFormatter: CurrencyFormatter,
-        percentFormatter: CurrencyFormatter
+        percentFormatter: CurrencyFormatter,
     ) {
         self.coin = coin
         self.currencyFormatter = currencyFormatter
@@ -34,10 +34,10 @@ internal final class CoinPriceRowViewModel {
         AssetImage(
             type: coin.symbol,
             placeholder: coin.image,
-            chainPlaceholder: chainPlaceholder
+            chainPlaceholder: chainPlaceholder,
         )
     }
-    
+
     var chainPlaceholder: Image? {
         switch coin.assetId.type {
         case .native: nil

@@ -7,10 +7,10 @@ public extension Character {
 public extension String {
     static let zero = "0"
     static let empty = ""
-    
+
     var remove0x: String {
-        if self.count >= 2 && starts(with: "0x") {
-            return String(self.dropFirst(2))
+        if count >= 2, starts(with: "0x") {
+            return String(dropFirst(2))
         }
         return self
     }
@@ -25,97 +25,97 @@ public extension String {
     var asURL: URL? {
         URL(string: self)
     }
-    
+
     var isNotEmpty: Bool {
         !isEmpty
     }
-    
+
     var isEmptyOrZero: Bool {
         isEmpty || self == .zero
     }
-    
+
     var preventingHyphenation: String {
         map { String($0) }.joined(separator: "\u{200B}")
     }
-    
+
     func index(from: Int) -> Index {
-        return self.index(startIndex, offsetBy: from)
+        index(startIndex, offsetBy: from)
     }
-    
+
     func truncate(
         first: Int = 6,
         last: Int = 4,
-        connector: String = "..."
+        connector: String = "...",
     ) -> String {
-        return self.replacingOccurrences(of: self.dropFirst(first).dropLast(last), with: connector)
+        replacingOccurrences(of: dropFirst(first).dropLast(last), with: connector)
     }
-    
+
     func numberOfLines() -> Int {
-        return self.numberOfOccurrencesOf(string: "\n") + 1
+        numberOfOccurrencesOf(string: "\n") + 1
     }
 
     func numberOfOccurrencesOf(string: String) -> Int {
-        return self.components(separatedBy:string).count - 1
+        components(separatedBy: string).count - 1
     }
-    
+
     func trim() -> String {
-        return trimmingCharacters(in: .whitespacesAndNewlines)
+        trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    
+
     func addPadding(number: Int, padding: Character) -> String {
-        return String(repeatElement(padding, count: number - self.count)) + self
+        String(repeatElement(padding, count: number - count)) + self
     }
-    
+
     func addTrailing(number: Int, padding: Character) -> String {
-        return self + String(repeatElement(padding, count: number - self.count))
+        self + String(repeatElement(padding, count: number - count))
     }
-    
+
     func encodedData() throws -> Data {
-        guard let data = self.data(using: .utf8) else {
+        guard let data = data(using: .utf8) else {
             throw AnyError("Unable to encode string to data")
         }
         return data
     }
-    
+
     func base64Encoded() throws -> Data {
         guard let data = Data(base64Encoded: self) else {
             throw AnyError("Unable to base64 encode string to data")
         }
         return data
     }
-    
+
     func removePrefix(_ prefix: String) -> String {
-        if self.hasPrefix(prefix) {
-            return String(self.dropFirst(prefix.count))
+        if hasPrefix(prefix) {
+            return String(dropFirst(prefix.count))
         }
         return self
     }
-    
+
     func addPrefix(_ prefix: String) -> String {
-        if !self.hasPrefix(prefix) {
+        if !hasPrefix(prefix) {
             return String(prefix + self)
         }
         return self
     }
-    
+
     var trimLeadingZeros: String {
-        guard let firstNonZeroIndex = self.firstIndex(where: { $0 != "0" }) else {
+        guard let firstNonZeroIndex = firstIndex(where: { $0 != "0" }) else {
             return ""
         }
         return String(self[firstNonZeroIndex...])
     }
-    
+
     func wrap(_ value: String) -> String {
         "\(value)\(self)\(value)"
     }
-    
+
     func boldMarkdown() -> String {
-        self.wrap("**")
+        wrap("**")
     }
 }
 
-extension Optional where Wrapped == String {
-    public var valueOrEmpty: String {
-        return self ?? .empty
+public extension String? {
+    var valueOrEmpty: String {
+        self ?? .empty
     }
 }

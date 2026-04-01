@@ -12,8 +12,8 @@ public struct WebViewDomainPolicy: Sendable {
     }
 }
 
-extension URL {
-    public func isAllowed(by policy: WebViewDomainPolicy) -> Bool {
+public extension URL {
+    func isAllowed(by policy: WebViewDomainPolicy) -> Bool {
         isDomainAllowed(policy.allowedDomains)
     }
 }

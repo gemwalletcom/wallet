@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct PriceRecord: Codable, FetchableRecord, PersistableRecord  {
+struct PriceRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "prices"
-    
+
     enum Columns {
         static let assetId = Column("assetId")
         static let price = Column("price")
@@ -32,7 +32,7 @@ struct PriceRecord: Codable, FetchableRecord, PersistableRecord  {
     var price: Double
     var priceUsd: Double
     var priceChangePercentage24h: Double
-    
+
     var marketCap: Double?
     var marketCapFdv: Double?
     var marketCapRank: Int?
@@ -52,7 +52,7 @@ struct PriceRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension PriceRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.assetId.name, .text)
                 .primaryKey()
                 .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
@@ -65,7 +65,7 @@ extension PriceRecord: CreateTable {
             $0.column(Columns.priceChangePercentage24h.name, .numeric)
                 .notNull()
                 .defaults(to: 0)
-            
+
             $0.column(Columns.marketCap.name, .double)
             $0.column(Columns.marketCapFdv.name, .double)
             $0.column(Columns.marketCapRank.name, .integer)
@@ -93,30 +93,30 @@ extension AssetPrice {
         PriceRecord(
             assetId: assetId,
             price: fiatPrice,
-            priceUsd: self.price,
-            priceChangePercentage24h: priceChangePercentage24h
+            priceUsd: price,
+            priceChangePercentage24h: priceChangePercentage24h,
         )
     }
 }
 
 extension PriceRecord {
     func mapToPrice() -> Price {
-        return Price(
+        Price(
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: updatedAt ?? .now
+            updatedAt: updatedAt ?? .now,
         )
     }
-    
+
     func mapToAssetPrice() -> AssetPrice {
-        return AssetPrice(
+        AssetPrice(
             assetId: assetId,
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: updatedAt ?? .now
+            updatedAt: updatedAt ?? .now,
         )
     }
-    
+
     func mapToMarket() -> AssetMarket {
         AssetMarket(
             marketCap: marketCap,
@@ -131,7 +131,7 @@ extension PriceRecord {
             },
             allTimeLowValue: allTimeLow.flatMap { value in
                 allTimeLowDate.map { ChartValuePercentage(date: $0, value: Float(value), percentage: Float(allTimeLowChangePercentage ?? 0)) }
-            }
+            },
         )
     }
 }

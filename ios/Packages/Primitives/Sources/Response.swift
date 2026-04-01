@@ -2,14 +2,14 @@ import Foundation
 
 public struct ResponseError: Codable, Sendable, LocalizedError {
     public let error: ResponseMessage
-    
+
     public var errorDescription: String? {
         error.errorDescription
     }
 
     public struct ResponseMessage: Codable, Sendable, LocalizedError {
         public let message: String
-        
+
         public var errorDescription: String? {
             message
         }
@@ -35,12 +35,12 @@ public struct ResponseResult<T: Codable & Sendable>: Codable, Sendable {
                 T.self,
                 .init(
                     codingPath: [CodingKeys.data],
-                    debugDescription: "Expected non-null data but found null."
-                )
+                    debugDescription: "Expected non-null data but found null.",
+                ),
             )
         }
 
-        self.data = try container.decode(T.self, forKey: .data)
+        data = try container.decode(T.self, forKey: .data)
     }
 
     public func encode(to encoder: Encoder) throws {

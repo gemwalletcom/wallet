@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Localization
+import SwiftUI
 
 struct ScreenshotDetectionModifier: ViewModifier {
     let docsUrl: URL
@@ -15,12 +15,12 @@ struct ScreenshotDetectionModifier: ViewModifier {
             }
             .alert(
                 Localized.SecretPhrase.ScreenshotDetected.title,
-                isPresented: $showingAlert
+                isPresented: $showingAlert,
             ) {
                 Button(Localized.Common.learnMore) {
                     UIApplication.shared.open(docsUrl)
                 }
-                Button(Localized.Common.done, role: .cancel) { }
+                Button(Localized.Common.done, role: .cancel) {}
             } message: {
                 Text(Localized.SecretPhrase.ScreenshotDetected.description)
             }

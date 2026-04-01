@@ -38,13 +38,13 @@ extension ListAssetItemViewable {
     var isAssetEnabled: Bool {
         switch rightView {
         case .balance, .copy, .none: false
-        case .toggle(let value): value
+        case let .toggle(value): value
         }
     }
 }
 
-extension ListAssetItemViewable {
-    public var showBalancePrivacy: Binding<Bool> {
+public extension ListAssetItemViewable {
+    var showBalancePrivacy: Binding<Bool> {
         .constant(false)
     }
 }

@@ -15,7 +15,7 @@ struct WordSuggester {
         }
         return []
     }
-    
+
     func selectWordCalculate(input: String, word: String) -> String {
         var words = input.split(separator: " ").map { String($0) }
         if !words.isEmpty {
@@ -24,7 +24,7 @@ struct WordSuggester {
         }
         return words.joined(separator: " ") + " "
     }
-    
+
     private func suggest(word: String) -> [String] {
         WalletCore.Mnemonic.suggest(prefix: word)
             .split(separator: " ")

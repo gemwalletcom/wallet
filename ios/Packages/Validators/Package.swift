@@ -6,12 +6,12 @@ let package = Package(
     name: "Validators",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Validators",
-            targets: ["Validators"]
+            targets: ["Validators"],
         ),
     ],
     dependencies: [
@@ -29,14 +29,14 @@ let package = Package(
                 .product(name: "WalletCorePrimitives", package: "WalletCore"),
                 "Formatters",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "ValidatorsTests",
             dependencies: [
                 "Validators",
-                .product(name: "PrimitivesTestKit", package: "Primitives")
-            ]
-        )
-    ]
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+        ),
+    ],
 )

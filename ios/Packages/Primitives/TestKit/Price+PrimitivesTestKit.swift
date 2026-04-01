@@ -7,12 +7,12 @@ public extension Price {
     static func mock(
         price: Double = 1.5,
         priceChangePercentage24h: Double = .zero,
-        updatedAt: Date = .now
+        updatedAt: Date = .now,
     ) -> Price {
         Price(
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 }

@@ -6,41 +6,41 @@ import LocalAuthentication
 
 public final class MockKeychain: Keychain, @unchecked Sendable {
     private var storage: [String: Data] = [:]
-    
+
     public init(storage: [String: String] = [:]) {
         self.storage = storage.mapValues { $0.data(using: .utf8)! }
     }
-    
-    public func accessibility(_ accessibility: Accessibility, authenticationPolicy: AuthenticationPolicy) -> Keychain {
+
+    public func accessibility(_: Accessibility, authenticationPolicy _: AuthenticationPolicy) -> Keychain {
         self
     }
-    
-    public func authenticationContext(_ authenticationContext: LAContext) -> Keychain {
+
+    public func authenticationContext(_: LAContext) -> Keychain {
         self
     }
-    
+
     public func get(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String? {
         try getString(key, ignoringAttributeSynchronizable: ignoringAttributeSynchronizable)
     }
-    
-    public func getString(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String? {
+
+    public func getString(_ key: String, ignoringAttributeSynchronizable _: Bool) throws -> String? {
         guard let data = storage[key] else { return nil }
         return String(data: data, encoding: .utf8)
     }
-    
-    public func getData(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> Data? {
+
+    public func getData(_ key: String, ignoringAttributeSynchronizable _: Bool) throws -> Data? {
         storage[key]
     }
-    
-    public func set(_ value: String, key: String, ignoringAttributeSynchronizable: Bool) throws {
+
+    public func set(_ value: String, key: String, ignoringAttributeSynchronizable _: Bool) throws {
         storage[key] = value.data(using: .utf8)!
     }
-    
-    public func set(_ value: Data, key: String, ignoringAttributeSynchronizable: Bool) throws {
+
+    public func set(_ value: Data, key: String, ignoringAttributeSynchronizable _: Bool) throws {
         storage[key] = value
     }
-    
-    public func remove(_ key: String, ignoringAttributeSynchronizable: Bool) throws {
+
+    public func remove(_ key: String, ignoringAttributeSynchronizable _: Bool) throws {
         storage.removeValue(forKey: key)
     }
 }

@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
+import Foundation
 import Primitives
 import PrimitivesComponents
 import Style
+import SwiftUI
 
 struct AssetHeaderViewModel: Sendable {
     let assetDataModel: AssetDataViewModel

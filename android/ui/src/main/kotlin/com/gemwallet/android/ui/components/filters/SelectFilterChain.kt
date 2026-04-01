@@ -1,18 +1,13 @@
 package com.gemwallet.android.ui.components.filters
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ChainItem
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -47,12 +42,7 @@ fun LazyListScope.selectFilterChain(
                 listPosition = ListPosition.getPosition(index, size),
                 trailing = {
                     if (chainFilter.contains(chain)) {
-                        Icon(
-                            modifier = Modifier.Companion.padding(end = paddingSmall).size(20.dp),
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "",
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
+                        SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
                     }
                 }
             ) { onFilter(chain) }

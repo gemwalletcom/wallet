@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import BigInt
+import Foundation
 import Primitives
+import Testing
 
 @testable import Validators
 
@@ -12,20 +12,20 @@ struct BalanceValueValidatorTests {
     private let available = BigInt(50)
 
     @Test
-    func testPassesWithinBalance() throws {
+    func passesWithinBalance() throws {
         let validator = BalanceValueValidator<BigInt>(
             available: available,
-            asset: asset
+            asset: asset,
         )
         try validator.validate(available)
         try validator.validate(available - 10)
     }
 
     @Test
-    func testThrowsExceedingBalance() {
+    func throwsExceedingBalance() {
         let validator = BalanceValueValidator<BigInt>(
             available: available,
-            asset: asset
+            asset: asset,
         )
         #expect(throws: TransferAmountCalculatorError.insufficientBalance(asset)) {
             try validator.validate(available + 1)

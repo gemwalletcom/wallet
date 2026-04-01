@@ -17,9 +17,9 @@ final class CreateWalletUITests: XCTestCase {
 
         // OnboardingScene
         if app.isOnboarding {
-            app.tapCreateWallet()            
+            app.tapCreateWallet()
         }
-        
+
         let words = creationFlow(app: app, checkShowSecretDataScene: true)
 
         // WalletScene
@@ -37,20 +37,20 @@ final class CreateWalletUITests: XCTestCase {
         // ShowSecretDataScene
         let displayedWords = app.getWords()
         XCTAssertEqual(words, displayedWords)
-        
+
         // Back to WalletsScene
         app.tapBack()
         app.tapBack()
         app.tapBack()
-        
+
         app.tapCreateWallet()
-        
-        let _ = creationFlow(app: app, checkShowSecretDataScene: false)
-        
+
+        _ = creationFlow(app: app, checkShowSecretDataScene: false)
+
         // SetupWalletScene
         app.buttons["Done"].firstMatch.tap()
     }
-    
+
     private func creationFlow(app: XCUIApplication, checkShowSecretDataScene: Bool) -> [String] {
         // AcceptTermsScene
         app.acceptTerms()
@@ -61,7 +61,7 @@ final class CreateWalletUITests: XCTestCase {
         // ShowSecretDataScene
         let words = app.getWords()
         app.tapContinue()
-        
+
         if checkShowSecretDataScene {
             app.tapBack()
             words.forEach { XCTAssert(app.staticTexts[$0].exists) }
@@ -71,7 +71,7 @@ final class CreateWalletUITests: XCTestCase {
         // VerifyPhraseWalletScene
         words.forEach { app.buttons[$0].firstMatch.tap() }
         app.tapContinue()
-        
+
         return words
     }
 }

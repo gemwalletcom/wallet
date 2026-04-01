@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
-import Primitives
-import Localization
 import Blockchain
+import Components
+import Localization
+import Primitives
 
 struct ConfirmErrorViewModel {
     private let state: StateViewType<TransactionInputViewModel>
@@ -11,7 +11,7 @@ struct ConfirmErrorViewModel {
 
     init(
         state: StateViewType<TransactionInputViewModel>,
-        onSelectListError: @escaping (Error) -> Void
+        onSelectListError: @escaping (Error) -> Void,
     ) {
         self.state = state
         self.onSelectListError = onSelectListError
@@ -26,7 +26,7 @@ extension ConfirmErrorViewModel: ItemModelProvidable {
         return .error(
             title: Localized.Errors.errorOccured,
             error: ChainCoreError.fromError(error) ?? error,
-            onInfoAction: { onSelectListError(error) }
+            onInfoAction: { onSelectListError(error) },
         )
     }
 }

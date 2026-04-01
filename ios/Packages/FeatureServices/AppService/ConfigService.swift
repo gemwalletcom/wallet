@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
-import Preferences
 import GemAPI
+import Preferences
+import Primitives
 
 public actor ConfigService {
     private let configPreferences: ConfigPreferences
@@ -12,7 +12,7 @@ public actor ConfigService {
 
     public init(
         configPreferences: ConfigPreferences = .standard,
-        apiService: any GemAPIConfigService
+        apiService: any GemAPIConfigService,
     ) {
         self.configPreferences = configPreferences
         self.apiService = apiService

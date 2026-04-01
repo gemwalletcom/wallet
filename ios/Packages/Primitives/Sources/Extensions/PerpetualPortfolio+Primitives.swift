@@ -2,12 +2,12 @@
 
 import Foundation
 
-extension PerpetualPortfolio {
-    public var availablePeriods: [ChartPeriod] {
+public extension PerpetualPortfolio {
+    var availablePeriods: [ChartPeriod] {
         [(day, ChartPeriod.day), (week, .week), (month, .month), (allTime, .all)].compactMap { $0.0 != nil ? $0.1 : nil }
     }
 
-    public func timeframeData(for period: ChartPeriod) -> PerpetualPortfolioTimeframeData? {
+    func timeframeData(for period: ChartPeriod) -> PerpetualPortfolioTimeframeData? {
         switch period {
         case .hour, .day: day
         case .week: week

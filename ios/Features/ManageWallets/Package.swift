@@ -6,12 +6,13 @@ let package = Package(
     name: "ManageWallets",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "ManageWallets",
-            targets: ["ManageWallets"])
+            targets: ["ManageWallets"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -22,7 +23,7 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
-        .package(name: "Onboarding", path: "../Onboarding")
+        .package(name: "Onboarding", path: "../Onboarding"),
     ],
     targets: [
         .target(
@@ -36,9 +37,9 @@ let package = Package(
                 "Store",
                 .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "WalletService", package: "FeatureServices"),
-                "Onboarding"
+                "Onboarding",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "ManageWalletsTests",
@@ -46,8 +47,8 @@ let package = Package(
                 "ManageWallets",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "WalletServiceTestKit", package: "FeatureServices"),
-                .product(name: "StoreTestKit", package: "Store")
-            ]
-        )
-    ]
+                .product(name: "StoreTestKit", package: "Store"),
+            ],
+        ),
+    ],
 )

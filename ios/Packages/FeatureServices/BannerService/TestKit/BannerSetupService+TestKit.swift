@@ -1,22 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BannerService
-import Store
-import StoreTestKit
+import Foundation
 import NotificationService
 import NotificationServiceTestKit
 import Preferences
 import PreferencesTestKit
+import Store
+import StoreTestKit
 
 public extension BannerSetupService {
     static func mock(
         store: BannerStore = .mock(),
-        preferences: Preferences = .mock()
+        preferences: Preferences = .mock(),
     ) -> Self {
         BannerSetupService(
             store: store,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

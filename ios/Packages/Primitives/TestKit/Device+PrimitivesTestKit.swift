@@ -17,7 +17,7 @@ public extension Device {
             currency: .empty,
             isPushEnabled: true,
             isPriceAlertsEnabled: .none,
-            subscriptionsVersion: 1
+            subscriptionsVersion: 1,
         )
     }
 }

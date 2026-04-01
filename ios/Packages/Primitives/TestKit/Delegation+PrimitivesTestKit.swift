@@ -8,12 +8,12 @@ public extension Delegation {
         state: DelegationState = .active,
         validator: DelegationValidator = .mock(),
         price: Price? = nil,
-        base: DelegationBase? = nil
+        base: DelegationBase? = nil,
     ) -> Delegation {
         Delegation(
             base: base ?? .mock(state: state),
             validator: validator,
-            price: price
+            price: price,
         )
     }
 }

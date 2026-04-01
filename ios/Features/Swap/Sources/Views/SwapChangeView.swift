@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Style
 import Primitives
+import Style
+import SwiftUI
 
 struct SwapChangeView: View {
     @Binding private var fromId: AssetId?
@@ -11,7 +11,7 @@ struct SwapChangeView: View {
 
     init(
         fromId: Binding<AssetId?> = .constant(.none),
-        toId: Binding<AssetId?> = .constant(.none)
+        toId: Binding<AssetId?> = .constant(.none),
     ) {
         _fromId = fromId
         _toId = toId

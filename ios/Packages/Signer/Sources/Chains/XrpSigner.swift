@@ -12,31 +12,30 @@ struct XrpSigner: Signable {
         case operation(RippleSigningInput.OneOf_OperationOneof)
         case json(String)
     }
-    
+
     func sign(input: SignerInput, operation: Operation, privateKey: Data) throws -> String {
         let signingInput = try RippleSigningInput.with {
             $0.fee = input.fee.fee.asInt64
-            $0.sequence = UInt32(try input.metadata.getSequence())
-            $0.lastLedgerSequence = UInt32(try input.metadata.getBlockNumber()) + 12
+            $0.sequence = try UInt32(input.metadata.getSequence())
+            $0.lastLedgerSequence = try UInt32(input.metadata.getBlockNumber()) + 12
             $0.account = input.senderAddress
             $0.privateKey = privateKey
             switch operation {
-            case .operation(let operation):
+            case let .operation(operation):
                 $0.operationOneof = operation
-            case .json(let rawJson):
+            case let .json(rawJson):
                 $0.rawJson = rawJson
             }
-            
         }
         let output: RippleSigningOutput = AnySigner.sign(input: signingInput, coin: input.coinType)
-        
+
         if !output.errorMessage.isEmpty {
             throw AnyError(output.errorMessage)
         }
-        
+
         return output.encoded.hexString
     }
-    
+
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
         let operation: Operation = {
             if let memo = input.memo {
@@ -51,8 +50,8 @@ struct XrpSigner: Signable {
                         jsonTransferMemo(
                             destination: input.destinationAddress,
                             amount: input.value.description,
-                            memo: Data(memo.remove0x.utf8).hexString.remove0x
-                        )
+                            memo: Data(memo.remove0x.utf8).hexString.remove0x,
+                        ),
                     )
                 }
             }
@@ -61,16 +60,16 @@ struct XrpSigner: Signable {
                 $0.amount = input.value.asInt64
             }))
         }()
-        
+
         return try sign(
             input: input,
             operation: operation,
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
-    
+
     func signTokenTransfer(input: SignerInput, privateKey: Data) throws -> String {
-        return try sign(
+        try sign(
             input: input,
             operation: .operation(.opPayment(.with {
                 $0.destination = input.destinationAddress
@@ -83,12 +82,12 @@ struct XrpSigner: Signable {
                     $0.destinationTag = destinationTag
                 }
             })),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
-    
+
     func signAccountAction(input: SignerInput, privateKey: Data) throws -> String {
-        return try sign(
+        try sign(
             input: input,
             operation: .operation(.opTrustSet(.with {
                 $0.limitAmount = try .with {
@@ -97,41 +96,40 @@ struct XrpSigner: Signable {
                     $0.value = "690000000000"
                 }
             })),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
-    
+
     private func hexSymbol(symbol: String) -> String {
         Data(symbol.utf8).hexString.capitalized.addTrailing(number: 40, padding: "0")
     }
-    
-    func signData(input: Primitives.SignerInput, privateKey: Data) throws -> String {
+
+    func signData(input _: Primitives.SignerInput, privateKey _: Data) throws -> String {
         fatalError()
     }
-    
-    func signStake(input: SignerInput, privateKey: Data) throws -> [String] {
+
+    func signStake(input _: SignerInput, privateKey _: Data) throws -> [String] {
         fatalError()
     }
-    
-    func signMessage(message: SignMessage, privateKey: Data) throws -> String {
+
+    func signMessage(message _: SignMessage, privateKey _: Data) throws -> String {
         fatalError()
     }
-    
+
     func jsonTransferMemo(destination: String, amount: String, memo: String) -> String {
         """
-            {
-                    "TransactionType": "Payment",
-                    "Destination": "\(destination)",
-                    "Amount": "\(amount)",
-                    "Memos": [
-                        {
-                            "Memo": {
-                                "MemoData": "\(memo)"
-                            }
+        {
+                "TransactionType": "Payment",
+                "Destination": "\(destination)",
+                "Amount": "\(amount)",
+                "Memos": [
+                    {
+                        "Memo": {
+                            "MemoData": "\(memo)"
                         }
-                    ]
-                }
-            """
+                    }
+                ]
+            }
+        """
     }
 }
-    

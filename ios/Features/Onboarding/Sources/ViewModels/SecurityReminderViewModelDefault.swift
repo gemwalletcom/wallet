@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Localization
 import Components
+import Foundation
 import GemstonePrimitives
+import Localization
 
 @Observable
 final class SecurityReminderViewModelDefault: SecurityReminderViewModel {
     let title: String
     let onNext: () -> Void
-    
+
     init(
         title: String,
-        onNext: @escaping () -> Void
+        onNext: @escaping () -> Void,
     ) {
         self.title = title
         self.onNext = onNext

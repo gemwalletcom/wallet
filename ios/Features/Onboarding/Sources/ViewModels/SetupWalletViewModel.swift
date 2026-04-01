@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
-import Components
-import Localization
 import Store
 import Style
 import WalletService
@@ -12,7 +12,6 @@ import WalletService
 @MainActor
 @Observable
 public final class SetupWalletViewModel: Sendable {
-
     private let walletService: WalletService
     private let onSelectImageAction: (Wallet) -> Void
     private let onCompleteAction: (Wallet) -> Void
@@ -25,13 +24,13 @@ public final class SetupWalletViewModel: Sendable {
         wallet: Wallet,
         walletService: WalletService,
         onSelectImage: @escaping (Wallet) -> Void,
-        onComplete: @escaping (Wallet) -> Void
+        onComplete: @escaping (Wallet) -> Void,
     ) {
         self.walletService = walletService
-        self.nameInput = wallet.name
-        self.query = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
-        self.onSelectImageAction = onSelectImage
-        self.onCompleteAction = onComplete
+        nameInput = wallet.name
+        query = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
+        onSelectImageAction = onSelectImage
+        onCompleteAction = onComplete
     }
 
     var title: String {
@@ -48,7 +47,7 @@ public final class SetupWalletViewModel: Sendable {
             type: avatar.type,
             imageURL: avatar.imageURL,
             placeholder: avatar.placeholder,
-            chainPlaceholder: Images.Wallets.editFilled
+            chainPlaceholder: Images.Wallets.editFilled,
         )
     }
 

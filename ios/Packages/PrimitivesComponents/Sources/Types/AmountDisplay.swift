@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Primitives
-import Formatters
-import Style
 import Components
+import Formatters
 import Foundation
+import Primitives
+import Style
 
 public protocol AmountDisplayable: Sendable {
     var amount: TextValue { get }
@@ -35,7 +35,7 @@ public struct AmountDisplayStyle: Sendable {
         sign: AmountDisplaySign = .none,
         formatter: ValueFormatter = .auto,
         currencyCode: String,
-        textStyle: TextStyle? = nil
+        textStyle: TextStyle? = nil,
     ) {
         self.sign = sign
         self.formatter = formatter
@@ -52,42 +52,43 @@ public enum AmountDisplay: Sendable {
 extension AmountDisplay: AmountDisplayable {
     public var amount: TextValue {
         switch self {
-        case .numeric(let viewModel): viewModel.amount
-        case .symbol(let viewModel): viewModel.amount
+        case let .numeric(viewModel): viewModel.amount
+        case let .symbol(viewModel): viewModel.amount
         }
     }
 
     public var fiat: TextValue? {
         switch self {
-        case .numeric(let viewModel): viewModel.fiat
-        case .symbol(let viewModel): viewModel.fiat
+        case let .numeric(viewModel): viewModel.fiat
+        case let .symbol(viewModel): viewModel.fiat
         }
     }
 
     public var assetImage: AssetImage? {
         switch self {
-        case .numeric(let viewModel): viewModel.assetImage
-        case .symbol(let viewModel): viewModel.assetImage
+        case let .numeric(viewModel): viewModel.assetImage
+        case let .symbol(viewModel): viewModel.assetImage
         }
     }
 
     func fiatVisibility(_ visible: Bool) -> AmountDisplay {
         switch self {
-        case .numeric(let model):
+        case let .numeric(model):
             let style = AmountDisplayStyle(
                 sign: model.style.sign,
                 formatter: model.style.formatter,
                 currencyCode: model.style.currencyCode,
-                textStyle: model.style.textStyle
+                textStyle: model.style.textStyle,
             )
             return .numeric(
                 NumericViewModel(
                     data: AssetValuePrice(
                         asset: model.data.asset,
                         value: model.data.value,
-                        price: visible ? model.data.price : nil),
-                    style: style
-                )
+                        price: visible ? model.data.price : nil,
+                    ),
+                    style: style,
+                ),
             )
         case .symbol:
             return self
@@ -99,14 +100,14 @@ extension AmountDisplay: AmountDisplayable {
 
 extension AmountDisplay {
     static func symbol(
-        asset: Asset
+        asset: Asset,
     ) -> AmountDisplay {
         .symbol(SymbolViewModel(asset: asset))
     }
 
     static func numeric(
         data: AssetValuePrice,
-        style: AmountDisplayStyle
+        style: AmountDisplayStyle,
     ) -> AmountDisplay {
         .numeric(NumericViewModel(data: data, style: style))
     }
@@ -118,7 +119,7 @@ extension AmountDisplay {
         direction: TransactionDirection? = nil,
         currency: String,
         formatter: ValueFormatter = .full,
-        textStyle: TextStyle? = nil
+        textStyle: TextStyle? = nil,
     ) -> AmountDisplay {
         .numeric(
             data: AssetValuePrice(asset: asset, value: value, price: price),
@@ -126,8 +127,8 @@ extension AmountDisplay {
                 sign: .init(direction),
                 formatter: formatter,
                 currencyCode: currency,
-                textStyle: textStyle
-            )
+                textStyle: textStyle,
+            ),
         )
     }
 
@@ -135,9 +136,9 @@ extension AmountDisplay {
         value: Double,
         currencyCode: String,
         textStyle: TextStyle? = nil,
-        showSign: Bool = true
+        showSign: Bool = true,
     ) -> TextValue {
-        let prefix = if showSign && value > 0 {
+        let prefix = if showSign, value > 0 {
             "+"
         } else if value < 0 {
             ""
@@ -158,7 +159,7 @@ extension AmountDisplay {
 
         return TextValue(
             text: prefix + formatter.string(value),
-            style: viewStyle
+            style: viewStyle,
         )
     }
 }

@@ -10,7 +10,7 @@ struct QRScannerDisplayView: View {
     init(
         configuration: QRScannerDisplayConfiguration,
         isScannerReady: Binding<Bool>,
-        scanResult: @escaping QRScannerViewWrapper.ScanResult
+        scanResult: @escaping QRScannerViewWrapper.ScanResult,
     ) {
         _isScannerReady = isScannerReady
         self.configuration = configuration
@@ -30,9 +30,9 @@ struct QRScannerDisplayView: View {
 
                 QRScannerViewWrapper(
                     isScannerReady: $isScannerReady,
-                    scanResult: scanResult
+                    scanResult: scanResult,
                 )
-                
+
                 configuration.overlayColor
                     .opacity(configuration.dimmedViewOpacity)
                     .overlay {
@@ -46,7 +46,7 @@ struct QRScannerDisplayView: View {
                 CornerBracketsView(
                     configuration: configuration,
                     boxSize: boxSize,
-                    geometrySize: geometry.size
+                    geometrySize: geometry.size,
                 )
             }
         }
@@ -60,7 +60,7 @@ struct QRScannerDisplayView: View {
         QRScannerDisplayView(
             configuration: .default,
             isScannerReady: .constant(true),
-            scanResult: {_ in}
+            scanResult: { _ in },
         )
     }
 }

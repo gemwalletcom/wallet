@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
-import Preferences
-import PreferencesTestKit
-import StoreTestKit
 import GemAPI
 import GemAPITestKit
+import Preferences
+import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
+import StoreTestKit
+import Testing
 
 @testable import DeviceService
 
 struct DeviceServiceTests {
-
     @Test
     func prepareForWalletRequestSkipsCleanState() async throws {
         let preferences = Preferences.mock()
@@ -25,13 +24,13 @@ struct DeviceServiceTests {
 
         let deviceProvider = GemAPIDeviceServiceMock(
             isDeviceRegistered: false,
-            getDeviceResult: nil
+            getDeviceResult: nil,
         )
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
             subscriptionProvider: GemAPISubscriptionServiceMock(),
-            securePreferences: securePreferences
+            securePreferences: securePreferences,
         )
 
         try await service.prepareForWalletRequest()
@@ -51,13 +50,13 @@ struct DeviceServiceTests {
         let deviceProvider = GemAPIDeviceServiceMock(
             delay: .milliseconds(50),
             isDeviceRegistered: false,
-            getDeviceResult: nil
+            getDeviceResult: nil,
         )
         let subscriptionProvider = GemAPISubscriptionServiceMock(delay: .milliseconds(50))
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
-            subscriptionProvider: subscriptionProvider
+            subscriptionProvider: subscriptionProvider,
         )
 
         async let first: Void = service.prepareForWalletRequest()
@@ -82,13 +81,13 @@ struct DeviceServiceTests {
 
         let deviceProvider = GemAPIDeviceServiceMock(
             isDeviceRegistered: false,
-            getDeviceResult: nil
+            getDeviceResult: nil,
         )
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
             subscriptionProvider: GemAPISubscriptionServiceMock(),
-            securePreferences: securePreferences
+            securePreferences: securePreferences,
         )
 
         try await service.prepareForWalletRequest()
@@ -106,13 +105,13 @@ struct DeviceServiceTests {
         let deviceProvider = GemAPIDeviceServiceMock(
             delay: .milliseconds(50),
             isDeviceRegistered: false,
-            getDeviceResult: nil
+            getDeviceResult: nil,
         )
         let subscriptionProvider = GemAPISubscriptionServiceMock(delay: .milliseconds(50))
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
-            subscriptionProvider: subscriptionProvider
+            subscriptionProvider: subscriptionProvider,
         )
 
         async let update: Void = service.update()
@@ -138,13 +137,13 @@ struct DeviceServiceTests {
         let deviceProvider = GemAPIDeviceServiceMock(
             delay: .milliseconds(150),
             isDeviceRegistered: true,
-            getDeviceResult: Device.mock()
+            getDeviceResult: Device.mock(),
         )
         let service = makeService(
             preferences: preferences,
             deviceProvider: deviceProvider,
             subscriptionProvider: GemAPISubscriptionServiceMock(),
-            securePreferences: securePreferences
+            securePreferences: securePreferences,
         )
         let ready = CompletionFlag()
 
@@ -177,9 +176,9 @@ struct DeviceServiceTests {
             preferences: preferences,
             deviceProvider: GemAPIDeviceServiceMock(
                 isDeviceRegistered: false,
-                getDeviceResult: nil
+                getDeviceResult: nil,
             ),
-            subscriptionProvider: GemAPISubscriptionServiceMock(getSubscriptionsError: TestError.failed)
+            subscriptionProvider: GemAPISubscriptionServiceMock(getSubscriptionsError: TestError.failed),
         )
 
         await #expect(throws: TestError.self) {
@@ -195,17 +194,17 @@ private extension DeviceServiceTests {
         preferences: Preferences,
         deviceProvider: any GemAPIDeviceService,
         subscriptionProvider: any GemAPISubscriptionService,
-        securePreferences: SecurePreferences = .mock()
+        securePreferences: SecurePreferences = .mock(),
     ) -> DeviceService {
         DeviceService(
             deviceProvider: deviceProvider,
             subscriptionsService: SubscriptionService(
                 subscriptionProvider: subscriptionProvider,
                 walletStore: .mock(),
-                preferences: preferences
+                preferences: preferences,
             ),
             preferences: preferences,
-            securePreferences: securePreferences
+            securePreferences: securePreferences,
         )
     }
 }

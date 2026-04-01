@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import CryptoKit
-import Testing
-import Primitives
+import Foundation
 @testable import GemAPI
+import Primitives
+import Testing
 
 struct DeviceRequestSignerTests {
-
     @Test
     func keyPairGeneratesValidHex() {
         let keyPair = DeviceKeyPair()

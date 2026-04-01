@@ -4,35 +4,35 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPerpetualPortfolio {
-    public func map() -> PerpetualPortfolio {
+public extension GemPerpetualPortfolio {
+    func map() -> PerpetualPortfolio {
         PerpetualPortfolio(
             day: day?.map(),
             week: week?.map(),
             month: month?.map(),
             allTime: allTime?.map(),
-            accountSummary: accountSummary?.map()
+            accountSummary: accountSummary?.map(),
         )
     }
 }
 
-extension GemPerpetualPortfolioTimeframeData {
-    public func map() -> PerpetualPortfolioTimeframeData {
+public extension GemPerpetualPortfolioTimeframeData {
+    func map() -> PerpetualPortfolioTimeframeData {
         PerpetualPortfolioTimeframeData(
             accountValueHistory: accountValueHistory.map { $0.map() },
             pnlHistory: pnlHistory.map { $0.map() },
-            volume: volume
+            volume: volume,
         )
     }
 }
 
-extension GemPerpetualAccountSummary {
-    public func map() -> PerpetualAccountSummary {
+public extension GemPerpetualAccountSummary {
+    func map() -> PerpetualAccountSummary {
         PerpetualAccountSummary(
             accountValue: accountValue,
             accountLeverage: accountLeverage,
             marginUsage: marginUsage,
-            unrealizedPnl: unrealizedPnl
+            unrealizedPnl: unrealizedPnl,
         )
     }
 }

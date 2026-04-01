@@ -14,9 +14,9 @@ public struct AssetsSections: Hashable, Sendable {
 public extension AssetsSections {
     static func from(_ assets: [AssetData]) -> AssetsSections {
         AssetsSections(
-            pinned: assets.filter { $0.metadata.isPinned },
+            pinned: assets.filter(\.metadata.isPinned),
             assets: assets.filter { !$0.metadata.isPinned },
-            popular: assets.filter { Self.popularChains.contains($0.asset.id) }
+            popular: assets.filter { Self.popularChains.contains($0.asset.id) },
         )
     }
 }

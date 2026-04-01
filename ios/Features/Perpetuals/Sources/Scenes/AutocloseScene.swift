@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Localization
-import Style
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct AutocloseScene: View {
     public enum Field: Int, Hashable {
         case takeProfit
         case stopLoss
     }
+
     @FocusState private var focusedField: Field?
     @State private var model: AutocloseSceneViewModel
 
@@ -35,14 +36,14 @@ public struct AutocloseScene: View {
                 inputModel: $model.input.takeProfit,
                 sectionModel: model.takeProfitModel,
                 field: Field.takeProfit,
-                focusedField: $focusedField
+                focusedField: $focusedField,
             )
 
             AutocloseInputSection(
                 inputModel: $model.input.stopLoss,
                 sectionModel: model.stopLossModel,
                 field: Field.stopLoss,
-                focusedField: $focusedField
+                focusedField: $focusedField,
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
@@ -55,8 +56,8 @@ public struct AutocloseScene: View {
                 button: StateButton(
                     text: Localized.Transfer.confirm,
                     type: model.confirmButtonType,
-                    action: model.onSelectConfirm
-                )
+                    action: model.onSelectConfirm,
+                ),
             )
         }
         .navigationTitle(model.title)

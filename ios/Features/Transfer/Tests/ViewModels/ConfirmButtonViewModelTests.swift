@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Localization
-@testable import Transfer
 @testable import Primitives
 import PrimitivesTestKit
+import Testing
+@testable import Transfer
 import TransferTestKit
 
 struct ConfirmButtonViewModelTests {
-
     @Test
     func loaded() {
         let model = ConfirmButtonViewModel(state: .data(TransactionInputViewModel.mock()), icon: nil, onAction: {})
@@ -33,4 +32,3 @@ struct ConfirmButtonViewModelTests {
         #expect(!model.type.isDisabled)
     }
 }
-

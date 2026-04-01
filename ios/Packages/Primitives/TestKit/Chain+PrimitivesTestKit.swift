@@ -5,7 +5,7 @@ import Primitives
 
 public extension Chain {
     static func mock(
-        _ chain: Chain = Chain.bitcoin
+        _ chain: Chain = Chain.bitcoin,
     ) -> Chain {
         chain
     }

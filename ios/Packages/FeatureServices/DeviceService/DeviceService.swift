@@ -2,13 +2,12 @@
 
 import Foundation
 import GemAPI
+import Preferences
 import Primitives
 import Store
 import UIKit
-import Preferences
 
 public struct DeviceService: DeviceServiceable {
-
     public static let nodeAuthTokenUpdateInterval: Duration = .seconds(300)
 
     private let deviceProvider: any GemAPIDeviceService
@@ -17,20 +16,20 @@ public struct DeviceService: DeviceServiceable {
     private let securePreferences: SecurePreferences
     private let syncCoordinator: DeviceSyncCoordinator
     private static let nodeAuthTokenUpdateExecutor = SerialExecutor()
-    
+
     public init(
         deviceProvider: any GemAPIDeviceService,
         subscriptionsService: SubscriptionService,
         preferences: Preferences = .standard,
-        securePreferences: SecurePreferences = SecurePreferences()
+        securePreferences: SecurePreferences = SecurePreferences(),
     ) {
         self.deviceProvider = deviceProvider
         self.subscriptionsService = subscriptionsService
         self.preferences = preferences
         self.securePreferences = securePreferences
-        self.syncCoordinator = DeviceSyncCoordinator()
+        syncCoordinator = DeviceSyncCoordinator()
     }
-    
+
     @discardableResult
     private static func getOrCreateDeviceId(securePreferences: SecurePreferences) throws -> String {
         if let deviceId = try securePreferences.get(key: .deviceId) {
@@ -44,7 +43,8 @@ public struct DeviceService: DeviceServiceable {
     @discardableResult
     public static func getOrCreateKeyPair(securePreferences: SecurePreferences) throws -> (privateKey: Data, publicKey: Data) {
         if let privateKey = try securePreferences.getData(key: .devicePrivateKey),
-           let publicKey = try securePreferences.getData(key: .devicePublicKey) {
+           let publicKey = try securePreferences.getData(key: .devicePublicKey)
+        {
             return (privateKey, publicKey)
         }
         let keyPair = DeviceKeyPair()
@@ -53,7 +53,7 @@ public struct DeviceService: DeviceServiceable {
         return (privateKey, publicKey)
     }
 
-    public func update() async throws  {
+    public func update() async throws {
         try await synchronizeDevice()
         try? await updateNodeAuthTokenIfNeeded()
     }
@@ -78,19 +78,19 @@ public struct DeviceService: DeviceServiceable {
     }
 
     private func updateDevice() async throws {
-        let deviceId = try self.getOrCreateDeviceId()
-        var device = try await self.getOrCreateDevice(deviceId)
-        let localDevice = try await self.currentDevice(deviceId: deviceId)
+        let deviceId = try getOrCreateDeviceId()
+        var device = try await getOrCreateDevice(deviceId)
+        let localDevice = try await currentDevice(deviceId: deviceId)
 
-        let needsSubscriptionUpdate = device.subscriptionsVersion != localDevice.subscriptionsVersion || self.preferences.subscriptionsVersionHasChange
+        let needsSubscriptionUpdate = device.subscriptionsVersion != localDevice.subscriptionsVersion || preferences.subscriptionsVersionHasChange
         let needsDeviceUpdate = device != localDevice
 
         if needsSubscriptionUpdate {
-            try await self.subscriptionsService.update()
+            try await subscriptionsService.update()
         }
 
         if needsSubscriptionUpdate || needsDeviceUpdate {
-            device = try await self.updateDevice(localDevice)
+            device = try await updateDevice(localDevice)
         }
     }
 
@@ -108,7 +108,7 @@ public struct DeviceService: DeviceServiceable {
         let remainingTime = token.expiresAt > now ? token.expiresAt - now : 0
         return remainingTime < UInt64(Self.nodeAuthTokenUpdateInterval.components.seconds)
     }
-    
+
     private func getOrCreateDevice(_ deviceId: String) async throws -> Device {
         var shouldFetchDevice = preferences.isDeviceRegistered
         if !shouldFetchDevice {
@@ -128,7 +128,7 @@ public struct DeviceService: DeviceServiceable {
         preferences.isDeviceRegistered = true
         return result
     }
-    
+
     private func getOrCreateDeviceId() throws -> String {
         try Self.getOrCreateDeviceId(securePreferences: securePreferences)
     }
@@ -140,8 +140,8 @@ public struct DeviceService: DeviceServiceable {
 
     private var isReadyForWalletRequest: Bool {
         preferences.isDeviceRegistered
-        && !preferences.subscriptionsVersionHasChange
-        && hasMigratedDeviceId
+            && !preferences.subscriptionsVersionHasChange
+            && hasMigratedDeviceId
     }
 
     private var hasMigratedDeviceId: Bool {
@@ -161,16 +161,16 @@ public struct DeviceService: DeviceServiceable {
     @MainActor
     private func currentDevice(
         deviceId: String,
-        ignoreSubscriptionsVersion: Bool = false
+        ignoreSubscriptionsVersion: Bool = false,
     ) throws -> Device {
         let deviceToken = try securePreferences.get(key: .deviceToken) ?? .empty
         let locale = Locale.current.usageLanguageIdentifier()
         #if targetEnvironment(simulator)
-        let platformStore = PlatformStore.local
+            let platformStore = PlatformStore.local
         #else
-        let platformStore = PlatformStore.appStore
+            let platformStore = PlatformStore.appStore
         #endif
-        
+
         return Device(
             id: deviceId,
             platform: .ios,
@@ -183,7 +183,7 @@ public struct DeviceService: DeviceServiceable {
             currency: preferences.currency,
             isPushEnabled: preferences.isPushNotificationsEnabled,
             isPriceAlertsEnabled: preferences.isPriceAlertsEnabled,
-            subscriptionsVersion: ignoreSubscriptionsVersion ? 0 : preferences.subscriptionsVersion.asInt32
+            subscriptionsVersion: ignoreSubscriptionsVersion ? 0 : preferences.subscriptionsVersion.asInt32,
         )
     }
 

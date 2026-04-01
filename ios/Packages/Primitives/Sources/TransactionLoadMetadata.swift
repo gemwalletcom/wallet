@@ -14,7 +14,7 @@ public struct HyperliquidOrder: Sendable {
         approveBuilderRequired: Bool,
         builderFeeBps: UInt32,
         agentAddress: String,
-        agentPrivateKey: String
+        agentPrivateKey: String,
     ) {
         self.approveAgentRequired = approveAgentRequired
         self.approveReferralRequired = approveReferralRequired
@@ -31,17 +31,17 @@ public enum TransactionLoadMetadata: Sendable {
         senderTokenAddress: String?,
         recipientTokenAddress: String?,
         tokenProgram: SolanaTokenProgramId?,
-        blockHash: String
+        blockHash: String,
     )
     case ton(
         senderTokenAddress: String?,
         recipientTokenAddress: String?,
-        sequence: UInt64
+        sequence: UInt64,
     )
     case cosmos(
         accountNumber: UInt64,
         sequence: UInt64,
-        chainId: String
+        chainId: String,
     )
     case bitcoin(utxos: [UTXO])
     case zcash(utxos: [UTXO], branchId: String)
@@ -49,14 +49,14 @@ public enum TransactionLoadMetadata: Sendable {
     case evm(nonce: UInt64, chainId: UInt64, contractCall: ContractCallData? = nil)
     case near(
         sequence: UInt64,
-        blockHash: String
+        blockHash: String,
     )
     case stellar(sequence: UInt64, isDestinationAddressExist: Bool)
     case xrp(sequence: UInt64, blockNumber: UInt64)
     case algorand(
         sequence: UInt64,
         blockHash: String,
-        chainId: String
+        chainId: String,
     )
     case aptos(sequence: UInt64, data: String? = nil)
     case polkadot(
@@ -66,7 +66,7 @@ public enum TransactionLoadMetadata: Sendable {
         blockNumber: UInt64,
         specVersion: UInt64,
         transactionVersion: UInt64,
-        period: UInt64
+        period: UInt64,
     )
     case tron(
         blockNumber: UInt64,
@@ -75,7 +75,7 @@ public enum TransactionLoadMetadata: Sendable {
         transactionTreeRoot: String,
         parentHash: String,
         witnessAddress: String,
-        stakeData: TronStakeData
+        stakeData: TronStakeData,
     )
     case sui(messageBytes: String)
     case hyperliquid(order: HyperliquidOrder?)
@@ -187,7 +187,7 @@ public extension TransactionLoadMetadata {
         case let .aptos(_, data): data
         default: .none
         }
-        guard let data = data else {
+        guard let data else {
             throw AnyError("Data not available for this metadata type")
         }
         return data

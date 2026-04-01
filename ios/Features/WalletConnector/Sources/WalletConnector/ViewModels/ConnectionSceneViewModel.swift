@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import ConnectionsService
+import Formatters
 import Foundation
 import Localization
 import Primitives
-import Formatters
-import ConnectionsService
 
 public struct ConnectionSceneViewModel: Sendable {
     private static let dateFormatter = RelativeDateFormatter()
@@ -15,6 +15,7 @@ public struct ConnectionSceneViewModel: Sendable {
     var title: String {
         Localized.WalletConnect.Connection.title
     }
+
     var disconnectTitle: String { Localized.WalletConnect.disconnect }
 
     var walletField: String { Localized.Common.wallet }
@@ -29,4 +30,3 @@ public struct ConnectionSceneViewModel: Sendable {
         try await service.disconnect(session: model.connection.session)
     }
 }
-

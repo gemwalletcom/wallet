@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct BannersRequest: DatabaseQueryable {
-
     public var walletId: WalletId?
 
     private let assetId: AssetId?
@@ -16,7 +15,7 @@ public struct BannersRequest: DatabaseQueryable {
         walletId: WalletId?,
         assetId: AssetId?,
         chain: Chain?,
-        events: [BannerEvent]
+        events: [BannerEvent],
     ) {
         self.walletId = walletId
         self.assetId = assetId
@@ -29,7 +28,7 @@ public struct BannersRequest: DatabaseQueryable {
             .including(optional: BannerRecord.asset)
             .including(optional: BannerRecord.chain)
             .including(optional: BannerRecord.wallet)
-            .filter(events.map { $0.rawValue }.contains(BannerRecord.Columns.event))
+            .filter(events.map(\.rawValue).contains(BannerRecord.Columns.event))
             .filter(BannerRecord.Columns.state != BannerState.cancelled.rawValue)
             .asRequest(of: BannerInfo.self)
 

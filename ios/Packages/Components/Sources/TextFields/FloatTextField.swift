@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct FloatFieldStyle {
     public let placeholderScale: CGFloat
@@ -11,7 +11,7 @@ public struct FloatFieldStyle {
     public init(
         placeholderScale: CGFloat,
         placeholderColor: Color,
-        activePlaceholderColor: Color
+        activePlaceholderColor: Color,
     ) {
         self.placeholderScale = placeholderScale
         self.activePlaceholderColor = activePlaceholderColor
@@ -22,7 +22,7 @@ public struct FloatFieldStyle {
         FloatFieldStyle(
             placeholderScale: 0.8,
             placeholderColor: Colors.gray,
-            activePlaceholderColor: Colors.grayLight
+            activePlaceholderColor: Colors.grayLight,
         )
     }
 }
@@ -43,7 +43,7 @@ public struct FloatTextField<TrailingView: View>: View {
         style: FloatFieldStyle = .standard,
         allowClean: Bool = true,
         onClean: (() -> Void)? = nil,
-        @ViewBuilder trailingView: () -> TrailingView
+        @ViewBuilder trailingView: () -> TrailingView,
     ) {
         _text = text
         self.placeholder = placeholder
@@ -52,13 +52,13 @@ public struct FloatTextField<TrailingView: View>: View {
         self.onClean = onClean
         self.trailingView = trailingView()
     }
-    
+
     public init(
         _ placeholder: String,
         text: Binding<String>,
         style: FloatFieldStyle = .standard,
         allowClean: Bool = true,
-        onClean: (() -> Void)? = nil
+        onClean: (() -> Void)? = nil,
     ) where TrailingView == EmptyView {
         self.init(
             placeholder,
@@ -66,7 +66,7 @@ public struct FloatTextField<TrailingView: View>: View {
             style: style,
             allowClean: allowClean,
             onClean: onClean,
-            trailingView: { EmptyView() }
+            trailingView: { EmptyView() },
         )
     }
 }
@@ -114,8 +114,8 @@ extension FloatTextField {
             .textStyle(
                 TextStyle(
                     font: text.isEmpty ? .body : .body.weight(.semibold),
-                    color: text.isEmpty ? style.placeholderColor : style.activePlaceholderColor
-                )
+                    color: text.isEmpty ? style.placeholderColor : style.activePlaceholderColor,
+                ),
             )
             .lineLimit(1)
             .scaleEffect(text.isEmpty ? 1 : style.placeholderScale, anchor: .leading)
@@ -150,12 +150,12 @@ extension FloatTextField {
         VStack(spacing: .medium) {
             FloatTextField(
                 "Enter your text",
-                text: .constant("")
+                text: .constant(""),
             )
 
             FloatTextField(
                 "Enter your text",
-                text: .constant("Some text")
+                text: .constant("Some text"),
             )
 
             FloatTextField(
@@ -164,8 +164,8 @@ extension FloatTextField {
                 style: FloatFieldStyle(
                     placeholderScale: 0.9,
                     placeholderColor: .orange,
-                    activePlaceholderColor: .red
-                )
+                    activePlaceholderColor: .red,
+                ),
             )
 
             FloatTextField(
@@ -174,8 +174,8 @@ extension FloatTextField {
                 style: FloatFieldStyle(
                     placeholderScale: 0.75,
                     placeholderColor: .blue,
-                    activePlaceholderColor: .green
-                )
+                    activePlaceholderColor: .green,
+                ),
             ) {
                 Button(action: { print("Show Password") }) {
                     Image(systemName: "eye.slash")
@@ -185,7 +185,7 @@ extension FloatTextField {
 
             FloatTextField(
                 "Enter your username",
-                text: .constant("JohnDoe")
+                text: .constant("JohnDoe"),
             ) {
                 HStack {
                     Button(action: { print("Clear") }) {
@@ -201,7 +201,7 @@ extension FloatTextField {
 
             FloatTextField(
                 "Enter your phone number",
-                text: .constant("")
+                text: .constant(""),
             ) {
                 Button(action: { print("Select Country Code") }) {
                     Image(systemName: "flag.fill")

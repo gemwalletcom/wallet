@@ -12,7 +12,7 @@ public extension PerpetualTransferData {
         assetIndex: Int = 0,
         price: Double = 100.0,
         leverage: UInt8 = 3,
-        marginType: PerpetualMarginType = .cross
+        marginType: PerpetualMarginType = .cross,
     ) -> PerpetualTransferData {
         PerpetualTransferData(
             provider: provider,
@@ -22,7 +22,7 @@ public extension PerpetualTransferData {
             assetIndex: assetIndex,
             price: price,
             leverage: leverage,
-            marginType: marginType
+            marginType: marginType,
         )
     }
 }

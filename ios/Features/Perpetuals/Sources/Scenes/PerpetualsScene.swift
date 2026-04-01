@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import Style
-import Store
 import PerpetualService
-import PrimitivesComponents
 import Preferences
+import Primitives
+import PrimitivesComponents
 import Recents
+import Store
+import Style
+import SwiftUI
 
 struct PerpetualsScene: View {
     @Bindable private var model: PerpetualsSceneViewModel
@@ -21,12 +21,12 @@ struct PerpetualsScene: View {
         SearchableWrapper(
             content: { list },
             isSearching: $model.isSearching,
-            dismissSearch: .constant(false)
+            dismissSearch: .constant(false),
         )
         .searchable(
             text: $model.searchQuery,
             isPresented: $model.isSearchPresented,
-            placement: .navigationBarDrawer(displayMode: .automatic)
+            placement: .navigationBarDrawer(displayMode: .automatic),
         )
         .onChange(of: model.searchQuery, model.onSearchQueryChange)
         .onChange(of: model.isSearchPresented, model.onSearchPresentedChange)
@@ -61,16 +61,16 @@ struct PerpetualsScene: View {
                     types: model.recentsQuery.request.types,
                     filters: model.recentsQuery.request.filters,
                     activityService: model.activityService,
-                    onSelect: model.onSelectRecent
-                )
+                    onSelect: model.onSelectRecent,
+                ),
             )
         }
         .sheet(isPresented: $model.isPresentingPortfolio) {
             PerpetualPortfolioScene(
                 model: PerpetualPortfolioSceneViewModel(
                     wallet: model.wallet,
-                    perpetualService: model.perpetualService
-                )
+                    perpetualService: model.perpetualService,
+                ),
             )
         }
     }
@@ -78,13 +78,13 @@ struct PerpetualsScene: View {
     var list: some View {
         List {
             if !model.isSearching {
-                Section { } header: {
+                Section {} header: {
                     WalletHeaderView(
                         model: model.headerViewModel,
                         isPrivacyEnabled: .constant(false),
                         balanceActionType: .action(model.onSelectBalance),
                         onHeaderAction: model.onSelectHeaderAction,
-                        onInfoAction: .none
+                        onInfoAction: .none,
                     )
                     .padding(.top, Spacing.small)
                 }
@@ -94,7 +94,7 @@ struct PerpetualsScene: View {
             if model.showRecents {
                 RecentActivitySectionView(
                     models: model.recentModels,
-                    onSelectRecents: model.onSelectRecents
+                    onSelectRecents: model.onSelectRecents,
                 ) { assetModel in
                     Button {
                         model.onSelectRecent(asset: assetModel.asset)
@@ -108,7 +108,7 @@ struct PerpetualsScene: View {
                 Section {
                     PerpetualPositionsList(
                         positions: model.positions,
-                        onSelect: model.onSelectPerpetual
+                        onSelect: model.onSelectPerpetual,
                     )
                 } header: {
                     Text(model.positionsSectionTitle)
@@ -121,7 +121,7 @@ struct PerpetualsScene: View {
                     PerpetualSectionView(
                         perpetuals: model.sections.pinned,
                         onPin: model.onPinPerpetual,
-                        onSelect: model.onSelectPerpetual
+                        onSelect: model.onSelectPerpetual,
                     )
                 } header: {
                     HStack {
@@ -138,7 +138,7 @@ struct PerpetualsScene: View {
                         perpetuals: model.sections.markets,
                         onPin: model.onPinPerpetual,
                         onSelect: model.onSelectPerpetual,
-                        emptyText: model.noMarketsText
+                        emptyText: model.noMarketsText,
                     )
                 } header: {
                     Text(model.marketsSectionTitle)

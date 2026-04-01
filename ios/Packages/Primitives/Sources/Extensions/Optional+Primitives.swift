@@ -9,7 +9,7 @@ public extension Optional {
         }
         return value
     }
-    
+
     func or(_ defaultValue: Wrapped) -> Wrapped {
         self ?? defaultValue
     }

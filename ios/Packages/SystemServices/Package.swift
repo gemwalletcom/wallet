@@ -6,10 +6,10 @@ let package = Package(
     name: "SystemServices",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
-        .library(name: "ImageGalleryService", targets: ["ImageGalleryService"])
+        .library(name: "ImageGalleryService", targets: ["ImageGalleryService"]),
     ],
     dependencies: [],
     targets: [
@@ -17,7 +17,7 @@ let package = Package(
             name: "ImageGalleryService",
             dependencies: [],
             path: "ImageGalleryService",
-            exclude: ["Tests", "TestKit"]
-        )
-    ]
+            exclude: ["Tests", "TestKit"],
+        ),
+    ],
 )

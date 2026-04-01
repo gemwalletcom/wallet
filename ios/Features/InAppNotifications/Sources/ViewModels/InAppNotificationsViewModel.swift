@@ -20,11 +20,11 @@ public final class InAppNotificationsViewModel {
 
     public init(
         wallet: Wallet,
-        notificationService: InAppNotificationService
+        notificationService: InAppNotificationService,
     ) {
         self.wallet = wallet
         self.notificationService = notificationService
-        self.query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id), initialValue: [])
+        query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id), initialValue: [])
     }
 
     public var title: String { Localized.Settings.Notifications.title }
@@ -37,7 +37,7 @@ public final class InAppNotificationsViewModel {
         DateSectionBuilder(
             items: notifications,
             dateKeyPath: \.createdAt,
-            transform: { InAppNotificationListItemViewModel(notification: $0) }
+            transform: { InAppNotificationListItemViewModel(notification: $0) },
         ).build()
     }
 
@@ -48,8 +48,8 @@ public final class InAppNotificationsViewModel {
 
 // MARK: - Actions
 
-extension InAppNotificationsViewModel {
-    public func fetch() async {
+public extension InAppNotificationsViewModel {
+    func fetch() async {
         do {
             try await notificationService.update(walletId: wallet.walletId)
             if hasUnreadNotifications {
@@ -68,7 +68,7 @@ extension InAppNotificationsViewModel {
         }
     }
 
-    public func open(url: URL) {
+    func open(url: URL) {
         UIApplication.shared.open(url)
     }
 }

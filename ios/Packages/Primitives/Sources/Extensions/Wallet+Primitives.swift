@@ -10,11 +10,11 @@ public extension Wallet {
     }
 
     var isViewOnly: Bool {
-        return type == .view
+        type == .view
     }
 
     var isMultiCoins: Bool {
-        return type == .multicoin
+        type == .multicoin
     }
 
     var walletId: WalletId {
@@ -27,7 +27,7 @@ public extension Wallet {
     }
 
     var hasTokenSupport: Bool {
-        accounts.map { $0.chain }.asSet().intersection(AssetConfiguration.supportedChainsWithTokens).isNotEmpty
+        accounts.map(\.chain).asSet().intersection(AssetConfiguration.supportedChainsWithTokens).isNotEmpty
     }
 
     func account(for chain: Chain) throws -> Account {
@@ -59,13 +59,13 @@ public extension Wallet {
                     chain: chain,
                     address: address,
                     derivationPath: "",
-                    extendedPublicKey: ""
+                    extendedPublicKey: "",
                 ),
             ],
             order: 0,
             isPinned: false,
             imageUrl: nil,
-            source: .import
+            source: .import,
         )
     }
 }

@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "Contacts",
-            targets: ["Contacts"]),
+            targets: ["Contacts"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -21,7 +22,6 @@ let package = Package(
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Validators", path: "../../Packages/Validators"),
-        .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "QRScanner", path: "../../Packages/QRScanner"),
@@ -39,14 +39,13 @@ let package = Package(
                 "Style",
                 "Store",
                 "Validators",
-                "Formatters",
                 "GemstonePrimitives",
                 "QRScanner",
                 .product(name: "ContactService", package: "FeatureServices"),
                 .product(name: "WalletCorePrimitives", package: "WalletCore"),
                 .product(name: "NameService", package: "ChainServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "ContactsTests",
@@ -58,7 +57,7 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "ContactService", package: "FeatureServices"),
                 .product(name: "NameServiceTestKit", package: "ChainServices"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

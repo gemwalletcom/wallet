@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
-import Store
 import Localization
+import Primitives
 import PrimitivesComponents
+import Store
 
 @Observable
 @MainActor
@@ -15,6 +15,7 @@ public final class TransactionsFilterViewModel {
     public var chainsFilter: ChainsFilterViewModel {
         didSet { query.request.filters = requestFilters }
     }
+
     public var transactionTypesFilter: TransactionTypesFilterViewModel {
         didSet { query.request.filters = requestFilters }
     }
@@ -22,7 +23,7 @@ public final class TransactionsFilterViewModel {
     public let query: ObservableQuery<TransactionsRequest>
 
     private static let excludeTransactionTypes: [TransactionType] = [.perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition]
-    private let transactionTypes = TransactionType.allCases.filter( { !excludeTransactionTypes.contains($0) })
+    private let transactionTypes = TransactionType.allCases.filter { !excludeTransactionTypes.contains($0) }
 
     private let defaultFilters: [TransactionsRequestFilter] = [
         .assetRankGreaterThan(AssetScore.defaultScore),
@@ -33,20 +34,20 @@ public final class TransactionsFilterViewModel {
 
     public init(
         wallet: Wallet,
-        type: TransactionsRequestType
+        type: TransactionsRequestType,
     ) {
         self.wallet = wallet
         self.type = type
 
-        self.chainsFilter = ChainsFilterViewModel(chains: wallet.chains)
-        self.transactionTypesFilter = TransactionTypesFilterViewModel(types: TransactionType.allCases)
+        chainsFilter = ChainsFilterViewModel(chains: wallet.chains)
+        transactionTypesFilter = TransactionTypesFilterViewModel(types: TransactionType.allCases)
 
         let request = TransactionsRequest(
             walletId: wallet.walletId,
             type: type,
-            filters: defaultFilters + [.types(transactionTypes.map { $0.rawValue })]
+            filters: defaultFilters + [.types(transactionTypes.map(\.rawValue))],
         )
-        self.query = ObservableQuery(request, initialValue: [])
+        query = ObservableQuery(request, initialValue: [])
     }
 
     public var isAnyFilterSpecified: Bool {
@@ -61,7 +62,7 @@ public final class TransactionsFilterViewModel {
         NetworkSelectorViewModel(
             state: .data(.plain(chainsFilter.allChains)),
             selectedItems: chainsFilter.selectedChains,
-            selectionType: .multiSelection
+            selectionType: .multiSelection,
         )
     }
 
@@ -69,30 +70,31 @@ public final class TransactionsFilterViewModel {
         TransactionTypesSelectorViewModel(
             state: .data(.plain(transactionTypesFilter.allTransactionsTypes)),
             selectedItems: transactionTypesFilter.selectedTypes,
-            selectionType: .multiSelection
+            selectionType: .multiSelection,
         )
     }
-    
+
     private var requestFilters: [TransactionsRequestFilter] {
         var filters: [TransactionsRequestFilter] = defaultFilters
-        
+
         if !chainsFilter.selectedChains.isEmpty {
-            let chainIds = chainsFilter.selectedChains.map { $0.rawValue }
+            let chainIds = chainsFilter.selectedChains.map(\.rawValue)
             filters.append(.chains(chainIds))
         }
-        
+
         if !transactionTypesFilter.selectedTypes.isEmpty {
-            let typeIds = transactionTypesFilter.requestFilters.map { $0.rawValue }
+            let typeIds = transactionTypesFilter.requestFilters.map(\.rawValue)
             filters.append(.types(typeIds))
         } else {
-            filters.append(.types(transactionTypes.map { $0.rawValue }))
+            filters.append(.types(transactionTypes.map(\.rawValue)))
         }
-        
+
         return filters
     }
 }
 
 // MARK: - Actions
+
 extension TransactionsFilterViewModel {
     func onSelectChainsFilter() {
         isPresentingChains = true

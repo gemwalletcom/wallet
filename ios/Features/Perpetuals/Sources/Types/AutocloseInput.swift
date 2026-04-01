@@ -12,17 +12,17 @@ struct AutocloseInput {
     var focusField: AutocloseScene.Field?
 
     init(type: AutocloseType, takeProfitText: String?, stopLossText: String?) {
-        self.takeProfit = InputValidationViewModel(
+        takeProfit = InputValidationViewModel(
             mode: .manual,
-            validators: [AutocloseValidator(type: .takeProfit, marketPrice: type.marketPrice, direction: type.direction)]
+            validators: [AutocloseValidator(type: .takeProfit, marketPrice: type.marketPrice, direction: type.direction)],
         )
-        self.stopLoss = InputValidationViewModel(
+        stopLoss = InputValidationViewModel(
             mode: .manual,
-            validators: [AutocloseValidator(type: .stopLoss, marketPrice: type.marketPrice, direction: type.direction)]
+            validators: [AutocloseValidator(type: .stopLoss, marketPrice: type.marketPrice, direction: type.direction)],
         )
 
-        takeProfitText.map { self.takeProfit.text = $0 }
-        stopLossText.map { self.stopLoss.text = $0 }
+        takeProfitText.map { takeProfit.text = $0 }
+        stopLossText.map { stopLoss.text = $0 }
     }
 
     var focused: InputValidationViewModel? {
@@ -46,7 +46,7 @@ struct AutocloseInput {
         price: Double?,
         originalPrice: Double?,
         formattedPrice: String?,
-        orderId: UInt64?
+        orderId: UInt64?,
     ) -> AutocloseField {
         let input = type == .takeProfit ? takeProfit : stopLoss
         return AutocloseField(
@@ -54,7 +54,7 @@ struct AutocloseInput {
             originalPrice: originalPrice,
             formattedPrice: formattedPrice,
             isValid: price != nil && input.isValid,
-            orderId: orderId
+            orderId: orderId,
         )
     }
 

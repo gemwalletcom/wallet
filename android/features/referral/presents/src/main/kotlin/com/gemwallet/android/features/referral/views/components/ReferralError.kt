@@ -22,7 +22,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
-import com.gemwallet.android.ui.theme.trailingIconSmall
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.ReferralAllowance
 import com.wallet.core.primitives.ReferralQuota
 import com.wallet.core.primitives.RewardStatus
@@ -41,7 +41,7 @@ internal fun LazyListScope.referralError(rewards: Rewards) {
                 text = R.string.errors_error_occured,
                 trailing = {
                     Icon(
-                        modifier = Modifier.size(trailingIconSmall),
+                        modifier = Modifier.size(tinyIconSize),
                         imageVector = Icons.Default.WarningAmber,
                         tint = MaterialTheme.colorScheme.error,
                         contentDescription = "",

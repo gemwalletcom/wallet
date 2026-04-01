@@ -14,7 +14,7 @@ public struct TransactionStateRequest: Sendable {
         senderAddress: String,
         recipientAddress: String,
         block: Int,
-        createdAt: Date
+        createdAt: Date,
     ) {
         self.id = id
         self.senderAddress = senderAddress

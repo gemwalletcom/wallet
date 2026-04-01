@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
-import Style
 import Components
-import Localization
 import Formatters
+import Foundation
+import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public struct AssetDataViewModel: Sendable {
     private let assetData: AssetData
@@ -19,18 +19,18 @@ public struct AssetDataViewModel: Sendable {
         assetData: AssetData,
         formatter: ValueFormatter,
         currencyCode: String,
-        currencyFormatterType: CurrencyFormatterType = .abbreviated
+        currencyFormatterType: CurrencyFormatterType = .abbreviated,
     ) {
         self.assetData = assetData
-        self.priceViewModel = PriceViewModel(
+        priceViewModel = PriceViewModel(
             price: assetData.price,
             currencyCode: currencyCode,
-            currencyFormatterType: currencyFormatterType
+            currencyFormatterType: currencyFormatterType,
         )
-        self.balanceViewModel = BalanceViewModel(
+        balanceViewModel = BalanceViewModel(
             asset: assetData.asset,
             balance: assetData.balance,
-            formatter: formatter
+            formatter: formatter,
         )
         self.currencyCode = currencyCode
     }
@@ -139,7 +139,7 @@ public struct AssetDataViewModel: Sendable {
         let value = balanceViewModel.balanceAmount * price.price
         return CurrencyFormatter(
             type: .currency,
-            currencyCode: currencyCode
+            currencyCode: currencyCode,
         ).string(value)
     }
 
@@ -173,11 +173,11 @@ public struct AssetDataViewModel: Sendable {
         case .earn: assetData.metadata.earnApr
         }
     }
-    
+
     public var isPriceAlertsEnabled: Bool {
         assetData.isPriceAlertsEnabled
     }
-    
+
     public var assetAddress: AssetAddress {
         assetData.assetAddress
     }

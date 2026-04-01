@@ -4,12 +4,12 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPerpetualBalance {
-    public func map() -> PerpetualBalance {
+public extension GemPerpetualBalance {
+    func map() -> PerpetualBalance {
         PerpetualBalance(
             available: available,
             reserved: reserved,
-            withdrawable: withdrawable
+            withdrawable: withdrawable,
         )
     }
 }

@@ -6,11 +6,11 @@ import Primitives
 public extension PerpetualReduceData {
     static func mock(
         data: PerpetualConfirmData = .mock(),
-        positionDirection: PerpetualDirection = .long
+        positionDirection: PerpetualDirection = .long,
     ) -> PerpetualReduceData {
         PerpetualReduceData(
             data: data,
-            positionDirection: positionDirection
+            positionDirection: positionDirection,
         )
     }
 }

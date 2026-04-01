@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import PrimitivesComponents
 import Store
 import Style
-import PrimitivesComponents
+import SwiftUI
 
 public struct FiatTransactionsScene: View {
     @State private var model: FiatTransactionsViewModel
@@ -27,7 +27,7 @@ public struct FiatTransactionsScene: View {
                         } else {
                             NavigationCustomLink(
                                 with: ListItemView(model: viewModel.listItemModel),
-                                action: {}
+                                action: {},
                             )
                         }
                     }

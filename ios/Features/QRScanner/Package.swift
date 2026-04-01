@@ -5,11 +5,12 @@ import PackageDescription
 let package = Package(
     name: "QRScanner",
     platforms: [.iOS(.v17),
-        .macOS(.v15)],
+                .macOS(.v15)],
     products: [
         .library(
             name: "QRScanner",
-            targets: ["QRScanner"]),
+            targets: ["QRScanner"],
+        ),
     ],
     dependencies: [
         .package(name: "Components", path: "../../Packages/Components"),
@@ -20,9 +21,9 @@ let package = Package(
             name: "QRScanner",
             dependencies: [
                 "Components",
-                "Localization"
+                "Localization",
             ],
-            path: "Sources"
-        )
-    ]
+            path: "Sources",
+        ),
+    ],
 )

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import GemstonePrimitives
 import enum Gemstone.SocialUrl
+import GemstonePrimitives
+import Primitives
+import Testing
 
 @testable import PrimitivesComponents
 
@@ -24,8 +24,8 @@ extension DeepLinkViewModel {
         return DeepLinkViewModel(
             AssetLink(
                 name: url.linkType.rawValue,
-                url: socialUrl.absoluteString
-            )
+                url: socialUrl.absoluteString,
+            ),
         )
     }
 }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Localization
+import SwiftUI
 
 public struct AssetStatusView: View {
     private let model: AssetScoreTypeViewModel
@@ -10,7 +10,7 @@ public struct AssetStatusView: View {
 
     public init(
         model: AssetScoreTypeViewModel,
-        action: @escaping () -> Void
+        action: @escaping () -> Void,
     ) {
         self.model = model
         self.action = action
@@ -23,10 +23,9 @@ public struct AssetStatusView: View {
                 subtitle: model.status,
                 subtitleStyle: model.statusStyle,
                 assetImage: model.assetImage,
-                infoAction: action
-            )
-        ) {
-            action()
-        }
+                infoAction: action,
+            )) {
+                action()
+            }
     }
 }

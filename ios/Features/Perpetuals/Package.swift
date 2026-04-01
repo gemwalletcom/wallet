@@ -6,15 +6,17 @@ let package = Package(
     name: "Perpetuals",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Perpetuals",
-            targets: ["Perpetuals"]),
+            targets: ["Perpetuals"],
+        ),
         .library(
             name: "PerpetualsTestKit",
-            targets: ["PerpetualsTestKit"]),
+            targets: ["PerpetualsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -49,9 +51,9 @@ let package = Package(
                 "Preferences",
                 "InfoSheet",
                 .product(name: "ExplorerService", package: "ChainServices"),
-                "Recents"
+                "Recents",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "PerpetualsTestKit",
@@ -66,7 +68,7 @@ let package = Package(
                 .product(name: "ActivityService", package: "FeatureServices"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "PerpetualsTests",
@@ -75,8 +77,8 @@ let package = Package(
                 "PerpetualsTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "Tests"
+            path: "Tests",
         ),
     ],
-    swiftLanguageModes: [.v6]
+    swiftLanguageModes: [.v6],
 )

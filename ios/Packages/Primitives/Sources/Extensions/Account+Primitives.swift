@@ -4,7 +4,6 @@ import Foundation
 
 extension Account: Identifiable {
     public var id: String {
-        return "\(chain)\(address)"
+        "\(chain)\(address)"
     }
 }
-

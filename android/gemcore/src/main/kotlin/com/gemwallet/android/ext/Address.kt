@@ -1,20 +1,11 @@
 package com.gemwallet.android.ext
 
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAddressFormatStyle
+import uniffi.gemstone.formatAddress
+
 fun String.getAddressEllipsisText(
-    maxLength: Int = 8,
-    ellipsisChar: Char = '.',
-    ellipsisLength: Int = 3,
+    chain: Chain? = null,
 ): String {
-    val half = maxLength / 2
-    return if (length <= 8 + ellipsisLength) {
-        this
-    } else {
-        val left = substring(0, half + if ("0x" == substring(0, 2)) 2 else 0)
-        val right = substring(length - half)
-        val ellipsis = StringBuilder()
-        for (i in 0..ellipsisLength) {
-            ellipsis.append(ellipsisChar)
-        }
-        "$left$ellipsis$right"
-    }
+    return formatAddress(this, chain?.string, GemAddressFormatStyle.Short)
 }

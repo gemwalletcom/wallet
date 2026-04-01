@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
-import Style
+import Foundation
 import Localization
+import Style
 
 protocol SecurityReminderViewModel {
     var title: String { get }
@@ -11,6 +11,6 @@ protocol SecurityReminderViewModel {
     var items: [SecurityReminderItem] { get set }
     var buttonTitle: String { get }
     var docsUrl: URL { get }
-    
+
     var onNext: () -> Void { get }
 }

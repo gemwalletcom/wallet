@@ -3,7 +3,6 @@ package com.gemwallet.android.features.bridge.views
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -31,6 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.getShortUrl
+import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.clipboard.getPlainText
@@ -42,13 +43,10 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
-import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.launch
 import uniffi.gemstone.Config
 import uniffi.gemstone.DocsUrl
-import java.text.DateFormat
-import java.util.Date
 
 @Composable
 fun ConnectionsScene(
@@ -131,33 +129,17 @@ fun ConnectionItem(
     listPosition: ListPosition,
     onClick: ((String) -> Unit)? = null,
 ) {
-    ConnectionItem(
-        SessionUI(
-            icon = connection.session.metadata.icon,
-            name = connection.session.metadata.name,
-            uri = connection.session.metadata.url,
-            id = connection.session.id,
-            expire = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(connection.session.expireAt)),
-        ),
-        listPosition,
-        onClick,
-    )
-}
-
-@Composable
-fun ConnectionItem(
-    connection: SessionUI,
-    listPosition: ListPosition,
-    onClick: ((String) -> Unit)? = null,
-) {
     ListItem(
-        modifier = (if (onClick == null) Modifier else Modifier.clickable { onClick(connection.id) })
-            .heightIn(72.dp),
+        modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(connection.session.id) },
         leading = {
-            IconWithBadge(connection.icon, placeholder = if (connection.name.isEmpty()) "WC" else connection.name[0].toString())
+            val name = connection.session.metadata.shortName
+            IconWithBadge(
+                connection.session.metadata.icon,
+                placeholder = if (name.isEmpty()) "WC" else name[0].toString()
+            )
         },
-        title = { ListItemTitleText(connection.name) },
-        subtitle = { ListItemSupportText(connection.uri) },
+        title = { ListItemTitleText(connection.session.metadata.shortName) },
+        subtitle = { ListItemSupportText(connection.session.metadata.url.getShortUrl() ?: connection.session.metadata.url) },
         listPosition = listPosition
     )
 }

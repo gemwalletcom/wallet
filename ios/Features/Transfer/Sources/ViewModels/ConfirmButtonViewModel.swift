@@ -17,7 +17,7 @@ struct ConfirmButtonViewModel: StateButtonViewable {
         state: StateViewType<TransactionInputViewModel>,
         icon: Image?,
         isDisabled: Bool = false,
-        onAction: @MainActor @Sendable @escaping () -> Void
+        onAction: @MainActor @Sendable @escaping () -> Void,
     ) {
         self.state = state
         self.icon = icon

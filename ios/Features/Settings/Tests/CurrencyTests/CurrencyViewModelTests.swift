@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import Primitives
 @testable import Settings
+import Testing
 
 struct CurrencyViewModelTests {
     @Test
-    func testUSTitle() {
+    func uSTitle() {
         let currency = Currency(rawValue: "USD")!
         let viewModel = CurrencyViewModel(currency: currency)
         #expect(viewModel.title == "🇺🇸 USD - US Dollar")
     }
 
     @Test
-    func testEUROTitle() {
+    func eUROTitle() {
         let currency = Currency(rawValue: "EUR")!
         let viewModel = CurrencyViewModel(currency: currency)
         #expect(viewModel.title == "🇪🇺 EUR - Euro")

@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
-import SwiftUI
 import Primitives
 import Style
-import Formatters
-import Components
+import SwiftUI
 
 public struct PriceViewModel: Sendable {
     public let price: Price?
@@ -16,10 +16,10 @@ public struct PriceViewModel: Sendable {
     public init(
         price: Price?,
         currencyCode: String,
-        currencyFormatterType: CurrencyFormatterType = .abbreviated
+        currencyFormatterType: CurrencyFormatterType = .abbreviated,
     ) {
         self.price = price
-        self.currencyFormatter = CurrencyFormatter(type: currencyFormatterType, currencyCode: currencyCode)
+        currencyFormatter = CurrencyFormatter(type: currencyFormatterType, currencyCode: currencyCode)
     }
 
     public var isPriceAvailable: Bool {
@@ -28,7 +28,7 @@ public struct PriceViewModel: Sendable {
     }
 
     public var priceAmountText: String {
-        guard let price = price else { return "" }
+        guard let price else { return "" }
         return currencyFormatter.string(price.price)
     }
 
@@ -37,7 +37,7 @@ public struct PriceViewModel: Sendable {
     }
 
     public var priceChangeText: String {
-        guard let priceChange = priceChange else { return "" }
+        guard let priceChange else { return "" }
         return Self.percentFormatter.string(priceChange)
     }
 
@@ -46,7 +46,7 @@ public struct PriceViewModel: Sendable {
     }
 
     public static func priceChangeTextColor(value: Double?) -> Color {
-        guard let value = value else { return Colors.gray }
+        guard let value else { return Colors.gray }
         return PriceChangeColor.color(for: value)
     }
 

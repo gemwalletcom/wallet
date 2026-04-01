@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import Primitives
 import Style
 import SwiftUI
-import Localization
 
 struct LatencyViewModel: Sendable {
     private let latency: Latency
@@ -12,7 +12,7 @@ struct LatencyViewModel: Sendable {
     init(latency: Latency) {
         self.latency = latency
     }
-    
+
     var title: String {
         Localized.Common.latencyInMs(value)
     }

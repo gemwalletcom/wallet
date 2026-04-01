@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
 @testable import Perpetuals
+import Primitives
+import Testing
 
 struct AutocloseEstimatorTests {
-
     @Test
     func calculatePnLLong() {
         let estimator = AutocloseEstimator(entryPrice: 100.0, positionSize: 10.0, direction: .long, leverage: 5)

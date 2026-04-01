@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GemAPI
-import Keystore
 import Gemstone
 import GemstonePrimitives
+import Keystore
 import Preferences
+import Primitives
 
 public protocol AuthServiceable: Sendable {
     func getAuthPayload(wallet: Wallet) async throws -> AuthPayload
@@ -20,7 +20,7 @@ public struct AuthService: AuthServiceable, Sendable {
     public init(
         apiService: GemAPIAuthService = GemAPIService.shared,
         keystore: any Keystore,
-        securePreferences: SecurePreferences = SecurePreferences()
+        securePreferences: SecurePreferences = SecurePreferences(),
     ) {
         self.apiService = apiService
         self.keystore = keystore
@@ -41,7 +41,7 @@ public struct AuthService: AuthServiceable, Sendable {
             chain: chain,
             address: account.address,
             nonce: authNonce.nonce,
-            signature: signature.hexString.append0x
+            signature: signature.hexString.append0x,
         )
     }
 }

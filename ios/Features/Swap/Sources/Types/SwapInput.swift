@@ -11,5 +11,5 @@ public struct SwapInput: Identifiable {
         self.pairSelector = pairSelector
     }
 
-    public var id: String { "\(wallet.id)\(pairSelector.fromAssetId?.id ?? "")\(pairSelector.toAssetId?.id ?? "")"}
+    public var id: String { "\(wallet.id)\(pairSelector.fromAssetId?.id ?? "")\(pairSelector.toAssetId?.id ?? "")" }
 }

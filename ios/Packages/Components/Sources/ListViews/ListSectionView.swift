@@ -8,12 +8,12 @@ public struct ListSectionView<Item: Identifiable & Sendable, Content: View>: Vie
 
     public init(
         sections: [ListSection<Item>],
-        @ViewBuilder content: @escaping  (Item) -> Content
+        @ViewBuilder content: @escaping (Item) -> Content,
     ) {
         self.sections = sections
         self.content = content
     }
-    
+
     public var body: some View {
         List {
             ForEach(sections) { section in
@@ -26,7 +26,7 @@ public struct ListSectionView<Item: Identifiable & Sendable, Content: View>: Vie
                 Section {
                     sectionContent()
                 } header: {
-                    if section.title == nil && section.image == nil {
+                    if section.title == nil, section.image == nil {
                         EmptyView()
                     } else {
                         HStack {
@@ -49,7 +49,7 @@ public struct ListSectionView<Item: Identifiable & Sendable, Content: View>: Vie
 public extension ListSectionView {
     init<Provider: ListSectionProvideable>(
         provider: Provider,
-        @ViewBuilder content: @escaping (Provider.ItemModel) -> Content
+        @ViewBuilder content: @escaping (Provider.ItemModel) -> Content,
     ) where Item == Provider.Item {
         self.init(sections: provider.sections) { type in
             content(provider.item(for: type))

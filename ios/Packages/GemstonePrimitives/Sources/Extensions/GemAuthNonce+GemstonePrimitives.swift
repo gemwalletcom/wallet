@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Gemstone
+import Primitives
 
-extension AuthNonce {
-    public func map() -> GemAuthNonce {
+public extension AuthNonce {
+    func map() -> GemAuthNonce {
         GemAuthNonce(nonce: nonce, timestamp: timestamp)
     }
 }

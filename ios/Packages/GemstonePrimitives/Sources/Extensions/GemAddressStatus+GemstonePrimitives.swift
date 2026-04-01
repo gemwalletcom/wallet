@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import enum Gemstone.AddressStatus
+import Primitives
 
-extension Gemstone.AddressStatus {
-    public func map() -> Primitives.AddressStatus {
+public extension Gemstone.AddressStatus {
+    func map() -> Primitives.AddressStatus {
         switch self {
         case .multiSignature: .multiSignature
         }

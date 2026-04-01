@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import SwiftUI
 
 public protocol FilterTypeRepresentable {
     var value: String { get }

@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Formatters
 import Primitives
-import Style
 @testable import PrimitivesComponents
+import Style
+import Testing
 
 struct PnLViewModelTests {
-
     @Test
     func textPnL() {
         #expect(PnLViewModel.mock(pnl: 500, marginAmount: 1000).text == "+$500.00 (+50.00%)")
@@ -39,7 +38,7 @@ extension PnLViewModel {
             pnl: pnl,
             marginAmount: marginAmount,
             currencyFormatter: CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
-            percentFormatter: CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
+            percentFormatter: CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue),
         )
     }
 }

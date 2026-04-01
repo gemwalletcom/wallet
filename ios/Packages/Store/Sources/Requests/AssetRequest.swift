@@ -5,13 +5,12 @@ import GRDB
 import Primitives
 
 public struct AssetRequest: DatabaseQueryable {
-
     public var assetId: AssetId
     private let walletId: WalletId
 
     public init(
         walletId: WalletId,
-        assetId: AssetId
+        assetId: AssetId,
     ) {
         self.walletId = walletId
         self.assetId = assetId
@@ -28,7 +27,7 @@ public struct AssetRequest: DatabaseQueryable {
             .filter(AssetRecord.Columns.id == assetId.identifier)
             .asRequest(of: AssetRecordInfo.self)
             .fetchOne(db)
-            .map({ $0.assetData })
+            .map(\.assetData)
         else {
             throw AnyError("Asset not found: \(assetId.identifier)")
         }

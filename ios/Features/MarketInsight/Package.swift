@@ -11,11 +11,13 @@ let package = Package(
     products: [
         .library(
             name: "MarketInsight",
-            targets: ["MarketInsight"]),
+            targets: ["MarketInsight"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
@@ -31,6 +33,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Formatters",
+                "GemstonePrimitives",
                 "Localization",
                 "Store",
                 .product(name: "ExplorerService", package: "ChainServices"),
@@ -40,16 +43,16 @@ let package = Package(
                 .product(name: "PriceService", package: "FeatureServices"),
                 .product(name: "PriceAlertService", package: "FeatureServices"),
                 .product(name: "AssetsService", package: "FeatureServices"),
-                "InfoSheet"
+                "InfoSheet",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "MarketInsightTests",
             dependencies: [
                 "MarketInsight",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

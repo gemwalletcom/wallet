@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Preferences
+import Primitives
 
 public extension ObservablePreferences {
     static func mock(
         preferences: Preferences = .mock(),
-        isPerpetualEnabled: Bool = true
+        isPerpetualEnabled: Bool = true,
     ) -> ObservablePreferences {
         let prefs = preferences
         prefs.isPerpetualEnabled = isPerpetualEnabled

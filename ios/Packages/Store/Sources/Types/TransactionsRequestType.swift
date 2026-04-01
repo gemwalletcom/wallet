@@ -14,12 +14,12 @@ public enum TransactionsRequestType: Equatable {
 extension TransactionsRequestType: Identifiable {
     public var id: String {
         switch self {
-        case .all: return "all"
-        case .pending: return "pending"
-        case .transaction(let id): return id
-        case .asset(let asset): return asset.identifier
-        case .assetsTransactionType(let assetIds, let type, _):
-            return assetIds.map { $0.identifier }.joined() + type.rawValue
+        case .all: "all"
+        case .pending: "pending"
+        case let .transaction(id): id
+        case let .asset(asset): asset.identifier
+        case let .assetsTransactionType(assetIds, type, _):
+            assetIds.map(\.identifier).joined() + type.rawValue
         }
     }
 }

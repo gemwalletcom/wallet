@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Keystore
-import WalletConnectorService
-import ExplorerService
 import AddressNameService
-import Primitives
-import PrimitivesComponents
-import Localization
 import Components
-import Style
+import ExplorerService
+import Foundation
 import class Gemstone.MessageSigner
 import GemstonePrimitives
+import Keystore
+import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import WalletConnectorService
 
 @Observable
 @MainActor
@@ -25,7 +25,7 @@ public final class SignMessageSceneViewModel {
     private let plainMessage: String
     public let messageDisplayType: SignMessageDisplayType
 
-    public var isPresentingUrl: URL? = nil
+    public var isPresentingUrl: URL?
     public var isPresentingPayloadDetails: Bool = false
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
@@ -33,7 +33,7 @@ public final class SignMessageSceneViewModel {
         keystore: any Keystore,
         addressNameService: AddressNameService,
         payload: SignMessagePayload,
-        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate
+        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) {
         self.keystore = keystore
         self.addressNameService = addressNameService
@@ -49,7 +49,7 @@ public final class SignMessageSceneViewModel {
 
             return .payload(
                 primary: payloadPreview.primary.map { $0.map() },
-                secondary: payloadPreview.secondary.map { $0.map() }
+                secondary: payloadPreview.secondary.map { $0.map() },
             )
         }()
         self.messageDisplayType = messageDisplayType
@@ -104,7 +104,7 @@ public final class SignMessageSceneViewModel {
         AppPreviewModel(
             assetImage: appAssetImage,
             name: appName,
-            subtitleSymbol: connectionViewModel.hostText
+            subtitleSymbol: connectionViewModel.hostText,
         )
     }
 
@@ -118,7 +118,7 @@ public final class SignMessageSceneViewModel {
 
     public var primaryPayloadFields: [SimulationPayloadField] {
         switch messageDisplayType {
-        case .payload(let primaryFields, _):
+        case let .payload(primaryFields, _):
             primaryFields
         case .text:
             []
@@ -127,7 +127,7 @@ public final class SignMessageSceneViewModel {
 
     public var secondaryPayloadFields: [SimulationPayloadField] {
         switch messageDisplayType {
-        case .payload(_, let secondaryFields):
+        case let .payload(_, secondaryFields):
             secondaryFields
         case .text:
             []
@@ -161,22 +161,22 @@ public final class SignMessageSceneViewModel {
 
 // MARK: - Actions
 
-extension SignMessageSceneViewModel {
-    public func fetch() {
+public extension SignMessageSceneViewModel {
+    func fetch() {
         Task {
             await loadPayloadAddressNamesIfNeeded()
         }
     }
 
-    public func payloadFieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
+    func payloadFieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
         SimulationPayloadFieldViewModel(
             field: field,
             chain: payload.chain,
-            addressName: payloadAddressNames[ChainAddress(chain: payload.chain, address: field.value)]
+            addressName: payloadAddressNames[ChainAddress(chain: payload.chain, address: field.value)],
         )
     }
 
-    public func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
+    func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
         var items = payloadFieldViewModel(for: field).contextMenuItems
         guard field.fieldType == .address else { return items }
 
@@ -187,11 +187,11 @@ extension SignMessageSceneViewModel {
         return items
     }
 
-    public func onViewWebsite() {
+    func onViewWebsite() {
         isPresentingUrl = appUrl
     }
 
-    public func onViewPayloadDetails() {
+    func onViewPayloadDetails() {
         isPresentingPayloadDetails = true
     }
 }

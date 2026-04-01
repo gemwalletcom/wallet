@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import Localization
+import Primitives
 import PrimitivesComponents
 import Style
-import Primitives
-import Localization
+import SwiftUI
 
 public struct ConnectionProposalScene: View {
     @State private var model: ConnectionProposalViewModel
@@ -13,7 +13,7 @@ public struct ConnectionProposalScene: View {
 
     public init(
         model: ConnectionProposalViewModel,
-        onComplete: @escaping () -> Void
+        onComplete: @escaping () -> Void,
     ) {
         _model = State(initialValue: model)
         self.onComplete = onComplete
@@ -27,18 +27,18 @@ public struct ConnectionProposalScene: View {
                 NavigationLink(value: Scenes.SelectWallet()) {
                     ListItemView(
                         title: model.walletTitle,
-                        subtitle: model.walletName
+                        subtitle: model.walletName,
                     )
                 }
                 ListItemView(
                     title: model.connectionTitle,
-                    subtitle: model.connectionText
+                    subtitle: model.connectionText,
                 )
                 ListItemImageView(
                     title: Localized.Transaction.status,
                     subtitle: model.statusText,
                     subtitleStyle: model.statusTextStyle,
-                    assetImage: model.statusAssetImage
+                    assetImage: model.statusAssetImage,
                 )
             }
 
@@ -51,7 +51,7 @@ public struct ConnectionProposalScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.buttonTitle,
-                action: onAccept
+                action: onAccept,
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

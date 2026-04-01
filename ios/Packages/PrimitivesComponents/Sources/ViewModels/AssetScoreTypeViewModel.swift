@@ -6,7 +6,7 @@ import Localization
 import Primitives
 import Style
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 
 public struct AssetScoreTypeViewModel {
     public let scoreType: AssetScoreType
@@ -14,29 +14,29 @@ public struct AssetScoreTypeViewModel {
     public init(score: Int32) {
         switch score {
         case ...5: scoreType = .suspicious
-        case 6...15: scoreType = .unverified
+        case 6 ... 15: scoreType = .unverified
         default: scoreType = .verified
         }
     }
-    
-    public init (scoreType: AssetScoreType) {
+
+    public init(scoreType: AssetScoreType) {
         self.scoreType = scoreType
     }
-    
+
     public var hasWarning: Bool {
         switch scoreType {
         case .unverified: true
         case .verified, .suspicious: false
         }
     }
-    
+
     public var shouldShowBanner: Bool {
         switch scoreType {
         case .verified, .unverified: false
         case .suspicious: true
         }
     }
-    
+
     public var status: String {
         switch scoreType {
         case .verified: .empty
@@ -44,7 +44,7 @@ public struct AssetScoreTypeViewModel {
         case .suspicious: Localized.Asset.Verification.suspicious
         }
     }
-    
+
     public var description: String {
         switch scoreType {
         case .verified: String.empty
@@ -52,7 +52,7 @@ public struct AssetScoreTypeViewModel {
         case .suspicious: Localized.Info.AssetStatus.Suspicious.description
         }
     }
-    
+
     public var statusStyle: TextStyle {
         switch scoreType {
         case .verified: .calloutSecondary
@@ -60,7 +60,7 @@ public struct AssetScoreTypeViewModel {
         case .suspicious: TextStyle(font: .callout, color: Colors.red)
         }
     }
-    
+
     public var assetImage: AssetImage {
         switch scoreType {
         case .verified: AssetImage()

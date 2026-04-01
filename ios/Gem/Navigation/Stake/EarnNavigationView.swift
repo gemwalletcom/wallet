@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
 import Stake
+import SwiftUI
 import Transfer
 
 struct EarnNavigationView: View {
@@ -17,7 +17,7 @@ struct EarnNavigationView: View {
         wallet: Wallet,
         asset: Asset,
         viewModelFactory: ViewModelFactory,
-        navigationPath: Binding<NavigationPath>
+        navigationPath: Binding<NavigationPath>,
     ) {
         _model = State(initialValue: viewModelFactory.earnScene(wallet: wallet, asset: asset))
         self.wallet = wallet
@@ -35,8 +35,8 @@ struct EarnNavigationView: View {
                         wallet: wallet,
                         onTransferAction: {
                             navigationPath.append($0)
-                        }
-                    )
+                        },
+                    ),
                 )
             }
             .navigationDestination(for: Delegation.self) { delegation in
@@ -51,8 +51,8 @@ struct EarnNavigationView: View {
                         },
                         onTransferAction: {
                             navigationPath.append($0)
-                        }
-                    )
+                        },
+                    ),
                 )
             }
     }

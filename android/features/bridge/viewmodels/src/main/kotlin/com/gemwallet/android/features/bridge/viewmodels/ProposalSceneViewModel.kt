@@ -8,6 +8,8 @@ import com.gemwallet.android.data.repositories.bridge.getChainNameSpace
 import com.gemwallet.android.data.repositories.bridge.getReference
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.ext.shortName
+import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.reown.walletkit.client.Wallet
@@ -51,7 +53,7 @@ class ProposalSceneViewModel @Inject constructor(
                 .firstOrNull{ it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }
                 ?: icons.firstOrNull()
                 ?: "",
-            name = it.name,
+            name = WalletConnectionSessionAppMetadata(it.name, it.description, it.url, "").shortName,
             description = it.description,
             uri = it.url.toUri().host ?: "",
         )

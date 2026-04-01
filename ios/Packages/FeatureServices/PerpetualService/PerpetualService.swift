@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Formatters
 import Foundation
 import struct Gemstone.GemPerpetualBalance
 import struct Gemstone.GemPerpetualPosition
+import Preferences
 import Primitives
 import Store
-import Formatters
-import Preferences
 
 public struct PerpetualService: PerpetualServiceable {
-
     private let store: PerpetualStore
     private let assetStore: AssetStore
     private let priceStore: PriceStore
@@ -23,7 +22,7 @@ public struct PerpetualService: PerpetualServiceable {
         priceStore: PriceStore,
         balanceStore: BalanceStore,
         provider: PerpetualProvidable,
-        preferences: Preferences
+        preferences: Preferences,
     ) {
         self.store = store
         self.assetStore = assetStore
@@ -32,10 +31,10 @@ public struct PerpetualService: PerpetualServiceable {
         self.provider = provider
         self.preferences = preferences
     }
-    
+
     public func updateMarkets() async throws {
         let perpetualsData = try await provider.getPerpetualsData()
-        let perpetuals = perpetualsData.map { $0.perpetual }
+        let perpetuals = perpetualsData.map(\.perpetual)
         let assets = perpetualsData.map { createPerpetualAssetBasic(from: $0.asset) }
 
         try assetStore.add(assets: assets)
@@ -45,16 +44,16 @@ public struct PerpetualService: PerpetualServiceable {
             assetId: Asset.hypercoreUSDC().id,
             price: 1,
             priceChangePercentage24h: 0,
-            updatedAt: .now
+            updatedAt: .now,
         ), currency: Currency.usd.rawValue)
     }
 
-    public func updateMarket(symbol: String) async throws {
+    public func updateMarket(symbol _: String) async throws {
         try await updateMarkets()
     }
 
     public func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {
-        return try await provider.getCandlesticks(symbol: symbol, period: period)
+        try await provider.getCandlesticks(symbol: symbol, period: period)
     }
 
     public func portfolio(address: String) async throws -> PerpetualPortfolio {
@@ -67,7 +66,7 @@ public struct PerpetualService: PerpetualServiceable {
 
     public func fetchPositions(walletId: WalletId, address: String) async throws {
         let summary = try await provider.getPositions(address: address)
-        let existingPositionIds = Set(try store.getPositions(walletId: walletId, provider: .hypercore).map(\.id))
+        let existingPositionIds = try Set(store.getPositions(walletId: walletId, provider: .hypercore).map(\.id))
         let newPositionIds = Set(summary.positions.map(\.id))
         let deleteIds = Array(existingPositionIds.subtracting(newPositionIds))
 
@@ -90,28 +89,28 @@ public struct PerpetualService: PerpetualServiceable {
 
         try balanceStore.updateBalances(
             [
-             UpdateBalance(
-                assetId: usd.id,
-                type: .perpetual(UpdatePerpetualBalance(
-                    available: try perpetualBalanceValue(balance.available),
-                    reserved: try perpetualBalanceValue(balance.reserved),
-                    withdrawable: try perpetualBalanceValue(balance.withdrawable)
-                )),
-                updatedAt: .now,
-                isActive: true
-             ),
+                UpdateBalance(
+                    assetId: usd.id,
+                    type: .perpetual(UpdatePerpetualBalance(
+                        available: perpetualBalanceValue(balance.available),
+                        reserved: perpetualBalanceValue(balance.reserved),
+                        withdrawable: perpetualBalanceValue(balance.withdrawable),
+                    )),
+                    updatedAt: .now,
+                    isActive: true,
+                ),
             ],
-            for: walletId
+            for: walletId,
         )
     }
 
     private func perpetualBalanceValue(_ amount: Double) throws -> UpdateBalanceValue {
-        UpdateBalanceValue(
-            value: try ValueFormatter.full.inputNumber(from: amount.description, decimals: 6).description,
-            amount: amount
+        try UpdateBalanceValue(
+            value: ValueFormatter.full.inputNumber(from: amount.description, decimals: 6).description,
+            amount: amount,
         )
     }
-    
+
     private func createPerpetualAssetBasic(from asset: Asset) -> AssetBasic {
         AssetBasic(
             asset: asset,
@@ -124,10 +123,10 @@ public struct PerpetualService: PerpetualServiceable {
                 stakingApr: nil,
                 isEarnable: false,
                 earnApr: nil,
-                hasImage: false
+                hasImage: false,
             ),
             score: AssetScore(rank: 0),
-            price: nil
+            price: nil,
         )
     }
 }

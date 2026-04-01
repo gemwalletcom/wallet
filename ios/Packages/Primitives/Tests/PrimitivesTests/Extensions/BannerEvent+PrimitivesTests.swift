@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 @testable import Primitives
+import Testing
 
 struct BannerEventComparableTests {
     @Test
@@ -13,11 +13,11 @@ struct BannerEventComparableTests {
             .accountBlockedMultiSignature,
             .activateAsset,
             .suspiciousAsset,
-            .onboarding
+            .onboarding,
         ]
-        
+
         let sorted = events.sorted()
-        
+
         #expect(sorted == [
             .accountBlockedMultiSignature,
             .accountActivation,
@@ -25,7 +25,7 @@ struct BannerEventComparableTests {
             .suspiciousAsset,
             .onboarding,
             .enableNotifications,
-            .stake
+            .stake,
         ])
     }
 }

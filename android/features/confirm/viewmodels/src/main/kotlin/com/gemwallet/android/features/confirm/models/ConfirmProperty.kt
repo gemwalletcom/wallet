@@ -31,13 +31,13 @@ sealed interface ConfirmProperty {
                     is ConfirmParams.Stake.RewardsParams,
                     is ConfirmParams.PerpetualParams.Open,
                     is ConfirmParams.PerpetualParams.Close,
-                    is ConfirmParams.PerpetualParams.Modify
+                    is ConfirmParams.PerpetualParams.Modify,
+                    is ConfirmParams.SwapParams
                          -> null
                     is ConfirmParams.Stake.DelegateParams,
                     is ConfirmParams.Stake.RedelegateParams,
                     is ConfirmParams.Stake.UndelegateParams,
                     is ConfirmParams.Stake.WithdrawParams -> Stake(data = validator?.name ?: "")
-                    is ConfirmParams.SwapParams -> Provider(data = params.providerName)
                     is ConfirmParams.TokenApprovalParams -> Provider(data = params.provider)
                     is ConfirmParams.NftParams,
                     is ConfirmParams.TransferParams.Token,

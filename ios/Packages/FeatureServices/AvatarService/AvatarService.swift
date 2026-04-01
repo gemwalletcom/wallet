@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Store
 import Primitives
+import Store
 
 public struct AvatarService: Sendable {
     private let store: WalletStore
     private let localStore = LocalStore()
-    
+
     public init(store: WalletStore) {
         self.store = store
     }
-    
+
     // MARK: - Store
 
     public func save(data: Data, for wallet: Wallet) throws {

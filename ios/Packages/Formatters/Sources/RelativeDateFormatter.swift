@@ -15,24 +15,24 @@ public struct RelativeDateFormatter: Sendable {
         calendar.timeZone = timeZone
         self.calendar = calendar
 
-        self.relativeDateFormatter = Self.makeDateFormatter(
+        relativeDateFormatter = Self.makeDateFormatter(
             locale: locale,
             timeZone: timeZone,
             dateStyle: .medium,
             timeStyle: .none,
-            relative: true
+            relative: true,
         )
-        self.timeFormatter = Self.makeDateFormatter(
+        timeFormatter = Self.makeDateFormatter(
             locale: locale,
             timeZone: timeZone,
             dateStyle: .none,
-            timeStyle: .short
+            timeStyle: .short,
         )
-        self.dateTimeFormatter = Self.makeDateFormatter(
+        dateTimeFormatter = Self.makeDateFormatter(
             locale: locale,
             timeZone: timeZone,
             dateStyle: .long,
-            timeStyle: .short
+            timeStyle: .short,
         )
     }
 
@@ -72,7 +72,7 @@ private extension RelativeDateFormatter {
         timeZone: TimeZone,
         dateStyle: DateFormatter.Style,
         timeStyle: DateFormatter.Style,
-        relative: Bool = false
+        relative: Bool = false,
     ) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = locale

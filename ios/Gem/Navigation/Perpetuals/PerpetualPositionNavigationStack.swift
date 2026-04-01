@@ -1,48 +1,48 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Primitives
 import PrimitivesComponents
-import Components
+import SwiftUI
 import Transfer
 
 struct PerpetualPositionNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    
+
     @State private var navigationPath = NavigationPath()
-    
+
     let perpetualRecipientData: PerpetualRecipientData
     let wallet: Wallet
     let onComplete: VoidAction
-    
+
     init(
         perpetualRecipientData: PerpetualRecipientData,
         wallet: Wallet,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.perpetualRecipientData = perpetualRecipientData
         self.wallet = wallet
         self.onComplete = onComplete
     }
-    
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             AmountNavigationView(
                 model: viewModelFactory.amountScene(
                     input: AmountInput(
                         type: .perpetual(perpetualRecipientData),
-                        asset: .hypercoreUSDC()
+                        asset: .hypercoreUSDC(),
                     ),
                     wallet: wallet,
                     onTransferAction: {
                         navigationPath.append($0)
-                    }
-                )
+                    },
+                ),
             )
             .toolbar {
                 ToolbarDismissItem(
                     type: .close,
-                    placement: .topBarLeading
+                    placement: .topBarLeading,
                 )
             }
             .navigationDestination(for: TransferData.self) {
@@ -52,8 +52,8 @@ struct PerpetualPositionNavigationStack: View {
                         data: $0,
                         onComplete: {
                             onComplete?()
-                        }
-                    )
+                        },
+                    ),
                 )
             }
         }

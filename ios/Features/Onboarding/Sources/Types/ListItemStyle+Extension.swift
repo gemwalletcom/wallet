@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Foundation
 import SwiftUI
 
 extension ListItemImageStyle {
@@ -10,7 +10,7 @@ extension ListItemImageStyle {
             assetImage: AssetImage(type: emoji),
             imageSize: .image.semiMedium,
             alignment: .top,
-            cornerRadiusType: .none
+            cornerRadiusType: .none,
         )
     }
 }

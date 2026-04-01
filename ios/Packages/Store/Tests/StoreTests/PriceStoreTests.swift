@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Store
 import Primitives
 import PrimitivesTestKit
+import Store
 import StoreTestKit
+import Testing
 
 struct PriceStoreTests {
-
     @Test
     func firstInsertAppliesCurrencyRate() throws {
         let db = DB.mockWithChains([.ethereum])

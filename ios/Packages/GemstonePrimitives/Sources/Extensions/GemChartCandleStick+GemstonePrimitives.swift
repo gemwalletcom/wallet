@@ -4,25 +4,25 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemChartCandleStick {
-    public func map() -> ChartCandleStick {
+public extension GemChartCandleStick {
+    func map() -> ChartCandleStick {
         ChartCandleStick(
             date: Date(timeIntervalSince1970: TimeInterval(date)),
             open: open,
             high: high,
             low: low,
             close: close,
-            volume: volume
+            volume: volume,
         )
     }
 }
 
-extension GemChartCandleUpdate {
-    public func map() -> ChartCandleUpdate {
+public extension GemChartCandleUpdate {
+    func map() -> ChartCandleUpdate {
         ChartCandleUpdate(
             coin: coin,
             interval: interval,
-            candle: candle.map()
+            candle: candle.map(),
         )
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct SelectionView<T: Hashable, Content: View>: View {
     let value: T?
@@ -13,7 +13,7 @@ public struct SelectionView<T: Hashable, Content: View>: View {
         value: T?,
         selection: T?,
         action: ((T) -> Void)?,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Content,
     ) {
         self.value = value
         self.selection = selection
@@ -23,7 +23,7 @@ public struct SelectionView<T: Hashable, Content: View>: View {
 
     public var body: some View {
         Button(action: {
-            if let value = value {
+            if let value {
                 action?(value)
             }
         }, label: {
@@ -64,10 +64,10 @@ public struct SelectionView<T: Hashable, Content: View>: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color.gray.opacity(.extraLight))
                                 .cornerRadius(8)
-                        }
+                        },
                     )
                     .background(
-                        selectedValue == item ? Color.blue.opacity(.opacity20) : Color.clear
+                        selectedValue == item ? Color.blue.opacity(.opacity20) : Color.clear,
                     )
                 }
             }

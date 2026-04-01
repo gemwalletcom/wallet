@@ -11,11 +11,10 @@ internal import GemstonePrimitives
 internal import WalletCorePrimitives
 
 final class BitcoinService: Sendable {
-
     let chain: BitcoinChain
 
     init(
-        chain: BitcoinChain
+        chain: BitcoinChain,
     ) {
         self.chain = chain
     }
@@ -26,7 +25,7 @@ final class BitcoinService: Sendable {
         amount: BigInt,
         isMaxAmount: Bool,
         gasPrice: BigInt,
-        utxos: [UTXO]
+        utxos: [UTXO],
     ) throws -> Fee {
         guard amount <= BigInt(Int64.max) else {
             throw ChainCoreError.incorrectAmount
@@ -62,28 +61,28 @@ final class BitcoinService: Sendable {
         return Fee(
             fee: BigInt(plan.fee),
             gasPriceType: .regular(gasPrice: gasPrice),
-            gasLimit: 1
+            gasLimit: 1,
         )
     }
 
     func calculateFee(input: TransactionInput) throws -> Fee {
-        return try calculate(
+        try calculate(
             senderAddress: input.senderAddress,
             destinationAddress: input.destinationAddress,
             amount: input.value,
             isMaxAmount: input.feeInput.isMaxAmount,
             gasPrice: input.gasPrice.gasPrice,
-            utxos: try input.metadata.getUtxos()
+            utxos: input.metadata.getUtxos(),
         )
     }
 }
 
 extension BitcoinService: GemGatewayEstimateFee {
-    public func getFee(chain: Gemstone.Chain, input: Gemstone.GemTransactionLoadInput) async throws -> Gemstone.GemTransactionLoadFee? {
-        return try calculateFee(input: try input.map()).map()
+    func getFee(chain _: Gemstone.Chain, input: Gemstone.GemTransactionLoadInput) async throws -> Gemstone.GemTransactionLoadFee? {
+        try calculateFee(input: input.map()).map()
     }
 
-    public func getFeeData(chain: Gemstone.Chain, input: GemTransactionLoadInput) async throws -> String? {
+    func getFeeData(chain _: Gemstone.Chain, input _: GemTransactionLoadInput) async throws -> String? {
         .none
     }
 }

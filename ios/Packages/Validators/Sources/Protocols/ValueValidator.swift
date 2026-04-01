@@ -2,7 +2,7 @@
 
 import Foundation
 
-public typealias ValueValidatable = Comparable & Sendable & ExpressibleByIntegerLiteral
+public typealias ValueValidatable = Comparable & ExpressibleByIntegerLiteral & Sendable
 
 public protocol ValueValidator<Formatted>: Identifiable, Sendable {
     associatedtype Formatted

@@ -45,10 +45,8 @@ android {
 }
 
 dependencies {
-
     api(project(":gemcore"))
-
-    implementation(libs.ktx.core)
+    testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

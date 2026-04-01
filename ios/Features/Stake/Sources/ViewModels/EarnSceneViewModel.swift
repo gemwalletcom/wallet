@@ -2,12 +2,12 @@
 
 import BigInt
 import Components
+import EarnService
 import Foundation
 import Localization
 import Primitives
-import Store
-import EarnService
 import PrimitivesComponents
+import Store
 
 @MainActor
 @Observable
@@ -31,20 +31,20 @@ public final class EarnSceneViewModel {
         wallet: Wallet,
         asset: Asset,
         currencyCode: String,
-        earnService: EarnService
+        earnService: EarnService,
     ) {
         self.wallet = wallet
         self.asset = asset
         self.currencyCode = currencyCode
         self.earnService = earnService
-        self.assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: asset.id), initialValue: .with(asset: asset))
-        self.positionsQuery = ObservableQuery(
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: asset.id), initialValue: .with(asset: asset))
+        positionsQuery = ObservableQuery(
             DelegationsRequest(walletId: wallet.walletId, assetId: asset.id, providerType: .earn),
-            initialValue: []
+            initialValue: [],
         )
-        self.providersQuery = ObservableQuery(
+        providersQuery = ObservableQuery(
             ValidatorsRequest(chain: asset.id.chain, providerType: .earn),
-            initialValue: []
+            initialValue: [],
         )
     }
 
@@ -71,7 +71,7 @@ public final class EarnSceneViewModel {
         guard let provider = providers.first else { return nil }
         return AmountInput(
             type: .earn(.deposit(provider)),
-            asset: asset
+            asset: asset,
         )
     }
 
@@ -102,7 +102,7 @@ public final class EarnSceneViewModel {
         case .noData: .noData
         case .loading: providers.isEmpty ? .loading : .data(true)
         case .data: providers.isEmpty ? .noData : .data(true)
-        case .error(let error): .error(error)
+        case let .error(error): .error(error)
         }
     }
 }
@@ -117,7 +117,7 @@ extension EarnSceneViewModel {
             try await earnService.update(
                 walletId: wallet.walletId,
                 assetId: asset.id,
-                address: address
+                address: address,
             )
             viewState = .data(true)
         } catch {

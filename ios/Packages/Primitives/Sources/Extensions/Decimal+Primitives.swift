@@ -2,8 +2,8 @@
 
 import Foundation
 
-extension Decimal {
-    public var doubleValue: Double {
-        return NSDecimalNumber(decimal: self).doubleValue
+public extension Decimal {
+    var doubleValue: Double {
+        NSDecimalNumber(decimal: self).doubleValue
     }
 }

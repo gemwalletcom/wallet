@@ -1,21 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
-import enum Gemstone.SimulationSeverity
-import enum Gemstone.SimulationWarningType
-import enum Gemstone.SimulationPayloadFieldDisplay
-import enum Gemstone.SimulationPayloadFieldKind
-import enum Gemstone.SimulationPayloadFieldType
-import struct Gemstone.SimulationWarning
+import Foundation
 import struct Gemstone.SimulationBalanceChange
 import struct Gemstone.SimulationHeader
 import struct Gemstone.SimulationPayloadField
+import enum Gemstone.SimulationPayloadFieldDisplay
+import enum Gemstone.SimulationPayloadFieldKind
+import enum Gemstone.SimulationPayloadFieldType
 import struct Gemstone.SimulationResult
+import enum Gemstone.SimulationSeverity
+import struct Gemstone.SimulationWarning
+import struct Gemstone.SimulationWarningApproval
+import enum Gemstone.SimulationWarningType
 import Primitives
 
-extension Gemstone.SimulationSeverity {
-    public func map() -> Primitives.SimulationSeverity {
+public extension Gemstone.SimulationSeverity {
+    func map() -> Primitives.SimulationSeverity {
         switch self {
         case .low: .low
         case .warning: .warning
@@ -24,22 +25,28 @@ extension Gemstone.SimulationSeverity {
     }
 }
 
-extension Gemstone.SimulationWarningType {
-    public func map() throws -> Primitives.SimulationWarningType {
+public extension Gemstone.SimulationWarningType {
+    func map() throws -> Primitives.SimulationWarningType {
         switch self {
-        case .tokenApproval(let assetId, let value): .tokenApproval(assetId: try AssetId(id: assetId), value: try value.map { try BigInt.from(string: $0) })
+        case let .tokenApproval(approval): try .tokenApproval(approval.map())
         case .suspiciousSpender: .suspiciousSpender
         case .externallyOwnedSpender: .externallyOwnedSpender
-        case .nftCollectionApproval(let assetId): .nftCollectionApproval(assetId: try AssetId(id: assetId))
-        case .permitApproval(let assetId, let value): .permitApproval(assetId: try AssetId(id: assetId), value: try value.map { try BigInt.from(string: $0) })
-        case .permitBatchApproval(let value): .permitBatchApproval(value: try value.map { try BigInt.from(string: $0) })
+        case let .nftCollectionApproval(assetId): try .nftCollectionApproval(AssetId(id: assetId))
+        case let .permitApproval(approval): try .permitApproval(approval.map())
+        case let .permitBatchApproval(value): .permitBatchApproval(value?.description)
         case .validationError: .validationError
         }
     }
 }
 
-extension Gemstone.SimulationPayloadFieldType {
-    public func map() -> Primitives.SimulationPayloadFieldType {
+public extension Gemstone.SimulationWarningApproval {
+    func map() throws -> Primitives.SimulationWarningApproval {
+        try Primitives.SimulationWarningApproval(assetId: AssetId(id: assetId), value: value?.description)
+    }
+}
+
+public extension Gemstone.SimulationPayloadFieldType {
+    func map() -> Primitives.SimulationPayloadFieldType {
         switch self {
         case .text: .text
         case .address: .address
@@ -48,8 +55,8 @@ extension Gemstone.SimulationPayloadFieldType {
     }
 }
 
-extension Primitives.SimulationPayloadFieldType {
-    public func map() -> Gemstone.SimulationPayloadFieldType {
+public extension Primitives.SimulationPayloadFieldType {
+    func map() -> Gemstone.SimulationPayloadFieldType {
         switch self {
         case .text: .text
         case .address: .address
@@ -58,8 +65,8 @@ extension Primitives.SimulationPayloadFieldType {
     }
 }
 
-extension Gemstone.SimulationPayloadFieldDisplay {
-    public func map() -> Primitives.SimulationPayloadFieldDisplay {
+public extension Gemstone.SimulationPayloadFieldDisplay {
+    func map() -> Primitives.SimulationPayloadFieldDisplay {
         switch self {
         case .primary: .primary
         case .secondary: .secondary
@@ -67,8 +74,8 @@ extension Gemstone.SimulationPayloadFieldDisplay {
     }
 }
 
-extension Primitives.SimulationPayloadFieldDisplay {
-    public func map() -> Gemstone.SimulationPayloadFieldDisplay {
+public extension Primitives.SimulationPayloadFieldDisplay {
+    func map() -> Gemstone.SimulationPayloadFieldDisplay {
         switch self {
         case .primary: .primary
         case .secondary: .secondary
@@ -76,8 +83,8 @@ extension Primitives.SimulationPayloadFieldDisplay {
     }
 }
 
-extension Gemstone.SimulationPayloadFieldKind {
-    public func map() -> Primitives.SimulationPayloadFieldKind {
+public extension Gemstone.SimulationPayloadFieldKind {
+    func map() -> Primitives.SimulationPayloadFieldKind {
         switch self {
         case .contract: .contract
         case .method: .method
@@ -89,8 +96,8 @@ extension Gemstone.SimulationPayloadFieldKind {
     }
 }
 
-extension Primitives.SimulationPayloadFieldKind {
-    public func map() -> Gemstone.SimulationPayloadFieldKind {
+public extension Primitives.SimulationPayloadFieldKind {
+    func map() -> Gemstone.SimulationPayloadFieldKind {
         switch self {
         case .contract: .contract
         case .method: .method
@@ -102,43 +109,43 @@ extension Primitives.SimulationPayloadFieldKind {
     }
 }
 
-extension Gemstone.SimulationWarning {
-    public func map() throws -> Primitives.SimulationWarning {
-        Primitives.SimulationWarning(severity: severity.map(), warning: try warning.map(), message: message)
+public extension Gemstone.SimulationWarning {
+    func map() throws -> Primitives.SimulationWarning {
+        try Primitives.SimulationWarning(severity: severity.map(), warning: warning.map(), message: message)
     }
 }
 
-extension Gemstone.SimulationBalanceChange {
-    public func map() throws -> Primitives.SimulationBalanceChange {
-        Primitives.SimulationBalanceChange(assetId: try AssetId(id: assetId), value: value)
+public extension Gemstone.SimulationBalanceChange {
+    func map() throws -> Primitives.SimulationBalanceChange {
+        try Primitives.SimulationBalanceChange(assetId: AssetId(id: assetId), value: value)
     }
 }
 
-extension Gemstone.SimulationPayloadField {
-    public func map() -> Primitives.SimulationPayloadField {
+public extension Gemstone.SimulationPayloadField {
+    func map() -> Primitives.SimulationPayloadField {
         Primitives.SimulationPayloadField(kind: kind.map(), label: label, value: value, fieldType: fieldType.map(), display: display.map())
     }
 }
 
-extension Primitives.SimulationPayloadField {
-    public func map() -> Gemstone.SimulationPayloadField {
+public extension Primitives.SimulationPayloadField {
+    func map() -> Gemstone.SimulationPayloadField {
         Gemstone.SimulationPayloadField(kind: kind.map(), label: label, value: value, fieldType: fieldType.map(), display: display.map())
     }
 }
 
-extension Gemstone.SimulationHeader {
-    public func map() throws -> Primitives.SimulationHeader {
-        Primitives.SimulationHeader(assetId: try AssetId(id: assetId), value: value)
+public extension Gemstone.SimulationHeader {
+    func map() throws -> Primitives.SimulationHeader {
+        try Primitives.SimulationHeader(assetId: AssetId(id: assetId), value: value, isUnlimited: isUnlimited)
     }
 }
 
-extension Gemstone.SimulationResult {
-    public func map() throws -> Primitives.SimulationResult {
-        Primitives.SimulationResult(
-            warnings: try warnings.map { try $0.map() },
-            balanceChanges: try balanceChanges.map { try $0.map() },
+public extension Gemstone.SimulationResult {
+    func map() throws -> Primitives.SimulationResult {
+        try Primitives.SimulationResult(
+            warnings: warnings.map { try $0.map() },
+            balanceChanges: balanceChanges.map { try $0.map() },
             payload: payload.map { $0.map() },
-            header: try header.map { try $0.map() }
+            header: header.map { try $0.map() },
         )
     }
 }

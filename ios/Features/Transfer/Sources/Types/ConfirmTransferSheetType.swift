@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import InfoSheet
 import Primitives
-import Components
 import PrimitivesComponents
 
 public enum ConfirmTransferSheetType: Identifiable, Sendable {

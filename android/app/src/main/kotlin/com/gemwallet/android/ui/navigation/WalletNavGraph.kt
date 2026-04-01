@@ -25,8 +25,12 @@ import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateW
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.navigateToImportWalletScreen
-import com.gemwallet.android.features.main.views.MainScreen
+import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.OnboardingDest
+import com.gemwallet.android.features.onboarding.acceptTermsScreen
+import com.gemwallet.android.features.setup_wallet.navigation.navigateToSetupWalletScreen
+import com.gemwallet.android.features.setup_wallet.navigation.setupWalletScreen
+import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.ui.components.animation.enterTransition
 import com.gemwallet.android.ui.components.animation.exitTransition
 import com.gemwallet.android.ui.components.animation.popEnterTransition
@@ -102,6 +106,7 @@ fun WalletNavGraph(
     navController: NavHostController = rememberNavController(),
     startDestination: String,
     onboard: @Composable () -> Unit,
+    onAcceptTerms: () -> Unit,
 ) {
     val onCancel: () -> Unit = { navController.navigateUp() }
     val currentTab = remember { mutableStateOf(assetsRoute) }
@@ -117,15 +122,15 @@ fun WalletNavGraph(
         popExitTransition = popExitTransition,
     ) {
         composable(
-            route = "/",
+            route = walletRootRoute,
             arguments = listOf(
-                navArgument("reset") {
+                navArgument(walletResetArg) {
                     type = NavType.BoolType
                     defaultValue = false
                 }
             )
         ) {
-            val reset = it.arguments?.getBoolean("reset") == true
+            val reset = it.arguments?.getBoolean(walletResetArg) == true
             if (reset) {
                 currentTab.value = assetsRoute
             }
@@ -305,34 +310,65 @@ fun WalletNavGraph(
             onboard()
         }
 
+        acceptTermsScreen(
+            onCancel = { navController.navigateUp() },
+            onAccept = { destination ->
+                onAcceptTerms()
+                when (destination) {
+                    AcceptTermsDestination.Create -> navController.navigateToCreateWalletRulesScreen(
+                        navOptions { popUpTo(OnboardingDest.route) }
+                    )
+                    AcceptTermsDestination.Import -> navController.navigateToImportWalletScreen(
+                        navOptions = navOptions { popUpTo(OnboardingDest.route) }
+                    )
+                }
+            },
+        )
+
         createWalletScreen(
             onAcceptRules = navController::navigateToCreateWalletRulesScreen,
             onCreateWallet = navController::navigateToCreateWalletScreen,
             onCancel = onCancel,
-            onCreated = {
-                try {
-                    navController.navigateToRoot()
-                } catch (_: Throwable) {
-                    navController.navigate(
-                        route = "/",
-                        navOptions = navOptions {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
+            onCreated = { walletId ->
+                if (walletId != null) {
+                    navController.navigateToSetupWalletScreen(
+                        walletId,
+                        navOptions { popUpTo(OnboardingDest.route) }
                     )
+                } else {
+                    try {
+                        navController.navigateToRoot()
+                    } catch (_: Throwable) {
+                        navController.navigate(
+                            route = walletRootRoute,
+                            navOptions = navOptions {
+                                popUpTo(0) {
+                                    inclusive = true
+                                }
+                            }
+                        )
+                    }
+                    currentTab.value = assetsRoute
                 }
-                currentTab.value = assetsRoute
             },
         )
 
         importWalletScreen(
             onCancel = onCancel,
-            onImported = {
+            onImported = { walletId ->
+                navController.navigateToSetupWalletScreen(
+                    walletId,
+                    navOptions { popUpTo(OnboardingDest.route) }
+                )
+            },
+            onSelectType = navController::navigateToImportWalletScreen,
+        )
+
+        setupWalletScreen(
+            onComplete = {
                 navController.navigateToRoot()
                 currentTab.value = assetsRoute
             },
-            onSelectType = navController::navigateToImportWalletScreen,
         )
 
         perpetualScreen(
@@ -349,7 +385,7 @@ fun WalletNavGraph(
 
 fun NavController.navigateToRoot() {
     navigate(
-        route = "/?reset=true",
+        route = "$walletRootRoute?$walletResetArg=true",
         navOptions = navOptions {
             popUpTo(0) {
                 inclusive = true

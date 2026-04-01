@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-public struct FiatRateRecord: Codable, FetchableRecord, PersistableRecord  {
+public struct FiatRateRecord: Codable, FetchableRecord, PersistableRecord {
     public enum Columns {
         public static let symbol = Column("symbol")
         public static let rate = Column("rate")
@@ -20,17 +20,17 @@ public struct FiatRateRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension FiatRate {
     var record: FiatRateRecord {
-        return FiatRateRecord(
+        FiatRateRecord(
             symbol: symbol,
             rate: rate,
-            updatedAt: .now
+            updatedAt: .now,
         )
     }
 }
 
 extension FiatRateRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.symbol.name, .text)
                 .primaryKey()
                 .notNull()

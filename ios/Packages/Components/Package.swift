@@ -8,7 +8,8 @@ let package = Package(
     products: [
         .library(
             name: "Components",
-            targets: ["Components"]),
+            targets: ["Components"],
+        ),
     ],
     dependencies: [
         .package(name: "Style", path: "../Style"),
@@ -19,10 +20,11 @@ let package = Package(
             dependencies: [
                 "Style",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "ComponentsTests",
-            dependencies: ["Components"]),
-    ]
+            dependencies: ["Components"],
+        ),
+    ],
 )

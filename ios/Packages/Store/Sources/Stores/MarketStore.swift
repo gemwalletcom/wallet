@@ -5,14 +5,13 @@ import GRDB
 import Primitives
 
 struct MarketStore: Sendable {
-
     let db: DatabaseQueue
-    
+
     init(db: DB) {
         self.db = db.dbQueue
     }
 
-    func addAssets(assets: MarketsAssets)  throws {
+    func addAssets(assets: MarketsAssets) throws {
         try db.write { db in
             for asset in assets.assets {
                 try asset.upsert(db)
@@ -40,7 +39,7 @@ extension MarketsAssets {
             losers.map {
                 MarketAssetRecord(tag: .losers, assetId: $0)
             },
-            
-        ].flatMap { $0 }
+
+        ].flatMap(\.self)
     }
 }

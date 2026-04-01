@@ -5,11 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +21,7 @@ import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer6
@@ -72,12 +69,7 @@ internal fun NodeItem(
         listPosition = listPosition,
         trailing = if (selected) {
             @Composable {
-                Icon(
-                    modifier = Modifier.Companion.padding(end = paddingSmall).size(20.dp),
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
             }
         } else null
     )

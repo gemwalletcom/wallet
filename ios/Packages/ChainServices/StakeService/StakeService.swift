@@ -1,34 +1,34 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import Primitives
-import ChainService
-import GemAPI
 import Blockchain
+import ChainService
+import Foundation
+import GemAPI
+import Primitives
+import Store
 
 public struct StakeService: StakeServiceable {
     private let store: StakeStore
     private let addressStore: AddressStore
     private let chainServiceFactory: any ChainServiceFactorable
     private let assetsService: GemAPIStaticService
-    
+
     public init(
         store: StakeStore,
         addressStore: AddressStore,
         chainServiceFactory: any ChainServiceFactorable,
-        assetsService: GemAPIStaticService = GemAPIStaticService()
+        assetsService: GemAPIStaticService = GemAPIStaticService(),
     ) {
         self.store = store
         self.addressStore = addressStore
         self.chainServiceFactory = chainServiceFactory
         self.assetsService = assetsService
     }
-    
+
     public func stakeApr(assetId: AssetId) throws -> Double? {
         try store.getStakeApr(assetId: assetId)
     }
-    
+
     public func update(walletId: WalletId, chain: Chain, address: String) async throws {
         let validators = try store.getValidators(assetId: chain.assetId, providerType: .stake)
         if validators.isEmpty {
@@ -43,7 +43,7 @@ public struct StakeService: StakeServiceable {
     public func clearDelegations() throws {
         try store.clearDelegations()
     }
-    
+
     public func clearValidators() throws {
         try store.clearValidators()
     }
@@ -60,7 +60,7 @@ extension StakeService {
 
         let (validators, validatorsList) = try await (
             getValidators,
-            getValidatorsList.toMap { $0.id }
+            getValidatorsList.toMap { $0.id },
         )
 
         let updateValidators = validators.map {
@@ -72,11 +72,11 @@ extension StakeService {
                 isActive: $0.isActive,
                 commission: $0.commission,
                 apr: $0.apr,
-                providerType: .stake
+                providerType: .stake,
             )
         }
         try store.updateValidators(updateValidators)
-        
+
         let addressNames = updateValidators.map {
             AddressName(chain: $0.chain, address: $0.id, name: $0.name, type: .validator, status: .verified)
         }
@@ -85,16 +85,16 @@ extension StakeService {
 
     private func updateDelegations(walletId: WalletId, chain: Chain, address: String) async throws {
         let delegations = try await getDelegations(chain: chain, address: address)
-        let existingDelegationsIds = try store.getDelegations(walletId: walletId, assetId: chain.assetId, providerType: .stake).map { $0.id }.asSet()
-        let delegationsIds = delegations.map { $0.id }.asSet()
+        let existingDelegationsIds = try store.getDelegations(walletId: walletId, assetId: chain.assetId, providerType: .stake).map(\.id).asSet()
+        let delegationsIds = delegations.map(\.id).asSet()
         let deleteDelegationsIds = existingDelegationsIds.subtracting(delegationsIds).asArray()
 
         // validators
-        let validatorsIds = try store.getValidators(assetId: chain.assetId, providerType: .stake).map { $0.id }.asSet()
-        let delegationsValidatorIds = delegations.map { $0.validatorId }.asSet()
+        let validatorsIds = try store.getValidators(assetId: chain.assetId, providerType: .stake).map(\.id).asSet()
+        let delegationsValidatorIds = delegations.map(\.validatorId).asSet()
         let missingValidatorIds = delegationsValidatorIds.subtracting(validatorsIds)
 
-        //TODO: Might need to fetch in the future.
+        // TODO: Might need to fetch in the future.
         if !missingValidatorIds.isEmpty {
             debugLog("missingValidatorIds \(missingValidatorIds)")
         }

@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
 import PerpetualsTestKit
+import Primitives
+import Testing
 
 @testable import Perpetuals
 
 struct AutocloseViewModelTests {
-
     @Test
     func title() {
         #expect(AutocloseViewModel.mock(type: .takeProfit).title == "Take profit")

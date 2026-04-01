@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import PrimitivesTestKit
-import Preferences
-import PreferencesTestKit
+@testable import AppService
 import PerpetualService
 import PerpetualServiceTestKit
-@testable import AppService
+import Preferences
+import PreferencesTestKit
+import Primitives
+import PrimitivesTestKit
+import Testing
 
 struct AppLifecycleServiceTests {
-
     @Test
     func setupWalletConnectsHyperliquidForMultiCoinWallet() async {
         let (service, observer, _) = makeService(perpetualEnabled: true)

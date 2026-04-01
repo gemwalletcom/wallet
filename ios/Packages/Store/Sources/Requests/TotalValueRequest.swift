@@ -9,13 +9,12 @@ public enum BalanceType: Sendable {
 }
 
 public struct TotalValueRequest: DatabaseQueryable {
-
     public var walletId: WalletId
     public var type: BalanceType
 
     public init(walletId: WalletId, balanceType: BalanceType) {
         self.walletId = walletId
-        self.type = balanceType
+        type = balanceType
     }
 
     public func fetch(_ db: Database) throws -> TotalFiatValue {
@@ -31,8 +30,7 @@ public struct TotalValueRequest: DatabaseQueryable {
             .including(optional: AssetRecord.balance)
             .joining(required: AssetRecord.balance
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(BalanceRecord.Columns.isEnabled == true)
-            )
+                .filter(BalanceRecord.Columns.isEnabled == true))
             .asRequest(of: AssetRecordInfoMinimal.self)
             .fetchAll(db)
             .reduce((0.0, 0.0)) { result, record in
@@ -44,7 +42,7 @@ public struct TotalValueRequest: DatabaseQueryable {
         return TotalFiatValue(
             value: total,
             pnlAmount: pnl,
-            pnlPercentage: PriceChangeCalculator.calculate(.percentage(from: total - pnl, to: total))
+            pnlPercentage: PriceChangeCalculator.calculate(.percentage(from: total - pnl, to: total)),
         )
     }
 
@@ -53,8 +51,7 @@ public struct TotalValueRequest: DatabaseQueryable {
             .including(required: AssetRecord.balance)
             .filter(AssetRecord.Columns.type == AssetType.perpetual.rawValue)
             .joining(required: AssetRecord.balance
-                .filter(BalanceRecord.Columns.walletId == walletId.id)
-            )
+                .filter(BalanceRecord.Columns.walletId == walletId.id))
             .asRequest(of: PerpetualAssetBalance.self)
             .fetchAll(db)
             .reduce(0.0) { $0 + $1.totalFiatAmount }

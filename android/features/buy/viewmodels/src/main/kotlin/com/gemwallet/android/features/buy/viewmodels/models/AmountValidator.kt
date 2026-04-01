@@ -2,7 +2,10 @@ package com.gemwallet.android.features.buy.viewmodels.models
 
 import com.gemwallet.android.math.parseNumber
 
-internal class AmountValidator(private val minValue: Double) {
+class AmountValidator(
+    private val minValue: Double,
+    private val maxValue: Double = MAX_FIAT_AMOUNT,
+) {
     var error: BuyError? = null
         private set
 
@@ -22,6 +25,14 @@ internal class AmountValidator(private val minValue: Double) {
             error = BuyError.EmptyAmount
             return false
         }
+        if (value > maxValue) {
+            error = BuyError.MaximumAmount
+            return false
+        }
         return true
+    }
+
+    companion object {
+        const val MAX_FIAT_AMOUNT = 10000.0
     }
 }

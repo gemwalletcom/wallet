@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
-import Style
+import Foundation
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct TransactionScene: View {
     private let model: TransactionSceneViewModel
@@ -16,7 +16,7 @@ public struct TransactionScene: View {
     public var body: some View {
         ListSectionView(
             provider: model,
-            content: content(for:)
+            content: content(for:),
         )
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -32,12 +32,12 @@ public struct TransactionScene: View {
         case let .fee(model):
             NavigationCustomLink(
                 with: ListItemView(model: model),
-                action: self.model.onSelectFeeDetails
+                action: self.model.onSelectFeeDetails,
             )
         case let .header(model):
             TransactionHeaderListItemView(
                 model: model,
-                action: self.model.onSelectTransactionHeader
+                action: self.model.onSelectTransactionHeader,
             )
         case let .participant(model):
             AddressListItemView(model: model.addressViewModel)
@@ -45,18 +45,18 @@ public struct TransactionScene: View {
             ListItemImageView(
                 title: title,
                 subtitle: subtitle,
-                assetImage: image
+                assetImage: image,
             )
         case let .pnl(title, value, color):
             ListItemView(
                 title: title,
                 subtitle: value,
-                subtitleStyle: TextStyle(font: .callout, color: color)
+                subtitleStyle: TextStyle(font: .callout, color: color),
             )
         case let .price(title, value):
             ListItemView(
                 title: title,
-                subtitle: value
+                subtitle: value,
             )
         case let .explorer(url, text):
             SafariNavigationLink(url: url) {
@@ -67,7 +67,7 @@ public struct TransactionScene: View {
             let button = StateButton(
                 text: text,
                 type: .primary(.normal),
-                action: model.onSelectTransactionHeader
+                action: model.onSelectTransactionHeader,
             )
             .cleanListRow(topOffset: .zero)
             if #available(iOS 26, *) {

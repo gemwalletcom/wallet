@@ -5,27 +5,26 @@ import GRDB
 import Primitives
 
 public struct WalletStore: Sendable {
-    
     let db: DatabaseQueue
-    
+
     public init(
-        db: DB
+        db: DB,
     ) {
         self.db = db.dbQueue
     }
-    
+
     public func nextWalletIndex() throws -> Int {
-        return try db.read { db in
+        try db.read { db in
             let request = WalletRecord
                 .select(max(WalletRecord.Columns.index))
-            
+
             if let index = try Int.fetchOne(db, request) {
                 return index + 1
             }
             return 1
         }
     }
-    
+
     public func addWallet(_ wallet: Wallet) throws {
         let index = try nextWalletIndex()
         var record = wallet.record
@@ -38,7 +37,7 @@ public struct WalletStore: Sendable {
             }
         }
     }
-    
+
     public func getWallet(id walletId: WalletId) throws -> Wallet? {
         try db.read { db in
             try WalletRecord
@@ -49,7 +48,7 @@ public struct WalletStore: Sendable {
                 .mapToWallet()
         }
     }
-    
+
     public func getWallets() throws -> [Wallet] {
         try db.read { db in
             try WalletRecord
@@ -59,19 +58,19 @@ public struct WalletStore: Sendable {
                 .compactMap { $0.mapToWallet() }
         }
     }
-    
+
     public func renameWallet(_ walletId: WalletId, name: String) throws {
-        let _ = try db.write { db in
+        _ = try db.write { db in
             let assignments = [
                 WalletRecord.Columns.name.set(to: name),
-                WalletRecord.Columns.updatedAt.set(to: Date.now)
+                WalletRecord.Columns.updatedAt.set(to: Date.now),
             ]
             return try WalletRecord
                 .filter(WalletRecord.Columns.id == walletId.id)
                 .updateAll(db, assignments)
         }
     }
-    
+
     @discardableResult
     public func deleteWallet(for walletId: WalletId) throws -> Bool {
         try db.write { db in
@@ -84,8 +83,8 @@ public struct WalletStore: Sendable {
     }
 
     public func pinWallet(_ walletId: WalletId, value: Bool) throws {
-        let _ = try db.write { db in
-            return try WalletRecord
+        _ = try db.write { db in
+            try WalletRecord
                 .filter(WalletRecord.Columns.id == walletId.id)
                 .updateAll(db, WalletRecord.Columns.isPinned.set(to: value))
         }
@@ -94,7 +93,8 @@ public struct WalletStore: Sendable {
     public func swapOrder(from: WalletId, to: WalletId) throws {
         guard
             let fromWallet = try getWallet(id: from),
-            let toWallet = try getWallet(id: to) else {
+            let toWallet = try getWallet(id: to)
+        else {
             throw AnyError("Unable to locate wallets to swap order")
         }
         return try db.write { db in
@@ -109,14 +109,14 @@ public struct WalletStore: Sendable {
     }
 
     public func observer() -> SubscriptionsObserver {
-        return SubscriptionsObserver(dbQueue: db)
+        SubscriptionsObserver(dbQueue: db)
     }
-    
+
     public func setWalletAvatar(_ walletId: WalletId, path: String?) throws {
-        let _ = try db.write { db in
+        _ = try db.write { db in
             let assignments = [
                 WalletRecord.Columns.imageUrl.set(to: path),
-                WalletRecord.Columns.updatedAt.set(to: Date.now)
+                WalletRecord.Columns.updatedAt.set(to: Date.now),
             ]
             return try WalletRecord
                 .filter(WalletRecord.Columns.id == walletId.id)
@@ -125,7 +125,7 @@ public struct WalletStore: Sendable {
     }
 
     func setOrder(walletId: String, order: Int) throws {
-        let _ = try db.write { db in
+        _ = try db.write { db in
             try WalletRecord
                 .filter(WalletRecord.Columns.id == walletId)
                 .updateAll(db, WalletRecord.Columns.order.set(to: order))
@@ -135,7 +135,7 @@ public struct WalletStore: Sendable {
 
 extension WalletRecord {
     func mapToWallet() -> Wallet {
-        return Wallet(
+        Wallet(
             id: id,
             externalId: externalId,
             name: name,
@@ -145,14 +145,14 @@ extension WalletRecord {
             order: order.asInt32,
             isPinned: isPinned,
             imageUrl: imageUrl,
-            source: source
+            source: source,
         )
     }
 }
 
 extension Wallet {
     var record: WalletRecord {
-        return WalletRecord(
+        WalletRecord(
             id: id,
             externalId: externalId,
             name: name,
@@ -162,20 +162,20 @@ extension Wallet {
             isPinned: false,
             imageUrl: imageUrl,
             updatedAt: nil,
-            source: source
+            source: source,
         )
     }
 }
 
 extension Account {
     func record(for walletId: String) -> AccountRecord {
-        return AccountRecord(
+        AccountRecord(
             walletId: walletId,
             chain: chain,
             address: address,
             extendedPublicKey: extendedPublicKey ?? "",
             index: 0,
-            derivationPath: derivationPath
+            derivationPath: derivationPath,
         )
     }
 }

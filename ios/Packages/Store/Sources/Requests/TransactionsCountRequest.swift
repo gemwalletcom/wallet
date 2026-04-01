@@ -5,13 +5,12 @@ import GRDB
 import Primitives
 
 public struct TransactionsCountRequest: DatabaseQueryable {
-
     public var walletId: WalletId
     private let state: TransactionState
 
     public init(
         walletId: WalletId,
-        state: TransactionState
+        state: TransactionState,
     ) {
         self.walletId = walletId
         self.state = state

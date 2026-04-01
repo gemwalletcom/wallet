@@ -188,5 +188,10 @@ fun BuyScene(
         }
     }
 
-    ProviderList(isShow = isShowProviders, providers = providers, onProviderSelect)
+    ProviderList(
+        isShow = isShowProviders,
+        providers = providers,
+        selectedProvider = selectedProvider,
+        onProviderSelect = onProviderSelect,
+    )
 }

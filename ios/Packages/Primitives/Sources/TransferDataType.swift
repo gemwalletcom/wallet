@@ -24,7 +24,7 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
         case .transferNft: .transferNFT
         case .tokenApprove: .tokenApproval
         case .swap: .swap
-        case .stake(_, let type):
+        case let .stake(_, type):
             switch type {
             case .stake: .stakeDelegate
             case .unstake: .stakeUndelegate
@@ -35,12 +35,12 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
             case .unfreeze: .stakeUnfreeze
             }
         case .account: .assetActivation
-        case .earn(_, let type, _):
+        case let .earn(_, type, _):
             switch type {
             case .deposit: .earnDeposit
             case .withdraw: .earnWithdraw
             }
-        case .perpetual(_, let type):
+        case let .perpetual(_, type):
             switch type {
             case .open, .increase: .perpetualOpenPosition
             case .close, .reduce: .perpetualClosePosition
@@ -51,95 +51,95 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
 
     public var chain: Chain {
         switch self {
-        case .transfer(let asset),
-             .deposit(let asset),
-             .withdrawal(let asset),
-             .swap(let asset, _, _),
-             .stake(let asset, _),
-             .account(let asset, _),
-             .perpetual(let asset, _),
-             .earn(let asset, _, _),
-             .tokenApprove(let asset, _),
-             .generic(let asset, _, _): asset.chain
-        case .transferNft(let asset): asset.chain
+        case let .transfer(asset),
+             let .deposit(asset),
+             let .withdrawal(asset),
+             let .swap(asset, _, _),
+             let .stake(asset, _),
+             let .account(asset, _),
+             let .perpetual(asset, _),
+             let .earn(asset, _, _),
+             let .tokenApprove(asset, _),
+             let .generic(asset, _, _): asset.chain
+        case let .transferNft(asset): asset.chain
         }
     }
 
     public var metadata: AnyCodableValue? {
         switch self {
-        case .swap(let fromAsset, let toAsset, let data):
+        case let .swap(fromAsset, toAsset, data):
             return .encode(TransactionSwapMetadata(
                 fromAsset: fromAsset.id,
                 fromValue: data.quote.fromValue,
                 toAsset: toAsset.id,
                 toValue: data.quote.toValue,
-                provider: data.quote.providerData.provider.rawValue
+                provider: data.quote.providerData.provider.rawValue,
             ))
-        case .transferNft(let asset):
+        case let .transferNft(asset):
             return .encode(TransactionNFTTransferMetadata(assetId: asset.id, name: asset.name))
-        case .perpetual(_, let type):
+        case let .perpetual(_, type):
             guard let direction = type.data?.direction else { return nil }
             return .encode(
-                TransactionPerpetualMetadata(pnl: 0, price: 0, direction: direction, isLiquidation: .none, provider: nil)
+                TransactionPerpetualMetadata(pnl: 0, price: 0, direction: direction, isLiquidation: .none, provider: nil),
             )
-        case .stake(_, let type):
+        case let .stake(_, type):
             switch type {
-            case .freeze(let resource), .unfreeze(let resource):
+            case let .freeze(resource), let .unfreeze(resource):
                 return .encode(TransactionResourceTypeMetadata(resourceType: resource))
             case .stake, .unstake, .redelegate, .rewards, .withdraw:
                 return nil
             }
-        case .generic(_, _, let extra):
+        case let .generic(_, _, extra):
             return .encode(TransactionWalletConnectMetadata(outputAction: extra.outputAction))
         case .transfer,
-            .deposit,
-            .withdrawal,
-            .tokenApprove,
-            .account,
-            .earn:
+             .deposit,
+             .withdrawal,
+             .tokenApprove,
+             .account,
+             .earn:
             return nil
         }
     }
 
     public var assetIds: [AssetId] {
         switch self {
-        case .transfer(let asset),
-             .deposit(let asset),
-             .withdrawal(let asset),
-             .tokenApprove(let asset, _),
-             .stake(let asset, _),
-             .generic(let asset, _, _),
-             .account(let asset, _),
-             .perpetual(let asset, _),
-             .earn(let asset, _, _): [asset.id]
-        case .swap(let from, let to, _): [from.id, to.id]
+        case let .transfer(asset),
+             let .deposit(asset),
+             let .withdrawal(asset),
+             let .tokenApprove(asset, _),
+             let .stake(asset, _),
+             let .generic(asset, _, _),
+             let .account(asset, _),
+             let .perpetual(asset, _),
+             let .earn(asset, _, _): [asset.id]
+        case let .swap(from, to, _): [from.id, to.id]
         case .transferNft: []
         }
     }
 
     public var outputType: TransferDataOutputType {
-        return switch self {
-        case .generic(_, _, let extra): extra.outputType
+        switch self {
+        case let .generic(_, _, extra): extra.outputType
         default: .encodedTransaction
         }
     }
 
     public var outputAction: TransferDataOutputAction {
-        return switch self {
-        case .generic(_, _, let extra): extra.outputAction
+        switch self {
+        case let .generic(_, _, extra): extra.outputAction
         default: .send
         }
     }
 
     public func swap() throws -> (Asset, Asset, data: SwapData) {
-        guard case .swap(let fromAsset, let toAsset, let data) = self else {
+        guard case let .swap(fromAsset, toAsset, data) = self else {
             throw AnyError("SwapQuoteData missed")
         }
         return (fromAsset, toAsset, data)
     }
 
     public func earn() throws -> (Asset, EarnType, data: ContractCallData) {
-        guard case .earn(let asset, let earnType, let data) = self else {
+        guard case let .earn(asset, earnType, data) = self else {
             throw AnyError("EarnData missed")
         }
         return (asset, earnType, data)
@@ -153,14 +153,14 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
     }
 
     public func withGasLimit(_ gasLimit: String) -> TransferDataType {
-        guard case .swap(let from, let to, let swapData) = self else { return self }
+        guard case let .swap(from, to, swapData) = self else { return self }
         return .swap(from, to, swapData.withGasLimit(gasLimit))
     }
 
     public var recentActivityData: RecentActivityData? {
         switch self {
-        case .transfer(let asset): RecentActivityData(type: .transfer, assetId: asset.id, toAssetId: nil)
-        case .swap(let from, let to, _): RecentActivityData(type: .swap, assetId: from.id, toAssetId: to.id)
+        case let .transfer(asset): RecentActivityData(type: .transfer, assetId: asset.id, toAssetId: nil)
+        case let .swap(from, to, _): RecentActivityData(type: .swap, assetId: from.id, toAssetId: to.id)
         default: nil
         }
     }

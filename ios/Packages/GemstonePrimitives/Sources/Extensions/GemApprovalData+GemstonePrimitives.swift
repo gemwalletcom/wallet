@@ -4,22 +4,24 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemApprovalData {
-    public func map() -> ApprovalData {
-        return ApprovalData(
-            token: self.token,
-            spender: self.spender,
-            value: self.value
+public extension GemApprovalData {
+    func map() -> ApprovalData {
+        ApprovalData(
+            token: token,
+            spender: spender,
+            value: value,
+            isUnlimited: isUnlimited,
         )
     }
 }
 
-extension ApprovalData {
-    public func map() -> GemApprovalData {
-        return GemApprovalData(
-            token: self.token,
-            spender: self.spender,
-            value: self.value
+public extension ApprovalData {
+    func map() -> GemApprovalData {
+        GemApprovalData(
+            token: token,
+            spender: spender,
+            value: value,
+            isUnlimited: isUnlimited,
         )
     }
 }

@@ -16,21 +16,21 @@ public struct AssetSceneInput: Sendable {
         self.wallet = wallet
         self.asset = asset
 
-        self.assetRequest = ChainAssetRequest(
+        assetRequest = ChainAssetRequest(
             walletId: wallet.walletId,
-            assetId: asset.id
+            assetId: asset.id,
         )
 
-        self.transactionsRequest = TransactionsRequest.assetScene(
+        transactionsRequest = TransactionsRequest.assetScene(
             walletId: wallet.walletId,
-            assetId: asset.id
+            assetId: asset.id,
         )
 
-        self.bannersRequest = BannersRequest(
+        bannersRequest = BannersRequest(
             walletId: wallet.walletId,
             assetId: asset.id,
             chain: asset.id.chain,
-            events: BannerEvent.allCases
+            events: BannerEvent.allCases,
         )
     }
 }

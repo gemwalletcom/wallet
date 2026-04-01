@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct PrivacyText: View {
     @Binding private var isEnabled: Bool
@@ -12,7 +12,7 @@ public struct PrivacyText: View {
     public init(
         _ text: String,
         isEnabled: Binding<Bool>,
-        placeholder: String = "∗∗∗∗∗"
+        placeholder: String = "∗∗∗∗∗",
     ) {
         self.text = text
         self.placeholder = placeholder

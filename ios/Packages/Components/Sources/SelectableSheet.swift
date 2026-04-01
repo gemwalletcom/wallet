@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public protocol SelectableSheetViewable: SelectableListAdoptable, ItemFilterable {
     var title: String { get }
@@ -15,8 +15,8 @@ public protocol SelectableSheetViewable: SelectableListAdoptable, ItemFilterable
 
 public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>: View {
     public typealias ListContent = (ViewModel.Item) -> Content
-    public typealias FinishSelection = ((SelectionResult<ViewModel.Item>) -> Void)
-    
+    public typealias FinishSelection = (SelectionResult<ViewModel.Item>) -> Void
+
     @Environment(\.dismiss) var dismiss
 
     @State private var model: ViewModel
@@ -26,7 +26,7 @@ public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>
     public init(
         model: ViewModel,
         onFinishSelection: @escaping FinishSelection,
-        listContent: @escaping ListContent
+        listContent: @escaping ListContent,
     ) {
         _model = State(initialValue: model)
         self.onFinishSelection = onFinishSelection
@@ -40,20 +40,20 @@ public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>
                     SearchableSelectableListView(
                         model: $model,
                         onFinishSelection: { onFinish(items: $0, isConfirmed: false) },
-                        listContent: listContent
+                        listContent: listContent,
                     )
                 } else {
                     SelectableListView(
                         model: $model,
                         onFinishSelection: { onFinish(items: $0, isConfirmed: false) },
-                        listContent: listContent
+                        listContent: listContent,
                     )
                 }
             }
             .safeAreaButton {
                 StateButton(
                     text: model.confirmButtonTitle,
-                    action: onConfirm
+                    action: onConfirm,
                 )
             }
             .contentMargins(.top, .scene.top, for: .scrollContent)
@@ -102,7 +102,7 @@ extension SelectableSheet {
         onFinish(items: Array(model.selectedItems), isConfirmed: false)
         dismiss()
     }
-    
+
     private func onConfirm() {
         onFinish(items: Array(model.selectedItems), isConfirmed: true)
     }
@@ -110,7 +110,7 @@ extension SelectableSheet {
     private func onReset() {
         model.reset()
     }
-    
+
     private func onFinish(items: [ViewModel.Item], isConfirmed: Bool) {
         let value = SelectionResult(items: items, isConfirmed: isConfirmed)
         onFinishSelection(value)

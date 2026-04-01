@@ -20,7 +20,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.Spacer2
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
-import com.gemwallet.android.ui.theme.trailingIconMedium
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 
@@ -58,10 +58,10 @@ internal fun SwapError(state: SwapState, pay: AssetInfo?) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                modifier = Modifier.size(trailingIconMedium),
+                modifier = Modifier.size(smallIconSize),
                 imageVector = Icons.Outlined.Warning,
                 tint = MaterialTheme.colorScheme.error,
-                contentDescription = ""
+                contentDescription = null,
             )
             Spacer8()
             Text(

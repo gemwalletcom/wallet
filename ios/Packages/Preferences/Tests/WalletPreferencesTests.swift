@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import PreferencesTestKit
-import PrimitivesTestKit
 import Primitives
+import PrimitivesTestKit
+import Testing
 
 @testable import Preferences
 
@@ -13,7 +13,7 @@ struct WalletPreferencesTests {
     private let asset: Asset = .mock()
 
     @Test
-    func testDefaultPreferences() {
+    func defaultPreferences() {
         #expect(preferences.assetsTimestamp == 0)
         #expect(preferences.transactionsTimestamp == 0)
         #expect(!preferences.completeInitialLoadAssets)
@@ -22,7 +22,7 @@ struct WalletPreferencesTests {
     }
 
     @Test
-    func testUpdatePreferences() {
+    func updatePreferences() {
         preferences.assetsTimestamp = 123
         #expect(preferences.assetsTimestamp == 123)
 

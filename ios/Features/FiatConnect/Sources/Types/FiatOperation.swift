@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import GemAPI
-import Validators
 import BigInt
 import Formatters
+import Foundation
+import GemAPI
+import Primitives
+import Validators
 
 protocol FiatOperation: Sendable {
     var defaultAmount: Int { get }
@@ -15,6 +15,6 @@ protocol FiatOperation: Sendable {
 
     func validators(
         availableBalance: BigInt,
-        selectedQuote: FiatQuote?
+        selectedQuote: FiatQuote?,
     ) -> [any TextValidator]
 }

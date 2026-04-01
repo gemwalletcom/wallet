@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Localization
+import Primitives
 
 public extension Error {
     var networkOrNoDataDescription: String {

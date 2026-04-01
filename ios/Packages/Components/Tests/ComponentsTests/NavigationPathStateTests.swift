@@ -6,7 +6,6 @@ import Testing
 
 @MainActor
 struct NavigationPathStateTests {
-
     @Test
     func initialState() {
         let state = NavigationPathState()

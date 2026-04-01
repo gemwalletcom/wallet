@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 
-public struct MinimumValueValidator<V>: ValueValidator where V: ValueValidatable
-{
+public struct MinimumValueValidator<V>: ValueValidator where V: ValueValidatable {
     private let minimumValue: V
     private let asset: Asset
 
@@ -20,7 +19,7 @@ public struct MinimumValueValidator<V>: ValueValidator where V: ValueValidatable
                 throw TransferError
                     .minimumAmount(
                         asset: asset,
-                        required: minimumValue
+                        required: minimumValue,
                     )
             }
             throw TransferError.invalidAmount

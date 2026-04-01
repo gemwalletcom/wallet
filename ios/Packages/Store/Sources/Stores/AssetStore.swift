@@ -5,13 +5,12 @@ import GRDB
 import Primitives
 
 public struct AssetStore: Sendable {
-    
     let db: DatabaseQueue
 
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     public func insert(assets: [AssetBasic]) throws {
         try db.write { db in
             for asset in assets {
@@ -19,7 +18,7 @@ public struct AssetStore: Sendable {
             }
         }
     }
-    
+
     public func add(assets: [AssetBasic]) throws {
         try db.write { db in
             for asset in assets {
@@ -40,12 +39,12 @@ public struct AssetStore: Sendable {
                         AssetRecord.Columns.isStakeable.set(to: asset.properties.isStakeable),
                         AssetRecord.Columns.isEarnable.set(to: asset.properties.isEarnable),
                         AssetRecord.Columns.stakingApr.set(to: asset.properties.stakingApr),
-                        AssetRecord.Columns.earnApr.set(to: asset.properties.earnApr)
+                        AssetRecord.Columns.earnApr.set(to: asset.properties.earnApr),
                     )
             }
         }
     }
-    
+
     public func getAssets() throws -> [Asset] {
         try db.read { db in
             try AssetRecord
@@ -62,7 +61,7 @@ public struct AssetStore: Sendable {
                 .map { $0.mapToAsset() }
         }
     }
-    
+
     @discardableResult
     public func setAssetIsBuyable(for assetIds: [String], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isBuyable, value: value)
@@ -77,20 +76,20 @@ public struct AssetStore: Sendable {
     public func setAssetIsSwappable(for assetIds: [String], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isSwappable, value: value)
     }
-    
+
     @discardableResult
     public func setAssetIsStakeable(for assetIds: [String], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isStakeable, value: value)
     }
-    
+
     private func setColumn(for assetIds: [String], column: Column, value: Bool) throws -> Int {
         try db.write { db in
-            return try AssetRecord
+            try AssetRecord
                 .filter(assetIds.contains(AssetRecord.Columns.id))
                 .updateAll(db, column.set(to: value))
         }
     }
-    
+
     @discardableResult
     public func clearTokens() throws -> Int {
         try db.write { db in
@@ -99,7 +98,7 @@ public struct AssetStore: Sendable {
                 .deleteAll(db)
         }
     }
-    
+
     public func updateLinks(assetId: AssetId, _ links: [AssetLink]) throws {
         try db.write { db in
             for link in links {

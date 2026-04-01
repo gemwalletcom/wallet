@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
+import NativeProviderService
 import Primitives
 import SwiftHTTPClient
-import BigInt
-import NativeProviderService
 
 public struct ChainService {
-
     let chain: Chain
     let url: URL
 
     init(
         chain: Chain,
-        url: URL
+        url: URL,
     ) {
         self.chain = chain
         self.url = url
@@ -23,7 +22,7 @@ public struct ChainService {
         let url = nodeProvider.node(for: chain)
         return GatewayChainService(
             chain: chain,
-            gateway: GatewayService(provider: NativeProvider(url: url, requestInterceptor: nodeProvider.requestInterceptor))
+            gateway: GatewayService(provider: NativeProvider(url: url, requestInterceptor: nodeProvider.requestInterceptor)),
         )
     }
 }
