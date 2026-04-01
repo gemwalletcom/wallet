@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Localization
 import Primitives
+import SwiftUI
 import WalletService
 
 public struct CreateWalletNavigationStack: View {
-
     @State private var model: CreateWalletModel
     @State private var navigationPath = NavigationPath()
 
@@ -23,8 +22,8 @@ public struct CreateWalletNavigationStack: View {
                     VerifyPhraseWalletScene(
                         model: VerifyPhraseViewModel(
                             words: scene.words,
-                            onComplete: onVerifyPhraseComplete
-                        )
+                            onComplete: onVerifyPhraseComplete,
+                        ),
                     )
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in
@@ -33,8 +32,8 @@ public struct CreateWalletNavigationStack: View {
                             wallet: scene.wallet,
                             walletService: model.walletService,
                             onSelectImage: { model.presentSelectImage(wallet: $0) },
-                            onComplete: onSetupWalletComplete
-                        )
+                            onComplete: onSetupWalletComplete,
+                        ),
                     )
                     .navigationBarBackButtonHidden()
                     .interactiveDismissDisabled()
@@ -43,8 +42,8 @@ public struct CreateWalletNavigationStack: View {
                     ShowSecretDataScene(
                         model: NewSecretPhraseViewModel(
                             walletService: model.walletService,
-                            onCreateWallet: { navigate(to: .verifyPhrase(words: $0)) }
-                        )
+                            onCreateWallet: { navigate(to: .verifyPhrase(words: $0)) },
+                        ),
                     )
                 }
                 .navigationDestination(for: Scenes.SecurityReminder.self) { _ in
@@ -56,8 +55,8 @@ public struct CreateWalletNavigationStack: View {
                             model: WalletImageViewModel(
                                 wallet: wallet,
                                 source: .onboarding,
-                                avatarService: model.avatarService
-                            )
+                                avatarService: model.avatarService,
+                            ),
                         )
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
@@ -78,8 +77,8 @@ public struct CreateWalletNavigationStack: View {
         SecurityReminderScene(
             model: SecurityReminderViewModelDefault(
                 title: Localized.Wallet.New.title,
-                onNext: { navigate(to: .createWallet) }
-            )
+                onNext: { navigate(to: .createWallet) },
+            ),
         )
     }
 }
@@ -91,8 +90,8 @@ extension CreateWalletNavigationStack {
         switch route {
         case .securityReminder: navigationPath.append(Scenes.SecurityReminder())
         case .createWallet: navigationPath.append(Scenes.CreateWallet())
-        case .verifyPhrase(let words): navigationPath.append(Scenes.VerifyPhrase(words: words))
-        case .walletProfile(let wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
+        case let .verifyPhrase(words): navigationPath.append(Scenes.VerifyPhrase(words: words))
+        case let .walletProfile(wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
         }
     }
 

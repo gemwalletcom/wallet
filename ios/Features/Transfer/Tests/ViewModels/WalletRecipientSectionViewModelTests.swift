@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 @testable import Transfer
 
 struct WalletRecipientSectionViewModelTests {
-
     @Test
     func listItems() {
         let wallet = Wallet.mock(
             name: "My Wallet",
             type: .multicoin,
-            accounts: [.mock(chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")]
+            accounts: [.mock(chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")],
         )
         let model = WalletRecipientSectionViewModel(wallets: [wallet], section: .wallets, chain: .bitcoin)
 

@@ -21,7 +21,7 @@ struct ConfirmRecipientViewModel {
 // MARK: - ItemModelProvidable
 
 extension ConfirmRecipientViewModel: ItemModelProvidable {
-    var itemModel: ConfirmTransferItemModel  {
+    var itemModel: ConfirmTransferItemModel {
         guard showRecipient else { return .empty }
         return .recipient(
             AddressListItemViewModel(
@@ -31,11 +31,11 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
                     chain: model.chain,
                     address: model.recipient.address,
                     assetImage: addressNameImage,
-                    addressType: addressName?.type
+                    addressType: addressName?.type,
                 ),
                 mode: .nameOrAddress,
-                addressLink: addressLink
-            )
+                addressLink: addressLink,
+            ),
         )
     }
 }
@@ -53,7 +53,7 @@ extension ConfirmRecipientViewModel {
     private var recipientTitle: String {
         switch model.type {
         case .swap: Localized.Common.provider
-        case .stake(_, let stakeType):
+        case let .stake(_, stakeType):
             switch stakeType {
             case .stake, .unstake, .redelegate, .rewards, .withdraw: Localized.Stake.validator
             case .freeze, .unfreeze: Localized.Stake.resource
@@ -72,15 +72,15 @@ extension ConfirmRecipientViewModel {
         guard !model.recipient.address.isEmpty else { return false }
 
         return switch model.type {
-        case .stake(_, let stakeType):
+        case let .stake(_, stakeType):
             switch stakeType {
             case .stake, .unstake, .redelegate, .withdraw: true
             case .rewards: false
             case .freeze, .unfreeze: true
             }
         case .account,
-                .swap,
-                .perpetual: false
+             .swap,
+             .perpetual: false
         case .earn: true
         case .generic:
             switch model.type.outputAction {
@@ -88,10 +88,10 @@ extension ConfirmRecipientViewModel {
             case .send: true
             }
         case .transfer,
-                .transferNft,
-                .deposit,
-                .withdrawal,
-                .tokenApprove: true
+             .transferNft,
+             .deposit,
+             .withdrawal,
+             .tokenApprove: true
         }
     }
 }

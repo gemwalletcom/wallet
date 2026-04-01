@@ -6,10 +6,9 @@ import Primitives
 
 internal import BigInt
 
-struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, TableRecord  {
-    
+struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, TableRecord {
     static let databaseTableName: String = "assets"
-    
+
     enum Columns {
         static let id = Column("id")
         static let rank = Column("rank")
@@ -29,7 +28,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
         static let earnApr = Column("earnApr")
         static let hasImage = Column("hasImage")
     }
-    
+
     var id: String
     var chain: Chain
     var tokenId: String
@@ -37,7 +36,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
     var symbol: String
     var decimals: Int
     var type: AssetType
-    
+
     var isEnabled: Bool
     var isBuyable: Bool
     var isSellable: Bool
@@ -48,7 +47,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
     var stakingApr: Double?
     var earnApr: Double?
     var hasImage: Bool
-    
+
     static let price = hasOne(PriceRecord.self)
     static let links = hasMany(AssetLinkRecord.self, key: "links")
     static let balance = hasOne(BalanceRecord.self)
@@ -61,7 +60,7 @@ struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, T
 
 extension AssetRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
                 .notNull()
@@ -119,7 +118,7 @@ extension Asset {
             isStakeable: false,
             isEarnable: false,
             rank: 0,
-            hasImage: false
+            hasImage: false,
         )
     }
 }
@@ -132,10 +131,10 @@ extension AssetRecord {
             name: name,
             symbol: symbol,
             decimals: decimals.asInt32,
-            type: type
+            type: type,
         )
     }
-    
+
     func mapToBasic() -> AssetBasic {
         AssetBasic(
             asset: mapToAsset(),
@@ -148,10 +147,10 @@ extension AssetRecord {
                 stakingApr: stakingApr,
                 isEarnable: isEarnable,
                 earnApr: earnApr,
-                hasImage: hasImage
+                hasImage: hasImage,
             ),
             score: AssetScore(rank: rank.asInt32),
-            price: nil
+            price: nil,
         )
     }
 }
@@ -163,7 +162,7 @@ extension PriceRecordInfo {
             price: price?.mapToPrice(),
             priceAlerts: priceAlerts.or([]).map { $0.map() },
             market: price?.mapToMarket(),
-            links: links.map { $0.link }
+            links: links.map(\.link),
         )
     }
 }
@@ -176,7 +175,7 @@ extension AssetRecordInfo {
             account: account.mapToAccount(),
             price: price?.mapToPrice(),
             priceAlerts: priceAlerts.or([]).compactMap { $0.map() },
-            metadata: metadata
+            metadata: metadata,
         )
     }
 
@@ -193,7 +192,7 @@ extension AssetRecordInfo {
             isActive: balance?.isActive ?? true,
             stakingApr: asset.stakingApr,
             earnApr: asset.earnApr,
-            rankScore: asset.rank.asInt32
+            rankScore: asset.rank.asInt32,
         )
     }
 }
@@ -217,7 +216,7 @@ extension AssetBasic {
             rank: score.rank.asInt,
             stakingApr: properties.stakingApr,
             earnApr: properties.earnApr,
-            hasImage: properties.hasImage
+            hasImage: properties.hasImage,
         )
     }
 }

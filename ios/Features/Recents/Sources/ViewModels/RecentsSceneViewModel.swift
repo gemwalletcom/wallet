@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import ActivityService
+import Components
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import Components
-import Localization
-import ActivityService
 
 @Observable
 @MainActor
@@ -26,11 +26,11 @@ public final class RecentsSceneViewModel {
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
         activityService: ActivityService,
-        onSelect: @escaping (Asset) -> Void
+        onSelect: @escaping (Asset) -> Void,
     ) {
         self.walletId = walletId
         self.activityService = activityService
-        self.query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
+        query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
         self.onSelect = onSelect
     }
 
@@ -43,6 +43,7 @@ public final class RecentsSceneViewModel {
     var sections: [ListSection<RecentAsset>] {
         DateSectionBuilder(items: filteredAssets, dateKeyPath: \.createdAt).build()
     }
+
     var emptyModel: any EmptyContentViewable {
         if recentAssets.isEmpty {
             return EmptyContentTypeViewModel(type: .recents)
@@ -54,7 +55,7 @@ public final class RecentsSceneViewModel {
         guard !searchQuery.isEmpty else { return recentAssets }
         return recentAssets.filter {
             $0.asset.name.localizedCaseInsensitiveContains(searchQuery) ||
-            $0.asset.symbol.localizedCaseInsensitiveContains(searchQuery)
+                $0.asset.symbol.localizedCaseInsensitiveContains(searchQuery)
         }
     }
 }

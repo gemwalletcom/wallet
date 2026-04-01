@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Style
 import Localization
+import Style
 
 struct QRScanResources: QRScannerResources {
     var selectFromPhotos: String { Localized.Library.selectFromPhotoLibrary }

@@ -1,50 +1,50 @@
-import SwiftUI
-import Primitives
 import Components
-import Style
-import PerpetualService
-import PrimitivesComponents
 import InfoSheet
 import Localization
+import PerpetualService
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct PerpetualScene: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @Bindable var model: PerpetualSceneViewModel
-    
+
     public init(model: PerpetualSceneViewModel) {
         self.model = model
     }
-    
+
     public var body: some View {
         List {
-            Section { } header: {
+            Section {} header: {
                 VStack {
                     VStack {
                         switch model.state {
                         case .noData: StateEmptyView.noData()
                         case .loading: LoadingView()
-                        case .data(let data): CandlestickChartView(data: data, period: model.currentPeriod, lineModels: model.chartLineModels)
-                        case .error(let error):
+                        case let .data(data): CandlestickChartView(data: data, period: model.currentPeriod, lineModels: model.chartLineModels)
+                        case let .error(error):
                             StateEmptyView(
                                 title: error.networkOrNoDataDescription,
-                                image: Images.ErrorConent.error
+                                image: Images.ErrorConent.error,
                             )
                         }
                     }
                     .frame(height: 320)
-                    
+
                     PeriodSelectorView(selectedPeriod: $model.currentPeriod)
                 }
             }
             .cleanListRow()
-            
+
             ForEach(model.positionViewModels) { position in
                 Section {
                     ListAssetItemView(
-                        model: PerpetualPositionItemViewModel(model: position)
+                        model: PerpetualPositionItemViewModel(model: position),
                     )
-                    
+
                     ListItemView(field: position.pnlField)
                         .numericTransition(for: position.pnlWithPercentText)
 
@@ -53,9 +53,9 @@ public struct PerpetualScene: View {
                             title: position.autocloseTitle,
                             subtitle: position.autocloseText.subtitle,
                             subtitleExtra: position.autocloseText.subtitleExtra,
-                            infoAction: model.onSelectAutocloseInfo
+                            infoAction: model.onSelectAutocloseInfo,
                         ),
-                        action: model.onSelectAutoclose
+                        action: model.onSelectAutoclose,
                     )
 
                     ListItemView(field: position.sizeField)
@@ -64,7 +64,7 @@ public struct PerpetualScene: View {
                     if let liquidationPriceField = position.liquidationPriceField {
                         ListItemView(
                             field: liquidationPriceField,
-                            infoAction: model.onSelectLiquidationPriceInfo
+                            infoAction: model.onSelectLiquidationPriceInfo,
                         )
                     }
 
@@ -72,13 +72,13 @@ public struct PerpetualScene: View {
 
                     ListItemView(
                         field: position.fundingPaymentsField,
-                        infoAction: model.onSelectFundingPaymentsInfo
+                        infoAction: model.onSelectFundingPaymentsInfo,
                     )
                 } header: {
                     Text(model.positionSectionTitle)
                 }
             }
-            
+
             Section {
                 if model.hasOpenPosition {
                     HStack(spacing: Spacing.medium) {
@@ -102,26 +102,26 @@ public struct PerpetualScene: View {
                     }
                 }
             }
-            
+
             Section(header: Text(model.infoSectionTitle)) {
                 ListItemView(field: model.perpetualViewModel.volumeField)
 
                 ListItemView(
                     field: model.perpetualViewModel.openInterestField,
-                    infoAction: model.onSelectOpenInterestInfo
+                    infoAction: model.onSelectOpenInterestInfo,
                 )
 
                 ListItemView(
                     field: model.perpetualViewModel.fundingRateField,
-                    infoAction: model.onSelectFundingRateInfo
+                    infoAction: model.onSelectFundingRateInfo,
                 )
             }
-            
+
             if !model.transactions.isEmpty {
                 TransactionsList(
                     explorerService: model.explorerService,
                     model.transactions,
-                    currency: model.currency
+                    currency: model.currency,
                 )
                 .listRowInsets(.assetListRowInsets)
             }
@@ -138,8 +138,8 @@ public struct PerpetualScene: View {
             actions: { _ in
                 Button(model.increasePositionTitle, action: model.onIncreasePosition)
                 Button(model.reducePositionTitle, role: .destructive, action: model.onReducePosition)
-                Button(Localized.Common.cancel, role: .cancel) { }
-            }
+                Button(Localized.Common.cancel, role: .cancel) {}
+            },
         )
         .refreshable {
             model.fetch()

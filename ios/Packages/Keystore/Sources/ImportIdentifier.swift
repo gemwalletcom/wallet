@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 import WalletCore
 
-internal import struct Formatters.MnemonicFormatter
+internal import enum Formatters.MnemonicFormatter
 
 public enum ImportIdentifier {
     case phrase(words: [String])

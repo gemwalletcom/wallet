@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Preferences
-import WebSocketClient
-import GemAPI
 import DeviceService
+import Foundation
+import GemAPI
+import Preferences
+import Primitives
+import WebSocketClient
 
 public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
     private let securePreferences: SecurePreferences

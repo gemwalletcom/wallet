@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
+import Foundation
 import Localization
 import Primitives
+import SwiftUI
 
 public struct PerpetualDetailsView: View {
     private var model: PerpetualDetailsViewModel
@@ -33,7 +33,7 @@ public struct PerpetualDetailsView: View {
                     ListItemView(
                         title: model.autocloseTitle,
                         subtitle: model.autocloseText.subtitle,
-                        subtitleExtra: model.autocloseText.subtitleExtra
+                        subtitleExtra: model.autocloseText.subtitleExtra,
                     )
                 }
             }

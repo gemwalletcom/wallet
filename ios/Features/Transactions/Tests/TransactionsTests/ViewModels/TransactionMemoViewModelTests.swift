@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import PrimitivesTestKit
 import Primitives
+import PrimitivesTestKit
+import Testing
 
 @testable import Transactions
 
 struct TransactionMemoViewModelTests {
-
     @Test
     func itemModelEmpty_whenChainDoesNotSupportMemo() {
         let model = TransactionMemoViewModel(transaction: .mock(assetId: .mockEthereum(), memo: "test"))

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
-extension Balance {
-    public static let zero: Balance = Balance(available: BigInt.zero)
+public extension Balance {
+    static let zero: Balance = .init(available: BigInt.zero)
 
-    public var total: BigInt {
+    var total: BigInt {
         available + frozen + locked + staked + pending + rewards + earn
     }
 }

@@ -38,6 +38,7 @@ internal fun AssetItem(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
+
     DropDownContextItem(
         modifier = modifier.testTag(item.id.toIdentifier()),
         isExpanded = longPressState.value == item.id,

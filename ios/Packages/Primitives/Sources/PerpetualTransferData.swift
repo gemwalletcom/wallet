@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct PerpetualRecipientData: Codable, Equatable, Hashable, Sendable {
     public let recipient: RecipientData
@@ -24,9 +24,9 @@ public enum PerpetualPositionAction: Codable, Equatable, Hashable, Sendable, Ide
 
     public var id: String {
         switch self {
-        case .open(let data): return data.id
-        case .reduce(let data, _, _): return data.id
-        case .increase(let data): return data.id
+        case let .open(data): data.id
+        case let .reduce(data, _, _): data.id
+        case let .increase(data): data.id
         }
     }
 }
@@ -49,7 +49,7 @@ public struct PerpetualTransferData: Codable, Equatable, Hashable, Sendable {
         assetIndex: Int,
         price: Double,
         leverage: UInt8,
-        marginType: PerpetualMarginType
+        marginType: PerpetualMarginType,
     ) {
         self.provider = provider
         self.direction = direction

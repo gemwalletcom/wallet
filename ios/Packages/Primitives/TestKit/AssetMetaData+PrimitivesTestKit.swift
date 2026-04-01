@@ -16,7 +16,7 @@ public extension AssetMetaData {
         isActive: Bool = true,
         stakingApr: Double? = nil,
         earnApr: Double? = nil,
-        rankScore: Int32 = 42
+        rankScore: Int32 = 42,
     ) -> AssetMetaData {
         AssetMetaData(
             isEnabled: isEnabled,
@@ -30,7 +30,7 @@ public extension AssetMetaData {
             isActive: isActive,
             stakingApr: stakingApr,
             earnApr: earnApr,
-            rankScore: rankScore
+            rankScore: rankScore,
         )
     }
 }

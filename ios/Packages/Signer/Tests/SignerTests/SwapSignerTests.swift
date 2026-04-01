@@ -33,7 +33,7 @@ struct SwapSignerTests {
         metadata: TransactionLoadMetadata = .none,
         useMaxAmount: Bool,
         senderAddress: String? = nil,
-        destinationAddress: String? = nil
+        destinationAddress: String? = nil,
     ) -> SignerInput {
         SignerInput(
             type: .swap(fromAsset, toAsset, swapData),
@@ -44,7 +44,7 @@ struct SwapSignerTests {
             memo: nil,
             senderAddress: senderAddress ?? swapData.quote.fromAddress,
             destinationAddress: destinationAddress ?? swapData.quote.toAddress,
-            metadata: metadata
+            metadata: metadata,
         )
     }
 
@@ -54,7 +54,7 @@ struct SwapSignerTests {
         destinationAddress: String,
         data: String,
         fromValue: String = "1000",
-        useMaxAmount: Bool = false
+        useMaxAmount: Bool = false,
     ) -> SwapData {
         SwapData(
             quote: SwapQuote(
@@ -65,11 +65,11 @@ struct SwapSignerTests {
                 providerData: SwapProviderData(
                     provider: .nearIntents,
                     name: "Near Intents",
-                    protocolName: "near_intents"
+                    protocolName: "near_intents",
                 ),
                 slippageBps: 50,
                 etaInSeconds: 60,
-                useMaxAmount: useMaxAmount
+                useMaxAmount: useMaxAmount,
             ),
             data: SwapQuoteData(
                 to: toAddress,
@@ -78,8 +78,8 @@ struct SwapSignerTests {
                 data: data,
                 memo: nil,
                 approval: nil,
-                gasLimit: nil
-            )
+                gasLimit: nil,
+            ),
         )
     }
 
@@ -93,7 +93,7 @@ struct SwapSignerTests {
             toAddress: TestValues.ethereumReceiver,
             destinationAddress: TestValues.ethereumReceiver,
             data: "0x",
-            fromValue: "9000"
+            fromValue: "9000",
         )
         let input = makeSwapInput(
             from: fromAsset,
@@ -101,7 +101,7 @@ struct SwapSignerTests {
             swapData: swapData,
             value: feeAdjustedValue,
             useMaxAmount: true,
-            senderAddress: TestValues.ethereumSender
+            senderAddress: TestValues.ethereumSender,
         )
         let mockSigner = SwapSignableMock()
         let swapSigner = SwapSigner()
@@ -111,7 +111,7 @@ struct SwapSignerTests {
             input: input,
             fromAsset: fromAsset,
             swapData: swapData,
-            privateKey: swapTestPrivateKey
+            privateKey: swapTestPrivateKey,
         )
 
         #expect(result == [mockSigner.transferResult])
@@ -120,7 +120,7 @@ struct SwapSignerTests {
 
         let transferInput = mockSigner.transferInputs.first!
         #expect(transferInput.asset == fromAsset)
-        if case .transfer(let asset) = transferInput.type {
+        if case let .transfer(asset) = transferInput.type {
             #expect(asset == fromAsset)
         } else {
             #expect(Bool(false))
@@ -140,7 +140,7 @@ struct SwapSignerTests {
             toAddress: TestValues.ethereumReceiver,
             destinationAddress: TestValues.ethereumReceiver,
             data: "0x",
-            fromValue: "9000"
+            fromValue: "9000",
         )
         let input = makeSwapInput(
             from: fromAsset,
@@ -148,7 +148,7 @@ struct SwapSignerTests {
             swapData: swapData,
             value: 9500,
             useMaxAmount: false,
-            senderAddress: TestValues.ethereumSender
+            senderAddress: TestValues.ethereumSender,
         )
         let mockSigner = SwapSignableMock()
 
@@ -157,7 +157,7 @@ struct SwapSignerTests {
             input: input,
             fromAsset: fromAsset,
             swapData: swapData,
-            privateKey: swapTestPrivateKey
+            privateKey: swapTestPrivateKey,
         )
 
         let transferInput = mockSigner.transferInputs.first!
@@ -173,7 +173,7 @@ struct SwapSignerTests {
             toAddress: TestValues.ethereumReceiver,
             destinationAddress: TestValues.ethereumReceiver,
             data: "0x",
-            fromValue: "9000"
+            fromValue: "9000",
         )
         let input = makeSwapInput(
             from: fromAsset,
@@ -181,7 +181,7 @@ struct SwapSignerTests {
             swapData: swapData,
             value: 9500,
             useMaxAmount: true,
-            senderAddress: TestValues.ethereumSender
+            senderAddress: TestValues.ethereumSender,
         )
         let mockSigner = SwapSignableMock()
 
@@ -190,7 +190,7 @@ struct SwapSignerTests {
             input: input,
             fromAsset: fromAsset,
             swapData: swapData,
-            privateKey: swapTestPrivateKey
+            privateKey: swapTestPrivateKey,
         )
 
         let transferInput = mockSigner.tokenTransferInputs.first!
@@ -205,11 +205,11 @@ struct SwapSignerTests {
             walletAddress: TestValues.nearSender,
             toAddress: TestValues.nearReceiver,
             destinationAddress: TestValues.nearReceiver,
-            data: "0x"
+            data: "0x",
         )
         let metadata: TransactionLoadMetadata = .near(
             sequence: 42,
-            blockHash: "near-block-hash"
+            blockHash: "near-block-hash",
         )
         let input = makeSwapInput(
             from: fromAsset,
@@ -219,7 +219,7 @@ struct SwapSignerTests {
             metadata: metadata,
             useMaxAmount: false,
             senderAddress: TestValues.nearSender,
-            destinationAddress: TestValues.nearReceiver
+            destinationAddress: TestValues.nearReceiver,
         )
         let mockSigner = SwapSignableMock()
         let swapSigner = SwapSigner()
@@ -229,7 +229,7 @@ struct SwapSignerTests {
             input: input,
             fromAsset: fromAsset,
             swapData: swapData,
-            privateKey: swapTestPrivateKey
+            privateKey: swapTestPrivateKey,
         )
 
         #expect(result == [mockSigner.transferResult])
@@ -244,7 +244,7 @@ struct SwapSignerTests {
         #expect(captured.destinationAddress == swapData.data.to)
         #expect(captured.value == swapData.quote.fromValueBigInt)
 
-        if case .near(let sequence, let blockHash) = captured.metadata {
+        if case let .near(sequence, blockHash) = captured.metadata {
             #expect(sequence == 42)
             #expect(blockHash == "near-block-hash")
         } else {
@@ -260,7 +260,7 @@ struct SwapSignerTests {
             walletAddress: TestValues.suiSender,
             toAddress: TestValues.suiReceiver,
             destinationAddress: TestValues.suiReceiver,
-            data: "0x"
+            data: "0x",
         )
         let metadata: TransactionLoadMetadata = .sui(messageBytes: "payload")
         let input = makeSwapInput(
@@ -271,7 +271,7 @@ struct SwapSignerTests {
             metadata: metadata,
             useMaxAmount: false,
             senderAddress: TestValues.suiSender,
-            destinationAddress: TestValues.suiReceiver
+            destinationAddress: TestValues.suiReceiver,
         )
         let mockSigner = SwapSignableMock()
         let swapSigner = SwapSigner()
@@ -281,7 +281,7 @@ struct SwapSignerTests {
             input: input,
             fromAsset: fromAsset,
             swapData: swapData,
-            privateKey: swapTestPrivateKey
+            privateKey: swapTestPrivateKey,
         )
 
         #expect(result == [mockSigner.transferResult])
@@ -296,7 +296,7 @@ struct SwapSignerTests {
         #expect(captured.destinationAddress == swapData.data.to)
         #expect(captured.value == swapData.quote.fromValueBigInt)
 
-        if case .sui(let messageBytes) = captured.metadata {
+        if case let .sui(messageBytes) = captured.metadata {
             #expect(messageBytes == "payload")
         } else {
             #expect(Bool(false))
@@ -312,18 +312,18 @@ private final class SwapSignableMock: Signable {
 
     init(
         transferResult: String = "transfer-signature",
-        tokenTransferResult: String = "token-transfer-signature"
+        tokenTransferResult: String = "token-transfer-signature",
     ) {
         self.transferResult = transferResult
         self.tokenTransferResult = tokenTransferResult
     }
 
-    func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
+    func signTransfer(input: SignerInput, privateKey _: Data) throws -> String {
         transferInputs.append(input)
         return transferResult
     }
 
-    func signTokenTransfer(input: SignerInput, privateKey: Data) throws -> String {
+    func signTokenTransfer(input: SignerInput, privateKey _: Data) throws -> String {
         tokenTransferInputs.append(input)
         return tokenTransferResult
     }

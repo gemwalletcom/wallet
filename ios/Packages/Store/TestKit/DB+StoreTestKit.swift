@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Store
 import Primitives
 import PrimitivesTestKit
+import Store
 
 public extension DB {
     static func mock() -> DB {
@@ -32,7 +32,7 @@ public extension DB {
         try? walletStore.addWallet(.mock(accounts: assets.map { Account.mock(chain: $0.asset.chain) }))
         try? balanceStore.addBalance(assets.map { AddBalance(assetId: $0.asset.id, isEnabled: true) }, for: .mock())
         try? balanceStore.updateBalances(.mock(assets: assets), for: .mock())
-        
+
         return db
     }
 }

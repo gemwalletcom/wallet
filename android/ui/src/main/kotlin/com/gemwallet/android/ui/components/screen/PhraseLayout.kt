@@ -8,23 +8,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.ui.theme.normalPadding
+import androidx.compose.foundation.layout.padding
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.space8
+import com.gemwallet.android.ui.theme.space10
 
 @Composable
 fun PhraseLayout(
     words: List<String>,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val halfSize = words.size / 2
@@ -37,14 +42,14 @@ fun PhraseLayout(
                     word = words[i],
                     isNextToEnter = (i > 0 && words[i].isEmpty() && words[i - 1].isNotEmpty()) ||  (words[i].isEmpty() && i == 0),
                 )
-                Spacer(modifier = Modifier.width(20.dp))
+                Spacer(modifier = Modifier.width(space8))
                 PhraseWordItem(
                     index = i + halfSize,
                     word = words[i + halfSize],
                     isNextToEnter = words[i + halfSize].isEmpty() && words[(i + halfSize) - 1].isNotEmpty(),
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(space8))
         }
     }
 }
@@ -58,37 +63,26 @@ fun RowScope.PhraseWordItem(
     Surface(
         modifier = Modifier.weight(0.5f),
         shadowElevation = 1.dp,
-        shape = MaterialTheme.shapes.small,
+        shape = RoundedCornerShape(space10),
         color = MaterialTheme.colorScheme.background,
-        border = if (isNextToEnter) BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary) else null
+        border = if (isNextToEnter) BorderStroke(space2, MaterialTheme.colorScheme.primary) else null
     ) {
         Row(
-            modifier = Modifier.normalPadding(),
+            modifier = Modifier.padding(horizontal = paddingDefault, vertical = space10),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer8()
-                Text(
-                    text = "${index + 1}.",
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier,
-                )
-            }
-            Row(
+            Text(
+                text = "${index + 1}.",
+                color = MaterialTheme.colorScheme.secondary,
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = word,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = word,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            )
         }
     }
 }

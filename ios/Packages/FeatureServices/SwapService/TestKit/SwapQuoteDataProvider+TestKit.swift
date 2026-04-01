@@ -25,7 +25,7 @@ public struct SwapQuoteDataProviderMock: SwapQuoteDataProvidable {
         self.quoteData = quoteData
     }
 
-    public func fetchQuoteData(wallet: Wallet, quote: SwapperQuote) async throws -> GemSwapQuoteData {
+    public func fetchQuoteData(wallet _: Wallet, quote _: SwapperQuote) async throws -> GemSwapQuoteData {
         quoteData
     }
 }

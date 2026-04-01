@@ -14,7 +14,7 @@ public extension PerpetualService {
         priceStore: PriceStore = .mock(),
         balanceStore: BalanceStore = .mock(),
         provider: PerpetualProvidable = PerpetualProviderMock(),
-        preferences: Preferences = .mock()
+        preferences: Preferences = .mock(),
     ) -> PerpetualService {
         PerpetualService(
             store: store,
@@ -22,7 +22,7 @@ public extension PerpetualService {
             priceStore: priceStore,
             balanceStore: balanceStore,
             provider: provider,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }
@@ -34,10 +34,10 @@ public struct PerpetualProviderMock: PerpetualProvidable {
         .hypercore
     }
 
-    public func getPositions(address: String) async throws -> PerpetualPositionsSummary {
+    public func getPositions(address _: String) async throws -> PerpetualPositionsSummary {
         PerpetualPositionsSummary(
             positions: [],
-            balance: PerpetualBalance(available: 0, reserved: 0, withdrawable: 0)
+            balance: PerpetualBalance(available: 0, reserved: 0, withdrawable: 0),
         )
     }
 
@@ -45,11 +45,11 @@ public struct PerpetualProviderMock: PerpetualProvidable {
         []
     }
 
-    public func getCandlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {
+    public func getCandlesticks(symbol _: String, period _: ChartPeriod) async throws -> [ChartCandleStick] {
         []
     }
 
-    public func getPortfolio(address: String) async throws -> PerpetualPortfolio {
+    public func getPortfolio(address _: String) async throws -> PerpetualPortfolio {
         PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil)
     }
 }

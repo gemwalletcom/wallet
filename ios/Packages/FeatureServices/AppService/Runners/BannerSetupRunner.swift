@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BannerService
+import Foundation
 import Primitives
 
 public struct BannerSetupRunner: AsyncRunnable {

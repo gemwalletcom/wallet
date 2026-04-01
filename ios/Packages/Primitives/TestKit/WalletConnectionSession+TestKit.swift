@@ -11,7 +11,7 @@ public extension WalletConnectionSession {
         chains: [Chain] = [.ethereum],
         createdAt: Date = .now,
         expireAt: Date = .distantFuture,
-        metadata: WalletConnectionSessionAppMetadata = .mock()
+        metadata: WalletConnectionSessionAppMetadata = .mock(),
     ) -> WalletConnectionSession {
         WalletConnectionSession(
             id: id,
@@ -20,7 +20,7 @@ public extension WalletConnectionSession {
             chains: chains,
             createdAt: createdAt,
             expireAt: expireAt,
-            metadata: metadata
+            metadata: metadata,
         )
     }
 }
@@ -30,13 +30,13 @@ public extension WalletConnectionSessionAppMetadata {
         name: String = "",
         description: String = "",
         url: String = "",
-        icon: String = ""
+        icon: String = "",
     ) -> WalletConnectionSessionAppMetadata {
         WalletConnectionSessionAppMetadata(
             name: name,
             description: description,
             url: url,
-            icon: icon
+            icon: icon,
         )
     }
 }

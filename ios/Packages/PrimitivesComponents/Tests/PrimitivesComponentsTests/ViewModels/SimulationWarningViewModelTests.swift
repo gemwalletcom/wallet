@@ -1,20 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Localization
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Style
-@testable import PrimitivesComponents
+import Testing
 
 struct SimulationWarningViewModelTests {
-
     @Test
     func titleUsesWarningTitleWhenMessageExists() {
         let warning = SimulationWarning(
             severity: .warning,
             warning: .validationError,
-            message: "Chain ID mismatch"
+            message: "Chain ID mismatch",
         )
         let model = SimulationWarningViewModel(warning: warning)
 
@@ -28,7 +27,7 @@ struct SimulationWarningViewModelTests {
         let warning = SimulationWarning(
             severity: .warning,
             warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: nil)),
-            message: nil
+            message: nil,
         )
         let model = SimulationWarningViewModel(warning: warning)
 
@@ -39,11 +38,11 @@ struct SimulationWarningViewModelTests {
     @Test
     func colorMatchesSeverity() {
         #expect(SimulationWarningViewModel(
-            warning: SimulationWarning(severity: .critical, warning: .validationError, message: nil)
+            warning: SimulationWarning(severity: .critical, warning: .validationError, message: nil),
         ).color == Colors.red)
 
         #expect(SimulationWarningViewModel(
-            warning: SimulationWarning(severity: .warning, warning: .validationError, message: nil)
+            warning: SimulationWarning(severity: .warning, warning: .validationError, message: nil),
         ).color == Colors.orange)
     }
 
@@ -53,23 +52,23 @@ struct SimulationWarningViewModelTests {
             warning: SimulationWarning(
                 severity: .warning,
                 warning: .tokenApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: "1")),
-                message: nil
-            )
+                message: nil,
+            ),
         ).isVisible == false)
 
         #expect(SimulationWarningViewModel(
             warning: SimulationWarning(
                 severity: .warning,
                 warning: .permitApproval(SimulationWarningApproval(assetId: Asset.mockEthereumUSDT().id, value: "1")),
-                message: nil
-            )
+                message: nil,
+            ),
         ).isVisible == false)
     }
 
     @Test
     func suspiciousAddressUsesErrorOccurredTitle() {
         let model = SimulationWarningViewModel(
-            warning: SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil)
+            warning: SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil),
         )
 
         #expect(model.title == Localized.Errors.errorOccured)

@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 @preconcurrency import WalletCore
 
-internal import struct Formatters.MnemonicFormatter
+internal import enum Formatters.MnemonicFormatter
 internal import WalletCorePrimitives
 internal import func Gemstone.decodePrivateKey
 
@@ -30,13 +30,13 @@ struct WalletKeyStore: Sendable {
         words: [String],
         chains: [Chain],
         password: String,
-        source: WalletSource
+        source: WalletSource,
     ) throws -> Primitives.Wallet {
         let wallet = try keyStore.import(
             mnemonic: MnemonicFormatter.fromArray(words: words),
             name: name,
             encryptPassword: password,
-            coins: []
+            coins: [],
         )
         return try addCoins(id: id, wallet: wallet, existingChains: [], newChains: chains, password: password, source: source)
     }
@@ -58,7 +58,7 @@ struct WalletKeyStore: Sendable {
             chain: chain,
             address: address,
             derivationPath: chain.coinType.derivationPath(), // not applicable
-            extendedPublicKey: nil
+            extendedPublicKey: nil,
         )
         return Primitives.Wallet(
             id: id.id,
@@ -70,7 +70,7 @@ struct WalletKeyStore: Sendable {
             order: 0,
             isPinned: false,
             imageUrl: nil,
-            source: source
+            source: source,
         )
     }
 
@@ -80,29 +80,29 @@ struct WalletKeyStore: Sendable {
         existingChains: [Chain],
         newChains: [Chain],
         password: String,
-        source: WalletSource
+        source: WalletSource,
     ) throws -> Primitives.Wallet {
         let allChains = existingChains + newChains
         let exclude = [Chain.solana]
-        let coins = allChains.filter { !exclude.contains($0) }.map { $0.coinType }.asSet().asArray()
-        let existingCoinTypes = existingChains.map({ $0.coinType }).asSet()
-        let newCoinTypes = newChains.map({ $0.coinType }).asSet()
+        let coins = allChains.filter { !exclude.contains($0) }.map(\.coinType).asSet().asArray()
+        let existingCoinTypes = existingChains.map(\.coinType).asSet()
+        let newCoinTypes = newChains.map(\.coinType).asSet()
 
         // Tricky wallet core implementation. By default is coins: [], it will create ethereum
         // if single chain, remove all to simplify
-        if existingChains.isEmpty && newChains.count == 1 {
-            let _ = try keyStore.removeAccounts(wallet: wallet, coins: [.ethereum] + exclude.map { $0.coinType }, password: password)
+        if existingChains.isEmpty, newChains.count == 1 {
+            let _ = try keyStore.removeAccounts(wallet: wallet, coins: [.ethereum] + exclude.map(\.coinType), password: password)
         }
-        if newChains.contains(.solana) && !existingChains.contains(.solana) {
+        if newChains.contains(.solana), !existingChains.contains(.solana) {
             // By default solana derived a wrong derivation path, need to adjust use a new one
             let _ = try wallet.getAccount(password: password, coin: .solana, derivation: .solanaSolana)
         }
-        if newChains.isNotEmpty && newCoinTypes.subtracting(existingCoinTypes).isNotEmpty {
+        if newChains.isNotEmpty, newCoinTypes.subtracting(existingCoinTypes).isNotEmpty {
             let _ = try keyStore.addAccounts(wallet: wallet, coins: coins, password: password)
         }
 
         let accounts = allChains.compactMap { chain in
-            wallet.accounts.filter({ $0.coin == chain.coinType }).first?.mapToAccount(chain: chain)
+            wallet.accounts.filter { $0.coin == chain.coinType }.first?.mapToAccount(chain: chain)
         }
 
         return Wallet(
@@ -115,7 +115,7 @@ struct WalletKeyStore: Sendable {
             order: 0,
             isPinned: false,
             imageUrl: nil,
-            source: source
+            source: source,
         )
     }
 
@@ -123,15 +123,15 @@ struct WalletKeyStore: Sendable {
         wallet: Primitives.Wallet,
         existingChains: [Chain],
         newChains: [Chain],
-        password: String
+        password: String,
     ) throws -> Primitives.Wallet {
         try addCoins(
-            id: try WalletId.from(id: wallet.id),
-            wallet: try getWallet(id: wallet.keystoreId),
+            id: WalletId.from(id: wallet.id),
+            wallet: getWallet(id: wallet.keystoreId),
             existingChains: existingChains,
             newChains: newChains,
             password: password,
-            source: wallet.source
+            source: wallet.source,
         )
     }
 
@@ -201,17 +201,17 @@ struct WalletKeyStore: Sendable {
 
 extension WalletCore.Wallet {
     var id: String {
-        return key.identifier!
+        key.identifier!
     }
 }
 
 extension WalletCore.Account {
     func mapToAccount(chain: Chain) -> Primitives.Account {
-        return Account(
+        Account(
             chain: chain,
             address: chain.shortAddress(address: address),
             derivationPath: derivationPath,
-            extendedPublicKey: extendedPublicKey
+            extendedPublicKey: extendedPublicKey,
         )
     }
 }

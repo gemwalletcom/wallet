@@ -6,7 +6,7 @@ import StoreKit
 
 public extension WalletStore {
     static func mock(
-        db: DB = .mock()
+        db: DB = .mock(),
     ) -> WalletStore {
         WalletStore(db: db)
     }

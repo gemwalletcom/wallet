@@ -17,7 +17,7 @@ extension Session {
             chains: sessionChains,
             createdAt: .now,
             expireAt: expiryDate,
-            metadata: peer.metadata
+            metadata: peer.metadata,
         )
     }
 }

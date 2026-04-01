@@ -14,7 +14,7 @@ struct QRScannerViewWrapper {
         recognizesMultipleItems: false,
         isHighFrameRateTrackingEnabled: true,
         isGuidanceEnabled: false,
-        isHighlightingEnabled: false
+        isHighlightingEnabled: false,
     )
 
     @Binding var isScannerReady: Bool
@@ -28,7 +28,7 @@ struct QRScannerViewWrapper {
         guard !dataScannerVC.isScanning else { return }
         do {
             try dataScannerVC.startScanning()
-                isScannerReady = true
+            isScannerReady = true
         } catch {
             scanResult(.failure(QRScannerError.unknown(error)))
             isScannerReady = false
@@ -54,7 +54,7 @@ extension QRScannerViewWrapper: UIViewControllerRepresentable {
         return dataScannerVC
     }
 
-    func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {}
+    func updateUIViewController(_: DataScannerViewController, context _: Context) {}
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -74,7 +74,7 @@ extension QRScannerViewWrapper {
         }
 
         func didAddItem(item: RecognizedItem) {
-            guard case .barcode(let barcode) = item else { return }
+            guard case let .barcode(barcode) = item else { return }
 
             if let code = barcode.payloadStringValue {
                 parent.scanResult(.success(code))
@@ -88,14 +88,15 @@ extension QRScannerViewWrapper {
 // MARK: - DataScannerViewControllerDelegate
 
 extension QRScannerViewWrapper.Coordinator: DataScannerViewControllerDelegate {
-    func dataScanner(_ dataScanner: DataScannerViewController, didAdd addedItems: [RecognizedItem], allItems: [RecognizedItem]) {
+    func dataScanner(_: DataScannerViewController, didAdd addedItems: [RecognizedItem], allItems _: [RecognizedItem]) {
         if let item = addedItems.first {
             didAddItem(item: item)
         }
     }
+
     func dataScanner(
-        _ dataScanner: DataScannerViewController,
-        becameUnavailableWithError error: DataScannerViewController.ScanningUnavailable
+        _: DataScannerViewController,
+        becameUnavailableWithError error: DataScannerViewController.ScanningUnavailable,
     ) {
         parent.scanResult(.failure(error))
     }

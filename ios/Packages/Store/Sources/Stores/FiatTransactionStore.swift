@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct FiatTransactionStore: Sendable {
-
     let db: DatabaseQueue
 
     public init(db: DB) {

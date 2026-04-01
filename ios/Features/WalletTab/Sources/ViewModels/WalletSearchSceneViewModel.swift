@@ -1,24 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Store
-import PrimitivesComponents
-import AssetsService
-import Components
-import Preferences
-import Style
-import Localization
 import ActivityService
+import AssetsService
 import BalanceService
+import Components
+import Foundation
+import Localization
 import PerpetualService
+import Preferences
+import Primitives
+import PrimitivesComponents
 import Recents
+import Store
+import Style
+import SwiftUI
 
 @Observable
 @MainActor
 public final class WalletSearchSceneViewModel: Sendable {
-
     private let searchService: WalletSearchService
     private let activityService: ActivityService
     private let assetsEnabler: any AssetsEnabler
@@ -40,7 +39,7 @@ public final class WalletSearchSceneViewModel: Sendable {
     var searchResult: WalletSearchResult { searchQuery.value }
     var recents: [RecentAsset] { recentsQuery.value }
 
-    var isPresentingToastMessage: ToastMessage? = nil
+    var isPresentingToastMessage: ToastMessage?
     var isSearching: Bool = false
     var isSearchPresented: Bool = false
     var dismissSearch: Bool = false
@@ -58,7 +57,7 @@ public final class WalletSearchSceneViewModel: Sendable {
         preferences: ObservablePreferences = .default,
         onDismissSearch: VoidAction,
         onSelectAssetAction: AssetAction,
-        onAddToken: VoidAction
+        onAddToken: VoidAction,
     ) {
         self.wallet = wallet
         self.searchService = searchService
@@ -70,24 +69,24 @@ public final class WalletSearchSceneViewModel: Sendable {
         self.onDismissSearch = onDismissSearch
         self.onSelectAssetAction = onSelectAssetAction
         self.onAddToken = onAddToken
-        self.searchModel = WalletSearchModel(selectType: .manage)
+        searchModel = WalletSearchModel(selectType: .manage)
 
         let isPerpetualEnabled = preferences.isPerpetualEnabled
-        self.searchQuery = ObservableQuery(
+        searchQuery = ObservableQuery(
             WalletSearchRequest(
                 walletId: wallet.walletId,
                 limit: WalletSearchModel.initialFetchLimit(isPerpetualEnabled: isPerpetualEnabled),
-                types: WalletSearchModel.searchItemTypes(isPerpetualEnabled: isPerpetualEnabled)
+                types: WalletSearchModel.searchItemTypes(isPerpetualEnabled: isPerpetualEnabled),
             ),
-            initialValue: .empty
+            initialValue: .empty,
         )
-        self.recentsQuery = ObservableQuery(
+        recentsQuery = ObservableQuery(
             RecentActivityRequest(
                 walletId: wallet.walletId,
                 limit: 10,
-                types: WalletSearchModel.recentActivityTypes(isPerpetualEnabled: isPerpetualEnabled)
+                types: WalletSearchModel.recentActivityTypes(isPerpetualEnabled: isPerpetualEnabled),
             ),
-            initialValue: []
+            initialValue: [],
         )
     }
 
@@ -121,14 +120,14 @@ public final class WalletSearchSceneViewModel: Sendable {
             types: recentsQuery.request.types,
             filters: recentsQuery.request.filters,
             activityService: activityService,
-            onSelect: onSelectRecent
+            onSelect: onSelectRecent,
         )
     }
 
     var assetsResultsDestination: Scenes.AssetsResults {
         Scenes.AssetsResults(
             searchQuery: searchQuery.request.searchBy,
-            tag: searchQuery.request.tag
+            tag: searchQuery.request.tag,
         )
     }
 
@@ -143,7 +142,7 @@ public final class WalletSearchSceneViewModel: Sendable {
             },
             onAddToWallet: { [weak self] in
                 self?.onSelectAddToWallet(assetData.asset)
-            }
+            },
         )
     }
 }
@@ -200,7 +199,7 @@ extension WalletSearchSceneViewModel {
         do {
             try balanceService.setPinned(value, walletId: wallet.walletId, assetId: assetData.asset.id)
             isPresentingToastMessage = .pin(assetData.asset.name, pinned: value)
-            if value && !assetData.metadata.isBalanceEnabled {
+            if value, !assetData.metadata.isBalanceEnabled {
                 enableAsset(assetData.asset.id)
             }
         } catch {
@@ -270,7 +269,7 @@ extension WalletSearchSceneViewModel {
         RecentActivityData(
             type: asset.type == .perpetual ? .perpetual : .search,
             assetId: asset.id,
-            toAssetId: nil
+            toAssetId: nil,
         )
     }
 
@@ -278,7 +277,7 @@ extension WalletSearchSceneViewModel {
         do {
             try activityService.updateRecent(
                 data: activityData(for: asset),
-                walletId: wallet.walletId
+                walletId: wallet.walletId,
             )
         } catch {
             debugLog("UpdateRecent error: \(error)")

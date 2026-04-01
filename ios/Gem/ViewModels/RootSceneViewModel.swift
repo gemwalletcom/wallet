@@ -3,21 +3,21 @@
 import AppService
 import AvatarService
 import Components
+import ConnectionsService
 import DeviceService
 import EventPresenterService
 import Foundation
-import LockManager
 import Localization
+import LockManager
 import NameService
 import Onboarding
+import Preferences
 import Primitives
 import SwiftUI
-import TransactionStateService
 import TransactionsService
+import TransactionStateService
 import WalletConnector
-import ConnectionsService
 import WalletService
-import Preferences
 
 @Observable
 @MainActor
@@ -62,7 +62,7 @@ final class RootSceneViewModel {
         get { walletConnectorPresenter.isPresentingConnectionBar }
         set { walletConnectorPresenter.isPresentingConnectionBar = newValue }
     }
-    
+
     var isPresentingCreateWalletSheet = false
     var isPresentingImportWalletSheet = false
 
@@ -86,7 +86,7 @@ final class RootSceneViewModel {
         rateService: RateService,
         eventPresenterService: EventPresenterService,
         avatarService: AvatarService,
-        deviceService: any DeviceServiceable
+        deviceService: any DeviceServiceable,
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
@@ -95,7 +95,7 @@ final class RootSceneViewModel {
         self.connectionsService = connectionsService
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
-        self.lockManager = lockWindowManager
+        lockManager = lockWindowManager
         self.walletService = walletService
         self.walletSetupService = walletSetupService
         self.nameService = nameService
@@ -118,13 +118,13 @@ extension RootSceneViewModel {
         Task { await appLifecycleService.setup() }
     }
 
-    func onScenePhaseChanged(_ oldPhase: ScenePhase, _ newPhase: ScenePhase) {
+    func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {
         Task {
             await appLifecycleService.handleScenePhase(newPhase)
         }
     }
 
-    func onPerpetualEnabledChanged(_ oldValue: Bool, _ newValue: Bool) {
+    func onPerpetualEnabledChanged(_: Bool, _: Bool) {
         Task {
             await appLifecycleService.updatePerpetualConnection()
         }
@@ -146,7 +146,7 @@ extension RootSceneViewModel {
         do {
             let action = try URLParser.from(url: url)
             switch action {
-            case .walletConnect(let walletConnectAction):
+            case let .walletConnect(walletConnectAction):
                 try await handleWalletConnect(walletConnectAction)
             case .asset, .swap, .perpetuals, .rewards, .gift, .buy, .sell, .setPriceAlert:
                 await navigationHandler.handle(action)
@@ -156,7 +156,7 @@ extension RootSceneViewModel {
             isPresentingConnectorError = error.localizedDescription
         }
     }
-    
+
     func dismissCreateWallet() {
         isPresentingCreateWalletSheet = false
         requestPushPermissions()
@@ -183,7 +183,7 @@ extension RootSceneViewModel {
             await appLifecycleService.setupWallet(wallet)
         }
     }
-    
+
     private func checkForUpdate() async {
         guard let release = await releaseAlertService.checkForUpdate() else { return }
         updateVersionAlertMessage = makeUpdateAlert(for: release)
@@ -195,7 +195,7 @@ extension RootSceneViewModel {
             role: .cancel,
             action: { [releaseAlertService] in
                 releaseAlertService.skipRelease(release)
-            }
+            },
         )
         let updateAction = AlertAction(
             title: Localized.UpdateApp.action,
@@ -204,21 +204,21 @@ extension RootSceneViewModel {
                 Task { @MainActor in
                     releaseAlertService.openAppStore()
                 }
-            }
+            },
         )
         let actions = release.upgradeRequired ? [updateAction] : [skipAction, updateAction]
 
         return AlertMessage(
             title: Localized.UpdateApp.title,
             message: Localized.UpdateApp.description(release.version),
-            actions: actions
+            actions: actions,
         )
     }
 
     private func handleWalletConnect(_ action: WalletConnectAction) async throws {
         isPresentingConnectorBar = true
         switch action {
-        case .connect(let uri):
+        case let .connect(uri):
             try await connectionsService.pair(uri: uri)
         case .request:
             break
@@ -226,7 +226,7 @@ extension RootSceneViewModel {
             connectionsService.updateSessions()
         }
     }
-    
+
     private func requestPushPermissions() {
         Task {
             await onstartWalletService.requestPushPermissions()

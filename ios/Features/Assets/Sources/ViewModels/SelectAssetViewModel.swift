@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Store
-import Components
-import Localization
-import PrimitivesComponents
+import ActivityService
 import AssetsService
 import BalanceService
+import Components
+import Foundation
+import Localization
 import Preferences
 import PriceAlertService
-import ActivityService
+import Primitives
+import PrimitivesComponents
+import Store
 import Style
+import SwiftUI
 
 @Observable
 @MainActor
@@ -54,7 +54,7 @@ public final class SelectAssetViewModel {
         assetsEnabler: any AssetsEnabler,
         priceAlertService: PriceAlertService,
         activityService: ActivityService,
-        selectAssetAction: AssetAction = .none
+        selectAssetAction: AssetAction = .none,
     ) {
         self.preferences = preferences
         self.wallet = wallet
@@ -63,39 +63,40 @@ public final class SelectAssetViewModel {
         self.assetsEnabler = assetsEnabler
         self.priceAlertService = priceAlertService
         self.activityService = activityService
-        self.onSelectAssetAction = selectAssetAction
+        onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
             type: selectType,
             model: ChainsFilterViewModel(
-                chains: wallet.chains
-            )
+                chains: wallet.chains,
+            ),
         )
-        self.filterModel = filter
-        self.searchModel = AssetSearchViewModel(selectType: selectType)
+        filterModel = filter
+        searchModel = AssetSearchViewModel(selectType: selectType)
 
-        self.assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: filter.filters), initialValue: [])
-        self.recentsQuery = ObservableQuery(
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: filter.filters), initialValue: [])
+        recentsQuery = ObservableQuery(
             RecentActivityRequest(
                 walletId: wallet.walletId,
                 limit: 10,
                 types: RecentActivityType.allCases.filter { $0 != .perpetual
                 },
-                filters: filter.defaultFilters),
-            initialValue: []
+                filters: filter.defaultFilters,
+            ),
+            initialValue: [],
         )
     }
 
     var title: String {
         switch selectType {
         case .send: Localized.Wallet.send
-        case .receive(let type):
+        case let .receive(type):
             switch type {
             case .asset: Localized.Wallet.receive
             case .collection: Localized.Wallet.receiveCollection
             }
         case .buy: Localized.Wallet.buy
-        case .swap(let type):
+        case let .swap(type):
             switch type {
             case .pay: Localized.Swap.youPay
             case .receive: Localized.Swap.youReceive
@@ -148,7 +149,7 @@ public final class SelectAssetViewModel {
 
     public var showFilter: Bool {
         switch selectType {
-        case .receive(let type):
+        case let .receive(type):
             switch type {
             case .asset:
                 wallet.isMultiCoins && !filterModel.chainsFilter.isEmpty
@@ -162,13 +163,13 @@ public final class SelectAssetViewModel {
 
     var isNetworkSearchEnabled: Bool {
         switch selectType {
-        case .manage, .receive, .buy, .priceAlert: return true
+        case .manage, .receive, .buy, .priceAlert: true
         case let .swap(type):
             switch type {
-            case .pay: return false
-            case .receive: return true
+            case .pay: false
+            case .receive: true
             }
-        case .send, .deposit, .withdraw: return false
+        case .send, .deposit, .withdraw: false
         }
     }
 
@@ -231,7 +232,7 @@ extension SelectAssetViewModel {
         await searchAssets(
             query: query,
             priorityAssetsQuery: searchModel.priorityAssetsQuery,
-            tag: nil
+            tag: nil,
         )
     }
 
@@ -256,7 +257,7 @@ extension SelectAssetViewModel {
             await searchAssets(
                 query: .empty,
                 priorityAssetsQuery: searchModel.priorityAssetsQuery,
-                tag: searchModel.tagsViewModel.selectedTag.tag
+                tag: searchModel.tagsViewModel.selectedTag.tag,
             )
         }
     }
@@ -285,7 +286,7 @@ extension SelectAssetViewModel {
     func onAssetAction(action: ListAssetItemAction, assetData: AssetData) {
         let asset = assetData.asset
         switch action {
-        case .switcher(let enabled):
+        case let .switcher(enabled):
             Task {
                 await handleAction(assetId: asset.id, enabled: enabled)
             }
@@ -293,7 +294,7 @@ extension SelectAssetViewModel {
             let address = assetData.account.address
             copyTypeViewModel = CopyTypeViewModel(
                 type: .address(asset, address: address),
-                copyValue: address
+                copyValue: address,
             )
             isPresentingCopyToast = true
             Task {
@@ -330,7 +331,6 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
-
     private func assetAddress(for asset: Asset) -> AssetAddress {
         let address: String = {
             do {
@@ -342,18 +342,18 @@ extension SelectAssetViewModel {
         }()
         return AssetAddress(asset: asset, address: address)
     }
-    
+
     private func searchAssets(
         query: String,
         priorityAssetsQuery: String?,
-        tag: AssetTag?
+        tag: AssetTag?,
     ) async {
         do {
             let assets = try await searchService.searchAssets(
                 wallet: wallet,
                 query: query,
                 priorityAssetsQuery: priorityAssetsQuery,
-                tag: tag
+                tag: tag,
             )
             state = .data(assets)
         } catch {
@@ -386,11 +386,11 @@ extension SelectAssetType {
     var listType: AssetListType {
         switch self {
         case .send,
-                .buy,
-                .swap,
-                .deposit,
-                .withdraw: .view
-        case .receive(let type): .copy(type)
+             .buy,
+             .swap,
+             .deposit,
+             .withdraw: .view
+        case let .receive(type): .copy(type)
         case .manage: .manage
         case .priceAlert: .price
         }

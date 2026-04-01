@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import Style
 import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public struct ChartStateView: View {
     private let state: StateViewType<ChartValuesViewModel>
@@ -15,10 +15,10 @@ public struct ChartStateView: View {
     public init(
         state: StateViewType<ChartValuesViewModel>,
         selectedPeriod: Binding<ChartPeriod>,
-        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all]
+        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
     ) {
         self.state = state
-        self._selectedPeriod = selectedPeriod
+        _selectedPeriod = selectedPeriod
         self.periods = periods
     }
 
@@ -27,15 +27,15 @@ public struct ChartStateView: View {
             VStack {
                 switch state {
                 case .noData:
-                    StateEmptyView(title: Localized.Common.notAvailable , image: Images.EmptyContent.activity)
+                    StateEmptyView(title: Localized.Common.notAvailable, image: Images.EmptyContent.activity)
                 case .loading:
                     LoadingView()
-                case .data(let model):
+                case let .data(model):
                     ChartView(model: model)
-                case .error(let error):
+                case let .error(error):
                     StateEmptyView(
                         title: error.networkOrNoDataDescription,
-                        image: Images.ErrorConent.error
+                        image: Images.ErrorConent.error,
                     )
                 }
             }

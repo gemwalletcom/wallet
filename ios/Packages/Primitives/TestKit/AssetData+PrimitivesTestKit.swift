@@ -22,8 +22,8 @@ public extension AssetData {
             isActive: true,
             stakingApr: .none,
             earnApr: .none,
-            rankScore: 42
-        )
+            rankScore: 42,
+        ),
     ) -> AssetData {
         AssetData(
             asset: asset,
@@ -31,7 +31,7 @@ public extension AssetData {
             account: account,
             price: price,
             priceAlerts: priceAlerts,
-            metadata: metadata
+            metadata: metadata,
         )
     }
 }

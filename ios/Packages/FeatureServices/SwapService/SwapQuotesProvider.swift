@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 
 import struct Gemstone.SwapperQuote
@@ -31,7 +31,7 @@ public struct SwapQuotesProvider: SwapQuotesProvidable {
             value: amount.description,
             walletAddress: walletAddress,
             destinationAddress: destinationAddress,
-            useMaxAmount: useMaxAmount
+            useMaxAmount: useMaxAmount,
         )
         return try quotes.sorted { try BigInt.from(string: $0.toValue) > BigInt.from(string: $1.toValue) }
     }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 @testable import PerpetualService
+import Primitives
 
 public actor PerpetualObserverMock: PerpetualObservable {
     public let chartService: any ChartStreamable = ChartObserverService()
@@ -11,7 +11,7 @@ public actor PerpetualObserverMock: PerpetualObservable {
 
     public init() {}
 
-    public func setup(for wallet: Wallet) async {
+    public func setup(for _: Wallet) async {
         isConnected = true
     }
 
@@ -19,8 +19,8 @@ public actor PerpetualObserverMock: PerpetualObservable {
         isConnected = false
     }
 
-    public func update(for wallet: Wallet) async {}
+    public func update(for _: Wallet) async {}
 
-    public func subscribe(_ subscription: HyperliquidSubscription) async throws {}
-    public func unsubscribe(_ subscription: HyperliquidSubscription) async throws {}
+    public func subscribe(_: HyperliquidSubscription) async throws {}
+    public func unsubscribe(_: HyperliquidSubscription) async throws {}
 }

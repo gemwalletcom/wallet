@@ -5,12 +5,12 @@ import WalletConnectorService
 
 public actor WalletConnectorServiceMock: WalletConnectorServiceable {
     public var isSetup: Bool = false
-    
+
     public init() {}
 
     public func setup() async { isSetup = true }
-    public func pair(uri: String) async throws {}
-    public func disconnect(sessionId: String) async throws {}
-    nonisolated public func configure() throws {}
-    nonisolated public func updateSessions() {}
+    public func pair(uri _: String) async throws {}
+    public func disconnect(sessionId _: String) async throws {}
+    public nonisolated func configure() throws {}
+    public nonisolated func updateSessions() {}
 }

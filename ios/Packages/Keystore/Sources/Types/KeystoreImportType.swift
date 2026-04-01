@@ -12,7 +12,7 @@ public enum KeystoreImportType: Sendable {
     public var walletType: WalletType {
         switch self {
         case .phrase: .multicoin
-        case .single: .single   
+        case .single: .single
         case .privateKey: .privateKey
         case .address: .view
         }

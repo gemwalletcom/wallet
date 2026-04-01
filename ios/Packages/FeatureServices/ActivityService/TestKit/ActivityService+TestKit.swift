@@ -6,7 +6,7 @@ import StoreTestKit
 
 public extension ActivityService {
     static func mock(
-        store: RecentActivityStore = .mock()
+        store: RecentActivityStore = .mock(),
     ) -> Self {
         ActivityService(store: store)
     }

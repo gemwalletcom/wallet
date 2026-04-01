@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import Primitives
+import PrimitivesTestKit
 import Store
 import StoreTestKit
-import PrimitivesTestKit
-import Primitives
+import Testing
 
 struct TotalValueRequestTests {
-
     @Test
     func walletBalanceWithPrice() throws {
         let db = DB.mockAssets()
@@ -19,7 +18,7 @@ struct TotalValueRequestTests {
         let ethId = AssetId(chain: .ethereum)
         try priceStore.updatePrice(
             price: AssetPrice(assetId: ethId, price: 1100, priceChangePercentage24h: 10, updatedAt: .now),
-            currency: Currency.usd.rawValue
+            currency: Currency.usd.rawValue,
         )
 
         try db.dbQueue.read { db in
@@ -55,7 +54,7 @@ struct TotalValueRequestTests {
         let ethId = AssetId(chain: .ethereum)
         try priceStore.updatePrice(
             price: AssetPrice(assetId: ethId, price: 1100, priceChangePercentage24h: 0, updatedAt: .now),
-            currency: Currency.usd.rawValue
+            currency: Currency.usd.rawValue,
         )
 
         try db.dbQueue.read { db in

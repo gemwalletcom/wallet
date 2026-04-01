@@ -1,25 +1,24 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import ConnectionsService
+import ConnectionsServiceTestKit
 import Foundation
 import Primitives
 import PrimitivesTestKit
 import StoreTestKit
+import Testing
 import WalletConnectorServiceTestKit
-import ConnectionsService
-import ConnectionsServiceTestKit
 
-@testable import WalletConnector
 @testable import Store
+@testable import WalletConnector
 
 struct ConnectionsViewModelTests {
-
     @Test @MainActor
     func sectionsOrderedByWalletOrder() {
         let connections: [WalletConnection] = [
             .mock(wallet: .mock(name: "Zebra", order: 2)),
             .mock(wallet: .mock(name: "Alpha", order: 1)),
-            .mock(wallet: .mock(name: "Beta", order: 3))
+            .mock(wallet: .mock(name: "Beta", order: 3)),
         ]
         let model = ConnectionsViewModel(service: .mock())
         model.query.value = connections
@@ -39,13 +38,13 @@ struct ConnectionsViewModelTests {
         let connections: [WalletConnection] = [
             .mock(session: .mock(createdAt: oldDate)),
             .mock(session: .mock(createdAt: newestDate)),
-            .mock(session: .mock(createdAt: recentDate))
+            .mock(session: .mock(createdAt: recentDate)),
         ]
         let model = ConnectionsViewModel(service: .mock())
         model.query.value = connections
 
         #expect(model.sections.count == 1)
-        #expect(model.sections[0].values.map { $0.session.createdAt } == [newestDate, recentDate, oldDate])
+        #expect(model.sections[0].values.map(\.session.createdAt) == [newestDate, recentDate, oldDate])
     }
 }
 
@@ -54,7 +53,7 @@ extension ConnectionsService {
         ConnectionsService(
             store: .mock(),
             signer: WalletConnectorSigner.mock(),
-            connector: WalletConnectorServiceMock()
+            connector: WalletConnectorServiceMock(),
         )
     }
 }

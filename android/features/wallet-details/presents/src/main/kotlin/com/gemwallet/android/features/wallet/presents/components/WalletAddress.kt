@@ -50,7 +50,6 @@ internal fun WalletAddress(
         title = { PropertyTitleText(R.string.common_address) },
         data = {
             PropertyDataText(
-                modifier = Modifier.weight(1f),
                 text = address,
             )
         },

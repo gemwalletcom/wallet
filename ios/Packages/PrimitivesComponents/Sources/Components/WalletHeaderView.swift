@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Localization
 import Primitives
+import Style
+import SwiftUI
 
 public struct WalletHeaderView: View {
     private let model: any HeaderViewModel
@@ -22,7 +22,7 @@ public struct WalletHeaderView: View {
         balanceActionType: BalanceActionType,
         onHeaderAction: HeaderButtonAction?,
         onSubtitleAction: VoidAction = nil,
-        onInfoAction: VoidAction
+        onInfoAction: VoidAction,
     ) {
         self.model = model
         _isPrivacyEnabled = isPrivacyEnabled
@@ -37,17 +37,17 @@ public struct WalletHeaderView: View {
             if let assetImage = model.assetImage {
                 AssetImageView(
                     assetImage: assetImage,
-                    size: .image.semiLarge
+                    size: .image.semiLarge,
                 )
                 .padding(.bottom, .space12)
             }
             balanceView
-            .numericTransition(for: model.title)
-            .minimumScaleFactor(0.5)
-            .font(.app.largeTitle)
-            .foregroundStyle(Colors.black)
-            .lineLimit(1)
-            .padding(.bottom, .space10)
+                .numericTransition(for: model.title)
+                .minimumScaleFactor(0.5)
+                .font(.app.largeTitle)
+                .foregroundStyle(Colors.black)
+                .lineLimit(1)
+                .padding(.bottom, .space10)
 
             if let subtitle = model.subtitle {
                 subtitleView(subtitle)
@@ -88,7 +88,7 @@ public struct WalletHeaderView: View {
         let content = HStack(spacing: Spacing.space6) {
             PrivacyText(
                 subtitle,
-                isEnabled: $isPrivacyEnabled
+                isEnabled: $isPrivacyEnabled,
             )
             .font(.app.headline)
             .foregroundStyle(model.subtitleColor)
@@ -114,7 +114,7 @@ public struct WalletHeaderView: View {
         switch balanceActionType {
         case .privacyToggle:
             PrivacyToggleView(model.title, isEnabled: $isPrivacyEnabled)
-        case .action(let action):
+        case let .action(action):
             Button(action: action) {
                 PrivacyText(model.title, isEnabled: $isPrivacyEnabled)
             }
@@ -129,9 +129,9 @@ public struct WalletHeaderView: View {
 #Preview {
     let model = WalletHeaderViewModel(
         walletType: .multicoin,
-        totalValue: TotalFiatValue(value: 1_000, pnlAmount: 50, pnlPercentage: 5.26),
+        totalValue: TotalFiatValue(value: 1000, pnlAmount: 50, pnlPercentage: 5.26),
         currencyCode: Currency.usd.rawValue,
-        bannerEventsViewModel: HeaderBannerEventViewModel(events: [])
+        bannerEventsViewModel: HeaderBannerEventViewModel(events: []),
     )
 
     WalletHeaderView(
@@ -139,6 +139,6 @@ public struct WalletHeaderView: View {
         isPrivacyEnabled: .constant(false),
         balanceActionType: .privacyToggle,
         onHeaderAction: .none,
-        onInfoAction: .none
+        onInfoAction: .none,
     )
 }

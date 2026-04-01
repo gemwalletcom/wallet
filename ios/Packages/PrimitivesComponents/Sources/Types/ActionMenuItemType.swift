@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Foundation
+import Primitives
 import SwiftUI
 
 public enum ActionMenuItemType: Identifiable {
@@ -9,12 +9,12 @@ public enum ActionMenuItemType: Identifiable {
         title: String,
         systemImage: String? = nil,
         role: ButtonRole? = nil,
-        action: VoidAction
+        action: VoidAction,
     )
 
     public var id: String {
         switch self {
-        case let .button(title,_ , _ , _): "button-\(title)"
+        case let .button(title, _, _, _): "button-\(title)"
         }
     }
 }

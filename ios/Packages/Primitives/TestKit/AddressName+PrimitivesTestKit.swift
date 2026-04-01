@@ -9,14 +9,14 @@ public extension AddressName {
         address: String = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
         name: String = "Hyperliquid",
         type: AddressType? = nil,
-        status: VerificationStatus = .verified
+        status: VerificationStatus = .verified,
     ) -> AddressName {
         AddressName(
             chain: chain,
             address: address,
             name: name,
             type: type,
-            status: status
+            status: status,
         )
     }
 }

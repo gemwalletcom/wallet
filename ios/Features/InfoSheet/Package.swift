@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "InfoSheet",
-            targets: ["InfoSheet"]),
+            targets: ["InfoSheet"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -20,7 +21,7 @@ let package = Package(
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
-        .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents")
+        .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
     ],
     targets: [
         .target(
@@ -32,9 +33,9 @@ let package = Package(
                 "Components",
                 "Formatters",
                 "GemstonePrimitives",
-                "PrimitivesComponents"
+                "PrimitivesComponents",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
-    ]
+    ],
 )

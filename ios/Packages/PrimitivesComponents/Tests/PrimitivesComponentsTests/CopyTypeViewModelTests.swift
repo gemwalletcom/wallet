@@ -1,10 +1,9 @@
+@testable import PrimitivesComponents
+import PrimitivesTestKit
 import Testing
 import UIKit
-import PrimitivesTestKit
-@testable import PrimitivesComponents
 
 struct CopyTypeViewModelTests {
-
     @Test
     func pasteboardOptionsNil() {
         let options = CopyTypeViewModel.pasteboardOptions(expirationTime: nil)

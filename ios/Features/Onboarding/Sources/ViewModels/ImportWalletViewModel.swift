@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import WalletService
 import AvatarService
-import PrimitivesComponents
+import Foundation
 import enum Keystore.KeystoreImportType
+import Primitives
+import PrimitivesComponents
+import SwiftUI
+import WalletService
 
 @Observable
 @MainActor
 public final class ImportWalletViewModel {
-
     let walletService: WalletService
     let avatarService: AvatarService
     let nameService: any NameServiceable
@@ -23,7 +22,7 @@ public final class ImportWalletViewModel {
         walletService: WalletService,
         avatarService: AvatarService,
         nameService: any NameServiceable,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.walletService = walletService
         self.avatarService = avatarService

@@ -11,8 +11,8 @@ extension LockPeriod: Identifiable {
     public var id: Self { self }
 }
 
-extension LockPeriod {
-    public var value: Int {
+public extension LockPeriod {
+    var value: Int {
         switch self {
         case .immediate: 0
         case .oneMinute: 60

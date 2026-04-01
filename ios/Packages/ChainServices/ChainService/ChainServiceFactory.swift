@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Blockchain
 import Foundation
 import Primitives
-import Blockchain
 
 public protocol ChainServiceFactorable: Sendable {
     var requestInterceptor: any RequestInterceptable { get }
@@ -10,7 +10,6 @@ public protocol ChainServiceFactorable: Sendable {
 }
 
 public final class ChainServiceFactory: ChainServiceFactorable, Sendable {
-
     private let nodeProvider: any NodeURLFetchable
 
     public var requestInterceptor: any RequestInterceptable {

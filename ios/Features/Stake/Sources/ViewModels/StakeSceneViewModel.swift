@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Store
-import Components
 import BigInt
-import GemstonePrimitives
-import SwiftUI
-import Localization
-import StakeService
-import InfoSheet
-import PrimitivesComponents
+import Components
 import Formatters
+import Foundation
+import GemstonePrimitives
+import InfoSheet
+import Localization
+import Primitives
+import PrimitivesComponents
+import StakeService
+import Store
+import SwiftUI
 
 @MainActor
 @Observable
@@ -40,15 +40,15 @@ public final class StakeSceneViewModel {
         wallet: Wallet,
         chain: StakeChain,
         currencyCode: String,
-        stakeService: any StakeServiceable
+        stakeService: any StakeServiceable,
     ) {
         self.wallet = wallet
         self.chain = chain
         self.currencyCode = currencyCode
         self.stakeService = stakeService
-        self.delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.walletId, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
-        self.validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
-        self.assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
+        delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.walletId, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
+        validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
     }
 
     public var stakeInfoUrl: URL {
@@ -85,6 +85,7 @@ public final class StakeSceneViewModel {
         let value = Self.lockTimeFormatter.string(from: now, to: date) ?? .empty
         return ListItemField(title: Localized.Stake.lockTime, value: value)
     }
+
     var lockTimeInfoSheet: InfoSheetType {
         InfoSheetType.stakeLockTime(assetModel.assetImage.placeholder)
     }
@@ -102,10 +103,9 @@ public final class StakeSceneViewModel {
     var showManage: Bool {
         wallet.canSign
     }
-    
+
     var recommendedCurrentValidator: DelegationValidator? {
-        let ids = recommendedValidators.validatorsSet(chain: chain.chain)
-        return validators.first { ids.contains($0.id) }
+        recommendedValidators.randomValidator(chain: chain.chain, from: validators)
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -119,9 +119,9 @@ public final class StakeSceneViewModel {
                 type: .stake(asset, .withdraw(delegation.delegation)),
                 recipientData: RecipientData(
                     recipient: Recipient(name: delegation.validatorText, address: delegation.delegation.validator.id, memo: ""),
-                    amount: .none
+                    amount: .none,
                 ),
-                value: delegation.delegation.base.balanceValue
+                value: delegation.delegation.base.balanceValue,
             )
         case .active, .pending, .inactive, .activating, .deactivating:
             delegation.delegation
@@ -129,12 +129,12 @@ public final class StakeSceneViewModel {
     }
 
     var delegationsSectionTitle: String {
-        guard case .data(let delegations) = delegationsViewState, delegations.isNotEmpty else {
+        guard case let .data(delegations) = delegationsViewState, delegations.isNotEmpty else {
             return .empty
         }
         return delegationsTitle
     }
-    
+
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
         let delegationModels = delegations.map { DelegationViewModel(delegation: $0, asset: asset, currencyCode: currencyCode) }
 
@@ -142,10 +142,10 @@ public final class StakeSceneViewModel {
         case .noData: return .noData
         case .loading: return delegationModels.isEmpty ? .loading : .data(delegationModels)
         case .data: return delegationModels.isEmpty ? .noData : .data(delegationModels)
-        case .error(let error): return .error(error)
+        case let .error(error): return .error(error)
         }
     }
-    
+
     var claimRewardsText: String {
         formatter.string(rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
@@ -153,19 +153,19 @@ public final class StakeSceneViewModel {
     var canClaimRewards: Bool {
         chain.supportClaimRewards && rewardsValue > 0
     }
-    
+
     var claimRewardsDestination: any Hashable {
         let validators = delegations
             .filter { $0.base.rewardsValue > 0 }
-            .map { $0.validator }
+            .map(\.validator)
 
         return TransferData(
             type: .stake(chain.chain.asset, .rewards(validators)),
             recipientData: RecipientData(
                 recipient: Recipient(name: .none, address: "", memo: .none),
-                amount: .none
+                amount: .none,
             ),
-            value: rewardsValue
+            value: rewardsValue,
         )
     }
 
@@ -173,20 +173,20 @@ public final class StakeSceneViewModel {
         destination(
             type: .stake(.stake(
                 validators: validators,
-                recommended: recommendedCurrentValidator
-            ))
+                recommended: recommendedCurrentValidator,
+            )),
         )
     }
 
     var freezeDestination: any Hashable {
         destination(
-            type: .freeze(resource: .bandwidth)
+            type: .freeze(resource: .bandwidth),
         )
     }
 
     var unfreezeDestination: any Hashable {
         destination(
-            type: .unfreeze(resource: .bandwidth)
+            type: .unfreeze(resource: .bandwidth),
         )
     }
 
@@ -198,6 +198,7 @@ public final class StakeSceneViewModel {
         }
         return true
     }
+
     var isStakeEnabled: Bool { validators.isNotEmpty }
 
     var showTronResources: Bool {
@@ -219,7 +220,7 @@ extension StakeSceneViewModel {
             delegationsState = .error(error)
         }
     }
-    
+
     func onLockTimeInfo() {
         isPresentingInfoSheet = lockTimeInfoSheet
     }
@@ -252,13 +253,13 @@ extension StakeSceneViewModel {
     }
 
     private var rewardsValue: BigInt {
-        delegations.map { $0.base.rewardsValue }.reduce(0, +)
+        delegations.map(\.base.rewardsValue).reduce(0, +)
     }
 
     private func destination(type: AmountType) -> any Hashable {
         AmountInput(
             type: type,
-            asset: asset
+            asset: asset,
         )
     }
 }

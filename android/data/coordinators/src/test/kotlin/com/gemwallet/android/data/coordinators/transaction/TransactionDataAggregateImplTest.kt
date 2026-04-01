@@ -12,11 +12,54 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import org.junit.After
+import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class TransactionDataAggregateImplTest {
+    private val gemstoneLibraryOverrideProperty = "uniffi.component.gemstone.libraryOverride"
+
+    companion object {
+        private fun resolveGemstoneLibraryPath(): Path? {
+            val libraryName = System.mapLibraryName("gemstone")
+            var directory: Path? = Paths.get("").toAbsolutePath()
+
+            while (directory != null) {
+                val candidate = directory.resolve("core/target/debug/$libraryName").normalize()
+                if (Files.exists(candidate)) {
+                    return candidate
+                }
+                directory = directory.parent
+            }
+
+            return null
+        }
+    }
+
+    private fun assumeHostGemstoneRuntime() {
+        val libraryPath = resolveGemstoneLibraryPath()
+        val isAvailable = try {
+            Class.forName("com.sun.jna.Native", true, javaClass.classLoader)
+            true
+        } catch (_: Throwable) {
+            false
+        }
+        assumeTrue("Host Gemstone runtime unavailable for JVM tests", libraryPath != null && isAvailable)
+        System.setProperty(
+            gemstoneLibraryOverrideProperty,
+            libraryPath.toString(),
+        )
+    }
+
+    @After
+    fun clearGemstoneLibraryOverride() {
+        System.clearProperty(gemstoneLibraryOverrideProperty)
+    }
 
     private val btcAsset = Asset(
         id = AssetId(Chain.Bitcoin),
@@ -128,20 +171,22 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testAddress_transferOutgoing() {
+        assumeHostGemstoneRuntime()
         val transaction = createTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Outgoing,
             from = "bc1qsender",
-            to = "bc1qreceiver",
+            to = "bc1qx2x5cqhymfcnjtg902ky6u5t5htmt7fvqztdsm028hkrvxcl4t2sjtpd9l",
         )
         val extended = createTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1q....iver", aggregate.address)
+        assertEquals("bc1qx2...tpd9l", aggregate.address)
     }
 
     @Test
     fun testAddress_transferIncoming() {
+        assumeHostGemstoneRuntime()
         val transaction = createTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.Incoming,
@@ -156,6 +201,7 @@ class TransactionDataAggregateImplTest {
 
     @Test
     fun testAddress_transferSelfTransfer() {
+        assumeHostGemstoneRuntime()
         val transaction = createTransaction(
             type = TransactionType.Transfer,
             direction = TransactionDirection.SelfTransfer,

@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 @testable import Transfer
 
 struct ContactRecipientSectionViewModelTests {
-
     @Test
     func listItemsEmpty() {
         #expect(ContactRecipientSectionViewModel(contacts: []).listItems.isEmpty)
@@ -29,7 +28,7 @@ struct ContactRecipientSectionViewModelTests {
     func listItemsMultipleAddresses() {
         let addresses = [
             ContactAddress.mock(id: "1", address: "bc1q111", chain: .bitcoin),
-            ContactAddress.mock(id: "2", address: "bc1q222", chain: .bitcoin)
+            ContactAddress.mock(id: "2", address: "bc1q222", chain: .bitcoin),
         ]
         let contact = ContactData.mock(addresses: addresses)
 

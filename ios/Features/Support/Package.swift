@@ -8,8 +8,8 @@ let package = Package(
     products: [
         .library(
             name: "Support",
-            targets: ["Support"]
-        )
+            targets: ["Support"],
+        ),
     ],
     dependencies: [
         .package(name: "Style", path: "../../Packages/Style"),
@@ -33,15 +33,15 @@ let package = Package(
                 "PrimitivesComponents",
                 "Preferences",
                 .product(name: "NotificationService", package: "FeatureServices"),
-                .product(name: "DeviceService", package: "FeatureServices")
+                .product(name: "DeviceService", package: "FeatureServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "SupportTests",
             dependencies: [
                 "Support",
-            ]
+            ],
         ),
-    ]
+    ],
 )

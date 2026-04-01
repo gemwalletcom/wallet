@@ -5,7 +5,6 @@ import Testing
 @testable import PriceAlerts
 
 struct PriceSuggestionTests {
-
     @Test
     func inputValue() {
         #expect(PriceSuggestion(title: "", value: 67000.0).inputValue == "67000")

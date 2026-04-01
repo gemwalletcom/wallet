@@ -1,33 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Transfer
-import Keystore
-import SwapService
-import Swap
-import ScanService
-import WalletConnector
-import WalletService
-import ChainService
-import StakeService
-import EarnService
-import Stake
-import NameService
-import BalanceService
-import PriceService
-import TransactionStateService
-import Assets
-import FiatConnect
-import WalletConnectorService
-import AddressNameService
 import ActivityService
-import EventPresenterService
-import Preferences
-import PrimitivesComponents
+import AddressNameService
+import Assets
 import AssetsService
+import BalanceService
+import ChainService
+import EarnService
+import EventPresenterService
+import FiatConnect
 import FiatService
+import Foundation
+import Keystore
+import NameService
+import Preferences
+import PriceService
+import Primitives
+import PrimitivesComponents
+import ScanService
+import Stake
+import StakeService
+import Swap
+import SwapService
+import SwiftUI
+import TransactionStateService
+import Transfer
+import WalletConnector
+import WalletConnectorService
+import WalletService
 
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
@@ -69,7 +69,7 @@ public struct ViewModelFactory: Sendable {
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
         fiatService: FiatService,
-        assetsService: AssetsService
+        assetsService: AssetsService,
     ) {
         self.keystore = keystore
         self.chainServiceFactory = chainServiceFactory
@@ -91,14 +91,14 @@ public struct ViewModelFactory: Sendable {
         self.fiatService = fiatService
         self.assetsService = assetsService
     }
-    
+
     @MainActor
     public func confirmTransferScene(
         wallet: Wallet,
         data: TransferData,
         confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate? = nil,
         simulation: SimulationResult? = nil,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) -> ConfirmTransferSceneViewModel {
         let confirmService = ConfirmServiceFactory.create(
             keystore: keystore,
@@ -112,11 +112,11 @@ public struct ViewModelFactory: Sendable {
             addressNameService: addressNameService,
             activityService: activityService,
             eventPresenterService: eventPresenterService,
-            chain: data.chain
+            chain: data.chain,
         )
         let simulationService = ConfirmSimulationServiceFactory.create(
             addressNameService: addressNameService,
-            assetsService: assetsService
+            assetsService: assetsService,
         )
 
         return ConfirmTransferSceneViewModel(
@@ -127,17 +127,17 @@ public struct ViewModelFactory: Sendable {
             fiatService: fiatService,
             confirmTransferDelegate: confirmTransferDelegate,
             simulation: simulation,
-            onComplete: onComplete
+            onComplete: onComplete,
         )
     }
-    
+
     @MainActor
     public func recipientScene(
         wallet: Wallet,
         asset: Asset,
         type: RecipientAssetType,
         onRecipientDataAction: RecipientDataAction,
-        onTransferAction: TransferDataAction
+        onTransferAction: TransferDataAction,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
@@ -146,31 +146,31 @@ public struct ViewModelFactory: Sendable {
             nameService: nameService,
             type: type,
             onRecipientDataAction: onRecipientDataAction,
-            onTransferAction: onTransferAction
+            onTransferAction: onTransferAction,
         )
     }
-    
+
     @MainActor
     public func amountScene(
         input: AmountInput,
         wallet: Wallet,
-        onTransferAction: TransferDataAction
+        onTransferAction: TransferDataAction,
     ) -> AmountSceneViewModel {
         AmountSceneViewModel(
             input: input,
             wallet: wallet,
             service: amountService,
             fiatService: fiatService,
-            onTransferAction: onTransferAction
+            onTransferAction: onTransferAction,
         )
     }
-    
+
     @MainActor
     public func fiatScene(
         assetAddress: AssetAddress,
         wallet: Wallet,
         type: FiatQuoteType = .buy,
-        amount: Int? = nil
+        amount: Int? = nil,
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
             fiatService: fiatService,
@@ -178,14 +178,14 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             assetsEnabler: assetsEnabler,
             type: type,
-            amount: amount
+            amount: amount,
         )
     }
-    
+
     @MainActor
     public func swapScene(
         input: SwapInput,
-        onSwap: @escaping (TransferData) -> Void
+        onSwap: @escaping (TransferData) -> Void,
     ) -> SwapSceneViewModel {
         SwapSceneViewModel(
             input: input,
@@ -193,33 +193,33 @@ public struct ViewModelFactory: Sendable {
             priceUpdater: priceUpdater,
             swapQuotesProvider: SwapQuotesProvider(swapService: swapService),
             swapQuoteDataProvider: SwapQuoteDataProvider(keystore: keystore, swapService: swapService),
-            onSwap: onSwap
+            onSwap: onSwap,
         )
     }
 
     @MainActor
     public func stakeScene(
         wallet: Wallet,
-        chain: Chain
+        chain: Chain,
     ) -> StakeSceneViewModel {
         StakeSceneViewModel(
             wallet: wallet,
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
             currencyCode: Preferences.standard.currency,
-            stakeService: stakeService
+            stakeService: stakeService,
         )
     }
 
     @MainActor
     public func earnScene(
         wallet: Wallet,
-        asset: Asset
+        asset: Asset,
     ) -> EarnSceneViewModel {
         EarnSceneViewModel(
             wallet: wallet,
             asset: asset,
             currencyCode: Preferences.standard.currency,
-            earnService: earnService
+            earnService: earnService,
         )
     }
 
@@ -230,7 +230,7 @@ public struct ViewModelFactory: Sendable {
         asset: Asset,
         validators: [DelegationValidator],
         onAmountInputAction: AmountInputAction,
-        onTransferAction: TransferDataAction
+        onTransferAction: TransferDataAction,
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
@@ -238,21 +238,20 @@ public struct ViewModelFactory: Sendable {
             asset: asset,
             validators: validators,
             onAmountInputAction: onAmountInputAction,
-            onTransferAction: onTransferAction
+            onTransferAction: onTransferAction,
         )
     }
 
     @MainActor
     public func signMessageScene(
         payload: SignMessagePayload,
-        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate
+        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) -> SignMessageSceneViewModel {
         SignMessageSceneViewModel(
             keystore: keystore,
             addressNameService: addressNameService,
             payload: payload,
-            confirmTransferDelegate: confirmTransferDelegate
+            confirmTransferDelegate: confirmTransferDelegate,
         )
     }
-    
 }

@@ -9,7 +9,7 @@ public struct MemoViewModel {
 
     public init(
         memo: String?,
-        title: String = Localized.Transfer.memo
+        title: String = Localized.Transfer.memo,
     ) {
         self.memo = memo
         self.title = title
@@ -23,7 +23,7 @@ public struct MemoViewModel {
     public var listItemModel: ListItemModel {
         .text(
             title: title,
-            subtitle: formattedMemo
+            subtitle: formattedMemo,
         )
     }
 }

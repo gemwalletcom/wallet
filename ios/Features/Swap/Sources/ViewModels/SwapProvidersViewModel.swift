@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
+import Foundation
 import Localization
+import Primitives
 
 struct SwapProvidersViewModel: SelectableListAdoptable {
-    public typealias Item = SwapProviderItem
+    typealias Item = SwapProviderItem
 
     var state: StateViewType<SelectableListType<SwapProviderItem>>
     var selectedItems: Set<SwapProviderItem>
     var selectionType: SelectionType
-    
+
     init(
         state: StateViewType<SelectableListType<Item>>,
         selectedItems: [SwapProviderItem],
-        selectionType: SelectionType
+        selectionType: SelectionType,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

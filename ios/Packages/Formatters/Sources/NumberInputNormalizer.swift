@@ -41,7 +41,7 @@ struct NumberInputNormalizer: Sendable {
         let hasComma = result.contains(comma)
 
         // Both dot and comma present
-        if hasDot && hasComma {
+        if hasDot, hasComma {
             if decimalSeparator == dot {
                 result = result.replacingOccurrences(of: comma, with: String.empty)
                 result = keepOnlyLastOccurrence(of: dot, in: result)
@@ -53,7 +53,7 @@ struct NumberInputNormalizer: Sendable {
         }
         // Only dot
         else if hasDot {
-            if decimalSeparator == comma && isSingleDotUsedAsGrouping(result) {
+            if decimalSeparator == comma, isSingleDotUsedAsGrouping(result) {
                 result = result.replacingOccurrences(of: dot, with: String.empty)
             } else {
                 result = keepOnlyLastOccurrence(of: dot, in: result)
@@ -86,8 +86,8 @@ struct NumberInputNormalizer: Sendable {
     /// Example: "1.234.56" => "1234.56" (keeping only the final '.').
     private static func keepOnlyLastOccurrence(of symbol: String, in s: String) -> String {
         guard let lastIndex = s.lastIndex(of: Character(symbol)) else { return s }
-        let prefix = s[s.startIndex..<lastIndex].replacingOccurrences(of: symbol, with: String.empty)
-        let suffix = s[lastIndex..<s.endIndex]
+        let prefix = s[s.startIndex ..< lastIndex].replacingOccurrences(of: symbol, with: String.empty)
+        let suffix = s[lastIndex ..< s.endIndex]
         return prefix + suffix
     }
 

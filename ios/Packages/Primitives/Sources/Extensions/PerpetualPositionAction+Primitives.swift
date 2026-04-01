@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
-extension PerpetualPositionAction {
-    public var transferData: PerpetualTransferData {
+public extension PerpetualPositionAction {
+    var transferData: PerpetualTransferData {
         switch self {
-        case .open(let data): return data
-        case .reduce(let data, _, _): return data
-        case .increase(let data): return data
+        case let .open(data): data
+        case let .reduce(data, _, _): data
+        case let .increase(data): data
         }
     }
 }

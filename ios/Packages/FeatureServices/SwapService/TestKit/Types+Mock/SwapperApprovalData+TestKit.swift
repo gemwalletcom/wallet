@@ -8,7 +8,7 @@ public extension GemApprovalData {
             token: "0x",
             spender: "0x",
             value: "1000000000000000000",
-            isUnlimited: false
+            isUnlimited: false,
         )
     }
 }

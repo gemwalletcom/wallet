@@ -3,14 +3,14 @@
 import Foundation
 import Primitives
 
-extension SwapQuote {
-    public static func mock(
+public extension SwapQuote {
+    static func mock(
         fromValue: String = "1000000000000000000",
         toValue: String = "2000000000000000000",
         providerData: SwapProviderData = .mock(),
         walletAddress: String = "0x0000000000000000000000000000000000000000",
         etaInSeconds: UInt32 = 123,
-        useMaxAmount: Bool = false
+        useMaxAmount: Bool = false,
     ) -> SwapQuote {
         SwapQuote(
             fromAddress: walletAddress,
@@ -20,7 +20,7 @@ extension SwapQuote {
             providerData: providerData,
             slippageBps: 50,
             etaInSeconds: etaInSeconds,
-            useMaxAmount: useMaxAmount
+            useMaxAmount: useMaxAmount,
         )
     }
 }

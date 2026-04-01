@@ -6,11 +6,11 @@ import Primitives
 
 public struct PerpetualStore: Sendable {
     let db: DatabaseQueue
-    
+
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     public func upsertPerpetuals(_ perpetuals: [Perpetual]) throws {
         try db.write { db in
             for perpetual in perpetuals {
@@ -24,12 +24,12 @@ public struct PerpetualStore: Sendable {
                         PerpetualRecord.Columns.openInterest.set(to: perpetual.openInterest),
                         PerpetualRecord.Columns.volume24h.set(to: perpetual.volume24h),
                         PerpetualRecord.Columns.funding.set(to: perpetual.funding),
-                        PerpetualRecord.Columns.maxLeverage.set(to: perpetual.maxLeverage)
+                        PerpetualRecord.Columns.maxLeverage.set(to: perpetual.maxLeverage),
                     )
             }
         }
     }
-    
+
     public func getPerpetuals() throws -> [Perpetual] {
         try db.read { db in
             try PerpetualRecord
@@ -37,7 +37,7 @@ public struct PerpetualStore: Sendable {
                 .map { $0.mapToPerpetual() }
         }
     }
-    
+
     public func getPositions(walletId: WalletId) throws -> [PerpetualPosition] {
         try db.read { db in
             try PerpetualPositionRecord
@@ -52,8 +52,7 @@ public struct PerpetualStore: Sendable {
         try db.read { db in
             try PerpetualPositionRecord
                 .joining(required: PerpetualPositionRecord.perpetual
-                    .filter(PerpetualRecord.Columns.provider == provider.rawValue)
-                )
+                    .filter(PerpetualRecord.Columns.provider == provider.rawValue))
                 .filter(PerpetualPositionRecord.Columns.walletId == walletId.id)
                 .order(PerpetualPositionRecord.Columns.updatedAt.desc)
                 .fetchAll(db)
@@ -62,7 +61,7 @@ public struct PerpetualStore: Sendable {
     }
 
     public func diffPositions(deleteIds: [String], positions: [PerpetualPosition], walletId: WalletId) throws {
-        if deleteIds.isEmpty && positions.isEmpty {
+        if deleteIds.isEmpty, positions.isEmpty {
             return
         }
         try db.write { db in
@@ -75,20 +74,20 @@ public struct PerpetualStore: Sendable {
             }
         }
     }
-    
+
     @discardableResult
     public func setPinned(for perpetualIds: [String], value: Bool) throws -> Int {
         try setColumn(for: perpetualIds, column: PerpetualRecord.Columns.isPinned, value: value)
     }
-    
+
     private func setColumn(for perpetualIds: [String], column: Column, value: Bool) throws -> Int {
         try db.write { db in
-            return try PerpetualRecord
+            try PerpetualRecord
                 .filter(perpetualIds.contains(PerpetualRecord.Columns.id))
                 .updateAll(db, column.set(to: value))
         }
     }
-    
+
     public func updatePrices(_ prices: [String: Double]) throws {
         guard !prices.isEmpty else { return }
         try db.write { db in

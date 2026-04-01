@@ -5,11 +5,11 @@ import Primitives
 public extension WalletConnection {
     static func mock(
         session: WalletConnectionSession = .mock(),
-        wallet: Wallet = .mock()
+        wallet: Wallet = .mock(),
     ) -> WalletConnection {
         WalletConnection(
             session: session,
-            wallet: wallet
+            wallet: wallet,
         )
     }
 }

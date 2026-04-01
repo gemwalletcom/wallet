@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
+import Assets
+import Components
 import Localization
-import Style
 import NFT
+import PriceAlerts
+import Primitives
+import Style
+import SwiftUI
+import Transactions
 import TransactionsService
 import WalletTab
-import Transactions
-import Assets
-import PriceAlerts
-import Components
 
 struct MainTabView: View {
     @Environment(\.assetDiscoveryService) private var assetDiscoveryService
@@ -31,7 +31,7 @@ struct MainTabView: View {
     private var tabViewSelection: Binding<TabItem> {
         Binding(
             get: { navigationState.selectedTab },
-            set: { onSelect(tab: $0) }
+            set: { onSelect(tab: $0) },
         )
     }
 
@@ -49,44 +49,44 @@ struct MainTabView: View {
                     walletService: walletService,
                     observablePreferences: observablePreferences,
                     wallet: model.wallet,
-                    isPresentingSelectedAssetInput: presenter.isPresentingAssetInput
-                )
+                    isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
+                ),
             )
             .tabItem {
                 tabItem(Localized.Wallet.title, Images.Tabs.wallet)
             }
             .tag(TabItem.wallet)
-            
+
             if model.isMarketEnabled {
                 MarketsNavigationStack()
-                .tabItem {
-                    tabItem("Markets", Images.Tabs.markets)
-                }
-                .tag(TabItem.markets)
+                    .tabItem {
+                        tabItem("Markets", Images.Tabs.markets)
+                    }
+                    .tag(TabItem.markets)
             }
-            
+
             if model.isCollectionsEnabled {
                 CollectionsNavigationStack(
                     model: CollectionsViewModel(
                         nftService: nftService,
                         walletService: walletService,
-                        wallet: model.wallet
+                        wallet: model.wallet,
                     ),
-                    isPresentingSelectedAssetInput: presenter.isPresentingAssetInput
+                    isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
                 )
                 .tabItem {
                     tabItem(Localized.Nft.collections, Images.Tabs.collections)
                 }
                 .tag(TabItem.collections)
             }
-            
+
             TransactionsNavigationStack(
                 model: TransactionsViewModel(
                     transactionsService: transactionsService,
                     walletService: walletService,
                     wallet: model.wallet,
-                    type: .all
-                )
+                    type: .all,
+                ),
             )
             .tabItem {
                 tabItem(Localized.Activity.title, Images.Tabs.activity)
@@ -97,7 +97,7 @@ struct MainTabView: View {
             SettingsNavigationStack(
                 walletId: model.wallet.walletId,
                 priceService: priceService,
-                isPresentingSupport: presenter.isPresentingSupport
+                isPresentingSupport: presenter.isPresentingSupport,
             )
             .tabItem {
                 tabItem(Localized.Settings.title, Images.Tabs.settings)
@@ -108,7 +108,7 @@ struct MainTabView: View {
             SelectedAssetNavigationStack(
                 input: input,
                 wallet: model.wallet,
-                onComplete: { onComplete(type: input.type) }
+                onComplete: { onComplete(type: input.type) },
             )
         }
         .sheet(item: presenter.isPresentingPriceAlert) { input in
@@ -118,8 +118,8 @@ struct MainTabView: View {
                     asset: input.asset,
                     priceAlertService: priceAlertService,
                     price: input.price,
-                    onComplete: onSetPriceAlertComplete
-                )
+                    onComplete: onSetPriceAlertComplete,
+                ),
             )
         }
         .toast(message: $model.isPresentingToastMessage)
@@ -135,7 +135,7 @@ extension MainTabView {
     private func tabItem(_ title: String, _ image: Image) -> Label<Text, Image> {
         Label(
             title: { Text(title) },
-            icon: { image }
+            icon: { image },
         )
     }
 }
@@ -186,4 +186,3 @@ extension MainTabView {
         }
     }
 }
-

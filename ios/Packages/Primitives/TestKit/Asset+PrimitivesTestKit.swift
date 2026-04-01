@@ -9,14 +9,14 @@ public extension Asset {
         name: String = "Bitcoin",
         symbol: String = "BTC",
         decimals: Int32 = 8,
-        type: AssetType = .native
+        type: AssetType = .native,
     ) -> Asset {
         Asset(
             id: id,
             name: name,
             symbol: symbol,
             decimals: decimals,
-            type: type
+            type: type,
         )
     }
 
@@ -26,7 +26,7 @@ public extension Asset {
             name: "Ethereum",
             symbol: "ETH",
             decimals: 18,
-            type: .native
+            type: .native,
         )
     }
 
@@ -36,7 +36,7 @@ public extension Asset {
             name: "BNB",
             symbol: "BNB",
             decimals: 18,
-            type: .native
+            type: .native,
         )
     }
 
@@ -46,7 +46,7 @@ public extension Asset {
             name: "XRP",
             symbol: "XRP",
             decimals: 8,
-            type: .native
+            type: .native,
         )
     }
 
@@ -56,7 +56,7 @@ public extension Asset {
             name: "Tether",
             symbol: "USDT",
             decimals: 6,
-            type: .erc20
+            type: .erc20,
         )
     }
 
@@ -66,7 +66,7 @@ public extension Asset {
             name: "TRON",
             symbol: "TRX",
             decimals: 6,
-            type: .native
+            type: .native,
         )
     }
 
@@ -76,7 +76,7 @@ public extension Asset {
             name: "Tether USD",
             symbol: "USDT",
             decimals: 6,
-            type: .trc20
+            type: .trc20,
         )
     }
 
@@ -86,7 +86,7 @@ public extension Asset {
             name: "NEAR",
             symbol: "NEAR",
             decimals: 24,
-            type: .native
+            type: .native,
         )
     }
 
@@ -96,7 +96,7 @@ public extension Asset {
             name: "Sui",
             symbol: "SUI",
             decimals: 9,
-            type: .native
+            type: .native,
         )
     }
 
@@ -106,7 +106,7 @@ public extension Asset {
             name: "Hyperliquid",
             symbol: "HYPE",
             decimals: 8,
-            type: .native
+            type: .native,
         )
     }
 }

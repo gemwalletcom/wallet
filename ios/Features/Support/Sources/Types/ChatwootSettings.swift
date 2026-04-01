@@ -8,19 +8,19 @@ struct ChatwootSettings: Sendable {
         case light
         case dark
     }
-    
+
     let hideMessageBubble: Bool
     let locale: Locale
     let darkMode: DarkMode
     let enableEmojiPicker: Bool
     let enableEndConversation: Bool
-    
+
     init(
         hideMessageBubble: Bool,
         locale: Locale,
         darkMode: DarkMode,
         enableEmojiPicker: Bool,
-        enableEndConversation: Bool
+        enableEndConversation: Bool,
     ) {
         self.hideMessageBubble = hideMessageBubble
         self.locale = locale
@@ -36,6 +36,6 @@ extension ChatwootSettings {
         locale: .current,
         darkMode: .auto,
         enableEmojiPicker: false,
-        enableEndConversation: false
+        enableEndConversation: false,
     )
 }

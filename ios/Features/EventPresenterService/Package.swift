@@ -11,10 +11,12 @@ let package = Package(
     products: [
         .library(
             name: "EventPresenterService",
-            targets: ["EventPresenterService"]),
+            targets: ["EventPresenterService"],
+        ),
         .library(
             name: "EventPresenterServiceTestKit",
-            targets: ["EventPresenterServiceTestKit"]),
+            targets: ["EventPresenterServiceTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -33,14 +35,14 @@ let package = Package(
                 "Localization",
                 "Style",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "EventPresenterServiceTestKit",
             dependencies: [
                 "EventPresenterService",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
-    ]
+    ],
 )

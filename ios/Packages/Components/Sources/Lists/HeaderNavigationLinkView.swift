@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct HeaderNavigationLinkView<Destination: Hashable & Codable>: View {
     private let title: String

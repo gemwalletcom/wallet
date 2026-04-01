@@ -14,7 +14,7 @@ public extension Gemstone.GemSwapQuote {
             providerData: providerData.map(),
             slippageBps: slippageBps,
             etaInSeconds: etaInSeconds,
-            useMaxAmount: useMaxAmount
+            useMaxAmount: useMaxAmount,
         )
     }
 }
@@ -29,7 +29,7 @@ extension Primitives.SwapQuote {
             providerData: providerData.map(),
             slippageBps: slippageBps,
             etaInSeconds: etaInSeconds,
-            useMaxAmount: useMaxAmount
+            useMaxAmount: useMaxAmount,
         )
     }
 }

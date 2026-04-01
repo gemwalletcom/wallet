@@ -13,7 +13,7 @@ public actor DeviceObserverService {
     public init(
         deviceService: any DeviceServiceable,
         subscriptionsService: SubscriptionService,
-        subscriptionsObserver: SubscriptionsObserver
+        subscriptionsObserver: SubscriptionsObserver,
     ) {
         self.deviceService = deviceService
         self.subscriptionsService = subscriptionsService

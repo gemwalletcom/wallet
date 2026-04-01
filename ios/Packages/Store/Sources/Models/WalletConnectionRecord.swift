@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct WalletConnectionRecord: Codable, FetchableRecord, PersistableRecord  {
+struct WalletConnectionRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "wallets_connections"
-    
+
     enum Columns {
         static let id = Column("id")
         static let sessionId = Column("sessionId")
@@ -28,7 +28,7 @@ struct WalletConnectionRecord: Codable, FetchableRecord, PersistableRecord  {
     var chains: [Chain]?
     var createdAt: Date
     var expireAt: Date
-    
+
     // metadata
     var appName: String
     var appDescription: String
@@ -38,7 +38,7 @@ struct WalletConnectionRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension WalletConnectionRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
                 .notNull()
@@ -55,7 +55,7 @@ extension WalletConnectionRecord: CreateTable {
                 .notNull()
             $0.column(Columns.expireAt.name, .date)
                 .notNull()
-            
+
             $0.column(Columns.appName.name, .text)
                 .notNull()
             $0.column(Columns.appDescription.name, .text)
@@ -81,7 +81,7 @@ extension WalletConnection {
             appName: session.metadata.name,
             appDescription: session.metadata.description,
             appLink: session.metadata.url,
-            appIcon: session.metadata.icon
+            appIcon: session.metadata.icon,
         )
     }
 }
@@ -99,11 +99,11 @@ extension WalletConnectionRecord {
                 name: appName,
                 description: appDescription,
                 url: appLink,
-                icon: appIcon
-            )
+                icon: appIcon,
+            ),
         )
     }
-    
+
     func update(with session: WalletConnectionSession) -> WalletConnectionRecord {
         WalletConnectionRecord(
             id: session.sessionId,
@@ -116,7 +116,7 @@ extension WalletConnectionRecord {
             appName: session.metadata.name,
             appDescription: session.metadata.description,
             appLink: session.metadata.url,
-            appIcon: session.metadata.icon
+            appIcon: session.metadata.icon,
         )
     }
 }

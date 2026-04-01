@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Foundation
 import Localization
 import Style
-import Components
+import SwiftUI
 
 public struct ChainsFilterTypeViewModel: FilterTypeRepresentable {
     private let type: ChainsFilterType

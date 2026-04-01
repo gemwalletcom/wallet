@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import BigInt
 import Formatters
+import Primitives
 
 public struct SwapValueFormatter {
     private let formatter: ValueFormatter
 
     public init(valueFormatter: ValueFormatter) {
-        self.formatter = valueFormatter
+        formatter = valueFormatter
     }
 
     public func format(inputValue: String, decimals: Int) throws -> BigInt {

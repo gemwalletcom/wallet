@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 import PrimitivesTestKit
+import Testing
 
-import PrimitivesComponentsTestKit
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 
 struct BalanceViewModelTests {
-
     @Test
     func total() {
         let tronBalance = Balance(
@@ -19,14 +18,14 @@ struct BalanceViewModelTests {
             locked: BigInt(0),
             staked: BigInt(0),
             pending: BigInt(0),
-            rewards: BigInt(5_496),
+            rewards: BigInt(5496),
             metadata: BalanceMetadata(
                 votes: 1,
                 energyAvailable: .zero,
                 energyTotal: .zero,
                 bandwidthAvailable: .zero,
-                bandwidthTotal: .zero
-            )
+                bandwidthTotal: .zero,
+            ),
         )
         let tronModel = BalanceViewModel(asset: .mockTron(), balance: tronBalance, formatter: .auto)
 
@@ -36,7 +35,7 @@ struct BalanceViewModelTests {
             locked: BigInt(0),
             staked: BigInt(5_000_000),
             pending: BigInt(0),
-            rewards: BigInt(100_000)
+            rewards: BigInt(100_000),
         )
         let bnbModel = BalanceViewModel(asset: .mockBNB(), balance: bnbBalance, formatter: .auto)
 
@@ -49,7 +48,7 @@ struct BalanceViewModelTests {
         let model = BalanceViewModel.mock(
             asset: .mockEthereum(),
             balance: .mock(staked: BigInt(1_000_000_000_000_000_000), earn: BigInt(2_000_000_000_000_000_000)),
-            formatter: .medium
+            formatter: .medium,
         )
         #expect(model.balanceTextWithSymbol(for: .stake) == "1.00 ETH")
         #expect(model.balanceTextWithSymbol(for: .earn) == "2.00 ETH")

@@ -7,7 +7,7 @@ import Primitives
 public final class GemAPINFTServiceMock: GemAPINFTService, @unchecked Sendable {
     public init() {}
 
-    public func getDeviceNFTAssets(walletId: String) async throws -> [NFTData] { [] }
+    public func getDeviceNFTAssets(walletId _: String) async throws -> [NFTData] { [] }
 
-    public func reportNft(report: ReportNft) async throws {}
+    public func reportNft(report _: ReportNft) async throws {}
 }

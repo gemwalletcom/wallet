@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import NFT
-import Components
-import Localization
-import Style
 import Assets
 import AssetsService
+import Components
+import Foundation
+import Localization
+import NFT
+import Primitives
+import Style
+import SwiftUI
 
 struct CollectionsNavigationStack: View {
     @Environment(\.navigationState) private var navigationState
@@ -29,7 +29,7 @@ struct CollectionsNavigationStack: View {
 
     init(
         model: CollectionsViewModel,
-        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         _model = State(initialValue: model)
         _isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
@@ -41,20 +41,20 @@ struct CollectionsNavigationStack: View {
                 .onChange(
                     of: model.currentWallet,
                     initial: true,
-                    model.onChangeWallet
+                    model.onChangeWallet,
                 )
                 .navigationDestination(for: Scenes.Collection.self) { scene in
                     CollectionsScene(
                         model: CollectionViewModel(
                             wallet: model.wallet,
                             collectionId: scene.id,
-                            collectionName: scene.name
-                        )
+                            collectionName: scene.name,
+                        ),
                     )
                 }
                 .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
                     CollectionsScene(
-                        model: UnverifiedCollectionsViewModel(wallet: model.wallet)
+                        model: UnverifiedCollectionsViewModel(wallet: model.wallet),
                     )
                 }
                 .navigationDestination(for: Scenes.Collectible.self) {
@@ -64,8 +64,8 @@ struct CollectionsNavigationStack: View {
                             assetData: $0.assetData,
                             avatarService: avatarService,
                             nftService: nftService,
-                            isPresentingSelectedAssetInput: $isPresentingSelectedAssetInput
-                        )
+                            isPresentingSelectedAssetInput: $isPresentingSelectedAssetInput,
+                        ),
                     )
                 }
                 .sheet(item: $model.isPresentingReceiveSelectAssetType) {
@@ -76,8 +76,8 @@ struct CollectionsNavigationStack: View {
                             searchService: assetSearchService,
                             assetsEnabler: assetsEnabler,
                             priceAlertService: priceAlertService,
-                            activityService: activityService
-                        )
+                            activityService: activityService,
+                        ),
                     )
                 }
                 .toolbar {

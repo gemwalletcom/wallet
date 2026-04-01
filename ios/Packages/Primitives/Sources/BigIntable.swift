@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 
 public struct BigIntable: Equatable {
     public let value: BigInt
@@ -24,7 +24,7 @@ extension BigIntable: Codable {
         else {
             let context = DecodingError.Context(
                 codingPath: container.codingPath,
-                debugDescription: "Can't decode value to BigInt, not valid integer or string"
+                debugDescription: "Can't decode value to BigInt, not valid integer or string",
             )
             throw DecodingError.dataCorrupted(context)
         }
@@ -39,6 +39,6 @@ extension BigIntable: Codable {
 
 public extension BigInt {
     var codable: BigIntable {
-        return BigIntable(self)
+        BigIntable(self)
     }
 }

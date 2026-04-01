@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Localization
 import Primitives
 import Style
+import SwiftUI
 
 public struct DelegationStateViewModel {
-
     public let state: DelegationState
 
     public init(state: DelegationState) {
@@ -28,10 +27,10 @@ public struct DelegationStateViewModel {
         switch state {
         case .active: Colors.green
         case .pending,
-            .activating,
-            .deactivating: Colors.orange
+             .activating,
+             .deactivating: Colors.orange
         case .inactive,
-            .awaitingWithdrawal: Colors.red
+             .awaitingWithdrawal: Colors.red
         }
     }
 

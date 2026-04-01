@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 
 public final class WalletPreferences: @unchecked Sendable {
-    private struct Keys {
+    private enum Keys {
         static let assetsTimestamp = "assets_timestamp"
         static let transactionsForAsset = "transactions_for_asset_v1"
         static let transactionsTimestamp = "transactions_timestamp_v1"
@@ -17,8 +17,8 @@ public final class WalletPreferences: @unchecked Sendable {
     private let suiteName: String
 
     public init(walletId: WalletId) {
-        self.suiteName = Self.suiteName(walletId: walletId.id)
-        self.defaults = UserDefaults(suiteName: suiteName)!
+        suiteName = Self.suiteName(walletId: walletId.id)
+        defaults = UserDefaults(suiteName: suiteName)!
     }
 
     public var completeInitialLoadAssets: Bool {
@@ -55,7 +55,7 @@ public final class WalletPreferences: @unchecked Sendable {
     public func setTransactionsForAssetTimestamp(assetId: String, value: Int) {
         defaults.setValue(value, forKey: String(format: "%@_%@", Keys.transactionsForAsset, assetId))
     }
-    
+
     public func transactionsForAssetTimestamp(assetId: String) -> Int {
         defaults.integer(forKey: String(format: "%@_%@", Keys.transactionsForAsset, assetId))
     }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import PhotosUI
+import SwiftUI
 
 @Observable
 @MainActor
@@ -29,7 +29,7 @@ extension QRScannerSceneViewModel {
     func onChangeScannerReadyStatus(_: Bool, _: Bool) {
         refreshScannerState()
     }
-    
+
     func refreshScannerState() {
         do {
             switch scannerState {
@@ -61,7 +61,8 @@ extension QRScannerSceneViewModel {
         imageState = .empty
         do {
             if let data = try await photoItem.loadTransferable(type: Data.self),
-               let uiImage = UIImage(data: data, scale: 1.0) {
+               let uiImage = UIImage(data: data, scale: 1.0)
+            {
                 imageState = .success(uiImage)
             } else {
                 imageState = .empty

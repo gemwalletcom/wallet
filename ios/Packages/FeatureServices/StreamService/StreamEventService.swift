@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Store
-import PriceService
-import PriceAlertService
 import BalanceService
-import TransactionsService
+import Foundation
 import NFTService
 import PerpetualService
 import Preferences
+import PriceAlertService
+import PriceService
+import Primitives
+import Store
+import TransactionsService
 
 public struct StreamEventService: Sendable {
     private let walletStore: WalletStore
@@ -31,7 +31,7 @@ public struct StreamEventService: Sendable {
         transactionsService: TransactionsService,
         nftService: NFTService,
         perpetualService: any HyperliquidPerpetualServiceable,
-        preferences: Preferences
+        preferences: Preferences,
     ) {
         self.walletStore = walletStore
         self.notificationStore = notificationStore
@@ -46,20 +46,20 @@ public struct StreamEventService: Sendable {
 
     public func handle(_ event: StreamEvent) async {
         switch event {
-        case .prices(let payload):
+        case let .prices(payload):
             await perform { try handlePrices(payload) }
-        case .balances(let updates):
-            Task { await self.perform { try await self.handleBalanceUpdates(updates) } }
-        case .transactions(let update):
-            Task { await self.perform { try await self.transactionsService.updateAll(walletId: update.walletId) } }
-        case .nft(let update):
-            Task { await self.perform { try await self.handleNftUpdate(update) } }
-        case .perpetual(let update):
-            Task { await self.perform { try await self.handlePerpetualUpdate(update) } }
-        case .inAppNotification(let update):
+        case let .balances(updates):
+            Task { await perform { try await handleBalanceUpdates(updates) } }
+        case let .transactions(update):
+            Task { await perform { try await transactionsService.updateAll(walletId: update.walletId) } }
+        case let .nft(update):
+            Task { await perform { try await handleNftUpdate(update) } }
+        case let .perpetual(update):
+            Task { await perform { try await handlePerpetualUpdate(update) } }
+        case let .inAppNotification(update):
             await perform { try notificationStore.addNotifications([update.notification]) }
         case .priceAlerts:
-            Task { await self.perform { try await self.priceAlertService.update() } }
+            Task { await perform { try await priceAlertService.update() } }
         }
     }
 }

@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Validators
 import Components
-import Style
+import Foundation
 import Localization
+import Primitives
+import Style
+import SwiftUI
+import Validators
 
 @Observable
 @MainActor
 public final class AddressInputViewModel {
-
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
 
@@ -25,14 +24,14 @@ public final class AddressInputViewModel {
         chain: Chain,
         nameService: any NameServiceable,
         placeholder: String,
-        validators: [any TextValidator] = []
+        validators: [any TextValidator] = [],
     ) {
         self.chain = chain
         self.placeholder = placeholder
-        self.nameRecordViewModel = NameRecordViewModel(nameService: nameService)
-        self.inputModel = InputValidationViewModel(
+        nameRecordViewModel = NameRecordViewModel(nameService: nameService)
+        inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: validators
+            validators: validators,
         )
     }
 
@@ -119,8 +118,8 @@ extension AddressInputViewModel {
             mode: .manual,
             validators: [
                 .required(requireName: placeholder),
-                .address(Asset(chain))
-            ]
+                .address(Asset(chain)),
+            ],
         )
         text = currentText
 

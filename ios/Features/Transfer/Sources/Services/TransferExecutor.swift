@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Blockchain
 import BalanceService
+import Blockchain
 import Foundation
 import Primitives
 import Signer
@@ -26,7 +26,7 @@ public struct TransferExecutor: TransferExecutable {
         chainService: any ChainServiceable,
         assetsEnabler: any AssetsEnabler,
         balanceService: BalanceService,
-        transactionStateService: TransactionStateService
+        transactionStateService: TransactionStateService,
     ) {
         self.signer = signer
         self.chainService = chainService
@@ -49,7 +49,7 @@ public struct TransferExecutor: TransferExecutable {
                     input: input,
                     transactionData: transactionData,
                     transactionIndex: index,
-                    totalTransactions: signedData.count
+                    totalTransactions: signedData.count,
                 )
             }
         }
@@ -63,7 +63,7 @@ extension TransferExecutor {
         input: TransferConfirmationInput,
         transactionData: String,
         transactionIndex: Int,
-        totalTransactions: Int
+        totalTransactions: Int,
     ) async throws {
         let hash = try await chainService.broadcast(data: transactionData, options: broadcastOptions(data: input.data))
 
@@ -77,14 +77,14 @@ extension TransferExecutor {
             transactionData: input.transactionData,
             amount: input.amount,
             hash: hash,
-            transactionIndex: transactionIndex
+            transactionIndex: transactionIndex,
         )
         let assetIds = assetIdsToEnable(for: transaction)
         let transactions = pendingTransactions(
             for: transaction,
             transferData: input.data,
             transactionIndex: transactionIndex,
-            totalTransactions: totalTransactions
+            totalTransactions: totalTransactions,
         )
 
         try transactionStateService.addTransactions(wallet: input.wallet, transactions: transactions)
@@ -107,7 +107,7 @@ extension TransferExecutor {
             transfer: input.data,
             transactionData: input.transactionData,
             amount: input.amount,
-            wallet: input.wallet
+            wallet: input.wallet,
         )
     }
 
@@ -115,7 +115,7 @@ extension TransferExecutor {
         for transaction: Transaction,
         transferData: TransferData,
         transactionIndex: Int,
-        totalTransactions: Int
+        totalTransactions: Int,
     ) -> [Transaction] {
         guard !Self.ignoredTransactionTypes.contains(transaction.type) else {
             return []
@@ -123,7 +123,8 @@ extension TransferExecutor {
 
         if case .perpetual = transferData.type,
            Self.ignoredAssetChains.contains(transaction.assetId.chain),
-           transactionIndex < totalTransactions - 1 {
+           transactionIndex < totalTransactions - 1
+        {
             return []
         }
 
@@ -139,8 +140,8 @@ extension TransferExecutor {
         case .solana:
             switch data.type {
             case .transfer, .deposit, .withdrawal, .transferNft, .stake, .account, .tokenApprove, .perpetual, .earn: BroadcastOptions(
-                skipPreflight: false
-            )
+                    skipPreflight: false,
+                )
             case .swap, .generic: BroadcastOptions(skipPreflight: true)
             }
         default: BroadcastOptions(skipPreflight: false)

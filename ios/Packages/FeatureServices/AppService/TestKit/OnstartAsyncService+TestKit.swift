@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import AppService
+import Foundation
 import Primitives
 
 public extension OnstartAsyncService {

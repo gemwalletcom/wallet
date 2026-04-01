@@ -15,7 +15,7 @@ public enum RewardsSheetType: Identifiable, Sendable {
         case .share: "share"
         case .createCode: "createCode"
         case .activateCode: "activateCode"
-        case .url(let url): "url-\(url)"
+        case let .url(url): "url-\(url)"
         }
     }
 }

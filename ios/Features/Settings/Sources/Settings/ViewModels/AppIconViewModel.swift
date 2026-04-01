@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 struct AppIconViewModel: Identifiable, Hashable {
     let icon: AppIcon

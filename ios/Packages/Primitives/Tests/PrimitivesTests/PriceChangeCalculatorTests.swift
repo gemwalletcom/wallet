@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 @testable import Primitives
+import Testing
 
 struct PriceChangeCalculatorTests {
-
     @Test
     func percentage() {
         #expect(PriceChangeCalculator.calculate(.percentage(from: 100, to: 110)) == 10)

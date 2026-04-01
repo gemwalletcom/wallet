@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Localization
 import Primitives
 import Style
+import SwiftUI
 
 public struct SimulationWarningViewModel: Identifiable {
     private let warning: SimulationWarning
@@ -49,9 +49,9 @@ public struct SimulationWarningViewModel: Identifiable {
 private extension SimulationWarningType {
     var isVisible: Bool {
         switch self {
-        case .tokenApproval(let approval): approval.value == nil
-        case .permitApproval(let approval): approval.value == nil
-        case .permitBatchApproval(let value): value == nil
+        case let .tokenApproval(approval): approval.value == nil
+        case let .permitApproval(approval): approval.value == nil
+        case let .permitBatchApproval(value): value == nil
         case .suspiciousSpender, .externallyOwnedSpender, .nftCollectionApproval, .validationError:
             true
         }
@@ -59,9 +59,9 @@ private extension SimulationWarningType {
 
     var warningTitle: String? {
         switch self {
-        case .tokenApproval(let approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
-        case .permitApproval(let approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
-        case .permitBatchApproval(let value): value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
+        case let .tokenApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
+        case let .permitApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
+        case let .permitBatchApproval(value): value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.title : nil
         case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
         case .suspiciousSpender, .externallyOwnedSpender, .validationError: Localized.Errors.errorOccured
         }
@@ -69,9 +69,9 @@ private extension SimulationWarningType {
 
     var defaultMessage: String? {
         switch self {
-        case .tokenApproval(let approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
-        case .permitApproval(let approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
-        case .permitBatchApproval(let value): value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
+        case let .tokenApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
+        case let .permitApproval(approval): approval.value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
+        case let .permitBatchApproval(value): value == nil ? Localized.Simulation.Warning.UnlimitedTokenApproval.description : nil
         case .validationError: Localized.Errors.errorOccured
         case .suspiciousSpender, .externallyOwnedSpender: Localized.Common.suspiciousAddress
         case .nftCollectionApproval: nil

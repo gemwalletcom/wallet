@@ -11,12 +11,11 @@ public extension LocalKeystore {
     static let bitcoinAddress = "bc1quvuarfksewfeuevuc6tn0kfyptgjvwsvrprk9d"
 
     static func mock(
-        keystorePassword: KeystorePassword = MockKeystorePassword()
+        keystorePassword: KeystorePassword = MockKeystorePassword(),
     ) -> LocalKeystore {
         LocalKeystore(
             directory: UUID().uuidString,
-            keystorePassword: keystorePassword
+            keystorePassword: keystorePassword,
         )
     }
 }
-

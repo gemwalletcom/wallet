@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import Components
 import Formatters
+import Foundation
+import Localization
+import Primitives
 
 struct TransactionPriceViewModel: Sendable {
     private let metadata: TransactionPerpetualMetadata?
@@ -25,7 +25,7 @@ extension TransactionPriceViewModel: ItemModelProvidable {
 
         return .price(
             title: Localized.Asset.price,
-            value: priceFormatted
+            value: priceFormatted,
         )
     }
 }

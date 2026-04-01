@@ -12,7 +12,7 @@ public enum UpdateBalanceType {
 
     var metadata: BalanceMetadata? {
         switch self {
-        case .stake(let balance): balance.metadata
+        case let .stake(balance): balance.metadata
         case .coin, .perpetual, .token, .earn: .none
         }
     }
@@ -26,7 +26,7 @@ public struct UpdateCoinBalance {
     public init(
         available: UpdateBalanceValue,
         reserved: UpdateBalanceValue,
-        pendingUnconfirmed: UpdateBalanceValue = .zero
+        pendingUnconfirmed: UpdateBalanceValue = .zero,
     ) {
         self.available = available
         self.reserved = reserved
@@ -49,14 +49,14 @@ public struct UpdateStakeBalance {
     public let locked: UpdateBalanceValue
     public let rewards: UpdateBalanceValue
     public let metadata: BalanceMetadata?
-    
+
     public init(
         staked: UpdateBalanceValue,
         pending: UpdateBalanceValue,
         frozen: UpdateBalanceValue,
         locked: UpdateBalanceValue,
         rewards: UpdateBalanceValue,
-        metadata: BalanceMetadata? = nil
+        metadata: BalanceMetadata? = nil,
     ) {
         self.staked = staked
         self.pending = pending
@@ -75,7 +75,7 @@ public struct UpdatePerpetualBalance {
     public init(
         available: UpdateBalanceValue,
         reserved: UpdateBalanceValue,
-        withdrawable: UpdateBalanceValue
+        withdrawable: UpdateBalanceValue,
     ) {
         self.available = available
         self.reserved = reserved

@@ -2,19 +2,19 @@
 
 import Foundation
 
-extension Currency {
-    public static let `default`: Currency = .usd
+public extension Currency {
+    static let `default`: Currency = .usd
 
-    public init(id: String) throws {
+    init(id: String) throws {
         if let currency = Currency(rawValue: id) {
             self = currency
         } else {
             throw AnyError("invalid currency: \(id)")
         }
     }
-    
-    public static var nativeCurrencies: [Locale.Currency] {
-        return Locale.Currency.isoCurrencies.filter {
+
+    static var nativeCurrencies: [Locale.Currency] {
+        Locale.Currency.isoCurrencies.filter {
             if let currency = Currency(rawValue: $0.identifier) {
                 return Currency.allCases.contains(currency)
             }

@@ -4,7 +4,7 @@ import Primitives
 
 public struct SocialLinksViewModel {
     public let assetLinks: [AssetLink]
-    
+
     public init(assetLinks: [AssetLink]) {
         self.assetLinks = assetLinks
     }

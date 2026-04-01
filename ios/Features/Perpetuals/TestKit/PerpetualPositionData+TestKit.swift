@@ -8,12 +8,12 @@ public extension PerpetualPositionData {
     static func mock(
         perpetual: Perpetual = .mock(),
         asset: Asset = .mock(),
-        position: PerpetualPosition = .mock()
+        position: PerpetualPosition = .mock(),
     ) -> PerpetualPositionData {
         PerpetualPositionData(
             perpetual: perpetual,
             asset: asset,
-            position: position
+            position: position,
         )
     }
 }

@@ -2,11 +2,11 @@
 
 import Foundation
 
-extension WalletSubscription {
-    public var asWalletSubscriptionChains: WalletSubscriptionChains {
+public extension WalletSubscription {
+    var asWalletSubscriptionChains: WalletSubscriptionChains {
         WalletSubscriptionChains(
             walletId: walletId,
-            chains: subscriptions.flatMap(\.chains).sorted()
+            chains: subscriptions.flatMap(\.chains).sorted(),
         )
     }
 }

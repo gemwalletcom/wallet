@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
 import Localization
 import Primitives
-import Formatters
-import Components
 import Style
 import SwiftUI
 
@@ -16,18 +16,18 @@ public enum PerpetualDetailsType: Sendable {
 
     public init(_ perpetualType: PerpetualType) {
         switch perpetualType {
-        case .open(let data): self = .open(data)
-        case .close(let data): self = .close(data)
-        case .increase(let data): self = .increase(data)
-        case .reduce(let data): self = .reduce(data)
+        case let .open(data): self = .open(data)
+        case let .close(data): self = .close(data)
+        case let .increase(data): self = .increase(data)
+        case let .reduce(data): self = .reduce(data)
         case .modify: fatalError("not suppoerted")
         }
     }
 
     var data: PerpetualConfirmData {
         switch self {
-        case .open(let data), .close(let data), .increase(let data): data
-        case .reduce(let data): data.data
+        case let .open(data), let .close(data), let .increase(data): data
+        case let .reduce(data): data.data
         }
     }
 }
@@ -52,27 +52,28 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         ListItemModel(
             title: Localized.Common.details,
             subtitle: listItemSubtitle,
-            subtitleStyle: listItemSubtitleStyle
+            subtitleStyle: listItemSubtitleStyle,
         )
     }
 
     var positionField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Perpetual.position, style: .body),
-            value: TextValue(text: positionText, style: TextStyle(font: .callout, color: directionViewModel.color))
+            value: TextValue(text: positionText, style: TextStyle(font: .callout, color: directionViewModel.color)),
         )
     }
+
     var positionText: String { "\(directionViewModel.title) \(leverageText)" }
 
     var directionViewModel: PerpetualDirectionViewModel {
         let direction = switch type {
-        case .open(let data), .close(let data), .increase(let data): data.direction
-        case .reduce(let data): data.positionDirection
+        case let .open(data), let .close(data), let .increase(data): data.direction
+        case let .reduce(data): data.positionDirection
         }
         return PerpetualDirectionViewModel(direction: direction)
     }
 
-    var leverageTitle: String { Localized.Perpetual.leverage}
+    var leverageTitle: String { Localized.Perpetual.leverage }
     var leverageText: String { "\(data.leverage)x" }
 
     var slippageField: ListItemField {
@@ -93,16 +94,18 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
             pnl: data.pnl,
             marginAmount: data.marginAmount,
             currencyFormatter: currencyFormatter,
-            percentFormatter: percentFormatter
+            percentFormatter: percentFormatter,
         )
     }
+
     var pnlField: ListItemField? {
         guard let text = pnlViewModel.text else { return nil }
         return ListItemField(
             title: TextValue(text: pnlViewModel.title, style: .body),
-            value: TextValue(text: text, style: pnlViewModel.textStyle)
+            value: TextValue(text: text, style: pnlViewModel.textStyle),
         )
     }
+
     var pnlText: String? { pnlViewModel.text }
     var pnlTextStyle: TextStyle { pnlViewModel.textStyle }
 
@@ -118,9 +121,10 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
             takeProfit: data.takeProfit.flatMap { currencyFormatter.double(from: $0) },
-            stopLoss: data.stopLoss.flatMap { currencyFormatter.double(from: $0) }
+            stopLoss: data.stopLoss.flatMap { currencyFormatter.double(from: $0) },
         )
     }
+
     var showAutoclose: Bool { data.takeProfit != nil || data.stopLoss != nil }
 }
 

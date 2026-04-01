@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,7 +21,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.getPriceState
+import com.gemwallet.android.domains.price.toPriceState
+import com.gemwallet.android.ext.getAddressEllipsisText
 import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -237,10 +237,8 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
                     title = { PropertyTitleText(R.string.asset_contract) },
                     data = {
                         PropertyDataText(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(top = 0.dp, bottom = 2.dp),
-                            text = item.value,
+                            text = item.value.getAddressEllipsisText(chain = asset.chain),
+                            badge = { DataBadgeChevron() }
                         )
                     },
                     listPosition = position
@@ -268,7 +266,7 @@ private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, it
                     horizontalAlignment = Alignment.End
                 ) {
                     ListItemTitleText(currency.compactFormatter(item.value))
-                    ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.getPriceState().color())
+                    ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toPriceState().color())
                 }
            },
         )

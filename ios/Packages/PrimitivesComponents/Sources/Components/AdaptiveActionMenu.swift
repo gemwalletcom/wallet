@@ -12,7 +12,7 @@ public struct AdaptiveActionMenu<Label: View>: View {
     public init(
         title: String? = nil,
         items: [ActionMenuItemType],
-        @ViewBuilder label: () -> Label
+        @ViewBuilder label: () -> Label,
     ) {
         self.title = title
         self.items = items
@@ -30,7 +30,7 @@ public struct AdaptiveActionMenu<Label: View>: View {
                     titleVisibility: (title == nil) ? .hidden : .visible,
                     actions: {
                         ForEach(items) { ActionMenuItemView(item: $0) }
-                    }
+                    },
                 )
         }
     }

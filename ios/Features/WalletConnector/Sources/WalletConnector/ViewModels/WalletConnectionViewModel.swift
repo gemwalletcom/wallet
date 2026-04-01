@@ -14,7 +14,7 @@ public struct WalletConnectionViewModel: Sendable {
     var nameText: String {
         connection.session.metadata.shortName
     }
-    
+
     var imageUrl: URL? {
         if let url = URL(string: connection.session.metadata.icon) {
             if url.host() == nil {
@@ -24,7 +24,7 @@ public struct WalletConnectionViewModel: Sendable {
         }
         return .none
     }
-    
+
     var hostText: String? {
         url?.cleanHost()
     }

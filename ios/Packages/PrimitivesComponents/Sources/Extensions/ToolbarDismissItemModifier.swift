@@ -6,9 +6,9 @@ struct ToolbarDismissItemModifier: ViewModifier {
     let type: ToolbarDismissItem.ButtonType
     let placement: ToolbarItemPlacement
 
-    public init(
+    init(
         type: ToolbarDismissItem.ButtonType,
-        placement: ToolbarItemPlacement
+        placement: ToolbarItemPlacement,
     ) {
         self.type = type
         self.placement = placement
@@ -19,7 +19,7 @@ struct ToolbarDismissItemModifier: ViewModifier {
             .toolbar {
                 ToolbarDismissItem(
                     type: type,
-                    placement: placement
+                    placement: placement,
                 )
             }
     }
@@ -28,7 +28,7 @@ struct ToolbarDismissItemModifier: ViewModifier {
 public extension View {
     func toolbarDismissItem(
         type: ToolbarDismissItem.ButtonType,
-        placement: ToolbarItemPlacement
+        placement: ToolbarItemPlacement,
     ) -> some View {
         modifier(ToolbarDismissItemModifier(type: type, placement: placement))
     }

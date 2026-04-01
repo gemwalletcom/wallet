@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 struct CardanoSigner: Signable {
-    
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
         var signingInput = CardanoSigningInput.with {
             $0.transferMessage.toAddress = input.destinationAddress
             $0.transferMessage.changeAddress = input.senderAddress
             $0.transferMessage.amount = input.value.asUInt
             $0.transferMessage.useMaxAmount = input.useMaxAmount
-            $0.ttl = 190000000
+            $0.ttl = 190_000_000
         }
         signingInput.privateKey.append(privateKey)
         signingInput.utxos = try input.metadata.getUtxos().map { utxo in
@@ -23,7 +22,7 @@ struct CardanoSigner: Signable {
                 $0.amount = try UInt64(string: utxo.value)
             }
         }
-        
+
         let output: CardanoSigningOutput = AnySigner.sign(input: signingInput, coin: .cardano)
 
         if !output.errorMessage.isEmpty {
@@ -37,4 +36,3 @@ struct CardanoSigner: Signable {
         return output.encoded.hexString
     }
 }
-    

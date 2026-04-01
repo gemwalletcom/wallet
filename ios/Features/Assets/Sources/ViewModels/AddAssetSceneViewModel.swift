@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
 import Blockchain
+import ChainService
 import Components
+import Foundation
+import GemstonePrimitives
+import Localization
+import Primitives
 import PrimitivesComponents
 import Style
-import Localization
-import ChainService
-import GemstonePrimitives
+import SwiftUI
 
 @Observable
 @MainActor
@@ -23,7 +23,7 @@ public final class AddAssetSceneViewModel {
 
     public init(wallet: Wallet, service: any AddAssetServiceable) {
         self.service = service
-        self.input = AddAssetInput(chains: wallet.chainsWithTokens)
+        input = AddAssetInput(chains: wallet.chainsWithTokens)
     }
 
     var title: String { Localized.Wallet.AddToken.title }
@@ -41,26 +41,27 @@ public final class AddAssetSceneViewModel {
     var addressBinding: Binding<String> {
         Binding(
             get: { [self] in
-                self.input.address ?? ""
+                input.address ?? ""
             },
             set: { [self] in
-                self.input.address = $0.isEmpty ? nil : $0
-            }
+                input.address = $0.isEmpty ? nil : $0
+            },
         )
     }
-    
+
     var warningImageStyle: ListItemImageStyle? {
         ListItemImageStyle(
             assetImage: AssetImage(type: Emoji.WalletAvatar.warning.rawValue),
             imageSize: .image.semiMedium,
             alignment: .top,
-            cornerRadiusType: .none
+            cornerRadiusType: .none,
         )
     }
-    
+
     var tokenVerificationUrl: URL {
         Docs.url(.tokenVerification)
     }
+
     var customTokenUrl: URL {
         Docs.url(.addCustomToken)
     }

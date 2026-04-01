@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import PrimitivesComponents
 import Store
 import Style
-import PrimitivesComponents
+import SwiftUI
 
 public struct AssetsResultsScene: View {
     @State private var model: AssetsResultsSceneViewModel
@@ -19,7 +19,7 @@ public struct AssetsResultsScene: View {
             if model.showPinned {
                 Section(
                     content: { assetItems(for: model.sections.pinnedAssets) },
-                    header: { PinnedSectionHeader() }
+                    header: { PinnedSectionHeader() },
                 )
                 .listRowInsets(.assetListRowInsets)
             }
@@ -44,7 +44,7 @@ public struct AssetsResultsScene: View {
             items: items,
             currencyCode: model.currencyCode,
             contextMenuItems: model.contextMenuItems,
-            onSelect: { model.onSelectAssetAction?($0) }
+            onSelect: { model.onSelectAssetAction?($0) },
         )
     }
 }

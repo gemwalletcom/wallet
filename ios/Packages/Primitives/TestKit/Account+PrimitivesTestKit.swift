@@ -6,13 +6,13 @@ import Primitives
 public extension Account {
     static func mock(
         chain: Chain = .mock(),
-        address: String = .empty
+        address: String = .empty,
     ) -> Account {
         Account(
             chain: chain,
             address: address,
             derivationPath: .empty,
-            extendedPublicKey: .empty
+            extendedPublicKey: .empty,
         )
     }
 }

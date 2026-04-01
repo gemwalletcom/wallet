@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import PhotosUI
 import Components
+import PhotosUI
+import SwiftUI
 
 struct QRScannerScene: View {
     @Environment(\.openURL) private var openURL
@@ -10,7 +10,7 @@ struct QRScannerScene: View {
 
     @State private var model: QRScannerSceneViewModel
 
-    private let action: ((String) -> Void)
+    private let action: (String) -> Void
 
     init(resources: QRScannerResources, action: @escaping ((String) -> Void)) {
         self.action = action
@@ -24,10 +24,10 @@ struct QRScannerScene: View {
                 QRScannerDisplayView(
                     configuration: model.overlayConfig,
                     isScannerReady: $model.isScannerReady,
-                    scanResult: onHandleScanResult
+                    scanResult: onHandleScanResult,
                 )
                 .ignoresSafeArea()
-            case .failure(let error):
+            case let .failure(error):
                 ContentUnavailableView(
                     label: {
                         if let titleImage = error.titleImage {
@@ -49,7 +49,7 @@ struct QRScannerScene: View {
                         case .decoding, .unknown:
                             Button(model.resources.tryAgain, action: model.refreshScannerState)
                         }
-                    }
+                    },
                 )
             }
         }
@@ -73,20 +73,21 @@ struct QRScannerScene: View {
         .onChange(
             of: model.isScannerReady,
             initial: true,
-            model.onChangeScannerReadyStatus)
+            model.onChangeScannerReadyStatus,
+        )
         .onChange(of: model.selectedPhoto, onLoadPhoto)
         .onChange(of: model.imageState, onChangeImageState)
     }
 
     @ViewBuilder
-    private func photosPicker<Label: View>(
-        @ViewBuilder label: @Sendable @escaping () -> Label
+    private func photosPicker(
+        @ViewBuilder label: @Sendable @escaping () -> some View,
     ) -> some View {
         PhotosPicker(
             selection: $model.selectedPhoto,
             matching: .images,
             photoLibrary: .shared(),
-            label: label
+            label: label,
         )
     }
 }
@@ -99,15 +100,15 @@ extension QRScannerScene {
         openURL(settingsURL)
     }
 
-    private func onLoadPhoto(_ oldValue: PhotosPickerItem?, _ newValue: PhotosPickerItem?) {
+    private func onLoadPhoto(_: PhotosPickerItem?, _ newValue: PhotosPickerItem?) {
         guard let newValue else { return }
         Task {
             await model.process(photoItem: newValue)
         }
     }
 
-    private func onChangeImageState(_ oldValue: ImageState, _ newValue: ImageState) {
-        guard case .success(let uIImage) = newValue else { return }
+    private func onChangeImageState(_: ImageState, _ newValue: ImageState) {
+        guard case let .success(uIImage) = newValue else { return }
 
         do {
             let code = try model.retrieveQRCode(image: uIImage)
@@ -117,8 +118,8 @@ extension QRScannerScene {
         }
     }
 
-    private func onHandleScanResult(_ result: (Result<String, Error>)) {
-        guard case .success(let code) = result else { return }
+    private func onHandleScanResult(_ result: Result<String, Error>) {
+        guard case let .success(code) = result else { return }
         action(code)
         dismiss()
     }

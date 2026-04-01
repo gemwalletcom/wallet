@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
+import ExplorerService
+import Formatters
 import Foundation
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import PerpetualService
+import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import Formatters
-import ExplorerService
-import Preferences
-import BigInt
-import GemstonePrimitives
 import TransactionsService
 
 @Observable
@@ -59,7 +59,7 @@ public final class PerpetualSceneViewModel {
         transactionsService: TransactionsService,
         observerService: any PerpetualObservable<HyperliquidSubscription>,
         onTransferData: TransferDataAction = nil,
-        onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil
+        onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -69,16 +69,16 @@ public final class PerpetualSceneViewModel {
         self.onTransferData = onTransferData
         self.onPerpetualRecipientData = onPerpetualRecipientData
 
-        self.positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, filter: .assetId(asset.id)), initialValue: [])
-        self.perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        self.perpetualTotalValueQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, balanceType: .perpetual), initialValue: .zero)
-        self.transactionsQuery = ObservableQuery(
+        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, filter: .assetId(asset.id)), initialValue: [])
+        perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
+        perpetualTotalValueQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, balanceType: .perpetual), initialValue: .zero)
+        transactionsQuery = ObservableQuery(
             TransactionsRequest.perpetualScene(
                 walletId: wallet.walletId,
                 assetId: asset.id,
-                limit: 50
+                limit: 50,
             ),
-            initialValue: []
+            initialValue: [],
         )
     }
 
@@ -86,6 +86,7 @@ public final class PerpetualSceneViewModel {
         let name = perpetualViewModel.name
         return name.isEmpty ? asset.symbol : name
     }
+
     public var currency: String { preference.currency }
     public var hasOpenPosition: Bool { !positionViewModels.isEmpty }
 
@@ -110,13 +111,13 @@ public final class PerpetualSceneViewModel {
             (.entry, position.entryPrice),
             (.takeProfit, position.takeProfit?.price),
             (.stopLoss, position.stopLoss?.price),
-            (.liquidation, position.liquidationPrice)
+            (.liquidation, position.liquidationPrice),
         ]
         return prices.compactMap { type, price in
             price.map {
                 ChartLineViewModel(
                     line: ChartLine(type: type, price: $0),
-                    formatter: CurrencyFormatter(type: .currency, currencyCode: .empty)
+                    formatter: CurrencyFormatter(type: .currency, currencyCode: .empty),
                 )
             }
         }
@@ -149,7 +150,7 @@ public extension PerpetualSceneViewModel {
         await unsubscribeCandles(currentChartSubscription)
     }
 
-    func onScenePhaseChange(_ oldPhase: ScenePhase, _ newPhase: ScenePhase) {
+    func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
         switch newPhase {
         case .active:
             Task { try? await perpetualService.updateMarket(symbol: perpetual.coin) }
@@ -207,14 +208,14 @@ public extension PerpetualSceneViewModel {
             perpetual: perpetual,
             position: position,
             asset: asset,
-            baseAsset: .hypercoreUSDC()
+            baseAsset: .hypercoreUSDC(),
         )
 
         let transferData = TransferData(
             type: .perpetual(asset, .close(data)),
             recipientData: .hyperliquid(),
             value: .zero,
-            canChangeValue: false
+            canChangeValue: false,
         )
 
         onTransferData?(transferData)
@@ -224,7 +225,7 @@ public extension PerpetualSceneViewModel {
         guard let transferData = createTransferData(
             direction: .long,
             leverage: perpetual.maxLeverage,
-            marginType: perpetual.marginType
+            marginType: perpetual.marginType,
         ) else {
             return
         }
@@ -235,7 +236,7 @@ public extension PerpetualSceneViewModel {
         guard let transferData = createTransferData(
             direction: .short,
             leverage: perpetual.maxLeverage,
-            marginType: perpetual.marginType
+            marginType: perpetual.marginType,
         ) else {
             return
         }
@@ -259,12 +260,10 @@ public extension PerpetualSceneViewModel {
             return
         }
 
-        let direction: PerpetualDirection = {
-            switch position.direction {
-            case .long: .short
-            case .short: .long
-            }
-        }()
+        let direction: PerpetualDirection = switch position.direction {
+        case .long: .short
+        case .short: .long
+        }
 
         guard let transferData = createTransferData(direction: direction, leverage: position.leverage, marginType: position.marginType) else {
             return
@@ -274,8 +273,8 @@ public extension PerpetualSceneViewModel {
             .reduce(
                 transferData,
                 available: BigInt(position.marginAmount * pow(10.0, Double(position.baseAsset.decimals))),
-                positionDirection: position.direction
-            )
+                positionDirection: position.direction,
+            ),
         )
     }
 
@@ -292,7 +291,7 @@ private extension PerpetualSceneViewModel {
         do {
             let candlesticks = try await perpetualService.candlesticks(
                 symbol: perpetual.coin,
-                period: currentPeriod
+                period: currentPeriod,
             )
             state = .data(candlesticks)
         } catch {
@@ -326,7 +325,7 @@ private extension PerpetualSceneViewModel {
     func handleChartUpdate(_ update: ChartCandleUpdate) {
         guard update.coin == currentChartSubscription.coin,
               update.interval == currentChartSubscription.interval,
-              case .data(var candlesticks) = state,
+              case var .data(candlesticks) = state,
               let lastCandle = candlesticks.last
         else {
             return
@@ -356,14 +355,14 @@ private extension PerpetualSceneViewModel {
             assetIndex: assetIndex,
             price: perpetual.price,
             leverage: leverage,
-            marginType: marginType
+            marginType: marginType,
         )
     }
 
     func onPositionAction(_ positionAction: PerpetualPositionAction) {
         let recipientData = PerpetualRecipientData(
             recipient: .hyperliquid(),
-            positionAction: positionAction
+            positionAction: positionAction,
         )
         onPerpetualRecipientData?(recipientData)
     }
@@ -381,7 +380,7 @@ public extension RecipientData {
     static func hyperliquid() -> RecipientData {
         RecipientData(
             recipient: Recipient(name: "Hyperliquid", address: "", memo: .none),
-            amount: .none
+            amount: .none,
         )
     }
 }

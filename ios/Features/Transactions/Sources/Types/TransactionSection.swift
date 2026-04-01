@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
-import PrimitivesComponents
+import Foundation
 import Primitives
+import PrimitivesComponents
+import SwiftUI
 
 public enum TransactionSectionType: String, Identifiable, Equatable {
     case header
     case swapAction
     case details
     case explorer
-    
+
     public var id: String { rawValue }
 }
 

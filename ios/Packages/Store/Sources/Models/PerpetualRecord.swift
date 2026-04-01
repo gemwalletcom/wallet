@@ -7,7 +7,7 @@ import Primitives
 struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "perpetuals"
 
-    struct Columns {
+    enum Columns {
         static let id = Column("id")
         static let name = Column("name")
         static let provider = Column("provider")
@@ -22,7 +22,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
         static let isIsolatedOnly = Column("isIsolatedOnly")
         static let isPinned = Column("isPinned")
     }
-    
+
     var id: String
     var name: String
     var provider: PerpetualProvider
@@ -36,7 +36,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
     var maxLeverage: UInt8
     var isIsolatedOnly: Bool
     var isPinned: Bool
-    
+
     init(
         id: String,
         name: String,
@@ -50,7 +50,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
         funding: Double,
         maxLeverage: UInt8,
         isIsolatedOnly: Bool = false,
-        isPinned: Bool = false
+        isPinned: Bool = false,
     ) {
         self.id = id
         self.name = name
@@ -66,7 +66,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
         self.isIsolatedOnly = isIsolatedOnly
         self.isPinned = isPinned
     }
-    
+
     static let positions = hasMany(PerpetualPositionRecord.self).forKey("positions")
     static let asset = belongsTo(AssetRecord.self, using: ForeignKey(["assetId"], to: ["id"]))
     static let search = hasOne(SearchRecord.self, using: ForeignKey(["perpetualId"], to: ["id"]))
@@ -74,7 +74,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
 
 extension PerpetualRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName) {
+        try db.create(table: databaseTableName) {
             $0.column(Columns.id.name, .text).primaryKey().notNull()
             $0.column(Columns.name.name, .text).notNull()
             $0.column(Columns.provider.name, .text).notNull()
@@ -95,7 +95,7 @@ extension PerpetualRecord: CreateTable {
 
 extension PerpetualRecord {
     func mapToPerpetual() -> Perpetual {
-        return Perpetual(
+        Perpetual(
             id: id,
             name: name,
             provider: provider,
@@ -107,14 +107,14 @@ extension PerpetualRecord {
             volume24h: volume24h,
             funding: funding,
             maxLeverage: maxLeverage,
-            isIsolatedOnly: isIsolatedOnly
+            isIsolatedOnly: isIsolatedOnly,
         )
     }
 }
 
 extension Perpetual {
     var record: PerpetualRecord {
-        return PerpetualRecord(
+        PerpetualRecord(
             id: id,
             name: name,
             provider: provider,
@@ -126,7 +126,7 @@ extension Perpetual {
             volume24h: volume24h,
             funding: funding,
             maxLeverage: maxLeverage,
-            isIsolatedOnly: isIsolatedOnly
+            isIsolatedOnly: isIsolatedOnly,
         )
     }
 }

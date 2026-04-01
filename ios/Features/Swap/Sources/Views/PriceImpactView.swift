@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import Components
+import Foundation
+import Primitives
 import Style
+import SwiftUI
 
 struct PriceImpactView: View {
     private let model: PriceImpactViewModel
@@ -21,7 +21,7 @@ struct PriceImpactView: View {
                 title: model.priceImpactTitle,
                 subtitle: priceImpactValue.value,
                 subtitleStyle: model.priceImpactStyle,
-                infoAction: infoAction
+                infoAction: infoAction,
             )
         }
     }

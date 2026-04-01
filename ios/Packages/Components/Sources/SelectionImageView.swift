@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct SelectionImageView: View {
     public init() {}
@@ -12,7 +12,7 @@ public struct SelectionImageView: View {
             .scaledToFit()
             .frame(
                 width: .list.selected.image,
-                height: .list.selected.image
+                height: .list.selected.image,
             )
     }
 }

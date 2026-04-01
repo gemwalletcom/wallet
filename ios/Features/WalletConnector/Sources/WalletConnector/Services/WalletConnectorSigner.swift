@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
-import WalletConnectorService
+import class Gemstone.Config
+import class Gemstone.MessageSigner
+import struct Gemstone.SignMessage
+import GemstonePrimitives
+import Preferences
 import Primitives
 import Store
-import Preferences
-import BigInt
-import class Gemstone.Config
+import WalletConnectorService
 import WalletConnectSign
 import WalletSessionService
-import struct Gemstone.SignMessage
-import class Gemstone.MessageSigner
-import GemstonePrimitives
 
 public final class WalletConnectorSigner: WalletConnectorSignable {
     private let connectionsStore: ConnectionsStore
@@ -21,14 +21,14 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     public init(
         connectionsStore: ConnectionsStore,
         walletSessionService: any WalletSessionManageable,
-        walletConnectorInteractor: any WalletConnectorInteractable
+        walletConnectorInteractor: any WalletConnectorInteractable,
     ) {
         self.connectionsStore = connectionsStore
         self.walletConnectorInteractor = walletConnectorInteractor
         self.walletSessionService = walletSessionService
     }
 
-    public var allChains: [Primitives.Chain]  {
+    public var allChains: [Primitives.Chain] {
         Config.shared.getWalletConnectConfig().chains.compactMap { Chain(rawValue: $0) }
     }
 
@@ -41,7 +41,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     public func getChains(wallet: Wallet) -> [Primitives.Chain] {
-        wallet.accounts.map { $0.chain }.asSet().intersection(allChains).asArray()
+        wallet.accounts.map(\.chain).asSet().intersection(allChains).asArray()
     }
 
     public func getAccounts(wallet: Wallet, chains: [Primitives.Chain]) -> [Primitives.Account] {
@@ -85,20 +85,20 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             session: session.session,
             wallet: session.wallet,
             message: message,
-            simulation: simulation
+            simulation: simulation,
         )
         return try await walletConnectorInteractor.signMessage(payload: payload)
     }
 
     public func updateSessions(sessions: [WalletConnectionSession]) throws {
         if sessions.isEmpty {
-            try? connectionsStore.deleteAll()
+            _ = try? connectionsStore.deleteAll()
         } else {
-            let newSessionIds = sessions.map { $0.id }.asSet()
-            let sessionIds = try connectionsStore.getSessions().filter { $0.state == .active }.map { $0.id }.asSet()
+            let newSessionIds = sessions.map(\.id).asSet()
+            let sessionIds = try connectionsStore.getSessions().filter { $0.state == .active }.map(\.id).asSet()
             let deleteIds = sessionIds.subtracting(newSessionIds).asArray()
 
-            try? connectionsStore.delete(ids: deleteIds)
+            _ = try? connectionsStore.delete(ids: deleteIds)
 
             for session in sessions {
                 try? connectionsStore.updateConnectionSession(session)
@@ -107,7 +107,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     public func sessionReject(id: String, error: any Error) async throws {
-        try connectionsStore.delete(ids: [id])
+        _ = try connectionsStore.delete(ids: [id])
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
@@ -116,7 +116,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         metadata: WalletConnectionSessionAppMetadata,
         transaction: String,
         outputType: TransferDataOutputType,
-        outputAction: TransferDataOutputAction
+        outputAction: TransferDataOutputAction,
     ) -> TransferData {
         TransferData(
             type: .generic(
@@ -126,27 +126,27 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                     to: "",
                     data: transaction.data(using: .utf8),
                     outputType: outputType,
-                    outputAction: outputAction
-                )
+                    outputAction: outputAction,
+                ),
             ),
             recipientData: RecipientData(
                 recipient: Recipient(name: .none, address: "", memo: .none),
-                amount: .none
+                amount: .none,
             ),
-            value: .zero
+            value: .zero,
         )
     }
 
     private func buildBitcoinTransferData(chain: Chain, transaction: String) throws -> TransferData {
-        let transfer = try JSONDecoder().decode(WCBitcoinTransfer.self, from: try transaction.encodedData())
+        let transfer = try JSONDecoder().decode(WCBitcoinTransfer.self, from: transaction.encodedData())
         return TransferData(
             type: .transfer(chain.asset),
             recipientData: RecipientData(
                 recipient: Recipient(name: .none, address: transfer.recipientAddress, memo: transfer.memo),
-                amount: .none
+                amount: .none,
             ),
             value: BigInt(stringLiteral: transfer.amount),
-            canChangeValue: false
+            canChangeValue: false,
         )
     }
 
@@ -158,16 +158,16 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         switch transaction {
         case .ethereum, .bitcoin:
             throw AnyError("Not supported")
-        case .solana(let transaction, let outputType),
-             .sui(let transaction, let outputType),
-             .ton(let transaction, let outputType),
-             .tron(let transaction, let outputType):
+        case let .solana(transaction, outputType),
+             let .sui(transaction, outputType),
+             let .ton(transaction, outputType),
+             let .tron(transaction, outputType):
             let transferData = buildTransferData(
                 chain: chain,
                 metadata: session.session.metadata,
                 transaction: transaction,
                 outputType: outputType,
-                outputAction: .sign
+                outputAction: .sign,
             )
             return try await walletConnectorInteractor.signTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
         }
@@ -179,7 +179,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         let wallet = try getWallet(id: session.wallet.walletId)
 
         switch transaction {
-        case .ethereum(let transaction):
+        case let .ethereum(transaction):
             let address = transaction.to
             let value = try BigInt.fromHex(transaction.value ?? .zero)
             let gasLimit: BigInt? = {
@@ -213,29 +213,29 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                     to: address,
                     gasLimit: gasLimit,
                     gasPrice: gasPrice,
-                    data: data
+                    data: data,
                 )),
                 recipientData: RecipientData(
                     recipient: Recipient(name: .none, address: address, memo: .none),
-                    amount: .none
+                    amount: .none,
                 ),
-                value: value
+                value: value,
             )
 
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
-        case .solana(let transaction, let outputType),
-             .sui(let transaction, let outputType),
-             .ton(let transaction, let outputType),
-             .tron(let transaction, let outputType):
+        case let .solana(transaction, outputType),
+             let .sui(transaction, outputType),
+             let .ton(transaction, outputType),
+             let .tron(transaction, outputType):
             let transferData = buildTransferData(
                 chain: chain,
                 metadata: session.session.metadata,
                 transaction: transaction,
                 outputType: outputType,
-                outputAction: .send
+                outputAction: .send,
             )
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
-        case .bitcoin(let transaction, _):
+        case let .bitcoin(transaction, _):
             let transferData = try buildBitcoinTransferData(chain: chain, transaction: transaction)
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
         }
@@ -250,20 +250,20 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             metadata: session.session.metadata,
             transaction: transaction,
             outputType: .encodedTransaction,
-            outputAction: .send
+            outputAction: .send,
         )
         let simulation = SimulationResult(
             warnings: [],
             balanceChanges: [],
             payload: [],
-            header: nil
+            header: nil,
         )
         return try await walletConnectorInteractor.sendRawTransaction(
             transferData: WCTransferData(
                 tranferData: transferData,
                 wallet: wallet,
-                simulation: simulation
-            )
+                simulation: simulation,
+            ),
         )
     }
 

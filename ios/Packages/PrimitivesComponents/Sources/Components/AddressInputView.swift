@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
+import Primitives
 import Style
+import SwiftUI
 
 public struct AddressInputView: View {
-
     @Binding private var model: AddressInputViewModel
 
     private let onSelectScan: (@MainActor () -> Void)?
 
     public init(
         model: Binding<AddressInputViewModel>,
-        onSelectScan: (@MainActor () -> Void)? = nil
+        onSelectScan: (@MainActor () -> Void)? = nil,
     ) {
         _model = model
         self.onSelectScan = onSelectScan
@@ -34,7 +33,7 @@ public struct AddressInputView: View {
                         }
                     }
                 }
-            }
+            },
         )
         .keyboardType(.alphabet)
         .textInputAutocapitalization(.never)

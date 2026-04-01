@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
-import Localization
 import Components
-import QRScanner
+import Localization
 import PrimitivesComponents
+import QRScanner
+import Style
+import SwiftUI
 
 struct AddNodeScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -39,7 +39,7 @@ struct AddNodeScene: View {
             StateButton(
                 text: model.actionButtonTitle,
                 type: .primary(model.state),
-                action: onSelectImport
+                action: onSelectImport,
             )
         }
         .onAppear {
@@ -71,7 +71,7 @@ extension AddNodeScene {
             InputValidationField(
                 model: $model.urlInputModel,
                 placeholder: model.inputFieldTitle,
-                onClean: { model.fetchTrigger = nil }
+                onClean: { model.fetchTrigger = nil },
             ) {
                 HStack(spacing: .small) {
                     ListButton(image: Images.System.paste, action: onSelectPaste)

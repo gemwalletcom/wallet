@@ -3,7 +3,7 @@
 import SwiftUI
 
 public extension Images {
-    struct System {
+    enum System {
         public static let settings = Image(systemName: SystemImage.settings)
         public static let qrCodeViewfinder = Image(systemName: SystemImage.qrCodeViewfinder)
         public static let qrCode = Image(systemName: SystemImage.qrCode)

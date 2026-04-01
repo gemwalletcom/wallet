@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import Localization
+import Style
+import SwiftUI
 
 public typealias InfoSheetAction = @MainActor @Sendable () -> Void
 
@@ -24,21 +24,21 @@ public struct InfoSheetModel: Sendable {
     public let button: InfoSheetButton?
     public let titleStyle: TextStyle
     public let descriptionStyle: TextStyle
-    
+
     public var buttonTitle: String {
         switch button {
         case .url, .none: Localized.Common.learnMore
-        case .action(let title, _): title
+        case let .action(title, _): title
         }
     }
-    
+
     public init(
-        title: String, 
-        description: String, 
+        title: String,
+        description: String,
         image: InfoSheetImage? = nil,
         button: InfoSheetButton? = nil,
         titleStyle: TextStyle = .boldTitle,
-        descriptionStyle: TextStyle = .bodySecondary
+        descriptionStyle: TextStyle = .bodySecondary,
     ) {
         self.title = title
         self.description = description
@@ -47,6 +47,6 @@ public struct InfoSheetModel: Sendable {
         self.titleStyle = titleStyle
         self.descriptionStyle = descriptionStyle
     }
-    
+
     var shouldShowButton: Bool { button != nil }
 }

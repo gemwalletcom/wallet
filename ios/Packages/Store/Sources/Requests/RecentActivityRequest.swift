@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct RecentActivityRequest: DatabaseQueryable {
-
     public var walletId: WalletId
     public var limit: Int
     public var types: [RecentActivityType]
@@ -15,7 +14,7 @@ public struct RecentActivityRequest: DatabaseQueryable {
         walletId: WalletId,
         limit: Int = 20,
         types: [RecentActivityType] = RecentActivityType.allCases,
-        filters: [AssetsRequestFilter] = []
+        filters: [AssetsRequestFilter] = [],
     ) {
         self.walletId = walletId
         self.limit = limit
@@ -43,7 +42,7 @@ public struct RecentActivityRequest: DatabaseQueryable {
             .limit(limit)
             .asRequest(of: RecentAssetRecordInfo.self)
             .fetchAll(db)
-            .map { $0.mapToRecentAsset }
+            .map(\.mapToRecentAsset)
     }
 }
 

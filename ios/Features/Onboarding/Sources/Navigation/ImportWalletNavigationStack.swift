@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 public struct ImportWalletNavigationStack: View {
     @State private var model: ImportWalletViewModel
@@ -23,8 +23,8 @@ public struct ImportWalletNavigationStack: View {
                             walletService: model.walletService,
                             nameService: model.nameService,
                             type: type,
-                            onComplete: onImportComplete
-                        )
+                            onComplete: onImportComplete,
+                        ),
                     )
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in
@@ -33,8 +33,8 @@ public struct ImportWalletNavigationStack: View {
                             wallet: scene.wallet,
                             walletService: model.walletService,
                             onSelectImage: { model.presentSelectImage(wallet: $0) },
-                            onComplete: onSetupWalletComplete
-                        )
+                            onComplete: onSetupWalletComplete,
+                        ),
                     )
                     .navigationBarBackButtonHidden()
                     .interactiveDismissDisabled()
@@ -48,8 +48,8 @@ public struct ImportWalletNavigationStack: View {
                             model: WalletImageViewModel(
                                 wallet: wallet,
                                 source: .onboarding,
-                                avatarService: model.avatarService
-                            )
+                                avatarService: model.avatarService,
+                            ),
                         )
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
@@ -77,7 +77,7 @@ extension ImportWalletNavigationStack {
     func navigate(to route: ImportWalletRoute) {
         switch route {
         case .importWalletType: navigationPath.append(Scenes.ImportWalletType())
-        case .walletProfile(let wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
+        case let .walletProfile(wallet): navigationPath.append(Scenes.WalletProfile(wallet: wallet))
         }
     }
 
@@ -85,7 +85,7 @@ extension ImportWalletNavigationStack {
         navigate(to: .walletProfile(wallet: wallet))
     }
 
-    func onSetupWalletComplete(_ wallet: Wallet) {
+    func onSetupWalletComplete(_: Wallet) {
         model.onComplete?()
     }
 }

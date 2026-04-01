@@ -5,13 +5,12 @@ import GRDB
 import Primitives
 
 public struct NodeStore: Sendable {
-    
     let db: DatabaseQueue
-    
+
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     public func addNodes(chainNodes: [ChainNodes]) throws {
         try db.write { (db: Database) in
             for chainNode in chainNodes {
@@ -25,7 +24,7 @@ public struct NodeStore: Sendable {
             }
         }
     }
-    
+
     public func nodes(chain: Chain) throws -> [ChainNode] {
         try db.read { db in
             try NodeRecord
@@ -34,7 +33,7 @@ public struct NodeStore: Sendable {
                 .map { $0.mapToChainNode() }
         }
     }
-    
+
     public func setNodeSelected(chain: Chain, url: String) throws {
         try db.write { (db: Database) in
             try NodeSelectedRecord(chain: chain, nodeUrl: url).upsert(db)
@@ -57,7 +56,7 @@ public struct NodeStore: Sendable {
                 .nodeUrl
         }
     }
-    
+
     public func deleteNodeSelected(chain: Chain) throws {
         _ = try db.write { (db: Database) in
             try NodeSelectedRecord

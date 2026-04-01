@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Components
+import Primitives
 
 struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
     private let state: StateViewType<TransactionInputViewModel>
@@ -15,7 +15,7 @@ struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
         title: String,
         value: String?,
         fiatValue: String?,
-        infoAction: VoidAction
+        infoAction: VoidAction,
     ) {
         self.state = state
         self.title = title
@@ -35,9 +35,9 @@ extension ConfirmNetworkFeeViewModel {
                 subtitle: networkFeeValue,
                 subtitleExtra: networkFeeFiatValue,
                 placeholders: [.subtitle],
-                infoAction: infoAction
+                infoAction: infoAction,
             ),
-            selectable: !state.isError
+            selectable: !state.isError,
         )
     }
 }

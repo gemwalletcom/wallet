@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.AlienTarget
 import enum Gemstone.AlienError
 import func Gemstone.alienMethodToString
+import struct Gemstone.AlienTarget
 
 protocol URLRequestConvertible {
     func asRequest() throws -> URLRequest
@@ -17,7 +17,7 @@ struct URLRequestSequence<T: URLRequestConvertible>: AsyncSequence {
 
     init(
         requests: [T],
-        session: URLSession = .shared
+        session: URLSession = .shared,
     ) {
         self.requests = requests
         self.session = session
@@ -36,22 +36,22 @@ struct URLRequestSequence<T: URLRequestConvertible>: AsyncSequence {
     }
 
     func makeAsyncIterator() -> AsyncRequestIterator {
-        return AsyncRequestIterator(requests: requests.makeIterator(), session: session)
+        AsyncRequestIterator(requests: requests.makeIterator(), session: session)
     }
 }
 
 extension AlienTarget: URLRequestConvertible {
     func asRequest() throws -> URLRequest {
-        guard let url = URL(string: self.url) else {
+        guard let url = URL(string: url) else {
             let error = AlienError.RequestError(msg: "invalid url: \(self.url)")
             throw error
         }
         var request = URLRequest(url: url)
-        request.httpMethod = alienMethodToString(method: self.method)
-        if let headers = self.headers {
+        request.httpMethod = alienMethodToString(method: method)
+        if let headers {
             request.allHTTPHeaderFields = headers
         }
-        if let body = self.body {
+        if let body {
             request.httpBody = body
         }
         return request

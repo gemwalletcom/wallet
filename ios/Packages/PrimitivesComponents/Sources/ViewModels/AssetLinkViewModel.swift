@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
-import SwiftUI
-import Style
 import Components
+import Foundation
+import Localization
+import Primitives
+import Style
+import SwiftUI
 
 struct AssetLinkViewModel {
     let assetLink: AssetLink
@@ -23,10 +23,10 @@ struct AssetLinkViewModel {
             subtitle: host,
             url: url,
             deepLink: deepLink,
-            image: AssetImage.image(image)
+            image: AssetImage.image(image),
         )
     }
-    
+
     var name: String? {
         switch assetLink.linkType {
         case .x: Localized.Social.x
@@ -46,7 +46,7 @@ struct AssetLinkViewModel {
         case .none: nil
         }
     }
-    
+
     var image: Image? {
         switch assetLink.linkType {
         case .x: Images.Social.x
@@ -66,15 +66,15 @@ struct AssetLinkViewModel {
         case .none: nil
         }
     }
-    
+
     var url: URL? {
         assetLink.url.asURL
     }
-    
+
     var deepLink: URL? {
         DeepLinkViewModel(assetLink).deepLink
     }
-    
+
     var host: String? {
         if case .website = assetLink.linkType {
             return assetLink.url.asURL?.cleanHost()

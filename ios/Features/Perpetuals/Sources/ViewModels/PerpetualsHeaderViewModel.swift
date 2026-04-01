@@ -1,27 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
+import Formatters
+import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
-import Formatters
-import Localization
 import Style
+import SwiftUI
 
 struct PerpetualsHeaderViewModel {
     let walletType: WalletType
     let balance: WalletBalance
     let currencyFormatter: CurrencyFormatter
     let currency = Currency.usd.rawValue
-    
+
     init(
         walletType: WalletType,
-        balance: WalletBalance
+        balance: WalletBalance,
     ) {
         self.walletType = walletType
         self.balance = balance
-        self.currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currency)
     }
 }
 
@@ -33,12 +33,13 @@ extension PerpetualsHeaderViewModel: HeaderViewModel {
         Localized.Wallet
             .availableBalance(currencyFormatter.string(balance.available))
     }
+
     var subtitleColor: Color { Colors.gray }
 
     var buttons: [HeaderButton] {
         [
             HeaderButton(type: .withdraw, isEnabled: isWithdrawEnabled),
-            HeaderButton(type: .deposit, isEnabled: true)
+            HeaderButton(type: .deposit, isEnabled: true),
         ]
     }
 

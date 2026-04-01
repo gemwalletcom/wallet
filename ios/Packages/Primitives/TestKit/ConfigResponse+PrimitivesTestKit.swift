@@ -6,12 +6,12 @@ import Primitives
 public extension ConfigResponse {
     static func mock(
         releases: [Release] = [.mock()],
-        versions: ConfigVersions = .mock()
+        versions: ConfigVersions = .mock(),
     ) -> Self {
         ConfigResponse(
             releases: releases,
             versions: versions,
-            swap: SwapConfig(enabledProviders: [])
+            swap: SwapConfig(enabledProviders: []),
         )
     }
 }
@@ -19,12 +19,12 @@ public extension ConfigResponse {
 public extension Release {
     static func mock(
         version: String = "99.0",
-        upgradeRequired: Bool = false
+        upgradeRequired: Bool = false,
     ) -> Self {
         Release(
             version: version,
             store: .appStore,
-            upgradeRequired: upgradeRequired
+            upgradeRequired: upgradeRequired,
         )
     }
 }
@@ -33,12 +33,12 @@ public extension ConfigVersions {
     static func mock(
         fiatOnRampAssets: Int32 = 1,
         fiatOffRampAssets: Int32 = 1,
-        swapAssets: Int32 = 1
+        swapAssets: Int32 = 1,
     ) -> Self {
         ConfigVersions(
             fiatOnRampAssets: fiatOnRampAssets,
             fiatOffRampAssets: fiatOffRampAssets,
-            swapAssets: swapAssets
+            swapAssets: swapAssets,
         )
     }
 }

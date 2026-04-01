@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Formatters
 
@@ -26,33 +26,32 @@ struct ValueConverterTests {
         #expect(try converter.convertToAmount(fiatValue: "1.0", price: price, decimals: 8) == "0.40")
         #expect(try converter.convertToAmount(fiatValue: "25", price: price, decimals: 8) == "10.00")
     }
-    
+
     @Test
-    func testConvertToFiatWithZeroAmount() throws {
+    func convertToFiatWithZeroAmount() throws {
         #expect(try converter.convertToFiat(amount: "0", price: .mock(price: 2.5)) == 0.0)
     }
 
     @Test
-    func testConvertToAmountWithZeroFiatValue() throws {
+    func convertToAmountWithZeroFiatValue() throws {
         #expect(throws: AnyError.self) {
             try converter.convertToAmount(fiatValue: "0", price: .mock(price: 2.5), decimals: 8) == "0.00"
         }
     }
-    
+
     @Test
-    func testConvertToFiatWithSmallAmount() throws {
+    func convertToFiatWithSmallAmount() throws {
         #expect(try converter.convertToFiat(amount: "0.00000001", price: .mock(price: 2.5)) == 0.000000025)
     }
 
     @Test
-    func testConvertToAmountWithSmallFiatValue() throws {
+    func convertToAmountWithSmallFiatValue() throws {
         #expect(try converter.convertToAmount(fiatValue: "0.000000025", price: .mock(price: 2.5), decimals: 8) == "0.00000001")
     }
-    
+
     @Test
-    func testConvertToAmountWithRounding() throws {
+    func convertToAmountWithRounding() throws {
         let price = AssetPrice.mock(price: 3.33333333)
         #expect(try converter.convertToAmount(fiatValue: "10", price: price, decimals: 2) == "3.00")
     }
 }
-

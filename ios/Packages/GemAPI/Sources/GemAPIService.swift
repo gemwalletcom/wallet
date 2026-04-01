@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftHTTPClient
 import Primitives
+import SwiftHTTPClient
 
 public protocol GemAPIConfigService: Sendable {
     func getConfig() async throws -> ConfigResponse
@@ -108,7 +108,6 @@ public protocol GemAPINotificationService: Sendable {
 }
 
 public struct GemAPIService {
-
     let provider: Provider<GemAPI>
     let deviceProvider: Provider<GemDeviceAPI>
     private let walletRequestPreflight: (@Sendable () async throws -> Void)?
@@ -120,7 +119,7 @@ public struct GemAPIService {
     public init(
         provider: Provider<GemAPI> = Self.sharedProvider,
         deviceProvider: Provider<GemDeviceAPI> = Self.sharedDeviceProvider,
-        walletRequestPreflight: (@Sendable () async throws -> Void)? = nil
+        walletRequestPreflight: (@Sendable () async throws -> Void)? = nil,
     ) {
         self.provider = provider
         self.deviceProvider = deviceProvider
@@ -246,12 +245,12 @@ extension GemAPIService: GemAPIPriceAlertService {
     }
 
     public func addPriceAlerts(priceAlerts: [PriceAlert]) async throws {
-        let _ = try await requestDevice(.addPriceAlerts(priceAlerts: priceAlerts))
+        _ = try await requestDevice(.addPriceAlerts(priceAlerts: priceAlerts))
             .mapResponse(as: Int.self)
     }
 
     public func deletePriceAlerts(priceAlerts: [PriceAlert]) async throws {
-        let _ = try await requestDevice(.deletePriceAlerts(priceAlerts: priceAlerts))
+        _ = try await requestDevice(.deletePriceAlerts(priceAlerts: priceAlerts))
             .mapResponse(as: Int.self)
     }
 }
@@ -350,9 +349,9 @@ extension GemAPIService: GemAPIPortfolioService {
     }
 }
 
-extension SwiftHTTPClient.Response {
+public extension SwiftHTTPClient.Response {
     @discardableResult
-    public func mapResponse<T: Decodable>(as type: T.Type) throws -> T {
-        try self.mapOrError(as: type, asError: ResponseError.self)
+    func mapResponse<T: Decodable>(as type: T.Type) throws -> T {
+        try mapOrError(as: type, asError: ResponseError.self)
     }
 }

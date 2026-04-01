@@ -20,9 +20,9 @@ public struct ClearButtonStyle: ButtonStyle {
 
 // MARK: - ButtonStyle Static
 
-extension ButtonStyle where Self == ClearButtonStyle {
-    public static var clear: ClearButtonStyle { ClearButtonStyle(foregroundStyle: Colors.black, foregroundStylePressed: Colors.gray) }
-    public static var clearBlue: ClearButtonStyle { ClearButtonStyle(foregroundStyle: Colors.blue, foregroundStylePressed: Colors.blueDark) }
+public extension ButtonStyle where Self == ClearButtonStyle {
+    static var clear: ClearButtonStyle { ClearButtonStyle(foregroundStyle: Colors.black, foregroundStylePressed: Colors.gray) }
+    static var clearBlue: ClearButtonStyle { ClearButtonStyle(foregroundStyle: Colors.blue, foregroundStylePressed: Colors.blueDark) }
 }
 
 // MARK: – Previews
@@ -30,10 +30,10 @@ extension ButtonStyle where Self == ClearButtonStyle {
 #Preview {
     List {
         Section("ClearButtonStyle presets") {
-            Button("Clear")      { }
+            Button("Clear") {}
                 .buttonStyle(.clear)
 
-            Button("Clear Blue") { }
+            Button("Clear Blue") {}
                 .buttonStyle(.clearBlue)
         }
     }

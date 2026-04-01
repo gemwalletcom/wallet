@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.SignMessage
 import class Gemstone.MessageSigner
+import struct Gemstone.SignMessage
 import Testing
 
 struct MessageSignerTests {
@@ -32,7 +32,7 @@ struct MessageSignerTests {
         """
 
         let signer = MessageSigner(
-            message: SignMessage(chain: "ethereum", signType: .eip191, data: Data(message.utf8))
+            message: SignMessage(chain: "ethereum", signType: .eip191, data: Data(message.utf8)),
         )
 
         let preview = try signer.payloadPreview(simulationPayload: [])

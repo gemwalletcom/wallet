@@ -1,1 +1,3 @@
 --exclude ./Submodules
+--exclude ./Packages/Primitives/Sources/Generated
+--exclude ./Packages/Gemstone/Package.swift

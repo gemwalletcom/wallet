@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 
 public final class BigNumberFormatter: Sendable {
-    public static let standard: BigNumberFormatter = BigNumberFormatter(locale: Locale(identifier: "en_US"))
+    public static let standard: BigNumberFormatter = .init(locale: Locale(identifier: "en_US"))
 
     let locale: Locale
     let decimalSeparator: String
@@ -18,12 +18,12 @@ public final class BigNumberFormatter: Sendable {
         locale: Locale = .current,
         minimumFractionDigits: Int = 0,
         maximumFractionDigits: Int = Int.max,
-        groupingSeparator: String? = nil
+        groupingSeparator: String? = nil,
     ) {
         self.locale = locale
         self.minimumFractionDigits = minimumFractionDigits
         self.maximumFractionDigits = maximumFractionDigits
-        self.decimalSeparator = locale.decimalSeparator ?? "."
+        decimalSeparator = locale.decimalSeparator ?? "."
         self.groupingSeparator = groupingSeparator ?? (locale.groupingSeparator ?? ",")
     }
 
@@ -34,7 +34,7 @@ public final class BigNumberFormatter: Sendable {
             }
             throw AnyError("unable to get number for \(string)")
         }
-        
+
         let fractionalDigits = string.distance(from: string.index(after: decimalIndex), to: string.endIndex)
 
         var fullString = string
@@ -62,7 +62,7 @@ public final class BigNumberFormatter: Sendable {
     }
 
     public func number(from value: Int, decimals: Int) -> BigInt {
-         return BigInt(value) * BigInt(10).power(decimals)
+        BigInt(value) * BigInt(10).power(decimals)
     }
 
     func string(from number: BigInt, decimals: Int) -> String {
@@ -86,7 +86,7 @@ public final class BigNumberFormatter: Sendable {
         }
         return Decimal(string: "\(integerString)\(decimalSeparator)\(fractionalString)", locale: locale)
     }
-    
+
     func double(from number: BigInt, decimals: Int) -> Double? {
         guard let decimal = decimal(from: number, decimals: decimals) else {
             return .none
@@ -137,7 +137,7 @@ extension BigNumberFormatter {
             let numberOfZeros = string.distance(from: string.startIndex, to: lastNonZeroIndex)
             if numberOfZeros > minimumFractionDigits {
                 let newEndIndex = string.index(string.startIndex, offsetBy: numberOfZeros - minimumFractionDigits)
-                string = String(string[string.startIndex..<newEndIndex])
+                string = String(string[string.startIndex ..< newEndIndex])
             }
         }
 

@@ -15,6 +15,6 @@ public protocol TextInputViewModelProtocol: Observable, AnyObject {
     func action() async
 }
 
-extension TextInputViewModelProtocol {
-    public var footer: String? { nil }
+public extension TextInputViewModelProtocol {
+    var footer: String? { nil }
 }

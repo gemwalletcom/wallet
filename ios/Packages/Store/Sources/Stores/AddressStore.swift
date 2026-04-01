@@ -5,13 +5,12 @@ import GRDB
 import Primitives
 
 public struct AddressStore: Sendable {
-    
     let db: DatabaseQueue
-    
+
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     public func addAddressNames(_ addressNames: [AddressName]) throws {
         try db.write { db in
             for addressName in addressNames {
@@ -20,12 +19,12 @@ public struct AddressStore: Sendable {
                     address: addressName.address,
                     name: addressName.name,
                     type: addressName.type,
-                    status: addressName.status
+                    status: addressName.status,
                 ).save(db, onConflict: .replace)
             }
         }
     }
-    
+
     func deleteAddress(chain: Chain, address: String) throws -> Int {
         try db.write { db in
             try AddressRecord
@@ -34,7 +33,7 @@ public struct AddressStore: Sendable {
                 .deleteAll(db)
         }
     }
-    
+
     public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
         try db.read { db in
             try AddressRecord

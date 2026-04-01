@@ -10,7 +10,7 @@ public struct AdaptiveConfiguration: Sendable {
     public init(
         initialInterval: Duration,
         maxInterval: Duration,
-        stepFactor: Double
+        stepFactor: Double,
     ) {
         self.initialInterval = min(initialInterval, maxInterval)
         self.maxInterval = maxInterval

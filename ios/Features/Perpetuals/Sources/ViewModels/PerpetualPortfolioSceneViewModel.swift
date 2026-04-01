@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
 import Formatters
-import PerpetualService
-import PrimitivesComponents
+import Foundation
 import Localization
+import PerpetualService
+import Primitives
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -18,20 +18,21 @@ final class PerpetualPortfolioSceneViewModel: ChartListViewable {
     var state: StateViewType<PerpetualPortfolio> = .loading {
         didSet {
             switch state {
-            case .data(let data): portfolio = data
+            case let .data(data): portfolio = data
             case .error: portfolio = nil
             case .loading, .noData: break
             }
         }
     }
-    public var selectedPeriod: ChartPeriod = .day
+
+    var selectedPeriod: ChartPeriod = .day
     var selectedChartType: PerpetualPortfolioChartType = .pnl
 
     private var portfolio: PerpetualPortfolio?
 
     init(
         wallet: Wallet,
-        perpetualService: PerpetualServiceable
+        perpetualService: PerpetualServiceable,
     ) {
         self.wallet = wallet
         self.perpetualService = perpetualService
@@ -40,19 +41,19 @@ final class PerpetualPortfolioSceneViewModel: ChartListViewable {
     var navigationTitle: String { Localized.Perpetuals.title }
     var infoSectionTitle: String { Localized.Common.info }
 
-    public var periods: [ChartPeriod] {
+    var periods: [ChartPeriod] {
         guard let periods = portfolio?.availablePeriods, !periods.isEmpty else {
             return [.day, .week, .month, .all]
         }
         return periods
     }
 
-    public var chartState: StateViewType<ChartValuesViewModel> {
+    var chartState: StateViewType<ChartValuesViewModel> {
         switch state {
         case .loading: .loading
         case .noData: .noData
-        case .error(let error): .error(error)
-        case .data(let data): chartModel(data: data).map { .data($0) } ?? .noData
+        case let .error(error): .error(error)
+        case let .data(data): chartModel(data: data).map { .data($0) } ?? .noData
         }
     }
 
@@ -63,7 +64,7 @@ final class PerpetualPortfolioSceneViewModel: ChartListViewable {
         }
     }
 
-    public func fetch() async {
+    func fetch() async {
         guard let address = wallet.hyperliquidAccount?.address else { return }
         state = .loading
         do {
@@ -84,7 +85,7 @@ extension PerpetualPortfolioSceneViewModel {
     var unrealizedPnlField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Perpetual.unrealizedPnl, style: ListItemModel.StyleDefaults.titleStyle),
-            value: TextValue(text: unrealizedPnlModel.text ?? "-", style: unrealizedPnlModel.textStyle)
+            value: TextValue(text: unrealizedPnlModel.text ?? "-", style: unrealizedPnlModel.textStyle),
         )
     }
 
@@ -99,7 +100,7 @@ extension PerpetualPortfolioSceneViewModel {
     var allTimePnlField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Perpetual.allTimePnl, style: ListItemModel.StyleDefaults.titleStyle),
-            value: TextValue(text: allTimePnlModel.text ?? "-", style: allTimePnlModel.textStyle)
+            value: TextValue(text: allTimePnlModel.text ?? "-", style: allTimePnlModel.textStyle),
         )
     }
 
@@ -122,6 +123,7 @@ extension PerpetualPortfolioSceneViewModel {
             return "\(marginValue) (\(marginPercent))"
         } ?? "-"
     }
+
     private var volumeText: String { portfolio.map { currencyFormatter.string($0.allTime?.volume ?? 0) } ?? "-" }
 
     private func priceChangeModel(value: Double?) -> PriceChangeViewModel {

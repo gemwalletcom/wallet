@@ -6,11 +6,11 @@ import Primitives
 public extension NFTAssetData {
     static func mock(
         collection: NFTCollection = .mock(),
-        asset: NFTAsset = .mock()
+        asset: NFTAsset = .mock(),
     ) -> NFTAssetData {
         NFTAssetData(
             collection: collection,
-            asset: asset
+            asset: asset,
         )
     }
 }

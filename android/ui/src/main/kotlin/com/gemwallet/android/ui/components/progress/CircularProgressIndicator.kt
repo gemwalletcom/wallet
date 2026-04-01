@@ -9,36 +9,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CircularProgressIndicator8(
-    modifier: Modifier = Modifier,
-    color: Color = ProgressIndicatorDefaults.circularColor,
-) {
-    CircularProgressIndicator(
-        modifier = modifier.size(size = 8.dp),
-        strokeWidth = 1.dp,
-        color = color,
-    )
-}
-
-@Composable
 fun CircularProgressIndicator10(
     modifier: Modifier = Modifier,
     color: Color = ProgressIndicatorDefaults.circularColor,
 ) {
     CircularProgressIndicator(
         modifier = modifier.size(size = 10.dp),
-        strokeWidth = 1.dp,
-        color = color,
-    )
-}
-
-@Composable
-fun CircularProgressIndicator12(
-    modifier: Modifier = Modifier,
-    color: Color = ProgressIndicatorDefaults.circularColor,
-) {
-    CircularProgressIndicator(
-        modifier = modifier.size(size = 12.dp),
         strokeWidth = 1.dp,
         color = color,
     )

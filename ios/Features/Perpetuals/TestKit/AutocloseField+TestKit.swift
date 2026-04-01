@@ -9,14 +9,14 @@ extension AutocloseField {
         originalPrice: Double? = nil,
         formattedPrice: String? = nil,
         isValid: Bool = false,
-        orderId: UInt64? = nil
+        orderId: UInt64? = nil,
     ) -> AutocloseField {
         AutocloseField(
             price: price,
             originalPrice: originalPrice,
             formattedPrice: formattedPrice,
             isValid: isValid,
-            orderId: orderId
+            orderId: orderId,
         )
     }
 }

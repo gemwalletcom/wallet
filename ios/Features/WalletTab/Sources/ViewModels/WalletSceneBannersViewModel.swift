@@ -12,7 +12,7 @@ struct WalletSceneBannersViewModel: Sendable {
             .filter(shouldShowBanner)
             .sorted { $0 < $1 }
     }
-    
+
     // MARK: - Private
 
     private func shouldShowBanner(_ banner: Banner) -> Bool {

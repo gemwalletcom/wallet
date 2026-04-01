@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import PriceAlerts
 import Assets
+import Foundation
+import PriceAlerts
+import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 struct AddAssetPriceAlertsNavigationStack: View {
     @State private var selectAssetModel: SelectAssetViewModel
@@ -17,7 +17,7 @@ struct AddAssetPriceAlertsNavigationStack: View {
     var body: some View {
         NavigationStack {
             SelectAssetScene(
-                model: selectAssetModel
+                model: selectAssetModel,
             )
             .toolbar {
                 ToolbarDismissItem(type: .close, placement: .topBarLeading)

@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import WebKit
-import SwiftUI
-import Primitives
-import Preferences
-import UIKit
 import DeviceService
+import Foundation
+import Preferences
+import Primitives
+import SwiftUI
+import UIKit
+import WebKit
 
 @Observable
 @MainActor
 final class ChatwootWebViewModel: NSObject, Sendable {
-
     let websiteToken: String
     let baseUrl: URL
     let settings: ChatwootSettings
@@ -27,7 +26,7 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         deviceId: String,
         domainPolicy: WebViewDomainPolicy,
         settings: ChatwootSettings = .defaultSettings,
-        isPresentingSupport: Binding<Bool>
+        isPresentingSupport: Binding<Bool>,
     ) {
         self.websiteToken = websiteToken
         self.baseUrl = baseUrl
@@ -36,7 +35,7 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         self.settings = settings
         self.isPresentingSupport = isPresentingSupport
     }
-    
+
     var htmlContent: String {
         """
         <!DOCTYPE html>
@@ -74,9 +73,9 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         """
         return WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
     }
-    
+
     // MARK: - Private properties
-    
+
     private var chatwootSettingsScript: String {
         """
         window.chatwootSettings = {
@@ -88,7 +87,7 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         };
         """
     }
-    
+
     private var sdkInitializationScript: String {
         """
         window.chatwootSDK.run({
@@ -97,7 +96,7 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         });
         """
     }
-    
+
     private var setDeviceIdScript: String {
         let os = UIDevice.current.osName
         let device = UIDevice.current.modelName
@@ -116,11 +115,11 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         });
         """
     }
-    
+
     private var toggleChatScript: String {
         "window.$chatwoot.toggle(open);"
     }
-    
+
     private var sdkSourceURL: String {
         "\(baseUrl.absoluteString)/packs/js/sdk.js"
     }
@@ -128,9 +127,9 @@ final class ChatwootWebViewModel: NSObject, Sendable {
     private var chatOpenEventHandler: String {
         eventHandler(event: .ready, handler: .chatOpened, message: .ready)
     }
-    
+
     // MARK: - Private methods
-    
+
     private func eventHandler(event: ChatwootJSEvent, handler: ChatwootHandler, message: ChatwootMessage) -> String {
         """
         window.addEventListener('\(event.rawValue)', function(event) {
@@ -140,15 +139,14 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         });
         """
     }
-    
 }
 
 // MARK: - WKNavigationDelegate, WKScriptMessageHandler
 
 extension ChatwootWebViewModel: WKNavigationDelegate, WKScriptMessageHandler {
     func webView(
-        _ webView: WKWebView,
-        decidePolicyFor navigationAction: WKNavigationAction
+        _: WKWebView,
+        decidePolicyFor navigationAction: WKNavigationAction,
     ) async -> WKNavigationActionPolicy {
         guard let url = navigationAction.request.url else {
             return .cancel
@@ -164,7 +162,7 @@ extension ChatwootWebViewModel: WKNavigationDelegate, WKScriptMessageHandler {
         return .cancel
     }
 
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+    func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
         switch ChatwootHandler(rawValue: message.name) {
         case .chatOpened: isLoading = false
         default: break

@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
-import Primitives
-import PrimitivesTestKit
-import Formatters
+import BalanceServiceTestKit
+import BigInt
 import FiatService
 import FiatServiceTestKit
-import BigInt
-import BalanceServiceTestKit
+import Formatters
+import Foundation
+import Primitives
+import PrimitivesTestKit
+import Testing
 
 @testable import FiatConnect
 
@@ -18,19 +18,19 @@ final class FiatSceneViewModelTests {
         fiatService: FiatService = .mock(),
         currencyFormatter: CurrencyFormatter = .init(locale: Locale.US, currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress = .mock(),
-        wallet: Wallet = .mock()
+        wallet: Wallet = .mock(),
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
             fiatService: fiatService,
             currencyFormatter: currencyFormatter,
             assetAddress: assetAddress,
             wallet: wallet,
-            assetsEnabler: .mock()
+            assetsEnabler: .mock(),
         )
     }
 
     @Test
-    func testDefaultAmountText() {
+    func defaultAmountText() {
         let model = FiatSceneViewModelTests.mock()
         #expect(model.inputValidationModel.text == "50")
 
@@ -41,7 +41,7 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func testSelectBuyAmount() {
+    func selectBuyAmount() {
         let model = FiatSceneViewModelTests.mock()
         model.onSelect(amount: 150)
 
@@ -53,7 +53,7 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func testSelectSellAmount() {
+    func selectSellAmount() {
         let model = FiatSceneViewModelTests.mock()
         model.type = .sell
         model.onChangeType(oldType: .buy, newType: .sell)
@@ -79,7 +79,7 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func testButtonsTitle() {
+    func buttonsTitle() {
         let model = FiatSceneViewModelTests.mock()
 
         #expect(model.buttonTitle(amount: 10) == "$10")
@@ -100,13 +100,13 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func testFiatValidation() {
+    func fiatValidation() {
         let model = FiatSceneViewModelTests.mock()
 
-        model.inputValidationModel.text = "24"
+        model.inputValidationModel.text = "4"
         #expect(model.inputValidationModel.update() == false)
 
-        model.inputValidationModel.text = "25"
+        model.inputValidationModel.text = "5"
         #expect(model.inputValidationModel.update() == true)
 
         model.inputValidationModel.text = "10000"
@@ -117,14 +117,14 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func testSellFiatValidation() {
+    func sellFiatValidation() {
         let model = FiatSceneViewModelTests.mock()
         model.type = .sell
 
-        model.inputValidationModel.text = "24"
+        model.inputValidationModel.text = "4"
         #expect(model.inputValidationModel.update() == false)
 
-        model.inputValidationModel.text = "25"
+        model.inputValidationModel.text = "5"
         #expect(model.inputValidationModel.update() == true)
 
         model.inputValidationModel.text = "10000"
@@ -258,7 +258,7 @@ final class FiatSceneViewModelTests {
     @Test
     func secondFetchSkippedWhenDataExistsForSameAmount() {
         let model = FiatSceneViewModelTests.mock()
-        
+
         model.buyViewModel.quotesState = .data(FiatQuotes(amount: 100.0, quotes: []))
 
         #expect(model.buyViewModel.shouldSkipFetch(for: 100.0) == true)

@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import UIKit
 import Preferences
+import UIKit
 
 public struct PushNotificationEnablerService: Sendable {
-
     private let preferences: Preferences
 
     public init(preferences: Preferences = .standard) {
@@ -23,7 +22,7 @@ public struct PushNotificationEnablerService: Sendable {
     public func requestPermissionsOrOpenSettings() async throws -> Bool {
         let status = try await getNotificationSettingsStatus()
         switch status {
-        case  .authorized, .ephemeral, .provisional:
+        case .authorized, .ephemeral, .provisional:
             preferences.isPushNotificationsEnabled = true
             return preferences.isPushNotificationsEnabled
         case .notDetermined:
@@ -35,12 +34,12 @@ public struct PushNotificationEnablerService: Sendable {
             return false
         }
     }
-    
+
     public func getNotificationSettingsStatus() async throws -> UNAuthorizationStatus {
         let center = UNUserNotificationCenter.current()
         return await center.notificationSettings().authorizationStatus
     }
-    
+
     func openSetting() async throws {
         if let appSettings = URL(string: UIApplication.openSettingsURLString) {
             if await UIApplication.shared.canOpenURL(appSettings) {

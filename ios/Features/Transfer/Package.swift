@@ -6,15 +6,17 @@ let package = Package(
     name: "Transfer",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Transfer",
-            targets: ["Transfer"]),
+            targets: ["Transfer"],
+        ),
         .library(
             name: "TransferTestKit",
-            targets: ["TransferTestKit"]),
+            targets: ["TransferTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -40,7 +42,7 @@ let package = Package(
 
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
-        .package(name: "GemAPI", path: "../../Packages/GemAPI")
+        .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
         .target(
@@ -80,9 +82,9 @@ let package = Package(
                 .product(name: "NameService", package: "ChainServices"),
                 .product(name: "AddressNameService", package: "FeatureServices"),
                 .product(name: "ActivityService", package: "FeatureServices"),
-                .product(name: "FiatService", package: "FeatureServices")
+                .product(name: "FiatService", package: "FeatureServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "TransferTestKit",
@@ -91,7 +93,7 @@ let package = Package(
                 "Primitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "TransferTests",
@@ -122,7 +124,7 @@ let package = Package(
                 .product(name: "FiatServiceTestKit", package: "FeatureServices"),
                 .product(name: "EventPresenterServiceTestKit", package: "EventPresenterService"),
             ],
-            path: "Tests"
+            path: "Tests",
         ),
-    ]
+    ],
 )

@@ -5,13 +5,12 @@ import GRDB
 import Primitives
 
 public struct WalletsRequest: DatabaseQueryable {
-    
     private let isPinned: Bool
-    
+
     public init(isPinned: Bool) {
         self.isPinned = isPinned
     }
-    
+
     public func fetch(_ db: Database) throws -> [Wallet] {
         try WalletRecord
             .including(all: WalletRecord.accounts)

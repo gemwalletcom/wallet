@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Store
 import Primitives
 import PrimitivesTestKit
+import Store
 
 public extension AddressStore {
     static func mock(db: DB = .mock()) -> Self {

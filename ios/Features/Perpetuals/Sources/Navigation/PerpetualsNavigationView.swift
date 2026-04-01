@@ -1,10 +1,10 @@
-import SwiftUI
-import Primitives
-import Components
-import Style
-import Store
-import PerpetualService
 import ActivityService
+import Components
+import PerpetualService
+import Primitives
+import Store
+import Style
+import SwiftUI
 
 public struct PerpetualsNavigationView: View {
     @State private var model: PerpetualsSceneViewModel
@@ -15,7 +15,7 @@ public struct PerpetualsNavigationView: View {
         observerService: any PerpetualObservable<HyperliquidSubscription>,
         activityService: ActivityService,
         onSelectAssetType: @escaping (SelectAssetType) -> Void,
-        onSelectAsset: @escaping (Asset) -> Void
+        onSelectAsset: @escaping (Asset) -> Void,
     ) {
         _model = State(
             initialValue: PerpetualsSceneViewModel(
@@ -24,8 +24,8 @@ public struct PerpetualsNavigationView: View {
                 observerService: observerService,
                 activityService: activityService,
                 onSelectAssetType: onSelectAssetType,
-                onSelectAsset: onSelectAsset
-            )
+                onSelectAsset: onSelectAsset,
+            ),
         )
     }
 

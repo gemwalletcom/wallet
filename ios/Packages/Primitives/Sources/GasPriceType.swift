@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public enum GasPriceType: Equatable, Sendable {
     case regular(gasPrice: BigInt)
@@ -10,17 +10,17 @@ public enum GasPriceType: Equatable, Sendable {
 
     public var gasPrice: BigInt {
         switch self {
-        case .regular(let gasPrice): gasPrice
-        case .eip1559(let gasPrice, _): gasPrice
-        case .solana(let gasPrice, _, _): gasPrice
+        case let .regular(gasPrice): gasPrice
+        case let .eip1559(gasPrice, _): gasPrice
+        case let .solana(gasPrice, _, _): gasPrice
         }
     }
 
     public var priorityFee: BigInt {
         switch self {
         case .regular: .zero
-        case .eip1559(_, let priorityFee): priorityFee
-        case .solana(_, let priorityFee, _): priorityFee
+        case let .eip1559(_, priorityFee): priorityFee
+        case let .solana(_, priorityFee, _): priorityFee
         }
     }
 
@@ -28,7 +28,7 @@ public enum GasPriceType: Equatable, Sendable {
         switch self {
         case .regular: .zero
         case .eip1559: .zero
-        case .solana(_, _, let unitPrice): unitPrice
+        case let .solana(_, _, unitPrice): unitPrice
         }
     }
 

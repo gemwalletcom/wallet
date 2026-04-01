@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-import PrimitivesComponents
 import Components
 import Localization
+import Primitives
+import PrimitivesComponents
 
 struct ConfirmNetworkViewModel: ItemModelProvidable {
     private let type: TransferDataType
@@ -21,7 +21,8 @@ extension ConfirmNetworkViewModel {
             ListItemModel(
                 title: Localized.Transfer.network,
                 subtitle: networkText,
-                imageStyle: .list(assetImage: AssetIdViewModel(assetId: type.chain.asset.id).networkAssetImage))
+                imageStyle: .list(assetImage: AssetIdViewModel(assetId: type.chain.asset.id).networkAssetImage),
+            ),
         )
     }
 }
@@ -38,5 +39,4 @@ extension ConfirmNetworkViewModel {
             return model.networkName
         }
     }
-
 }

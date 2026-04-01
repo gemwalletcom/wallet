@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Charts
-import Style
+import Components
+import Formatters
 import Primitives
 import PrimitivesComponents
-import Formatters
-import Components
+import Style
+import SwiftUI
 
-private struct ChartKey {
+private enum ChartKey {
     static let date = "Date"
     static let low = "Low"
     static let high = "High"
@@ -37,7 +37,7 @@ struct CandlestickChartView: View {
         period: ChartPeriod = .day,
         basePrice: Double? = nil,
         lineModels: [ChartLineViewModel] = [],
-        formatter: CurrencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
+        formatter: CurrencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
     ) {
         self.data = data
         self.period = period
@@ -66,7 +66,7 @@ struct CandlestickChartView: View {
     }
 
     private func chartView(bounds: ChartBounds) -> some View {
-        let dateRange = (data.first?.date ?? Date())...(data.last?.date ?? Date())
+        let dateRange = (data.first?.date ?? Date()) ... (data.last?.date ?? Date())
 
         return Chart {
             candlestickMarks
@@ -87,7 +87,7 @@ struct CandlestickChartView: View {
                             }
                             .onEnded { _ in
                                 selectedCandle = nil
-                            }
+                            },
                     )
 
                 if let selectedCandle {
@@ -133,7 +133,7 @@ struct CandlestickChartView: View {
             }
         }
         .chartXScale(domain: dateRange)
-        .chartYScale(domain: bounds.minPrice...bounds.maxPrice)
+        .chartYScale(domain: bounds.minPrice ... bounds.maxPrice)
     }
 
     private var currentPriceColor: Color {
@@ -147,7 +147,7 @@ struct CandlestickChartView: View {
             RuleMark(
                 x: .value(ChartKey.date, candle.date),
                 yStart: .value(ChartKey.low, candle.low),
-                yEnd: .value(ChartKey.high, candle.high)
+                yEnd: .value(ChartKey.high, candle.high),
             )
             .lineStyle(StrokeStyle(lineWidth: .space1))
             .foregroundStyle(PriceChangeColor.color(for: candle.close - candle.open))
@@ -156,7 +156,7 @@ struct CandlestickChartView: View {
                 x: .value(ChartKey.date, candle.date),
                 yStart: .value(ChartKey.open, candle.open),
                 yEnd: .value(ChartKey.close, candle.close),
-                width: .fixed(.space4)
+                width: .fixed(.space4),
             )
             .foregroundStyle(PriceChangeColor.color(for: candle.close - candle.open))
         }
@@ -190,7 +190,7 @@ struct CandlestickChartView: View {
         let threshold = (bounds.maxPrice - bounds.minPrice) * 0.06
         let lines = bounds.visibleLines
         let space = 115.0
-        return (1...index).reduce(0.0) { offset, idx in
+        return (1 ... index).reduce(0.0) { offset, idx in
             abs(lines[idx].price - lines[idx - 1].price) < threshold ? offset + space : offset
         }
     }
@@ -200,7 +200,7 @@ struct CandlestickChartView: View {
         if let selectedCandle {
             PointMark(
                 x: .value(ChartKey.date, selectedCandle.date),
-                y: .value(ChartKey.price, selectedCandle.close)
+                y: .value(ChartKey.price, selectedCandle.close),
             )
             .symbol {
                 Circle()
@@ -232,7 +232,7 @@ struct CandlestickChartView: View {
             date: date,
             price: candle.close,
             priceChangePercentage: PriceChangeCalculator.calculate(.percentage(from: base, to: candle.close)),
-            formatter: formatter
+            formatter: formatter,
         )
     }
 

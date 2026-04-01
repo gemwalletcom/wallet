@@ -1,38 +1,38 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import ActivityService
+import AddressNameService
+import AppService
+import AssetsService
+import AvatarService
+import BalanceService
 import BannerService
 import ChainService
-import DeviceService
-import PriceAlertService
-import StakeService
-import NodeService
-import PriceService
-import StreamService
-import WalletConnector
 import ConnectionsService
+import ContactService
+import DeviceService
+import DiscoverAssetsService
+import EventPresenterService
 import ExplorerService
-import BalanceService
-import AssetsService
+import FiatService
+import Foundation
+import NameService
+import NFTService
+import NodeService
+import NotificationService
+import PerpetualService
+import PriceAlertService
+import PriceService
+import RewardsService
+import ScanService
+import StakeService
+import StreamService
+import SwapService
 import TransactionsService
 import TransactionStateService
-import DiscoverAssetsService
+import WalletConnector
 import WalletService
 import WalletSessionService
-import AppService
-import ScanService
-import NFTService
-import AvatarService
-import SwapService
-import NameService
-import PerpetualService
-import AddressNameService
-import ActivityService
-import RewardsService
-import EventPresenterService
-import NotificationService
-import ContactService
-import FiatService
 
 extension AppResolver {
     struct Services: Sendable {
@@ -138,7 +138,7 @@ extension AppResolver {
             inAppNotificationService: InAppNotificationService,
             portfolioService: PortfolioService,
             fiatService: FiatService,
-            contactService: ContactService
+            contactService: ContactService,
         ) {
             self.assetsService = assetsService
             self.balanceService = balanceService

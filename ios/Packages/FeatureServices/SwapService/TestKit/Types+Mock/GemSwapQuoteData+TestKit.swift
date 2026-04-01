@@ -11,7 +11,7 @@ public extension GemSwapQuoteData {
             data: "0x",
             memo: nil,
             approval: .mock(),
-            gasLimit: "210000"
+            gasLimit: "210000",
         )
     }
 }

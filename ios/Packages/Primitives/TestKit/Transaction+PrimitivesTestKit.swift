@@ -13,7 +13,7 @@ public extension Transaction {
         to: String = "",
         value: String = "",
         memo: String? = nil,
-        metadata: AnyCodableValue? = nil
+        metadata: AnyCodableValue? = nil,
     ) -> Transaction {
         Transaction(
             id: TransactionId(chain: .ethereum, hash: "1"),
@@ -33,7 +33,7 @@ public extension Transaction {
             utxoInputs: [],
             utxoOutputs: [],
             metadata: metadata,
-            createdAt: .now
+            createdAt: .now,
         )
     }
 }

@@ -18,7 +18,8 @@ public enum PushNotification: Equatable, Sendable {
         guard
             let typeString = userInfo["type"] as? String,
             let type = PushNotificationTypes(rawValue: typeString),
-            let dataDict = userInfo["data"] as? [AnyHashable: Any] else {
+            let dataDict = userInfo["data"] as? [AnyHashable: Any]
+        else {
             self = .unknown
             return
         }
@@ -33,14 +34,14 @@ public enum PushNotification: Equatable, Sendable {
             self = .transaction(walletId: walletId, assetId, transaction: transaction.transaction)
         case .asset:
             let asset = try decoder.decode(PushNotificationAsset.self, from: data)
-            self = .asset(try AssetId(id: asset.assetId))
+            self = try .asset(AssetId(id: asset.assetId))
         case .priceAlert:
             let asset = try decoder.decode(PushNotificationAsset.self, from: data)
-            self = .priceAlert(try AssetId(id: asset.assetId))
+            self = try .priceAlert(AssetId(id: asset.assetId))
         case .buyAsset:
             // TODO: parse amount from push notification data
             let asset = try decoder.decode(PushNotificationAsset.self, from: data)
-            self = .buyAsset(try AssetId(id: asset.assetId), amount: nil)
+            self = try .buyAsset(AssetId(id: asset.assetId), amount: nil)
         case .swapAsset:
             let swapAsset = try decoder.decode(PushNotificationSwapAsset.self, from: data)
             let fromAssetId = try AssetId(id: swapAsset.fromAssetId)

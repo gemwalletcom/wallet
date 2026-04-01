@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 @testable import WalletTab
 
 struct WalletSearchModelTests {
-
     @Test
     func searchMode() {
         var model = WalletSearchModel(selectType: .manage)

@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import InfoSheet
 import Primitives
+import Stake
 import SwiftUI
 import Transfer
-import Stake
-import InfoSheet
 
 struct StakeNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -13,9 +13,9 @@ struct StakeNavigationView: View {
     @State private var model: StakeSceneViewModel
     @Binding private var navigationPath: NavigationPath
 
-    public init(
+    init(
         model: StakeSceneViewModel,
-        navigationPath: Binding<NavigationPath>
+        navigationPath: Binding<NavigationPath>,
     ) {
         _model = State(initialValue: model)
         _navigationPath = navigationPath
@@ -23,7 +23,7 @@ struct StakeNavigationView: View {
 
     var body: some View {
         StakeScene(
-            model: model
+            model: model,
         )
         .bindQuery(model.delegationsQuery, model.assetQuery, model.validatorsQuery)
         .ifLet(model.stakeInfoUrl, content: { view, url in
@@ -39,8 +39,8 @@ struct StakeNavigationView: View {
                     wallet: model.wallet,
                     onTransferAction: {
                         navigationPath.append($0)
-                    }
-                )
+                    },
+                ),
             )
         }
         .navigationDestination(for: Delegation.self) { delegation in
@@ -55,8 +55,8 @@ struct StakeNavigationView: View {
                     },
                     onTransferAction: {
                         navigationPath.append($0)
-                    }
-                )
+                    },
+                ),
             )
         }
     }

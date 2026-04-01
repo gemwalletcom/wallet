@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct AssetValuePrice: Sendable {
     public let asset: Asset

@@ -1,5 +1,5 @@
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListAssetItemView: View {
     let model: ListAssetItemViewable
@@ -14,7 +14,7 @@ public struct ListAssetItemView: View {
         ListItemFlexibleView(
             left: { AssetImageView(assetImage: model.assetImage) },
             primary: { primaryContent },
-            secondary: { secondaryContent }
+            secondary: { secondaryContent },
         )
         .onChange(of: toggleValue) { _, newValue in
             model.action?(.switcher(enabled: newValue))
@@ -37,7 +37,7 @@ extension ListAssetItemView {
         HStack(spacing: .tiny) {
             Text(model.name)
                 .textStyle(
-                    TextStyle(font: .body, color: .primary, fontWeight: .semibold)
+                    TextStyle(font: .body, color: .primary, fontWeight: .semibold),
                 )
                 .lineLimit(1)
             if let symbol = model.symbol {
@@ -50,7 +50,7 @@ extension ListAssetItemView {
     @ViewBuilder
     private var subtitleView: some View {
         switch model.subtitleView {
-        case .price(let price, let priceChangePercentage24h):
+        case let .price(price, priceChangePercentage24h):
             if !price.text.isEmpty {
                 HStack(spacing: .extraSmall) {
                     Text(price.text)
@@ -60,7 +60,7 @@ extension ListAssetItemView {
                 }
                 .numericTransition(for: [price.text, priceChangePercentage24h.text])
             }
-        case .type(let textValue):
+        case let .type(textValue):
             Text(textValue.text)
                 .textStyle(textValue.style)
                 .numericTransition(for: textValue.text)
@@ -72,7 +72,7 @@ extension ListAssetItemView {
     @ViewBuilder
     private var secondaryContent: some View {
         switch model.rightView {
-        case .balance(let balance, let totalFiat):
+        case let .balance(balance, totalFiat):
             balanceView(balance: balance, totalFiat: totalFiat)
         case .toggle:
             Toggle("", isOn: $toggleValue)
@@ -84,7 +84,7 @@ extension ListAssetItemView {
                 padding: .small,
                 action: {
                     model.action?(.copy)
-                }
+                },
             )
             .background(Colors.grayVeryLight)
             .foregroundStyle(Colors.gray)
@@ -132,14 +132,14 @@ extension ListAssetItemView {
                     type: "ERC20",
                     imageURL: URL(string: "https://assets.gemwallet.com/blockchains/bitcoin/info/logo.png")!,
                     placeholder: .none,
-                    chainPlaceholder: .none
+                    chainPlaceholder: .none,
                 ),
                 subtitleView: .none,
                 rightView: .balance(
                     balance: TextValue(text: "test", style: TextStyle(font: .title, color: .accentColor)),
-                    totalFiat: TextValue(text: "test2", style: TextStyle(font: .title, color: .accentColor))
-                )
-            )
+                    totalFiat: TextValue(text: "test2", style: TextStyle(font: .title, color: .accentColor)),
+                ),
+            ),
         )
     }
 }

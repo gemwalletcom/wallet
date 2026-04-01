@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import BigInt
+import Foundation
 @testable import Primitives
+import Testing
 
 final class FeeTests {
     @Test
@@ -13,12 +13,12 @@ final class FeeTests {
     }
 
     @Test
-    func testTotalFeeWithTokenCreation() {
+    func totalFeeWithTokenCreation() {
         let fee = Fee(
             fee: BigInt(1),
             gasPriceType: .regular(gasPrice: BigInt(1)),
             gasLimit: .zero,
-            options: [.tokenAccountCreation: BigInt(10)]
+            options: [.tokenAccountCreation: BigInt(10)],
         )
         #expect(fee.totalFee == BigInt(11))
     }

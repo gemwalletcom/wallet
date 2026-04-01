@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemImageView: View {
     public let title: String?
@@ -20,7 +20,7 @@ public struct ListItemImageView: View {
         assetImage: AssetImage? = nil,
         assetImageStyle: AssetImageView.Style? = nil,
         imageSize: CGFloat = .list.image,
-        infoAction: (() -> Void)? = nil
+        infoAction: (() -> Void)? = nil,
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -30,7 +30,7 @@ public struct ListItemImageView: View {
         self.imageSize = imageSize
         self.infoAction = infoAction
     }
-    
+
     public init(model: ListItemModel) {
         self.init(
             title: model.title,
@@ -38,7 +38,7 @@ public struct ListItemImageView: View {
             subtitleStyle: model.subtitleStyle,
             assetImage: model.imageStyle?.assetImage,
             imageSize: model.imageStyle?.imageSize ?? .list.image,
-            infoAction: model.infoAction
+            infoAction: model.infoAction,
         )
     }
 
@@ -48,7 +48,7 @@ public struct ListItemImageView: View {
                 title: title,
                 subtitle: subtitle,
                 subtitleStyle: subtitleStyle,
-                infoAction: infoAction
+                infoAction: infoAction,
             )
             if let assetImage {
                 AssetImageView(assetImage: assetImage, size: imageSize, style: assetImageStyle)

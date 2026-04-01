@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import WalletConnector
-import Transfer
-import TransactionStateService
 import ExplorerService
+import Primitives
 import Signer
 import Style
+import SwiftUI
+import TransactionStateService
+import Transfer
+import WalletConnector
 
 struct WalletConnectorNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -17,7 +17,7 @@ struct WalletConnectorNavigationStack: View {
 
     init(
         type: WalletConnectorSheetType,
-        presenter: WalletConnectorPresenter
+        presenter: WalletConnectorPresenter,
     ) {
         self.type = type
         self.presenter = presenter
@@ -27,31 +27,31 @@ struct WalletConnectorNavigationStack: View {
         NavigationStack {
             Group {
                 switch type {
-                case .transferData(let data):
+                case let .transferData(data):
                     ConfirmTransferNavigationView(
                         model: viewModelFactory.confirmTransferScene(
                             wallet: data.payload.wallet,
                             data: data.payload.tranferData,
                             confirmTransferDelegate: data.delegate,
                             simulation: data.payload.simulation,
-                            onComplete: { presenter.complete(type: type) }
-                        )
+                            onComplete: { presenter.complete(type: type) },
+                        ),
                     )
-                case .signMessage(let data):
+                case let .signMessage(data):
                     SignMessageScene(
                         model: viewModelFactory.signMessageScene(
                             payload: data.payload,
-                            confirmTransferDelegate: data.delegate
+                            confirmTransferDelegate: data.delegate,
                         ),
-                        onComplete: { presenter.complete(type: type) }
+                        onComplete: { presenter.complete(type: type) },
                     )
-                case .connectionProposal(let data):
+                case let .connectionProposal(data):
                     ConnectionProposalScene(
                         model: ConnectionProposalViewModel(
                             confirmTransferDelegate: data.delegate,
-                            pairingProposal: data.payload
+                            pairingProposal: data.payload,
                         ),
-                        onComplete: { presenter.complete(type: type) }
+                        onComplete: { presenter.complete(type: type) },
                     )
                 }
             }

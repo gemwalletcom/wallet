@@ -4,15 +4,13 @@ import Foundation
 
 extension PriceAlert: Identifiable {
     public var id: String {
-        if price == nil && pricePercentChange == nil && priceDirection == nil {
+        if price == nil, pricePercentChange == nil, priceDirection == nil {
             return assetId.identifier
         }
         let price = price.map { String(format: "%g", $0) } ?? .none
         let pricePercentChange = pricePercentChange.map { String(format: "%g", $0) } ?? .none
-        return [assetId.identifier, currency, price, pricePercentChange, priceDirection?.rawValue].compactMap {
-            $0
-        }
-        .joined(separator: "_")
+        return [assetId.identifier, currency, price, pricePercentChange, priceDirection?.rawValue].compactMap(\.self)
+            .joined(separator: "_")
     }
 }
 
@@ -24,10 +22,10 @@ public extension PriceAlert {
             price: .none,
             pricePercentChange: .none,
             priceDirection: .none,
-            lastNotifiedAt: .none
+            lastNotifiedAt: .none,
         )
     }
-    
+
     var type: PriceAlertNotificationType {
         switch (priceDirection, price, pricePercentChange) {
         case (nil, nil, nil): .auto
@@ -36,7 +34,7 @@ public extension PriceAlert {
         default: .auto
         }
     }
-    
+
     var shouldDisplay: Bool {
         switch type {
         case .auto: true

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 
 public extension SignerInput {
     static func mock(
@@ -14,7 +14,7 @@ public extension SignerInput {
         memo: String? = nil,
         senderAddress: String = "0x1234567890123456789012345678901234567890",
         destinationAddress: String = "0x1234567890123456789012345678901234567890",
-        metadata: TransactionLoadMetadata = .none
+        metadata: TransactionLoadMetadata = .none,
     ) -> SignerInput {
         SignerInput(
             type: type,
@@ -25,7 +25,7 @@ public extension SignerInput {
             memo: memo,
             senderAddress: senderAddress,
             destinationAddress: destinationAddress,
-            metadata: metadata
+            metadata: metadata,
         )
     }
 }

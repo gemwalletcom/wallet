@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -20,7 +21,7 @@ public struct TransactionViewModel: Sendable {
     public init(
         explorerService: any ExplorerLinkFetchable,
         transaction: TransactionExtended,
-        currency: String
+        currency: String,
     ) {
         self.transaction = transaction
         self.explorerService = explorerService
@@ -34,14 +35,14 @@ public struct TransactionViewModel: Sendable {
                 type: "",
                 imageURL: assetImageFormatter.getNFTUrl(for: nftMetadata.assetId),
                 placeholder: asset.placeholder,
-                chainPlaceholder: overlayImage
+                chainPlaceholder: overlayImage,
             )
         }
         return AssetImage(
             type: asset.type,
             imageURL: asset.imageURL,
             placeholder: asset.placeholder,
-            chainPlaceholder: overlayImage
+            chainPlaceholder: overlayImage,
         )
     }
 
@@ -53,20 +54,20 @@ public struct TransactionViewModel: Sendable {
             case .outgoing, .selfTransfer: Images.Transaction.outgoing
             }
         case .swap,
-                .tokenApproval,
-                .stakeDelegate,
-                .stakeUndelegate,
-                .stakeRewards,
-                .stakeRedelegate,
-                .stakeWithdraw,
-                .assetActivation,
-                .perpetualOpenPosition,
-                .perpetualClosePosition,
-                .stakeFreeze,
-                .stakeUnfreeze,
-                .perpetualModifyPosition,
-                .earnDeposit,
-                .earnWithdraw: .none
+             .tokenApproval,
+             .stakeDelegate,
+             .stakeUndelegate,
+             .stakeRewards,
+             .stakeRedelegate,
+             .stakeWithdraw,
+             .assetActivation,
+             .perpetualOpenPosition,
+             .perpetualClosePosition,
+             .stakeFreeze,
+             .stakeUnfreeze,
+             .perpetualModifyPosition,
+             .earnDeposit,
+             .earnWithdraw: .none
         }
     }
 
@@ -85,7 +86,7 @@ public struct TransactionViewModel: Sendable {
             feeAssetPrice: transaction.feePrice,
             value: transaction.transaction.valueBigInt,
             feeValue: transaction.transaction.feeBigInt,
-            direction: direction
+            direction: direction,
         )
     }
 
@@ -144,7 +145,7 @@ public struct TransactionViewModel: Sendable {
         }()
         return TextValue(
             text: title,
-            style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary)
+            style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
 
@@ -168,8 +169,8 @@ public struct TransactionViewModel: Sendable {
                 style: TextStyle(
                     font: Font.system(.footnote, weight: .medium),
                     color: model.color,
-                    background: model.background
-                )
+                    background: model.background,
+                ),
             )
         }
     }
@@ -186,7 +187,7 @@ public struct TransactionViewModel: Sendable {
                     return participantTitle(prefix: Localized.Transfer.to, address: transaction.transaction.to, chain: chain)
                 }
             case .stakeDelegate,
-                    .stakeRedelegate:
+                 .stakeRedelegate:
                 return participantTitle(prefix: Localized.Transfer.to, address: transaction.transaction.to, chain: chain)
             case .stakeUndelegate:
                 return participantTitle(prefix: Localized.Transfer.from, address: transaction.transaction.to, chain: chain)
@@ -201,12 +202,12 @@ public struct TransactionViewModel: Sendable {
             case .earnWithdraw:
                 return participantTitle(prefix: Localized.Transfer.from, address: transaction.transaction.to, chain: chain)
             case .swap,
-                    .stakeRewards,
-                    .stakeWithdraw,
-                    .assetActivation,
-                    .perpetualModifyPosition,
-                    .perpetualOpenPosition,
-                    .perpetualClosePosition:
+                 .stakeRewards,
+                 .stakeWithdraw,
+                 .assetActivation,
+                 .perpetualModifyPosition,
+                 .perpetualOpenPosition,
+                 .perpetualClosePosition:
                 guard let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self) else {
                     return .none
                 }
@@ -218,7 +219,7 @@ public struct TransactionViewModel: Sendable {
         return title.map {
             TextValue(
                 text: $0,
-                style: .footnote
+                style: .footnote,
             )
         }
     }
@@ -226,17 +227,17 @@ public struct TransactionViewModel: Sendable {
     public var subtitleTextValue: TextValue? {
         switch transaction.transaction.type {
         case .transfer,
-            .smartContractCall,
-            .stakeRewards,
-            .stakeWithdraw,
-            .stakeDelegate,
-            .stakeUndelegate,
-            .stakeRedelegate,
-            .assetActivation,
-            .stakeFreeze,
-            .stakeUnfreeze,
-            .earnDeposit,
-            .earnWithdraw:
+             .smartContractCall,
+             .stakeRewards,
+             .stakeWithdraw,
+             .stakeDelegate,
+             .stakeUndelegate,
+             .stakeRedelegate,
+             .assetActivation,
+             .stakeFreeze,
+             .stakeUnfreeze,
+             .earnDeposit,
+             .earnWithdraw:
             return infoModel.amountDisplay(formatter: formatter).amount
         case .perpetualClosePosition:
             guard let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self), metadata.pnl != 0 else {
@@ -250,7 +251,7 @@ public struct TransactionViewModel: Sendable {
                 value: transaction.transaction.valueBigInt,
                 currency: Currency.usd.rawValue,
                 formatter: formatter,
-                textStyle: TextStyle(font: .body, color: Colors.black, fontWeight: .medium)
+                textStyle: TextStyle(font: .body, color: Colors.black, fontWeight: .medium),
             ).fiat
         case .tokenApproval:
             return AmountDisplay.symbol(asset: transaction.asset).amount
@@ -260,7 +261,7 @@ public struct TransactionViewModel: Sendable {
             }
             return AmountDisplay.numeric(
                 data: AssetValuePrice(asset: asset, value: BigInt.fromString(metadata.toValue), price: nil),
-                style: AmountDisplayStyle(sign: .incoming, formatter: formatter, currencyCode: currency)
+                style: AmountDisplayStyle(sign: .incoming, formatter: formatter, currencyCode: currency),
             ).amount
         case .transferNFT:
             return nil
@@ -272,22 +273,22 @@ public struct TransactionViewModel: Sendable {
     public var subtitleExtraTextValue: TextValue? {
         switch transaction.transaction.type {
         case .transfer,
-                .transferNFT,
-                .tokenApproval,
-                .stakeDelegate,
-                .stakeUndelegate,
-                .stakeRedelegate,
-                .stakeRewards,
-                .stakeWithdraw,
-                .assetActivation,
-                .smartContractCall,
-                .perpetualOpenPosition,
-                .perpetualClosePosition,
-                .perpetualModifyPosition,
-                .stakeFreeze,
-                .stakeUnfreeze,
-                .earnDeposit,
-                .earnWithdraw:
+             .transferNFT,
+             .tokenApproval,
+             .stakeDelegate,
+             .stakeUndelegate,
+             .stakeRedelegate,
+             .stakeRewards,
+             .stakeWithdraw,
+             .assetActivation,
+             .smartContractCall,
+             .perpetualOpenPosition,
+             .perpetualClosePosition,
+             .perpetualModifyPosition,
+             .stakeFreeze,
+             .stakeUnfreeze,
+             .earnDeposit,
+             .earnWithdraw:
             return .none
         case .swap:
             guard let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), let asset = transaction.assets.first(where: { $0.id == metadata.fromAsset }) else {
@@ -299,8 +300,8 @@ public struct TransactionViewModel: Sendable {
                     sign: .outgoing,
                     formatter: formatter,
                     currencyCode: currency,
-                    textStyle: .footnote
-                )
+                    textStyle: .footnote,
+                ),
             ).amount
         }
     }
@@ -317,7 +318,7 @@ public struct TransactionViewModel: Sendable {
             chain: assetId.chain,
             provider: transaction.transaction.swapProvider,
             hash: transaction.transaction.id.hash,
-            recipient: transaction.transaction.to
+            recipient: transaction.transaction.to,
         )
     }
 
@@ -326,7 +327,7 @@ public struct TransactionViewModel: Sendable {
 
     private var addressLink: BlockExplorerLink { explorerService.addressUrl(chain: assetId.chain, address: participant) }
     private var assetId: AssetId { transaction.transaction.assetId }
-    
+
     public func getAddressName(address: String) -> AddressName? {
         if address == transaction.transaction.from {
             return transaction.fromAddress
@@ -338,13 +339,13 @@ public struct TransactionViewModel: Sendable {
 
         return .none
     }
-    
+
     public func addressLink(account: SimpleAccount) -> BlockExplorerLink {
         explorerService.addressUrl(chain: account.chain, address: account.address)
     }
-    
+
     // MARK: - Private methods
-    
+
     private func getDisplayName(address: String, chain: Chain) -> String {
         guard address.isNotEmpty else { return "" }
         if let name = getAddressName(address: address)?.name {

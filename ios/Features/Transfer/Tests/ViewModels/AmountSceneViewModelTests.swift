@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import PrimitivesTestKit
-import Primitives
 import EarnServiceTestKit
 import FiatServiceTestKit
+import Primitives
+import PrimitivesTestKit
+import Testing
 
-@testable import Transfer
 @testable import Store
+@testable import Transfer
 
 @MainActor
 struct AmountSceneViewModelTests {
-
     @Test
     func maxButton() {
         let model = AmountSceneViewModel.mock()
@@ -29,11 +28,11 @@ struct AmountSceneViewModelTests {
     func stakingReservedFeesText() {
         let assetData = AssetData.mock(
             asset: .mockBNB(),
-            balance: .mock(available: 2_000_000_000_000_000_000)
+            balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
             type: .stake(.stake(validators: [.mock()], recommended: nil)),
-            assetData: assetData
+            assetData: assetData,
         )
 
         model.onSelectMaxButton()
@@ -48,11 +47,11 @@ struct AmountSceneViewModelTests {
     func stakeValidation() {
         let assetData = AssetData.mock(
             asset: .mockBNB(),
-            balance: .mock(available: 5_000_000_000_000_000_000)
+            balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
             type: .stake(.stake(validators: [.mock()], recommended: nil)),
-            assetData: assetData
+            assetData: assetData,
         )
 
         model.amountInputModel.update(text: "0.099")
@@ -66,11 +65,11 @@ struct AmountSceneViewModelTests {
     func transferValidation() {
         let assetData = AssetData.mock(
             asset: .mockBNB(),
-            balance: .mock(available: 10_000_000_000_000_000)
+            balance: .mock(available: 10_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
             type: .transfer(recipient: .mock()),
-            assetData: assetData
+            assetData: assetData,
         )
 
         model.amountInputModel.update(text: "0.001")
@@ -84,11 +83,11 @@ struct AmountSceneViewModelTests {
     func unfreezeResourceSwitch() {
         let assetData = AssetData.mock(
             asset: .mockTron(),
-            balance: .mock(frozen: 0, locked: 5_000_000)
+            balance: .mock(frozen: 0, locked: 5_000_000),
         )
         let model = AmountSceneViewModel.mock(
             type: .unfreeze(resource: .bandwidth),
-            assetData: assetData
+            assetData: assetData,
         )
 
         guard case let .freeze(freeze) = model.provider else { return }
@@ -110,11 +109,11 @@ struct AmountSceneViewModelTests {
         let validator2 = DelegationValidator.mock(id: "2")
         let assetData = AssetData.mock(
             asset: .mockBNB(),
-            balance: .mock(available: 5_000_000_000_000_000_000)
+            balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
             type: .stake(.stake(validators: [validator1, validator2], recommended: validator1)),
-            assetData: assetData
+            assetData: assetData,
         )
 
         model.amountInputModel.update(text: "1.5")
@@ -142,7 +141,7 @@ struct AmountSceneViewModelTests {
         let assetData = AssetData.mock(asset: .mockBNB())
         let model = AmountSceneViewModel.mock(
             type: .stake(.withdraw(delegation)),
-            assetData: assetData
+            assetData: assetData,
         )
 
         #expect(model.isInputDisabled == true)
@@ -155,14 +154,14 @@ struct AmountSceneViewModelTests {
 extension AmountSceneViewModel {
     static func mock(
         type: AmountType = .transfer(recipient: .mock()),
-        assetData: AssetData = .mock(balance: .mock())
+        assetData: AssetData = .mock(balance: .mock()),
     ) -> AmountSceneViewModel {
         let model = AmountSceneViewModel(
             input: AmountInput(type: type, asset: assetData.asset),
             wallet: .mock(),
             service: AmountService(earnDataProvider: MockEarnService()),
             fiatService: .mock(),
-            onTransferAction: { _ in }
+            onTransferAction: { _ in },
         )
         model.assetQuery.value = assetData
         model.onChangeAssetBalance(assetData, assetData)

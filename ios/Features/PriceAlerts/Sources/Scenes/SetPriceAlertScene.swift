@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Store
-import Primitives
 import Components
-import Style
+import Foundation
 import Localization
+import Primitives
 import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 struct SetPriceAlertScene: View {
     @State private var model: SetPriceAlertViewModel
@@ -27,7 +27,7 @@ struct SetPriceAlertScene: View {
 
                     CurrencyInputView(
                         text: $model.state.amount,
-                        config: model.currencyInputConfig(for: model.assetData)
+                        config: model.currencyInputConfig(for: model.assetData),
                     )
                     .focused($focusedField)
                 }
@@ -57,6 +57,7 @@ struct SetPriceAlertScene: View {
 }
 
 // MARK: - UI
+
 extension SetPriceAlertScene {
     var alertTypePickerView: some View {
         Picker("", selection: $model.state.type) {
@@ -73,7 +74,7 @@ extension SetPriceAlertScene {
         StateButton(
             text: Localized.Transfer.confirm,
             type: .primary(model.confirmButtonState),
-            action: confirm
+            action: confirm,
         )
     }
 
@@ -93,7 +94,7 @@ extension SetPriceAlertScene {
             suggestions: suggestions,
             onSelect: onSelectSuggestion,
             onDone: { focusedField = false },
-            button: confirmButton
+            button: confirmButton,
         )
     }
 }

@@ -10,7 +10,7 @@ public extension ChartCandleStick {
         high: Double = 110,
         low: Double = 90,
         close: Double = 105,
-        volume: Double = 1000
+        volume: Double = 1000,
     ) -> ChartCandleStick {
         ChartCandleStick(
             date: date,
@@ -18,7 +18,7 @@ public extension ChartCandleStick {
             high: high,
             low: low,
             close: close,
-            volume: volume
+            volume: volume,
         )
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct SecretDataTypeView: View {
     private let type: SecretPhraseDataType
@@ -12,9 +12,9 @@ public struct SecretDataTypeView: View {
 
     public var body: some View {
         switch type {
-        case .words(let rows):
+        case let .words(rows):
             SecretPhraseGridView(rows: rows)
-        case .privateKey(let key):
+        case let .privateKey(key):
             Text(key)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, .medium)

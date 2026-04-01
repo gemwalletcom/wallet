@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Style
+import SwiftUI
 
 public struct ChartListView<Model: ChartListViewable, Content: View>: View {
     @Bindable var model: Model
@@ -15,11 +15,11 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
 
     public var body: some View {
         List {
-            Section { } header: {
+            Section {} header: {
                 ChartStateView(
                     state: model.chartState,
                     selectedPeriod: $model.selectedPeriod,
-                    periods: model.periods
+                    periods: model.periods,
                 )
             }
             .cleanListRow()

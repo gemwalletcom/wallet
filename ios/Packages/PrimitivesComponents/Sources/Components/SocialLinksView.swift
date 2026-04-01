@@ -1,7 +1,8 @@
+import Components
+
 // Copyright (c). Gem Wallet. All rights reserved.
 import Foundation
 import SwiftUI
-import Components
 
 public struct SocialLinksView: View {
     public let model: SocialLinksViewModel
@@ -15,7 +16,7 @@ public struct SocialLinksView: View {
             let view = ListItemView(
                 title: link.title,
                 subtitle: link.subtitle,
-                imageStyle: .settings(assetImage: link.image)
+                imageStyle: .settings(assetImage: link.image),
             )
             if let deepLink = link.deepLink, UIApplication.shared.canOpenURL(deepLink) {
                 NavigationCustomLink(with: view) {

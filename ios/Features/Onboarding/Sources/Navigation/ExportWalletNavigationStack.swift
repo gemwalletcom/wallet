@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Localization
+import Primitives
+import SwiftUI
 
 enum ExportWalletDestination: Hashable {
     case words([String])
@@ -10,10 +10,9 @@ enum ExportWalletDestination: Hashable {
 }
 
 public struct ExportWalletNavigationStack: View {
-    
     private let flow: ExportWalletType
-    @State private var navigationPath: NavigationPath = NavigationPath()
-    
+    @State private var navigationPath: NavigationPath = .init()
+
     public init(flow: ExportWalletType) {
         self.flow = flow
     }
@@ -26,10 +25,10 @@ public struct ExportWalletNavigationStack: View {
                     SecurityReminderScene(
                         model: SecurityReminderViewModelDefault(
                             title: Localized.Common.secretPhrase,
-                            onNext: onNext
-                        )
+                            onNext: onNext,
+                        ),
                     )
-                case .privateKey(let key):
+                case let .privateKey(key):
                     ShowSecretDataScene(model: ShowPrivateKeyViewModel(text: key))
                 }
             }
@@ -37,9 +36,9 @@ public struct ExportWalletNavigationStack: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: ExportWalletDestination.self) {
                 switch $0 {
-                case .words(let words):
+                case let .words(words):
                     ShowSecretDataScene(model: ShowSecretPhraseViewModel(words: words))
-                case .privateKey(let key):
+                case let .privateKey(key):
                     ShowSecretDataScene(model: ShowPrivateKeyViewModel(text: key))
                 }
             }
@@ -50,9 +49,9 @@ public struct ExportWalletNavigationStack: View {
 extension ExportWalletNavigationStack {
     private func onNext() {
         switch flow {
-        case .words(let words):
+        case let .words(words):
             navigationPath.append(ExportWalletDestination.words(words))
-        case .privateKey(let key):
+        case let .privateKey(key):
             navigationPath.append(ExportWalletDestination.privateKey(key))
         }
     }

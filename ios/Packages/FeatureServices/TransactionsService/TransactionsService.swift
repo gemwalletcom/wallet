@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AssetsService
 import Foundation
 import GemAPI
+import Preferences
 import Primitives
 import Store
-import Preferences
-import AssetsService
 
 public final class TransactionsService: Sendable {
     let provider: any GemAPITransactionService
@@ -13,13 +13,13 @@ public final class TransactionsService: Sendable {
     let assetsService: AssetsService
     let walletStore: WalletStore
     private let addressStore: AddressStore
-    
+
     public init(
         provider: any GemAPITransactionService,
         transactionStore: TransactionStore,
         assetsService: AssetsService,
         walletStore: WalletStore,
-        addressStore: AddressStore
+        addressStore: AddressStore,
     ) {
         self.provider = provider
         self.transactionStore = transactionStore
@@ -37,7 +37,7 @@ public final class TransactionsService: Sendable {
 
         let response = try await provider.getDeviceTransactions(
             walletId: wallet.id,
-            fromTimestamp: store.transactionsTimestamp
+            fromTimestamp: store.transactionsTimestamp,
         )
 
         try await prefetchAssets(walletId: walletId, transactions: response.transactions)
@@ -53,7 +53,7 @@ public final class TransactionsService: Sendable {
         let response = try await provider.getDeviceTransactionsForAsset(
             walletId: wallet.id,
             asset: assetId,
-            fromTimestamp: store.transactionsForAssetTimestamp(assetId: assetId.identifier)
+            fromTimestamp: store.transactionsForAssetTimestamp(assetId: assetId.identifier),
         )
         if response.transactions.isEmpty {
             return
@@ -75,7 +75,7 @@ public final class TransactionsService: Sendable {
     }
 
     private func prefetchAssets(walletId: WalletId, transactions: [Transaction]) async throws {
-        let assetIds = transactions.map { $0.assetIds }.flatMap { $0 }
+        let assetIds = transactions.map(\.assetIds).flatMap(\.self)
         if assetIds.isEmpty {
             return
         }

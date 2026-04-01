@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletConnectorService
 import Localization
+import WalletConnectorService
 
 extension WalletConnectorServiceError: @retroactive LocalizedError {
     public var errorDescription: String? {

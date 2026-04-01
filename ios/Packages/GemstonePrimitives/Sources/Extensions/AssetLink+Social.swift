@@ -3,8 +3,8 @@
 import Foundation
 import Primitives
 
-extension AssetLink {
-    public var linkType: LinkType? {
+public extension AssetLink {
+    var linkType: LinkType? {
         LinkType(rawValue: name)
     }
 }
@@ -12,7 +12,7 @@ extension AssetLink {
 extension AssetLink: @retroactive Comparable {
     // Conforming to Comparable for sorting
     public static func < (lhs: AssetLink, rhs: AssetLink) -> Bool {
-        if let lhsLink = lhs.linkType, let rhsLink = rhs.linkType  {
+        if let lhsLink = lhs.linkType, let rhsLink = rhs.linkType {
             return lhsLink.order > rhsLink.order
         }
         return false

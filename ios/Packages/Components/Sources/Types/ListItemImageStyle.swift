@@ -16,7 +16,7 @@ public struct ListItemImageStyle: Sendable {
         switch cornerRadiusType {
         case .none: .zero
         case .rounded: imageSize / 2
-        case .custom(let radius): radius
+        case let .custom(radius): radius
         }
     }
 
@@ -26,7 +26,7 @@ public struct ListItemImageStyle: Sendable {
         alignment: VerticalAlignment = .center,
         foregroundColor: Color? = nil,
         fontWeight: Font.Weight? = nil,
-        cornerRadiusType: CornerRadiusType
+        cornerRadiusType: CornerRadiusType,
     ) {
         guard let assetImage else { return nil }
         self.assetImage = assetImage
@@ -36,7 +36,7 @@ public struct ListItemImageStyle: Sendable {
         self.foregroundColor = foregroundColor
         self.fontWeight = fontWeight
     }
-    
+
     public enum CornerRadiusType: Sendable {
         case none
         case rounded
@@ -49,25 +49,25 @@ public extension ListItemImageStyle {
         ListItemImageStyle(
             assetImage: assetImage,
             imageSize: .image.asset,
-            cornerRadiusType: .rounded
+            cornerRadiusType: .rounded,
         )
     }
-    
+
     static func list(assetImage: AssetImage?, cornerRadiusType: CornerRadiusType = .none) -> Self? {
         ListItemImageStyle(
             assetImage: assetImage,
             imageSize: .list.image,
-            cornerRadiusType: cornerRadiusType
+            cornerRadiusType: cornerRadiusType,
         )
     }
-    
+
     static func accessory(assetImage: AssetImage?, foregroundColor: Color? = nil, fontWeight: Font.Weight? = nil) -> Self? {
         ListItemImageStyle(
             assetImage: assetImage,
             imageSize: .space12,
             foregroundColor: foregroundColor,
             fontWeight: fontWeight,
-            cornerRadiusType: .none
+            cornerRadiusType: .none,
         )
     }
 
@@ -75,7 +75,7 @@ public extension ListItemImageStyle {
         ListItemImageStyle(
             assetImage: assetImage,
             imageSize: .list.settings,
-            cornerRadiusType: .none
+            cornerRadiusType: .none,
         )
     }
 }

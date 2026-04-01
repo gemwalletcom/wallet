@@ -6,7 +6,7 @@ extension BannerState: Comparable {
     public static func < (lhs: BannerState, rhs: BannerState) -> Bool {
         lhs.sortPriority < rhs.sortPriority
     }
-    
+
     private var sortPriority: Int {
         switch self {
         case .alwaysActive: 0

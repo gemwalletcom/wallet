@@ -15,12 +15,12 @@ public protocol BiometryAuthenticatable: Sendable {
     func togglePrivacyLock(enbaled: Bool) throws
 }
 
-extension BiometryAuthenticatable {
-    public func authenticate(reason: String) async throws {
+public extension BiometryAuthenticatable {
+    func authenticate(reason: String) async throws {
         try await authenticate(context: LAContext(), reason: reason)
     }
 
-    public func enableAuthentication(_ enable: Bool, reason: String) async throws {
+    func enableAuthentication(_ enable: Bool, reason: String) async throws {
         try await enableAuthentication(enable, context: LAContext(), reason: reason)
     }
 }

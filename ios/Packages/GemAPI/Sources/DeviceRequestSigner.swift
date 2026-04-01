@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import CryptoKit
+import Foundation
 import Primitives
 
 public struct DeviceRequestSigner: Sendable {
@@ -17,7 +17,7 @@ public struct DeviceRequestSigner: Sendable {
 
     public init(privateKeyHex: String) throws {
         let bytes = try Data.from(hex: privateKeyHex)
-        self.privateKey = try Curve25519.Signing.PrivateKey(rawRepresentation: bytes)
+        privateKey = try Curve25519.Signing.PrivateKey(rawRepresentation: bytes)
     }
 
     public func sign(request: inout URLRequest, walletId: String = "") throws {

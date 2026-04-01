@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import StoreKit
 import Preferences
+import StoreKit
 
 public struct RateService: Sendable {
     private let preferences: Preferences
@@ -12,16 +12,16 @@ public struct RateService: Sendable {
     }
 
     public func perform() {
-#if targetEnvironment(simulator)
-#else
-        if preferences.launchesCount >= 5 && !preferences.rateApplicationShown {
-            Task { @MainActor in
-                if rate() {
-                    preferences.rateApplicationShown = true
+        #if targetEnvironment(simulator)
+        #else
+            if preferences.launchesCount >= 5, !preferences.rateApplicationShown {
+                Task { @MainActor in
+                    if rate() {
+                        preferences.rateApplicationShown = true
+                    }
                 }
             }
-        }
-#endif
+        #endif
     }
 
     @MainActor

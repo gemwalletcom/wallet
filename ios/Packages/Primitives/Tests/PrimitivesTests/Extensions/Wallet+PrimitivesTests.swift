@@ -16,7 +16,7 @@ struct Wallet_PrimitivesTests {
         let wallet = Wallet.mock(accounts: [
             .mock(chain: .ethereum, address: "0x1"),
             .mock(chain: .polygon, address: "0x1"),
-            .mock(chain: .bitcoin, address: "bc1")
+            .mock(chain: .bitcoin, address: "bc1"),
         ])
         let result = wallet.addressChains.sorted { $0.address < $1.address }
 

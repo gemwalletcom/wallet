@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 @testable import Primitives
+import Testing
 
 struct AnyCodableValueTests {
-
     @Test
     func decode() throws {
         #expect(try JSONDecoder().decode(AnyCodableValue.self, from: Data("null".utf8)) == .null)

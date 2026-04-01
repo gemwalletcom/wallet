@@ -4,11 +4,11 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.PerpetualReduceData {
-    public func map() throws -> Primitives.PerpetualReduceData {
-        Primitives.PerpetualReduceData(
-            data: try data.map(),
-            positionDirection: positionDirection.map()
+public extension Gemstone.PerpetualReduceData {
+    func map() throws -> Primitives.PerpetualReduceData {
+        try Primitives.PerpetualReduceData(
+            data: data.map(),
+            positionDirection: positionDirection.map(),
         )
     }
 }

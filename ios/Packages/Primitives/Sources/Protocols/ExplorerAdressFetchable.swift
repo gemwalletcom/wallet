@@ -13,7 +13,7 @@ public extension ExplorerLinkFetchable {
         chain: Chain,
         provider: String?,
         hash: String,
-        recipient: String
+        recipient: String,
     ) -> BlockExplorerLink {
         guard
             let provider,

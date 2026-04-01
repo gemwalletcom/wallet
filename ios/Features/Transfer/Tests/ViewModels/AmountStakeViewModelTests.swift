@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Transfer
 
 struct AmountStakeViewModelTests {
-
     @Test
     func title() {
         #expect(AmountStakeViewModel(asset: .mockBNB(), action: .stake(validators: [.mock()], recommended: nil)).title == "Stake")
@@ -29,9 +28,10 @@ struct AmountStakeViewModelTests {
     func validatorSelection() {
         let recommended = DelegationValidator.mock(id: "recommended")
         let first = DelegationValidator.mock(id: "first")
+        let second = DelegationValidator.mock(id: "second")
 
         let withRecommended = AmountStakeViewModel(asset: .mockBNB(), action: .stake(validators: [first, recommended], recommended: recommended))
-        let withoutRecommended = AmountStakeViewModel(asset: .mockBNB(), action: .stake(validators: [first, recommended], recommended: nil))
+        let withoutRecommended = AmountStakeViewModel(asset: .mockBNB(), action: .stake(validators: [first, second], recommended: nil))
 
         #expect(withRecommended.validatorSelection.selected.id == "recommended")
         #expect(withoutRecommended.validatorSelection.selected.id == "first")
@@ -74,7 +74,7 @@ struct AmountStakeViewModelTests {
         let unstake = AmountStakeViewModel(asset: .mockBNB(), action: .unstake(delegation))
 
         #expect(stake.availableValue(from: assetData) == 1000)
-        #expect(unstake.availableValue(from: assetData) == 5000000)
+        #expect(unstake.availableValue(from: assetData) == 5_000_000)
     }
 
     @Test

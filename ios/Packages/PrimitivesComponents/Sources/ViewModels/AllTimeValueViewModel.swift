@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
 import Formatters
+import Foundation
 import Localization
+import Primitives
 import Style
 
 public struct AllTimeValueViewModel: Sendable {
@@ -31,7 +31,7 @@ public struct AllTimeValueViewModel: Sendable {
             titleExtra: TransactionDateFormatter(date: chartValue.date).section,
             subtitle: priceFormatter.string(Double(chartValue.value)),
             subtitleExtra: percentFormatter.string(percentage),
-            subtitleStyleExtra: TextStyle(font: .callout, color: PriceViewModel.priceChangeTextColor(value: percentage))
+            subtitleStyleExtra: TextStyle(font: .callout, color: PriceViewModel.priceChangeTextColor(value: percentage)),
         )
     }
 }

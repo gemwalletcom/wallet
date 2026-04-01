@@ -210,7 +210,7 @@ fun DataBadgeChevron(isShowChevron: Boolean = true, content: (@Composable RowSco
             Icon(
                 modifier = Modifier.offset(8.dp).size(tinyIconSize),
                 painter = rememberVectorPainter(image = Icons.AutoMirrored.Default.ArrowForwardIos),
-                contentDescription = "",
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary
             )
         }

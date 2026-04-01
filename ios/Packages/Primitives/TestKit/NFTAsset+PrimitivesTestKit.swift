@@ -15,8 +15,8 @@ public extension NFTAsset {
         chain: Chain = .mock(),
         resource: NFTResource = .mock(),
         images: NFTImages = NFTImages(preview: .mock()),
-        attributes: [NFTAttribute] = []
-    )-> NFTAsset {
+        attributes: [NFTAttribute] = [],
+    ) -> NFTAsset {
         NFTAsset(
             id: id,
             collectionId: collectionId,
@@ -28,7 +28,7 @@ public extension NFTAsset {
             chain: chain,
             resource: resource,
             images: images,
-            attributes: attributes
+            attributes: attributes,
         )
     }
 }

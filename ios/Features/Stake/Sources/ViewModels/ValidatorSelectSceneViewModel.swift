@@ -1,30 +1,29 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
-import Localization
-import PrimitivesComponents
 import ExplorerService
+import Foundation
+import Localization
+import Primitives
+import PrimitivesComponents
 
 @Observable
 public final class ValidatorSelectSceneViewModel {
-    
     private let type: ValidatorSelectType
     private let chain: Chain
     public let currentValidator: DelegationValidator?
     private let validators: [DelegationValidator]
     public var selectValidator: ((DelegationValidator) -> Void)?
     private let exploreService: ExplorerService = .standard
-    
+
     private let recommendedValidators = StakeRecommendedValidators()
-    
+
     public init(
         type: ValidatorSelectType,
         chain: Chain,
         currentValidator: DelegationValidator?,
         validators: [DelegationValidator],
-        selectValidator: ((DelegationValidator) -> Void)? = nil
+        selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
         self.type = type
         self.chain = chain
@@ -32,11 +31,11 @@ public final class ValidatorSelectSceneViewModel {
         self.validators = validators
         self.selectValidator = selectValidator
     }
-    
+
     public var title: String {
-        return Localized.Stake.validators
+        Localized.Stake.validators
     }
-    
+
     public var list: [ListItemValueSection<DelegationValidator>] {
         switch type {
         case .stake:
@@ -44,23 +43,23 @@ public final class ValidatorSelectSceneViewModel {
             return [
                 listSection(
                     title: Localized.Common.recommended,
-                    validators: validators.filter { recommeneded.contains($0.id) }
+                    validators: validators.filter { recommeneded.contains($0.id) },
                 ),
                 listSection(
                     title: Localized.Stake.active,
-                    validators: validators
+                    validators: validators,
                 ),
-            ].filter { $0.values.isNotEmpty }
+            ].filter(\.values.isNotEmpty)
         case .unstake:
             return [
                 listSection(
                     title: Localized.Stake.active,
-                    validators: validators
-                )
+                    validators: validators,
+                ),
             ]
         }
     }
-    
+
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
         exploreService.validatorUrl(chain: validator.chain, address: validator.id)
     }
@@ -70,20 +69,20 @@ public final class ValidatorSelectSceneViewModel {
             ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0)
         }
     }
-    
+
     public func listSection(title: String, validators: [DelegationValidator]) -> ListItemValueSection<DelegationValidator> {
         ListItemValueSection(
             section: title,
-            values: validators.map(listItem)
+            values: validators.map(listItem),
         )
     }
-    
+
     public func listItem(validator: DelegationValidator) -> ListItemValue<DelegationValidator> {
         let model = ValidatorViewModel(validator: validator)
         return ListItemValue(
             title: model.name,
             subtitle: model.aprModel.text,
-            value: validator
+            value: validator,
         )
     }
 }

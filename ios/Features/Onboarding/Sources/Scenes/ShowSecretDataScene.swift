@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import Style
 import Localization
+import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 struct ShowSecretDataScene: View {
-    
     let model: any SecretPhraseViewableModel
     @State private var isPresentingCopyToast = false
 
@@ -25,11 +24,11 @@ struct ShowSecretDataScene: View {
                 SecretDataTypeView(type: model.type)
             }
             .cleanListRow()
-            
+
             ListButton(
                 title: Localized.Common.copy,
                 image: Images.System.copy,
-                action: copy
+                action: copy,
             )
             .frame(maxWidth: .infinity, alignment: .center)
             .cleanListRow()
@@ -37,7 +36,7 @@ struct ShowSecretDataScene: View {
         .safeAreaButton(isVisible: model.continueAction != nil) {
             StateButton(
                 text: Localized.Common.continue,
-                action: continueAction
+                action: continueAction,
             )
         }
         .contentMargins([.top], .extraSmall, for: .scrollContent)
@@ -46,16 +45,16 @@ struct ShowSecretDataScene: View {
         .navigationTitle(model.title)
         .copyToast(
             model: model.copyModel,
-            isPresenting: $isPresentingCopyToast
+            isPresenting: $isPresentingCopyToast,
         )
         .detectScreenshots(docsUrl: model.docsUrl)
         .protectFromScreenRecording()
     }
-    
+
     private func copy() {
         isPresentingCopyToast = true
     }
-    
+
     func continueAction() {
         model.continueAction?()
     }

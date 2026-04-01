@@ -24,11 +24,11 @@ public final class TransactionSceneViewModel {
         transaction: TransactionExtended,
         walletId: WalletId,
         preferences: Preferences = Preferences.standard,
-        explorerService: ExplorerService = ExplorerService.standard
+        explorerService: ExplorerService = ExplorerService.standard,
     ) {
         self.preferences = preferences
         self.explorerService = explorerService
-        self.query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.id), initialValue: transaction)
+        query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.id), initialValue: transaction)
     }
 
     var title: String { model.titleTextValue.text }
@@ -43,7 +43,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .swapAction, [.swapButton]),
             ListSection(type: .details, [.date, .status, .participant, .memo, .network, .pnl, .price, .provider, .fee]),
-            ListSection(type: .explorer, [.explorerLink])
+            ListSection(type: .explorer, [.explorerLink]),
         ]
     }
 
@@ -92,7 +92,7 @@ extension TransactionSceneViewModel {
         isPresentingTransactionSheet = .info(.transactionState(
             imageURL: assetImage.imageURL,
             placeholder: assetImage.placeholder,
-            state: model.transaction.transaction.state
+            state: model.transaction.transaction.state,
         ))
     }
 }
@@ -104,21 +104,21 @@ extension TransactionSceneViewModel {
         TransactionViewModel(
             explorerService: ExplorerService.standard,
             transaction: transactionExtended,
-            currency: preferences.currency
+            currency: preferences.currency,
         )
     }
-    
+
     private var headerViewModel: TransactionHeaderViewModel {
         TransactionHeaderViewModel(
             transaction: model.transaction,
-            infoModel: model.infoModel
+            infoModel: model.infoModel,
         )
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {
         TransactionExplorerViewModel(
             transactionViewModel: model,
-            explorerService: explorerService
+            explorerService: explorerService,
         )
     }
 
@@ -127,7 +127,7 @@ extension TransactionSceneViewModel {
             chain: model.transaction.transaction.assetId.chain,
             priority: .normal,
             value: model.infoModel.feeDisplay?.amount.text,
-            fiatValue: model.infoModel.feeDisplay?.fiat?.text
+            fiatValue: model.infoModel.feeDisplay?.fiat?.text,
         )
     }
 }

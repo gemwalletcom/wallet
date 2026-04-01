@@ -12,5 +12,4 @@ public struct NodeStatus: Sendable {
         self.latestBlockNumber = latestBlockNumber
         self.latency = latency
     }
-
 }

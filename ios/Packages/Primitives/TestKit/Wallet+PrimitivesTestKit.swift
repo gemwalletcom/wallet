@@ -13,7 +13,7 @@ public extension Wallet {
         index: Int = 0,
         order: Int = 0,
         imageUrl: String? = nil,
-        source: WalletSource = .create
+        source: WalletSource = .create,
     ) -> Wallet {
         Wallet(
             id: id,
@@ -25,7 +25,7 @@ public extension Wallet {
             order: order.asInt32,
             isPinned: false,
             imageUrl: imageUrl,
-            source: source
+            source: source,
         )
     }
 }

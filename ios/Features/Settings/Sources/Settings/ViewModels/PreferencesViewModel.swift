@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import UIKit
-import SwiftUI
-import Localization
-import Primitives
-import Style
 import Components
+import Foundation
+import Localization
 import Preferences
+import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
+import UIKit
 
 @Observable
 @MainActor
@@ -20,7 +20,7 @@ public final class PreferencesViewModel {
 
     public init(
         currencyModel: CurrencySceneViewModel,
-        preferences: ObservablePreferences = .default
+        preferences: ObservablePreferences = .default,
     ) {
         self.currencyModel = currencyModel
         self.preferences = preferences
@@ -43,6 +43,7 @@ public final class PreferencesViewModel {
         }
         return Locale.current.localizedString(forLanguageCode: code)?.capitalized ?? ""
     }
+
     var languageImage: AssetImage { AssetImage.image(Images.Settings.language) }
 
     var networksTitle: String { Localized.Settings.Networks.title }
@@ -52,6 +53,7 @@ public final class PreferencesViewModel {
         get { preferences.isPerpetualEnabled }
         set { preferences.isPerpetualEnabled = newValue }
     }
+
     var perpetualsTitle: String { Localized.Perpetuals.title }
     var perpetualsImage: AssetImage { AssetImage.image(Images.Settings.perpetuals) }
 
@@ -59,6 +61,7 @@ public final class PreferencesViewModel {
         get { LeverageOption(value: preferences.perpetualLeverage) }
         set { preferences.perpetualLeverage = newValue.value }
     }
+
     var defaultLeverageTitle: String { Localized.Settings.Preferences.defaultLeverage }
     var defaultLeverageValue: String { "\(preferences.perpetualLeverage)x" }
     var leverageOptions: [LeverageOption] { LeverageOption.allOptions }

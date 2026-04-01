@@ -8,11 +8,11 @@ let package = Package(
     products: [
         .library(
             name: "Blockchain",
-            targets: ["Blockchain"]
+            targets: ["Blockchain"],
         ),
         .library(
             name: "BlockchainTestKit",
-            targets: ["BlockchainTestKit"]
+            targets: ["BlockchainTestKit"],
         ),
     ],
     dependencies: [
@@ -37,16 +37,16 @@ let package = Package(
                 "Keychain",
                 "NativeProviderService",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "BlockchainTestKit",
             dependencies: [
                 "Blockchain",
                 "Primitives",
-                .product(name: "PrimitivesTestKit", package: "Primitives")
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "BlockchainTests",
@@ -54,7 +54,7 @@ let package = Package(
                 "Blockchain",
                 "BlockchainTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

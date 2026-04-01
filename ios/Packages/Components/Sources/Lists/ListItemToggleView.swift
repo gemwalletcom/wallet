@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemToggleView: View {
     @Binding private var isOn: Bool
@@ -14,7 +14,7 @@ public struct ListItemToggleView: View {
         isOn: Binding<Bool>,
         title: String,
         imageStyle: ListItemImageStyle? = nil,
-        titleStyle: TextStyle = .body
+        titleStyle: TextStyle = .body,
     ) {
         _isOn = isOn
         self.title = TextValue(text: title, style: titleStyle)
@@ -28,7 +28,7 @@ public struct ListItemToggleView: View {
                     AssetImageView(
                         assetImage: imageStyle.assetImage,
                         size: imageStyle.imageSize,
-                        style: .init(cornerRadius: imageStyle.cornerRadius)
+                        style: .init(cornerRadius: imageStyle.cornerRadius),
                     )
                 }
                 Text(title.text)
@@ -62,14 +62,14 @@ public struct ListItemToggleView: View {
                     ListItemToggleView(
                         isOn: $basicOn,
                         title: defaultTitle,
-                        titleStyle: textStyle
+                        titleStyle: textStyle,
                     )
                 }
                 Section("Long Text States") {
                     ListItemToggleView(
                         isOn: $longOn,
                         title: longTitle,
-                        titleStyle: textStyle
+                        titleStyle: textStyle,
                     )
                 }
                 Section("Image States") {
@@ -77,7 +77,7 @@ public struct ListItemToggleView: View {
                         isOn: $imageOn,
                         title: defaultTitle,
                         imageStyle: imageStyle,
-                        titleStyle: textStyle
+                        titleStyle: textStyle,
                     )
                 }
                 Section("Combined States") {
@@ -85,7 +85,7 @@ public struct ListItemToggleView: View {
                         isOn: $combinedOn,
                         title: longTitle,
                         imageStyle: imageStyle,
-                        titleStyle: textStyle
+                        titleStyle: textStyle,
                     )
                 }
             }

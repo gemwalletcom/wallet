@@ -36,7 +36,7 @@ class GetWalletSummaryImplTest {
             changePercentage = -2.84,
         )
 
-        assertEquals("-\$140.56", value.valueFormated)
+        assertEquals("-\$140.56", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
         assertEquals(PriceState.Down, value.state)
     }
@@ -49,7 +49,7 @@ class GetWalletSummaryImplTest {
             changePercentage = 2.84,
         )
 
-        assertEquals("\$140.56", value.valueFormated)
+        assertEquals("\$140.56", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
         assertEquals(PriceState.Up, value.state)
     }

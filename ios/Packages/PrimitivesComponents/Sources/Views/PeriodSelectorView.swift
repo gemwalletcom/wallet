@@ -1,22 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
-import Primitives
 import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public struct PeriodSelectorView: View {
     @Binding var selectedPeriod: ChartPeriod
     let periods: [ChartPeriod]
-    
+
     public init(
         selectedPeriod: Binding<ChartPeriod>,
-        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all]
+        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
     ) {
-        self._selectedPeriod = selectedPeriod
+        _selectedPeriod = selectedPeriod
         self.periods = periods
     }
-    
+
     public var body: some View {
         HStack(alignment: .center, spacing: Spacing.medium) {
             ForEach(periods) { period in

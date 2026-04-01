@@ -5,7 +5,7 @@ import Primitives
 
 public extension SwapQuoteData {
     static func mock(
-        quote: SwapQuote = .mock()
+        quote _: SwapQuote = .mock(),
     ) -> SwapQuoteData {
         SwapQuoteData(
             to: "",
@@ -14,7 +14,7 @@ public extension SwapQuoteData {
             data: "",
             memo: nil,
             approval: nil,
-            gasLimit: ""
+            gasLimit: "",
         )
     }
 }

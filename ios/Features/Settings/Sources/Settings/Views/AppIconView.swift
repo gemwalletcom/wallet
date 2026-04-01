@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Primitives
+import Style
+import SwiftUI
 
 struct AppIconView: View {
     let model: AppIconViewModel
@@ -18,7 +18,7 @@ struct AppIconView: View {
                     .clipShape(RoundedRectangle(cornerRadius: .space12))
                     .overlay(
                         RoundedRectangle(cornerRadius: .space12)
-                            .stroke(model.isSelected ? Colors.blueDark : .clear, lineWidth: .space2)
+                            .stroke(model.isSelected ? Colors.blueDark : .clear, lineWidth: .space2),
                     )
 
                 Text(model.displayName)

@@ -6,11 +6,11 @@ public struct CalloutViewStyle {
     public let title: TextValue?
     public let subtitle: TextValue?
     public let backgroundColor: Color
-    
+
     public init(
         title: TextValue?,
         subtitle: TextValue?,
-        backgroundColor: Color
+        backgroundColor: Color,
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -19,9 +19,8 @@ public struct CalloutViewStyle {
 }
 
 public struct CalloutView: View {
-
     public let style: CalloutViewStyle
-    
+
     public init(style: CalloutViewStyle) {
         self.style = style
     }

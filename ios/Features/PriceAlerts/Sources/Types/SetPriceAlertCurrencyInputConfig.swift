@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
-import SwiftUI
-import Primitives
-import Preferences
-import Style
-import Localization
 import Formatters
+import Foundation
+import Localization
+import Preferences
+import Primitives
+import Style
+import SwiftUI
 
 struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     let type: SetPriceAlertType
@@ -16,7 +16,7 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     let formatter: CurrencyFormatter
     let onTapActionButton: VoidAction
     let sanitizer: ((String) -> String)? = nil
-    
+
     var placeholder: String {
         switch type {
         case .price: .zero
@@ -30,29 +30,29 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
         case .percentage: "%"
         }
     }
-    
+
     var currencyPosition: Components.CurrencyTextField.CurrencyPosition {
         switch type {
         case .price: .leading
         case .percentage: .trailing
         }
     }
-    
+
     var secondaryText: String {
         guard let price = assetData.price?.price else { return .empty }
         return [Localized.PriceAlerts.SetAlert.currentPrice, formatter.string(price)].joined(separator: " ")
     }
-    
+
     var keyboardType: UIKeyboardType { .decimalPad }
-    
+
     var actionStyle: CurrencyInputActionStyle? {
         guard let actionButtonImage else { return nil }
         return CurrencyInputActionStyle(
             position: .amount,
-            image: actionButtonImage
+            image: actionButtonImage,
         )
     }
-    
+
     private var actionButtonImage: Image? {
         switch (type, alertDirection) {
         case (.percentage, .up): Images.PriceAlert.up

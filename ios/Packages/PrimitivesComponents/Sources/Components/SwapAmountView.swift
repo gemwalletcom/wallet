@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Style
 import Components
+import Foundation
+import Style
+import SwiftUI
 
 public struct SwapAmountField {
     public let assetImage: AssetImage
     public let amount: String
     public let fiatAmount: String?
-    
+
     public init(assetImage: AssetImage, amount: String, fiatAmount: String?) {
         self.assetImage = assetImage
         self.amount = amount
@@ -18,13 +18,12 @@ public struct SwapAmountField {
 }
 
 struct SwapAmountView: View {
-
     let from: SwapAmountField
     let to: SwapAmountField
 
     init(
         from: SwapAmountField,
-        to: SwapAmountField
+        to: SwapAmountField,
     ) {
         self.from = from
         self.to = to
@@ -46,7 +45,6 @@ struct SwapAmountView: View {
 }
 
 struct SwapAmountSingleView: View {
-
     let field: SwapAmountField
 
     var body: some View {

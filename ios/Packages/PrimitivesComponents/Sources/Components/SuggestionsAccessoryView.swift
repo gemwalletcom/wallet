@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Style
 import Localization
+import Style
+import SwiftUI
 
 public struct SuggestionsAccessoryView<Item: SuggestionViewable>: View {
-
     public let suggestions: [Item]
     public let onSelect: (Item) -> Void
     public let onDone: () -> Void
@@ -14,7 +13,7 @@ public struct SuggestionsAccessoryView<Item: SuggestionViewable>: View {
     public init(
         suggestions: [Item],
         onSelect: @escaping (Item) -> Void,
-        onDone: @escaping () -> Void
+        onDone: @escaping () -> Void,
     ) {
         self.suggestions = suggestions
         self.onSelect = onSelect

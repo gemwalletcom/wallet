@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
+import SwiftUI
 
 @Observable
 final class NavigationPresenter: Sendable {

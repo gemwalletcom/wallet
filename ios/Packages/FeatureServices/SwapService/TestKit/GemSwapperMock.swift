@@ -35,7 +35,7 @@ public final class GemSwapperMock: GemSwapperProtocol {
         swapAssetList: SwapperAssetList = .mock(),
         swapResult: SwapperSwapResult = .mock(),
         fetchQuoteDelay: Duration? = nil,
-        fetchQuoteError: Error? = nil
+        fetchQuoteError: Error? = nil,
     ) {
         self.permit2ForQuote = permit2ForQuote
         self.quotes = quotes
@@ -49,11 +49,11 @@ public final class GemSwapperMock: GemSwapperProtocol {
         self.fetchQuoteError = fetchQuoteError
     }
 
-    public func getPermit2ForQuote(quote: SwapperQuote) async throws -> Permit2ApprovalData? {
+    public func getPermit2ForQuote(quote _: SwapperQuote) async throws -> Permit2ApprovalData? {
         permit2ForQuote
     }
 
-    public func getQuote(request: SwapperQuoteRequest) async throws -> [SwapperQuote] {
+    public func getQuote(request _: SwapperQuoteRequest) async throws -> [SwapperQuote] {
         if let delay = fetchQuoteDelay {
             try await Task.sleep(for: delay)
         }
@@ -63,11 +63,11 @@ public final class GemSwapperMock: GemSwapperProtocol {
         return quotes
     }
 
-    public func getQuoteByProvider(provider: SwapperProvider, request: SwapperQuoteRequest) async throws -> SwapperQuote {
+    public func getQuoteByProvider(provider _: SwapperProvider, request _: SwapperQuoteRequest) async throws -> SwapperQuote {
         quoteByProvider
     }
 
-    public func getQuoteData(quote: SwapperQuote, data: FetchQuoteData) async throws -> GemSwapQuoteData {
+    public func getQuoteData(quote _: SwapperQuote, data _: FetchQuoteData) async throws -> GemSwapQuoteData {
         quoteData
     }
 
@@ -75,7 +75,7 @@ public final class GemSwapperMock: GemSwapperProtocol {
         providers
     }
 
-    public func getProvidersForRequest(request: SwapperQuoteRequest) throws -> [SwapperProviderType] {
+    public func getProvidersForRequest(request _: SwapperQuoteRequest) throws -> [SwapperProviderType] {
         providers
     }
 
@@ -83,11 +83,11 @@ public final class GemSwapperMock: GemSwapperProtocol {
         chains
     }
 
-    public func supportedChainsForFromAsset(assetId: AssetId) -> SwapperAssetList {
+    public func supportedChainsForFromAsset(assetId _: AssetId) -> SwapperAssetList {
         swapAssetList
     }
 
-    public func getSwapResult(chain: Chain, provider: SwapperProvider, transactionHash: String) async throws -> SwapperSwapResult {
+    public func getSwapResult(chain _: Chain, provider _: SwapperProvider, transactionHash _: String) async throws -> SwapperSwapResult {
         swapResult
     }
 }

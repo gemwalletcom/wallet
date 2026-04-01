@@ -4,10 +4,11 @@ import android.content.Context
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,7 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space12
 
 private enum class WordState {
     Error,
@@ -34,45 +37,43 @@ internal fun WordChip(
     val context = LocalContext.current
     val shakeController = rememberShakeController()
     var wordState by remember { mutableStateOf(WordState.Idle) }
-    val color: Color by animateColorAsState(
-        when (wordState) {
-            WordState.Error -> MaterialTheme.colorScheme.error
+    val bgColor: Color by animateColorAsState(
+        when {
+            wordState == WordState.Error -> MaterialTheme.colorScheme.error
+            !isEnable -> MaterialTheme.colorScheme.surfaceVariant
             else -> MaterialTheme.colorScheme.primary
         }, label = "Button color"
     )
-    SuggestionChip(
+    val textColor = if (isEnable) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
         modifier = Modifier
-            .padding(end = paddingSmall)
-            .shake(shakeController, onComplete = { wordState = WordState.Idle }),
-        onClick = {
-            if (!isEnable) {
-                return@SuggestionChip
-            }
-            if (!onClick(word)) {
-                vibrateDevice(context)
-                shakeController.shake(
-                    ShakeConfig(
-                        iterations = 2,
-                        intensity = 1_000f,
-                        rotateY = 10f,
-                        translateX = 10f,
+            .shake(shakeController, onComplete = { wordState = WordState.Idle })
+            .clickable(enabled = wordState != WordState.Idle || isEnable) {
+                if (!isEnable) {
+                    return@clickable
+                }
+                if (!onClick(word)) {
+                    vibrateDevice(context)
+                    shakeController.shake(
+                        ShakeConfig(
+                            iterations = 2,
+                            intensity = 1_000f,
+                            rotateY = 10f,
+                            translateX = 10f,
+                        )
                     )
-                )
-                wordState = WordState.Error
-            }
-        },
-        enabled = wordState != WordState.Idle || isEnable,
-        colors = SuggestionChipDefaults.elevatedSuggestionChipColors().copy(
-            containerColor = color,
-        ),
-        label = {
-            Text(
-                text = word,
-                color = Color.White,
-            )
-        },
-        border = null,
-    )
+                    wordState = WordState.Error
+                }
+            },
+        shape = RoundedCornerShape(space12),
+        color = bgColor,
+    ) {
+        Text(
+            text = word,
+            color = textColor,
+            modifier = Modifier.padding(horizontal = paddingSmall, vertical = paddingHalfSmall),
+        )
+    }
 }
 
 fun vibrateDevice(context: Context) {

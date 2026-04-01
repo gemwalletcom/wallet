@@ -54,7 +54,7 @@ extension ChartView {
             ForEach(model.charts, id: \.date) { item in
                 AreaMark(
                     x: .value(ChartKey.date, item.date),
-                    y: .value(ChartKey.value, item.value)
+                    y: .value(ChartKey.value, item.value),
                 )
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(areaGradient)
@@ -62,7 +62,7 @@ extension ChartView {
 
                 LineMark(
                     x: .value(ChartKey.date, item.date),
-                    y: .value(ChartKey.value, item.value)
+                    y: .value(ChartKey.value, item.value),
                 )
                 .lineStyle(StrokeStyle(lineWidth: Metrics.lineWidth, lineCap: .round, lineJoin: .round))
                 .foregroundStyle(model.lineColor)
@@ -82,8 +82,8 @@ extension ChartView {
                                     colors: [Colors.white, model.lineColor.opacity(.strong)],
                                     center: .center,
                                     startRadius: 0,
-                                    endRadius: Metrics.selectionDotSize / 2
-                                )
+                                    endRadius: Metrics.selectionDotSize / 2,
+                                ),
                             )
                             .frame(width: Metrics.selectionDotSize, height: Metrics.selectionDotSize)
                             .shadow(color: model.lineColor.opacity(.semiStrong), radius: 6)
@@ -103,13 +103,14 @@ extension ChartView {
                             }
                             .onEnded { _ in
                                 onDragEnd()
-                            }
+                            },
                     )
 
                 if let lastPoint = model.charts.last,
                    let plotFrame = proxy.plotFrame,
                    let xPos = proxy.position(forX: lastPoint.date),
-                   let yPos = proxy.position(forY: lastPoint.value) {
+                   let yPos = proxy.position(forY: lastPoint.value)
+                {
                     let origin = geometry[plotFrame].origin
                     PulsingDotView(color: model.lineColor)
                         .position(x: origin.x + xPos, y: origin.y + yPos)
@@ -150,10 +151,10 @@ extension ChartView {
                 .init(color: model.lineColor.opacity(.opacity28), location: 0.5),
                 .init(color: model.lineColor.opacity(.light), location: 0.75),
                 .init(color: model.lineColor.opacity(.faint), location: 0.92),
-                .init(color: model.lineColor.opacity(0), location: 1.0)
+                .init(color: model.lineColor.opacity(0), location: 1.0),
             ],
             startPoint: .top,
-            endPoint: .bottom
+            endPoint: .bottom,
         )
     }
 
@@ -178,7 +179,8 @@ extension ChartView {
 
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let targetDate = proxy.value(atX: relativeX) as Date?,
-              let element = model.charts.min(by: { abs($0.date.distance(to: targetDate)) < abs($1.date.distance(to: targetDate)) }) else {
+              let element = model.charts.min(by: { abs($0.date.distance(to: targetDate)) < abs($1.date.distance(to: targetDate)) })
+        else {
             return
         }
 

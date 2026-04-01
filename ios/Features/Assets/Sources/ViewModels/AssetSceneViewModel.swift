@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-import SwiftUI
-import UIKit
-import Components
-import Style
-import Localization
-import PriceAlertService
-import PrimitivesComponents
-import Preferences
-import ExplorerService
 import AssetsService
-import TransactionsService
 import BalanceService
-import PriceService
 import BannerService
+import Components
+import ExplorerService
+import Localization
+import Preferences
+import PriceAlertService
+import PriceService
+import Primitives
+import PrimitivesComponents
 import Store
+import Style
+import SwiftUI
+import TransactionsService
+import UIKit
 
 @Observable
 @MainActor
@@ -58,7 +58,7 @@ public final class AssetSceneViewModel: Sendable {
         priceAlertService: PriceAlertService,
         bannerService: BannerService,
         input: AssetSceneInput,
-        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.assetsEnabler = assetsEnabler
         self.balanceService = balanceService
@@ -69,15 +69,15 @@ public final class AssetSceneViewModel: Sendable {
         self.bannerService = bannerService
 
         self.input = input
-        self.assetQuery = ObservableQuery(
+        assetQuery = ObservableQuery(
             input.assetRequest,
             initialValue: ChainAssetData(
                 assetData: AssetData.with(asset: input.asset),
-                feeAssetData: AssetData.with(asset: input.asset.chain.asset)
-            )
+                feeAssetData: AssetData.with(asset: input.asset.chain.asset),
+            ),
         )
-        self.bannersQuery = ObservableQuery(input.bannersRequest, initialValue: [])
-        self.transactionsQuery = ObservableQuery(input.transactionsRequest, initialValue: [])
+        bannersQuery = ObservableQuery(input.bannersRequest, initialValue: [])
+        transactionsQuery = ObservableQuery(input.transactionsRequest, initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
@@ -93,6 +93,7 @@ public final class AssetSceneViewModel: Sendable {
     var energyField: ListItemField {
         ListItemField(title: ResourceViewModel(resource: .energy).title, value: feeAssetDataModel.energyText)
     }
+
     var bandwidthField: ListItemField {
         ListItemField(title: ResourceViewModel(resource: .bandwidth).title, value: feeAssetDataModel.bandwidthText)
     }
@@ -113,36 +114,41 @@ public final class AssetSceneViewModel: Sendable {
     var pinText: String {
         assetData.metadata.isPinned ? Localized.Common.unpin : Localized.Common.pin
     }
+
     var pinSystemImage: String {
         assetData.metadata.isPinned ? SystemImage.unpin : SystemImage.pin
     }
+
     var pinImage: Image {
         Image(systemName: pinSystemImage)
     }
+
     var enableText: String {
         assetData.metadata.isBalanceEnabled ? Localized.Asset.hideFromWallet : Localized.Asset.addToWallet
     }
+
     var enableImage: Image {
         Image(systemName: enableSystemImage)
     }
+
     var enableSystemImage: String {
         assetData.metadata.isBalanceEnabled ? SystemImage.minusCircle : SystemImage.plusCircle
     }
-    
+
     var reservedBalanceUrl: URL? { assetModel.asset.chain.accountActivationFeeUrl }
 
     var showEarnButton: Bool {
         #if DEBUG
-        assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !showProviderBalance(for: .earn)
+            assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !showProviderBalance(for: .earn)
         #else
-        false
+            false
         #endif
     }
 
     var priceItemViewModel: PriceListItemViewModel {
         PriceListItemViewModel(
             title: Localized.Asset.price,
-            model: assetDataModel.priceViewModel
+            model: assetDataModel.priceViewModel,
         )
     }
 
@@ -154,7 +160,7 @@ public final class AssetSceneViewModel: Sendable {
         let buy = assetData.metadata.isBuyEnabled ? onSelectBuy : nil
         let swap = buy == nil && assetData.metadata.isSwapEnabled ? onSelectSwap : nil
         return EmptyContentTypeViewModel(
-            type: .asset(symbol: assetModel.symbol, buy: buy, swap: swap, isViewOnly: wallet.isViewOnly)
+            type: .asset(symbol: assetModel.symbol, buy: buy, swap: swap, isViewOnly: wallet.isViewOnly),
         )
     }
 
@@ -162,19 +168,19 @@ public final class AssetSceneViewModel: Sendable {
         AssetDataViewModel(
             assetData: assetData,
             formatter: .medium,
-            currencyCode: preferences.preferences.currency
+            currencyCode: preferences.preferences.currency,
         )
     }
-    
+
     var assetBannerViewModel: AssetSceneBannersViewModel {
         AssetSceneBannersViewModel(assetData: assetData, banners: banners)
     }
-    
+
     var assetHeaderModel: AssetHeaderViewModel {
         AssetHeaderViewModel(
             assetDataModel: assetDataModel,
             walletModel: walletModel,
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: assetBannerViewModel.allBanners.map(\.event))
+            bannerEventsViewModel: HeaderBannerEventViewModel(events: assetBannerViewModel.allBanners.map(\.event)),
         )
     }
 
@@ -189,8 +195,8 @@ public final class AssetSceneViewModel: Sendable {
 
     public var menuItems: [ActionMenuItemType] {
         [.button(title: viewAddressOnTitle, systemImage: SystemImage.globe, action: { self.onSelect(url: self.addressExplorerUrl) }),
-         viewTokenOnTitle.map { .button(title: $0, systemImage: SystemImage.globe, action: { self.onSelect(url: self.tokenExplorerUrl) })},
-         .button(title: Localized.Common.share, systemImage: SystemImage.share, action: onSelectShareAsset)].compactMap { $0 }
+         viewTokenOnTitle.map { .button(title: $0, systemImage: SystemImage.globe, action: { self.onSelect(url: self.tokenExplorerUrl) }) },
+         .button(title: Localized.Common.share, systemImage: SystemImage.share, action: onSelectShareAsset)].compactMap(\.self)
     }
 
     var scoreViewModel: AssetScoreTypeViewModel {
@@ -200,11 +206,11 @@ public final class AssetSceneViewModel: Sendable {
     var showStatus: Bool {
         scoreViewModel.hasWarning
     }
-    
+
     var priceAlertsViewModel: PriceAlertsViewModel {
         PriceAlertsViewModel(priceAlerts: assetData.priceAlerts)
     }
-    
+
     var swapAssetType: SelectedAssetType {
         switch assetData.asset.id.type {
         case .native: .swap(assetData.asset, nil)
@@ -221,9 +227,9 @@ public final class AssetSceneViewModel: Sendable {
         switch type {
         case .stake: assetDataModel.isStakeEnabled || assetData.balances.contains(where: { Self.showStakedBalanceTypes.contains($0.key) && $0.value > 0 })
         #if DEBUG
-        case .earn: assetData.balance.earn > .zero
+            case .earn: assetData.balance.earn > .zero
         #else
-        case .earn: false
+            case .earn: false
         #endif
         }
     }
@@ -242,8 +248,8 @@ public final class AssetSceneViewModel: Sendable {
 
 // MARK: - Business Logic
 
-extension AssetSceneViewModel {
-    func fetchOnce() {
+public extension AssetSceneViewModel {
+    internal func fetchOnce() {
         Task {
             await fetch()
         }
@@ -258,11 +264,11 @@ extension AssetSceneViewModel {
         }
     }
 
-    func fetch() async {
+    internal func fetch() async {
         await updateWallet()
     }
 
-    func onSelectHeader(_ buttonType: HeaderButtonType) {
+    internal func onSelectHeader(_ buttonType: HeaderButtonType) {
         let selectType: SelectedAssetType = switch buttonType {
         case .buy: .buy(assetData.asset, amount: nil)
         case .sell: .sell(assetData.asset, amount: nil)
@@ -275,17 +281,17 @@ extension AssetSceneViewModel {
         }
         isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
             type: selectType,
-            assetAddress: assetData.assetAddress
+            assetAddress: assetData.assetAddress,
         )
     }
 
-    func onSelectWalletHeaderInfo() {
+    internal func onSelectWalletHeaderInfo() {
         isPresentingAssetSheet = .info(.watchWallet)
     }
 
-    func onSelectBanner(_ action: BannerAction) {
+    internal func onSelectBanner(_ action: BannerAction) {
         switch action.type {
-        case .event(let event):
+        case let .event(event):
             switch event {
             case .stake:
                 onSelectHeader(.stake)
@@ -297,17 +303,17 @@ extension AssetSceneViewModel {
                             recipient: Recipient(
                                 name: .none,
                                 address: "",
-                                memo: .none
+                                memo: .none,
                             ),
-                            amount: .none
+                            amount: .none,
                         ),
-                        value: 0
-                    )
+                        value: 0,
+                    ),
                 )
             case .enableNotifications,
-                    .accountActivation,
-                    .accountBlockedMultiSignature,
-                    .onboarding:
+                 .accountActivation,
+                 .accountBlockedMultiSignature,
+                 .onboarding:
                 Task {
                     try await bannerService.handleAction(action)
                 }
@@ -316,7 +322,7 @@ extension AssetSceneViewModel {
                 UIApplication.shared.open(DeepLink.perpetuals.localUrl)
                 preferences.isPerpetualEnabled = true
             }
-        case .button(let bannerButton):
+        case let .button(bannerButton):
             switch bannerButton {
             case .buy: onSelectHeader(.buy)
             case .receive: onSelectHeader(.receive)
@@ -329,10 +335,10 @@ extension AssetSceneViewModel {
         onSelect(url: action.url)
     }
 
-    func onSelectEarn() {
+    internal func onSelectEarn() {
         isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
             type: .earn(assetData.asset),
-            assetAddress: assetData.assetAddress
+            assetAddress: assetData.assetAddress,
         )
     }
 
@@ -344,15 +350,15 @@ extension AssetSceneViewModel {
         onSelectHeader(.swap)
     }
 
-    public func onSelectShareAsset() {
+    func onSelectShareAsset() {
         isPresentingAssetSheet = .share
     }
 
-    public func onTransferComplete() {
+    func onTransferComplete() {
         isPresentingAssetSheet = .none
     }
 
-    public func onTogglePriceAlert() {
+    func onTogglePriceAlert() {
         Task {
             let enabled = !assetData.isPriceAlertsEnabled
             isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: enabled)
@@ -363,16 +369,16 @@ extension AssetSceneViewModel {
             }
         }
     }
-    
-    public func onSelectTokenStatus() {
+
+    func onSelectTokenStatus() {
         isPresentingAssetSheet = .info(.assetStatus(scoreViewModel.scoreType))
     }
 
-    public func onSelectPendingUnconfirmedInfo() {
+    func onSelectPendingUnconfirmedInfo() {
         isPresentingAssetSheet = .info(.pendingUnconfirmedBalance)
     }
-    
-    public func onSelectPin() {
+
+    func onSelectPin() {
         do {
             let pinned = !assetData.metadata.isPinned
             isPresentingToastMessage = .pin(asset.name, pinned: pinned)
@@ -385,7 +391,7 @@ extension AssetSceneViewModel {
         }
     }
 
-    public func onSelectEnable() {
+    func onSelectEnable() {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
@@ -428,7 +434,7 @@ extension AssetSceneViewModel {
         AssetDataViewModel(
             assetData: chainAssetData.feeAssetData,
             formatter: .medium,
-            currencyCode: preferences.preferences.currency
+            currencyCode: preferences.preferences.currency,
         )
     }
 

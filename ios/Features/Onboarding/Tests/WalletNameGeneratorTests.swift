@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import Primitives
+import Testing
 import WalletService
 import WalletServiceTestKit
 
 @testable import Onboarding
 
 struct WalletNameGeneratorTests {
-
     @Test
     func walletNameWhenEmpty() {
         let generator = WalletNameGenerator(type: .multicoin, walletService: .mock())

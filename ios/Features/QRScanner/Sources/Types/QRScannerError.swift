@@ -13,13 +13,13 @@ extension QRScannerError: Equatable {
     static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.notSupported, .notSupported),
-            (.permissionsNotGranted, .permissionsNotGranted),
-            (.decoding, .decoding):
-            return true
+             (.permissionsNotGranted, .permissionsNotGranted),
+             (.decoding, .decoding):
+            true
         case (.unknown, .unknown):
-            return true
+            true
         default:
-            return false
+            false
         }
     }
 }

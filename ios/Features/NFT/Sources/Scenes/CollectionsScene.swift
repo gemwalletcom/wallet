@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Store
 import Components
-import Style
-import PrimitivesComponents
+import Foundation
 import Localization
+import Primitives
+import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
     @State private var model: ViewModel
@@ -32,7 +32,7 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                             NavigationLink(value: Scenes.UnverifiedCollections()) {
                                 ListItemView(
                                     title: Localized.Asset.Verification.unverified,
-                                    subtitle: unverifiedCount
+                                    subtitle: unverifiedCount,
                                 )
                             }
                         }

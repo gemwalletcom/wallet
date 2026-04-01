@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct StakeValidatorRecord: Codable, FetchableRecord, PersistableRecord  {
+struct StakeValidatorRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "stake_validators"
-    
+
     enum Columns {
         static let id = Column("id")
         static let assetId = Column("assetId")
@@ -30,7 +30,7 @@ struct StakeValidatorRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension StakeValidatorRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName) {
+        try db.create(table: databaseTableName) {
             $0.primaryKey(Columns.id.name, .text)
                 .notNull()
                 .indexed()
@@ -62,14 +62,14 @@ extension StakeValidatorRecord {
             isActive: isActive,
             commission: commission,
             apr: apr,
-            providerType: providerType
+            providerType: providerType,
         )
     }
 }
 
 extension DelegationValidator {
     static func recordId(chain: Chain, validatorId: String) -> String {
-        return "\(chain.rawValue)_\(validatorId)"
+        "\(chain.rawValue)_\(validatorId)"
     }
 }
 
@@ -83,7 +83,7 @@ extension DelegationValidator {
             isActive: isActive,
             commission: commission,
             apr: apr,
-            providerType: providerType
+            providerType: providerType,
         )
     }
 }

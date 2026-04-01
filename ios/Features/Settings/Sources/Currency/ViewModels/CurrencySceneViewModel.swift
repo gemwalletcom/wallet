@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
+import Foundation
 import Localization
 import PriceService
+import Primitives
 
 @Observable
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
     private let priceService: PriceService
     private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
-    
+
     private(set) var currency: Currency {
         get {
             guard let currency = Currency(rawValue: currencyStorage.currency) else {
@@ -26,7 +26,7 @@ public final class CurrencySceneViewModel {
 
     public init(
         currencyStorage: CurrencyStorable,
-        priceService: PriceService
+        priceService: PriceService,
     ) {
         self.currencyStorage = currencyStorage
         self.priceService = priceService
@@ -51,25 +51,24 @@ public final class CurrencySceneViewModel {
         return [
             ListItemValueSection(
                 section: Localized.Common.recommended,
-                values: recommendedValues
+                values: recommendedValues,
             ),
             ListItemValueSection(
                 section: Localized.Common.all,
-                values: allValues
-            )
+                values: allValues,
+            ),
         ]
     }
-    
+
     func setCurrency(_ currency: Currency) throws {
         self.currency = currency
-        try self.priceService.changeCurrency(currency: currency.rawValue)
+        try priceService.changeCurrency(currency: currency.rawValue)
     }
 }
 
 // MARK: - Private
 
 extension CurrencySceneViewModel {
-
     private var recommendedCurrencies: [Currency] {
         guard let current = Locale.current.currency,
               let currency = Currency(rawValue: current.identifier)
@@ -80,6 +79,6 @@ extension CurrencySceneViewModel {
     }
 
     private var allCurrencies: [Currency] {
-        Currency.nativeCurrencies.compactMap({ Currency(rawValue: $0.identifier) })
+        Currency.nativeCurrencies.compactMap { Currency(rawValue: $0.identifier) }
     }
 }

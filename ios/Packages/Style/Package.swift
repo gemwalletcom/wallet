@@ -8,7 +8,8 @@ let package = Package(
     products: [
         .library(
             name: "Style",
-            targets: ["Style"]),
+            targets: ["Style"],
+        ),
     ],
     dependencies: [
     ],
@@ -16,7 +17,7 @@ let package = Package(
         .target(
             name: "Style",
             dependencies: [],
-            path: "Sources"
-        )
-    ]
+            path: "Sources",
+        ),
+    ],
 )

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
+import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 struct PerpetualPortfolioScene: View {
     @State private var model: PerpetualPortfolioSceneViewModel

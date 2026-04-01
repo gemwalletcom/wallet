@@ -1,14 +1,13 @@
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Transactions
 
 struct TransactionPriceViewModelTests {
-
     @Test
     func priceValue() {
-        if case .price(_, let value) = TransactionPriceViewModel(metadata: .mock(price: 50000)).itemModel {
+        if case let .price(_, value) = TransactionPriceViewModel(metadata: .mock(price: 50000)).itemModel {
             #expect(value.contains("50"))
         } else {
             Issue.record("Expected price item")

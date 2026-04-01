@@ -6,7 +6,6 @@ import Testing
 @testable import PerpetualsTestKit
 
 struct AutocloseFieldTests {
-
     @Test
     func hasChanged() {
         #expect(AutocloseField.mock(price: 100.0, originalPrice: 100.0).hasChanged == false)

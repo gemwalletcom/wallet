@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Style
+import SwiftUI
 
 struct CandleTooltipView: View {
     let model: CandleTooltipViewModel
@@ -26,7 +26,7 @@ struct CandleTooltipView: View {
         .clipShape(RoundedRectangle(cornerRadius: Spacing.small))
         .overlay(
             RoundedRectangle(cornerRadius: Spacing.small)
-                .stroke(Colors.black.opacity(.opacity8), lineWidth: .space1)
+                .stroke(Colors.black.opacity(.opacity8), lineWidth: .space1),
         )
         .shadow(color: .black.opacity(.opacity12), radius: Spacing.small, y: Spacing.tiny)
         .fixedSize()

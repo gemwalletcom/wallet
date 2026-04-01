@@ -5,7 +5,7 @@ import Store
 
 public extension ConnectionsStore {
     static func mock(
-        db: DB = .mock()
+        db: DB = .mock(),
     ) -> ConnectionsStore {
         ConnectionsStore(db: db)
     }

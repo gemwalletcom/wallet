@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
-import Style
 import Components
+import Foundation
 import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public struct EmptyContentTypeViewModel: EmptyContentViewable {
     public let type: EmptyContentType
@@ -90,41 +90,39 @@ public struct EmptyContentTypeViewModel: EmptyContentViewable {
     }
 
     public var buttons: [EmptyAction] {
-        let actions: [EmptyAction]
-
-        switch type {
+        let actions: [EmptyAction] = switch type {
         case .priceAlerts, .stake, .earn, .walletConnect, .markets, .notifications, .recents, .contacts:
-            actions = []
+            []
         case let .asset(_, buy, swap, isViewOnly):
             switch isViewOnly {
-            case true: actions = []
+            case true: []
             case false:
                 if let buy {
-                    actions = [EmptyAction(title: Localized.Wallet.buy, action: buy)]
+                    [EmptyAction(title: Localized.Wallet.buy, action: buy)]
                 } else if let swap {
-                    actions = [EmptyAction(title: Localized.Wallet.swap, action: swap)]
+                    [EmptyAction(title: Localized.Wallet.swap, action: swap)]
                 } else {
-                    actions = []
+                    []
                 }
             }
         case let .nfts(action):
-            actions = [EmptyAction(title: Localized.Wallet.receive, action: action)]
+            [EmptyAction(title: Localized.Wallet.receive, action: action)]
         case let .activity(receive, buy, isViewOnly):
             switch isViewOnly {
-            case true: actions = []
-            case false : actions = [
+            case true: []
+            case false: [
                     EmptyAction(title: Localized.Wallet.buy, action: buy),
-                    EmptyAction(title: Localized.Wallet.receive, action: receive)
+                    EmptyAction(title: Localized.Wallet.receive, action: receive),
                 ]
             }
         case let .search(searchType, action):
             switch searchType {
             case .assets:
-                actions = [EmptyAction(title: Localized.Assets.addCustomToken, action: action)]
+                [EmptyAction(title: Localized.Assets.addCustomToken, action: action)]
             case .networks:
-                actions = []
+                []
             case .activity:
-                actions = [EmptyAction(title: Localized.Filter.clear, action: action)]
+                [EmptyAction(title: Localized.Filter.clear, action: action)]
             }
         }
 

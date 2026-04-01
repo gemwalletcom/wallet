@@ -22,10 +22,10 @@ public actor GemAPIDeviceServiceMock: GemAPIDeviceService {
         delay: Duration? = nil,
         isDeviceRegistered: Bool = true,
         getDeviceResult: Device? = Device.mock(),
-        nodeAuthToken: DeviceToken = .init(token: "", expiresAt: 0)
+        nodeAuthToken: DeviceToken = .init(token: "", expiresAt: 0),
     ) {
         self.delay = delay
-        self.isDeviceRegisteredResult = isDeviceRegistered
+        isDeviceRegisteredResult = isDeviceRegistered
         self.getDeviceResult = getDeviceResult
         self.nodeAuthToken = nodeAuthToken
     }
@@ -52,7 +52,7 @@ public actor GemAPIDeviceServiceMock: GemAPIDeviceService {
         return isDeviceRegisteredResult
     }
 
-    public func migrateDevice(request: MigrateDeviceIdRequest) async throws -> Device {
+    public func migrateDevice(request _: MigrateDeviceIdRequest) async throws -> Device {
         migrateDeviceCalls += 1
         return Device.mock()
     }

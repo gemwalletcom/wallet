@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Style
+import SwiftUI
 
 struct InfoSheetView: View {
     private let model: InfoSheetModel
@@ -15,14 +15,14 @@ struct InfoSheetView: View {
         VStack(spacing: .medium) {
             Group {
                 switch model.image {
-                case .image(let image):
+                case let .image(image):
                     image
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                case .assetImage(let asset):
+                case let .assetImage(asset):
                     AssetImageView(
                         assetImage: asset,
-                        size: .image.semiExtraLarge
+                        size: .image.semiExtraLarge,
                     )
                 case nil: EmptyView()
                 }

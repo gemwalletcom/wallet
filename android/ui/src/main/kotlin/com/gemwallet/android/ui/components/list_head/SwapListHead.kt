@@ -15,13 +15,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.headerSmallIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Currency
 
@@ -49,9 +51,9 @@ fun SwapListHead(
                 Icon(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(20.dp),
+                        .size(compactIconSize),
                     imageVector = Icons.Default.ArrowDownward,
-                    contentDescription = ""
+                    contentDescription = null
                 )
             }
             Spacer16()
@@ -70,7 +72,10 @@ private fun SwapItem(assetInfo: AssetInfo, value: String, currency: Currency?) {
         Column(Modifier.weight(1f)) {
             Text(
                 text = asset.format(Crypto(value), dynamicPlace = true),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontSize = 24.sp,
+                    lineHeight = 32.sp,
+                ),
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start
             )
@@ -83,6 +88,6 @@ private fun SwapItem(assetInfo: AssetInfo, value: String, currency: Currency?) {
                 )
             }
         }
-        HeaderIcon(asset, 50.dp)
+        HeaderIcon(asset, headerSmallIconSize)
     }
 }

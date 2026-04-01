@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Localization
-@testable import Transfer
 @testable import Primitives
 import PrimitivesTestKit
+import Testing
+@testable import Transfer
 import TransferTestKit
 
 struct ConfirmRecipientViewModelTests {
-
     @Test
     func transfer() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .transfer(.mock())), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
         #expect(item.account.address != "")
     }
@@ -22,7 +21,7 @@ struct ConfirmRecipientViewModelTests {
     func transferNft() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .transferNft(.mock())), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
     }
 
@@ -30,7 +29,7 @@ struct ConfirmRecipientViewModelTests {
     func deposit() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .deposit(.mock())), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
     }
 
@@ -38,7 +37,7 @@ struct ConfirmRecipientViewModelTests {
     func withdrawal() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .withdrawal(.mock())), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
     }
 
@@ -46,7 +45,7 @@ struct ConfirmRecipientViewModelTests {
     func tokenApprove() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .tokenApprove(.mock(), .mock())), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
     }
 
@@ -55,10 +54,10 @@ struct ConfirmRecipientViewModelTests {
         let model = ConfirmRecipientViewModel(
             model: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .send))),
             addressName: nil,
-            addressLink: .mock()
+            addressLink: .mock(),
         )
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
     }
 
@@ -67,10 +66,10 @@ struct ConfirmRecipientViewModelTests {
         let model = ConfirmRecipientViewModel(
             model: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))),
             addressName: nil,
-            addressLink: .mock()
+            addressLink: .mock(),
         )
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Asset.contract)
     }
 
@@ -78,7 +77,7 @@ struct ConfirmRecipientViewModelTests {
     func stakeDelegate() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .stake(.mock()))), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
     }
 
@@ -86,7 +85,7 @@ struct ConfirmRecipientViewModelTests {
     func stakeUndelegate() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .unstake(.mock()))), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
     }
 
@@ -95,10 +94,10 @@ struct ConfirmRecipientViewModelTests {
         let model = ConfirmRecipientViewModel(
             model: .mock(type: .stake(.mock(), .redelegate(RedelegateData(delegation: .mock(), toValidator: .mock())))),
             addressName: nil,
-            addressLink: .mock()
+            addressLink: .mock(),
         )
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
     }
 
@@ -106,7 +105,7 @@ struct ConfirmRecipientViewModelTests {
     func stakeWithdraw() {
         let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .withdraw(.mock()))), addressName: nil, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
     }
 
@@ -115,10 +114,10 @@ struct ConfirmRecipientViewModelTests {
         let model = ConfirmRecipientViewModel(
             model: .mock(type: .stake(.mock(), .freeze(.bandwidth))),
             addressName: nil,
-            addressLink: .mock()
+            addressLink: .mock(),
         )
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.resource)
     }
 
@@ -127,7 +126,7 @@ struct ConfirmRecipientViewModelTests {
         let addressName = AddressName.mock(name: "Vitalik.eth")
         let model = ConfirmRecipientViewModel(model: .mock(type: .transfer(.mock())), addressName: addressName, addressLink: .mock())
 
-        guard case .recipient(let item) = model.itemModel else { return }
+        guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.account.name == "Vitalik.eth")
     }
 }

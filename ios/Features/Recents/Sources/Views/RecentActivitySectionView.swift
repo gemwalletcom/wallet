@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
-import Localization
+import SwiftUI
 
 public struct RecentActivitySectionView<Content: View>: View {
     private let models: [AssetViewModel]
@@ -16,7 +16,7 @@ public struct RecentActivitySectionView<Content: View>: View {
         models: [AssetViewModel],
         headerPadding: CGFloat = Spacing.space12,
         onSelectRecents: VoidAction = nil,
-        @ViewBuilder content: @escaping (AssetViewModel) -> Content
+        @ViewBuilder content: @escaping (AssetViewModel) -> Content,
     ) {
         self.models = models
         self.headerPadding = headerPadding

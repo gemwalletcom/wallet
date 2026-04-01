@@ -3,7 +3,7 @@
 import Foundation
 
 public extension Set {
-    func asArray() -> Array<Element> {
-        return Array(self)
+    func asArray() -> [Element] {
+        Array(self)
     }
 }

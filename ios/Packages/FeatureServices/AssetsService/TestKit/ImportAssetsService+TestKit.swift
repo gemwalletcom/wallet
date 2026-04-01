@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import AssetsService
+import Foundation
 import GemAPI
 import GemAPITestKit
 import Preferences
@@ -14,13 +14,13 @@ public extension ImportAssetsService {
         assetListService: any GemAPIAssetsListService = GemAPIAssetsListServiceMock(),
         assetsService: AssetsService = .mock(),
         assetStore: AssetStore = .mock(),
-        preferences: Preferences = .mock()
+        preferences: Preferences = .mock(),
     ) -> ImportAssetsService {
         ImportAssetsService(
             assetListService: assetListService,
             assetsService: assetsService,
             assetStore: assetStore,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

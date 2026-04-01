@@ -1,9 +1,8 @@
 import Foundation
-import Testing
 @testable import Primitives
+import Testing
 
 struct DataPrimitivesTests {
-
     @Test
     func hex() {
         #expect(Data([0x0A, 0x1F, 0xFF]).hex == "0a1fff")

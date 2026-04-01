@@ -5,39 +5,37 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.features.swap.viewmodels.models.SwapProperty
+import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.wallet.core.primitives.Asset
 
 @Composable
 internal fun PriceImpactWarningDialog(
-    isShowPriceImpactAlert: MutableState<Boolean>,
-    priceImpact: SwapProperty.PriceImpact?,
+    isVisible: Boolean,
+    priceImpact: SwapPriceImpactUIModel?,
     asset: Asset?,
+    onDismiss: () -> Unit,
     onContinue: () -> Unit,
 ) {
-    if (!isShowPriceImpactAlert.value || priceImpact == null || asset == null) {
+    if (!isVisible || priceImpact == null || asset == null) {
         return
     }
 
-    val dismiss = fun () { isShowPriceImpactAlert.value = false }
-
     AlertDialog(
-        onDismissRequest = dismiss,
+        onDismissRequest = onDismiss,
         confirmButton = {
             Button(
                 {
                     onContinue()
-                    dismiss()
+                    onDismiss()
                 }
             ) {
                 Text(stringResource(R.string.common_continue))
             }
         },
         dismissButton = {
-            Button(dismiss) {
+            Button(onDismiss) {
                 Text(stringResource(R.string.common_cancel))
             }
         },
@@ -46,7 +44,7 @@ internal fun PriceImpactWarningDialog(
             Text(
                 stringResource(
                     R.string.swap_price_impact_warning_description,
-                    priceImpact.percentageFormatted,
+                    priceImpact.warningText,
                     asset.symbol,
                 ),
             )

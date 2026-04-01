@@ -10,7 +10,7 @@ public extension DelegationSceneViewModel {
         chain: Chain = .cosmos,
         state: DelegationState = .active,
         providerType: StakeProviderType = .stake,
-        validators: [DelegationValidator] = []
+        validators: [DelegationValidator] = [],
     ) -> DelegationSceneViewModel {
         let validator = DelegationValidator.mock(chain, providerType: providerType)
         let base = DelegationBase.mock(state: state, assetId: .mock(chain))
@@ -21,7 +21,7 @@ public extension DelegationSceneViewModel {
             asset: chain.asset,
             validators: validators,
             onAmountInputAction: nil,
-            onTransferAction: nil
+            onTransferAction: nil,
         )
     }
 }

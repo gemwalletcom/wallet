@@ -78,12 +78,12 @@ private func createPositionViewModel(_ position: PerpetualPosition) -> Perpetual
         name: "Bitcoin",
         symbol: "BTC",
         decimals: 8,
-        type: .native
+        type: .native,
     )
     let positionData = PerpetualPositionData(
         perpetual: Perpetual.mock(),
         asset: asset,
-        position: position
+        position: position,
     )
     return PerpetualPositionViewModel(positionData)
 }

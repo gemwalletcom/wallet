@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public protocol SelectableListNavigationAdoptable {
     var title: String { get }
@@ -10,7 +10,7 @@ public protocol SelectableListNavigationAdoptable {
 
 public struct SelectableListNavigationStack<ViewModel: SelectableListAdoptable & SelectableListNavigationAdoptable, Content: View>: View {
     public typealias ListContent = (ViewModel.Item) -> Content
-    public typealias FinishSelection = (([ViewModel.Item]) -> Void)
+    public typealias FinishSelection = ([ViewModel.Item]) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
@@ -22,7 +22,7 @@ public struct SelectableListNavigationStack<ViewModel: SelectableListAdoptable &
     public init(
         model: ViewModel,
         onFinishSelection: FinishSelection?,
-        listContent: @escaping ListContent
+        listContent: @escaping ListContent,
     ) {
         _model = State(initialValue: model)
         self.onFinishSelection = onFinishSelection
@@ -34,7 +34,7 @@ public struct SelectableListNavigationStack<ViewModel: SelectableListAdoptable &
             SelectableListView(
                 model: $model,
                 onFinishSelection: onFinishSelection,
-                listContent: listContent
+                listContent: listContent,
             )
             .padding(.bottom, .scene.bottom)
             .contentMargins([.top], .medium, for: .scrollContent)

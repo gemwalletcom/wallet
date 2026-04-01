@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "Swap",
-            targets: ["Swap"]),
+            targets: ["Swap"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -48,7 +49,7 @@ let package = Package(
                 "InfoSheet",
                 "Keystore",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "SwapTests",
@@ -64,8 +65,8 @@ let package = Package(
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
-                "Swap"
-            ]
-        )
-    ]
+                "Swap",
+            ],
+        ),
+    ],
 )

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Style
-import Primitives
 import Components
+import Foundation
+import Primitives
+import Style
+import SwiftUI
 
 public struct TransactionHeaderListItemView: View {
     private let headerType: TransactionHeaderType
@@ -14,16 +14,16 @@ public struct TransactionHeaderListItemView: View {
     public init(
         headerType: TransactionHeaderType,
         showClearHeader: Bool,
-        action: VoidAction = nil
+        action: VoidAction = nil,
     ) {
         self.headerType = headerType
         self.showClearHeader = showClearHeader
         self.action = action
     }
-    
+
     public init(model: TransactionHeaderItemModel, action: VoidAction = nil) {
-        self.headerType = model.headerType
-        self.showClearHeader = model.showClearHeader
+        headerType = model.headerType
+        showClearHeader = model.showClearHeader
         self.action = action
     }
 
@@ -51,15 +51,15 @@ public struct TransactionHeaderListItemView: View {
     List {
         TransactionHeaderListItemView(
             headerType:
-                    .swap(
-                        from: .init(
-                            assetImage: .image(Images.Chains.abstract), amount: "300", fiatAmount: "300$"
-                        ),
-                        to: .init(
-                            assetImage: .image(Images.Chains.arbitrum), amount: "200", fiatAmount: "200$"
-                        )
-                    ),
-            showClearHeader: true
+            .swap(
+                from: .init(
+                    assetImage: .image(Images.Chains.abstract), amount: "300", fiatAmount: "300$",
+                ),
+                to: .init(
+                    assetImage: .image(Images.Chains.arbitrum), amount: "200", fiatAmount: "200$",
+                ),
+            ),
+            showClearHeader: true,
         )
     }
 }

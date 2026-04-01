@@ -3,13 +3,13 @@
 import Foundation
 import Primitives
 
-extension FiatQuote {
-    public static func mock(
+public extension FiatQuote {
+    static func mock(
         id: String = UUID().uuidString,
         fiatAmount: Double = 0,
         cryptoAmount: Double = 0,
         type: FiatQuoteType = .buy,
-        fiatCurrency: String = Currency.usd.rawValue
+        fiatCurrency: String = Currency.usd.rawValue,
     ) -> FiatQuote {
         FiatQuote(
             id: id,
@@ -18,7 +18,7 @@ extension FiatQuote {
             fiatAmount: fiatAmount,
             fiatCurrency: fiatCurrency,
             cryptoAmount: cryptoAmount,
-            paymentMethods: []
+            paymentMethods: [],
         )
     }
 }

@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct VerifiedBadgeView: View {
-
     public init() {}
 
     public var body: some View {

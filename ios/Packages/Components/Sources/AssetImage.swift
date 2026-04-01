@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct AssetImage: Sendable, Equatable {
     public let type: String?
@@ -13,7 +13,7 @@ public struct AssetImage: Sendable, Equatable {
         type: String? = .none,
         imageURL: URL? = .none,
         placeholder: Image? = .none,
-        chainPlaceholder: Image? = .none
+        chainPlaceholder: Image? = .none,
     ) {
         self.type = type
         self.imageURL = imageURL
@@ -26,16 +26,16 @@ public struct AssetImage: Sendable, Equatable {
             type: .none,
             imageURL: .none,
             placeholder: Images.name(image),
-            chainPlaceholder: .none
+            chainPlaceholder: .none,
         )
     }
-    
+
     public static func image(_ image: Image) -> AssetImage {
         AssetImage(
             type: .none,
             imageURL: .none,
             placeholder: image,
-            chainPlaceholder: .none
+            chainPlaceholder: .none,
         )
     }
 }

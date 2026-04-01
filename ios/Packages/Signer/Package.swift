@@ -8,11 +8,11 @@ let package = Package(
     products: [
         .library(
             name: "Signer",
-            targets: ["Signer"]
+            targets: ["Signer"],
         ),
         .library(
             name: "SignerTestKit",
-            targets: ["SignerTestKit"]
+            targets: ["SignerTestKit"],
         ),
     ],
     dependencies: [
@@ -32,7 +32,7 @@ let package = Package(
                 "Gemstone",
                 "GemstonePrimitives",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "SignerTestKit",
@@ -40,7 +40,7 @@ let package = Package(
                 "Signer",
                 "Primitives",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "SignerTests",
@@ -48,7 +48,7 @@ let package = Package(
                 "Signer",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "KeystoreTestKit", package: "Keystore"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

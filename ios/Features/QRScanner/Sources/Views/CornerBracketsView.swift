@@ -12,15 +12,15 @@ struct CornerBracketsView: View {
             cornerRadius: configuration.cornerRadius,
             cornerLength: configuration.cornerLength,
             boxSize: boxSize,
-            containerSize: geometrySize
+            containerSize: geometrySize,
         )
         .stroke(
             configuration.bracketColor,
             style: StrokeStyle(
                 lineWidth: configuration.lineWidth,
                 lineCap: .round,
-                lineJoin: .round
-            )
+                lineJoin: .round,
+            ),
         )
     }
 }
@@ -33,7 +33,7 @@ struct CornerBracketsView: View {
             CornerBracketsView(
                 configuration: .default,
                 boxSize: 200,
-                geometrySize: geometry.size
+                geometrySize: geometry.size,
             )
         }
     }

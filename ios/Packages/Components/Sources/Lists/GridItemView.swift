@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct GridItemView: View {
     private let title: TextValue
@@ -11,7 +11,7 @@ public struct GridItemView: View {
     public init(
         title: TextValue,
         value: TextValue,
-        valueAlignment: HorizontalAlignment = .trailing
+        valueAlignment: HorizontalAlignment = .trailing,
     ) {
         self.title = title
         self.value = value

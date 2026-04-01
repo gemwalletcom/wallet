@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Localization
-import Store
 import Components
-import InfoSheet
 import ExplorerService
-import Style
+import Foundation
+import InfoSheet
+import Localization
+import Primitives
 import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 public struct TransactionNavigationView: View {
     @State private var model: TransactionSceneViewModel
@@ -20,7 +20,7 @@ public struct TransactionNavigationView: View {
 
     public var body: some View {
         TransactionScene(
-            model: model
+            model: model,
         )
         .bindQuery(model.query)
         .toolbar {
@@ -36,7 +36,7 @@ public struct TransactionNavigationView: View {
                 ShareSheet(activityItems: [model.explorerURL.absoluteString])
             case .feeDetails:
                 NetworkFeeSheet(model: model.feeDetailsViewModel)
-            case .info(let infoType):
+            case let .info(infoType):
                 InfoSheetScene(type: infoType)
             }
         }

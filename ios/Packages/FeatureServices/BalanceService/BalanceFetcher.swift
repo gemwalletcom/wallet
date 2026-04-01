@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import ChainService
+import Foundation
 import Primitives
 
 struct BalanceFetcher: Sendable {
     private let chainServiceFactory: any ChainServiceFactorable
-    
+
     init(chainServiceFactory: any ChainServiceFactorable) {
         self.chainServiceFactory = chainServiceFactory
     }
-    
+
     func getCoinBalance(
         chain: Chain,
-        address: String
+        address: String,
     ) async throws -> AssetBalance {
         try await chainServiceFactory
             .service(for: chain)
@@ -22,7 +22,7 @@ struct BalanceFetcher: Sendable {
 
     func getCoinStakeBalance(
         chain: Chain,
-        address: String
+        address: String,
     ) async throws -> AssetBalance? {
         try await chainServiceFactory
             .service(for: chain)
@@ -38,10 +38,10 @@ struct BalanceFetcher: Sendable {
     func getTokenBalance(
         chain: Chain,
         address: String,
-        tokenIds: [String]
+        tokenIds: [String],
     ) async throws -> [AssetBalance] {
         try await chainServiceFactory
             .service(for: chain)
-           .tokenBalance(for: address, tokenIds: tokenIds.compactMap { try? AssetId(id: $0) })
+            .tokenBalance(for: address, tokenIds: tokenIds.compactMap { try? AssetId(id: $0) })
     }
 }

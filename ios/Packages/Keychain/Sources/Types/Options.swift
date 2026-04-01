@@ -25,11 +25,11 @@ extension Options {
         query[AttributeService] = service
 
         #if !os(watchOS)
-        if #available(iOS 9.0, OSX 10.11, *) {
-            if authenticationContext != nil {
-                query[UseAuthenticationContext] = authenticationContext
+            if #available(iOS 9.0, OSX 10.11, *) {
+                if authenticationContext != nil {
+                    query[UseAuthenticationContext] = authenticationContext
+                }
             }
-        }
         #endif
 
         return query

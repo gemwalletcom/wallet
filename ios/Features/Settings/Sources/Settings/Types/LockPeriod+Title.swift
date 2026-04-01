@@ -4,8 +4,8 @@ import Foundation
 import Keystore
 import Localization
 
-extension LockPeriod {
-    public var title: String {
+public extension LockPeriod {
+    var title: String {
         switch self {
         case .immediate: Localized.Lock.immediately
         case .oneMinute: Localized.Lock.oneMinute

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import SwiftUI
 
 struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
     var secondaryText: String
@@ -22,6 +22,6 @@ struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
         }
     }
 
-    var actionStyle: CurrencyInputActionStyle? = nil
+    var actionStyle: CurrencyInputActionStyle?
     let onTapActionButton: VoidAction = nil
 }

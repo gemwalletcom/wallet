@@ -13,7 +13,7 @@ public final class SelectionState<T> {
         options: [T],
         selected: T,
         isEnabled: Bool,
-        title: String
+        title: String,
     ) {
         self.options = options
         self.selected = selected

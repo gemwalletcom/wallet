@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Primitives
+import Style
+import SwiftUI
 
 struct SwapTokenView: View {
     let model: SwapTokenViewModel
     @Binding var text: String
     var showLoading: Bool = false
     var disabledTextField: Bool = false
-    var onBalanceAction: (() -> Void)
-    var onSelectAssetAction: (() -> Void)
+    var onBalanceAction: () -> Void
+    var onSelectAssetAction: () -> Void
 
     var body: some View {
         HStack {
@@ -26,7 +26,7 @@ struct SwapTokenView: View {
             }
         }
     }
-    
+
     private var inputView: some View {
         HStack {
             if showLoading {

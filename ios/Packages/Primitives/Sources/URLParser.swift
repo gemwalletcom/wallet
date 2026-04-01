@@ -27,7 +27,8 @@ public enum URLParser {
             return .request
         } else if url.absoluteString.contains("wc?sessionTopic") {
             guard let components = URLComponents(string: url.absoluteString),
-                  let sessionTopic = components.queryItems?.first(where: { $0.name == "sessionTopic" })?.value else {
+                  let sessionTopic = components.queryItems?.first(where: { $0.name == "sessionTopic" })?.value
+            else {
                 throw AnyError("invalid sessionTopic url")
             }
             return .session(sessionTopic)
@@ -46,7 +47,8 @@ public enum URLParser {
 
         if url.host() == DeepLink.host || url.scheme == "gem" {
             guard let path = urlComponents.first,
-                  let pathComponent = DeepLink.PathComponent(rawValue: path) else {
+                  let pathComponent = DeepLink.PathComponent(rawValue: path)
+            else {
                 throw URLParserError.invalidURL(url)
             }
 
@@ -91,14 +93,15 @@ public enum URLParser {
     private static func strippingLocalePrefix(from components: [String]) -> [String] {
         guard let first = components.first,
               first.range(of: localePrefixPattern, options: .regularExpression) != nil,
-              DeepLink.PathComponent(rawValue: first) == nil else {
+              DeepLink.PathComponent(rawValue: first) == nil
+        else {
             return components
         }
         return Array(components.dropFirst())
     }
 }
 
-private extension Array where Element == String {
+private extension [String] {
     func required(at index: Int, url: URL) throws -> String {
         guard let value = element(at: index) else {
             throw URLParserError.invalidURL(url)

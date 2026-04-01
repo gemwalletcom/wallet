@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
+import AssetsService
 import BigInt
-import Store
 import ChainService
 import Formatters
-import AssetsService
+import Foundation
+import Primitives
+import Store
 
 public struct BalanceService: Sendable {
     private let balanceStore: BalanceStore
@@ -17,22 +17,22 @@ public struct BalanceService: Sendable {
     public init(
         balanceStore: BalanceStore,
         assetsService: AssetsService,
-        chainServiceFactory: any ChainServiceFactorable
+        chainServiceFactory: any ChainServiceFactorable,
     ) {
         self.balanceStore = balanceStore
         self.assetsService = assetsService
-        self.fetcher = BalanceFetcher(chainServiceFactory: chainServiceFactory)
+        fetcher = BalanceFetcher(chainServiceFactory: chainServiceFactory)
     }
 }
 
 // MARK: - Asset Manage
 
-extension BalanceService {
-    public func hideAsset(walletId: WalletId, assetId: AssetId) throws {
+public extension BalanceService {
+    func hideAsset(walletId: WalletId, assetId: AssetId) throws {
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: [assetId], value: false)
     }
 
-    public func setPinned(_ isPinned: Bool, walletId: WalletId, assetId: AssetId) throws {
+    func setPinned(_ isPinned: Bool, walletId: WalletId, assetId: AssetId) throws {
         try balanceStore.pinAsset(walletId: walletId, assetId: assetId, value: isPinned)
     }
 }
@@ -73,7 +73,7 @@ extension BalanceService: BalanceUpdater {
                 }
             }
 
-            for await _ in group { }
+            for await _ in group {}
         }
     }
 }
@@ -89,7 +89,7 @@ extension BalanceService {
         let walletId = wallet.walletId
         let balancesAssetIds = try balanceStore
             .getBalances(walletId: walletId, assetIds: assetIds)
-            .map { $0.assetId }
+            .map(\.assetId)
         let missingBalancesAssetIds = assetIds.asSet().subtracting(balancesAssetIds)
 
         try addBalance(
@@ -97,9 +97,9 @@ extension BalanceService {
             balances: missingBalancesAssetIds.map {
                 AddBalance(
                     assetId: $0,
-                    isEnabled: isEnabled ?? false
+                    isEnabled: isEnabled ?? false,
                 )
-            }
+            },
         )
     }
 
@@ -115,8 +115,8 @@ extension BalanceService {
         return await updateBalanceAsync(
             walletId: walletId,
             chain: chain,
-            fetchBalance: { [try await fetcher.getCoinBalance(chain: chain, address: address).coinChange] },
-            mapBalance: { $0 }
+            fetchBalance: { try await [fetcher.getCoinBalance(chain: chain, address: address).coinChange] },
+            mapBalance: { $0 },
         )
     }
 
@@ -126,8 +126,8 @@ extension BalanceService {
         return await updateBalanceAsync(
             walletId: walletId,
             chain: chain,
-            fetchBalance: { [try await fetcher.getCoinStakeBalance(chain: chain, address: address)?.stakeChange] },
-            mapBalance: { $0 }
+            fetchBalance: { try await [fetcher.getCoinStakeBalance(chain: chain, address: address)?.stakeChange] },
+            mapBalance: { $0 },
         )
     }
 
@@ -137,7 +137,7 @@ extension BalanceService {
             walletId: walletId,
             chain: chain,
             fetchBalance: { try await fetcher.getEarnBalance(chain: chain, address: address, tokenIds: tokenIds) },
-            mapBalance: { $0.earnChange }
+            mapBalance: { $0.earnChange },
         )
     }
 
@@ -148,7 +148,7 @@ extension BalanceService {
             chain: chain,
             fetchBalance: { try await fetcher.getTokenBalance(chain: chain, address: address, tokenIds: tokenIds.ids)
             },
-            mapBalance: { $0.tokenChange }
+            mapBalance: { $0.tokenChange },
         )
     }
 
@@ -156,7 +156,7 @@ extension BalanceService {
         walletId: WalletId,
         chain: Chain,
         fetchBalance: () async throws -> [T],
-        mapBalance: (T) -> AssetBalanceChange?
+        mapBalance: (T) -> AssetBalanceChange?,
     ) async -> [AssetBalanceChange] {
         do {
             let balances = try await fetchBalance().compactMap { mapBalance($0) }
@@ -172,37 +172,37 @@ extension BalanceService {
     private func createUpdateBalanceType(asset: Asset, change: AssetBalanceChange) throws -> UpdateBalanceType {
         let decimals = asset.decimals.asInt
         switch change.type {
-        case .coin(let available, let reserved, let pendingUnconfirmed):
-            return .coin(UpdateCoinBalance(
-                available: try balanceValue(available, decimals: decimals),
-                reserved: try balanceValue(reserved, decimals: decimals),
-                pendingUnconfirmed: try balanceValue(pendingUnconfirmed, decimals: decimals)
+        case let .coin(available, reserved, pendingUnconfirmed):
+            return try .coin(UpdateCoinBalance(
+                available: balanceValue(available, decimals: decimals),
+                reserved: balanceValue(reserved, decimals: decimals),
+                pendingUnconfirmed: balanceValue(pendingUnconfirmed, decimals: decimals),
             ))
-        case .token(let available):
-            return .token(UpdateTokenBalance(available: try balanceValue(available, decimals: decimals)))
-        case .stake(let staked, let pending, let rewards, _, let locked, let frozen, let metadata):
-            return .stake(UpdateStakeBalance(
-                staked: try balanceValue(staked, decimals: decimals),
-                pending: try balanceValue(pending, decimals: decimals),
-                frozen: try balanceValue(frozen, decimals: decimals),
-                locked: try balanceValue(locked, decimals: decimals),
-                rewards: try balanceValue(rewards, decimals: decimals),
-                metadata: metadata
+        case let .token(available):
+            return try .token(UpdateTokenBalance(available: balanceValue(available, decimals: decimals)))
+        case let .stake(staked, pending, rewards, _, locked, frozen, metadata):
+            return try .stake(UpdateStakeBalance(
+                staked: balanceValue(staked, decimals: decimals),
+                pending: balanceValue(pending, decimals: decimals),
+                frozen: balanceValue(frozen, decimals: decimals),
+                locked: balanceValue(locked, decimals: decimals),
+                rewards: balanceValue(rewards, decimals: decimals),
+                metadata: metadata,
             ))
-        case .earn(let earn):
-            return .earn(UpdateEarnBalance(balance: try balanceValue(earn, decimals: decimals)))
+        case let .earn(earn):
+            return try .earn(UpdateEarnBalance(balance: balanceValue(earn, decimals: decimals)))
         }
     }
 
     private func balanceValue(_ value: BigInt, decimals: Int) throws -> UpdateBalanceValue {
-        UpdateBalanceValue(value: value.description, amount: try formatter.double(from: value, decimals: decimals))
+        try UpdateBalanceValue(value: value.description, amount: formatter.double(from: value, decimals: decimals))
     }
 
     private func storeBalances(balances: [AssetBalanceChange], walletId: WalletId) throws {
         for balance in balances {
             debugLog("update balance: \(balance.assetId.identifier): \(balance.type)")
         }
-        let assets = try assetsService.getAssets(for: balances.map { $0.assetId })
+        let assets = try assetsService.getAssets(for: balances.map(\.assetId))
         let updates = createBalanceUpdate(assets: assets, balances: balances)
 
         try updateBalances(updates, walletId: walletId)
@@ -221,15 +221,15 @@ extension BalanceService {
                 assetId: balance.assetId,
                 type: update,
                 updatedAt: .now,
-                isActive: balance.isActive
+                isActive: balance.isActive,
             )
         }
     }
 
     private func updateBalances(_ balances: [UpdateBalance], walletId: WalletId) throws {
-        let assetIds = balances.map { $0.assetId }
+        let assetIds = balances.map(\.assetId)
         let existBalances = try balanceStore.getBalances(walletId: walletId, assetIds: assetIds)
-        let missingBalances = assetIds.asSet().subtracting(existBalances.map { $0.assetId })
+        let missingBalances = assetIds.asSet().subtracting(existBalances.map(\.assetId))
         let addBalances: [AddBalance] = missingBalances.map {
             AddBalance(assetId: $0, isEnabled: false)
         }
@@ -237,11 +237,11 @@ extension BalanceService {
         try balanceStore.addBalance(addBalances, for: walletId)
         try balanceStore.updateBalances(balances, for: walletId)
     }
-    
+
     private func addAssetsIfNeeded(balances: [AssetBalanceChange]) async throws {
-        let assetIds = balances.map { $0.assetId }
+        let assetIds = balances.map(\.assetId)
         let existAssets = try assetsService.getAssets(for: assetIds)
-        let missingIds = assetIds.asSet().subtracting(existAssets.map { $0.id }).asArray()
+        let missingIds = assetIds.asSet().subtracting(existAssets.map(\.id)).asArray()
         if missingIds.isNotEmpty {
             try await assetsService.addAssets(assetIds: missingIds)
         }

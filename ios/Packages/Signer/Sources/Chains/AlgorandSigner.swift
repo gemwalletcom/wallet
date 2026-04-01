@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 struct AlgorandSigner: Signable {
-    
     func sign(input: SignerInput, message: AlgorandSigningInput.OneOf_MessageOneof, privateKey: Data) throws -> String {
         let input = try AlgorandSigningInput.with {
             $0.genesisID = try input.metadata.getChainId()
@@ -20,25 +19,25 @@ struct AlgorandSigner: Signable {
             $0.privateKey = privateKey
         }
         let output: AlgorandSigningOutput = AnySigner.sign(input: input, coin: .algorand)
-        
+
         if !output.errorMessage.isEmpty {
             throw AnyError(output.errorMessage)
         }
-        
+
         return output.encoded.hexString
     }
-    
+
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
-        return try sign(
+        try sign(
             input: input,
             message: .transfer(.with {
                 $0.toAddress = input.destinationAddress
                 $0.amount = input.value.asUInt
             }),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
-    
+
     func signTokenTransfer(input: SignerInput, privateKey: Data) throws -> String {
         try sign(
             input: input,
@@ -47,18 +46,17 @@ struct AlgorandSigner: Signable {
                 $0.amount = input.value.asUInt
                 $0.assetID = try input.asset.getTokenIdAsInt().asUInt64
             }),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
-    
+
     func signAccountAction(input: SignerInput, privateKey: Data) throws -> String {
         try sign(
             input: input,
             message: .assetOptIn(.with {
                 $0.assetID = try input.asset.getTokenIdAsInt().asUInt64
             }),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
 }
-    

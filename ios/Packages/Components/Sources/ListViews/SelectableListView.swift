@@ -4,7 +4,7 @@ import SwiftUI
 
 public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: View>: View {
     public typealias ListContent = (ViewModel.Item) -> Content
-    public typealias FinishSelection = (([ViewModel.Item]) -> Void)
+    public typealias FinishSelection = ([ViewModel.Item]) -> Void
 
     @Binding private var model: ViewModel
 
@@ -14,7 +14,7 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
     public init(
         model: Binding<ViewModel>,
         onFinishSelection: FinishSelection? = nil,
-        listContent: @escaping ListContent
+        listContent: @escaping ListContent,
     ) {
         _model = model
         self.listContent = listContent
@@ -31,24 +31,24 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
             }
         case .loading:
             LoadingView()
-        case .data(let type):
+        case let .data(type):
             switch type {
-            case .plain(let items):
+            case let .plain(items):
                 ListView(
                     items: items,
-                    content: contentView
+                    content: contentView,
                 )
-            case .section(let sections):
+            case let .section(sections):
                 ListSectionView(
                     sections: sections,
-                    content: contentView
+                    content: contentView,
                 )
             }
-        case .error(let error):
+        case let .error(error):
             ListItemErrorView(errorTitle: model.errorTitle, error: error)
         }
     }
-    
+
     @ViewBuilder
     private func contentView(_ item: ViewModel.Item) -> some View {
         switch model.selectionType {
@@ -59,7 +59,7 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
                 action: onSelect(item:),
                 content: {
                     listContent(item)
-                }
+                },
             )
         case .navigationLink:
             NavigationCustomLink(with: listContent(item)) {
@@ -70,7 +70,7 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
 
     private func onSelect(item: ViewModel.Item) {
         model.toggle(item: item)
-        
+
         switch model.selectionType {
         case .multiSelection:
             break

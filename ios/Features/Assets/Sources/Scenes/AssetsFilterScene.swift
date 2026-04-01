@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
+import Primitives
+import PrimitivesComponents
 import Store
 import Style
-import Primitives
-import Components
-import PrimitivesComponents
+import SwiftUI
 
 public struct AssetsFilterScene: View {
     @Environment(\.dismiss) var dismiss
@@ -21,13 +21,14 @@ public struct AssetsFilterScene: View {
         List {
             SelectFilterView(
                 typeModel: model.chainsFilter.typeModel,
-                action: onSelectChainsFilter)
+                action: onSelectChainsFilter,
+            )
 
             if model.showHasBalanceToggle {
                 ListItemToggleView(
                     isOn: $model.hasBalance,
                     title: model.hasBalanceTitle,
-                    imageStyle: model.hasBalanceImageStyle
+                    imageStyle: model.hasBalanceImageStyle,
                 )
             }
         }
@@ -48,7 +49,7 @@ public struct AssetsFilterScene: View {
             SelectableSheet(
                 model: model.networksModel,
                 onFinishSelection: onFinishSelection(value:),
-                listContent: { ChainView(model: ChainViewModel(chain: $0))}
+                listContent: { ChainView(model: ChainViewModel(chain: $0)) },
             )
         }
     }
@@ -84,9 +85,9 @@ extension AssetsFilterScene {
             model: .constant(
                 AssetsFilterViewModel(
                     type: .manage,
-                    model: ChainsFilterViewModel(chains: [.arbitrum, .avalancheC, .base])
-                )
-            )
+                    model: ChainsFilterViewModel(chains: [.arbitrum, .avalancheC, .base]),
+                ),
+            ),
         )
     }
 }

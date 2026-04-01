@@ -2,8 +2,8 @@
 
 import Foundation
 
-extension AssetType {
-    public init(id: String) throws {
+public extension AssetType {
+    init(id: String) throws {
         if let type = AssetType(rawValue: id) {
             self = type
         } else {

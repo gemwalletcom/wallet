@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Assets
+import AssetsService
+import Components
+import InfoSheet
+import MarketInsight
+import Perpetuals
+import PriceAlerts
+import PriceService
 import Primitives
 import PrimitivesComponents
-import Store
-import MarketInsight
-import Transactions
-import WalletTab
-import InfoSheet
-import Components
-import Assets
-import Perpetuals
-import Transfer
 import StakeService
-import PriceAlerts
-import AssetsService
-import PriceService
+import Store
+import SwiftUI
+import Transactions
+import Transfer
+import WalletTab
 
 struct WalletNavigationStack: View {
     @Environment(\.assetsEnabler) private var assetsEnabler
@@ -62,8 +62,8 @@ struct WalletNavigationStack: View {
                             perpetualService: perpetualService,
                             onDismissSearch: model.onToggleSearch,
                             onSelectAssetAction: onSelectAsset,
-                            onAddToken: model.onSelectAddCustomToken
-                        )
+                            onAddToken: model.onSelectAddCustomToken,
+                        ),
                     )
                     .transition(.opacity)
                 }
@@ -77,7 +77,7 @@ struct WalletNavigationStack: View {
                     ToolbarItem(placement: .principal) {
                         WalletBarView(
                             model: model.walletBarModel,
-                            action: model.onSelectWalletBar
+                            action: model.onSelectWalletBar,
                         )
                         .liquidGlass()
                     }
@@ -100,18 +100,18 @@ struct WalletNavigationStack: View {
                         bannerService: bannerService,
                         input: AssetSceneInput(
                             wallet: model.wallet,
-                            asset: $0.asset
+                            asset: $0.asset,
                         ),
-                        isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput
-                    )
+                        isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Transaction.self) {
                 TransactionNavigationView(
                     model: TransactionSceneViewModel(
                         transaction: $0.transaction,
-                        walletId: model.wallet.walletId
-                    )
+                        walletId: model.wallet.walletId,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Price.self) {
@@ -121,8 +121,8 @@ struct WalletNavigationStack: View {
                         assetModel: AssetViewModel(asset: $0.asset),
                         priceAlertService: priceAlertService,
                         walletId: model.wallet.walletId,
-                        onSetPriceAlert: model.presentPriceAlert
-                    )
+                        onSetPriceAlert: model.presentPriceAlert,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Perpetuals.self) { _ in
@@ -132,7 +132,7 @@ struct WalletNavigationStack: View {
                     observerService: hyperliquidObserverService,
                     activityService: activityService,
                     onSelectAssetType: { model.isPresentingSheet = .selectAsset($0) },
-                    onSelectAsset: { navigationState.wallet.append(Scenes.Perpetual($0)) }
+                    onSelectAsset: { navigationState.wallet.append(Scenes.Perpetual($0)) },
                 )
             }
             .navigationDestination(for: Scenes.AssetsResults.self) { destination in
@@ -146,10 +146,10 @@ struct WalletNavigationStack: View {
                             walletId: model.wallet.walletId,
                             searchBy: destination.searchQuery,
                             tag: destination.tag,
-                            limit: AssetsResultsSceneViewModel.defaultLimit
+                            limit: AssetsResultsSceneViewModel.defaultLimit,
                         ),
-                        onSelectAsset: onSelectAsset
-                    )
+                        onSelectAsset: onSelectAsset,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Perpetual.self) {
@@ -159,7 +159,7 @@ struct WalletNavigationStack: View {
                     perpetualService: perpetualService,
                     transactionsService: transactionsService,
                     observerService: hyperliquidObserverService,
-                    isPresentingSheet: $model.isPresentingSheet
+                    isPresentingSheet: $model.isPresentingSheet,
                 )
             }
             .navigationDestination(for: Scenes.AssetPriceAlert.self) {
@@ -167,15 +167,15 @@ struct WalletNavigationStack: View {
                     model: AssetPriceAlertsViewModel(
                         priceAlertService: priceAlertService,
                         walletId: model.wallet.walletId,
-                        asset: $0.asset
-                    )
+                        asset: $0.asset,
+                    ),
                 )
             }
             .sheet(item: $model.isPresentingSheet) { sheet in
                 switch sheet {
                 case .wallets:
                     WalletsNavigationStack()
-                case .selectAsset(let type):
+                case let .selectAsset(type):
                     SelectAssetSceneNavigationStack(
                         model: SelectAssetViewModel(
                             wallet: model.wallet,
@@ -183,30 +183,30 @@ struct WalletNavigationStack: View {
                             searchService: assetSearchService,
                             assetsEnabler: assetsEnabler,
                             priceAlertService: priceAlertService,
-                            activityService: activityService
-                        )
+                            activityService: activityService,
+                        ),
                     )
-                case .infoSheet(let type):
+                case let .infoSheet(type):
                     InfoSheetScene(type: type)
-                case .transferData(let data):
+                case let .transferData(data):
                     ConfirmTransferNavigationStack(
                         wallet: model.wallet,
                         transferData: data,
-                        onComplete: model.onTransferComplete
+                        onComplete: model.onTransferComplete,
                     )
-                case .perpetualRecipientData(let data):
+                case let .perpetualRecipientData(data):
                     PerpetualPositionNavigationStack(
                         perpetualRecipientData: data,
                         wallet: model.wallet,
-                        onComplete: { model.isPresentingSheet = nil }
+                        onComplete: { model.isPresentingSheet = nil },
                     )
-                case .setPriceAlert(let asset):
+                case let .setPriceAlert(asset):
                     SetPriceAlertNavigationStack(
                         model: SetPriceAlertViewModel(
                             walletId: model.wallet.walletId,
                             asset: asset,
-                            priceAlertService: priceAlertService
-                        ) { model.onSetPriceAlertComplete(message: $0) }
+                            priceAlertService: priceAlertService,
+                        ) { model.onSetPriceAlertComplete(message: $0) },
                     )
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)
@@ -216,8 +216,8 @@ struct WalletNavigationStack: View {
                             wallet: model.wallet,
                             portfolioService: portfolioService,
                             priceService: priceService,
-                            currencyCode: preferences.preferences.currency
-                        )
+                            currencyCode: preferences.preferences.currency,
+                        ),
                     )
                 }
             }

@@ -13,6 +13,7 @@ data class BuyFiatProviderUIModel(
     val provider: FiatProvider,
     override val asset: Asset,
     override val cryptoAmount: Double,
+    val fiatFormatted: String,
     val rate: String,
 ) : CryptoFormattedUIModel {
     override val fraction: Int = 6
@@ -20,6 +21,9 @@ data class BuyFiatProviderUIModel(
 
     override val cryptoFormatted: String
         get() = "≈ ${super.cryptoFormatted}"
+
+    val cryptoText: String
+        get() = super.cryptoFormatted
 }
 
 fun FiatQuote.toProviderUIModel(
@@ -29,6 +33,7 @@ fun FiatQuote.toProviderUIModel(
     provider = provider,
     asset = asset,
     cryptoAmount = cryptoAmount,
+    fiatFormatted = currency.format(fiatAmount),
     rate = asset.rateText(fiatAmount, cryptoAmount, currency),
 )
 

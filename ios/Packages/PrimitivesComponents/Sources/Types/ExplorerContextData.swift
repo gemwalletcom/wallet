@@ -8,7 +8,7 @@ public struct ExplorerContextData: Sendable, Equatable, Hashable {
 
     public init(
         copyValue: CopyValue,
-        explorerLink: BlockExplorerLink
+        explorerLink: BlockExplorerLink,
     ) {
         self.copyValue = copyValue
         self.explorerLink = explorerLink

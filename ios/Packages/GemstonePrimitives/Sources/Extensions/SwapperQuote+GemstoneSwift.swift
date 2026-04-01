@@ -1,22 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
-import Primitives
-import struct Gemstone.SwapperQuote
+import Foundation
 import struct Gemstone.SwapperProviderType
+import struct Gemstone.SwapperQuote
+import Primitives
 
 public extension Gemstone.SwapperQuote {
     func map() throws -> Primitives.SwapQuote {
-        Primitives.SwapQuote(
+        try Primitives.SwapQuote(
             fromAddress: request.walletAddress,
             fromValue: fromValue,
             toAddress: request.destinationAddress,
             toValue: toValue,
-            providerData: try data.provider.map(),
+            providerData: data.provider.map(),
             slippageBps: data.slippageBps,
-            etaInSeconds: self.etaInSeconds,
-            useMaxAmount: request.options.useMaxAmount
+            etaInSeconds: etaInSeconds,
+            useMaxAmount: request.options.useMaxAmount,
         )
     }
 
@@ -31,10 +31,10 @@ public extension Gemstone.SwapperQuote {
 
 extension Gemstone.SwapperProviderType {
     func map() throws -> Primitives.SwapProviderData {
-        Primitives.SwapProviderData(
-            provider: try id.map(),
-            name: self.name,
-            protocolName: self.protocol
+        try Primitives.SwapProviderData(
+            provider: id.map(),
+            name: name,
+            protocolName: self.protocol,
         )
     }
 }

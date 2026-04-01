@@ -15,7 +15,7 @@ public extension Perpetual {
         volume24h: Double = 10_000_000,
         funding: Double = 0.0001,
         maxLeverage: UInt8 = 50,
-        isIsolatedOnly: Bool = false
+        isIsolatedOnly: Bool = false,
     ) -> Perpetual {
         Perpetual(
             id: id,
@@ -29,7 +29,7 @@ public extension Perpetual {
             volume24h: volume24h,
             funding: funding,
             maxLeverage: maxLeverage,
-            isIsolatedOnly: isIsolatedOnly
+            isIsolatedOnly: isIsolatedOnly,
         )
     }
 }

@@ -8,10 +8,12 @@ let package = Package(
     products: [
         .library(
             name: "Keystore",
-            targets: ["Keystore"]),
+            targets: ["Keystore"],
+        ),
         .library(
             name: "KeystoreTestKit",
-            targets: ["KeystoreTestKit"]),
+            targets: ["KeystoreTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
@@ -31,7 +33,7 @@ let package = Package(
                 "Keychain",
                 "GemstonePrimitives",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "KeystoreTestKit",
@@ -39,14 +41,15 @@ let package = Package(
                 "Keystore",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "KeystoreTests",
             dependencies: [
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "KeystoreTestKit",
-                "Keystore"
-            ]),
-    ]
+                "Keystore",
+            ],
+        ),
+    ],
 )

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Localization
 import Style
-import Components
+import SwiftUI
 
 public struct ToolbarDismissItem: ToolbarContent {
     @Environment(\.dismiss) private var dismiss
@@ -19,7 +19,7 @@ public struct ToolbarDismissItem: ToolbarContent {
             case .cancel: Localized.Common.cancel
             case .done: Localized.Common.done
             case .close: ""
-            case .custom(let title): title
+            case let .custom(title): title
             }
         }
     }
@@ -29,7 +29,7 @@ public struct ToolbarDismissItem: ToolbarContent {
 
     public init(
         type: ButtonType,
-        placement: ToolbarItemPlacement
+        placement: ToolbarItemPlacement,
     ) {
         self.type = type
         self.placement = placement

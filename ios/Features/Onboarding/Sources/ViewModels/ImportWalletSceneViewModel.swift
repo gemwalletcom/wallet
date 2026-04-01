@@ -1,16 +1,16 @@
-import Foundation
-import Primitives
-import Style
-import Localization
-import WalletService
-import NameService
-import PrimitivesComponents
-import SwiftUI
 import Components
+import Foundation
 import GemstonePrimitives
+import Localization
+import NameService
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
+import WalletService
 internal import func Gemstone.supportsPrivateKeyImport
 import enum Keystore.KeystoreImportType
-import struct Keystore.Mnemonic
+import enum Keystore.Mnemonic
 
 @Observable
 @MainActor
@@ -34,12 +34,12 @@ final class ImportWalletSceneViewModel {
         walletService: WalletService,
         nameService: any NameServiceable,
         type: ImportWalletType,
-        onComplete: ((Wallet) -> Void)?
+        onComplete: ((Wallet) -> Void)?,
     ) {
         self.walletService = walletService
         self.type = type
         self.onComplete = onComplete
-        self.nameRecordViewModel = switch type {
+        nameRecordViewModel = switch type {
         case .multicoin: nil
         case .chain: NameRecordViewModel(nameService: nameService)
         }
@@ -48,7 +48,7 @@ final class ImportWalletSceneViewModel {
     var title: String {
         switch type {
         case .multicoin: Localized.Wallet.multicoin
-        case .chain(let chain): Asset(chain).name
+        case let .chain(chain): Asset(chain).name
         }
     }
 
@@ -61,7 +61,7 @@ final class ImportWalletSceneViewModel {
     var chain: Chain? {
         switch type {
         case .multicoin: .none
-        case .chain(let chain): chain
+        case let .chain(chain): chain
         }
     }
 
@@ -70,7 +70,7 @@ final class ImportWalletSceneViewModel {
         switch type {
         case .multicoin:
             return [.phrase]
-        case .chain(let chain):
+        case let .chain(chain):
             if supportsPrivateKeyImport(chain: chain.rawValue) {
                 return [.phrase, .privateKey, .address]
             }
@@ -100,7 +100,6 @@ final class ImportWalletSceneViewModel {
 // MARK: - Business Logic
 
 extension ImportWalletSceneViewModel {
-
     func onChangeImportType(_: WalletImportType, _: WalletImportType) {
         input = ""
     }
@@ -121,7 +120,7 @@ extension ImportWalletSceneViewModel {
             } catch {
                 isPresentingAlertMessage = AlertMessage(
                     title: alertTitle,
-                    message: error.localizedDescription
+                    message: error.localizedDescription,
                 )
                 buttonState = .normal
             }
@@ -139,7 +138,7 @@ extension ImportWalletSceneViewModel {
     func onSelectWord(_ word: String) {
         input = wordSuggester.selectWordCalculate(
             input: input,
-            word: word
+            word: word,
         )
     }
 
@@ -177,12 +176,12 @@ extension ImportWalletSceneViewModel {
             case .multicoin:
                 try await importWallet(
                     name: recipient.name,
-                    keystoreType: .phrase(words: words, chains: AssetConfiguration.allChains)
+                    keystoreType: .phrase(words: words, chains: AssetConfiguration.allChains),
                 )
-            case .chain(let chain):
+            case let .chain(chain):
                 try await importWallet(
                     name: recipient.name,
-                    keystoreType: .single(words: words, chain: chain)
+                    keystoreType: .single(words: words, chain: chain),
                 )
             }
         case .privateKey:
@@ -209,7 +208,7 @@ extension ImportWalletSceneViewModel {
         onComplete?(wallet)
     }
 
-    private func validateForm(type: WalletImportType, address: String, words: [String]) throws  -> Bool {
+    private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {
         switch type {
         case .phrase:
             for word in words {

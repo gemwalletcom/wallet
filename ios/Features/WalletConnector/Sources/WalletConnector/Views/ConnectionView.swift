@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
-import PrimitivesComponents
 import Localization
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 struct ConnectionView: View {
     @State private var isPresentingUrl: URL? = nil
@@ -34,7 +34,7 @@ struct ConnectionView: View {
             if let url = model.url {
                 ContextMenuItem(
                     title: Localized.Settings.website,
-                    systemImage: SystemImage.globe
+                    systemImage: SystemImage.globe,
                 ) {
                     isPresentingUrl = url
                 }

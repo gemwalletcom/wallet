@@ -2,6 +2,7 @@ package com.gemwallet.android.features.swap.views
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
@@ -9,24 +10,27 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
-import com.gemwallet.android.features.swap.viewmodels.models.SwapProperty
 import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 import com.gemwallet.android.features.swap.views.components.SwapAction
-import com.gemwallet.android.features.swap.views.components.SwapDetailPropertyItem
 import com.gemwallet.android.features.swap.views.components.SwapError
 import com.gemwallet.android.features.swap.views.components.SwapItem
+import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
+import com.gemwallet.android.ui.theme.iconSize
 
 @Composable
 internal fun SwapScene(
@@ -35,10 +39,9 @@ internal fun SwapScene(
     receive: AssetInfo?,
     payEquivalent: String,
     receiveEquivalent: String,
-    priceImpact: SwapProperty.PriceImpact?,
-    rate: SwapProperty.Rate?,
-    isShowPriceImpactAlert: MutableState<Boolean>,
-    selectState: (SwapItemType?) -> Unit,
+    swapDetails: SwapDetailsUIModel?,
+    onShowPriceImpactWarning: () -> Unit,
+    onSelectAsset: (SwapItemType) -> Unit,
     payValue: TextFieldState,
     receiveValue: TextFieldState,
     switchSwap: () -> Unit,
@@ -51,7 +54,7 @@ internal fun SwapScene(
     Scene(
         title = stringResource(id = R.string.wallet_swap),
         mainAction = {
-            SwapAction(swapState, pay) {
+            SwapAction(swapState) {
                 when {
                     swapState is SwapState.Error && swapState.error is SwapError.InputAmountTooSmall -> {
                         val value = pay?.asset?.let {
@@ -60,7 +63,7 @@ internal fun SwapScene(
                         payValue.clearText()
                         payValue.setTextAndPlaceCursorAtEnd(value.toString())
                     }
-                    priceImpact?.isHigh == true -> isShowPriceImpactAlert.value = true
+                    swapDetails?.shouldShowPriceImpactWarning == true -> onShowPriceImpactWarning()
                     else -> onSwap()
                 }
             }
@@ -69,6 +72,9 @@ internal fun SwapScene(
     ) {
         LazyColumn {
             item {
+                SwapSectionHeader(R.string.swap_you_pay)
+            }
+            item {
                 SwapItem(
                     type = SwapItemType.Pay,
                     item = pay,
@@ -76,20 +82,27 @@ internal fun SwapScene(
                     state = payValue,
                     onAssetSelect = {
                         keyboardController?.hide()
-                        selectState(SwapItemType.Pay)
+                        onSelectAsset(SwapItemType.Pay)
                     }
                 )
             }
             item {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    IconButton(onClick = switchSwap) {
+                    Box(
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clickable(onClick = switchSwap),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(
                             imageVector = Icons.Default.SwapVert,
-                            contentDescription = "swap_switch"
+                            contentDescription = stringResource(R.string.wallet_swap),
                         )
                     }
-
                 }
+            }
+            item {
+                SwapSectionHeader(R.string.swap_you_receive)
             }
             item {
                 SwapItem(
@@ -100,13 +113,15 @@ internal fun SwapScene(
                     calculating = swapState == SwapState.GetQuote,
                     onAssetSelect = {
                         keyboardController?.hide()
-                        selectState(SwapItemType.Receive)
+                        onSelectAsset(SwapItemType.Receive)
                     }
 
                 )
             }
             item {
-                SwapDetailPropertyItem(rate, priceImpact, swapState, onDetails)
+                swapDetails?.let {
+                    SwapDetailsSummaryItem(model = it, onClick = onDetails)
+                }
             }
 
             item {
@@ -114,4 +129,15 @@ internal fun SwapScene(
             }
         }
     }
+}
+
+@Composable
+private fun SwapSectionHeader(resId: Int) {
+    Text(
+        modifier = Modifier
+            .sectionHeaderItem(),
+        text = stringResource(resId),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.secondary,
+    )
 }

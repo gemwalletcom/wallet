@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import func Gemstone.linkTypeOrder
+import Primitives
 
-extension LinkType {
-    public var order: Int {
-        linkTypeOrder(linkType: self.rawValue).asInt
+public extension LinkType {
+    var order: Int {
+        linkTypeOrder(linkType: rawValue).asInt
     }
 }

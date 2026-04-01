@@ -74,6 +74,11 @@ class StakeViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val isStakeEnabled = assetId.filterNotNull()
+        .flatMapLatest { stakeRepository.getValidators(it.chain) }
+        .mapLatest { validators -> validators.isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val rewardsBalance = delegations
         .mapLatest { delegations -> delegations.sumRewardsBalance() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)

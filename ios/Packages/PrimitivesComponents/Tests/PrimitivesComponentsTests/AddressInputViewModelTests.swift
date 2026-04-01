@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-import GemstonePrimitives
+import Testing
 import Validators
 
 @testable import PrimitivesComponents
 
 @MainActor
 struct AddressInputViewModelTests {
-
     @Test
     func validate() {
         let model = AddressInputViewModel.mock(validators: [
@@ -47,7 +46,7 @@ struct AddressInputViewModelTests {
 }
 
 private struct NameServiceMock: NameServiceable {
-    func getName(name: String, chain: String) async throws -> NameRecord? {
+    func getName(name _: String, chain _: String) async throws -> NameRecord? {
         .mock()
     }
 }
@@ -55,13 +54,13 @@ private struct NameServiceMock: NameServiceable {
 extension AddressInputViewModel {
     static func mock(
         chain: Chain = .ethereum,
-        validators: [any TextValidator] = []
+        validators: [any TextValidator] = [],
     ) -> AddressInputViewModel {
         AddressInputViewModel(
             chain: chain,
             nameService: NameServiceMock(),
             placeholder: "Address",
-            validators: validators
+            validators: validators,
         )
     }
 }

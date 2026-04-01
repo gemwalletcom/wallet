@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import PrimitivesComponents
 import Localization
+import PrimitivesComponents
 import Style
+import SwiftUI
 
 public struct AboutUsScene: View {
     @State private var model: AboutUsViewModel
@@ -31,7 +31,7 @@ public struct AboutUsScene: View {
                 ListItemView(
                     title: model.versionTextTitle,
                     subtitle: model.versionTextValue,
-                    imageStyle: .settings(assetImage: model.versionTextImage)
+                    imageStyle: .settings(assetImage: model.versionTextImage),
                 )
                 .contextMenu(model.contextMenuItems)
 
@@ -40,9 +40,9 @@ public struct AboutUsScene: View {
                         with: ListItemView(
                             title: Localized.UpdateApp.title,
                             subtitle: version,
-                            imageStyle: .settings(assetImage: model.releaseImage)
+                            imageStyle: .settings(assetImage: model.releaseImage),
                         ),
-                        action: model.onUpdate
+                        action: model.onUpdate,
                     )
                 }
             }

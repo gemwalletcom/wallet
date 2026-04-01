@@ -16,7 +16,7 @@ public extension FileManager {
             switch self {
             case .documents: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
             case .applicationSupport: NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .userDomainMask, true)[0]
-            case .library(let folder): NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0].appending("/\(folder.rawValue)")
+            case let .library(folder): NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0].appending("/\(folder.rawValue)")
             }
         }
 

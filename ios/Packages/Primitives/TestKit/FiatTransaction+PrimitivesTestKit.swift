@@ -3,8 +3,8 @@
 import Foundation
 import Primitives
 
-extension FiatTransaction {
-    public static func mock(
+public extension FiatTransaction {
+    static func mock(
         id: String = "mock_id",
         assetId: AssetId = .mock(),
         transactionType: FiatQuoteType = .buy,
@@ -13,7 +13,7 @@ extension FiatTransaction {
         fiatAmount: Double = 100.0,
         fiatCurrency: String = "USD",
         value: String = "0",
-        createdAt: Date = .now
+        createdAt: Date = .now,
     ) -> FiatTransaction {
         FiatTransaction(
             id: id,
@@ -24,21 +24,21 @@ extension FiatTransaction {
             fiatAmount: fiatAmount,
             fiatCurrency: fiatCurrency,
             value: value,
-            createdAt: createdAt
+            createdAt: createdAt,
         )
     }
 }
 
-extension FiatTransactionInfo {
-    public static func mock(
+public extension FiatTransactionInfo {
+    static func mock(
         transaction: FiatTransaction = .mock(),
         asset: Asset = .mock(),
-        detailsUrl: String? = nil
+        detailsUrl: String? = nil,
     ) -> FiatTransactionInfo {
         FiatTransactionInfo(
             transaction: transaction,
             asset: asset,
-            detailsUrl: detailsUrl
+            detailsUrl: detailsUrl,
         )
     }
 }

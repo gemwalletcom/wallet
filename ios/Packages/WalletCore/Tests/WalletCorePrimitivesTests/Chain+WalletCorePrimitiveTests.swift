@@ -9,59 +9,58 @@ import WalletCorePrimitives
 final class Chain_WalletCorePrimitiveTests {
     @Test(arguments: Chain.allCases)
     func chainToCoinType(chain: Chain) {
-        let expected: CoinType
-        switch chain {
+        let expected: CoinType = switch chain {
         case .bitcoin:
-            expected = .bitcoin
+            .bitcoin
         case .litecoin:
-            expected = .litecoin
+            .litecoin
         case .ethereum, .smartChain, .polygon, .arbitrum, .optimism, .base,
              .avalancheC, .opBNB, .fantom, .gnosis, .manta, .blast, .zkSync,
              .linea, .mantle, .celo, .world, .sonic, .abstract, .berachain,
              .ink, .unichain, .hyperliquid, .monad, .hyperCore, .plasma, .xLayer, .stable:
-            expected = .ethereum
+            .ethereum
         case .solana:
-            expected = .solana
+            .solana
         case .thorchain:
-            expected = .thorchain
+            .thorchain
         case .cosmos:
-            expected = .cosmos
+            .cosmos
         case .osmosis:
-            expected = .osmosis
+            .osmosis
         case .ton:
-            expected = .ton
+            .ton
         case .tron:
-            expected = .tron
+            .tron
         case .doge:
-            expected = .dogecoin
+            .dogecoin
         case .aptos:
-            expected = .aptos
+            .aptos
         case .sui:
-            expected = .sui
+            .sui
         case .xrp:
-            expected = .xrp
+            .xrp
         case .celestia:
-            expected = .tia
+            .tia
         case .injective:
-            expected = .nativeInjective
+            .nativeInjective
         case .sei:
-            expected = .sei
+            .sei
         case .noble:
-            expected = .noble
+            .noble
         case .near:
-            expected = .near
+            .near
         case .stellar:
-            expected = .stellar
+            .stellar
         case .bitcoinCash:
-            expected = .bitcoinCash
+            .bitcoinCash
         case .algorand:
-            expected = .algorand
+            .algorand
         case .polkadot:
-            expected = .polkadot
+            .polkadot
         case .cardano:
-            expected = .cardano
+            .cardano
         case .zcash:
-            expected = .zcash
+            .zcash
         }
 
         #expect(chain.coinType == expected)

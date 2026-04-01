@@ -30,7 +30,7 @@ struct TonSigner: Signable {
         guard let jettonAddress = try input.metadata.senderTokenAddress() else {
             throw AnyError("Invalid token address")
         }
-        
+
         let transfer = TheOpenNetworkTransfer.with {
             $0.dest = jettonAddress
             $0.amount = jettonCreationFee.serialize()
@@ -49,7 +49,7 @@ struct TonSigner: Signable {
 
         return try sign(input: input, messages: [transfer], coinType: input.coinType, privateKey: privateKey)
     }
-    
+
     func signSwap(input: SignerInput, privateKey: Data) throws -> [String] {
         let data = try input.type.swap().data.data
         let transfer = try TheOpenNetworkTransfer.with {
@@ -62,14 +62,14 @@ struct TonSigner: Signable {
             $0.bounceable = true
             $0.customPayload = data.data
         }
-        return [
-            try sign(input: input, messages: [transfer], coinType: input.coinType, privateKey: privateKey),
+        return try [
+            sign(input: input, messages: [transfer], coinType: input.coinType, privateKey: privateKey),
         ]
     }
 
     func signData(input: SignerInput, privateKey: Data) throws -> String {
         guard
-            case .generic(_, _, let extra) = input.type,
+            case let .generic(_, _, extra) = input.type,
             let data = extra.data
         else {
             throw AnyError("Invalid input data")
@@ -92,7 +92,7 @@ struct TonSigner: Signable {
             input: input,
             messages: transfers,
             coinType: input.coinType,
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
 
@@ -103,7 +103,7 @@ struct TonSigner: Signable {
     private func sign(input: SignerInput, messages: [TW_TheOpenNetwork_Proto_Transfer], coinType: CoinType, privateKey: Data) throws -> String {
         let signingInput = try TheOpenNetworkSigningInput.with {
             $0.walletVersion = TheOpenNetworkWalletVersion.walletV4R2
-            $0.sequenceNumber = UInt32(try input.metadata.getSequence())
+            $0.sequenceNumber = try UInt32(input.metadata.getSequence())
             $0.expireAt = expireAt()
             $0.messages = messages
             $0.privateKey = privateKey
@@ -122,7 +122,7 @@ extension TheOpenNetworkSendMode {
     static func transferAllTonMode() -> UInt32 {
         UInt32(TheOpenNetworkSendMode.attachAllContractBalance.rawValue) | TheOpenNetworkSendMode.defaultMode()
     }
-    
+
     static func defaultMode() -> UInt32 {
         UInt32(TheOpenNetworkSendMode.payFeesSeparately.rawValue | TheOpenNetworkSendMode.ignoreActionPhaseErrors.rawValue)
     }

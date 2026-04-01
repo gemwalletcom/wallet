@@ -229,7 +229,7 @@ public enum Images {
     let imageCategories = [
         ("Logo", [
             (Images.Logo.logo, "Logo"),
-            (Images.Logo.logoDark, "Logo Dark")
+            (Images.Logo.logoDark, "Logo Dark"),
         ]),
         ("Chains", [
             (Images.Chains.aptos, "Aptos"),
@@ -264,14 +264,14 @@ public enum Images {
             (Images.Chains.ton, "Ton"),
             (Images.Chains.tron, "Tron"),
             (Images.Chains.xrp, "XRP"),
-            (Images.Chains.zksync, "zkSync")
+            (Images.Chains.zksync, "zkSync"),
         ]),
         ("Fiat", [
             (Images.Fiat.moonpay, "Moonpay"),
             (Images.Fiat.transak, "Transak"),
             (Images.Fiat.banxa, "Banxa"),
             (Images.Fiat.mercuryo, "Mercuryo"),
-            (Images.Fiat.cashapp, "CashApp")
+            (Images.Fiat.cashapp, "CashApp"),
         ]),
         ("Actions", [
             (Images.Actions.send, "Send"),
@@ -279,7 +279,7 @@ public enum Images {
             (Images.Actions.receive, "Receive"),
             (Images.Actions.buy, "Buy"),
             (Images.Actions.manage, "Manage"),
-            (Images.Actions.avatar, "Avatar")
+            (Images.Actions.avatar, "Avatar"),
         ]),
         ("Settings", [
             (Images.Settings.priceAlerts, "Price Alerts"),
@@ -297,7 +297,7 @@ public enum Images {
             (Images.Settings.walletConnect, "WalletConnect"),
             (Images.Settings.notifications, "Notifications"),
             (Images.Settings.preferences, "Preferences"),
-            (Images.Settings.perpetuals, "Perpetuals")
+            (Images.Settings.perpetuals, "Perpetuals"),
         ]),
         ("Social", [
             (Images.Social.github, "GitHub"),
@@ -307,19 +307,19 @@ public enum Images {
             (Images.Social.x, "X (Twitter)"),
             (Images.Social.discord, "Discord"),
             (Images.Social.reddit, "Reddit"),
-            (Images.Social.youtube, "YouTube")
+            (Images.Social.youtube, "YouTube"),
         ]),
         ("Tags", [
             (Images.Tabs.settings, "Settings"),
             (Images.Tabs.activity, "Activity"),
-            (Images.Tabs.wallet, "Wallet")
+            (Images.Tabs.wallet, "Wallet"),
         ]),
         ("Transaction", [
             (Images.Transaction.outgoing, "Outgoing"),
             (Images.Transaction.incoming, "Incoming"),
             (Images.Transaction.State.pending, "Pending"),
             (Images.Transaction.State.error, "Error"),
-            (Images.Transaction.State.success, "Success")
+            (Images.Transaction.State.success, "Success"),
         ]),
         ("Wallets", [
             (Images.Wallets.edit, "Edit"),
@@ -327,16 +327,16 @@ public enum Images {
             (Images.Wallets.import, "Import"),
             (Images.Wallets.watch, "Watch"),
             (Images.Wallets.selected, "Selected"),
-            (Images.Wallets.editFilled, "Filled")
+            (Images.Wallets.editFilled, "Filled"),
         ]),
         ("Name Resolve", [
             (Images.NameResolve.success, "Success"),
-            (Images.NameResolve.error, "Error")
+            (Images.NameResolve.error, "Error"),
         ]),
         ("Price Alert", [
             (Images.PriceAlert.down, "down"),
-            (Images.PriceAlert.up, "up")
-        ])
+            (Images.PriceAlert.up, "up"),
+        ]),
     ]
 
     List {

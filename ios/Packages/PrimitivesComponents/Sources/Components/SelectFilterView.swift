@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Style
+import SwiftUI
 
 public struct SelectFilterView: View {
     private let typeModel: any FilterTypeRepresentable
@@ -10,7 +10,7 @@ public struct SelectFilterView: View {
 
     public init(
         typeModel: any FilterTypeRepresentable,
-        action: @escaping @MainActor @Sendable () -> Void
+        action: @escaping @MainActor @Sendable () -> Void,
     ) {
         self.typeModel = typeModel
         self.action = action
@@ -21,9 +21,9 @@ public struct SelectFilterView: View {
             with: ListItemView(
                 title: typeModel.title,
                 subtitle: typeModel.value,
-                imageStyle: .settings(assetImage: typeModel.image)
+                imageStyle: .settings(assetImage: typeModel.image),
             ),
-            action: action
+            action: action,
         )
     }
 }
@@ -31,6 +31,6 @@ public struct SelectFilterView: View {
 #Preview {
     SelectFilterView(
         typeModel: ChainsFilterTypeViewModel(type: .allChains),
-        action: {}
+        action: {},
     )
 }

@@ -6,8 +6,9 @@ enum class PriceState {
     Down,
 }
 
-fun Double.getPriceState() = when {
-    this >= 0.0 -> PriceState.Up // TODO: Check it.
+fun Double?.toPriceState(): PriceState = when {
+    this == null || !isFinite() -> PriceState.None
+    this > 0.0 -> PriceState.Up
     this < 0.0 -> PriceState.Down
     else -> PriceState.None
 }

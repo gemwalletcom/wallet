@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import ScanService
-import Primitives
 import Blockchain
+import Foundation
 import NativeProviderService
+import Primitives
+import ScanService
 
 public extension ScanService {
     static func mock() -> ScanService {

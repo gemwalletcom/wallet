@@ -4,7 +4,6 @@ import XCTest
 
 @MainActor
 final class UpgradeVerificationTests: XCTestCase {
-
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false

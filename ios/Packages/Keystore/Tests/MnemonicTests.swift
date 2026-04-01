@@ -1,5 +1,5 @@
-import Testing
 @testable import Keystore
+import Testing
 
 final class MnemonicTests {
     let validWords = [
@@ -14,7 +14,7 @@ final class MnemonicTests {
         "pear",
         "what",
         "skull",
-        "force"
+        "force",
     ]
 
     let invalidWords = [
@@ -29,17 +29,17 @@ final class MnemonicTests {
         "sun",
         "offer",
         "wealth",
-        "tomorrow"
+        "tomorrow",
     ]
 
     @Test
-    func testIsValidMnemonicWords() {
+    func isValidMnemonicWords() {
         #expect(Mnemonic.isValidWords(validWords))
         #expect(!Mnemonic.isValidWords(invalidWords))
     }
 
     @Test
-    func testIsValidMnemonicWord() {
+    func isValidMnemonicWord() {
         #expect(Mnemonic.isValidWord(validWords.first!))
         #expect(!Mnemonic.isValidWord("test1"))
     }

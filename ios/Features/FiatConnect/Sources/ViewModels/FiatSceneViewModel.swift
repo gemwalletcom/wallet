@@ -1,23 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
-import Components
-import Style
-import Localization
-import Store
-import PrimitivesComponents
-import Formatters
-import Validators
-import BigInt
-import FiatService
 import BalanceService
+import BigInt
+import Components
+import FiatService
+import Formatters
+import Foundation
+import Localization
+import Primitives
+import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
+import Validators
 
 @MainActor
 @Observable
 public final class FiatSceneViewModel {
-    private struct Constants {
+    private enum Constants {
         static let randomMaxAmount: Int = 1000
         static let defaultAmount: Int = 50
         static let suggestedAmounts: [Int] = [100, 250]
@@ -48,7 +48,7 @@ public final class FiatSceneViewModel {
         wallet: Wallet,
         assetsEnabler: any AssetsEnabler,
         type: FiatQuoteType = .buy,
-        amount: Int? = nil
+        amount: Int? = nil,
     ) {
         self.fiatService = fiatService
         self.currencyFormatter = currencyFormatter
@@ -56,34 +56,34 @@ public final class FiatSceneViewModel {
         self.wallet = wallet
         self.assetsEnabler = assetsEnabler
         self.type = type
-        self.assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
 
         let buyOperation = BuyOperation(
             service: fiatService,
             asset: assetAddress.asset,
             currencyFormatter: currencyFormatter,
-            walletId: wallet.walletId
+            walletId: wallet.walletId,
         )
         let sellOperation = SellOperation(
             service: fiatService,
             asset: assetAddress.asset,
             currencyFormatter: currencyFormatter,
-            walletId: wallet.walletId
+            walletId: wallet.walletId,
         )
 
-        self.buyViewModel = FiatOperationViewModel(
+        buyViewModel = FiatOperationViewModel(
             operation: buyOperation,
             asset: assetAddress.asset,
-            currencyFormatter: currencyFormatter
+            currencyFormatter: currencyFormatter,
         )
-        self.sellViewModel = FiatOperationViewModel(
+        sellViewModel = FiatOperationViewModel(
             operation: sellOperation,
             asset: assetAddress.asset,
-            currencyFormatter: currencyFormatter
+            currencyFormatter: currencyFormatter,
         )
 
         let initialAmount = amount.map { String($0) } ?? buyViewModel.amount
-        self.fetchTrigger = FiatFetchTrigger(type: type, amount: initialAmount, isImmediate: true)
+        fetchTrigger = FiatFetchTrigger(type: type, amount: initialAmount, isImmediate: true)
 
         if let amount {
             currentViewModel.inputValidationModel.text = String(amount)
@@ -98,7 +98,7 @@ public final class FiatSceneViewModel {
     }
 
     var quotesState: StateViewType<[FiatQuote]> {
-        currentViewModel.quotesState.map { $0.quotes }
+        currentViewModel.quotesState.map(\.quotes)
     }
 
     var selectedQuote: FiatQuote? {
@@ -132,6 +132,7 @@ public final class FiatSceneViewModel {
         if currentViewModel.inputValidationModel.isInvalid || currentViewModel.inputValidationModel.text.isEmptyOrZero { return .noData }
         return quotesState
     }
+
     var providerTitle: String { Localized.Common.provider }
     var rateTitle: String { Localized.Buy.rate }
     var errorTitle: String { Localized.Errors.errorOccured }
@@ -177,7 +178,7 @@ extension FiatSceneViewModel {
         currentViewModel.fetch()
     }
 
-    func onAssetDataChange(_ oldValue: AssetData, _ newValue: AssetData) {
+    func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
         buyViewModel.availableBalance = newValue.balance.available
         sellViewModel.availableBalance = newValue.balance.available
     }
@@ -201,7 +202,7 @@ extension FiatSceneViewModel {
                 urlState = .error(error)
                 isPresentingAlertMessage = AlertMessage(
                     title: Localized.Errors.errorOccured,
-                    message: error.localizedDescription
+                    message: error.localizedDescription,
                 )
                 debugLog("FiatSceneViewModel get quote URL error: \(error)")
             }
@@ -214,7 +215,7 @@ extension FiatSceneViewModel {
     }
 
     func onSelectRandomAmount() {
-        let amount = Int.random(in: Constants.defaultAmount..<Constants.randomMaxAmount)
+        let amount = Int.random(in: Constants.defaultAmount ..< Constants.randomMaxAmount)
         selectAmount(amount)
     }
 

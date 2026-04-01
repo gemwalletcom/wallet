@@ -8,7 +8,7 @@ public struct SearchStore: Sendable {
     private let dbQueue: DatabaseQueue
 
     public init(db: DB) {
-        self.dbQueue = db.dbQueue
+        dbQueue = db.dbQueue
     }
 
     public func add(type: SearchItemType, query: String, ids: [String]) throws {

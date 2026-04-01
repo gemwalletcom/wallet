@@ -11,9 +11,9 @@ public struct TransferTransactionData: Sendable {
     public init(
         allRates: [FeeRate],
         transactionData: TransactionData,
-        scanResult: ScanTransaction? = nil
+        scanResult: ScanTransaction? = nil,
     ) {
-        self.rates = allRates
+        rates = allRates
         self.transactionData = transactionData
         self.scanResult = scanResult
     }

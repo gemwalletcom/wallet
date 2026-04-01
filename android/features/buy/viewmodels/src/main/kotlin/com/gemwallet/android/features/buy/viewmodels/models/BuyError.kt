@@ -5,6 +5,8 @@ sealed interface BuyError {
 
     data object MinimumAmount : BuyError
 
+    data object MaximumAmount : BuyError
+
     data object QuoteNotAvailable : BuyError
 
     data object ValueIncorrect : BuyError

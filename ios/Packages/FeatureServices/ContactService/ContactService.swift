@@ -20,7 +20,7 @@ public struct ContactService: Sendable {
 
     public func updateContact(_ contact: Contact, addresses: [ContactAddress]) throws {
         let existingIds = try store.getAddressIds(contactId: contact.id).asSet()
-        let newIds = addresses.map { $0.id }.asSet()
+        let newIds = addresses.map(\.id).asSet()
         let changes = SyncDiff.calculate(primary: .local, local: newIds, remote: existingIds)
 
         try store.updateContact(contact, deleteAddressIds: changes.toDelete.asArray(), addresses: addresses)

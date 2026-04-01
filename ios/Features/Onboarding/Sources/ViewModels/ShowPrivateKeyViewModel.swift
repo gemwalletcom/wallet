@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import Primitives
 import Localization
+import Primitives
 import PrimitivesComponents
 import Style
-import Components
 
 struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
     let text: String
@@ -14,7 +14,7 @@ struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
     init(text: String) {
         self.text = text
     }
-    
+
     var calloutViewStyle: CalloutViewStyle? {
         .secretDataWarning()
     }
@@ -26,9 +26,10 @@ struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
     var copyModel: CopyTypeViewModel {
         CopyTypeViewModel(
             type: .privateKey,
-            copyValue: text
+            copyValue: text,
         )
     }
+
     var type: SecretPhraseDataType {
         .privateKey(key: text)
     }

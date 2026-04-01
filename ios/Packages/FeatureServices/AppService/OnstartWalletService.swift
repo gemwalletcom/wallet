@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Preferences
 import BannerService
-import DeviceService
-import NotificationService
 import ChainService
+import DeviceService
+import Foundation
+import NotificationService
+import Preferences
+import Primitives
 
 public final class OnstartWalletService: Sendable {
-
     private let preferences: Preferences
     private let deviceService: any DeviceServiceable
     private let bannerSetupService: BannerSetupService
@@ -21,7 +20,7 @@ public final class OnstartWalletService: Sendable {
         deviceService: any DeviceServiceable,
         bannerSetupService: BannerSetupService,
         addressStatusService: AddressStatusService,
-        pushNotificationEnablerService: PushNotificationEnablerService
+        pushNotificationEnablerService: PushNotificationEnablerService,
     ) {
         self.preferences = preferences
         self.deviceService = deviceService
@@ -36,7 +35,7 @@ public final class OnstartWalletService: Sendable {
             await runAddressStatusCheck(wallet)
         }
     }
-    
+
     public func requestPushPermissions() async {
         do {
             let status = try await pushNotificationEnablerService.getNotificationSettingsStatus()

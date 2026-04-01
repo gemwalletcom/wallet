@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Store
 import Primitives
+import Store
+import Testing
 
 struct TransactionsRequestTests {
-
     @Test
     func assetScene() {
         let walletId = WalletId.multicoin(address: "wallet")
@@ -13,11 +12,11 @@ struct TransactionsRequestTests {
 
         #expect(
             TransactionsRequest.assetScene(walletId: walletId, assetId: assetId) ==
-            TransactionsRequest(
-                walletId: walletId,
-                type: .asset(assetId: assetId),
-                limit: 25
-            )
+                TransactionsRequest(
+                    walletId: walletId,
+                    type: .asset(assetId: assetId),
+                    limit: 25,
+                ),
         )
     }
 
@@ -30,17 +29,17 @@ struct TransactionsRequestTests {
             TransactionsRequest.perpetualScene(
                 walletId: walletId,
                 assetId: assetId,
-                limit: 50
+                limit: 50,
             ) ==
-            TransactionsRequest(
-                walletId: walletId,
-                type: .asset(assetId: assetId),
-                filters: [.types([
-                    TransactionType.perpetualOpenPosition.rawValue,
-                    TransactionType.perpetualClosePosition.rawValue
-                ])],
-                limit: 50
-            )
+                TransactionsRequest(
+                    walletId: walletId,
+                    type: .asset(assetId: assetId),
+                    filters: [.types([
+                        TransactionType.perpetualOpenPosition.rawValue,
+                        TransactionType.perpetualClosePosition.rawValue,
+                    ])],
+                    limit: 50,
+                ),
         )
     }
 }

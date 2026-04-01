@@ -4,12 +4,12 @@ import SwiftUI
 public struct LiquidGlassModifier: ViewModifier {
     private let tint: Color?
     private let interactive: Bool
-    
+
     public init(tint: Color?, interactive: Bool) {
         self.tint = tint
         self.interactive = interactive
     }
-    
+
     public func body(content: Content) -> some View {
         content
             .glassEffect(.regular.tint(tint).interactive(interactive))
@@ -18,10 +18,10 @@ public struct LiquidGlassModifier: ViewModifier {
 
 public extension View {
     @ViewBuilder
-    func liquidGlass<Fallback: View>(
+    func liquidGlass(
         tint: Color? = nil,
         interactive: Bool = true,
-        fallback: (Self) -> Fallback
+        fallback: (Self) -> some View,
     ) -> some View {
         if #available(iOS 26.0, *) {
             modifier(LiquidGlassModifier(tint: tint, interactive: interactive))
@@ -29,16 +29,16 @@ public extension View {
             fallback(self)
         }
     }
-    
+
     @ViewBuilder
     func liquidGlass(
         tint: Color? = nil,
-        interactive: Bool = true
+        interactive: Bool = true,
     ) -> some View {
         liquidGlass(
             tint: tint,
             interactive: interactive,
-            fallback: { $0 }
+            fallback: { $0 },
         )
     }
 }

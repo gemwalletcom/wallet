@@ -4,8 +4,8 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPerpetualMetadata {
-    public func map() -> PerpetualMetadata {
+public extension GemPerpetualMetadata {
+    func map() -> PerpetualMetadata {
         PerpetualMetadata(isPinned: isPinned)
     }
 }

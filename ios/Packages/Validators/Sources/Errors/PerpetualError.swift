@@ -11,7 +11,7 @@ enum PerpetualError: Equatable {
 extension PerpetualError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case .invalidAutoclose(let type, let direction):
+        case let .invalidAutoclose(type, direction):
             let comparison = switch (type, direction) {
             case (.takeProfit, .long), (.stopLoss, .short): "higher"
             case (.takeProfit, .short), (.stopLoss, .long): "lower"

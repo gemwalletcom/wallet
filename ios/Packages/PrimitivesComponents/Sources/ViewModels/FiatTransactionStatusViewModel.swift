@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import Primitives
 import Style
 import SwiftUI
-import Localization
 
 public struct FiatTransactionStatusViewModel: Sendable {
     let status: FiatTransactionStatus

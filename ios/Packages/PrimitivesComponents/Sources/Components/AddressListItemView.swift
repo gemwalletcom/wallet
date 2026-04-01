@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import Style
 import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public struct AddressListItemView: View {
     @State private var isPresentingUrl: URL? = nil
@@ -21,7 +21,7 @@ public struct AddressListItemView: View {
             subtitle: showAddress ? model.addressSubtitle : model.subtitle,
             assetImage: model.assetImage,
             assetImageStyle: model.assetImageStyle,
-            imageSize: model.assetImageSize
+            imageSize: model.assetImageSize,
         )
         .onTap {
             if model.canToggleAddress {
@@ -30,7 +30,7 @@ public struct AddressListItemView: View {
         }
         .contextMenu([
             .copy(value: model.account.address),
-            .url(title: model.addressExplorerText, onOpen: { isPresentingUrl = model.addressExplorerUrl })
+            .url(title: model.addressExplorerText, onOpen: { isPresentingUrl = model.addressExplorerUrl }),
         ])
         .safariSheet(url: $isPresentingUrl)
     }

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
-import Localization
 import Components
+import Localization
+import Style
+import SwiftUI
 
 public struct TextInputScene<ViewModel: TextInputViewModelProtocol>: View {
     @Environment(\.dismiss) private var dismiss
@@ -59,8 +59,8 @@ public struct TextInputScene<ViewModel: TextInputViewModelProtocol>: View {
                 Localized.Errors.errorOccured,
                 isPresented: Binding(
                     get: { model.errorMessage != nil },
-                    set: { if !$0 { model.errorMessage = nil } }
-                )
+                    set: { if !$0 { model.errorMessage = nil } },
+                ),
             ) {
                 Button(Localized.Common.done, role: .cancel) {}
             } message: {

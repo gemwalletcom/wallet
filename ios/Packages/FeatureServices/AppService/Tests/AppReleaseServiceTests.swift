@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import AppService
+import AppServiceTestKit
 import Foundation
-import Testing
-import Primitives
-import PrimitivesTestKit
+import GemAPITestKit
 import Preferences
 import PreferencesTestKit
-import GemAPITestKit
-import AppServiceTestKit
-@testable import AppService
+import Primitives
+import PrimitivesTestKit
+import Testing
 
 struct AppReleaseServiceTests {
     @Test

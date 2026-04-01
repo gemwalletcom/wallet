@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Localization
+import Style
+import SwiftUI
 
 struct ScreenRecordingProtectionModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
@@ -20,7 +20,7 @@ struct ScreenRecordingProtectionModifier: ViewModifier {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onChange(of: scenePhase) { _, newPhase in
+        .onChange(of: scenePhase) { _, _ in
             updateRecordingState()
         }
         .onAppear {
@@ -30,7 +30,8 @@ struct ScreenRecordingProtectionModifier: ViewModifier {
 
     private func updateRecordingState() {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
+              let window = windowScene.windows.first
+        else {
             return
         }
 

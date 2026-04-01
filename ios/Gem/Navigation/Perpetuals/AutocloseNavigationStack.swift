@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Store
-import Perpetuals
-import Transfer
 import Components
+import Perpetuals
+import Primitives
 import PrimitivesComponents
+import Store
+import SwiftUI
+import Transfer
 
 struct AutocloseNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -21,8 +21,8 @@ struct AutocloseNavigationStack: View {
         NavigationStack(path: $navigationPath) {
             AutocloseScene(
                 model: AutocloseSceneViewModel(
-                    type: .modify(position, onTransferAction: { navigationPath.append($0) })
-                )
+                    type: .modify(position, onTransferAction: { navigationPath.append($0) }),
+                ),
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
@@ -31,8 +31,8 @@ struct AutocloseNavigationStack: View {
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
                         data: $0,
-                        onComplete: onComplete
-                    )
+                        onComplete: onComplete,
+                    ),
                 )
             }
         }

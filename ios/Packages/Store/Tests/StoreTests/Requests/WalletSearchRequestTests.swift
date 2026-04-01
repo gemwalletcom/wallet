@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import Primitives
+import PrimitivesTestKit
 import Store
 import StoreTestKit
-import PrimitivesTestKit
-import Primitives
+import Testing
 
 struct WalletSearchRequestTests {
-
     @Test
     func searchAssets() throws {
         let db = DB.mockAssets()
@@ -22,12 +21,12 @@ struct WalletSearchRequestTests {
         }
 
         let query = "priority test"
-        let expectedOrder = [AssetBasic].mock().reversed().map { $0.asset.id.identifier }
+        let expectedOrder = [AssetBasic].mock().reversed().map(\.asset.id.identifier)
         try searchStore.add(type: .asset, query: query, ids: expectedOrder)
 
         try db.dbQueue.read { db in
             let result = try WalletSearchRequest(walletId: .mock(), searchBy: query, limit: 10).fetch(db)
-            #expect(result.assets.map { $0.asset.id.identifier } == expectedOrder)
+            #expect(result.assets.map(\.asset.id.identifier) == expectedOrder)
         }
     }
 

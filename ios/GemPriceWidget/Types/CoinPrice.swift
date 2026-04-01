@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Primitives
+import SwiftUI
 
-internal struct CoinPrice: Sendable, Identifiable {
+struct CoinPrice: Sendable, Identifiable {
     let assetId: AssetId
     let name: String
     let symbol: String

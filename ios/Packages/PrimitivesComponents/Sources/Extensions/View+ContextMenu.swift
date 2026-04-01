@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Localization
+import Style
+import SwiftUI
 
 public extension View {
     func contextMenu(_ items: [ContextMenuItemType]) -> some View {
-        self.contextMenu {
+        contextMenu {
             ForEach(Array(items.enumerated()), id: \.offset) {
                 build($0.element)
             }
@@ -23,7 +23,7 @@ public extension View {
         case let .copy(title, value, expirationTime, onCopied):
             ContextMenuItem(
                 title: title ?? Localized.Common.copy,
-                systemImage: SystemImage.copy
+                systemImage: SystemImage.copy,
             ) {
                 CopyTypeViewModel.copyToClipboard(value, expirationTime: expirationTime)
                 onCopied?(value)
@@ -34,7 +34,7 @@ public extension View {
                 systemImage: isPinned ? SystemImage.unpin : SystemImage.pin,
                 action: {
                     onPin?()
-                }
+                },
             )
         case let .hide(onHide):
             ContextMenuItem(
@@ -42,7 +42,7 @@ public extension View {
                 systemImage: SystemImage.hide,
                 action: {
                     onHide?()
-                }
+                },
             )
         case let .delete(onDelete):
             ContextMenuItem(
@@ -51,12 +51,12 @@ public extension View {
                 role: .destructive,
                 action: {
                     onDelete?()
-                }
+                },
             )
         case let .url(title, onOpen):
             ContextMenuItem(
                 title: title,
-                systemImage: SystemImage.globe
+                systemImage: SystemImage.globe,
             ) {
                 onOpen?()
             }
@@ -64,7 +64,7 @@ public extension View {
             ContextMenuItem(
                 title: title,
                 systemImage: systemImage,
-                role: role
+                role: role,
             ) {
                 action?()
             }

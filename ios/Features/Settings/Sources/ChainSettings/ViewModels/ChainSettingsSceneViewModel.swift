@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import ChainService
-import NodeService
 import ExplorerService
 import Formatters
+import Foundation
+import Localization
+import NodeService
+import Primitives
 
 @Observable
 @MainActor
@@ -33,7 +33,7 @@ public final class ChainSettingsSceneViewModel {
         nodeService: NodeService,
         chainServiceFactory: ChainServiceFactory,
         explorerService: ExplorerService = .standard,
-        chain: Chain
+        chain: Chain,
     ) {
         self.nodeService = nodeService
         self.chainServiceFactory = chainServiceFactory
@@ -41,10 +41,10 @@ public final class ChainSettingsSceneViewModel {
 
         self.chain = chain
 
-        self.defaultNodes = NodeService.defaultNodes(chain: chain)
-        self.selectedNode = nodeService.getNodeSelected(chain: chain)
-        self.explorers = ExplorerService.explorers(chain: chain)
-        self.selectedExplorer = explorerService.get(chain: chain) ?? explorers.first
+        defaultNodes = NodeService.defaultNodes(chain: chain)
+        selectedNode = nodeService.getNodeSelected(chain: chain)
+        explorers = ExplorerService.explorers(chain: chain)
+        selectedExplorer = explorerService.get(chain: chain) ?? explorers.first
     }
 
     var title: String { Asset(chain).name }
@@ -55,7 +55,7 @@ public final class ChainSettingsSceneViewModel {
             ChainNodeViewModel(
                 chainNode: node,
                 statusState: statusStateByNodeId[node.id] ?? .none,
-                formatter: formatter
+                formatter: formatter,
             )
         }
         .sorted(by: { !canDelete(node: $0.chainNode) && canDelete(node: $1.chainNode) })
@@ -63,7 +63,7 @@ public final class ChainSettingsSceneViewModel {
 
     var explorerTitle: String { Localized.Settings.Networks.explorer }
     var deleteButtonTitle: String { Localized.Common.delete }
-    
+
     func deleteConfirmationTitle(for nodeName: String) -> String { Localized.Common.deleteConfirmation(nodeName) }
 
     func canDelete(node: ChainNode) -> Bool { !node.isGemNode && !defaultNodes.contains(where: { $0 == node }) }
@@ -138,7 +138,7 @@ extension ChainSettingsSceneViewModel {
         await withTaskGroup(of: (ChainNode, NodeStatusState).self) { group in
             for node in nodes {
                 group.addTask {
-                    (node, await self.fetchNodeStatusState(for: node))
+                    await (node, self.fetchNodeStatusState(for: node))
                 }
             }
 

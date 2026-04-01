@@ -27,7 +27,7 @@
         <activity
             android:name="com.gemwallet.android.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Wallet"
+            android:theme="@style/Theme.Wallet.Starting"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTask"
             android:icon="@mipmap/ic_launcher"

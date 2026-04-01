@@ -14,7 +14,7 @@ public struct SubscriptionService: Sendable {
     public init(
         subscriptionProvider: any GemAPISubscriptionService,
         walletStore: WalletStore,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.subscriptionProvider = subscriptionProvider
         self.walletStore = walletStore
@@ -30,7 +30,7 @@ public struct SubscriptionService: Sendable {
             WalletSubscription(
                 walletId: wallet.id,
                 source: wallet.source,
-                subscriptions: wallet.addressChains
+                subscriptions: wallet.addressChains,
             )
         }
         let remote = try await subscriptionProvider.getSubscriptions()
@@ -54,7 +54,7 @@ public struct SubscriptionService: Sendable {
 
     static func calculateChanges(
         local: [WalletSubscription],
-        remote: [WalletSubscriptionChains]
+        remote: [WalletSubscriptionChains],
     ) -> SubscriptionChanges {
         let remoteByWallet = Dictionary(uniqueKeysWithValues: remote.map { ($0.walletId, $0) })
         let localByWallet = Dictionary(uniqueKeysWithValues: local.map { ($0.walletId, $0) })

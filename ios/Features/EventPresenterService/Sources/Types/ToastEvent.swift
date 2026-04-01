@@ -8,7 +8,7 @@ public enum ToastEvent: Sendable, Equatable, Identifiable {
 
     public var id: String {
         switch self {
-        case .transfer(let data): "transfer-\(data.id)"
+        case let .transfer(data): "transfer-\(data.id)"
         }
     }
 }

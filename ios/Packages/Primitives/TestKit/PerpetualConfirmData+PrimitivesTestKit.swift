@@ -19,7 +19,7 @@ public extension PerpetualConfirmData {
         marketPrice: Double = 100.0,
         marginAmount: Double = 33.33,
         takeProfit: String? = nil,
-        stopLoss: String? = nil
+        stopLoss: String? = nil,
     ) -> PerpetualConfirmData {
         PerpetualConfirmData(
             direction: direction,
@@ -36,7 +36,7 @@ public extension PerpetualConfirmData {
             marketPrice: marketPrice,
             marginAmount: marginAmount,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
     }
 }

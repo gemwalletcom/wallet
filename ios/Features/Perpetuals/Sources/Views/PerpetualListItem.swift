@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import PrimitivesComponents
 import Formatters
+import Primitives
+import PrimitivesComponents
+import SwiftUI
 
 public struct PerpetualListItem: View {
     let perpetualData: PerpetualData
@@ -16,7 +16,7 @@ public struct PerpetualListItem: View {
         perpetualData: PerpetualData,
         currencyStyle: CurrencyFormatterType = .abbreviated,
         onPin: @escaping (String, Bool) -> Void,
-        onSelect: @escaping (Asset) -> Void
+        onSelect: @escaping (Asset) -> Void,
     ) {
         self.perpetualData = perpetualData
         self.currencyStyle = currencyStyle
@@ -30,11 +30,11 @@ public struct PerpetualListItem: View {
                 model: PerpetualItemViewModel(
                     model: PerpetualViewModel(
                         perpetual: perpetualData.perpetual,
-                        currencyStyle: currencyStyle
-                    )
-                )
+                        currencyStyle: currencyStyle,
+                    ),
+                ),
             ),
-            action: { onSelect(perpetualData.asset) }
+            action: { onSelect(perpetualData.asset) },
         )
         .listRowInsets(.assetListRowInsets)
         .contextMenu(
@@ -43,9 +43,9 @@ public struct PerpetualListItem: View {
                     isPinned: perpetualData.metadata.isPinned,
                     onPin: {
                         onPin(perpetualData.perpetual.id, !perpetualData.metadata.isPinned)
-                    }
-                )
-            ]
+                    },
+                ),
+            ],
         )
     }
 }

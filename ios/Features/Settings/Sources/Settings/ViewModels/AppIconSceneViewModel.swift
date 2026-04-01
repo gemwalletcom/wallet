@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import UIKit
-import SwiftUI
 import Localization
-import Style
 import Primitives
+import Style
+import SwiftUI
+import UIKit
 
 @Observable
 @MainActor
@@ -12,7 +12,7 @@ public final class AppIconSceneViewModel {
     private var currentIcon: AppIcon
 
     public init() {
-        self.currentIcon = AppIcon(UIApplication.shared.alternateIconName)
+        currentIcon = AppIcon(UIApplication.shared.alternateIconName)
     }
 
     var title: String { Localized.Settings.Preferences.appIcon }

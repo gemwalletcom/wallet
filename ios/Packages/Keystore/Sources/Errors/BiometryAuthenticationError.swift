@@ -13,13 +13,13 @@ public enum BiometryAuthenticationError: Error {
         case let urlError as LAError:
             switch urlError {
             case LAError.biometryNotAvailable,
-                LAError.passcodeNotSet:
+                 LAError.passcodeNotSet:
                 self = .biometryUnavailable
             case LAError.userCancel,
-                LAError.userFallback,
-                LAError.biometryLockout,
-                LAError.systemCancel,
-                LAError.appCancel:
+                 LAError.userFallback,
+                 LAError.biometryLockout,
+                 LAError.systemCancel,
+                 LAError.appCancel:
                 self = .cancelled
             default:
                 self = .authenticationFailed

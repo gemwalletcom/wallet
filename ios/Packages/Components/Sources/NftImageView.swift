@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct NftImageView: View {
-
     private let assetImage: AssetImage
     @Binding private var isImageLoaded: Bool
 
     public init(
         assetImage: AssetImage,
-        isImageLoaded: Binding<Bool> = .constant(false)
+        isImageLoaded: Binding<Bool> = .constant(false),
     ) {
         self.assetImage = assetImage
         _isImageLoaded = isImageLoaded
@@ -27,7 +26,7 @@ public struct NftImageView: View {
                         if assetImage.placeholder != nil {
                             AssetImageView(
                                 assetImage: assetImage,
-                                size: .image.large
+                                size: .image.large,
                             )
                         } else {
                             LoadingView()
@@ -36,7 +35,7 @@ public struct NftImageView: View {
                 } else {
                     NftImagePlaceholderView(name: assetImage.type)
                 }
-            case .success(let image):
+            case let .success(image):
                 image.resizable()
                     .onAppear { isImageLoaded = true }
             case .failure:

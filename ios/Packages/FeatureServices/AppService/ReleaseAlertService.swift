@@ -12,7 +12,7 @@ public struct ReleaseAlertService: Sendable {
 
     public init(
         appReleaseService: AppReleaseService,
-        preferences: Preferences
+        preferences: Preferences,
     ) {
         self.appReleaseService = appReleaseService
         self.preferences = preferences

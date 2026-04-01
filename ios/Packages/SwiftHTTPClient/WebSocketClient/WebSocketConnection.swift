@@ -3,7 +3,6 @@
 import Foundation
 
 public actor WebSocketConnection: WebSocketConnectable {
-
     public private(set) var state: WebSocketState = .disconnected
 
     private let configuration: WebSocketConfiguration
@@ -88,7 +87,7 @@ public actor WebSocketConnection: WebSocketConnectable {
                 try await task?.send(message)
             } catch {
                 #if DEBUG
-                NSLog("WebSocket send error: \(error)")
+                    NSLog("WebSocket send error: \(error)")
                 #endif
             }
         }
@@ -151,13 +150,13 @@ public actor WebSocketConnection: WebSocketConnectable {
             },
             didClose: { [weak self] closeCode, reason in
                 Task { await self?.didClose(closeCode: closeCode, reason: reason) }
-            }
+            },
         )
 
         session = URLSession(
             configuration: configuration.sessionConfiguration,
             delegate: delegate,
-            delegateQueue: nil
+            delegateQueue: nil,
         )
 
         task = session?.webSocketTask(with: request)
@@ -178,7 +177,7 @@ public actor WebSocketConnection: WebSocketConnectable {
         }
     }
 
-    private func didClose(closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+    private func didClose(closeCode _: URLSessionWebSocketTask.CloseCode, reason _: Data?) {
         guard state != .disconnected else { return }
         scheduleReconnect(with: nil)
     }
@@ -193,20 +192,20 @@ public actor WebSocketConnection: WebSocketConnectable {
 
     private func handleReceive(_ result: Result<URLSessionWebSocketTask.Message, Error>) {
         switch result {
-        case .success(let message):
+        case let .success(message):
             handleMessage(message)
             listen()
 
-        case .failure(let error):
+        case let .failure(error):
             handleError(error)
         }
     }
 
     private func handleMessage(_ message: URLSessionWebSocketTask.Message) {
         switch message {
-        case .data(let data):
+        case let .data(data):
             continuation?.yield(.message(data))
-        case .string(let text):
+        case let .string(text):
             if let data = text.data(using: .utf8) {
                 continuation?.yield(.message(data))
             }

@@ -54,7 +54,6 @@ import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.BuildConfig
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -72,7 +71,7 @@ import com.wallet.core.primitives.WalletType
 @Composable
 fun ImportScreen(
     importType: ImportType,
-    onImported: () -> Unit,
+    onImported: (walletId: String) -> Unit,
     onCancel: () -> Unit
 ) {
     DisableScreenShooting()
@@ -87,24 +86,14 @@ fun ImportScreen(
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var isAcceptedTerms by remember {
-        mutableStateOf(
-            BuildConfig.DEBUG ||
-            context.getSharedPreferences("terms", Context.MODE_PRIVATE).getBoolean("is_accepted", false)
-        )
-    }
-    val state = rememberModalBottomSheetState(true)
-
     ImportScene(
         importType = uiState.importType,
         generatedNameIndex = uiState.generatedNameIndex,
         chainName = uiState.chainName,
-        walletName = uiState.walletName,
-        walletNameError = uiState.walletNameError,
         nameRecord = uiState.nameRecord,
         dataError = uiState.dataError,
-        onImport = { name, generatedName, value, nameRecord ->
-            viewModel.import(name, generatedName, value, nameRecord, onImported)
+        onImport = { generatedName, value, nameRecord ->
+            viewModel.import(generatedName, value, nameRecord, onImported)
         },
         onTypeChange = viewModel::chainType,
         onCancel = onCancel,
@@ -128,14 +117,6 @@ fun ImportScreen(
         }
     }
 
-    if (!isAcceptedTerms) {
-        ModalBottomSheet(
-            onDismissRequest = { onCancel() },
-            sheetState = state,
-        ) {
-            AcceptTermsScreen(onCancel = onCancel) { isAcceptedTerms = true }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,11 +125,9 @@ private fun ImportScene(
     importType: ImportType,
     generatedNameIndex: Int,
     chainName: String,
-    walletName: String,
     nameRecord: NameRecord?,
     dataError: ImportError?,
-    walletNameError: String,
-    onImport: (name: String, generatedName: String, value: String, nameRecord: NameRecord?) -> Unit,
+    onImport: (generatedName: String, value: String, nameRecord: NameRecord?) -> Unit,
     onTypeChange: (WalletType) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -164,9 +143,6 @@ private fun ImportScene(
             chainWalletName
         }
     }
-    var nameState by remember(walletName + generatedNameIndex) {
-        mutableStateOf(walletName.ifEmpty { generatedName })
-    }
     val nameRecordState = remember(nameRecord?.address) { mutableStateOf(nameRecord) }
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
@@ -177,7 +153,7 @@ private fun ImportScene(
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
                 onClick = {
-                    onImport(nameState, generatedName, inputState.value.text, nameRecordState.value)
+                    onImport(generatedName, inputState.value.text, nameRecordState.value)
                 },
             )
         },
@@ -185,14 +161,6 @@ private fun ImportScene(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
         ) {
-            item {
-                GemTextField(
-                    value = nameState,
-                    onValueChange = { newValue -> nameState = newValue },
-                    label = stringResource(id = R.string.wallet_name),
-                    error = walletNameError,
-                )
-            }
             item {
                 Column (
                     modifier = Modifier
@@ -350,11 +318,9 @@ fun PreviewImportAddress() {
                 importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
                 generatedNameIndex = 1,
                 chainName = "Ethereum",
-                walletName = "Foo wallet name",
-                walletNameError = "Foo wallet name error",
                 nameRecord = null,
                 dataError = null,
-                onImport = {_, _, _, _ -> },
+                onImport = {_, _, _ -> },
                 onTypeChange = {},
                 onCancel = {},
             )

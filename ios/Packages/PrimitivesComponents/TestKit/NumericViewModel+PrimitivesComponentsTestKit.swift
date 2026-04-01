@@ -3,8 +3,8 @@
 import BigInt
 import Formatters
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
 
 public extension NumericViewModel {
     static func mock(
@@ -13,13 +13,13 @@ public extension NumericViewModel {
         value: BigInt = BigInt(100_000_000),
         sign: AmountDisplaySign = .none,
         formatter: ValueFormatter = .full,
-        currencyCode: String = "USD"
+        currencyCode: String = "USD",
     ) -> NumericViewModel {
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let style = AmountDisplayStyle(
             sign: sign,
             formatter: formatter,
-            currencyCode: currencyCode
+            currencyCode: currencyCode,
         )
         return NumericViewModel(data: data, style: style)
     }

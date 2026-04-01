@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct LoadingView: View {
     public let size: ControlSize
@@ -21,9 +21,8 @@ public struct LoadingView: View {
 }
 
 public struct CenterLoadingView: View {
-    
     public init() {}
-    
+
     public var body: some View {
         HStack {
             Spacer()

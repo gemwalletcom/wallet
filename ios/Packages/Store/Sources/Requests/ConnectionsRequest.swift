@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct ConnectionsRequest: DatabaseQueryable {
-    
     public init() {}
 
     public func fetch(_ db: Database) throws -> [WalletConnection] {

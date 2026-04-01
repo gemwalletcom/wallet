@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Localization
+import Primitives
 import Style
 import SwiftUI
 
 public struct PerpetualDirectionViewModel {
-
     private let direction: PerpetualDirection
 
     public init(direction: PerpetualDirection) {

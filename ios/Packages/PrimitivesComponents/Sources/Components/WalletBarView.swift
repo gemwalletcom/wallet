@@ -1,7 +1,7 @@
-import SwiftUI
-import Style
 import Components
 import Primitives
+import Style
+import SwiftUI
 
 public struct WalletBarView: View {
     private let model: WalletBarViewViewModel
@@ -9,7 +9,7 @@ public struct WalletBarView: View {
 
     public init(
         model: WalletBarViewViewModel,
-        action: (() -> Void)? = nil
+        action: (() -> Void)? = nil,
     ) {
         self.model = model
         self.action = action
@@ -21,7 +21,7 @@ public struct WalletBarView: View {
         } label: {
             HStack(spacing: .small) {
                 AssetImageView(assetImage: model.image, size: .large)
-                
+
                 Text(model.name)
                     .foregroundStyle(Colors.black)
                     .fontWeight(.medium)
@@ -57,10 +57,10 @@ public struct WalletBarView: View {
                     order: 1,
                     isPinned: true,
                     imageUrl: nil,
-                    source: .create
-                )
+                    source: .create,
+                ),
             ).name,
-            image: AssetImage(imageURL: .none, placeholder: .none, chainPlaceholder: .none)
-        )
+            image: AssetImage(imageURL: .none, placeholder: .none, chainPlaceholder: .none),
+        ),
     )
 }

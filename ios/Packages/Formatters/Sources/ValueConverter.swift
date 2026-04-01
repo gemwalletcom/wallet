@@ -5,14 +5,14 @@ import Primitives
 
 public struct ValueConverter: Sendable {
     private let formatter: ValueFormatter
-    
+
     public init(formatter: ValueFormatter = .medium) {
         self.formatter = formatter
     }
-    
+
     public func convertToFiat(
         amount: String,
-        price: AssetPrice
+        price: AssetPrice,
     ) throws -> Decimal {
         let value = try formatter.number(amount: amount)
         return value * Decimal(price.price)
@@ -21,7 +21,7 @@ public struct ValueConverter: Sendable {
     public func convertToAmount(
         fiatValue: String,
         price: AssetPrice,
-        decimals: Int
+        decimals: Int,
     ) throws -> String {
         let fiatNumber = try formatter.number(amount: fiatValue)
         let amount = try calculateAssetAmount(fiat: fiatNumber, price: price)
@@ -34,7 +34,7 @@ public struct ValueConverter: Sendable {
 extension ValueConverter {
     private func calculateAssetAmount(
         fiat: Decimal,
-        price: AssetPrice
+        price: AssetPrice,
     ) throws -> Decimal {
         guard price.price > 0 else {
             throw AnyError("Incorrect price")
@@ -44,7 +44,7 @@ extension ValueConverter {
 
     private func formatAssetAmount(
         amount: Decimal,
-        decimals: Int
+        decimals: Int,
     ) throws -> String {
         let amount = NSDecimalNumber(decimal: amount).stringValue
         let inputNumber = try formatter.inputNumber(from: amount, decimals: decimals)

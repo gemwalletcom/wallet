@@ -10,14 +10,16 @@ public struct FeeRate: Identifiable, Equatable, Hashable, Sendable {
         self.priority = priority
         self.gasPriceType = gasPriceType
     }
+
     public var id: String { priority.id }
 }
 
-extension FeeRate {
-    public static func defaultRate() -> FeeRate {
+public extension FeeRate {
+    static func defaultRate() -> FeeRate {
         FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1))
     }
-    public static func defaultRates() -> [FeeRate] {
+
+    static func defaultRates() -> [FeeRate] {
         [FeeRate.defaultRate()]
     }
 }

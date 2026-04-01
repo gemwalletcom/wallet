@@ -2,47 +2,47 @@
 
 import Foundation
 import GemAPI
-import Store
+import GemstonePrimitives
 import Preferences
 import Primitives
-import GemstonePrimitives
+import Store
 
 public struct ImportAssetsService: Sendable {
     let assetListService: any GemAPIAssetsListService
     let assetsService: AssetsService
     let assetStore: AssetStore
     let preferences: Preferences
-    
+
     public init(
         assetListService: any GemAPIAssetsListService,
         assetsService: AssetsService,
         assetStore: AssetStore,
-        preferences: Preferences
+        preferences: Preferences,
     ) {
         self.assetListService = assetListService
         self.assetsService = assetsService
         self.assetStore = assetStore
         self.preferences = preferences
     }
-    
+
     // sync
     public func migrate() throws {
         let releaseVersionNumber = Bundle.main.buildVersionNumber
-        
+
         #if targetEnvironment(simulator)
         #else
-        guard preferences.localAssetsVersion < releaseVersionNumber else {
-            return
-        }
-        preferences.localAssetsVersion = releaseVersionNumber
+            guard preferences.localAssetsVersion < releaseVersionNumber else {
+                return
+            }
+            preferences.localAssetsVersion = releaseVersionNumber
         #endif
-        
+
         let chains = AssetConfiguration.allChains
-        let defaultAssets = chains.map { $0.defaultAssets }.flatMap { $0 }
-        let assetIds = chains.map { $0.id } + defaultAssets.ids
-        
-        let localAssetsVersion = try assetStore.getAssets(for: assetIds).map { $0.id }
-        
+        let defaultAssets = chains.map(\.defaultAssets).flatMap(\.self)
+        let assetIds = chains.map(\.id) + defaultAssets.ids
+
+        let localAssetsVersion = try assetStore.getAssets(for: assetIds).map(\.id)
+
         if localAssetsVersion.count != assetIds.count {
             let assets = chains.map {
                 let chain = $0.asset.chain
@@ -50,7 +50,7 @@ public struct ImportAssetsService: Sendable {
                 let isStakable = GemstoneConfig.shared.getChainConfig(chain: chain.rawValue).isStakeSupported
                 let isSwapable = GemstoneConfig.shared.getChainConfig(chain: chain.rawValue).isSwapSupported
                 let isBuyable = score.rank >= 40
-                
+
                 return AssetBasic(
                     asset: $0.asset,
                     properties: AssetProperties(
@@ -62,14 +62,14 @@ public struct ImportAssetsService: Sendable {
                         stakingApr: .none,
                         isEarnable: false,
                         earnApr: nil,
-                        hasImage: true
+                        hasImage: true,
                     ),
                     score: score,
-                    price: nil
+                    price: nil,
                 )
             }
             try assetStore.add(assets: assets)
-            
+
             try assetStore.insert(assets: defaultAssets.map {
                 AssetBasic(
                     asset: $0,
@@ -82,15 +82,15 @@ public struct ImportAssetsService: Sendable {
                         stakingApr: .none,
                         isEarnable: false,
                         earnApr: nil,
-                        hasImage: false
+                        hasImage: false,
                     ),
                     score: AssetScore(rank: 16),
-                    price: nil
+                    price: nil,
                 )
             })
         }
-        
-        try assetStore.setAssetIsStakeable(for: chains.filter { $0.isStakeSupported }.map { $0.id }, value: true)
+
+        try assetStore.setAssetIsStakeable(for: chains.filter(\.isStakeSupported).map(\.id), value: true)
     }
 
     public func updateFiatAssets() async throws {
@@ -110,13 +110,13 @@ public struct ImportAssetsService: Sendable {
         preferences.fiatOnRampAssetsVersion = Int(buyAssets.version)
         preferences.fiatOffRampAssetsVersion = Int(sellAssets.version)
     }
-    
+
     public func updateSwapAssets() async throws {
         let assets = try await assetListService.getSwapAssets()
 
         try await assetsService.prefetchAssets(assetIds: assets.assetIds.compactMap { try? AssetId(id: $0) })
         try assetStore.setAssetIsSwappable(for: assets.assetIds, value: true)
-    
+
         preferences.swapAssetsVersion = Int(assets.version)
     }
 }

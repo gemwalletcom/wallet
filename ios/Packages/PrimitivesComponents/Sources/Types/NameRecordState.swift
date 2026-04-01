@@ -13,7 +13,7 @@ public enum NameRecordState: Equatable, Hashable, Sendable {
 public extension NameRecordState {
     var result: NameRecord? {
         switch self {
-        case .complete(let result): result
+        case let .complete(result): result
         default: .none
         }
     }

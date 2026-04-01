@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import Style
-import PrimitivesComponents
 import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct AssetScene: View {
     private let model: AssetSceneViewModel
@@ -16,24 +16,24 @@ public struct AssetScene: View {
 
     public var body: some View {
         List {
-            Section { } header: {
+            Section {} header: {
                 WalletHeaderView(
                     model: model.assetHeaderModel,
                     isPrivacyEnabled: .constant(false),
                     balanceActionType: .none,
                     onHeaderAction: model.onSelectHeader,
-                    onInfoAction: model.onSelectWalletHeaderInfo
+                    onInfoAction: model.onSelectWalletHeaderInfo,
                 )
                 .padding(.top, .small)
                 .padding(.bottom, .medium)
             }
             .cleanListRow()
-            
+
             if model.canSign, let banner = model.assetBannerViewModel.allBanners.first {
                 Section {
                     BannerView(
                         banner: banner,
-                        action: model.onSelectBanner
+                        action: model.onSelectBanner,
                     )
                 }
                 .listRowInsets(.zero)
@@ -44,51 +44,49 @@ public struct AssetScene: View {
                     AssetStatusView(model: model.scoreViewModel, action: model.onSelectTokenStatus)
                 }
             }
-            
+
             if model.showManageToken {
                 Section(Localized.Common.manage) {
                     NavigationCustomLink(with:
                         ListItemView(
                             title: model.pinText,
-                            imageStyle: .list(assetImage: AssetImage(placeholder: model.pinImage))
-                        )
-                    ) {
-                        model.onSelectPin()
-                    }
+                            imageStyle: .list(assetImage: AssetImage(placeholder: model.pinImage)),
+                        )) {
+                            model.onSelectPin()
+                        }
                     NavigationCustomLink(with:
                         ListItemView(
                             title: model.enableText,
-                            imageStyle: .list(assetImage: AssetImage(placeholder: model.enableImage))
-                        )
-                    ) {
-                        model.onSelectEnable()
-                    }
+                            imageStyle: .list(assetImage: AssetImage(placeholder: model.enableImage)),
+                        )) {
+                            model.onSelectEnable()
+                        }
                 }
             }
-            
+
             Section {
                 NavigationLink(
                     value: Scenes.Price(asset: model.assetModel.asset),
-                    label: { PriceListItemView(model: model.priceItemViewModel) }
+                    label: { PriceListItemView(model: model.priceItemViewModel) },
                 )
                 .accessibilityIdentifier("price")
-                
+
                 if model.showPriceAlerts {
                     NavigationLink(
                         value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
                         label: {
                             ListItemView(
                                 title: model.priceAlertsViewModel.priceAlertsTitle,
-                                subtitle: model.priceAlertsViewModel.priceAlertCount
+                                subtitle: model.priceAlertsViewModel.priceAlertCount,
                             )
-                        }
+                        },
                     )
                 }
 
                 if model.canOpenNetwork {
                     NavigationLink(
                         value: Scenes.Asset(asset: model.assetModel.asset.chain.asset),
-                        label: { networkView }
+                        label: { networkView },
                     )
                 } else {
                     networkView
@@ -99,16 +97,16 @@ public struct AssetScene: View {
                 Section(model.balancesTitle) {
                     ListItemView(
                         title: model.assetDataModel.availableBalanceTitle,
-                        subtitle: model.assetDataModel.availableBalanceTextWithSymbol
+                        subtitle: model.assetDataModel.availableBalanceTextWithSymbol,
                     )
 
                     if model.showProviderBalance(for: .stake) {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.balanceTitle(for: .stake),
-                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .stake)
+                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .stake),
                             ),
-                            action: { model.onSelectHeader(.stake) }
+                            action: { model.onSelectHeader(.stake) },
                         )
                         .accessibilityIdentifier("stake")
                     }
@@ -117,9 +115,9 @@ public struct AssetScene: View {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.balanceTitle(for: .earn),
-                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .earn)
+                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .earn),
                             ),
-                            action: { model.onSelectEarn() }
+                            action: { model.onSelectEarn() },
                         )
                         .accessibilityIdentifier("earn")
                     }
@@ -128,7 +126,7 @@ public struct AssetScene: View {
                         ListItemView(
                             title: model.assetDataModel.pendingUnconfirmedBalanceTitle,
                             subtitle: model.assetDataModel.pendingUnconfirmedBalanceTextWithSymbol,
-                            infoAction: model.onSelectPendingUnconfirmedInfo
+                            infoAction: model.onSelectPendingUnconfirmedInfo,
                         )
                     }
 
@@ -136,7 +134,7 @@ public struct AssetScene: View {
                         SafariNavigationLink(url: url) {
                             ListItemView(
                                 title: model.assetDataModel.reservedBalanceTitle,
-                                subtitle: model.assetDataModel.reservedBalanceTextWithSymbol
+                                subtitle: model.assetDataModel.reservedBalanceTextWithSymbol,
                             )
                         }
                     }
@@ -155,10 +153,10 @@ public struct AssetScene: View {
                             ListItemView(
                                 title: model.balanceTitle(for: .earn),
                                 subtitle: model.aprModel(for: .earn).text,
-                                subtitleStyle: model.aprModel(for: .earn).subtitle.style
+                                subtitleStyle: model.aprModel(for: .earn).subtitle.style,
                             )
                         },
-                        action: { model.onSelectEarn() }
+                        action: { model.onSelectEarn() },
                     )
                 }
             }
@@ -174,7 +172,7 @@ public struct AssetScene: View {
                 TransactionsList(
                     explorerService: model.explorerService,
                     model.transactions,
-                    currency: model.assetDataModel.currencyCode
+                    currency: model.assetDataModel.currencyCode,
                 )
                 .listRowInsets(.assetListRowInsets)
             } else {
@@ -204,10 +202,10 @@ extension AssetScene {
             title: model.networkField.title.text,
             subtitle: model.networkField.value.text,
             assetImage: model.networkAssetImage,
-            imageSize: .list.image
+            imageSize: .list.image,
         )
     }
-    
+
     private var stakeViewEmpty: some View {
         NavigationCustomLink(
             with: HStack(spacing: .space12) {
@@ -216,11 +214,10 @@ extension AssetScene {
                 ListItemView(
                     title: model.balanceTitle(for: .stake),
                     subtitle: model.aprModel(for: .stake).text,
-                    subtitleStyle: model.aprModel(for: .stake).subtitle.style
+                    subtitleStyle: model.aprModel(for: .stake).subtitle.style,
                 )
             },
-            action: { model.onSelectHeader(.stake) }
+            action: { model.onSelectHeader(.stake) },
         )
     }
-
 }

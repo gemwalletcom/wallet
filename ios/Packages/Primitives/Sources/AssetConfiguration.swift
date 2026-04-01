@@ -17,7 +17,7 @@ public struct AssetConfiguration: Sendable {
         ],
         EVMChain.allCases.compactMap { Chain(rawValue: $0.rawValue) },
     ]
-    .flatMap { $0 }
+    .flatMap(\.self)
 
     public static let allChains: [Chain] = Chain.allCases
 

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Foundation
 
 public struct GridPosterViewItem: Identifiable, Sendable {
     public let id: String
@@ -11,7 +11,7 @@ public struct GridPosterViewItem: Identifiable, Sendable {
     public init(
         id: String,
         destination: any Hashable & Sendable,
-        model: GridPosterViewModel
+        model: GridPosterViewModel,
     ) {
         self.id = id
         self.destination = destination

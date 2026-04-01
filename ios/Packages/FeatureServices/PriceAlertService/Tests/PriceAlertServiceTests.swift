@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
-import PriceAlertServiceTestKit
-import StoreTestKit
 import DeviceServiceTestKit
+import Foundation
 import GemAPITestKit
+import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
+import StoreTestKit
+import Testing
 
 @testable import PriceAlertService
 
@@ -21,19 +21,19 @@ struct PriceAlertServiceTests {
 
         #expect(try await performUpdate(localAlerts: [localAlert], remoteAlerts: [remoteAlert]).first?.lastNotifiedAt == newDate)
     }
-    
+
     @Test
     func addNewAlertsFromRemote() async throws {
         let localAlert = PriceAlert.mock(assetId: .mock(.bitcoin))
         let newAlert = PriceAlert.mock(assetId: .mock(.ethereum))
-        
+
         let savedAlerts = try await performUpdate(localAlerts: [localAlert], remoteAlerts: [localAlert, newAlert])
-        
+
         #expect(savedAlerts.count == 2)
         #expect(savedAlerts.contains(where: { $0.assetId.chain == .bitcoin }))
         #expect(savedAlerts.contains(where: { $0.assetId.chain == .ethereum }))
     }
-    
+
     @Test
     func removeDeletedAlertsFromLocal() async throws {
         let keepAlert = PriceAlert.mock(assetId: .mock(.bitcoin))
@@ -66,21 +66,21 @@ struct PriceAlertServiceTests {
     }
 
     // MARK: - Private methods
-    
+
     private func createStore(with alerts: [PriceAlert] = []) throws -> PriceAlertStore {
         let db = DB.mockAssets()
         let store = PriceAlertStore.mock(db: db)
         try store.addPriceAlerts(alerts)
         return store
     }
-    
+
     private func performUpdate(localAlerts: [PriceAlert], remoteAlerts: [PriceAlert]) async throws -> [PriceAlert] {
         let store = try createStore(with: localAlerts)
         let apiService = GemAPIPriceAlertServiceMock(priceAlerts: remoteAlerts)
         let service = PriceAlertService.mock(store: store, apiService: apiService)
-        
+
         try await service.update()
-        
+
         return try store.getPriceAlerts()
     }
 }

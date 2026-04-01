@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public extension SwapData {
     func withGasLimit(_ gasLimit: String) -> SwapData {
@@ -14,15 +14,15 @@ public extension SwapQuoteData {
         SwapQuoteData(to: to, dataType: dataType, value: value, data: data, memo: memo, approval: approval, gasLimit: gasLimit)
     }
 
-    //TODO: Rename to gasLimit()
+    // TODO: Rename to gasLimit()
     func gasLimitBigInt() throws -> BigInt {
-        if let gasLimit = self.gasLimit {
+        if let gasLimit {
             return BigInt(stringLiteral: gasLimit)
         }
         throw AnyError("No gas limit")
     }
 
-    //TODO: Rename to value
+    // TODO: Rename to value
     func asValue() -> BigInt {
         BigInt(stringLiteral: value)
     }

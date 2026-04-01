@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Store
-import PrimitivesComponents
-import PriceAlerts
-import WalletConnector
-import Preferences
-import MarketInsight
-import Settings
-import PriceService
-import RewardsService
-import InAppNotifications
-import NotificationService
-import ContactService
 import Contacts
+import ContactService
+import InAppNotifications
+import MarketInsight
+import NotificationService
+import Preferences
+import PriceAlerts
+import PriceService
+import Primitives
+import PrimitivesComponents
+import RewardsService
+import Settings
+import Store
+import SwiftUI
+import WalletConnector
 import WalletSessionService
 
 struct SettingsNavigationStack: View {
@@ -51,15 +51,15 @@ struct SettingsNavigationStack: View {
         walletId: WalletId,
         preferences: Preferences = .standard,
         priceService: PriceService,
-        isPresentingSupport: Binding<Bool>
+        isPresentingSupport: Binding<Bool>,
     ) {
         self.walletId = walletId
         _isPresentingSupport = isPresentingSupport
         _currencyModel = State(
             initialValue: CurrencySceneViewModel(
                 currencyStorage: preferences,
-                priceService: priceService
-            )
+                priceService: priceService,
+            ),
         )
     }
 
@@ -73,11 +73,11 @@ struct SettingsNavigationStack: View {
                 model: SettingsViewModel(
                     walletId: walletId,
                     walletSessionService: walletSessionService,
-                    observablePrefereces: observablePreferences
+                    observablePrefereces: observablePreferences,
                 ),
                 isPresentingWallets: $isPresentingWallets,
                 isPresentingSupport: $isPresentingSupport,
-                deviceId: (try? SecurePreferences.standard.getDeviceId()) ?? ""
+                deviceId: (try? SecurePreferences.standard.getDeviceId()) ?? "",
             )
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Scenes.Security.self) { _ in
@@ -87,13 +87,13 @@ struct SettingsNavigationStack: View {
                 NotificationsScene(
                     model: NotificationsViewModel(
                         deviceService: deviceService,
-                        bannerService: bannerService
-                    )
+                        bannerService: bannerService,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
                 PriceAlertsNavigationView(
-                    model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService)
+                    model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService),
                 )
             }
             .navigationDestination(for: Scenes.AssetPriceAlert.self) {
@@ -101,8 +101,8 @@ struct SettingsNavigationStack: View {
                     model: AssetPriceAlertsViewModel(
                         priceAlertService: priceAlertService,
                         walletId: walletId,
-                        asset: $0.asset
-                    )
+                        asset: $0.asset,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Price.self) { scene in
@@ -112,8 +112,8 @@ struct SettingsNavigationStack: View {
                         assetModel: AssetViewModel(asset: scene.asset),
                         priceAlertService: priceAlertService,
                         walletId: walletId,
-                        onSetPriceAlert: { _ in }
-                    )
+                        onSetPriceAlert: { _ in },
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Chains.self) { _ in
@@ -123,16 +123,16 @@ struct SettingsNavigationStack: View {
                 AboutUsScene(
                     model: AboutUsViewModel(
                         preferences: observablePreferences,
-                        releaseService: releaseService
-                    )
+                        releaseService: releaseService,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.WalletConnect.self) { _ in
                 ConnectionsScene(
                     model: ConnectionsViewModel(
                         service: connectionsService,
-                        walletConnectorPresenter: walletConnectorManager.presenter
-                    )
+                        walletConnectorPresenter: walletConnectorManager.presenter,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Developer.self) { _ in
@@ -143,7 +143,7 @@ struct SettingsNavigationStack: View {
                     stakeService: stakeService,
                     bannerService: bannerService,
                     priceService: priceService,
-                    perpetualService: perpetualService
+                    perpetualService: perpetualService,
                 ))
             }
             .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
@@ -151,8 +151,8 @@ struct SettingsNavigationStack: View {
                     InAppNotificationsScene(
                         model: InAppNotificationsViewModel(
                             wallet: wallet,
-                            notificationService: inAppNotificationService
-                        )
+                            notificationService: inAppNotificationService,
+                        ),
                     )
                 }
             }
@@ -175,8 +175,8 @@ struct SettingsNavigationStack: View {
                             wallet: wallet,
                             wallets: wallets,
                             activateCode: scene.code,
-                            giftCode: scene.giftCode
-                        )
+                            giftCode: scene.giftCode,
+                        ),
                     )
                 }
             }
@@ -185,14 +185,14 @@ struct SettingsNavigationStack: View {
                     model: ChainSettingsSceneViewModel(
                         nodeService: nodeService,
                         chainServiceFactory: chainServiceFactory,
-                        chain: $0.chain
-                    )
+                        chain: $0.chain,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.Contacts.self) { _ in
                 ContactsNavigationView(
                     model: ContactsViewModel(service: contactService, nameService: nameService),
-                    navigationPath: navigationPath
+                    navigationPath: navigationPath,
                 )
             }
             .sheet(isPresented: $isPresentingWallets) {

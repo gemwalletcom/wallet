@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
-import Style
-import Primitives
+import Foundation
 import Localization
+import Onboarding
+import Primitives
 import PrimitivesComponents
 import Store
-import Onboarding
+import Style
+import SwiftUI
 
 public struct WalletDetailScene: View {
     enum Field: Int, Hashable {
@@ -37,7 +37,7 @@ public struct WalletDetailScene: View {
                                 AvatarView(
                                     avatarImage: model.avatarAssetImage(for: dbWallet),
                                     size: .image.extraLarge,
-                                    action: model.onSelectImage
+                                    action: model.onSelectImage,
                                 )
                                 .padding(.bottom, .extraLarge)
                             }
@@ -50,7 +50,7 @@ public struct WalletDetailScene: View {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(title: Localized.Common.show(Localized.Common.secretPhrase)),
-                            action: model.onShowSecretPhrase
+                            action: model.onShowSecretPhrase,
                         )
                     } header: {
                         Text(Localized.Common.secretPhrase)
@@ -59,7 +59,7 @@ public struct WalletDetailScene: View {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(title: Localized.Common.show(Localized.Common.privateKey)),
-                            action: model.onShowPrivateKey
+                            action: model.onShowPrivateKey,
                         )
                     } header: {
                         Text(Localized.Common.privateKey)
@@ -69,14 +69,14 @@ public struct WalletDetailScene: View {
                 }
                 Section {
                     switch model.address {
-                    case .account(let account):
+                    case let .account(account):
                         AddressListItemView(
                             model: AddressListItemViewModel(
                                 title: Localized.Common.address,
                                 account: account,
                                 mode: .auto(addressStyle: .short),
-                                addressLink: model.addressLink(account: account)
-                            )
+                                addressLink: model.addressLink(account: account),
+                            ),
                         )
                     case .none:
                         EmptyView()
@@ -114,9 +114,9 @@ public struct WalletDetailScene: View {
                                 dismiss()
                             }
                         }
-                    }
+                    },
                 )
-            }
+            },
         )
         .alertSheet($model.isPresentingAlertMessage)
         .sheet(item: $model.isPresentingExportWallet) {
@@ -124,4 +124,3 @@ public struct WalletDetailScene: View {
         }
     }
 }
-

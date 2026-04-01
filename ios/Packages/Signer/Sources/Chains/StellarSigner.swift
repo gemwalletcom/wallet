@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 struct StellarSigner: Signable {
-    
-    func sign(input: SignerInput, operation: StellarSigningInput.OneOf_OperationOneof,  privateKey: Data) throws -> String {
+    func sign(input: SignerInput, operation: StellarSigningInput.OneOf_OperationOneof, privateKey: Data) throws -> String {
         let input = try StellarSigningInput.with {
             $0.passphrase = StellarPassphrase.stellar.description
             $0.fee = Int32(input.fee.totalFee)
-            $0.sequence = Int64(try input.metadata.getSequence())
+            $0.sequence = try Int64(input.metadata.getSequence())
             $0.account = input.senderAddress
             if let memo = input.memo {
                 $0.memoText = .with {
@@ -21,23 +20,23 @@ struct StellarSigner: Signable {
             $0.privateKey = privateKey
         }
         let output: StellarSigningOutput = AnySigner.sign(input: input, coin: .stellar)
-        
+
         if !output.errorMessage.isEmpty {
             throw AnyError(output.errorMessage)
         }
-        
+
         return output.signature
     }
-    
+
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
-        if input.fee.options.contains(where:  { $0.key == .tokenAccountCreation }) {
+        if input.fee.options.contains(where: { $0.key == .tokenAccountCreation }) {
             try sign(
                 input: input,
                 operation: .opCreateAccount(.with {
                     $0.destination = input.destinationAddress
                     $0.amount = input.value.asInt64
                 }),
-                privateKey: privateKey
+                privateKey: privateKey,
             )
         } else {
             try sign(
@@ -46,11 +45,11 @@ struct StellarSigner: Signable {
                     $0.destination = input.destinationAddress
                     $0.amount = input.value.asInt64
                 }),
-                privateKey: privateKey
+                privateKey: privateKey,
             )
         }
     }
-    
+
     func signTokenTransfer(input: SignerInput, privateKey: Data) throws -> String {
         let (issuer, symbol) = try input.asset.id.twoSubTokenIds()
         return try sign(
@@ -63,10 +62,10 @@ struct StellarSigner: Signable {
                 $0.destination = input.destinationAddress
                 $0.amount = input.value.asInt64
             }),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
-    
+
     func signAccountAction(input: SignerInput, privateKey: Data) throws -> String {
         let (issuer, symbol) = try input.asset.id.twoSubTokenIds()
         return try sign(
@@ -77,8 +76,7 @@ struct StellarSigner: Signable {
                     $0.alphanum4 = symbol
                 }
             }),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
 }
-    

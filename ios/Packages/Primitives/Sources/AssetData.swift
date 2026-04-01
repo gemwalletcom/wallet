@@ -48,8 +48,8 @@ public struct AssetData: Codable, Equatable, Hashable, Sendable {
                 isActive: true,
                 stakingApr: nil,
                 earnApr: nil,
-                rankScore: 0
-            )
+                rankScore: 0,
+            ),
         )
     }
 }

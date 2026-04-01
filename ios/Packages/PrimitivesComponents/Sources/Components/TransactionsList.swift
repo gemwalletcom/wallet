@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
+import Primitives
+import SwiftUI
 
 public struct TransactionsList: View {
     let transactions: [Primitives.TransactionExtended]
@@ -18,7 +18,7 @@ public struct TransactionsList: View {
         explorerService: any ExplorerLinkFetchable,
         _ transactions: [Primitives.TransactionExtended],
         currency: String,
-        showSections: Bool = true
+        showSections: Bool = true,
     ) {
         self.explorerService = explorerService
         self.transactions = transactions
@@ -33,7 +33,7 @@ public struct TransactionsList: View {
                     TransactionsListView(
                         explorerService: explorerService,
                         transactions: section.values,
-                        currency: currency
+                        currency: currency,
                     )
                 } header: {
                     section.title.map { Text($0) }
@@ -43,7 +43,7 @@ public struct TransactionsList: View {
             TransactionsListView(
                 explorerService: explorerService,
                 transactions: transactions,
-                currency: currency
+                currency: currency,
             )
         }
     }
@@ -56,8 +56,8 @@ private struct TransactionsListView: View {
 
     init(explorerService: any ExplorerLinkFetchable,
          transactions: [Primitives.TransactionExtended],
-         currency: String
-    ) {
+         currency: String)
+    {
         self.explorerService = explorerService
         self.transactions = transactions
         self.currency = currency
@@ -70,8 +70,8 @@ private struct TransactionsListView: View {
                     model: .init(
                         explorerService: explorerService,
                         transaction: transaction,
-                        currency: currency
-                    )
+                        currency: currency,
+                    ),
                 )
             }
         }

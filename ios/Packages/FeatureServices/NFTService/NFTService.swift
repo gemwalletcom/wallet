@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GemAPI
+import Primitives
 import Store
 
 public struct NFTService: Sendable {
@@ -11,7 +11,7 @@ public struct NFTService: Sendable {
 
     public init(
         apiService: any GemAPINFTService,
-        nftStore: NFTStore
+        nftStore: NFTStore,
     ) {
         self.apiService = apiService
         self.nftStore = nftStore
@@ -28,7 +28,7 @@ public struct NFTService: Sendable {
         let report = ReportNft(
             collectionId: collectionId,
             assetId: assetId,
-            reason: reason
+            reason: reason,
         )
         try await apiService.reportNft(report: report)
     }

@@ -4,12 +4,12 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPerpetualData {
-    public func map() throws -> PerpetualData {
-        PerpetualData(
-            perpetual: try perpetual.map(),
-            asset: try asset.map(),
-            metadata: metadata.map()
+public extension GemPerpetualData {
+    func map() throws -> PerpetualData {
+        try PerpetualData(
+            perpetual: perpetual.map(),
+            asset: asset.map(),
+            metadata: metadata.map(),
         )
     }
 }

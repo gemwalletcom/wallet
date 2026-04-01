@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import InfoSheet
-import Primitives
-import Components
 import Perpetuals
+import Primitives
 import PrimitivesComponents
 
 public enum AmountSheetType: Identifiable {

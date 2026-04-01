@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import AssetsService
+import Foundation
 import Primitives
 import Store
 import StoreTestKit
 
-extension AssetSearchService {
-    public static func mock(
+public extension AssetSearchService {
+    static func mock(
         assetsService: AssetsService = .mock(),
-        searchStore: SearchStore = .mock()
+        searchStore: SearchStore = .mock(),
     ) -> AssetSearchService {
         AssetSearchService(
             assetsService: assetsService,
-            searchStore: searchStore
+            searchStore: searchStore,
         )
     }
 }

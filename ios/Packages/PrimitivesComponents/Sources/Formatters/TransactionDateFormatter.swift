@@ -10,7 +10,7 @@ public struct TransactionDateFormatter {
         formatter.dateStyle = .long
         return formatter
     }()
-    
+
     private static let rowFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -24,13 +24,13 @@ public struct TransactionDateFormatter {
         formatter.dateStyle = .none
         return formatter
     }()
-    
+
     private let date: Date
-    
+
     public init(date: Date) {
         self.date = date
     }
-    
+
     public var section: String {
         if Calendar.current.isDateInToday(date) {
             return Localized.Date.today
@@ -39,7 +39,7 @@ public struct TransactionDateFormatter {
         }
         return Self.sectionFormatter.string(from: date)
     }
-    
+
     public var row: String {
         if Calendar.current.isDateInToday(date) {
             return String(format: "%@, %@", Localized.Date.today, Self.rowTimeFormatter.string(from: date))

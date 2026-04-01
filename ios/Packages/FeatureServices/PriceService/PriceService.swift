@@ -10,7 +10,7 @@ public struct PriceService: Sendable {
 
     public init(
         priceStore: PriceStore,
-        fiatRateStore: FiatRateStore
+        fiatRateStore: FiatRateStore,
     ) {
         self.priceStore = priceStore
         self.fiatRateStore = fiatRateStore
@@ -24,40 +24,40 @@ public struct PriceService: Sendable {
         try priceStore.updateMarket(
             assetId: assetId.identifier,
             market: market,
-            rate: try getRate(currency: currency)
+            rate: getRate(currency: currency),
         )
     }
 
     public func getPrice(for assetId: AssetId) throws -> AssetPrice? {
         try priceStore.getPrices(for: [assetId.identifier]).first
     }
-    
+
     public func getPrices(for assetIds: [AssetId]) throws -> [AssetPrice] {
-        try priceStore.getPrices(for: assetIds.map { $0.identifier })
+        try priceStore.getPrices(for: assetIds.map(\.identifier))
     }
-    
+
     public func observableAssets(walletId: WalletId) throws -> [AssetId] {
         let priceAssets = try priceStore.enabledPriceAssets(walletId: walletId)
         if priceAssets.isEmpty {
-            return [Chain.bitcoin, Chain.ethereum, Chain.smartChain, Chain.solana].map { $0.assetId }
+            return [Chain.bitcoin, Chain.ethereum, Chain.smartChain, Chain.solana].map(\.assetId)
         }
         return priceAssets
     }
-    
+
     public func changeCurrency(currency: String) throws {
         try priceStore.updateCurrency(currency: currency)
     }
-    
+
     public func getRate(currency: String) throws -> Double {
         try priceStore.getRate(currency: currency).rate
     }
-    
+
     public func addRates(_ rates: [FiatRate]) throws {
         guard rates.isNotEmpty else { return }
-        
+
         try fiatRateStore.add(rates)
     }
-    
+
     @discardableResult
     public func clear() throws -> Int {
         try priceStore.clear()

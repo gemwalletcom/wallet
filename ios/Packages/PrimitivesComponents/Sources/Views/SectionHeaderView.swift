@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Primitives
+import Style
+import SwiftUI
 
 public struct SectionHeaderView: View {
     let title: String
@@ -12,7 +12,7 @@ public struct SectionHeaderView: View {
     public init(
         title: String,
         image: Image? = nil,
-        action: VoidAction = nil
+        action: VoidAction = nil,
     ) {
         self.title = title
         self.image = image

@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Foundation
+import Localization
+import Preferences
 import Primitives
-import Style
-import SwiftUI
 import PrimitivesComponents
 import Store
-import Preferences
-import Localization
+import Style
+import SwiftUI
 
 struct PriceAlertItemViewModel: ListAssetItemViewable {
     let data: PriceAlertData
@@ -18,9 +18,9 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         self.data = data
         switch data.priceAlert.type {
         case .auto:
-            self.priceModel = PriceViewModel(price: data.price, currencyCode: Preferences.standard.currency)
+            priceModel = PriceViewModel(price: data.price, currencyCode: Preferences.standard.currency)
         case .price, .pricePercentChange:
-            self.priceModel = PriceViewModel(price: data.price, currencyCode: data.priceAlert.currency)
+            priceModel = PriceViewModel(price: data.price, currencyCode: data.priceAlert.currency)
         }
     }
 
@@ -36,26 +36,26 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
     var subtitleView: ListAssetItemSubtitleView {
         .price(
             price: prefixTextValue,
-            priceChangePercentage24h: suffixTextValue
+            priceChangePercentage24h: suffixTextValue,
         )
     }
-    
+
     // MARK: - Private
-    
+
     private var prefixTextValue: TextValue {
         TextValue(
             text: prefixText,
-            style: TextStyle(font: .footnote, color: Colors.gray)
+            style: TextStyle(font: .footnote, color: Colors.gray),
         )
     }
-    
+
     private var suffixTextValue: TextValue {
         TextValue(
             text: suffixText,
-            style: TextStyle(font: .footnote, color: directionColor)
+            style: TextStyle(font: .footnote, color: directionColor),
         )
     }
-    
+
     private var prefixText: String {
         switch data.priceAlert.type {
         case .auto: priceModel.priceAmountText
@@ -63,7 +63,7 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         case .pricePercentChange: percentDirectionPrefix
         }
     }
-    
+
     private var suffixText: String {
         switch data.priceAlert.type {
         case .auto: priceModel.priceChangeText
@@ -71,7 +71,7 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         case .pricePercentChange: "\(data.priceAlert.pricePercentChange ?? .zero)%"
         }
     }
-    
+
     private var priceDirectionPrefix: String {
         switch data.priceAlert.priceDirection {
         case .up: Localized.PriceAlerts.Direction.over
@@ -87,7 +87,7 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         case .none: .empty
         }
     }
-    
+
     private var directionColor: Color {
         switch data.priceAlert.priceDirection {
         case .up: Colors.green

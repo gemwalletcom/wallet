@@ -31,15 +31,15 @@ public extension View {
         value: T,
         initial: Bool = false,
         interval: Duration? = .debounce,
-        action: @Sendable @escaping (T) async -> Void
+        action: @Sendable @escaping (T) async -> Void,
     ) -> some View {
         modifier(
             DebounceModifier(
                 value: value,
                 initial: initial,
                 interval: interval,
-                action: action
-            )
+                action: action,
+            ),
         )
     }
 }

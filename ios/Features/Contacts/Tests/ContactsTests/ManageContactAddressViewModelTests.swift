@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import PrimitivesTestKit
 import Components
 import NameServiceTestKit
+import Primitives
+import PrimitivesTestKit
+import Testing
 
 @testable import Contacts
 
 @MainActor
 struct ManageContactAddressViewModelTests {
-
     @Test
     func buttonStateAddModeEmptyAddress() {
         let model = ManageContactAddressViewModel.mock(mode: .add)
@@ -77,13 +76,13 @@ extension ManageContactAddressViewModel {
     static func mock(
         contactId: String = "contact-1",
         nameService: any NameServiceable = .mock(),
-        mode: Mode
+        mode: Mode,
     ) -> ManageContactAddressViewModel {
         ManageContactAddressViewModel(
             contactId: contactId,
             nameService: nameService,
             mode: mode,
-            onComplete: { _ in }
+            onComplete: { _ in },
         )
     }
 }

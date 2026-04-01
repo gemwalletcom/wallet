@@ -12,7 +12,7 @@ public extension Gemstone.GemSwapData {
     func map() throws -> Primitives.SwapData {
         try Primitives.SwapData(
             quote: quote.map(),
-            data: data.map()
+            data: data.map(),
         )
     }
 }
@@ -21,8 +21,7 @@ public extension Primitives.SwapData {
     func map() throws -> Gemstone.GemSwapData {
         try Gemstone.GemSwapData(
             quote: quote.map(),
-            data: data.map()
+            data: data.map(),
         )
     }
 }
-

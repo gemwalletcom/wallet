@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import BigInt
 @testable import Formatters
 import Foundation
-import BigInt
+import Testing
 
 final class BigNumberFormatterTests {
-
     let formatter = BigNumberFormatter.standard
 
     @Test
-    func testFromString() {
+    func fromString() {
         #expect(throws: Never.self) {
             let result = try self.formatter.number(from: "0.00012317", decimals: 8)
             #expect(result == 12317)
@@ -18,22 +17,22 @@ final class BigNumberFormatterTests {
     }
 
     @Test
-    func testFromNumber() {
+    func fromNumber() {
         #expect(formatter.number(from: 100_000, decimals: 7) == 1_000_000_000_000)
         #expect(formatter.number(from: 10, decimals: 0) == 10)
     }
 
     @Test
-    func testFromNumberEULocalization() {
+    func fromNumberEULocalization() {
         let formatter = BigNumberFormatter(locale: Locale.RU_UA)
         #expect(throws: Never.self) {
             let result = try formatter.number(from: "0,12317", decimals: 8)
-            #expect(result == 12317000)
+            #expect(result == 12_317_000)
         }
     }
 
     @Test
-    func testFromBigInt() {
+    func fromBigInt() {
         #expect(formatter.string(from: BigInt(10000), decimals: 2) == "100")
     }
 }
