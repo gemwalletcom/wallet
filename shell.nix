@@ -30,6 +30,7 @@ pkgs.mkShell {
     pkgs.temurin-bin-17
     pkgs.rustup
     pkgs.cargo-ndk
+    pkgs.just
     androidSdk
   ];
 
