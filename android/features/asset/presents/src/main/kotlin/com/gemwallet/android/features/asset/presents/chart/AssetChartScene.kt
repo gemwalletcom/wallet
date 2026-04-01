@@ -246,17 +246,15 @@ private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, it
         }
         ListItem(
             listPosition = position,
-            title = @Composable { ListItemTitleText(stringResource(title)) },
+            title = { PropertyTitleText(text = stringResource(title)) },
             subtitle = { ListItemSupportText(dateFormat.format(Date(item.date))) },
             trailing = {
-                Column(
-                    modifier = Modifier.defaultMinSize(40.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    ListItemTitleText(currency.compactFormatter(item.value))
+                val rowScope = this
+                Column(horizontalAlignment = Alignment.End) {
+                    with(rowScope) { PropertyDataText(currency.compactFormatter(item.value)) }
                     ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.getPriceState().color())
                 }
-           },
+            },
         )
     }
 
