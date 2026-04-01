@@ -143,12 +143,12 @@ fun QRScannerScene(
     LaunchedEffect(imageUri) {
         val image = imageUri ?: return@LaunchedEffect
         coroutineScope.launch(Dispatchers.IO) {
-            val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image))
-                .copy(Bitmap.Config.RGBA_F16, true)
-            val intArray = IntArray(bitmap.getWidth() * bitmap.getHeight())
-            bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight())
-
             try {
+                val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image))
+                    .copy(Bitmap.Config.RGBA_F16, true)
+                val intArray = IntArray(bitmap.getWidth() * bitmap.getHeight())
+                bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight())
+
                 val source = RGBLuminanceSource(
                     bitmap.getWidth(),
                     bitmap.getHeight(),
