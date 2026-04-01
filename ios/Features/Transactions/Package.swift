@@ -6,12 +6,13 @@ let package = Package(
     name: "Transactions",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Transactions",
-            targets: ["Transactions"]),
+            targets: ["Transactions"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -39,9 +40,9 @@ let package = Package(
                 .product(name: "TransactionsService", package: "FeatureServices"),
                 .product(name: "WalletService", package: "FeatureServices"),
                 "Preferences",
-                "InfoSheet"
+                "InfoSheet",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "TransactionsTests",
@@ -49,8 +50,8 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 "Transactions",
-                "PrimitivesComponents"
-            ]
+                "PrimitivesComponents",
+            ],
         ),
-    ]
+    ],
 )

@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import AssetsService
 import Components
+import Localization
+import Perpetuals
 import Primitives
+import PrimitivesComponents
+import Recents
 import Store
 import Style
-import Localization
-import PrimitivesComponents
-import AssetsService
-import Recents
-import Perpetuals
+import SwiftUI
 
 public struct WalletSearchScene: View {
     @State private var model: WalletSearchSceneViewModel
@@ -22,7 +22,7 @@ public struct WalletSearchScene: View {
         SearchableWrapper(
             content: { content },
             isSearching: $model.isSearching,
-            dismissSearch: $model.dismissSearch
+            dismissSearch: $model.dismissSearch,
         )
         .overlay {
             if model.showLoading {
@@ -32,9 +32,9 @@ public struct WalletSearchScene: View {
                     model: EmptyContentTypeViewModel(
                         type: .search(
                             type: .assets,
-                            action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil
-                        )
-                    )
+                            action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
+                        ),
+                    ),
                 )
             }
         }
@@ -42,12 +42,12 @@ public struct WalletSearchScene: View {
         .searchable(
             text: $model.searchModel.searchableQuery,
             isPresented: $model.isSearchPresented,
-            placement: .navigationBarDrawer(displayMode: .always)
+            placement: .navigationBarDrawer(displayMode: .always),
         )
         .autocorrectionDisabled(true)
         .debounce(
             value: $model.searchModel.searchableQuery.wrappedValue,
-            action: model.onSearch(query:)
+            action: model.onSearch(query:),
         )
         .onChange(of: model.searchModel.searchableQuery, model.onChangeSearchQuery)
         .onChange(of: model.isSearching, model.onChangeFocus)
@@ -72,7 +72,7 @@ public struct WalletSearchScene: View {
                 Section {} header: {
                     TagsView(
                         tags: model.searchModel.tagsViewModel.items,
-                        onSelect: { model.onSelectTag(tag: $0.tag) }
+                        onSelect: { model.onSelectTag(tag: $0.tag) },
                     )
                 }
                 .textCase(nil)
@@ -82,7 +82,7 @@ public struct WalletSearchScene: View {
             if model.showRecents {
                 RecentActivitySectionView(
                     models: model.recentModels,
-                    onSelectRecents: model.onSelectRecents
+                    onSelectRecents: model.onSelectRecents,
                 ) { assetModel in
                     Button {
                         model.onSelectRecent(asset: assetModel.asset)
@@ -100,7 +100,7 @@ public struct WalletSearchScene: View {
                         }
                         assetItems(for: model.sections.pinnedAssets)
                     },
-                    header: { PinnedSectionHeader() }
+                    header: { PinnedSectionHeader() },
                 )
                 .listRowInsets(.assetListRowInsets)
             }
@@ -114,7 +114,7 @@ public struct WalletSearchScene: View {
                         } else {
                             SectionHeaderView(title: model.perpetualsTitle)
                         }
-                    }
+                    },
                 )
                 .listRowInsets(.assetListRowInsets)
             }
@@ -126,12 +126,12 @@ public struct WalletSearchScene: View {
                         if model.hasMoreAssets {
                             HeaderNavigationLinkView(
                                 title: model.assetsTitle,
-                                destination: model.assetsResultsDestination
+                                destination: model.assetsResultsDestination,
                             )
                         } else {
                             SectionHeaderView(title: model.assetsTitle)
                         }
-                    }
+                    },
                 )
                 .listRowInsets(.assetListRowInsets)
             }
@@ -146,7 +146,7 @@ public struct WalletSearchScene: View {
             items: items,
             currencyCode: model.currencyCode,
             contextMenuItems: model.contextMenuItems,
-            onSelect: model.onSelectAsset
+            onSelect: model.onSelectAsset,
         )
     }
 
@@ -156,7 +156,7 @@ public struct WalletSearchScene: View {
             PerpetualListItem(
                 perpetualData: perpetualData,
                 onPin: model.onSelectPinPerpetual,
-                onSelect: model.onSelectAsset
+                onSelect: model.onSelectAsset,
             )
         }
     }

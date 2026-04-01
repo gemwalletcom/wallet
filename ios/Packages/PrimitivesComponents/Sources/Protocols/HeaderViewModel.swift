@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import SwiftUI
 
 public protocol HeaderViewModel {
     var isWatchWallet: Bool { get }
@@ -13,6 +13,6 @@ public protocol HeaderViewModel {
     var buttons: [HeaderButton] { get }
 }
 
-extension HeaderViewModel {
-    public var subtitleImage: Image? { nil }
+public extension HeaderViewModel {
+    var subtitleImage: Image? { nil }
 }

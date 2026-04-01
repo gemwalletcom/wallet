@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
+import PrimitivesTestKit
 import Testing
 import WalletSessionServiceTestKit
-import PrimitivesTestKit
-import Primitives
 
 @testable import WalletSessionService
 

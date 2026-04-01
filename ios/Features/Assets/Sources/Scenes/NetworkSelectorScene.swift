@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 struct NetworkSelectorScene: View {
     @Environment(\.dismiss) var dismiss
@@ -12,7 +12,8 @@ struct NetworkSelectorScene: View {
     private var onFinishSelection: (([Chain]) -> Void)?
 
     init(model: Binding<NetworkSelectorViewModel>,
-         onFinishSelection: (([Chain]) -> Void)? = nil) {
+         onFinishSelection: (([Chain]) -> Void)? = nil)
+    {
         _model = model
         self.onFinishSelection = onFinishSelection
     }
@@ -24,7 +25,7 @@ struct NetworkSelectorScene: View {
                 onFinishSelection?(value)
                 dismiss()
             },
-            listContent: { ChainView(model: ChainViewModel(chain: $0)) }
+            listContent: { ChainView(model: ChainViewModel(chain: $0)) },
         )
         .navigationTitle(model.title)
     }
@@ -34,6 +35,6 @@ struct NetworkSelectorScene: View {
 
 #Preview {
     NetworkSelectorScene(
-        model: .constant(NetworkSelectorViewModel(state: .data(.plain([.aptos, .arbitrum, .base]))))
+        model: .constant(NetworkSelectorViewModel(state: .data(.plain([.aptos, .arbitrum, .base])))),
     )
 }

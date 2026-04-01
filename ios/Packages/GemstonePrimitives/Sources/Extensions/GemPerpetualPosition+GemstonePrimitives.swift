@@ -4,12 +4,12 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPerpetualPosition {
-    public func map() throws -> PerpetualPosition {
-        return PerpetualPosition(
+public extension GemPerpetualPosition {
+    func map() throws -> PerpetualPosition {
+        try PerpetualPosition(
             id: id,
             perpetualId: perpetualId,
-            assetId: try AssetId(id: assetId),
+            assetId: AssetId(id: assetId),
             size: size,
             sizeValue: sizeValue,
             leverage: leverage,
@@ -21,13 +21,13 @@ extension GemPerpetualPosition {
             takeProfit: takeProfit?.map(),
             stopLoss: stopLoss?.map(),
             pnl: pnl,
-            funding: funding
+            funding: funding,
         )
     }
 }
 
-extension PerpetualPosition {
-    public func map() -> GemPerpetualPosition {
+public extension PerpetualPosition {
+    func map() -> GemPerpetualPosition {
         GemPerpetualPosition(
             id: id,
             perpetualId: perpetualId,
@@ -43,7 +43,7 @@ extension PerpetualPosition {
             takeProfit: takeProfit?.map(),
             stopLoss: stopLoss?.map(),
             pnl: pnl,
-            funding: funding
+            funding: funding,
         )
     }
 }

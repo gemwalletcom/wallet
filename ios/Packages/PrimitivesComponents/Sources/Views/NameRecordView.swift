@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Components
-import SwiftUI
+import Primitives
 import Style
+import SwiftUI
 
 public struct NameRecordView: View {
-
     let model: NameRecordViewModel
 
     public init(model: NameRecordViewModel) {

@@ -76,8 +76,8 @@ class TransactionDataAggregateImpl(
         TransactionType.TransferNFT,
         TransactionType.Transfer -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> data.transaction.to.getAddressEllipsisText()
-            TransactionDirection.Incoming -> data.transaction.from.getAddressEllipsisText()
+            TransactionDirection.Outgoing -> data.transaction.to.getAddressEllipsisText(chain = data.transaction.assetId.chain)
+            TransactionDirection.Incoming -> data.transaction.from.getAddressEllipsisText(chain = data.transaction.assetId.chain)
         }
         TransactionType.Swap,
         TransactionType.TokenApproval,

@@ -9,10 +9,10 @@ struct CornerBracketsShape: Shape {
     let boxSize: CGFloat
     let containerSize: CGSize
 
-    func path(in rect: CGRect) -> Path {
+    func path(in _: CGRect) -> Path {
         var path = Path()
 
-        let left = (containerSize.width  - boxSize) / 2
+        let left = (containerSize.width - boxSize) / 2
         let right = left + boxSize
         let top = (containerSize.height - boxSize) / 2
         let bottom = top + boxSize
@@ -23,8 +23,8 @@ struct CornerBracketsShape: Shape {
             center: CGPoint(x: left + cornerRadius, y: top + cornerRadius),
             radius: cornerRadius,
             startAngle: .degrees(180),
-            endAngle:   .degrees(270),
-            clockwise:  false
+            endAngle: .degrees(270),
+            clockwise: false,
         )
         path.move(to: CGPoint(x: left + cornerRadius, y: top))
         path.addLine(to: CGPoint(x: left + cornerRadius + cornerLength, y: top))
@@ -37,8 +37,8 @@ struct CornerBracketsShape: Shape {
             center: CGPoint(x: right - cornerRadius, y: top + cornerRadius),
             radius: cornerRadius,
             startAngle: .degrees(360),
-            endAngle:   .degrees(270),
-            clockwise:  true
+            endAngle: .degrees(270),
+            clockwise: true,
         )
         path.move(to: CGPoint(x: right - cornerRadius - cornerLength, y: top))
         path.addLine(to: CGPoint(x: right - cornerRadius, y: top))
@@ -51,8 +51,8 @@ struct CornerBracketsShape: Shape {
             center: CGPoint(x: left + cornerRadius, y: bottom - cornerRadius),
             radius: cornerRadius,
             startAngle: .degrees(180),
-            endAngle:   .degrees(90),
-            clockwise:  true
+            endAngle: .degrees(90),
+            clockwise: true,
         )
         path.move(to: CGPoint(x: left + cornerRadius, y: bottom))
         path.addLine(to: CGPoint(x: left + cornerRadius + cornerLength, y: bottom))
@@ -65,8 +65,8 @@ struct CornerBracketsShape: Shape {
             center: CGPoint(x: right - cornerRadius, y: bottom - cornerRadius),
             radius: cornerRadius,
             startAngle: .degrees(0),
-            endAngle:   .degrees(90),
-            clockwise:  false
+            endAngle: .degrees(90),
+            clockwise: false,
         )
         path.move(to: CGPoint(x: right - cornerRadius - cornerLength, y: bottom))
         path.addLine(to: CGPoint(x: right - cornerRadius, y: bottom))
@@ -83,7 +83,7 @@ struct CornerBracketsShape: Shape {
             cornerRadius: 25,
             cornerLength: 25,
             boxSize: 200,
-            containerSize: proxy.size
+            containerSize: proxy.size,
         )
         .background(.red)
     }

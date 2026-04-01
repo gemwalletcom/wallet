@@ -2,19 +2,19 @@
 
 import Formatters
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
 
 public extension BalanceViewModel {
     static func mock(
         asset: Asset = .mock(),
         balance: Balance = .mock(),
-        formatter: ValueFormatter = .auto
+        formatter: ValueFormatter = .auto,
     ) -> BalanceViewModel {
         BalanceViewModel(
             asset: asset,
             balance: balance,
-            formatter: formatter
+            formatter: formatter,
         )
     }
 }

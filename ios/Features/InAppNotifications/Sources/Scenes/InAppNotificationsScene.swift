@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Store
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 public struct InAppNotificationsScene: View {
     @State private var model: InAppNotificationsViewModel

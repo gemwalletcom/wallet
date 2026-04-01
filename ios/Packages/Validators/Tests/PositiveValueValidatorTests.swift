@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Testing
-import BigInt
 
 @testable import Validators
 
 struct PositiveValueValidatorTests {
     @Test
-    func testValidatesPositiveValue() throws {
+    func validatesPositiveValue() throws {
         let validator = PositiveValueValidator<BigInt>()
         try validator.validate(1)
         try validator.validate(123_456)
     }
 
     @Test
-    func testThrowsOnZero() {
+    func throwsOnZero() {
         let validator = PositiveValueValidator<BigInt>()
         #expect(throws: TransferError.invalidAmount) {
             try validator.validate(0)
@@ -23,7 +23,7 @@ struct PositiveValueValidatorTests {
     }
 
     @Test
-    func testThrowsOnNegative() {
+    func throwsOnNegative() {
         let validator = PositiveValueValidator<BigInt>()
         #expect(throws: TransferError.invalidAmount) {
             try validator.validate(-42)
@@ -31,7 +31,7 @@ struct PositiveValueValidatorTests {
     }
 
     @Test
-    func testSilentValidation() {
+    func silentValidation() {
         let validator = PositiveValueValidator<BigInt>().silent
 
         #expect(throws: SilentValidationError.self) {

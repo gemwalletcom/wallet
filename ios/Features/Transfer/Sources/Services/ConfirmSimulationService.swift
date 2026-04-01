@@ -11,18 +11,18 @@ public struct ConfirmSimulationService: Sendable {
 
     public init(
         addressNameService: AddressNameService,
-        assetsService: AssetsService
+        assetsService: AssetsService,
     ) {
         self.addressNameService = addressNameService
         self.assetsService = assetsService
     }
 
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {
-        return buildState(
+        buildState(
             simulation: simulation,
             payload: payloadFields(for: data.type, simulation: simulation),
             payloadAddressNames: [:],
-            headerData: cachedHeaderData(data: data, simulation: simulation)
+            headerData: cachedHeaderData(data: data, simulation: simulation),
         )
     }
 
@@ -31,11 +31,11 @@ public struct ConfirmSimulationService: Sendable {
         async let names = payloadAddressNames(chain: data.chain, payload: payload)
         async let headerData = headerData(data: data, simulation: simulation)
 
-        return buildState(
+        return await buildState(
             simulation: simulation,
             payload: payload,
-            payloadAddressNames: await names,
-            headerData: await headerData
+            payloadAddressNames: names,
+            headerData: headerData,
         )
     }
 }
@@ -45,20 +45,20 @@ private extension ConfirmSimulationService {
         simulation: SimulationResult?,
         payload: [SimulationPayloadField],
         payloadAddressNames: [ChainAddress: AddressName],
-        headerData: AssetValueHeaderData?
+        headerData: AssetValueHeaderData?,
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
             warnings: simulation?.warnings ?? [],
             primaryFields: payload.filter { $0.display == .primary },
             secondaryFields: payload.filter { $0.display == .secondary },
             payloadAddressNames: payloadAddressNames,
-            headerData: headerData
+            headerData: headerData,
         )
     }
 
     func payloadFields(
         for transferType: TransferDataType,
-        simulation: SimulationResult?
+        simulation: SimulationResult?,
     ) -> [SimulationPayloadField] {
         guard case .generic = transferType else {
             return []

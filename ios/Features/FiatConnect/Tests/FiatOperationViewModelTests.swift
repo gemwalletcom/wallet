@@ -1,28 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
+import Formatters
 import Foundation
-import Testing
 import Primitives
 import PrimitivesTestKit
-import Formatters
-import BigInt
+import Testing
 import Validators
 
 @testable import FiatConnect
 
 @MainActor
 final class FiatOperationViewModelTests {
-
     private struct MockFiatOperation: FiatOperation {
         var quotes: [FiatQuote] = []
         var defaultAmount: Int = 50
         var emptyAmountTitle: String = "Mock Title"
 
-        func fetch(amount: Double) async throws -> [FiatQuote] {
+        func fetch(amount _: Double) async throws -> [FiatQuote] {
             quotes
         }
 
-        func validators(availableBalance: BigInt, selectedQuote: FiatQuote?) -> [any TextValidator] {
+        func validators(availableBalance _: BigInt, selectedQuote _: FiatQuote?) -> [any TextValidator] {
             []
         }
     }
@@ -30,12 +29,12 @@ final class FiatOperationViewModelTests {
     private static func mock(
         operation: FiatOperation = MockFiatOperation(),
         asset: Asset = .mock(),
-        currencyFormatter: CurrencyFormatter = .init(locale: .US, currencyCode: Currency.usd.rawValue)
+        currencyFormatter: CurrencyFormatter = .init(locale: .US, currencyCode: Currency.usd.rawValue),
     ) -> FiatOperationViewModel {
         FiatOperationViewModel(
             operation: operation,
             asset: asset,
-            currencyFormatter: currencyFormatter
+            currencyFormatter: currencyFormatter,
         )
     }
 
@@ -191,15 +190,15 @@ final class FiatOperationViewModelTests {
         var defaultAmount: Int = 50
         var emptyAmountTitle: String = "Mock Title"
 
-        func fetch(amount: Double) async throws -> [FiatQuote] {
+        func fetch(amount _: Double) async throws -> [FiatQuote] {
             []
         }
 
-        func validators(availableBalance: BigInt, selectedQuote: FiatQuote?) -> [any TextValidator] {
+        func validators(availableBalance _: BigInt, selectedQuote _: FiatQuote?) -> [any TextValidator] {
             let rangeValidator = FiatRangeValidator(
-                range: BigInt(25)...BigInt(10000),
+                range: BigInt(25) ... BigInt(10000),
                 minimumValueText: "$25",
-                maximumValueText: "$10,000"
+                maximumValueText: "$10,000",
             )
             return [.assetAmount(decimals: 0, validators: [rangeValidator])]
         }

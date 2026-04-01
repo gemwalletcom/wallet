@@ -20,7 +20,7 @@ just format                 # run SwiftFormat
 
 ```bash
 just generate               # run all generation steps
-just generate-model         # regenerate model types from Rust
+just generate-models         # regenerate model types from Rust
 just generate-stone         # regenerate Rust-to-Swift bindings
 just generate-swiftgen      # regenerate assets and localization code
 just localize               # update localization files

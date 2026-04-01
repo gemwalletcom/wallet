@@ -2,4 +2,4 @@
 
 import Foundation
 
-protocol SilentValidatable: Sendable { }
+protocol SilentValidatable: Sendable {}

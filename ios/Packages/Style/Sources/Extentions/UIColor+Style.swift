@@ -3,19 +3,18 @@
 import Foundation
 import SwiftUI
 
-extension UIColor {
-
-    public var color: Color {
+public extension UIColor {
+    var color: Color {
         Color(self)
     }
 
-    public class func dynamicColor(_ light: Color, dark: Color?) -> Color {
-        return UIColor { traitCollection in
+    class func dynamicColor(_ light: Color, dark: Color?) -> Color {
+        UIColor { traitCollection in
             switch traitCollection.userInterfaceStyle {
             case .dark:
-                return dark?.uiColor ?? light.uiColor
+                dark?.uiColor ?? light.uiColor
             default:
-                return light.uiColor
+                light.uiColor
             }
         }.color
     }

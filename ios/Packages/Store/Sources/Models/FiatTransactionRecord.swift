@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 struct FiatTransactionRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
-
     static let databaseTableName: String = "fiat_transactions"
 
     enum Columns {
@@ -33,13 +32,13 @@ struct FiatTransactionRecord: Codable, FetchableRecord, PersistableRecord, Senda
     var value: String
     var createdAt: Date
     var detailsUrl: String?
-    
+
     static let asset = belongsTo(AssetRecord.self, using: ForeignKey(["assetId"], to: ["id"]))
 }
 
 extension FiatTransactionRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .notNull()
             $0.column(Columns.walletId.name, .text)
@@ -66,7 +65,7 @@ extension FiatTransactionRecord: CreateTable {
             $0.column(Columns.detailsUrl.name, .text)
             $0.primaryKey([
                 Columns.id.name,
-                Columns.walletId.name
+                Columns.walletId.name,
             ])
         }
     }
@@ -89,10 +88,10 @@ extension FiatTransactionRecordInfo {
                 fiatAmount: fiatTransaction.fiatAmount,
                 fiatCurrency: fiatTransaction.fiatCurrency,
                 value: fiatTransaction.value,
-                createdAt: fiatTransaction.createdAt
+                createdAt: fiatTransaction.createdAt,
             ),
             asset: asset.mapToAsset(),
-            detailsUrl: fiatTransaction.detailsUrl
+            detailsUrl: fiatTransaction.detailsUrl,
         )
     }
 }
@@ -110,7 +109,7 @@ extension FiatTransactionInfo {
             fiatCurrency: transaction.fiatCurrency,
             value: transaction.value,
             createdAt: transaction.createdAt,
-            detailsUrl: detailsUrl
+            detailsUrl: detailsUrl,
         )
     }
 }

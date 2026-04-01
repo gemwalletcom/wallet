@@ -1,28 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
 import struct Gemstone.SwapperQuote
-import Localization
-import Primitives
-import Formatters
-import PrimitivesComponents
-import Components
 import InfoSheet
+import Localization
 import Preferences
+import Primitives
+import PrimitivesComponents
 
 @Observable
 public final class SwapDetailsViewModel {
-    
     private static let timeFormatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.minute]
         formatter.unitsStyle = .short
         return formatter
     }()
+
     private let valueFormatter = ValueFormatter(style: .auto)
     private let rateFormatter = AssetRateFormatter()
     private let percentSignLessFormatter = CurrencyFormatter.percentSignLess
-    
+
     let state: StateViewType<[SwapperQuote]>
     private let fromAssetPrice: AssetPriceValue
     private let toAssetPrice: AssetPriceValue
@@ -31,7 +31,7 @@ public final class SwapDetailsViewModel {
     private var rateDirection: AssetRateFormatter.Direction = .direct
     private let priceViewModel: PriceViewModel
     private let swapProviderSelectAction: ((SwapperQuote) -> Void)?
-    
+
     var isPresentingInfoSheet: InfoSheetType?
     var isPresentingSwapProviderSelectionSheet: Bool = false
 
@@ -41,18 +41,19 @@ public final class SwapDetailsViewModel {
         toAssetPrice: AssetPriceValue,
         selectedQuote: SwapQuote,
         preferences: Preferences = .standard,
-        swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil
+        swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state ?? .data([])
         self.fromAssetPrice = fromAssetPrice
         self.toAssetPrice = toAssetPrice
-        self.providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
+        providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
         self.selectedQuote = selectedQuote
-        self.priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: preferences.currency)
+        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: preferences.currency)
         self.swapProviderSelectAction = swapProviderSelectAction
     }
-    
+
     // MARK: - Provider
+
     var providerText: String { providerViewModel.providerText }
     var providerImage: AssetImage { providerViewModel.providerImage }
     var selectedProviderItem: SwapProviderItem {
@@ -61,7 +62,7 @@ public final class SwapDetailsViewModel {
             swapQuote: selectedQuote,
             selectedProvider: nil,
             priceViewModel: priceViewModel,
-            valueFormatter: valueFormatter
+            valueFormatter: valueFormatter,
         )
     }
 
@@ -69,8 +70,9 @@ public final class SwapDetailsViewModel {
     var swapProvidersViewModel: SwapProvidersViewModel {
         SwapProvidersViewModel(state: state.map { .plain(swapProviderItems($0)) })
     }
-    
+
     // MARK: - Estimation
+
     var swapEstimationField: ListItemField? {
         guard
             let estimation = selectedQuote.etaInSeconds, estimation > 60,
@@ -80,58 +82,66 @@ public final class SwapDetailsViewModel {
         }
         return ListItemField(title: Localized.Swap.EstimatedTime.title, value: String(format: "%@ %@", "≈", estimationTime))
     }
-    
+
     // MARK: - Rate
+
     var rateTitle: String { Localized.Buy.rate }
     var rateText: String? {
-         try? rateFormatter.rate(
+        try? rateFormatter.rate(
             fromAsset: fromAssetPrice.asset,
             toAsset: toAssetPrice.asset,
             fromValue: selectedQuote.fromValueBigInt,
             toValue: selectedQuote.toValueBigInt,
-            direction: rateDirection
+            direction: rateDirection,
         )
     }
-    
+
     // MARK: - Price Impact
+
     var highImpactWarningTitle: String {
         priceImpactModel.highImpactWarningTitle
     }
+
     var priceImpactModel: PriceImpactViewModel {
         PriceImpactViewModel(
             fromAssetPrice: fromAssetPrice,
             fromValue: selectedQuote.fromValue,
             toAssetPrice: toAssetPrice,
-            toValue: selectedQuote.toValue
+            toValue: selectedQuote.toValue,
         )
     }
+
     var shouldShowPriceImpactInDetails: Bool {
         switch priceImpactModel.value?.type {
         case .low, .positive, nil: false
         case .medium, .high: true
         }
     }
+
     var priceImpactValue: String? {
         priceImpactModel.value?.value
     }
-    
+
     // MARK: - Slippage
+
     var slippageValue: UInt32 { selectedQuote.slippageBps / 100 }
     var slippageField: ListItemField {
         ListItemField(title: Localized.Swap.slippage, value: percentSignLessFormatter.string(Double(slippageValue).rounded(toPlaces: 2)))
     }
 
     // MARK: - Min receive
+
     var minReceiveField: ListItemField {
         ListItemField(
             title: Localized.Swap.minReceive,
-            value: valueFormatter.string(selectedQuote.toValueBigInt.decrease(byPercent: Int(slippageValue)), asset: toAssetPrice.asset)
+            value: valueFormatter.string(selectedQuote.toValueBigInt.decrease(byPercent: Int(slippageValue)), asset: toAssetPrice.asset),
         )
     }
 
     var fromAsset: Asset { fromAssetPrice.asset }
 
     // MARK: - Private methods
+
     private func swapProviderItems(_ quotes: [SwapperQuote]) -> [SwapProviderItem] {
         quotes.compactMap {
             SwapProviderItem(
@@ -139,13 +149,14 @@ public final class SwapDetailsViewModel {
                 swapperQuote: $0,
                 selectedProvider: selectedQuote.providerData.provider,
                 priceViewModel: priceViewModel,
-                valueFormatter: valueFormatter
+                valueFormatter: valueFormatter,
             )
         }
     }
 }
 
 // MARK: - Actions
+
 extension SwapDetailsViewModel {
     func switchRateDirection() {
         switch rateDirection {
@@ -160,15 +171,15 @@ extension SwapDetailsViewModel {
         selectedQuote = swapQuote
         isPresentingSwapProviderSelectionSheet = false
     }
-    
+
     func onSelectPriceImpactInfoSheet() {
         isPresentingInfoSheet = .priceImpact
     }
-    
+
     func onSelectSlippageInfoSheet() {
         isPresentingInfoSheet = .slippage
     }
-    
+
     func onSelectProvidersSelection() {
         isPresentingSwapProviderSelectionSheet = true
     }

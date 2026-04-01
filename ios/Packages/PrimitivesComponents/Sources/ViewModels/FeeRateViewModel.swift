@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-import Foundation
-import Style
-import Localization
-import SwiftUI
 import Components
 import Formatters
+import Foundation
+import Localization
+import Primitives
+import Style
+import SwiftUI
 
 public struct FeeRateViewModel: Identifiable {
     static let formatter = CurrencyFormatter(currencyCode: .empty)
@@ -20,7 +20,7 @@ public struct FeeRateViewModel: Identifiable {
         feeRate: FeeRate,
         unitType: FeeUnitType,
         decimals: Int,
-        symbol: String
+        symbol: String,
     ) {
         self.feeRate = feeRate
         self.unitType = unitType
@@ -37,7 +37,7 @@ public struct FeeRateViewModel: Identifiable {
         case .slow: Emoji.FeeRate.slow.rawValue
         }
     }
-    
+
     public var title: String {
         switch feeRate.priority {
         case .slow: Localized.FeeRates.slow
@@ -52,7 +52,7 @@ public struct FeeRateViewModel: Identifiable {
             unit: unit,
             decimals: decimals,
             symbol: symbol,
-            formatter: Self.formatter
+            formatter: Self.formatter,
         )
     }
 

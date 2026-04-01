@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import SwiftUI
 
 struct ReportSelectReasonScene: View {
     private let model: ReportNftViewModel
@@ -17,7 +17,7 @@ struct ReportSelectReasonScene: View {
                 ForEach(model.reasons) { reasonViewModel in
                     NavigationCustomLink(
                         with: ListItemView(title: reasonViewModel.title),
-                        action: { model.submitReport(reason: reasonViewModel.reason.rawValue) }
+                        action: { model.submitReport(reason: reasonViewModel.reason.rawValue) },
                     )
                 }
             }

@@ -1,23 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 struct ToolbarInfoButtonModifier: ViewModifier {
-    
     @State private var isPresentingUrl: URL?
 
     private let url: URL
     private let placement: ToolbarItemPlacement
-    
+
     init(
         url: URL,
-        placement: ToolbarItemPlacement = .topBarTrailing
+        placement: ToolbarItemPlacement = .topBarTrailing,
     ) {
         self.url = url
         self.placement = placement
     }
-    
+
     func body(content: Content) -> some View {
         content
             .toolbar {
@@ -34,7 +33,7 @@ struct ToolbarInfoButtonModifier: ViewModifier {
 public extension View {
     func toolbarInfoButton(
         url: URL,
-        placement: ToolbarItemPlacement = .topBarTrailing
+        placement: ToolbarItemPlacement = .topBarTrailing,
     ) -> some View {
         modifier(ToolbarInfoButtonModifier(url: url, placement: placement))
     }

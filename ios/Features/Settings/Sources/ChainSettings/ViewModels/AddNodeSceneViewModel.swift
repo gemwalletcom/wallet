@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Components
-import Localization
 import Blockchain
 import ChainService
+import Components
+import Localization
 import NodeService
+import Primitives
 import PrimitivesComponents
-import Validators
 import Style
+import SwiftUI
+import Validators
 
 @MainActor
 @Observable
@@ -30,7 +30,7 @@ final class AddNodeSceneViewModel {
         self.chain = chain
         self.nodeService = nodeService
         self.chainServiceFactory = chainServiceFactory
-        self.addNodeService = AddNodeService(nodeStore: nodeService.nodeStore)
+        addNodeService = AddNodeService(nodeStore: nodeService.nodeStore)
     }
 
     var title: String { Localized.Nodes.ImportNode.title }
@@ -51,8 +51,8 @@ final class AddNodeSceneViewModel {
                 assetImage: AssetImage(type: Emoji.WalletAvatar.warning.rawValue),
                 imageSize: .image.semiMedium,
                 alignment: .top,
-                cornerRadiusType: .none
-            )
+                cornerRadiusType: .none,
+            ),
         )
     }
 }
@@ -81,20 +81,20 @@ extension AddNodeSceneViewModel {
     }
 
     func importFoundNode() throws {
-        guard case .data(let model) = state else {
+        guard case let .data(model) = state else {
             throw AnyError("Unknown result")
         }
-        
+
         // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
         let node = Node(url: model.url.absoluteString, status: .active, priority: 5)
         try addNodeService.addNode(ChainNodes(chain: chain.rawValue, nodes: [node]))
 
         // TODO: - impement correct way of selection node
         /*
-        try nodeService.setNodeSelected(chain: chain, node: node)
-         */
+         try nodeService.setNodeSelected(chain: chain, node: node)
+          */
     }
-    
+
     func fetch() async {
         guard let url = try? URLDecoder().decode(urlInputModel.text) else {
             // safety check for onSubmitUrl
@@ -111,13 +111,13 @@ extension AddNodeSceneViewModel {
             guard NodeService.isValid(netoworkId: nodeStatus.chainId, for: chain) else {
                 throw AddNodeError.invalidNetworkId
             }
-            
+
             let result = AddNodeResult(
-                url: url, 
-                chainID: nodeStatus.chainId, 
-                blockNumber: nodeStatus.latestBlockNumber, 
-                isInSync: true, 
-                latency: nodeStatus.latency
+                url: url,
+                chainID: nodeStatus.chainId,
+                blockNumber: nodeStatus.latestBlockNumber,
+                isInSync: true,
+                latency: nodeStatus.latency,
             )
             state = .data(AddNodeResultViewModel(addNodeResult: result))
         } catch {

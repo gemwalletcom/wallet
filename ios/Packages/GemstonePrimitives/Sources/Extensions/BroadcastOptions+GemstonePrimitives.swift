@@ -3,14 +3,14 @@
 import Gemstone
 import Primitives
 
-extension Gemstone.BroadcastOptions {
-    public func map() -> Primitives.BroadcastOptions {
+public extension Gemstone.BroadcastOptions {
+    func map() -> Primitives.BroadcastOptions {
         BroadcastOptions(skipPreflight: skipPreflight)
     }
 }
 
-extension Primitives.BroadcastOptions {
-    public func map() -> Gemstone.BroadcastOptions {
+public extension Primitives.BroadcastOptions {
+    func map() -> Gemstone.BroadcastOptions {
         Gemstone.BroadcastOptions(skipPreflight: skipPreflight)
     }
 }

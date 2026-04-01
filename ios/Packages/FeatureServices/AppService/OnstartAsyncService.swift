@@ -4,7 +4,6 @@ import Foundation
 import Primitives
 
 public struct OnstartAsyncService: Sendable {
-
     private let runners: [any AsyncRunnable]
 
     public init(runners: [any AsyncRunnable]) {

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Preferences
 import AssetsService
+import Foundation
+import Preferences
+import Primitives
 
 public struct AssetsUpdateRunner: AsyncRunnable {
     public let id = "assets_update"
@@ -19,7 +19,7 @@ public struct AssetsUpdateRunner: AsyncRunnable {
         importAssetsService: ImportAssetsService,
         assetsService: AssetsService,
         swappableChainsProvider: any SwappableChainsProvider,
-        preferences: Preferences
+        preferences: Preferences,
     ) {
         self.configService = configService
         self.importAssetsService = importAssetsService
@@ -58,7 +58,7 @@ public struct AssetsUpdateRunner: AsyncRunnable {
 
     private func shouldUpdateFiatAssets(versions: ConfigVersions) -> Bool {
         versions.fiatOnRampAssets > preferences.fiatOnRampAssetsVersion ||
-        versions.fiatOffRampAssets > preferences.fiatOffRampAssetsVersion
+            versions.fiatOffRampAssets > preferences.fiatOffRampAssetsVersion
     }
 
     private func shouldUpdateSwapAssets(versions: ConfigVersions) -> Bool {

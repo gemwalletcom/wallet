@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Keychain
+import Primitives
 
 public final class SecurePreferences: Sendable {
     public enum Keys: String, CaseIterable {
         // Deprecated. Use devicePublicKey
         case deviceId
-        
+
         case deviceToken
         case devicePrivateKey
         case devicePublicKey
@@ -18,11 +18,11 @@ public final class SecurePreferences: Sendable {
     public static let standard = SecurePreferences()
 
     private let keychain: any KeychainPreferenceStorable
-    
+
     public init(keychain: any KeychainPreferenceStorable = KeychainDefault()) {
         self.keychain = keychain
     }
-    
+
     @discardableResult
     public func set(value: String, key: SecurePreferences.Keys) throws -> String {
         try keychain.set(value: value, key: key.rawValue)
@@ -42,12 +42,12 @@ public final class SecurePreferences: Sendable {
     public func getData(key: SecurePreferences.Keys) throws -> Data? {
         try keychain.getData(key: key.rawValue)
     }
-    
+
     public func delete(key: SecurePreferences.Keys) throws {
         try keychain.remove(key: key.rawValue)
     }
 
-    public func getDeviceId() throws -> String  {
+    public func getDeviceId() throws -> String {
         guard let deviceId = try get(key: .deviceId) else {
             throw AnyError("no device id")
         }

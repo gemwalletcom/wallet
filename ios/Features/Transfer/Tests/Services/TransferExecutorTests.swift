@@ -1,21 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-@testable import Transfer
-import Primitives
-import PrimitivesTestKit
+import BalanceServiceTestKit
 import Blockchain
 import BlockchainTestKit
+import ChainServiceTestKit
+import Primitives
+import PrimitivesTestKit
 import SignerTestKit
-import BalanceServiceTestKit
-import TransactionStateService
-import TransactionStateServiceTestKit
 import Store
 import StoreTestKit
-import ChainServiceTestKit
+import Testing
+import TransactionStateService
+import TransactionStateServiceTestKit
+@testable import Transfer
 
 struct TransferExecutorTests {
-
     @Test
     func hyperCorePerpetualFiltersSetupTransactions() async throws {
         let db = DB.mockAssets(assets: [.mock(asset: .hypercoreUSDC())])
@@ -25,7 +24,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1", "hash2", "hash3"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore)
+            transactionStateService: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -33,7 +32,7 @@ struct TransferExecutorTests {
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
             transactionData: .mock(),
             amount: .mock(),
-            delegate: nil
+            delegate: nil,
         )
         try await executor.execute(input: input)
 
@@ -51,7 +50,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore)
+            transactionStateService: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -59,7 +58,7 @@ struct TransferExecutorTests {
             wallet: .mock(accounts: [.mock(chain: .ethereum), .mock(chain: .bitcoin)]),
             transactionData: .mock(),
             amount: .mock(),
-            delegate: nil
+            delegate: nil,
         )
         try await executor.execute(input: input)
 
@@ -77,7 +76,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore)
+            transactionStateService: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -85,7 +84,7 @@ struct TransferExecutorTests {
             wallet: .mock(accounts: [.mock(chain: .ethereum)]),
             transactionData: .mock(),
             amount: .mock(),
-            delegate: nil
+            delegate: nil,
         )
 
         try await executor.execute(input: input)
@@ -104,7 +103,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore)
+            transactionStateService: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -112,7 +111,7 @@ struct TransferExecutorTests {
             wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
             transactionData: .mock(),
             amount: .mock(),
-            delegate: nil
+            delegate: nil,
         )
 
         try await executor.execute(input: input)

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Formatters
 import Foundation
 import Primitives
-import Formatters
 
 public struct AutocloseValidator: TextValidator {
     private let type: TpslType
@@ -12,7 +12,7 @@ public struct AutocloseValidator: TextValidator {
     public init(
         type: TpslType,
         marketPrice: Double,
-        direction: PerpetualDirection
+        direction: PerpetualDirection,
     ) {
         self.marketPrice = marketPrice
         self.type = type

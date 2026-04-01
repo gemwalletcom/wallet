@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 
 public struct TransferAmountInput {
     public let asset: Asset
@@ -24,7 +24,7 @@ public struct TransferAmountInput {
         assetFee: Asset,
         assetFeeBalance: Balance,
         fee: BigInt,
-        transferData: TransferData
+        transferData: TransferData,
     ) {
         self.asset = asset
         self.assetBalance = assetBalance
@@ -33,8 +33,8 @@ public struct TransferAmountInput {
         self.assetFee = assetFee
         self.assetFeeBalance = assetFeeBalance
         self.fee = fee
-        self.canChangeValue = transferData.canChangeValue
-        self.ignoreValueCheck = transferData.type.shouldIgnoreValueCheck
+        canChangeValue = transferData.canChangeValue
+        ignoreValueCheck = transferData.type.shouldIgnoreValueCheck
     }
 
     public init(
@@ -46,7 +46,7 @@ public struct TransferAmountInput {
         assetFeeBalance: Balance,
         fee: BigInt,
         canChangeValue: Bool,
-        ignoreValueCheck: Bool
+        ignoreValueCheck: Bool,
     ) {
         self.asset = asset
         self.assetBalance = assetBalance

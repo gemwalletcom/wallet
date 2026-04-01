@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Primitives
-import Components
 
 public struct SimpleAccount {
     public let name: String?

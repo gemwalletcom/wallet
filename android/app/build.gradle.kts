@@ -28,8 +28,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 36
-        versionCode = 704
-        versionName = "2.0.5"
+        versionCode = 707
+        versionName = "2.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -256,6 +256,7 @@ dependencies {
     implementation(project(":features:referral:presents"))
 
     implementation(libs.ktx.core)
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.tink)
 

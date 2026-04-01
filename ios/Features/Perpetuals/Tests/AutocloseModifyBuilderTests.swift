@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 
 @testable import Perpetuals
 @testable import PerpetualsTestKit
 
 struct AutocloseModifyBuilderTests {
-
     @Test
     func canBuildWithValidChanges() {
         let builder = AutocloseModifyBuilder.mock()
@@ -89,7 +88,7 @@ struct AutocloseModifyBuilderTests {
         let result = builder.build(assetIndex: 5, takeProfit: takeProfit, stopLoss: stopLoss)
 
         #expect(result.count == 1)
-        if case .tpsl(let order) = result[0] {
+        if case let .tpsl(order) = result[0] {
             #expect(order.takeProfit == "110.0")
             #expect(order.stopLoss == nil)
         }
@@ -104,7 +103,7 @@ struct AutocloseModifyBuilderTests {
         let result = builder.build(assetIndex: 5, takeProfit: takeProfit, stopLoss: stopLoss)
 
         #expect(result.count == 1)
-        if case .tpsl(let order) = result[0] {
+        if case let .tpsl(order) = result[0] {
             #expect(order.takeProfit == nil)
             #expect(order.stopLoss == "90.0")
         }
@@ -119,7 +118,7 @@ struct AutocloseModifyBuilderTests {
         let result = builder.build(assetIndex: 5, takeProfit: takeProfit, stopLoss: stopLoss)
 
         #expect(result.count == 1)
-        if case .tpsl(let order) = result[0] {
+        if case let .tpsl(order) = result[0] {
             #expect(order.takeProfit == "110.0")
             #expect(order.stopLoss == "90.0")
         }
@@ -134,7 +133,7 @@ struct AutocloseModifyBuilderTests {
         let result = builder.build(assetIndex: 5, takeProfit: takeProfit, stopLoss: stopLoss)
 
         #expect(result.count == 1)
-        if case .cancel(let cancels) = result[0] {
+        if case let .cancel(cancels) = result[0] {
             #expect(cancels.count == 1)
             #expect(cancels[0].orderId == 12345)
         }
@@ -148,18 +147,18 @@ struct AutocloseModifyBuilderTests {
             originalPrice: 100.0,
             formattedPrice: "120.0",
             isValid: true,
-            orderId: 12345
+            orderId: 12345,
         )
         let stopLoss = AutocloseField.mock(price: nil, originalPrice: nil, isValid: false)
 
         let result = builder.build(assetIndex: 5, takeProfit: takeProfit, stopLoss: stopLoss)
 
         #expect(result.count == 2)
-        if case .cancel(let cancels) = result[0] {
+        if case let .cancel(cancels) = result[0] {
             #expect(cancels.count == 1)
             #expect(cancels[0].orderId == 12345)
         }
-        if case .tpsl(let order) = result[1] {
+        if case let .tpsl(order) = result[1] {
             #expect(order.takeProfit == "120.0")
         }
     }
@@ -172,23 +171,23 @@ struct AutocloseModifyBuilderTests {
             originalPrice: 100.0,
             formattedPrice: "120.0",
             isValid: true,
-            orderId: 12345
+            orderId: 12345,
         )
         let stopLoss = AutocloseField.mock(
             price: 80.0,
             originalPrice: 90.0,
             formattedPrice: "80.0",
             isValid: true,
-            orderId: 67890
+            orderId: 67890,
         )
 
         let result = builder.build(assetIndex: 5, takeProfit: takeProfit, stopLoss: stopLoss)
 
         #expect(result.count == 2)
-        if case .cancel(let cancels) = result[0] {
+        if case let .cancel(cancels) = result[0] {
             #expect(cancels.count == 2)
         }
-        if case .tpsl(let order) = result[1] {
+        if case let .tpsl(order) = result[1] {
             #expect(order.takeProfit == "120.0")
             #expect(order.stopLoss == "80.0")
         }

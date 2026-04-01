@@ -16,7 +16,7 @@ public struct RecentActivityStore: Sendable {
         toAssetId: AssetId?,
         walletId: WalletId,
         type: RecentActivityType,
-        createdAt: Date = .now
+        createdAt: Date = .now,
     ) throws {
         try db.write { db in
             try RecentActivityRecord(
@@ -24,7 +24,7 @@ public struct RecentActivityStore: Sendable {
                 toAssetId: toAssetId,
                 walletId: walletId.id,
                 type: type,
-                createdAt: createdAt
+                createdAt: createdAt,
             ).insert(db)
         }
     }
@@ -33,7 +33,7 @@ public struct RecentActivityStore: Sendable {
         _ = try db.write { db in
             try RecentActivityRecord
                 .filter(RecentActivityRecord.Columns.walletId == walletId.id)
-                .filter(types.map { $0.rawValue }.contains(RecentActivityRecord.Columns.type))
+                .filter(types.map(\.rawValue).contains(RecentActivityRecord.Columns.type))
                 .deleteAll(db)
         }
     }

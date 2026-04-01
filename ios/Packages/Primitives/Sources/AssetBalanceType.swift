@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public enum AssetBalanceType: Sendable {
     case coin(available: BigInt, reserved: BigInt, pendingUnconfirmed: BigInt)
@@ -11,8 +11,8 @@ public enum AssetBalanceType: Sendable {
 
     public var available: BigInt? {
         switch self {
-        case .coin(let available, _, _): available
-        case .token(let available): available
+        case let .coin(available, _, _): available
+        case let .token(available): available
         case .stake, .earn: nil
         }
     }
@@ -29,7 +29,7 @@ public struct AssetBalanceChange: Sendable {
     public let assetId: AssetId
     public let type: AssetBalanceType
     public let isActive: Bool
-    
+
     public init(
         assetId: AssetId,
         type: AssetBalanceType,
@@ -49,7 +49,7 @@ public struct AssetBalance: Codable, Sendable {
     public init(
         assetId: AssetId,
         balance: Balance,
-        isActive: Bool = true
+        isActive: Bool = true,
     ) {
         self.assetId = assetId
         self.balance = balance
@@ -57,29 +57,29 @@ public struct AssetBalance: Codable, Sendable {
     }
 }
 
-extension AssetBalance {
-    public var coinChange: AssetBalanceChange {
+public extension AssetBalance {
+    var coinChange: AssetBalanceChange {
         AssetBalanceChange(
             assetId: assetId,
             type: AssetBalanceType
                 .coin(
                     available: balance.available,
                     reserved: balance.reserved,
-                    pendingUnconfirmed: balance.pendingUnconfirmed
+                    pendingUnconfirmed: balance.pendingUnconfirmed,
                 ),
-            isActive: isActive
-        )
-    }
-    
-    public var tokenChange: AssetBalanceChange {
-        AssetBalanceChange(
-            assetId: assetId,
-            type: AssetBalanceType.token(available: balance.available),
-            isActive: isActive
+            isActive: isActive,
         )
     }
 
-    public var stakeChange: AssetBalanceChange {
+    var tokenChange: AssetBalanceChange {
+        AssetBalanceChange(
+            assetId: assetId,
+            type: AssetBalanceType.token(available: balance.available),
+            isActive: isActive,
+        )
+    }
+
+    var stakeChange: AssetBalanceChange {
         AssetBalanceChange(
             assetId: assetId,
             type: AssetBalanceType.stake(
@@ -89,22 +89,22 @@ extension AssetBalance {
                 reserved: balance.reserved,
                 locked: balance.locked,
                 frozen: balance.frozen,
-                metadata: balance.metadata
+                metadata: balance.metadata,
             ),
-            isActive: isActive
+            isActive: isActive,
         )
     }
 
-    public var earnChange: AssetBalanceChange {
+    var earnChange: AssetBalanceChange {
         AssetBalanceChange(
             assetId: assetId,
             type: .earn(balance.earn),
-            isActive: isActive
+            isActive: isActive,
         )
     }
 
-    public static func merge(assetIds: [AssetId], balances: [BigInt]) -> [AssetBalance] {
-        return zip(assetIds, balances).map {
+    static func merge(assetIds: [AssetId], balances: [BigInt]) -> [AssetBalance] {
+        zip(assetIds, balances).map {
             AssetBalance(assetId: $0, balance: Balance(available: $1))
         }
     }
@@ -116,7 +116,7 @@ public struct WalletAssetBalance: Codable, Sendable {
 
     public init(
         walletId: String,
-        balance: AssetBalance
+        balance: AssetBalance,
     ) {
         self.walletId = walletId
         self.balance = balance
@@ -126,11 +126,11 @@ public struct WalletAssetBalance: Codable, Sendable {
 public extension AssetBalance {
     static func make(
         for assetId: AssetId,
-        balance: Balance = Balance(available: .zero)
+        balance: Balance = Balance(available: .zero),
     ) -> AssetBalance {
-        return AssetBalance(
+        AssetBalance(
             assetId: assetId,
-            balance: balance
+            balance: balance,
         )
     }
 }

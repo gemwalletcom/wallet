@@ -11,7 +11,7 @@ struct NFTCollectionRecordInfo: Codable, FetchableRecord {
 
 extension NFTCollectionRecordInfo {
     func mapToNFTData() -> NFTData {
-        return NFTData(
+        NFTData(
             collection: NFTCollection(
                 id: collection.id,
                 name: collection.name,
@@ -21,13 +21,13 @@ extension NFTCollectionRecordInfo {
                 images: NFTImages(
                     preview: NFTResource(
                         url: collection.previewImageUrl,
-                        mimeType: collection.previewImageMimeType
-                    )
+                        mimeType: collection.previewImageMimeType,
+                    ),
                 ),
                 status: collection.status,
-                links: collection.links ?? []
+                links: collection.links ?? [],
             ),
-            assets: assets.map { $0.mapToAsset() }
+            assets: assets.map { $0.mapToAsset() },
         )
     }
 }

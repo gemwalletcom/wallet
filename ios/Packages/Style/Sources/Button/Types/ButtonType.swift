@@ -7,13 +7,13 @@ public enum ButtonType: Hashable, Sendable {
 
     var state: ButtonState {
         switch self {
-        case .primary(let state): state
+        case let .primary(state): state
         }
     }
-    
+
     public var isDisabled: Bool {
         switch self {
-        case .primary(let state): state != .normal
+        case let .primary(state): state != .normal
         }
     }
 }

@@ -9,14 +9,14 @@ public extension PerpetualModifyConfirmData {
         assetIndex: Int32 = 0,
         modifyTypes: [PerpetualModifyPositionType] = [],
         takeProfitOrderId: UInt64? = nil,
-        stopLossOrderId: UInt64? = nil
+        stopLossOrderId: UInt64? = nil,
     ) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData(
             baseAsset: baseAsset,
             assetIndex: assetIndex,
             modifyTypes: modifyTypes,
             takeProfitOrderId: takeProfitOrderId,
-            stopLossOrderId: stopLossOrderId
+            stopLossOrderId: stopLossOrderId,
         )
     }
 }

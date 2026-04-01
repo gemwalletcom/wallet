@@ -3,7 +3,7 @@
 import Foundation
 import UIKit
 
-public extension UIImage {    
+public extension UIImage {
     func compress(compressionQuality: CGFloat = 1.0) -> Data? {
         jpegData(compressionQuality: compressionQuality)
     }

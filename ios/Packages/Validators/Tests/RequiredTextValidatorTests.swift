@@ -9,13 +9,13 @@ struct RequiredTextValidatorTests {
     private let fieldName = "Wallet 1"
 
     @Test
-    func testValidatesNonEmpty() throws {
+    func validatesNonEmpty() throws {
         let validator = RequiredTextValidator(requireName: fieldName)
         try validator.validate("Alice")
     }
 
     @Test
-    func testThrowsOnEmpty() {
+    func throwsOnEmpty() {
         let validator = RequiredTextValidator(requireName: fieldName)
         #expect(throws: RequiredFieldError(field: fieldName)) {
             try validator.validate("")
@@ -23,7 +23,7 @@ struct RequiredTextValidatorTests {
     }
 
     @Test
-    func testThrowsOnWhitespaceOnly() {
+    func throwsOnWhitespaceOnly() {
         let validator = RequiredTextValidator(requireName: fieldName)
         #expect(throws: RequiredFieldError(field: fieldName)) {
             try validator.validate(" \n\t")

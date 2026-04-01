@@ -8,14 +8,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-val largeIconSize = 120.dp
+val extraLargeIconSize = 120.dp
 val headerIconSize = 64.dp
+val largeIconSize = 96.dp
+val headerSmallIconSize = 50.dp
 val smallIconSize = 24.dp
+val compactIconSize = 20.dp
 val tinyIconSize = 16.dp
 val listItemIconSize = 44.dp
 val headerLargeImageSize = 128.dp
 val iconSize = 32.dp
 
+val space0 = 0.dp
 val space2 = 2.dp
 private val space6 = 6.dp
 val space4 = 4.dp
@@ -33,6 +37,7 @@ val paddingDefault = 16.dp
 val paddingLarge = 32.dp
 
 val mainActionHeight = 48.dp
+val sheetCornerSize = 28.dp
 
 object SceneSizing {
     val buttonMaxWidth = 340.dp
@@ -40,23 +45,23 @@ object SceneSizing {
 }
 
 fun Modifier.smallPadding(): Modifier {
-    return padding(4.dp)
+    return padding(paddingHalfSmall)
 }
 
 fun Modifier.normalPadding(): Modifier {
-    return padding(8.dp)
+    return padding(paddingSmall)
 }
 
 fun Modifier.middlePadding(): Modifier {
-    return padding(12.dp)
+    return padding(paddingMiddle)
 }
 
 fun Modifier.defaultPadding(): Modifier {
-    return padding(16.dp)
+    return padding(paddingDefault)
 }
 
 fun Modifier.largePadding(): Modifier {
-    return padding(32.dp)
+    return padding(paddingLarge)
 }
 
 @Composable

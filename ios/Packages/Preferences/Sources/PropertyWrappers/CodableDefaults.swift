@@ -9,7 +9,7 @@ public struct CodableDefaults<T: Codable>: @unchecked Sendable {
 
     public init(
         key: String,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
     ) {
         self.key = key
         self.defaults = defaults

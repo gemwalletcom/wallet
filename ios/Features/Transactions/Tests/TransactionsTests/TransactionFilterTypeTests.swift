@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 import Transactions
 
 struct TransactionFilterTypeTests {
     @Test
-    func testMap() {
+    func map() {
         for type in TransactionType.allCases {
             switch type {
             case .transfer:

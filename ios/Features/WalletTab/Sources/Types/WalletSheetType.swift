@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import InfoSheet
+import Primitives
 
 public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case wallets
@@ -17,11 +17,11 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     public var id: String {
         switch self {
         case .wallets: "wallets"
-        case .selectAsset(let type): "selectAsset-\(type.id)"
-        case .infoSheet(let type): "infoSheet-\(type.id)"
-        case .transferData(let data): "transferData-\(data.id)"
+        case let .selectAsset(type): "selectAsset-\(type.id)"
+        case let .infoSheet(type): "infoSheet-\(type.id)"
+        case let .transferData(data): "transferData-\(data.id)"
         case .perpetualRecipientData: "perpetualRecipientData"
-        case .setPriceAlert(let asset): "setPriceAlert-\(asset.id.identifier)"
+        case let .setPriceAlert(asset): "setPriceAlert-\(asset.id.identifier)"
         case .addAsset: "addAsset"
         case .portfolio: "portfolio"
         }

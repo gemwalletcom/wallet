@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
 import Style
+import SwiftUI
 
 public struct ChainImage: Sendable {
     private let chain: Chain
@@ -17,16 +17,16 @@ public struct ChainImage: Sendable {
         case .bitcoinCash: Images.Chains.bitcoincash
         case .litecoin: Images.Chains.litecoin
         case .ethereum,
-            .base,
-            .optimism,
-            .zkSync,
-            .abstract,
-            .unichain,
-            .ink,
-            .linea,
-            .arbitrum,
-            .blast,
-            .world: Images.Chains.ethereum
+             .base,
+             .optimism,
+             .zkSync,
+             .abstract,
+             .unichain,
+             .ink,
+             .linea,
+             .arbitrum,
+             .blast,
+             .world: Images.Chains.ethereum
         case .smartChain: Images.Chains.smartchain
         case .celo: Images.Chains.celo
         case .solana: Images.Chains.solana
@@ -65,11 +65,11 @@ public struct ChainImage: Sendable {
         case .stable: Images.Chains.stable
         }
     }
-    
+
     public var placeholder: Image {
         l2Image ?? image
     }
-    
+
     public var l2Image: Image? {
         switch chain {
         case .optimism: Images.Chains.optimism

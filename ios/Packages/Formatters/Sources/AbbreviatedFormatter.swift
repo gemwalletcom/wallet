@@ -8,7 +8,7 @@ struct AbbreviatedFormatter: Sendable {
 
     init(
         locale: Locale = .current,
-        threshold: Decimal = 100_000
+        threshold: Decimal = 100_000,
     ) {
         self.locale = locale
         self.threshold = threshold
@@ -29,9 +29,9 @@ struct AbbreviatedFormatter: Sendable {
 
         return decimal.formatted(
             .number
-            .notation(.compactName)
-            .locale(locale)
-            .precision(.fractionLength(0...2))
+                .notation(.compactName)
+                .locale(locale)
+                .precision(.fractionLength(0 ... 2)),
         )
     }
 
@@ -42,9 +42,9 @@ struct AbbreviatedFormatter: Sendable {
 
         return decimal.formatted(
             .currency(code: currency)
-            .notation(.compactName)
-            .locale(locale)
-            .precision(.fractionLength(0...2))
+                .notation(.compactName)
+                .locale(locale)
+                .precision(.fractionLength(0 ... 2)),
         )
     }
 }

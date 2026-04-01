@@ -7,11 +7,11 @@ import Primitives
 public final class GemAPITransactionServiceMock: GemAPITransactionService, @unchecked Sendable {
     public init() {}
 
-    public func getDeviceTransactions(walletId: String, fromTimestamp: Int) async throws -> TransactionsResponse {
+    public func getDeviceTransactions(walletId _: String, fromTimestamp _: Int) async throws -> TransactionsResponse {
         TransactionsResponse(transactions: [], addressNames: [])
     }
 
-    public func getDeviceTransactionsForAsset(walletId: String, asset: AssetId, fromTimestamp: Int) async throws -> TransactionsResponse {
+    public func getDeviceTransactionsForAsset(walletId _: String, asset _: AssetId, fromTimestamp _: Int) async throws -> TransactionsResponse {
         TransactionsResponse(transactions: [], addressNames: [])
     }
 }

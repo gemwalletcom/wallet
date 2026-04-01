@@ -4,7 +4,6 @@ import Foundation
 import SwiftHTTPClient
 
 public actor ProviderMock: Sendable {
-
     private var responses: [String: Data] = [:]
 
     public init() {}

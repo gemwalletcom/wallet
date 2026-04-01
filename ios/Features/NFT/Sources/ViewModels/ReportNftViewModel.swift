@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import NFTService
-import Localization
 import Components
+import Foundation
+import Localization
+import NFTService
+import Primitives
 
 @Observable
 @MainActor
@@ -20,7 +20,7 @@ public final class ReportNftViewModel {
     public init(
         nftService: NFTService,
         assetData: NFTAssetData,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.nftService = nftService
         self.assetData = assetData
@@ -37,7 +37,7 @@ public final class ReportNftViewModel {
                 try await nftService.report(
                     collectionId: assetData.collection.id,
                     assetId: assetData.asset.id,
-                    reason: reason
+                    reason: reason,
                 )
                 state = .data(true)
                 onComplete?()

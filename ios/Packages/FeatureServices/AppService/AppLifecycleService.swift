@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import DeviceService
-import StreamService
-import PerpetualService
 import ConnectionsService
-import Primitives
+import DeviceService
+import Foundation
+import PerpetualService
 import Preferences
+import Primitives
+import StreamService
+import SwiftUI
 
 public actor AppLifecycleService: Sendable {
     private let preferences: Preferences
@@ -25,7 +25,7 @@ public actor AppLifecycleService: Sendable {
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
         streamSubscriptionService: StreamSubscriptionService,
-        hyperliquidObserverService: any PerpetualObservable<HyperliquidSubscription>
+        hyperliquidObserverService: any PerpetualObservable<HyperliquidSubscription>,
     ) {
         self.preferences = preferences
         self.connectionsService = connectionsService

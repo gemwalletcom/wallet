@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Foundation
 import Primitives
-import PrimitivesTestKit
-import PrimitivesComponentsTestKit
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
+import PrimitivesTestKit
+import Testing
 
 struct ChartValuesViewModelTests {
-
     @Test
     func chartValuesViewModel() {
         let model = ChartValuesViewModel.mock(price: .mock(price: 150), values: .mock(values: [100, 200]))

@@ -43,7 +43,7 @@ struct URLParserTests {
         let swapFromTo = try URLParser.from(url: URL(string: "https://gemwallet.com/swap/ethereum/ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7")!)
         #expect(swapFromTo == .swap(
             AssetId(chain: .ethereum, tokenId: nil),
-            AssetId(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")
+            AssetId(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
         ))
     }
 

@@ -3,7 +3,6 @@
 import XCTest
 
 extension XCUIApplication {
-    
     var isOnboarding: Bool {
         buttons["Create a New Wallet"].exists
     }
@@ -24,15 +23,15 @@ extension XCUIApplication {
     }
 
     func getWords() -> [String] {
-        (0..<12).map { staticTexts["word_\($0)"].label }
+        (0 ..< 12).map { staticTexts["word_\($0)"].label }
     }
-    
+
     func tapWalletBar() {
         let walletBar = buttons["walletBar"].firstMatch
         XCTAssertTrue(walletBar.waitForExistence(timeout: 5), "walletBar not found")
         walletBar.tap()
     }
-    
+
     func logout() {
         if isOnboarding == false {
             buttons["Wallet"].firstMatch.tap()
@@ -47,11 +46,11 @@ extension XCUIApplication {
             }
         }
     }
-    
+
     func tapCreateWallet() {
         buttons["Create a New Wallet"].firstMatch.tap()
     }
-    
+
     func tapImportWallet() {
         let button = buttons["Import an Existing Wallet"].firstMatch
         XCTAssertTrue(button.waitForExistence(timeout: 2), "button not found")

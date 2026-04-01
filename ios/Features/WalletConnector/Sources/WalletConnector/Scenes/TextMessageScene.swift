@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Localization
-import Style
-import PrimitivesComponents
 import Components
+import Foundation
+import Localization
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 struct TextMessageScene: View {
     @State private var isPresentingShareSheet = false
 
     let model: TextMessageViewModel
-    
+
     var body: some View {
         ScrollView {
             Text(model.text)

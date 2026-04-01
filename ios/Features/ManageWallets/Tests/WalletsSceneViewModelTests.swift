@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import SwiftUI
 import Primitives
 import PrimitivesTestKit
-import WalletService
 import StoreTestKit
+import SwiftUI
+import Testing
+import WalletService
 import WalletServiceTestKit
 
 @testable import ManageWallets
@@ -13,7 +13,6 @@ import WalletServiceTestKit
 
 @MainActor
 struct WalletsSceneViewModelTests {
-    
     @Test
     func onDeleteConfirmed() async throws {
         let service: WalletService = try .mockWallets()
@@ -31,7 +30,7 @@ struct WalletsSceneViewModelTests {
         #expect(model.currentWalletId == .multicoin(address: "0x3"))
 
         await model.onDeleteConfirmed(wallet: .mock(id: "multicoin_0x3"))
-        
+
         #expect(model.currentWalletId == .none)
     }
 
@@ -52,7 +51,6 @@ struct WalletsSceneViewModelTests {
 
         model.onMove(from: IndexSet(integer: 2), to: 0)
         #expect(service.sortedWallets.ids == ["multicoin_0x2", "multicoin_0x1", "multicoin_0x3"])
-        
     }
 }
 
@@ -63,13 +61,13 @@ extension WalletsSceneViewModel {
         navigationPath: Binding<NavigationPath> = .constant(NavigationPath()),
         walletService: WalletService = .mock(),
         isPresentingCreateWalletSheet: Binding<Bool> = .constant(false),
-        isPresentingImportWalletSheet: Binding<Bool> = .constant(false)
+        isPresentingImportWalletSheet: Binding<Bool> = .constant(false),
     ) -> WalletsSceneViewModel {
         WalletsSceneViewModel(
             navigationPath: navigationPath,
             walletService: walletService,
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
-            isPresentingImportWalletSheet: isPresentingImportWalletSheet
+            isPresentingImportWalletSheet: isPresentingImportWalletSheet,
         )
     }
 }
@@ -86,10 +84,10 @@ extension WalletService {
 
         let service = WalletService.mock(walletStore: walletStore)
         service.setCurrent(for: wallet1.walletId)
-        
+
         return service
     }
-    
+
     var sortedWallets: [Wallet] {
         wallets.sorted { $0.order < $1.order }
     }

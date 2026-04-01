@@ -35,7 +35,7 @@ public final class DeveloperViewModel {
         stakeService: StakeService,
         bannerService: BannerService,
         priceService: PriceService,
-        perpetualService: PerpetualService
+        perpetualService: PerpetualService,
     ) {
         self.walletId = walletId
         self.transactionsService = transactionsService
@@ -83,10 +83,8 @@ public final class DeveloperViewModel {
 
     func clearPendingTransactions() {
         performAction {
-            let transactionIds = try transactionsService.transactionStore.getTransactions(state: .pending).map {
-                $0.id.identifier
-            }
-            try transactionsService.transactionStore.deleteTransactionId(ids: transactionIds)
+            let transactionIds = try transactionsService.transactionStore.getTransactions(state: .pending).map(\.id.identifier)
+            _ = try transactionsService.transactionStore.deleteTransactionId(ids: transactionIds)
         }
     }
 
@@ -151,23 +149,23 @@ public final class DeveloperViewModel {
         let btcAddress = "bc1q4jwwsy7txnzsr7w53j4wnrg6rrnmj86a47e2t9"
         let trxAddress = "TAw8sw21A3pGDCtHGuB55BGDqLVHQTYwAC"
         let data: [(direction: TransactionDirection, from: String, to: String, assetId: AssetId, transactionType: TransactionType, value: BigInt, metadata: AnyCodableValue?, createdAt: Date)] = [
-            (.incoming, solAddress, "", AssetId(chain: .solana), .transfer, BigInt(111111111), .none, createdAt: Date().addingTimeInterval(-1)),
-            (.outgoing, "", solAddress, AssetId(chain: .solana), .transfer, BigInt(3311111111), .none, createdAt: Date().addingTimeInterval(-2)),
+            (.incoming, solAddress, "", AssetId(chain: .solana), .transfer, BigInt(111_111_111), .none, createdAt: Date().addingTimeInterval(-1)),
+            (.outgoing, "", solAddress, AssetId(chain: .solana), .transfer, BigInt(3_311_111_111), .none, createdAt: Date().addingTimeInterval(-2)),
             (
                 .selfTransfer,
                 "",
                 "",
                 AssetId(chain: .sui),
                 .swap,
-                BigInt(76767623311111111),
+                BigInt(76_767_623_311_111_111),
                 .encode(TransactionSwapMetadata(
                     fromAsset: AssetId(chain: .sui),
-                    fromValue: BigInt(2767611111).description,
+                    fromValue: BigInt(2_767_611_111).description,
                     toAsset: AssetId(chain: .solana),
-                    toValue: BigInt(812312312).description,
-                    provider: .none
+                    toValue: BigInt(812_312_312).description,
+                    provider: .none,
                 )),
-                createdAt: Date().addingTimeInterval(-122223)
+                createdAt: Date().addingTimeInterval(-122_223),
             ),
             (
                 .incoming,
@@ -175,9 +173,9 @@ public final class DeveloperViewModel {
                 "",
                 AssetId(chain: .tron),
                 .transfer,
-                BigInt(912312312),
+                BigInt(912_312_312),
                 .none,
-                createdAt: Date().addingTimeInterval(-122224)
+                createdAt: Date().addingTimeInterval(-122_224),
             ),
             (
                 .outgoing,
@@ -185,9 +183,9 @@ public final class DeveloperViewModel {
                 ethAddress,
                 AssetId(chain: .ethereum),
                 .transfer,
-                BigInt(76767623311111111),
+                BigInt(76_767_623_311_111_111),
                 .none,
-                createdAt: Date().addingTimeInterval(-1344411)
+                createdAt: Date().addingTimeInterval(-1_344_411),
             ),
             (
                 .incoming,
@@ -195,9 +193,9 @@ public final class DeveloperViewModel {
                 "",
                 AssetId(chain: .bitcoin),
                 .transfer,
-                BigInt(621111111),
+                BigInt(621_111_111),
                 .none,
-                createdAt: Date().addingTimeInterval(-100)
+                createdAt: Date().addingTimeInterval(-100),
             ),
             (
                 .incoming,
@@ -205,9 +203,9 @@ public final class DeveloperViewModel {
                 "",
                 AssetId(chain: .bitcoin),
                 .transfer,
-                BigInt(46161111),
+                BigInt(46_161_111),
                 .none,
-                createdAt: Date().addingTimeInterval(-10000)
+                createdAt: Date().addingTimeInterval(-10000),
             ),
             (
                 .incoming,
@@ -215,9 +213,9 @@ public final class DeveloperViewModel {
                 "",
                 AssetId(chain: .bitcoin),
                 .transfer,
-                BigInt(72312312),
+                BigInt(72_312_312),
                 .none,
-                createdAt: Date().addingTimeInterval(-1344401)
+                createdAt: Date().addingTimeInterval(-1_344_401),
             ),
             (
                 .selfTransfer,
@@ -225,15 +223,15 @@ public final class DeveloperViewModel {
                 "",
                 AssetId(chain: .ethereum),
                 .swap,
-                BigInt(76767623311111111),
+                BigInt(76_767_623_311_111_111),
                 .encode(TransactionSwapMetadata(
                     fromAsset: AssetId(chain: .ethereum),
-                    fromValue: BigInt(276767623311111111).description,
+                    fromValue: BigInt(276_767_623_311_111_111).description,
                     toAsset: AssetId(chain: .bitcoin),
-                    toValue: BigInt(32312312).description,
-                    provider: .none
+                    toValue: BigInt(32_312_312).description,
+                    provider: .none,
                 )),
-                createdAt: Date().addingTimeInterval(-1344411)
+                createdAt: Date().addingTimeInterval(-1_344_411),
             ),
             (
                 .incoming,
@@ -241,9 +239,9 @@ public final class DeveloperViewModel {
                 "",
                 AssetId(chain: .smartChain),
                 .stakeRewards,
-                BigInt(464222222272312312),
+                BigInt(464_222_222_272_312_312),
                 .none,
-                createdAt: Date().addingTimeInterval(-1444401)
+                createdAt: Date().addingTimeInterval(-1_444_401),
             ),
             (
                 .incoming,
@@ -253,7 +251,7 @@ public final class DeveloperViewModel {
                 .stakeDelegate,
                 BigInt("54213322222272312312"),
                 .none,
-                createdAt: Date().addingTimeInterval(-1464401)
+                createdAt: Date().addingTimeInterval(-1_464_401),
             ),
         ]
 
@@ -276,7 +274,7 @@ public final class DeveloperViewModel {
                 utxoInputs: [],
                 utxoOutputs: [],
                 metadata: element.metadata,
-                createdAt: element.createdAt
+                createdAt: element.createdAt,
             )
         }
         try? transactionsService.transactionStore.addTransactions(walletId: walletId, transactions: transactions)

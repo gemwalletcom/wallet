@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
-import PrimitivesComponents
 import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 struct SelectWalletScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -21,7 +21,7 @@ struct SelectWalletScene: View {
             onFinishSelection: onSelect,
             listContent: {
                 SimpleListItemView(model: $0)
-            }
+            },
         )
         .navigationTitle(model.title)
     }

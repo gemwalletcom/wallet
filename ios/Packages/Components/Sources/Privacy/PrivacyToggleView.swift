@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct PrivacyToggleView: View {
     @Binding private var isEnabled: Bool
@@ -11,7 +11,7 @@ public struct PrivacyToggleView: View {
     public init(
         _ text: String,
         isEnabled: Binding<Bool>,
-        placeholder: String = "*****"
+        placeholder: String = "*****",
     ) {
         _isEnabled = isEnabled
         self.text = text
@@ -27,7 +27,7 @@ public struct PrivacyToggleView: View {
             .padding(.horizontal)
             .background(
                 Capsule(style: .circular)
-                    .foregroundStyle(Colors.listStyleColor)
+                    .foregroundStyle(Colors.listStyleColor),
             )
         } else {
             Button(action: onTogglePrivacy) {
@@ -49,10 +49,10 @@ extension PrivacyToggleView {
 // MARK: - Preview
 
 #Preview {
-    @Previewable @State var isEnabled: Bool = false
+    @Previewable @State var isEnabled = false
     return PrivacyToggleView(
         "$12323123.23",
         isEnabled: $isEnabled,
-        placeholder: "*****"
+        placeholder: "*****",
     )
 }

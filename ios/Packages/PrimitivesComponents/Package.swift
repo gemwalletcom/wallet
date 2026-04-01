@@ -7,15 +7,17 @@ let package = Package(
     name: "PrimitivesComponents",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "PrimitivesComponents",
-            targets: ["PrimitivesComponents"]),
+            targets: ["PrimitivesComponents"],
+        ),
         .library(
             name: "PrimitivesComponentsTestKit",
-            targets: ["PrimitivesComponentsTestKit"]),
+            targets: ["PrimitivesComponentsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
@@ -24,7 +26,7 @@ let package = Package(
         .package(name: "Components", path: "../Components"),
         .package(name: "Style", path: "../Style"),
         .package(name: "Validators", path: "../Validators"),
-        .package(name: "Formatters", path: "../Formatters")
+        .package(name: "Formatters", path: "../Formatters"),
     ],
     targets: [
         .target(
@@ -36,9 +38,9 @@ let package = Package(
                 "Components",
                 "Style",
                 "Validators",
-                "Formatters"
+                "Formatters",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "PrimitivesComponentsTestKit",
@@ -47,7 +49,7 @@ let package = Package(
                 "Formatters",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "PrimitivesComponentsTests",
@@ -56,7 +58,7 @@ let package = Package(
                 "PrimitivesComponents",
                 "PrimitivesComponentsTestKit",
                 "GemstonePrimitives",
-            ]
+            ],
         ),
-    ]
+    ],
 )

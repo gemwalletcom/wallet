@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListButton: View {
-    
     var action: (@MainActor () -> Void)?
     let title: String?
     let image: Image
@@ -14,14 +13,14 @@ public struct ListButton: View {
         title: String? = .none,
         image: Image,
         padding: CGFloat = 0,
-        action: (@MainActor () -> Void)? = nil
+        action: (@MainActor () -> Void)? = nil,
     ) {
         self.action = action
         self.image = image
         self.title = title
         self.padding = padding
     }
-    
+
     public var body: some View {
         Button {
             action?()
@@ -29,7 +28,7 @@ public struct ListButton: View {
             HStack(alignment: .center) {
                 image
                     .frame(width: 24, height: 24)
-                if let title = title {
+                if let title {
                     Text(title)
                         .fontWeight(.medium)
                         .multilineTextAlignment(.center)
@@ -41,6 +40,7 @@ public struct ListButton: View {
         .tint(Colors.black)
     }
 }
+
 struct ListButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack {

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AssetsServiceTestKit
 import Foundation
-import TransactionsService
 import GemAPITestKit
 import StoreTestKit
-import AssetsServiceTestKit
+import TransactionsService
 
 public extension TransactionsService {
     static func mock() -> TransactionsService {
@@ -13,7 +13,7 @@ public extension TransactionsService {
             transactionStore: .mock(),
             assetsService: .mock(),
             walletStore: .mock(),
-            addressStore: .mock()
+            addressStore: .mock(),
         )
     }
 }

@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import EarnService
 import Primitives
 import PrimitivesTestKit
-import EarnService
 
 public final class MockEarnService: EarnDataProvidable, @unchecked Sendable {
     public init() {}
 
-    public func getEarnData(assetId: AssetId, address: String, value: String, earnType: EarnType) async throws -> ContractCallData {
+    public func getEarnData(assetId _: AssetId, address _: String, value _: String, earnType _: EarnType) async throws -> ContractCallData {
         .mock()
     }
 }
 
-extension MockEarnService {
-    public static func mock() -> MockEarnService {
+public extension MockEarnService {
+    static func mock() -> MockEarnService {
         MockEarnService()
     }
 }

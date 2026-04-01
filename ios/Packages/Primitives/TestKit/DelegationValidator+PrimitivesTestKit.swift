@@ -11,7 +11,7 @@ public extension DelegationValidator {
         isActive: Bool = true,
         commission: Double = 5,
         apr: Double = 1,
-        providerType: StakeProviderType = .stake
+        providerType: StakeProviderType = .stake,
     ) -> DelegationValidator {
         DelegationValidator(
             chain: chain,
@@ -20,7 +20,7 @@ public extension DelegationValidator {
             isActive: isActive,
             commission: commission,
             apr: apr,
-            providerType: providerType
+            providerType: providerType,
         )
     }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -13,7 +14,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.ConfirmError
 import com.gemwallet.android.features.confirm.models.ConfirmProperty
 import com.gemwallet.android.features.confirm.models.ConfirmState
@@ -56,6 +57,8 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
+import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
+import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -63,10 +66,8 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationResult
+import com.wallet.core.primitives.TransactionType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,11 +87,13 @@ fun ConfirmScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val allFee by viewModel.allFee.collectAsStateWithLifecycle()
     val walletConnectReview by viewModel.walletConnectReview.collectAsStateWithLifecycle()
+    val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic
     val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showWalletConnectDetails by remember { mutableStateOf(false) }
+    var selectedDetailElement by remember(params) { mutableStateOf<ConfirmDetailElement?>(null) }
     var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.message) {
         mutableStateOf(state is ConfirmState.BroadcastError)
     }
@@ -98,12 +101,10 @@ fun ConfirmScreen(
         mutableStateOf((state as? ConfirmState.Error)?.message is ConfirmError.InsufficientFee)
     }
 
-    DisposableEffect(params?.hashCode(), walletConnectSimulation?.header?.assetId) {
+    LaunchedEffect(params, walletConnectSimulation?.header?.assetId) {
         if (params != null) {
             viewModel.init(params, walletConnectSimulation)
         }
-
-        onDispose { }
     }
 
     BackHandler(true) {
@@ -142,7 +143,7 @@ fun ConfirmScreen(
             item {
                 when {
                     walletConnectReview.headerAsset != null -> {
-                        val asset = walletConnectReview.headerAsset!!
+                        val asset = requireNotNull(walletConnectReview.headerAsset)
                         val title = if (walletConnectReview.headerIsUnlimited) {
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
@@ -150,13 +151,16 @@ fun ConfirmScreen(
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
-                    amountModel?.txType == TransactionType.Swap -> SwapListHead(
-                        fromAsset = amountModel?.fromAsset,
-                        fromValue = amountModel?.fromAmount!!,
-                        toAsset = amountModel?.toAsset!!,
-                        toValue = amountModel?.toAmount!!,
-                        currency = amountModel?.currency,
-                    )
+                    amountModel?.txType == TransactionType.Swap -> {
+                        val model = requireNotNull(amountModel)
+                        SwapListHead(
+                            fromAsset = model.fromAsset,
+                            fromValue = model.fromAmount,
+                            toAsset = requireNotNull(model.toAsset),
+                            toValue = requireNotNull(model.toAmount),
+                            currency = model.currency,
+                        )
+                    }
 
                     amountModel?.txType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
 
@@ -175,6 +179,14 @@ fun ConfirmScreen(
                     is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)
                     is ConfirmProperty.Source -> PropertyItem(R.string.common_wallet, item.data, listPosition = listPosition)
                 }
+            }
+            items(
+                items = detailElements,
+            ) { item ->
+                ConfirmDetailElementRow(
+                    item = item,
+                    onClick = { selectedDetailElement = item },
+                )
             }
             simulationWarningsContent(walletConnectReview.warnings)
             simulationPayloadFieldsContent(
@@ -229,9 +241,10 @@ fun ConfirmScreen(
                 onDismissRequest = { showWalletConnectDetails = false },
                 sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
                 dragHandle = {
-                    DialogBar(stringResource(R.string.common_details)) {
-                        showWalletConnectDetails = false
-                    }
+                    DialogBar(
+                        title = stringResource(R.string.common_details),
+                        onDismissRequest = { showWalletConnectDetails = false },
+                    )
                 },
             ) {
                 LazyColumn {
@@ -242,6 +255,11 @@ fun ConfirmScreen(
                 }
             }
         }
+
+        ConfirmDetailElementBottomSheet(
+            item = selectedDetailElement,
+            onDismiss = { selectedDetailElement = null },
+        )
     }
 
     if (isShowedBroadcastError) {
@@ -257,6 +275,37 @@ fun ConfirmScreen(
                 Text((state as? ConfirmState.BroadcastError)?.message?.toLabel() ?: "Unknown error")
             }
         )
+    }
+}
+
+@Composable
+private fun ConfirmDetailElementRow(
+    item: ConfirmDetailElement,
+    onClick: () -> Unit,
+) {
+    when (item) {
+        is ConfirmDetailElement.SwapDetails -> SwapDetailsSummaryItem(
+            model = item.model,
+            onClick = onClick,
+        )
+    }
+}
+
+@Composable
+private fun ConfirmDetailElementBottomSheet(
+    item: ConfirmDetailElement?,
+    onDismiss: () -> Unit,
+) {
+    when (item) {
+        is ConfirmDetailElement.SwapDetails -> SwapDetailsBottomSheet(
+            isVisible = true,
+            isLoading = false,
+            model = item.model,
+            onDismiss = onDismiss,
+            showProviderSectionHeader = true,
+        )
+
+        null -> Unit
     }
 }
 
@@ -287,4 +336,3 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
     is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
 }
-

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Localization
+import SwiftUI
 
 enum WalletImportType: String, Hashable, CaseIterable, Identifiable {
     var id: String { rawValue }
-    
+
     case phrase
     case address
     case privateKey
@@ -38,7 +38,7 @@ extension WalletImportType {
 }
 
 extension WalletImportType: Equatable {
-    public static func == (lhs: WalletImportType, rhs: WalletImportType) -> Bool {
+    static func == (lhs: WalletImportType, rhs: WalletImportType) -> Bool {
         lhs.id == rhs.id
     }
 }

@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
 struct PriceWidgetProvider: TimelineProvider {
     func placeholder(in context: Context) -> PriceWidgetEntry {
         PriceWidgetEntry.placeholder(widgetFamily: context.family)
     }
-    
+
     func getSnapshot(in context: Context, completion: @escaping @Sendable (PriceWidgetEntry) -> Void) {
         let widgetFamily = context.family
         let isPreview = context.isPreview
-        
+
         if isPreview {
             completion(PriceWidgetEntry.placeholder(widgetFamily: widgetFamily))
         } else {
@@ -22,11 +22,11 @@ struct PriceWidgetProvider: TimelineProvider {
             }
         }
     }
-    
+
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<PriceWidgetEntry>) -> Void) {
         let widgetFamily = context.family
         let currentDate = Date()
-        
+
         Task.detached {
             let widgetPriceService = WidgetPriceService()
             let entry = await widgetPriceService.fetchTopCoinPrices(widgetFamily: widgetFamily)

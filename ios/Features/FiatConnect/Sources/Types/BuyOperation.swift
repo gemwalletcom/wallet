@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import GemAPI
-import Validators
 import BigInt
 import Formatters
+import Foundation
+import GemAPI
 import Localization
+import Primitives
+import Validators
 
 struct BuyOperation: FiatOperation {
     private let service: any GemAPIFiatService
@@ -17,7 +17,7 @@ struct BuyOperation: FiatOperation {
     private let config = FiatOperationConfig(
         defaultAmount: 50,
         minimumAmount: 25,
-        maximumAmount: 10000
+        maximumAmount: 10000,
     )
 
     var defaultAmount: Int { config.defaultAmount }
@@ -30,7 +30,7 @@ struct BuyOperation: FiatOperation {
         service: any GemAPIFiatService,
         asset: Asset,
         currencyFormatter: CurrencyFormatter,
-        walletId: WalletId
+        walletId: WalletId,
     ) {
         self.service = service
         self.asset = asset
@@ -44,13 +44,13 @@ struct BuyOperation: FiatOperation {
     }
 
     func validators(
-        availableBalance: BigInt,
-        selectedQuote: FiatQuote?
+        availableBalance _: BigInt,
+        selectedQuote _: FiatQuote?,
     ) -> [any TextValidator] {
         let rangeValidator = FiatRangeValidator(
-            range: BigInt(config.minimumAmount)...BigInt(config.maximumAmount),
+            range: BigInt(config.minimumAmount) ... BigInt(config.maximumAmount),
             minimumValueText: currencyFormatter.string(Double(config.minimumAmount)),
-            maximumValueText: currencyFormatter.string(Double(config.maximumAmount))
+            maximumValueText: currencyFormatter.string(Double(config.maximumAmount)),
         )
         return [.assetAmount(decimals: 0, validators: [rangeValidator])]
     }

@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Formatters
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
+import Testing
 
 struct PerpetualDetailsViewModelTests {
-
     @Test
     func leverageText() {
         #expect(PerpetualDetailsViewModel.mock(.open(.mock(leverage: 5))).leverageText == "5x")
@@ -75,7 +74,7 @@ extension PerpetualDetailsViewModel {
 extension PerpetualDetailsType {
     static func reduce(
         _ data: PerpetualConfirmData = .mock(),
-        positionDirection: PerpetualDirection = .long
+        positionDirection: PerpetualDirection = .long,
     ) -> PerpetualDetailsType {
         .reduce(PerpetualReduceData(data: data, positionDirection: positionDirection))
     }

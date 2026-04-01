@@ -12,7 +12,7 @@ public struct WheelPickerView<T: WheelPickerDisplayable>: View {
 
     public init(options: [T], selection: Binding<T>) {
         self.options = options
-        self._selection = selection
+        _selection = selection
     }
 
     public var body: some View {

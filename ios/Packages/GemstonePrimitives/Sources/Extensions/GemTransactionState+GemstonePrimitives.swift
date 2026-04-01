@@ -3,8 +3,8 @@
 import Gemstone
 import Primitives
 
-extension Gemstone.TransactionState {
-    public func map() -> Primitives.TransactionState {
+public extension Gemstone.TransactionState {
+    func map() -> Primitives.TransactionState {
         switch self {
         case .pending: .pending
         case .confirmed: .confirmed

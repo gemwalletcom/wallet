@@ -3,20 +3,19 @@
 import Foundation
 import Primitives
 
-struct TransactionFactory {
-    public static func makePendingTransaction(
+enum TransactionFactory {
+    static func makePendingTransaction(
         wallet: Wallet,
         transferData: TransferData,
         transactionData: TransactionData,
         amount: TransferAmount,
         hash: String,
-        transactionIndex: Int
+        transactionIndex: Int,
     ) throws -> Primitives.Transaction {
-
         let senderAddress = try wallet.account(for: transferData.chain).address
-        
+
         let recipientAddress = switch transferData.type {
-        case .swap(_, _, let swapData): swapData.data.to
+        case let .swap(_, _, swapData): swapData.data.to
         default: transferData.recipientData.recipient.address
         }
 
@@ -24,12 +23,12 @@ struct TransactionFactory {
         let direction: TransactionDirection = senderAddress == recipientAddress ? .selfTransfer : .outgoing
 
         let data: (type: TransactionType, metadata: AnyCodableValue?) = switch transferData.type {
-        case .swap(_, _, let data):
+        case let .swap(_, _, data):
             switch data.approval {
             case .some: transactionIndex == 0 ? (.tokenApproval, .null) : (.swap, metadata)
             case .none: (.swap, transferData.type.metadata)
             }
-        case .earn(_, _, let data):
+        case let .earn(_, _, data):
             switch data.approval {
             case .some: transactionIndex == 0 ? (.tokenApproval, .null) : (transferData.type.transactionType, metadata)
             case .none: (transferData.type.transactionType, metadata)
@@ -58,7 +57,7 @@ struct TransactionFactory {
             utxoInputs: [],
             utxoOutputs: [],
             metadata: data.metadata,
-            createdAt: Date()
+            createdAt: Date(),
         )
     }
 }

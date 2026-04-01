@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct CleanListRowModifier: ViewModifier {
     private let listRowBackground: Color
@@ -10,7 +10,7 @@ public struct CleanListRowModifier: ViewModifier {
 
     public init(
         listRowBackground: Color,
-        listRowInsets: EdgeInsets
+        listRowInsets: EdgeInsets,
     ) {
         self.listRowBackground = listRowBackground
         self.listRowInsets = listRowInsets
@@ -29,19 +29,19 @@ public struct CleanListRowModifier: ViewModifier {
 public extension View {
     func cleanListRow(
         listRowBackground: Color = .clear,
-        listRowInsets: EdgeInsets = .zero
+        listRowInsets: EdgeInsets = .zero,
     ) -> some View {
         modifier(
             CleanListRowModifier(
                 listRowBackground: listRowBackground,
-                listRowInsets: listRowInsets
-            )
+                listRowInsets: listRowInsets,
+            ),
         )
     }
 
     func cleanListRow(
         listRowBackground: Color = .clear,
-        topOffset: CGFloat
+        topOffset: CGFloat,
     ) -> some View {
         cleanListRow(
             listRowBackground: listRowBackground,
@@ -49,8 +49,8 @@ public extension View {
                 top: topOffset,
                 leading: .zero,
                 bottom: .zero,
-                trailing: .zero
-            )
+                trailing: .zero,
+            ),
         )
     }
 }

@@ -6,12 +6,13 @@ let package = Package(
     name: "Settings",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Settings",
-            targets: ["Settings"]),
+            targets: ["Settings"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -27,7 +28,7 @@ let package = Package(
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "QRScanner", path: "../QRScanner"),
-        .package(name: "Support", path: "../Support")
+        .package(name: "Support", path: "../Support"),
     ],
     targets: [
         .target(
@@ -59,16 +60,17 @@ let package = Package(
                 .product(name: "NodeService", package: "ChainServices"),
                 .product(name: "ExplorerService", package: "ChainServices"),
                 "QRScanner",
-                "Support"
+                "Support",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "CurrencyTests",
             dependencies: [
                 "Settings",
                 "Primitives",
-                .product(name: "PriceServiceTestKit", package: "FeatureServices")
-            ]),
-    ]
+                .product(name: "PriceServiceTestKit", package: "FeatureServices"),
+            ],
+        ),
+    ],
 )

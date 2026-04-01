@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
 import Localization
 import Primitives
-import Formatters
-import Components
 
 public struct PerpetualModifyViewModel: Sendable {
     private let data: PerpetualModifyConfirmData
@@ -17,12 +17,12 @@ public struct PerpetualModifyViewModel: Sendable {
     public var listItemModel: ListItemModel {
         let canceledOrderIds = Set(
             data.modifyTypes
-                .compactMap { if case .cancel(let orders) = $0 { return orders } else { return nil } }
-                .flatMap { $0.map(\.orderId) }
+                .compactMap { if case let .cancel(orders) = $0 { orders } else { nil } }
+                .flatMap { $0.map(\.orderId) },
         )
 
         let tpslOrderData = data.modifyTypes.compactMap {
-            if case .tpsl(let orderData) = $0 { return orderData }
+            if case let .tpsl(orderData) = $0 { return orderData }
             return nil
         }.first
 
@@ -36,13 +36,13 @@ public struct PerpetualModifyViewModel: Sendable {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
             takeProfitCanceled: tpCanceled && takeProfit == nil,
-            stopLossCanceled: slCanceled && stopLoss == nil
+            stopLossCanceled: slCanceled && stopLoss == nil,
         )
 
         return ListItemModel(
             title: Localized.Perpetual.autoClose,
             subtitle: autoclose.subtitle,
-            subtitleExtra: autoclose.subtitleExtra
+            subtitleExtra: autoclose.subtitleExtra,
         )
     }
 }

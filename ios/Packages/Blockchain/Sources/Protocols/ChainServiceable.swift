@@ -75,43 +75,42 @@ public protocol ChainNodeStatusFetchable: Sendable {
 protocol ChainFeePriorityPreference: Sendable {}
 
 public extension ChainBalanceable {
-    func getEarnBalance(for address: String, tokenIds: [AssetId]) async throws -> [AssetBalance] {
-        return []
+    func getEarnBalance(for _: String, tokenIds _: [AssetId]) async throws -> [AssetBalance] {
+        []
     }
 }
 
 public extension ChainFeeRateFetchable {
     func defaultPriority(for type: TransferDataType) -> FeePriority {
         switch type {
-        case .swap(let fromAsset, _, _): fromAsset.chain == .bitcoin ? .fast : .normal
+        case let .swap(fromAsset, _, _): fromAsset.chain == .bitcoin ? .fast : .normal
         case .tokenApprove, .stake, .transfer, .deposit, .transferNft, .generic, .account, .perpetual, .withdrawal, .earn: .normal
         }
     }
 }
 
 public extension ChainStakable {
-    func getValidators(apr: Double) async throws -> [DelegationValidator] {
-        return []
+    func getValidators(apr _: Double) async throws -> [DelegationValidator] {
+        []
     }
 
-    func getStakeDelegations(address: String) async throws -> [DelegationBase] {
-        return []
+    func getStakeDelegations(address _: String) async throws -> [DelegationBase] {
+        []
     }
 }
 
 public extension ChainTokenable {
-    func getTokenData(tokenId: String) async throws -> Asset {
+    func getTokenData(tokenId _: String) async throws -> Asset {
         throw AnyError("Not Implemented")
     }
-    
-    func getIsTokenAddress(tokenId: String) -> Bool {
-        return false
+
+    func getIsTokenAddress(tokenId _: String) -> Bool {
+        false
     }
 }
 
 public extension ChainAddressStatusFetchable {
-    func getAddressStatus(address: String) async throws -> [AddressStatus] {
-        return []
+    func getAddressStatus(address _: String) async throws -> [AddressStatus] {
+        []
     }
 }
-

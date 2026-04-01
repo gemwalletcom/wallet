@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendable, Equatable {
-
     public static let databaseTableName: String = "contacts"
 
     public enum Columns {
@@ -27,7 +26,7 @@ public struct ContactRecord: Codable, FetchableRecord, PersistableRecord, Sendab
 
 extension ContactRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.primaryKey(Columns.id.name, .text)
                 .notNull()
             $0.column(Columns.name.name, .text)
@@ -48,7 +47,7 @@ extension ContactRecord {
             name: name,
             description: description,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 }
@@ -60,7 +59,7 @@ extension Contact {
             name: name,
             description: description,
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 }

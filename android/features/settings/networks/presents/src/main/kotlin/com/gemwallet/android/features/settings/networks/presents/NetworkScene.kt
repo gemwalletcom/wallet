@@ -6,12 +6,10 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +31,7 @@ import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
@@ -134,12 +133,7 @@ private fun BlockExplorerItem(
         listPosition = listPosition,
         trailing = if (explorerName == current) {
             {
-                Icon(
-                    modifier = Modifier.Companion.padding(end = paddingSmall).size(20.dp),
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
             }
         } else null
     )

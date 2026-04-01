@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Store
-import Primitives
-import Localization
-import PrimitivesComponents
-import SwiftUI
-import Style
 import Components
+import Localization
+import Primitives
+import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 public struct AssetsFilterViewModel: Sendable, Equatable {
     private let type: SelectAssetType
@@ -15,7 +15,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
 
     public init(type: SelectAssetType, model: ChainsFilterViewModel) {
         self.type = type
-        self.chainsFilter = model
+        chainsFilter = model
     }
 
     public var isAnyFilterSpecified: Bool { chainsFilter.isAnySelected || hasBalance }
@@ -29,7 +29,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
             result.append(.chains(chainsFilter.selectedChains.map(\.rawValue)))
         }
 
-        if hasBalance && showHasBalanceToggle {
+        if hasBalance, showHasBalanceToggle {
             result.append(.hasBalance)
         }
 
@@ -39,29 +39,29 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     public var defaultFilters: [AssetsRequestFilter] {
         switch type {
         case .send: [.enabled, .hasBalance]
-        case .receive(let type):
+        case let .receive(type):
             switch type {
             case .asset: [.enabled]
-            case .collection: [.enabled, .chainsOrAssets([], Chain.allCases.filter { $0.isNFTSupported }.map { $0.rawValue})]
+            case .collection: [.enabled, .chainsOrAssets([], Chain.allCases.filter(\.isNFTSupported).map(\.rawValue))]
             }
         case .buy: [.enabled, .buyable]
-        case .swap(let type):
+        case let .swap(type):
             switch type {
             case .pay: [.enabled, .swappable, .hasBalance]
-            case .receive(let chains, let assetIds):
+            case let .receive(chains, assetIds):
                 [
                     .enabled,
                     .chainsOrAssets(
-                        chains.map { $0.rawValue },
-                        assetIds.map { $0.identifier }
+                        chains.map(\.rawValue),
+                        assetIds.map(\.identifier),
                     ),
                     .swappable,
                 ]
             }
         case .manage: [.enabled]
         case .priceAlert: [.enabled, .priceAlerts]
-        case .deposit: [ .chainsOrAssets([], [AssetId(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831").identifier])]
-        case .withdraw: [ .chainsOrAssets([], [Asset.hypercoreUSDC().id.identifier])]
+        case .deposit: [.chainsOrAssets([], [AssetId(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831").identifier])]
+        case .withdraw: [.chainsOrAssets([], [Asset.hypercoreUSDC().id.identifier])]
         }
     }
 
@@ -82,7 +82,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
         NetworkSelectorViewModel(
             state: .data(.plain(chainsFilter.allChains)),
             selectedItems: chainsFilter.selectedChains,
-            selectionType: .multiSelection
+            selectionType: .multiSelection,
         )
     }
 }

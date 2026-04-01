@@ -13,7 +13,7 @@ public struct UpdateBalance {
         assetId: AssetId,
         type: UpdateBalanceType,
         updatedAt: Date,
-        isActive: Bool
+        isActive: Bool,
     ) {
         self.assetId = assetId
         self.type = type

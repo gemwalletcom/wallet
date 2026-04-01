@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import GemstonePrimitives
-import enum Gemstone.SocialUrl
-import Primitives
-import Localization
-import Style
-import Preferences
-import WalletSessionService
-import PrimitivesComponents
 import Components
+import Foundation
+import enum Gemstone.SocialUrl
+import GemstonePrimitives
+import Localization
+import Preferences
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
+import WalletSessionService
 
 @Observable
 @MainActor
@@ -22,7 +22,7 @@ public final class SettingsViewModel {
     public init(
         walletId: WalletId,
         walletSessionService: any WalletSessionManageable,
-        observablePrefereces: ObservablePreferences
+        observablePrefereces: ObservablePreferences,
     ) {
         self.walletId = walletId
         self.walletSessionService = walletSessionService
@@ -40,6 +40,7 @@ public final class SettingsViewModel {
         let count = (try? walletSessionService.walletsCount()) ?? .zero
         return "\(count)"
     }
+
     var walletsImage: AssetImage { AssetImage.image(Images.Settings.wallets) }
 
     var securityTitle: String { Localized.Settings.security }
@@ -67,14 +68,14 @@ public final class SettingsViewModel {
             if let url = Social.url($0) {
                 return AssetLink(
                     name: $0.linkType.rawValue,
-                    url: url.absoluteString
+                    url: url.absoluteString,
                 )
             }
             return .none
         }
         return SocialLinksViewModel(assetLinks: assetLinks)
     }
-    
+
     var aboutUsTitle: String { Localized.Settings.aboutus }
     var aboutUsImage: AssetImage { AssetImage.image(Images.Settings.gem) }
 

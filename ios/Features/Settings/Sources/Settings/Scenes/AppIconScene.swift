@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct AppIconScene: View {
     @State private var model: AppIconSceneViewModel
@@ -17,7 +17,7 @@ public struct AppIconScene: View {
                     ForEach(model.icons) { iconModel in
                         AppIconView(
                             model: iconModel,
-                            action: { Task { await model.set(iconModel.icon) } }
+                            action: { Task { await model.set(iconModel.icon) } },
                         )
                     }
                 }

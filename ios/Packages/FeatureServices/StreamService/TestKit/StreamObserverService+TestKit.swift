@@ -9,12 +9,12 @@ public extension StreamObserverService {
     static func mock(
         subscriptionService: StreamSubscriptionService = .mock(),
         eventService: StreamEventService = .mock(),
-        webSocket: any WebSocketConnectable = WebSocketConnectionMock()
+        webSocket: any WebSocketConnectable = WebSocketConnectionMock(),
     ) -> StreamObserverService {
         StreamObserverService(
             subscriptionService: subscriptionService,
             eventService: eventService,
-            webSocket: webSocket
+            webSocket: webSocket,
         )
     }
 }

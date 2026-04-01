@@ -8,9 +8,8 @@ public struct NumberSanitizer {
 
     public init(
         decimalSeparator: Character = Locale.current.decimalSeparator?.first ?? ".",
-        allowedCharacters: CharacterSet = CharacterSet.decimalDigits
+        allowedCharacters: CharacterSet = CharacterSet.decimalDigits,
     ) {
-        
         self.decimalSeparator = decimalSeparator
         self.allowedCharacters = allowedCharacters
             .union(CharacterSet(charactersIn: String(decimalSeparator)))
@@ -21,17 +20,17 @@ public struct NumberSanitizer {
         let allowedCharacters = filterAllowedCharacters(cleanedInput)
         return sanitizeDecimalSeparator(allowedCharacters)
     }
-    
+
     // MARK: - Private methods
-    
+
     private func cleanWhiteSpaceAndSymbols(_ input: String) -> String {
         input.filter { !$0.isWhitespace && !$0.isSymbol }
     }
-    
+
     private func filterAllowedCharacters(_ input: String) -> String {
         input.filter { $0.unicodeScalars.allSatisfy(allowedCharacters.contains) }
     }
-    
+
     private func sanitizeDecimalSeparator(_ input: String) -> String {
         guard let separatorIndex = input.firstIndex(of: decimalSeparator) else {
             return input

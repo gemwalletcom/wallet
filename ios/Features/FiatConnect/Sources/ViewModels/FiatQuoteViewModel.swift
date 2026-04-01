@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
+import Formatters
 import Primitives
 import PrimitivesComponents
 import Style
-import Components
-import Formatters
+import SwiftUI
 
 struct FiatQuoteViewModel: Sendable {
     let quote: FiatQuote
@@ -18,7 +18,7 @@ struct FiatQuoteViewModel: Sendable {
         asset: Asset,
         quote: FiatQuote,
         selectedQuote: FiatQuote? = nil,
-        formatter: CurrencyFormatter
+        formatter: CurrencyFormatter,
     ) {
         self.asset = asset
         self.quote = quote
@@ -38,7 +38,7 @@ struct FiatQuoteViewModel: Sendable {
         let amount = quote.fiatAmount / quote.cryptoAmount
         return formatter.string(amount)
     }
-    
+
     private var isSelected: Bool {
         selectedQuote?.provider == quote.provider
     }
@@ -69,7 +69,7 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
     var assetImage: AssetImage {
         AssetImage(
             placeholder: quote.provider.image,
-            chainPlaceholder: isSelected ? Images.Wallets.selected : nil
+            chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
     }
 

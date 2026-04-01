@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
-import InfoSheet
-import PrimitivesComponents
 import FiatConnect
-import Swap
+import InfoSheet
 import Perpetuals
+import PrimitivesComponents
+import Style
+import Swap
+import SwiftUI
 import Transfer
 
 struct ConfirmTransferNavigationView: View {
@@ -19,9 +19,9 @@ struct ConfirmTransferNavigationView: View {
         ConfirmTransferScene(model: model)
             .sheet(item: $model.isPresentingSheet) {
                 switch $0 {
-                case .info(let type):
+                case let .info(type):
                     InfoSheetScene(type: type)
-                case .url(let url):
+                case let .url(url):
                     SFSafariView(url: url)
                 case .networkFeeSelector:
                     NetworkFeeSheet(model: model.feeModel)
@@ -31,15 +31,15 @@ struct ConfirmTransferNavigationView: View {
                             primaryFields: model.primaryPayloadFields,
                             secondaryFields: model.secondaryPayloadFields,
                             fieldViewModel: model.payloadFieldViewModel(for:),
-                            contextMenuItems: model.contextMenuItems(for:)
+                            contextMenuItems: model.contextMenuItems(for:),
                         )
                         .presentationDetents([.large])
                         .presentationBackground(Colors.grayBackground)
                     }
-                case .fiatConnect(let assetAddress, let wallet):
+                case let .fiatConnect(assetAddress, wallet):
                     NavigationStack {
                         FiatConnectNavigationView(
-                            model: viewModelFactory.fiatScene(assetAddress: assetAddress, wallet: wallet)
+                            model: viewModelFactory.fiatScene(assetAddress: assetAddress, wallet: wallet),
                         )
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
@@ -52,7 +52,7 @@ struct ConfirmTransferNavigationView: View {
                                 .presentationBackground(Colors.grayBackground)
                         }
                     }
-                case .perpetualDetails(let model):
+                case let .perpetualDetails(model):
                     NavigationStack {
                         PerpetualDetailsView(model: model)
                             .presentationDetentsForCurrentDeviceSize(expandable: true)

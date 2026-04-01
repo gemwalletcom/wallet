@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import SwiftUI
+import GemstonePrimitives
+import Localization
 import Primitives
 import PrimitivesComponents
-import Validators
-import GemstonePrimitives
-import Components
 import Style
-import Localization
+import SwiftUI
+import Validators
 import WalletCorePrimitives
 
 @Observable
@@ -21,14 +21,14 @@ public final class ManageContactAddressViewModel {
         public var id: String {
             switch self {
             case .add: "add"
-            case .edit(let address): address.id
+            case let .edit(address): address.id
             }
         }
 
         var contactAddress: ContactAddress? {
             switch self {
             case .add: nil
-            case .edit(let address): address
+            case let .edit(address): address
             }
         }
     }
@@ -45,24 +45,24 @@ public final class ManageContactAddressViewModel {
         contactId: String,
         nameService: any NameServiceable,
         mode: Mode,
-        onComplete: @escaping (ContactAddress) -> Void
+        onComplete: @escaping (ContactAddress) -> Void,
     ) {
         self.contactId = contactId
         self.mode = mode
         self.onComplete = onComplete
-        self.title = Localized.Common.address
+        title = Localized.Common.address
 
         let chain = mode.contactAddress?.chain ?? .bitcoin
-        self.addressInputModel = AddressInputViewModel(
+        addressInputModel = AddressInputViewModel(
             chain: chain,
             nameService: nameService,
             placeholder: title,
-            validators: [.required(requireName: title), .address(Asset(chain))]
+            validators: [.required(requireName: title), .address(Asset(chain))],
         )
 
         if let address = mode.contactAddress {
-            self.addressInputModel.text = address.address
-            self.memo = address.memo ?? ""
+            addressInputModel.text = address.address
+            memo = address.memo ?? ""
         }
     }
 
@@ -77,7 +77,7 @@ public final class ManageContactAddressViewModel {
         NetworkSelectorViewModel(
             state: .data(.plain(Chain.allCases)),
             selectedItems: [chain],
-            selectionType: .checkmark
+            selectionType: .checkmark,
         )
     }
 
@@ -90,7 +90,7 @@ public final class ManageContactAddressViewModel {
             contactId: contactId,
             chain: chain,
             address: chain.checksumAddress(addressInputModel.resolvedAddress),
-            memo: memo.isEmpty ? nil : memo
+            memo: memo.isEmpty ? nil : memo,
         )
     }
 }
@@ -100,7 +100,7 @@ public final class ManageContactAddressViewModel {
 extension ManageContactAddressViewModel {
     func onSelectChain(_ chain: Chain) {
         addressInputModel.chain = chain
-        self.memo = ""
+        memo = ""
     }
 
     func onSelectScan() {

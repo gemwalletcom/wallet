@@ -17,7 +17,7 @@ public struct BalanceViewModel: Sendable {
     public init(
         asset: Asset,
         balance: Balance,
-        formatter: ValueFormatter
+        formatter: ValueFormatter,
     ) {
         self.asset = asset
         self.balance = balance

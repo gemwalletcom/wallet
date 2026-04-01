@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Primitives
+import Style
+import SwiftUI
 
 public struct InfoSheetScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -12,9 +12,9 @@ public struct InfoSheetScene: View {
     private let model: InfoSheetModel
 
     public init(type: InfoSheetType) {
-        self.model = InfoSheetModelFactory.create(from: type)
+        model = InfoSheetModelFactory.create(from: type)
     }
-    
+
     public init(model: InfoSheetModel) {
         self.model = model
     }
@@ -24,7 +24,7 @@ public struct InfoSheetScene: View {
             InfoSheetView(model: model)
                 .frame(
                     maxWidth: .infinity,
-                    maxHeight: .infinity
+                    maxHeight: .infinity,
                 )
                 .padding(.horizontal, .medium)
                 .toolbar(content: {
@@ -48,11 +48,11 @@ public struct InfoSheetScene: View {
                 .safariSheet(url: $isPresentedUrl)
         }
     }
-    
+
     private var actionButton: some View {
         StateButton(
             text: model.buttonTitle,
-            action: onAction
+            action: onAction,
         )
         .frame(maxWidth: .scene.button.maxWidth)
     }
@@ -64,14 +64,14 @@ extension InfoSheetScene {
     private func onClose() {
         dismiss()
     }
-    
+
     private func onAction() {
         guard let button = model.button else { return }
-        
+
         switch button {
-        case .url(let url):
+        case let .url(url):
             isPresentedUrl = url
-        case .action(_, let action):
+        case let .action(_, action):
             action()
         }
     }

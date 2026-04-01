@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import AssetsService
+import Foundation
 import PriceService
+import Primitives
 
 public struct AssetsEnablerService: AssetsEnabler {
     private let assetsService: AssetsService
@@ -13,7 +13,7 @@ public struct AssetsEnablerService: AssetsEnabler {
     public init(
         assetsService: AssetsService,
         balanceUpdater: any BalanceUpdater,
-        priceUpdater: any PriceUpdater
+        priceUpdater: any PriceUpdater,
     ) {
         self.assetsService = assetsService
         self.balanceUpdater = balanceUpdater

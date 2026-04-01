@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import SwiftUI
 
 struct LeveragePickerView: View {
     private let leverageOptions: [LeverageOption]
@@ -9,13 +9,13 @@ struct LeveragePickerView: View {
 
     init(leverageOptions: [LeverageOption], selectedLeverage: Binding<LeverageOption>) {
         self.leverageOptions = leverageOptions
-        self._selectedLeverage = selectedLeverage
+        _selectedLeverage = selectedLeverage
     }
 
     var body: some View {
         WheelPickerView(
             options: leverageOptions,
-            selection: $selectedLeverage
+            selection: $selectedLeverage,
         )
     }
 }

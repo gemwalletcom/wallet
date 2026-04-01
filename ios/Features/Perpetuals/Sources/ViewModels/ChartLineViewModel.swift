@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
+import Formatters
 import Localization
 import Primitives
-import Formatters
+import Style
+import SwiftUI
 
 struct ChartLineViewModel: Identifiable {
     let line: ChartLine

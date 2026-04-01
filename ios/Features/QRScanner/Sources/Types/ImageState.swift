@@ -10,13 +10,13 @@ enum ImageState: Equatable {
     static func == (lhs: ImageState, rhs: ImageState) -> Bool {
         switch (lhs, rhs) {
         case (.empty, .empty):
-            return true
-        case (.success(let lhsImage), .success(let rhsImage)):
-            return lhsImage.hashValue == rhsImage.hashValue
-        case (.failure(let lhsError), .failure(let rhsError)):
-            return lhsError.localizedDescription == rhsError.localizedDescription
+            true
+        case let (.success(lhsImage), .success(rhsImage)):
+            lhsImage.hashValue == rhsImage.hashValue
+        case let (.failure(lhsError), .failure(rhsError)):
+            lhsError.localizedDescription == rhsError.localizedDescription
         default:
-            return false
+            false
         }
     }
 }

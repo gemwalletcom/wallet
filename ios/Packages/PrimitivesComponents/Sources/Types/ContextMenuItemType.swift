@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
+import SwiftUI
 
 public enum ContextMenuItemType {
     case copy(title: String? = nil, value: String, expirationTime: TimeInterval? = nil, onCopy: StringAction = nil)
@@ -13,6 +13,6 @@ public enum ContextMenuItemType {
         title: String,
         systemImage: String? = nil,
         role: ButtonRole? = nil,
-        action: VoidAction
+        action: VoidAction,
     )
 }

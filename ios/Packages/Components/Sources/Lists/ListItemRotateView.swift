@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemRotateView: View {
     public let title: String?
     public let subtitle: String?
-    public let action: (() -> Void)
+    public let action: () -> Void
 
     public init(title: String?, subtitle: String?, action: @escaping (() -> Void)) {
         self.title = title
@@ -19,7 +19,7 @@ public struct ListItemRotateView: View {
             HStack {
                 ListItemImageView(
                     title: title,
-                    subtitle: subtitle
+                    subtitle: subtitle,
                 )
 
                 Images.Actions.swap

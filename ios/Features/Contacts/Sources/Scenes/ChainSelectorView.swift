@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
+import SwiftUI
 
 struct ChainSelectorView: View {
-
     @Environment(\.dismiss) private var dismiss
 
     let chain: Chain?
@@ -16,7 +15,7 @@ struct ChainSelectorView: View {
             onSelectChain: {
                 onSelectChain($0)
                 dismiss()
-            }
+            },
         )
     }
 }

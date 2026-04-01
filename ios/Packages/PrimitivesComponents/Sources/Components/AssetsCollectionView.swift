@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
+import Primitives
 import Style
+import SwiftUI
 
 public struct AssetsCollectionView<Content: View>: View {
     private let models: [AssetViewModel]
@@ -11,7 +11,7 @@ public struct AssetsCollectionView<Content: View>: View {
 
     public init(
         models: [AssetViewModel],
-        @ViewBuilder content: @escaping (AssetViewModel) -> Content
+        @ViewBuilder content: @escaping (AssetViewModel) -> Content,
     ) {
         self.models = models
         self.content = content
@@ -39,7 +39,7 @@ public struct AssetChipView: View {
         HStack(spacing: .tiny) {
             AssetImageView(
                 assetImage: model.assetImage,
-                size: .list.image
+                size: .list.image,
             )
             Text(model.symbol)
                 .textStyle(TextStyle(font: .body, color: .primary, fontWeight: .semibold))

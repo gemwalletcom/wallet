@@ -13,7 +13,7 @@ public struct ConfigurableDefaults<T>: @unchecked Sendable {
         key: String,
         defaultValue: T,
         defaults: UserDefaults = .standard,
-        sharedDefaults: UserDefaults? = nil
+        sharedDefaults: UserDefaults? = nil,
     ) {
         self.key = key
         self.defaultValue = defaultValue
@@ -28,7 +28,7 @@ public struct ConfigurableDefaults<T>: @unchecked Sendable {
         set {
             let value = (newValue as? AnyOptional)?.isNil == true ? nil : newValue
             defaults.set(value, forKey: key)
-            if let sharedDefaults = sharedDefaults {
+            if let sharedDefaults {
                 sharedDefaults.set(value, forKey: key)
             }
         }

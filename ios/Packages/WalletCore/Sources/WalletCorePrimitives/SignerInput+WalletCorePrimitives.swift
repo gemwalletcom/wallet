@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 public extension SignerInput {
     var coinType: WalletCore.CoinType {
-        return asset.chain.coinType
+        asset.chain.coinType
     }
 }

@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
 struct NFTCollectionRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "nft_collections"
 
-    struct Columns {
+    enum Columns {
         static let walletId = Column("walletId")
         static let id = Column("id")
         static let name = Column("name")
@@ -27,7 +27,7 @@ struct NFTCollectionRecord: Codable, FetchableRecord, PersistableRecord {
     var contractAddress: String
     var status: VerificationStatus
     var links: [AssetLink]?
-    
+
     var previewImageUrl: String
     var previewImageMimeType: String
 
@@ -35,9 +35,8 @@ struct NFTCollectionRecord: Codable, FetchableRecord, PersistableRecord {
 }
 
 extension NFTCollectionRecord: CreateTable {
-
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
             $0.column(Columns.name.name, .text).notNull()
@@ -70,7 +69,7 @@ extension NFTCollection {
             status: status,
             links: links,
             previewImageUrl: images.preview.url,
-            previewImageMimeType: images.preview.mimeType
+            previewImageMimeType: images.preview.mimeType,
         )
     }
 }

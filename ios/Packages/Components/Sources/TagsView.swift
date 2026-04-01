@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct TagsView<T: TagItemViewable>: View {
     private let tags: [T]
@@ -20,7 +20,7 @@ public struct TagsView<T: TagItemViewable>: View {
                     ForEach(tags) {
                         TagView(
                             tag: $0,
-                            action: onSelect
+                            action: onSelect,
                         )
                     }
                 }
@@ -58,12 +58,11 @@ public struct TagView<T: TagItemViewable>: View {
             .background {
                 RoundedRectangle(
                     cornerRadius: .space12,
-                    style: .continuous
+                    style: .continuous,
                 )
                 .fill(Colors.listStyleColor)
                 .opacity(tag.viewOpacity)
             }
-
         }
     }
 }

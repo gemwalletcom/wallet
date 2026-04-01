@@ -3,8 +3,8 @@
 import Foundation
 import Store
 
-extension SearchStore {
-    public static func mock(db: DB = .mock()) -> Self {
+public extension SearchStore {
+    static func mock(db: DB = .mock()) -> Self {
         SearchStore(db: db)
     }
 }

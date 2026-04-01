@@ -2,19 +2,19 @@
 
 import Formatters
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
 
 public extension AssetDataViewModel {
     static func mock(
         assetData: AssetData = .mock(),
         formatter: ValueFormatter = .medium,
-        currencyCode: String = "USD"
+        currencyCode: String = "USD",
     ) -> AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
             formatter: formatter,
-            currencyCode: currencyCode
+            currencyCode: currencyCode,
         )
     }
 }

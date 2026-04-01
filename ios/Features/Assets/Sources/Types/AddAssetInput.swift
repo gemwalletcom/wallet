@@ -3,7 +3,6 @@
 import Primitives
 
 struct AddAssetInput {
-    
     let chains: [Chain]
 
     var chain: Chain?
@@ -15,6 +14,6 @@ struct AddAssetInput {
 
     init(chains: [Chain]) {
         self.chains = chains
-        self.chain = chains.first
+        chain = chains.first
     }
 }

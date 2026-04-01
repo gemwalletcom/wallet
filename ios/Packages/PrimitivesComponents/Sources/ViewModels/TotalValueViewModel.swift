@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Formatters
-import Style
 import Components
+import Formatters
+import Primitives
+import Style
+import SwiftUI
 
 public struct TotalValueViewModel {
     private let totalValue: TotalFiatValue

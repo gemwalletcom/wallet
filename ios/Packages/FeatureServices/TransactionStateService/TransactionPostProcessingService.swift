@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
 import BalanceService
-import StakeService
 import EarnService
+import Foundation
 import NFTService
 import Primitives
+import StakeService
+import Store
 
 struct TransactionPostProcessingService: Sendable {
     private let transactionStore: TransactionStore
@@ -20,7 +20,7 @@ struct TransactionPostProcessingService: Sendable {
         balanceUpdater: any BalanceUpdater,
         stakeService: StakeService,
         earnService: EarnService,
-        nftService: NFTService
+        nftService: NFTService,
     ) {
         self.transactionStore = transactionStore
         self.balanceUpdater = balanceUpdater
@@ -33,7 +33,7 @@ struct TransactionPostProcessingService: Sendable {
         Task {
             await balanceUpdater.updateBalance(
                 for: wallet,
-                assetIds: (transaction.assetIds + [transaction.feeAssetId]).unique()
+                assetIds: (transaction.assetIds + [transaction.feeAssetId]).unique(),
             )
         }
 
@@ -44,7 +44,7 @@ struct TransactionPostProcessingService: Sendable {
                     try await stakeService.update(
                         walletId: wallet.walletId,
                         chain: assetIdentifier.chain,
-                        address: transaction.from
+                        address: transaction.from,
                     )
                 }
             }
@@ -54,7 +54,7 @@ struct TransactionPostProcessingService: Sendable {
                     try await earnService.update(
                         walletId: wallet.walletId,
                         assetId: assetIdentifier,
-                        address: transaction.from
+                        address: transaction.from,
                     )
                 }
             }

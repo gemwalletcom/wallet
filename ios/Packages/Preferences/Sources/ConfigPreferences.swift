@@ -6,7 +6,7 @@ import Primitives
 public final class ConfigPreferences: @unchecked Sendable {
     public static let standard = ConfigPreferences()
 
-    private struct Keys {
+    private enum Keys {
         static let config = "config"
     }
 

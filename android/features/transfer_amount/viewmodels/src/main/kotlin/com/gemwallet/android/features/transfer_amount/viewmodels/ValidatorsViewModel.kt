@@ -29,7 +29,6 @@ class ValidatorsViewModel @Inject constructor(
     private val assetId = MutableStateFlow<AssetId?>(null)
     val validators = assetId.filterNotNull()
         .flatMapLatest { stakeRepository.getValidators(it.chain) }
-        .map { it.filter { it.name.isNotEmpty() } }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, emptyList())
 
     val uiState = combine(assetId, validators) { assetId, validators ->
@@ -39,7 +38,7 @@ class ValidatorsViewModel @Inject constructor(
                 val recommended = stakeRepository.getRecommendValidators(assetId.chain)
                 ValidatorsUIState.Loaded(
                     loading = false,
-                    recomended = validators.filter { it.name.isNotEmpty() && recommended.contains(it.id) },
+                    recomended = validators.filter { recommended.contains(it.id) },
                     validators = validators,
                 )
             }

@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import FiatConnect
+import Primitives
 import PrimitivesComponents
 import Swap
+import SwiftUI
 import Transfer
 
-struct SelectedAssetNavigationStack: View  {
+struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.activityService) private var activityService
@@ -21,7 +21,7 @@ struct SelectedAssetNavigationStack: View  {
     init(
         input: SelectedAssetInput,
         wallet: Wallet,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.input = input
         self.wallet = wallet
@@ -32,7 +32,7 @@ struct SelectedAssetNavigationStack: View  {
         NavigationStack(path: $navigationPath) {
             Group {
                 switch input.type {
-                case .send(let type):
+                case let .send(type):
                     RecipientNavigationView(
                         model: viewModelFactory.recipientScene(
                             wallet: wallet,
@@ -43,8 +43,8 @@ struct SelectedAssetNavigationStack: View  {
                             },
                             onTransferAction: {
                                 navigationPath.append($0)
-                            }
-                        )
+                            },
+                        ),
                     )
                 case .receive:
                     ReceiveScene(
@@ -52,8 +52,8 @@ struct SelectedAssetNavigationStack: View  {
                             assetModel: AssetViewModel(asset: input.asset),
                             wallet: wallet,
                             address: input.address,
-                            assetsEnabler: assetsEnabler
-                        )
+                            assetsEnabler: assetsEnabler,
+                        ),
                     )
                 case let .buy(_, amount):
                     FiatConnectNavigationView(
@@ -61,8 +61,8 @@ struct SelectedAssetNavigationStack: View  {
                             assetAddress: input.assetAddress,
                             wallet: wallet,
                             type: .buy,
-                            amount: amount
-                        )
+                            amount: amount,
+                        ),
                     )
                 case let .sell(_, amount):
                     FiatConnectNavigationView(
@@ -70,8 +70,8 @@ struct SelectedAssetNavigationStack: View  {
                             assetAddress: input.assetAddress,
                             wallet: wallet,
                             type: .sell,
-                            amount: amount
-                        )
+                            amount: amount,
+                        ),
                     )
                 case let .swap(fromAsset, toAsset):
                     SwapNavigationView(
@@ -80,32 +80,32 @@ struct SelectedAssetNavigationStack: View  {
                                 wallet: wallet,
                                 pairSelector: SwapPairSelectorViewModel(
                                     fromAssetId: fromAsset.id,
-                                    toAssetId: toAsset?.id ?? SwapPairSelectorViewModel.defaultSwapPair(for: fromAsset).toAssetId
-                                )
+                                    toAssetId: toAsset?.id ?? SwapPairSelectorViewModel.defaultSwapPair(for: fromAsset).toAssetId,
+                                ),
                             ),
                             onSwap: {
                                 navigationPath.append($0)
-                            }
-                        )
+                            },
+                        ),
                     )
                 case .stake:
                     StakeNavigationView(
                         model: viewModelFactory.stakeScene(
                             wallet: wallet,
-                            chain: input.asset.id.chain
+                            chain: input.asset.id.chain,
                         ),
-                        navigationPath: $navigationPath
+                        navigationPath: $navigationPath,
                     )
                 case .earn:
                     #if DEBUG
-                    EarnNavigationView(
-                        wallet: wallet,
-                        asset: input.asset,
-                        viewModelFactory: viewModelFactory,
-                        navigationPath: $navigationPath
-                    )
+                        EarnNavigationView(
+                            wallet: wallet,
+                            asset: input.asset,
+                            viewModelFactory: viewModelFactory,
+                            navigationPath: $navigationPath,
+                        )
                     #else
-                    EmptyView()
+                        EmptyView()
                     #endif
                 }
             }
@@ -116,8 +116,8 @@ struct SelectedAssetNavigationStack: View  {
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
                         data: data,
-                        onComplete: onComplete
-                    )
+                        onComplete: onComplete,
+                    ),
                 )
             }
             .taskOnce {

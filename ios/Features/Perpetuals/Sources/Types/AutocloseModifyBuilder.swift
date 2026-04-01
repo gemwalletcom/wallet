@@ -21,14 +21,14 @@ struct AutocloseModifyBuilder {
     func build(
         assetIndex: Int32,
         takeProfit: AutocloseField,
-        stopLoss: AutocloseField
+        stopLoss: AutocloseField,
     ) -> [PerpetualModifyPositionType] {
         var result: [PerpetualModifyPositionType] = []
 
         let cancelOrders = buildCancelOrders(
             assetIndex: assetIndex,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
 
         if !cancelOrders.isEmpty {
@@ -51,14 +51,14 @@ extension AutocloseModifyBuilder {
             direction: direction,
             takeProfit: takeProfit.shouldSet ? takeProfit.formattedPrice : nil,
             stopLoss: stopLoss.shouldSet ? stopLoss.formattedPrice : nil,
-            size: .zero
+            size: .zero,
         ))
     }
 
     private func buildCancelOrders(
         assetIndex: Int32,
         takeProfit: AutocloseField,
-        stopLoss: AutocloseField
+        stopLoss: AutocloseField,
     ) -> [CancelOrderData] {
         [takeProfit, stopLoss].compactMap { field in
             guard field.shouldCancel, let orderId = field.orderId else { return nil }

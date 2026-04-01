@@ -3,8 +3,8 @@
 import BigInt
 import Formatters
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
 
 public extension AmountDisplay {
     static func mock(
@@ -13,7 +13,7 @@ public extension AmountDisplay {
         value: BigInt = BigInt(100_000_000),
         direction: TransactionDirection? = nil,
         currency: String = "USD",
-        formatter: ValueFormatter = .full
+        formatter: ValueFormatter = .full,
     ) -> AmountDisplay {
         .numeric(
             asset: asset,
@@ -21,7 +21,7 @@ public extension AmountDisplay {
             value: value,
             direction: direction,
             currency: currency,
-            formatter: formatter
+            formatter: formatter,
         )
     }
 

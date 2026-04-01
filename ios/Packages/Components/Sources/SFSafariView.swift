@@ -11,11 +11,11 @@ public struct SFSafariView: UIViewControllerRepresentable {
         self.url = url
     }
 
-    public func makeUIViewController(context: Context) -> SFSafariViewController {
+    public func makeUIViewController(context _: Context) -> SFSafariViewController {
         let configuration = SFSafariViewController.Configuration()
         configuration.barCollapsingEnabled = false
         return SFSafariViewController(url: url, configuration: configuration)
     }
 
-    public func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+    public func updateUIViewController(_: SFSafariViewController, context _: Context) {}
 }

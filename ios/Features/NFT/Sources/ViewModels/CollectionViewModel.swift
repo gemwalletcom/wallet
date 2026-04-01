@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Foundation
 import Primitives
+import PrimitivesComponents
 import Store
 import SwiftUI
-import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -22,11 +22,11 @@ public final class CollectionViewModel: CollectionsViewable, Sendable {
     public init(
         wallet: Wallet,
         collectionId: String,
-        collectionName: String
+        collectionName: String,
     ) {
         self.wallet = wallet
         self.collectionName = collectionName
-        self.query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .collection(id: collectionId)), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .collection(id: collectionId)), initialValue: [])
     }
 
     public var title: String { collectionName }
@@ -35,8 +35,7 @@ public final class CollectionViewModel: CollectionsViewable, Sendable {
         CollectionsContent(
             items: nftDataList.flatMap { data in
                 data.assets.map { buildGridItem(collection: data.collection, asset: $0) }
-            }
+            },
         )
     }
-
 }

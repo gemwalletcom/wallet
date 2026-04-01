@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import BigInt
+import Foundation
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Validators
 
@@ -15,11 +15,11 @@ struct MinimumAccountReserveValidatorTests {
     private let availableAmount = BigInt(10)
 
     @Test
-    func testPassesWhenRemainingZeroOrAboveReservePlusOne() throws {
+    func passesWhenRemainingZeroOrAboveReservePlusOne() throws {
         let validator = MinimumAccountReserveValidator<BigInt>(
             available: availableAmount,
             reserve: requiredReserve,
-            asset: nativeAsset
+            asset: nativeAsset,
         )
 
         try validator.validate(availableAmount)
@@ -28,11 +28,11 @@ struct MinimumAccountReserveValidatorTests {
     }
 
     @Test
-    func testThrowsWhenRemainingBetweenOneAndReserveInclusive() {
+    func throwsWhenRemainingBetweenOneAndReserveInclusive() {
         let validator = MinimumAccountReserveValidator<BigInt>(
             available: availableAmount,
             reserve: requiredReserve,
-            asset: nativeAsset
+            asset: nativeAsset,
         )
 
         #expect(throws: TransferAmountCalculatorError.minimumAccountBalanceTooLow(nativeAsset, required: requiredReserve)) {
@@ -44,11 +44,11 @@ struct MinimumAccountReserveValidatorTests {
     }
 
     @Test
-    func testIgnoresWhenAssetIsNonNative() throws {
+    func ignoresWhenAssetIsNonNative() throws {
         let validator = MinimumAccountReserveValidator<BigInt>(
             available: availableAmount,
             reserve: requiredReserve,
-            asset: nonNativeAsset
+            asset: nonNativeAsset,
         )
 
         try validator.validate(availableAmount)

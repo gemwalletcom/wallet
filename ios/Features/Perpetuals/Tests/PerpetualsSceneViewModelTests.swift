@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import PrimitivesTestKit
-import PerpetualService
-import PerpetualServiceTestKit
 import ActivityService
 import ActivityServiceTestKit
-import PerpetualsTestKit
 @testable import Perpetuals
+import PerpetualService
+import PerpetualServiceTestKit
+import PerpetualsTestKit
+import Primitives
+import PrimitivesTestKit
+import Testing
 
 @MainActor
 struct PerpetualsSceneViewModelTests {
-
     @Test
     func headerViewModel() {
         let wallet = Wallet.mock(type: .multicoin)
@@ -28,13 +27,13 @@ extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         perpetualService: PerpetualServiceable = PerpetualService.mock(),
         observerService: any PerpetualObservable<HyperliquidSubscription> = PerpetualObserverMock(),
-        activityService: ActivityService = .mock()
+        activityService: ActivityService = .mock(),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
             perpetualService: perpetualService,
             observerService: observerService,
-            activityService: activityService
+            activityService: activityService,
         )
     }
 }

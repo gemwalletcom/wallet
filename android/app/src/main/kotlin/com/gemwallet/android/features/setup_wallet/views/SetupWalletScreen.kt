@@ -28,7 +28,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.theme.largeIconSize
+import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.WalletSource
@@ -73,7 +73,7 @@ fun SetupWalletScreen(
                 painterResource(id = R.drawable.brandmark),
                 contentDescription = "",
                 modifier = Modifier
-                    .size(largeIconSize)
+                    .size(extraLargeIconSize)
                     .clip(CircleShape),
             )
             Spacer(modifier = Modifier.size(paddingLarge))

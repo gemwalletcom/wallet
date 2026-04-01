@@ -8,11 +8,12 @@ let package = Package(
     products: [
         .library(
             name: "Store",
-            targets: ["Store"]
+            targets: ["Store"],
         ),
         .library(
             name: "StoreTestKit",
-            targets: ["StoreTestKit"]),
+            targets: ["StoreTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
@@ -25,7 +26,7 @@ let package = Package(
                 "Primitives",
                 .product(name: "GRDB", package: "GRDB"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "StoreTestKit",
@@ -33,7 +34,7 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "Store",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "StoreTests",
@@ -41,7 +42,7 @@ let package = Package(
                 "Store",
                 "StoreTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

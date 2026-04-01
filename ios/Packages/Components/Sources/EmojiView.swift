@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct EmojiView: View {
     public let color: Color
     public let emoji: String
-    
+
     public init(color: Color, emoji: String) {
         self.color = color
         self.emoji = emoji
@@ -17,7 +17,7 @@ public struct EmojiView: View {
             ZStack {
                 Circle()
                     .fill(color)
-                
+
                 Text(emoji)
                     .font(.system(size: geometry.size.width * 0.6))
                     .minimumScaleFactor(0.01)

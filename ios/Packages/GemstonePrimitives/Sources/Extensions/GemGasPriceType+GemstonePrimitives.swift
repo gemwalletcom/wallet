@@ -1,32 +1,32 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Gemstone
 import Primitives
-import BigInt
 
-extension GemGasPriceType {
-    public func map() throws -> GasPriceType {
+public extension GemGasPriceType {
+    func map() throws -> GasPriceType {
         switch self {
-        case .regular(let gasPrice):
-            return GasPriceType.regular(gasPrice: try BigInt.from(string: gasPrice))
-        case .eip1559(let gasPrice, let priorityFee):
-            return GasPriceType.eip1559(gasPrice: try BigInt.from(string: gasPrice), priorityFee: try BigInt.from(string: priorityFee))
-        case .solana(let gasPrice, let priorityFee, let unitPrice):
-            return GasPriceType.solana(gasPrice: try BigInt.from(string: gasPrice), priorityFee: try BigInt.from(string: priorityFee), unitPrice: try BigInt.from(string: unitPrice))
+        case let .regular(gasPrice):
+            try GasPriceType.regular(gasPrice: BigInt.from(string: gasPrice))
+        case let .eip1559(gasPrice, priorityFee):
+            try GasPriceType.eip1559(gasPrice: BigInt.from(string: gasPrice), priorityFee: BigInt.from(string: priorityFee))
+        case let .solana(gasPrice, priorityFee, unitPrice):
+            try GasPriceType.solana(gasPrice: BigInt.from(string: gasPrice), priorityFee: BigInt.from(string: priorityFee), unitPrice: BigInt.from(string: unitPrice))
         }
     }
 }
 
-extension GasPriceType {
-    public func map() -> GemGasPriceType {
+public extension GasPriceType {
+    func map() -> GemGasPriceType {
         switch self {
-        case .regular(let gasPrice):
-            return .regular(gasPrice: gasPrice.description)
-        case .eip1559(let gasPrice, let priorityFee):
-            return .eip1559(gasPrice: gasPrice.description, priorityFee: priorityFee.description)
-        case .solana(let gasPrice, let priorityFee, let unitPrice):
-            return .solana(gasPrice: gasPrice.description, priorityFee: priorityFee.description, unitPrice: unitPrice.description)
+        case let .regular(gasPrice):
+            .regular(gasPrice: gasPrice.description)
+        case let .eip1559(gasPrice, priorityFee):
+            .eip1559(gasPrice: gasPrice.description, priorityFee: priorityFee.description)
+        case let .solana(gasPrice, priorityFee, unitPrice):
+            .solana(gasPrice: gasPrice.description, priorityFee: priorityFee.description, unitPrice: unitPrice.description)
         }
     }
 }

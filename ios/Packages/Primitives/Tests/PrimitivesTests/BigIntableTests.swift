@@ -1,7 +1,7 @@
-import Testing
 import BigInt
-import Primitives
 import Foundation
+import Primitives
+import Testing
 
 class BigIntCodableTests {
     @Test

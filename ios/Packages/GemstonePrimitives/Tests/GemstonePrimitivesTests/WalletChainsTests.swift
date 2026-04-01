@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
-import PrimitivesTestKit
 import Primitives
+import PrimitivesTestKit
+import Testing
 
 final class WalletChainsTests {
     @Test
-    func testChainsAll() {
+    func chainsAll() {
         let wallet = Wallet.mock(accounts: [
             .mock(chain: .bitcoin),
             .mock(chain: .doge),
-            .mock(chain: .ethereum)
+            .mock(chain: .ethereum),
         ])
 
         let result = wallet.chains
@@ -24,7 +24,7 @@ final class WalletChainsTests {
         let wallet = Wallet.mock(accounts: [
             .mock(chain: .bitcoin),
             .mock(chain: .doge),
-            .mock(chain: .ethereum)
+            .mock(chain: .ethereum),
         ])
 
         let result = wallet.chainsWithTokens
@@ -33,11 +33,11 @@ final class WalletChainsTests {
     }
 
     @Test
-    func testChainSorting() {
+    func chainSorting() {
         let wallet = Wallet.mock(accounts: [
             .mock(chain: .doge),
             .mock(chain: .ethereum),
-            .mock(chain: .bitcoin)
+            .mock(chain: .bitcoin),
         ])
 
         let result = wallet.chains

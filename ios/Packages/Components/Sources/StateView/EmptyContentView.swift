@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct EmptyContentView: View {
     public let model: any EmptyContentViewable
@@ -23,13 +23,13 @@ public struct EmptyContentView: View {
                                 action()
                             }
                             .buttonStyle(
-                                .empty()
+                                .empty(),
                             )
                         }
                     }
                 }
                 .fixedSize()
-            }
+            },
         )
     }
 }

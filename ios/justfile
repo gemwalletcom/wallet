@@ -152,16 +152,16 @@ reset-simulator NAME=SIMULATOR_NAME:
 
 _localize languages="":
     @sh ../core/scripts/localize.sh ios Packages/Localization/Sources/Resources {{languages}}
-    just generate-model
+    just generate-models
     just generate-swiftgen
 
 localize: (_localize "en")
 
 localize-all: (_localize)
 
-generate: generate-model generate-swiftgen
+generate: generate-models generate-swiftgen
 
-generate-model:
+generate-models:
     @echo "==> Generate typeshare for iOS"
     @cd ../core && cargo run --package generate --bin generate ios ../ios/Packages
 

@@ -17,7 +17,6 @@ public struct WalletSearchResult: Equatable, Sendable {
 }
 
 public struct WalletSearchRequest: DatabaseQueryable, Hashable {
-
     public var walletId: WalletId
     public var searchBy: String
     public var tag: String?

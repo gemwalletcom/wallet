@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
 import Primitives
-import Components
 import Style
 import SwiftUI
-import Formatters
 
 public struct ListAssetItemViewModel: ListAssetItemViewable {
     let assetDataModel: AssetDataViewModel
@@ -18,7 +18,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         showBalancePrivacy: Binding<Bool>,
         assetDataModel: AssetDataViewModel,
         type: AssetListType = .wallet,
-        action: (((ListAssetItemAction)) -> Void)? = nil
+        action: ((ListAssetItemAction) -> Void)? = nil,
     ) {
         self.showBalancePrivacy = showBalancePrivacy
         self.assetDataModel = assetDataModel
@@ -30,18 +30,18 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         showBalancePrivacy: Binding<Bool>,
         assetData: AssetData,
         formatter: ValueFormatter,
-        currencyCode: String
+        currencyCode: String,
     ) {
         let model = AssetDataViewModel(
             assetData: assetData,
             formatter: formatter,
-            currencyCode: currencyCode
+            currencyCode: currencyCode,
         )
         self.init(
             showBalancePrivacy: showBalancePrivacy,
             assetDataModel: model,
             type: .wallet,
-            action: nil
+            action: nil,
         )
     }
 
@@ -64,26 +64,26 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public var subtitleView: ListAssetItemSubtitleView {
         switch type {
         case .wallet, .price:
-            return .price(
+            .price(
                 price: TextValue(
                     text: assetDataModel.priceAmountText,
-                    style: TextStyle(font: .footnote, color: Colors.gray)
+                    style: TextStyle(font: .footnote, color: Colors.gray),
                 ),
                 priceChangePercentage24h: TextValue(
                     text: assetDataModel.priceChangeText,
-                    style: TextStyle(font: .footnote, color: assetDataModel.priceChangeTextColor)
-                )
+                    style: TextStyle(font: .footnote, color: assetDataModel.priceChangeTextColor),
+                ),
             )
         case .manage, .view, .copy:
             switch assetDataModel.asset.id.type {
             case .native:
-                return .none
+                .none
             case .token:
-                return .type(
+                .type(
                     TextValue(
                         text: assetDataModel.asset.chain.asset.name,
-                        style: .calloutSecondary
-                    )
+                        style: .calloutSecondary,
+                    ),
                 )
             }
         }
@@ -92,27 +92,26 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public var rightView: ListAssetItemRightView {
         switch type {
         case .wallet, .view:
-            return .balance(
+            .balance(
                 balance: TextValue(
                     text: assetDataModel.totalBalanceTextWithSymbol,
-                    style: TextStyle(font: .callout, color: assetDataModel.balanceTextColor, fontWeight: .semibold)
+                    style: TextStyle(font: .callout, color: assetDataModel.balanceTextColor, fontWeight: .semibold),
                 ),
                 totalFiat: TextValue(
                     text: assetDataModel.fiatBalanceText,
-                    style: TextStyle(font: .footnote, color: Colors.gray)
-                )
+                    style: TextStyle(font: .footnote, color: Colors.gray),
+                ),
             )
         case .manage:
-            return .toggle(assetDataModel.isEnabled)
+            .toggle(assetDataModel.isEnabled)
         case .copy:
-            return .copy
+            .copy
         case .price:
-            return .none
+            .none
         }
     }
 
     public var assetImage: AssetImage {
-        return AssetViewModel(asset: assetDataModel.asset).assetImage
+        AssetViewModel(asset: assetDataModel.asset).assetImage
     }
 }
-

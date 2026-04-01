@@ -1,41 +1,40 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Preferences
 import Primitives
 import Store
-import Preferences
 
 public struct BannerSetupService: Sendable {
-
     private let store: BannerStore
     private let preferences: Preferences
 
     public init(
         store: BannerStore,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.store = store
         self.preferences = preferences
     }
-    
+
     public func setup() throws {
         try setupStake()
         try setupHypercorePerpetuals()
     }
 
-    public func setupWallet(wallet: Wallet) throws  {
+    public func setupWallet(wallet: Wallet) throws {
         try setupAccountActivation()
         try setupOnboarding(wallet: wallet)
     }
-    
+
     public func setupAccountMultiSignatureWallet(walletId: WalletId, chain: Chain) throws {
         try store.addBanners([
-            NewBanner.accountBlockedMultiSignature(walletId: walletId, chain: chain)
+            NewBanner.accountBlockedMultiSignature(walletId: walletId, chain: chain),
         ])
     }
-    
+
     // MARK: - Private methods
-    
+
     private func setupStake() throws {
         try store.addBanners(StakeChain.allCases.map {
             NewBanner.stake(assetId: $0.chain.assetId)
@@ -60,7 +59,7 @@ public struct BannerSetupService: Sendable {
     private func setupHypercorePerpetuals() throws {
         try store.addBanners([
             NewBanner.tradePerpetuals(assetId: Chain.hyperCore.assetId),
-            NewBanner.tradePerpetuals(assetId: Chain.hyperliquid.assetId)
+            NewBanner.tradePerpetuals(assetId: Chain.hyperliquid.assetId),
         ])
     }
 }

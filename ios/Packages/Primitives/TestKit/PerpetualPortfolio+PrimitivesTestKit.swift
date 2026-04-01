@@ -8,13 +8,13 @@ public extension PerpetualAccountSummary {
         accountValue: Double = 100,
         accountLeverage: Double = 1.5,
         marginUsage: Double = 0.168,
-        unrealizedPnl: Double = 0
+        unrealizedPnl: Double = 0,
     ) -> PerpetualAccountSummary {
         PerpetualAccountSummary(
             accountValue: accountValue,
             accountLeverage: accountLeverage,
             marginUsage: marginUsage,
-            unrealizedPnl: unrealizedPnl
+            unrealizedPnl: unrealizedPnl,
         )
     }
 }
@@ -23,12 +23,12 @@ public extension PerpetualPortfolioTimeframeData {
     static func mock(
         accountValueHistory: [ChartDateValue] = ChartDateValue.mockHistory(values: [100, 105, 102, 108, 110]),
         pnlHistory: [ChartDateValue] = ChartDateValue.mockHistory(values: [0, 5, 2, 8, 10]),
-        volume: Double = 50000
+        volume: Double = 50000,
     ) -> PerpetualPortfolioTimeframeData {
         PerpetualPortfolioTimeframeData(
             accountValueHistory: accountValueHistory,
             pnlHistory: pnlHistory,
-            volume: volume
+            volume: volume,
         )
     }
 }
@@ -39,14 +39,14 @@ public extension PerpetualPortfolio {
         week: PerpetualPortfolioTimeframeData? = .mock(),
         month: PerpetualPortfolioTimeframeData? = .mock(),
         allTime: PerpetualPortfolioTimeframeData? = .mock(),
-        accountSummary: PerpetualAccountSummary? = nil
+        accountSummary: PerpetualAccountSummary? = nil,
     ) -> PerpetualPortfolio {
         PerpetualPortfolio(
             day: day,
             week: week,
             month: month,
             allTime: allTime,
-            accountSummary: accountSummary
+            accountSummary: accountSummary,
         )
     }
 
@@ -56,7 +56,7 @@ public extension PerpetualPortfolio {
             week: nil,
             month: nil,
             allTime: nil,
-            accountSummary: nil
+            accountSummary: nil,
         )
     }
 }

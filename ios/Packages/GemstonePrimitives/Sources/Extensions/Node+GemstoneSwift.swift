@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import struct Gemstone.Node
 import enum Gemstone.NodePriority
+import Primitives
 
-extension Gemstone.Node {
-    public var node: Primitives.Node {
+public extension Gemstone.Node {
+    var node: Primitives.Node {
         let priority = switch priority {
         case .high: 10
         case .medium: 5
@@ -17,7 +17,7 @@ extension Gemstone.Node {
         return Primitives.Node(
             url: url,
             status: status,
-            priority: priority.asInt32
+            priority: priority.asInt32,
         )
     }
 }

@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
 import Blockchain
 import Components
+import FiatService
+import Foundation
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
-import WalletConnector
-import InfoSheet
-import Validators
-import SwiftUI
-import FiatService
 import Swap
+import SwiftUI
+import Validators
+import WalletConnector
 
 @Observable
 @MainActor
@@ -27,10 +27,10 @@ public final class ConfirmTransferSceneViewModel {
 
     var confirmingState: StateViewType<Bool> = .noData {
         didSet {
-            if case .error(let error) = confirmingState {
+            if case let .error(error) = confirmingState {
                 isPresentingAlertMessage = AlertMessage(
                     title: Localized.Errors.transferError,
-                    message: error.localizedDescription
+                    message: error.localizedDescription,
                 )
             } else {
                 isPresentingAlertMessage = nil
@@ -61,10 +61,10 @@ public final class ConfirmTransferSceneViewModel {
         fiatService: FiatService,
         confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate? = .none,
         simulation: SimulationResult? = nil,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.wallet = wallet
-        self.transferData = data
+        transferData = data
         self.confirmService = confirmService
         self.simulationService = simulationService
         self.fiatService = fiatService
@@ -72,13 +72,13 @@ public final class ConfirmTransferSceneViewModel {
         self.simulation = simulation
         self.onComplete = onComplete
 
-        self.feeModel = NetworkFeeSceneViewModel(
+        feeModel = NetworkFeeSceneViewModel(
             chain: data.chain,
-            priority: confirmService.defaultPriority(for: data.type)
+            priority: confirmService.defaultPriority(for: data.type),
         )
 
-        self.metadata = try? confirmService.getMetadata(wallet: wallet, data: data)
-        self.simulationState = simulationService.makeState(data: data, simulation: simulation)
+        metadata = try? confirmService.getMetadata(wallet: wallet, data: data)
+        simulationState = simulationService.makeState(data: data, simulation: simulation)
     }
 
     var title: String { dataModel.title }
@@ -120,12 +120,12 @@ public final class ConfirmTransferSceneViewModel {
             isDisabled: isButtonDisabled,
             onAction: { [weak self] in
                 guard let self else { return }
-                if case .data(let data) = state, data.isReady {
+                if case let .data(data) = state, data.isReady {
                     onSelectConfirmTransfer()
                 } else {
-                    self.fetch()
+                    fetch()
                 }
-            }
+            },
         )
     }
 
@@ -138,12 +138,13 @@ public final class ConfirmTransferSceneViewModel {
             return .assetValue(headerData)
         }
 
-        if case .tokenApprove(let asset, _) = transferData.type {
+        if case let .tokenApprove(asset, _) = transferData.type {
             return .asset(image: AssetViewModel(asset: asset).assetImage)
         }
 
         if case .generic = transferData.type,
-           let header = simulation?.header {
+           let header = simulation?.header
+        {
             return .asset(image: AssetIdViewModel(assetId: header.assetId).assetImage)
         }
 
@@ -155,7 +156,7 @@ public final class ConfirmTransferSceneViewModel {
             data: transferData,
             transactionData: nil,
             metaData: metadata,
-            transferAmount: nil
+            transferAmount: nil,
         ).headerType
     }
 }
@@ -203,7 +204,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmRecipientViewModel(
                 model: dataModel,
                 addressName: try? confirmService.getAddressName(chain: dataModel.chain, address: dataModel.recipient.address),
-                addressLink: confirmService.getExplorerLink(chain: dataModel.chain, address: dataModel.recipient.address)
+                addressLink: confirmService.getExplorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
             )
         case .memo:
             ConfirmMemoViewModel(type: transferData.type, recipientData: transferData.recipientData)
@@ -217,12 +218,12 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 title: feeModel.title,
                 value: feeModel.value,
                 fiatValue: feeModel.fiatValue,
-                infoAction: onSelectNetworkFeeInfo
+                infoAction: onSelectNetworkFeeInfo,
             )
         case .error:
             ConfirmErrorViewModel(
                 state: state,
-                onSelectListError: onSelectListError
+                onSelectListError: onSelectListError,
             )
         }
     }
@@ -283,7 +284,7 @@ extension ConfirmTransferSceneViewModel {
         SimulationPayloadFieldViewModel(
             field: field,
             chain: transferData.chain,
-            addressName: simulationState.addressName(chain: transferData.chain, for: field)
+            addressName: simulationState.addressName(chain: transferData.chain, for: field),
         )
     }
 
@@ -328,7 +329,7 @@ extension ConfirmTransferSceneViewModel {
         feeModel.reset()
         async let nextSimulationState = simulationService.updateState(
             data: transferData,
-            simulation: simulation
+            simulation: simulation,
         )
 
         do {
@@ -338,26 +339,26 @@ extension ConfirmTransferSceneViewModel {
             let transferTransactionData = try await confirmService.loadTransferTransactionData(
                 wallet: wallet, data: transferData,
                 priority: feeModel.priority,
-                available: metadata.available
+                available: metadata.available,
             )
             let transferAmount = calculateTransferAmount(
                 assetBalance: metadata.assetBalance,
                 assetFeeBalance: metadata.assetFeeBalance,
-                fee: transferTransactionData.transactionData.fee.fee
+                fee: transferTransactionData.transactionData.fee.fee,
             )
 
-            self.simulationState = await nextSimulationState
+            simulationState = await nextSimulationState
             self.metadata = metadata
-            self.feeModel.update(rates: transferTransactionData.rates)
-            self.updateState(
+            feeModel.update(rates: transferTransactionData.rates)
+            updateState(
                 with: transactionInputViewModel(
                     transferAmount: transferAmount,
                     input: transferTransactionData.transactionData,
-                    metaData: metadata
-                )
+                    metaData: metadata,
+                ),
             )
         } catch {
-            self.simulationState = await nextSimulationState
+            simulationState = await nextSimulationState
             state.setError(error)
             debugLog("preload transaction error: \(error)")
         }
@@ -365,13 +366,13 @@ extension ConfirmTransferSceneViewModel {
 
     private func onStateChange(state: StateViewType<TransactionInputViewModel>) {
         switch state {
-        case .data(let data):
-            if case .failure(let error) = data.transferAmount {
+        case let .data(data):
+            if case let .failure(error) = data.transferAmount {
                 onSelectListError(error: error)
             }
-        case .error(let error as TransferAmountCalculatorError):
+        case let .error(error as TransferAmountCalculatorError):
             onSelectListError(error: error)
-        case .error(let error as ScanTransactionError):
+        case let .error(error as ScanTransactionError):
             onSelectListError(error: error)
         case .error, .loading, .noData:
             break
@@ -381,27 +382,28 @@ extension ConfirmTransferSceneViewModel {
     private func onSelectBuy() {
         isPresentingSheet = .fiatConnect(
             assetAddress: feeAssetAddress,
-            wallet: wallet
+            wallet: wallet,
         )
     }
+
     private func onSelectConfirmTransfer() {
         guard let value = state.value,
               let transactionData = value.transactionData,
-              case .success(let amount) = value.transferAmount
+              case let .success(amount) = value.transferAmount
         else { return }
         confirmTransfer(transactionData: transactionData, amount: amount)
     }
 
     private func confirmTransfer(
         transactionData: TransactionData,
-        amount: TransferAmount
+        amount: TransferAmount,
     ) {
         Task {
             await processConfirmation(
                 transactionData: transactionData,
-                amount: amount
+                amount: amount,
             )
-            if case .data(_) = confirmingState {
+            if case .data = confirmingState {
                 onComplete?()
             }
         }
@@ -415,7 +417,7 @@ extension ConfirmTransferSceneViewModel {
                 wallet: wallet,
                 transactionData: transactionData,
                 amount: amount,
-                delegate: confirmTransferDelegate
+                delegate: confirmTransferDelegate,
             )
             try await confirmService.executeTransfer(input: input)
             if let data = input.data.type.recentActivityData {
@@ -431,7 +433,7 @@ extension ConfirmTransferSceneViewModel {
     private func updateState(with model: TransactionInputViewModel) {
         feeModel.update(
             value: model.networkFeeText,
-            fiatValue: model.networkFeeFiatText
+            fiatValue: model.networkFeeFiatText,
         )
         state = .data(model)
     }
@@ -439,7 +441,7 @@ extension ConfirmTransferSceneViewModel {
     private func calculateTransferAmount(
         assetBalance: Balance,
         assetFeeBalance: Balance,
-        fee: BigInt
+        fee: BigInt,
     ) -> TransferAmountValidation {
         TransferAmountCalculator().validate(input: TransferAmountInput(
             asset: dataModel.asset,
@@ -449,26 +451,26 @@ extension ConfirmTransferSceneViewModel {
             assetFee: dataModel.asset.feeAsset,
             assetFeeBalance: assetFeeBalance,
             fee: fee,
-            transferData: transferData
+            transferData: transferData,
         ))
     }
 
     private func transactionInputViewModel(
         transferAmount: TransferAmountValidation,
         input: TransactionData? = nil,
-        metaData: TransferDataMetadata? = nil
+        metaData: TransferDataMetadata? = nil,
     ) -> TransactionInputViewModel {
         TransactionInputViewModel(
             data: transferData,
             transactionData: input,
             metaData: metaData,
-            transferAmount: transferAmount
+            transferAmount: transferAmount,
         )
     }
 
     private var availableValue: BigInt { dataModel.availableValue(metadata: metadata) }
     private var senderLink: BlockExplorerLink { confirmService.getExplorerLink(chain: dataModel.chain, address: senderAddress) }
-    private var feeAssetAddress: AssetAddress { AssetAddress(asset: dataModel.asset.feeAsset, address: senderAddress)}
+    private var feeAssetAddress: AssetAddress { AssetAddress(asset: dataModel.asset.feeAsset, address: senderAddress) }
     private var confirmButtonIcon: Image? {
         guard !state.isError, state.value?.transferAmount?.isSuccess ?? false,
               let auth = try? confirmService.getPasswordAuthentication(),

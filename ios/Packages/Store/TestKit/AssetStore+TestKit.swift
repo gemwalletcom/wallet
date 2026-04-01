@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Store
 import Primitives
+import Store
 
-extension AssetStore {
-    public static func mock(db: DB = .mock()) -> Self {
+public extension AssetStore {
+    static func mock(db: DB = .mock()) -> Self {
         AssetStore(db: db)
     }
 }

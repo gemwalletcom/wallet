@@ -7,7 +7,7 @@ public extension SimulationPayloadField {
         kind: SimulationPayloadFieldKind,
         value: String,
         fieldType: SimulationPayloadFieldType,
-        display: SimulationPayloadFieldDisplay = .secondary
+        display: SimulationPayloadFieldDisplay = .secondary,
     ) -> Self {
         if kind == .custom {
             preconditionFailure("Use custom(label:value:fieldType:) for custom payload fields")
@@ -19,7 +19,7 @@ public extension SimulationPayloadField {
         label: String,
         value: String,
         fieldType: SimulationPayloadFieldType,
-        display: SimulationPayloadFieldDisplay = .secondary
+        display: SimulationPayloadFieldDisplay = .secondary,
     ) -> Self {
         precondition(!label.isEmpty, "Custom payload fields require a label")
         return Self(kind: .custom, label: label, value: value, fieldType: fieldType, display: display)

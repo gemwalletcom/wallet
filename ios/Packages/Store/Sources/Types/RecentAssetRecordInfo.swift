@@ -13,7 +13,7 @@ extension RecentAssetRecordInfo {
     var mapToRecentAsset: RecentAsset {
         RecentAsset(
             asset: asset.mapToAsset(),
-            createdAt: maxCreatedAt
+            createdAt: maxCreatedAt,
         )
     }
 }

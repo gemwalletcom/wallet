@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Localization
+import SwiftUI
 
 public struct LoadingTextView: View {
     @Binding var isAnimating: Bool
-    
+
     public init(isAnimating: Binding<Bool>) {
-        self._isAnimating = isAnimating
+        _isAnimating = isAnimating
     }
-    
+
     public var body: some View {
         HStack {
             Text(Localized.Common.loading + "...")

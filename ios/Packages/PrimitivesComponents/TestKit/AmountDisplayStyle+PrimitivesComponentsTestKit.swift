@@ -8,12 +8,12 @@ public extension AmountDisplayStyle {
     static func mock(
         sign: AmountDisplaySign = .none,
         formatter: ValueFormatter = .full,
-        currencyCode: String = "USD"
+        currencyCode: String = "USD",
     ) -> AmountDisplayStyle {
         AmountDisplayStyle(
             sign: sign,
             formatter: formatter,
-            currencyCode: currencyCode
+            currencyCode: currencyCode,
         )
     }
 }

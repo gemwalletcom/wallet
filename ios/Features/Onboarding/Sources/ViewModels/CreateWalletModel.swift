@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import WalletService
 import AvatarService
-import Preferences
+import Foundation
 import GemstonePrimitives
+import Preferences
+import Primitives
+import SwiftUI
+import WalletService
 
 @Observable
 @MainActor
 public final class CreateWalletModel {
-
     let walletService: WalletService
     let avatarService: AvatarService
     let hasExistingWallets: Bool
@@ -22,12 +21,12 @@ public final class CreateWalletModel {
     public init(
         walletService: WalletService,
         avatarService: AvatarService,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.walletService = walletService
         self.avatarService = avatarService
         self.onComplete = onComplete
-        self.hasExistingWallets = walletService.wallets.isNotEmpty
+        hasExistingWallets = walletService.wallets.isNotEmpty
     }
 
     public var isAcceptTermsCompleted: Bool {
@@ -50,7 +49,7 @@ extension CreateWalletModel {
         let wallet = try await walletService.loadOrCreateWallet(
             name: WalletNameGenerator(type: .multicoin, walletService: walletService).name,
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
-            source: .create
+            source: .create,
         )
         walletService.acceptTerms()
         WalletPreferences(walletId: wallet.walletId).completeInitialSynchronization()

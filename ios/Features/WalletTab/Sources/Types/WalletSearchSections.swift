@@ -30,7 +30,7 @@ struct WalletSearchSections: Equatable, Sendable {
             pinnedAssets: pinnedAssets,
             assets: assets,
             pinnedPerpetuals: pinnedPerpetuals,
-            perpetuals: perpetuals
+            perpetuals: perpetuals,
         )
     }
 }

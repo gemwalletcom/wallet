@@ -2,13 +2,12 @@
 
 import Foundation
 
-extension EVMChain {
-    
-    public var chain: Chain {
-        Chain(rawValue: self.rawValue)!
+public extension EVMChain {
+    var chain: Chain {
+        Chain(rawValue: rawValue)!
     }
-    
-    public init(from chain: Chain) throws {
+
+    init(from chain: Chain) throws {
         guard let evmChain = EVMChain(rawValue: chain.rawValue) else {
             throw AnyError("Not EVM compatible chain!")
         }

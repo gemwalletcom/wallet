@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Localization
 import Primitives
 import PrimitivesComponents
-import Localization
 import Store
+import Style
+import SwiftUI
 
 public struct SetupWalletScene: View {
     enum Field: Int, Hashable {
@@ -31,7 +31,7 @@ public struct SetupWalletScene: View {
                     AvatarView(
                         avatarImage: model.avatarAssetImage,
                         size: .image.extraLarge,
-                        action: onSelectImage
+                        action: onSelectImage,
                     )
                     .padding(.bottom, .extraLarge)
                     Spacer()
@@ -48,7 +48,7 @@ public struct SetupWalletScene: View {
             StateButton(
                 text: Localized.Common.done,
                 type: .primary(.normal),
-                action: model.onComplete
+                action: model.onComplete,
             )
         }
         .bindQuery(model.query)

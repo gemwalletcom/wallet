@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
-import WebKit
-import PrimitivesComponents
-import Localization
 import Components
+import Localization
+import PrimitivesComponents
+import Style
+import SwiftUI
+import WebKit
 
 public struct SupportScene: View {
     @State private var model: SupportSceneViewModel
-    
+
     public init(model: SupportSceneViewModel) {
         _model = State(initialValue: model)
     }
-    
+
     public var body: some View {
         NavigationView {
             TabView(selection: $model.selectedType) {
@@ -38,7 +38,7 @@ public struct SupportScene: View {
             }
         }
     }
-    
+
     var supportTypePickerView: some View {
         Picker("", selection: $model.selectedType) {
             Text(Localized.Settings.support)

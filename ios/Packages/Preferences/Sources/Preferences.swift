@@ -8,7 +8,7 @@ public final class Preferences: @unchecked Sendable {
         public static let appGroupIdentifier = "group.com.gemwallet.ios"
     }
 
-    public struct Keys {
+    public enum Keys {
         static let currency = "currency"
         static let importFiatMappingsVersion = "migrate_fiat_mappings_version"
         static let importFiatPurchaseAssetsVersion = "migrate_fiat_purchase_assets_version"
@@ -177,7 +177,7 @@ public final class Preferences: @unchecked Sendable {
         subscriptionsVersionHasChange = true
     }
 
-    private struct ExplorerKeys {
+    private enum ExplorerKeys {
         static let explorerName = "explorer_name"
     }
 

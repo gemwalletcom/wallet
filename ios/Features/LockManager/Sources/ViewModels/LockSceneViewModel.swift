@@ -1,28 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Keystore
 import Localization
 import Style
+import SwiftUI
 
 @MainActor
 @Observable
 public class LockSceneViewModel {
-    static private let reason: String = Localized.Settings.Security.authentication
+    private static let reason: String = Localized.Settings.Security.authentication
 
     private let service: any BiometryAuthenticatable
 
-    var lastUnlockTime: Date = Date(timeIntervalSince1970: 0)
+    var lastUnlockTime: Date = .init(timeIntervalSince1970: 0)
     var state: LockSceneState
 
     private var showPlaceholderPreview: Bool = false
     private var inBackground: Bool = false
 
     public init(
-        service: any BiometryAuthenticatable = BiometryAuthenticationService()
+        service: any BiometryAuthenticatable = BiometryAuthenticationService(),
     ) {
         self.service = service
-        self.state = service.isAuthenticationEnabled ? .locked : .unlocked
+        state = service.isAuthenticationEnabled ? .locked : .unlocked
     }
 
     var unlockTitle: String { Localized.Lock.unlock }
@@ -62,7 +62,7 @@ extension LockSceneViewModel {
         switch phase {
         case .background:
             inBackground = true
-            if state == .unlocked && !shouldLock {
+            if state == .unlocked, !shouldLock {
                 lastUnlockTime = Date().addingTimeInterval(TimeInterval(lockPeriod.value))
             }
         case .active:
@@ -70,7 +70,7 @@ extension LockSceneViewModel {
             if inBackground {
                 inBackground = false
             }
-            if state == .unlocked && shouldLock {
+            if state == .unlocked, shouldLock {
                 state = .locked
             }
         case .inactive:

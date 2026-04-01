@@ -17,13 +17,13 @@ public final class InputValidationViewModel {
     }
 
     public private(set) var error: (any Error)?
-    
+
     private let mode: InputValidationMode
     private var validators: [any TextValidator]
 
     public init(
         mode: InputValidationMode = .manual,
-        validators: [any TextValidator] = []
+        validators: [any TextValidator] = [],
     ) {
         self.mode = mode
         self.validators = validators
@@ -32,11 +32,11 @@ public final class InputValidationViewModel {
 
 // MARK: - Public
 
-extension InputValidationViewModel {
-    public var isValid: Bool { error == nil }
-    public var isInvalid: Bool { error != nil }
+public extension InputValidationViewModel {
+    var isValid: Bool { error == nil }
+    var isInvalid: Bool { error != nil }
 
-    public func validate() -> (any Error)? {
+    func validate() -> (any Error)? {
         do {
             try validators.forEach { try $0.validate(text) }
             return nil
@@ -46,18 +46,18 @@ extension InputValidationViewModel {
     }
 
     @discardableResult
-    public func update() -> Bool {
+    func update() -> Bool {
         error = validate()
         return isValid
     }
 
     @discardableResult
-    public func update(text: String) -> Bool {
+    func update(text: String) -> Bool {
         self.text = text
         return update()
     }
 
-    public func update(validators: [any TextValidator]) {
+    func update(validators: [any TextValidator]) {
         self.validators = validators
         guard text.isNotEmpty else {
             update(error: nil)
@@ -66,7 +66,7 @@ extension InputValidationViewModel {
         update()
     }
 
-    public func update(error: (any Error)?) {
+    func update(error: (any Error)?) {
         self.error = error
     }
 }
@@ -85,7 +85,7 @@ extension InputValidationViewModel {
             update()
         case .manual:
             // clear error for every field change
-            if isInvalid && oldText != text {
+            if isInvalid, oldText != text {
                 update(error: nil)
             }
         }

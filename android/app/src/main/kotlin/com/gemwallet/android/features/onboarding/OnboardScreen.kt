@@ -24,7 +24,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.ui.theme.largeIconSize
+import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space24
 
@@ -45,7 +45,7 @@ fun OnboardScreen(
             contentDescription = "welcome_icon",
             modifier = Modifier
                 .align(Alignment.Center)
-                .size(largeIconSize)
+                .size(extraLargeIconSize)
                 .clip(RoundedCornerShape(BrandmarkCornerPercent)),
         )
 

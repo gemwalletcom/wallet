@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Localization
-@testable import Transfer
 @testable import Primitives
 import PrimitivesTestKit
+import Testing
+@testable import Transfer
 import TransferTestKit
 
 struct ConfirmDetailsViewModelTests {
-
     @Test
     func swap() {
         let model = ConfirmDetailsViewModel(type: .swap(.mock(), .mock(), .mock()), metadata: nil)

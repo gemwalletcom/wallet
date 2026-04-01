@@ -1,8 +1,8 @@
 import BigInt
-import Primitives
-import Formatters
-import Style
 import Components
+import Formatters
+import Primitives
+import Style
 import SwiftUI
 
 public struct NumericViewModel: Sendable, AmountDisplayable {
@@ -15,51 +15,51 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
     }
 
     public var amount: TextValue {
-        let prefix: String = switch style.sign {
-        case .incoming where !data.value.isZero:  "+"
-        case .outgoing where !data.value.isZero:  "-"
+        let prefix = switch style.sign {
+        case .incoming where !data.value.isZero: "+"
+        case .outgoing where !data.value.isZero: "-"
         case .none, .incoming, .outgoing: ""
         }
 
         let crypto = style.formatter.string(
             data.value,
             decimals: data.asset.decimals.asInt,
-            currency: data.asset.symbol
+            currency: data.asset.symbol,
         )
         let viewStyle = style.textStyle ?? TextStyle(
             font: .body,
             color: color,
-            fontWeight: .medium
+            fontWeight: .medium,
         )
         return TextValue(
             text: prefix + crypto,
             style: viewStyle,
-            lineLimit: 1
+            lineLimit: 1,
         )
     }
 
     public var fiat: TextValue? {
         guard let quote = data.price,
               let value = try? style.formatter.double(
-                from: data.value,
-                decimals: data.asset.decimals.asInt
+                  from: data.value,
+                  decimals: data.asset.decimals.asInt,
               )
         else { return nil }
 
         let currencyFormatter = CurrencyFormatter(
             type: .currency,
-            currencyCode: style.currencyCode
+            currencyCode: style.currencyCode,
         )
         let style = style.textStyle ?? TextStyle(
             font: .footnote,
             color: Colors.gray,
-            fontWeight: .medium
+            fontWeight: .medium,
         )
 
         return TextValue(
             text: currencyFormatter.string(quote.price * value),
             style: style,
-            lineLimit: 1
+            lineLimit: 1,
         )
     }
 

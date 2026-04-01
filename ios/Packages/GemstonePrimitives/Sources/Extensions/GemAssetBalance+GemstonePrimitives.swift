@@ -4,12 +4,12 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemAssetBalance {
-    public func map() throws -> AssetBalance {
-        AssetBalance(
-            assetId: try AssetId(id: assetId),
-            balance: try balance.map(),
-            isActive: isActive
+public extension GemAssetBalance {
+    func map() throws -> AssetBalance {
+        try AssetBalance(
+            assetId: AssetId(id: assetId),
+            balance: balance.map(),
+            isActive: isActive,
         )
     }
 }

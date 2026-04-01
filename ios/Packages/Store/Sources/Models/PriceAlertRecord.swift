@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct PriceAlertRecord: Codable, FetchableRecord, PersistableRecord  {
+struct PriceAlertRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "price_alerts"
-    
+
     enum Columns {
         static let id = Column("id")
         static let assetId = Column("assetId")
@@ -29,7 +29,7 @@ struct PriceAlertRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension PriceAlertRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
             $0.column(Columns.assetId.name, .text)
@@ -51,7 +51,7 @@ extension PriceAlertRecord {
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: priceDirection,
-            lastNotifiedAt: lastNotifiedAt
+            lastNotifiedAt: lastNotifiedAt,
         )
     }
 }
@@ -65,7 +65,7 @@ extension PriceAlert {
             priceDirection: priceDirection,
             price: price,
             pricePercentChange: pricePercentChange,
-            lastNotifiedAt: lastNotifiedAt
+            lastNotifiedAt: lastNotifiedAt,
         )
     }
 }

@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
 struct NFTAssetAssociationRecord: Codable, FetchableRecord, PersistableRecord, Identifiable {
     static let databaseTableName = NFTAssetRecord.databaseTableName + "_associations"
-    
-    struct Columns {
+
+    enum Columns {
         static let id = Column("id")
         static let walletId = Column("walletId")
         static let collectionId = Column("collectionId")
@@ -18,9 +18,9 @@ struct NFTAssetAssociationRecord: Codable, FetchableRecord, PersistableRecord, I
     var walletId: String
     var collectionId: String
     var assetId: String
-    
+
     init(walletId: String, collectionId: String, assetId: String) {
-        self.id = Self.computedId(walletId: walletId, collectionId: collectionId, assetId: assetId)
+        id = Self.computedId(walletId: walletId, collectionId: collectionId, assetId: assetId)
         self.walletId = walletId
         self.collectionId = collectionId
         self.assetId = assetId
@@ -38,14 +38,14 @@ extension NFTAssetAssociationRecord {
         NFTAssetAssociationRecord(
             walletId: walletId,
             collectionId: collectionId,
-            assetId: assetId
+            assetId: assetId,
         )
     }
 }
 
 extension NFTAssetAssociationRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
             $0.column(Columns.walletId.name, .text)

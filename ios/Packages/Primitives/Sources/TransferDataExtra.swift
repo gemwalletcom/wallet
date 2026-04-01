@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct TransferDataExtra: Equatable, Sendable {
     public let to: String
@@ -17,7 +17,7 @@ public struct TransferDataExtra: Equatable, Sendable {
         gasPrice: GasPriceType? = .none,
         data: Data? = .none,
         outputType: TransferDataOutputType = .encodedTransaction,
-        outputAction: TransferDataOutputAction = .send
+        outputAction: TransferDataOutputAction = .send,
     ) {
         self.to = to
         self.gasLimit = gasLimit
@@ -27,4 +27,5 @@ public struct TransferDataExtra: Equatable, Sendable {
         self.outputAction = outputAction
     }
 }
+
 extension TransferDataExtra: Hashable {}

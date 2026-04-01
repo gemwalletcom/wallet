@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import Components
+import Foundation
+import Localization
+import Primitives
 
 public struct TransactionSwapButtonViewModel {
     private let metadata: TransactionSwapMetadata?
@@ -22,7 +22,7 @@ extension TransactionSwapButtonViewModel: ItemModelProvidable {
         }
 
         return TransactionItemModel.swapAgain(
-            text: Localized.Transaction.swapAgain
+            text: Localized.Transaction.swapAgain,
         )
     }
 }

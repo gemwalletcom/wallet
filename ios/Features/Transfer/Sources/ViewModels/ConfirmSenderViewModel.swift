@@ -22,8 +22,8 @@ extension ConfirmSenderViewModel: ItemModelProvidable {
             ListItemModel(
                 title: Localized.Common.wallet,
                 subtitle: wallet.name,
-                imageStyle: ListItemImageStyle.list(assetImage: walletViewModel.avatarImage)
-            )
+                imageStyle: ListItemImageStyle.list(assetImage: walletViewModel.avatarImage),
+            ),
         )
     }
 }

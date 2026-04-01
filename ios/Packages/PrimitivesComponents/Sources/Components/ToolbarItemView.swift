@@ -8,7 +8,7 @@ public struct ToolbarItemView<Content: View>: ToolbarContent {
 
     public init(
         placement: ToolbarItemPlacement,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> Content,
     ) {
         self.placement = placement
         self.content = content

@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Primitives
 import Localization
-import Style
+import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct RewardsScene: View {
     @State private var model: RewardsViewModel
@@ -19,9 +19,9 @@ public struct RewardsScene: View {
             switch model.state {
             case .loading:
                 CenterLoadingView()
-            case .error(let error):
+            case let .error(error):
                 stateErrorView(error: error)
-            case .data(let rewards):
+            case let .data(rewards):
                 inviteFriendsSection(code: rewards.code)
                 if let disableReason = model.disableReason {
                     disableReasonSection(reason: disableReason)
@@ -71,7 +71,7 @@ public struct RewardsScene: View {
                     },
                     listContent: { wallet in
                         SimpleListItemView(model: wallet)
-                    }
+                    },
                 )
             case .share:
                 if let shareText = model.shareText {
@@ -82,12 +82,12 @@ public struct RewardsScene: View {
                     model.isPresentingSheet = nil
                 }
                 .presentationDetents([.medium])
-            case .activateCode(let code):
+            case let .activateCode(code):
                 TextInputScene(model: model.redeemCodeViewModel(code: code)) {
                     model.isPresentingSheet = nil
                 }
                 .presentationDetents([.medium])
-            case .url(let url):
+            case let .url(url):
                 SFSafariView(url: url)
             }
         }
@@ -104,7 +104,7 @@ public struct RewardsScene: View {
             StateEmptyView(
                 title: model.errorTitle,
                 description: error.localizedDescription,
-                image: nil
+                image: nil,
             ) {
                 Button(Localized.Common.tryAgain) {
                     Task { await model.fetch() }
@@ -193,8 +193,8 @@ public struct RewardsScene: View {
                     with: ListItemView(
                         title: viewModel.title,
                         subtitle: viewModel.subtitle,
-                        imageStyle: .asset(assetImage: viewModel.assetImage)
-                    )
+                        imageStyle: .asset(assetImage: viewModel.assetImage),
+                    ),
                 ) {
                     if model.canRedeem(option: viewModel.option) {
                         model.showRedemptionAlert(for: viewModel.option)
@@ -214,22 +214,22 @@ public struct RewardsScene: View {
             if let code = rewards.code {
                 ListItemView(
                     title: model.myReferralCodeTitle,
-                    subtitle: code
+                    subtitle: code,
                 )
                 .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
             }
             ListItemView(
                 title: model.referralCountTitle,
-                subtitle: "\(rewards.referralCount)"
+                subtitle: "\(rewards.referralCount)",
             )
             ListItemView(
                 title: model.pointsTitle,
-                subtitle: "\(rewards.points) 💎"
+                subtitle: "\(rewards.points) 💎",
             )
             if let invitedBy = rewards.usedReferralCode {
                 ListItemView(
                     title: model.invitedByTitle,
-                    subtitle: invitedBy
+                    subtitle: invitedBy,
                 )
             }
         } header: {
@@ -242,7 +242,7 @@ public struct RewardsScene: View {
         Section {
             ListItemErrorView(
                 errorTitle: model.errorTitle,
-                error: AnyError(reason)
+                error: AnyError(reason),
             )
         }
     }
@@ -252,14 +252,14 @@ public struct RewardsScene: View {
         Section {
             ListItemInfoView(
                 title: model.pendingReferralTitle,
-                description: model.pendingReferralDescription
+                description: model.pendingReferralDescription,
             )
 
             HStack {
                 Spacer()
                 StateButton(
                     text: model.pendingReferralButtonTitle,
-                    type: model.activatePendingButtonType
+                    type: model.activatePendingButtonType,
                 ) {
                     Task { await model.activatePendingReferral() }
                 }

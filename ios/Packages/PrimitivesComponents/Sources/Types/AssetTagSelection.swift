@@ -8,7 +8,7 @@ public enum AssetTagSelection: Hashable, Identifiable, Sendable {
 
     public var id: String {
         switch self {
-        case .all: "all";
+        case .all: "all"
         case let .tag(tag): tag.rawValue
         }
     }

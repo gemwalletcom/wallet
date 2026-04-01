@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Primitives
+import Style
+import SwiftUI
 
 public struct ReportNavigationStack: View {
     @State private var model: ReportNftViewModel

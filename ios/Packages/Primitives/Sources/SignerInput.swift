@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct SignerInput {
     public let type: TransferDataType
@@ -24,13 +24,13 @@ public struct SignerInput {
         memo: String?,
         senderAddress: String,
         destinationAddress: String,
-        metadata: TransactionLoadMetadata = .none
+        metadata: TransactionLoadMetadata = .none,
     ) {
         self.type = type
         self.asset = asset
         self.value = value
         self.fee = fee
-        self.useMaxAmount = isMaxAmount
+        useMaxAmount = isMaxAmount
         self.memo = memo
         self.senderAddress = senderAddress
         self.destinationAddress = destinationAddress

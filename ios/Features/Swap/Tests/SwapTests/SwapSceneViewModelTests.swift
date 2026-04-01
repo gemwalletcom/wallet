@@ -1,22 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import PrimitivesTestKit
 import BalanceServiceTestKit
-import PriceServiceTestKit
-import SwapService
-import StoreTestKit
-import ChainServiceTestKit
-import SwapServiceTestKit
 import BigInt
+import ChainServiceTestKit
 import protocol Gemstone.GemSwapperProtocol
 import enum Gemstone.SwapperError
 import Keystore
 import KeystoreTestKit
-import Primitives
 import PreferencesTestKit
-@testable import Swap
+import PriceServiceTestKit
+import Primitives
+import PrimitivesTestKit
 @testable import Store
+import StoreTestKit
+@testable import Swap
+import SwapService
+import SwapServiceTestKit
+import Testing
 
 @MainActor
 struct SwapSceneViewModelTests {
@@ -27,7 +27,7 @@ struct SwapSceneViewModelTests {
         #expect(await model(toValueMock: "10000").toValue == "0.01")
         #expect(await model(toValueMock: "12").toValue == "0.000012")
     }
-    
+
     @Test
     func additionalInfoVisibility() async {
         let model = SwapSceneViewModel.mock()
@@ -37,7 +37,7 @@ struct SwapSceneViewModelTests {
 
         model.swapState.quotes = .data([.mock()])
         #expect(model.shouldShowAdditionalInfo)
-	}
+    }
 
     @Test
     func buttonViewModelFlow() {
@@ -62,7 +62,7 @@ struct SwapSceneViewModelTests {
     func cancelledTaskDoesNotUpdateStateWithError() async throws {
         let swapper = GemSwapperMock(
             fetchQuoteDelay: .milliseconds(100),
-            fetchQuoteError: SwapperError.NoQuoteAvailable
+            fetchQuoteError: SwapperError.NoQuoteAvailable,
         )
         let model = SwapSceneViewModel.mock(swapper: swapper)
 
@@ -80,10 +80,10 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func emptyInputCancelsInFlightRequest() async throws {
+    func emptyInputDoesNotApplyLateQuote() async throws {
         let swapper = GemSwapperMock(
+            quotes: [.mock()],
             fetchQuoteDelay: .milliseconds(100),
-            fetchQuoteError: SwapperError.NoQuoteAvailable
         )
         let model = SwapSceneViewModel.mock(swapper: swapper)
 
@@ -92,12 +92,52 @@ struct SwapSceneViewModelTests {
         }
 
         try await Task.sleep(for: .milliseconds(50))
-        task.cancel()
-        model.swapState.quotes = .noData
+        model.amountInputModel.text = "0"
+        model.onChangeFromValue("1", "0")
 
         await task.value
 
         #expect(model.swapState.quotes.isNoData)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
+    }
+
+    @Test
+    func clearingInputResetsQuoteImmediately() async throws {
+        let model = await model()
+
+        #expect(model.toValue.isNotEmpty)
+        #expect(model.selectedSwapQuote != nil)
+
+        model.amountInputModel.text = .empty
+        model.onChangeFromValue("1", .empty)
+
+        #expect(model.swapState.quotes.isNoData)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
+    }
+
+    @Test
+    func emptyInputDoesNotApplyLateError() async throws {
+        let swapper = GemSwapperMock(
+            fetchQuoteDelay: .milliseconds(100),
+            fetchQuoteError: SwapperError.NoQuoteAvailable,
+        )
+        let model = SwapSceneViewModel.mock(swapper: swapper)
+
+        let task = Task {
+            await model.fetch()
+        }
+
+        try await Task.sleep(for: .milliseconds(50))
+        model.amountInputModel.text = "0"
+        model.onChangeFromValue("1", "0")
+
+        await task.value
+
+        #expect(model.swapState.quotes.isNoData)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
     }
 
     @Test
@@ -135,7 +175,7 @@ struct SwapSceneViewModelTests {
     // MARK: - Private methods
 
     private func model(
-        toValueMock: String = "250000000000"
+        toValueMock: String = "250000000000",
     ) async -> SwapSceneViewModel {
         let swapper = GemSwapperMock(quotes: [.mock(toValue: toValueMock)])
         let model = SwapSceneViewModel.mock(swapper: swapper)
@@ -150,12 +190,12 @@ extension SwapSceneViewModel {
             preferences: .mock(),
             input: .init(
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
-                pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil)
+                pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
             ),
             balanceUpdater: .mock(),
             priceUpdater: .mock(),
             swapQuotesProvider: SwapQuotesProvider(swapService: .mock(swapper: swapper)),
-            swapQuoteDataProvider: SwapQuoteDataProvider(keystore: LocalKeystore.mock(), swapService: .mock(swapper: swapper))
+            swapQuoteDataProvider: SwapQuoteDataProvider(keystore: LocalKeystore.mock(), swapService: .mock(swapper: swapper)),
         )
         model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
         model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())

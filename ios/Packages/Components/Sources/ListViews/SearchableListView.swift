@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct SearchableListView<Item: Identifiable & Hashable, Content: View, EmptyContent: View>: View {
     let items: [Item]
@@ -15,7 +15,7 @@ public struct SearchableListView<Item: Identifiable & Hashable, Content: View, E
         items: [Item],
         filter: @escaping (Item, String) -> Bool,
         @ViewBuilder content: @escaping (Item) -> Content,
-        @ViewBuilder emptyContent: @escaping () -> EmptyContent
+        @ViewBuilder emptyContent: @escaping () -> EmptyContent,
     ) {
         self.items = items
         self.filter = filter
@@ -26,11 +26,11 @@ public struct SearchableListView<Item: Identifiable & Hashable, Content: View, E
     public var body: some View {
         ListView(
             items: filteredItems,
-            content: content
+            content: content,
         )
         .searchable(
             text: $searchQuery,
-            placement: .navigationBarDrawer(displayMode: .always)
+            placement: .navigationBarDrawer(displayMode: .always),
         )
         .autocorrectionDisabled(true)
         .scrollDismissesKeyboard(.interactively)
@@ -67,11 +67,12 @@ extension SearchableListView {
         case mango
     }
     return SearchableListView(
-        items: Fruit.allCases) { fruit, query in
-            fruit.rawValue.localizedCaseInsensitiveContains(query)
-        } content: { name in
-            Text(name.rawValue.uppercased())
-        } emptyContent: {
-            Text("No fruis found")
-        }
+        items: Fruit.allCases)
+    { fruit, query in
+        fruit.rawValue.localizedCaseInsensitiveContains(query)
+    } content: { name in
+        Text(name.rawValue.uppercased())
+    } emptyContent: {
+        Text("No fruis found")
+    }
 }

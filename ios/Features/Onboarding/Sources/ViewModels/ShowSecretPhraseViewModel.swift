@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
-import PrimitivesComponents
-import Formatters
 import Components
+import Formatters
+import Foundation
+import Localization
+import Primitives
+import PrimitivesComponents
 
 struct ShowSecretPhraseViewModel: SecretPhraseViewableModel {
     private let words: [String]
@@ -18,7 +18,7 @@ struct ShowSecretPhraseViewModel: SecretPhraseViewableModel {
     var calloutViewStyle: CalloutViewStyle? {
         .secretDataWarning()
     }
-    
+
     var title: String {
         Localized.Common.secretPhrase
     }
@@ -30,7 +30,7 @@ struct ShowSecretPhraseViewModel: SecretPhraseViewableModel {
     var copyModel: CopyTypeViewModel {
         CopyTypeViewModel(
             type: .secretPhrase,
-            copyValue: MnemonicFormatter.fromArray(words: words)
+            copyValue: MnemonicFormatter.fromArray(words: words),
         )
     }
 }

@@ -8,29 +8,29 @@ let package = Package(
     products: [
         .library(
             name: "Keychain",
-            targets: ["Keychain"]
+            targets: ["Keychain"],
         ),
         .library(
             name: "KeychainTestKit",
-            targets: ["KeychainTestKit"]
-        )
+            targets: ["KeychainTestKit"],
+        ),
     ],
     targets: [
         .target(
             name: "Keychain",
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "KeychainTestKit",
             dependencies: ["Keychain"],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "KeychainTests",
             dependencies: [
-                "Keychain"
+                "Keychain",
             ],
-            path: "Tests"
+            path: "Tests",
         ),
-    ]
+    ],
 )

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 import TransferTestKit
 
 @testable import Transfer

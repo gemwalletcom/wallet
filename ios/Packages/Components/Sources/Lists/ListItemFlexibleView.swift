@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemFlexibleView<LeftView: View, PrimaryView: View, SecondaryView: View>: View {
     let left: LeftView
@@ -11,7 +11,7 @@ public struct ListItemFlexibleView<LeftView: View, PrimaryView: View, SecondaryV
     public init(
         @ViewBuilder left: () -> LeftView,
         @ViewBuilder primary: () -> PrimaryView,
-        @ViewBuilder secondary: () -> SecondaryView
+        @ViewBuilder secondary: () -> SecondaryView,
     ) {
         self.left = left()
         self.primary = primary()
@@ -31,9 +31,9 @@ public struct ListItemFlexibleView<LeftView: View, PrimaryView: View, SecondaryV
 }
 
 #Preview {
-    return ListItemFlexibleView(
-        left:  { Circle().foregroundStyle(.red).frame(width: 30, height: 30) },
+    ListItemFlexibleView(
+        left: { Circle().foregroundStyle(.red).frame(width: 30, height: 30) },
         primary: { Text("Primary") },
-        secondary: { Text("Secondary") }
+        secondary: { Text("Secondary") },
     )
 }

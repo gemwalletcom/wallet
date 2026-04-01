@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Style
+import SwiftUI
 
 struct SmallCoinView: View {
     private let model: CoinPriceRowViewModel

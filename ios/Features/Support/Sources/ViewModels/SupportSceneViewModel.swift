@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Localization
 import GemstonePrimitives
-import Primitives
+import Localization
 import NotificationService
+import Primitives
+import SwiftUI
 
 @Observable
 @MainActor
@@ -19,7 +19,7 @@ public final class SupportSceneViewModel: Sendable {
     public init(
         pushNotificationService: PushNotificationEnablerService = PushNotificationEnablerService(),
         deviceId: String,
-        isPresentingSupport: Binding<Bool>
+        isPresentingSupport: Binding<Bool>,
     ) {
         self.isPresentingSupport = isPresentingSupport
         self.pushNotificationService = pushNotificationService
@@ -30,12 +30,12 @@ public final class SupportSceneViewModel: Sendable {
     var helpCenterURL: URL { Docs.url(.start) }
 
     var chatwootModel: ChatwootWebViewModel {
-        return ChatwootWebViewModel(
+        ChatwootWebViewModel(
             websiteToken: Constants.Support.chatwootPublicToken,
             baseUrl: Constants.Support.chatwootURL,
             deviceId: deviceId,
             domainPolicy: Constants.Support.domainPolicy,
-            isPresentingSupport: isPresentingSupport
+            isPresentingSupport: isPresentingSupport,
         )
     }
 

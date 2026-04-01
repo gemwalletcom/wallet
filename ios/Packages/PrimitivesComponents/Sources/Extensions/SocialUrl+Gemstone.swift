@@ -3,13 +3,12 @@
 import Foundation
 import enum Gemstone.SocialUrl
 import Localization
+import Primitives
 import Style
 import SwiftUI
-import Primitives
 
-extension SocialUrl {
-    
-    public var linkType: LinkType {
+public extension SocialUrl {
+    var linkType: LinkType {
         switch self {
         case .x: .x
         case .discord: .discord

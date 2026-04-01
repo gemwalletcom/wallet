@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
 import BigInt
+import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import PrimitivesComponents
 
@@ -25,7 +25,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: .incoming
+            direction: .incoming,
         )
 
         let display = model.amountDisplay()
@@ -33,7 +33,7 @@ struct TransactionInfoModelTests {
         #expect(!display.amount.text.isEmpty)
         #expect(display.amount.text == "+1 BTC")
     }
-    
+
     @Test
     func amountDisplayOutgoing() {
         let model = TransactionInfoViewModel(
@@ -44,7 +44,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: .outgoing
+            direction: .outgoing,
         )
 
         let display = model.amountDisplay()
@@ -63,7 +63,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: nil
+            direction: nil,
         )
 
         let display = model.amountDisplay()
@@ -81,7 +81,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: .incoming
+            direction: .incoming,
         )
 
         #expect(model.feeDisplay != nil)
@@ -99,7 +99,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: nil
+            direction: nil,
         )
 
         #expect(model.feeDisplay != nil)
@@ -117,14 +117,14 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: .incoming
+            direction: .incoming,
         )
         let header = model.headerType(input: .amount(showFiat: true))
-        guard case .amount(let display) = header else {
+        guard case let .amount(display) = header else {
             Issue.record("Expected header type .amount")
             return
         }
-    
+
         #expect(display.amount.text == "+1 BTC")
         #expect(display.fiat?.text == "$1.50")
     }
@@ -140,11 +140,11 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: nil
+            direction: nil,
         )
 
         let header = model.headerType(input: .nft(name: nftAsset.name, id: nftAsset.id))
-        guard case .nft(let name, _) = header else {
+        guard case let .nft(name, _) = header else {
             Issue.record("Expected header type .nft")
             return
         }
@@ -158,13 +158,13 @@ struct TransactionInfoModelTests {
             from: AssetValuePrice(
                 asset: asset,
                 value: value,
-                price: assetPrice
+                price: assetPrice,
             ),
             to: AssetValuePrice(
                 asset: feeAsset,
                 value: feeValue,
-                price: feeAssetPrice
-            )
+                price: feeAssetPrice,
+            ),
         )
 
         let model = TransactionInfoViewModel(
@@ -175,11 +175,11 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: nil
+            direction: nil,
         )
 
         let header = model.headerType(input: .swap(swapMetadata))
-        guard case .swap(let fromField, let toField) = header else {
+        guard case let .swap(fromField, toField) = header else {
             Issue.record("Expected header type .swap")
             return
         }
@@ -200,7 +200,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: nil
+            direction: nil,
         )
 
         let display = model.amountDisplay()
@@ -217,7 +217,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: nil,
-            direction: nil
+            direction: nil,
         )
 
         #expect(model.feeDisplay == nil)
@@ -233,7 +233,7 @@ struct TransactionInfoModelTests {
             feeAssetPrice: nil,
             value: value,
             feeValue: feeValue,
-            direction: nil
+            direction: nil,
         )
 
         #expect(model.feeDisplay?.fiat == nil)
@@ -249,10 +249,10 @@ struct TransactionInfoModelTests {
             feeAssetPrice: feeAssetPrice,
             value: value,
             feeValue: feeValue,
-            direction: .incoming
+            direction: .incoming,
         )
         let header = model.headerType(input: .amount(showFiat: false))
-        guard case .amount(let display) = header else {
+        guard case let .amount(display) = header else {
             Issue.record("Expected header type .amount")
             return
         }

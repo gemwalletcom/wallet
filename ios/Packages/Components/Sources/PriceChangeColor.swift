@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
-public struct PriceChangeColor {
+public enum PriceChangeColor {
     public static func color(for value: Double) -> Color {
         switch value {
         case _ where value > 0:
-            return Colors.green
+            Colors.green
         case _ where value < 0:
-            return Colors.red
+            Colors.red
         default:
-            return Colors.gray
+            Colors.gray
         }
     }
 }

@@ -14,8 +14,8 @@ extension FeePriority: Identifiable {
     }
 }
 
-extension FeePriority {
-    public init(id: String) throws {
+public extension FeePriority {
+    init(id: String) throws {
         if let priority = FeePriority(rawValue: id) {
             self = priority
         } else {

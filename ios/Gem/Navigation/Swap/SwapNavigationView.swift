@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Components
-import InfoSheet
-import Swap
 import Assets
 import AssetsService
+import Components
+import InfoSheet
+import Primitives
 import Style
+import Swap
+import SwiftUI
 
 struct SwapNavigationView: View {
     @Environment(\.priceAlertService) private var priceAlertService
@@ -36,8 +36,8 @@ struct SwapNavigationView: View {
                             assetsEnabler: assetsEnabler,
                             priceAlertService: priceAlertService,
                             activityService: activityService,
-                            selectAssetAction: model.onFinishAssetSelection
-                        )
+                            selectAssetAction: model.onFinishAssetSelection,
+                        ),
                     )
                 case .swapDetails:
                     if let model = model.swapDetailsViewModel {

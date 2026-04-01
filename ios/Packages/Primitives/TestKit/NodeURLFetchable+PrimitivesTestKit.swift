@@ -10,9 +10,9 @@ public extension NodeURLFetchable {
 }
 
 public struct MockNodeURLFetchable: NodeURLFetchable {
-    public func node(for chain: Chain) -> URL {
+    public func node(for _: Chain) -> URL {
         URL(string: "https://mock-node.example.com")!
     }
-    
+
     public init() {}
 }

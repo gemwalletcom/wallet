@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import Components
-import Style
+import Foundation
 import Localization
+import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct ChainListSettingsScene: View {
     private let model: ChainListSettingsViewModel
@@ -26,7 +26,7 @@ public struct ChainListSettingsScene: View {
             },
             emptyContent: {
                 EmptyContentView(model: model.emptyContent)
-            }
+            },
         )
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)

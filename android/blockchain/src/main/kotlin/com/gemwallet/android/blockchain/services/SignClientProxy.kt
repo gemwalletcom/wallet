@@ -3,8 +3,6 @@ package com.gemwallet.android.blockchain.services
 import com.gemwallet.android.blockchain.clients.SignClient
 import com.gemwallet.android.blockchain.clients.getClient
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.math.decodeHex
-import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ChainSignData
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
@@ -32,7 +30,7 @@ class SignClientProxy(
         chain: Chain,
         input: ByteArray,
         privateKey: ByteArray
-    ): ByteArray {
+    ): String {
         return clients.getClient(chain)?.signTypedMessage(chain, input, privateKey)
             ?: throw Exception("Chain isn't support")
     }
@@ -102,7 +100,7 @@ class SignClientProxy(
         privateKey: ByteArray,
     ): List<ByteArray> {
         val memo = params.memo()
-        val destinationAddress = params.toAddress//getSwapDestinationAddress(params)
+        val destinationAddress = params.toAddress
         val transferParams = ConfirmParams.Builder(params.fromAsset, params.from, params.fromAmount, params.useMaxAmount)
             .transfer(
                 destination = DestinationAddress(destinationAddress),
@@ -124,25 +122,6 @@ class SignClientProxy(
                 privateKey,
             )
             else -> throw IllegalArgumentException("Not sound signer")
-        }
-    }
-
-    private fun getSwapDestinationAddress(params: ConfirmParams.SwapParams): String {
-        if (params.fromAsset.id.tokenId == null) {
-            return params.toAddress
-        }
-        return when (params.fromAsset.chain) {
-            Chain.Ethereum,
-            Chain.Tron -> {
-                val callData = params.swapData.decodeHex()
-                if (callData.size == 68) {
-                    val addressData = byteArrayOf(20) + callData.sliceArray(4 ..< 36)
-                    addressData.toHexString()
-                } else {
-                    throw IllegalArgumentException("Invalid call data")
-                }
-            }
-            else -> return params.toAddress
         }
     }
 }

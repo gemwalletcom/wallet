@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 
 public enum TransactionHeaderInputType: Sendable {
     case amount(showFiat: Bool)

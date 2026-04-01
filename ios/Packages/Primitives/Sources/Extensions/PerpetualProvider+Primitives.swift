@@ -2,8 +2,8 @@
 
 import Foundation
 
-extension PerpetualProvider {
-    public init(id: String) throws {
+public extension PerpetualProvider {
+    init(id: String) throws {
         if let provider = PerpetualProvider(rawValue: id) {
             self = provider
         } else {

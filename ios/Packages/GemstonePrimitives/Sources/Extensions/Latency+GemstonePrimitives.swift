@@ -4,9 +4,9 @@ import Primitives
 
 extension Primitives.Latency {
     static func from(milliseconds: Double) -> Primitives.Latency {
-        return Primitives.Latency(
+        Primitives.Latency(
             latency_type: LatencyType.from(duration: milliseconds),
-            value: milliseconds
+            value: milliseconds,
         )
     }
 }

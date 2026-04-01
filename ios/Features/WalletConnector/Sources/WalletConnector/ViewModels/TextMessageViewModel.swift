@@ -5,11 +5,11 @@ import Primitives
 
 struct TextMessageViewModel {
     private let message: String
-    
+
     init(message: String) {
         self.message = message
     }
-    
+
     var text: String {
         message
     }

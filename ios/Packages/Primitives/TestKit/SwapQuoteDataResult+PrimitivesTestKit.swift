@@ -7,7 +7,7 @@ public extension SwapData {
     static func mock() -> SwapData {
         SwapData(
             quote: .mock(),
-            data: .mock()
+            data: .mock(),
         )
     }
 }

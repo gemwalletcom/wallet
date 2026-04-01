@@ -2,8 +2,8 @@
 
 import Foundation
 
-extension PerpetualPosition {
-    public var baseAsset: Asset {
+public extension PerpetualPosition {
+    var baseAsset: Asset {
         Asset.hypercoreUSDC()
     }
 }

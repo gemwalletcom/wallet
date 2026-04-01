@@ -9,7 +9,7 @@ public extension TransactionExtended {
         asset: Asset = .mock(),
         assets: [Asset] = [],
         fromAddress: AddressName? = nil,
-        toAddress: AddressName? = nil
+        toAddress: AddressName? = nil,
     ) -> TransactionExtended {
         TransactionExtended(
             transaction: transaction,
@@ -20,7 +20,7 @@ public extension TransactionExtended {
             assets: assets,
             prices: [],
             fromAddress: fromAddress,
-            toAddress: toAddress
+            toAddress: toAddress,
         )
     }
 }

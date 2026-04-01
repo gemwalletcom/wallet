@@ -19,7 +19,7 @@ public struct PerpetualsRequest: DatabaseQueryable {
         if !searchQuery.isEmpty {
             request = request.filter(
                 PerpetualRecord.Columns.name.like("%%\(searchQuery)%%") ||
-                TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.symbol].like("%%\(searchQuery)%%")
+                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.symbol].like("%%\(searchQuery)%%"),
             )
         }
 

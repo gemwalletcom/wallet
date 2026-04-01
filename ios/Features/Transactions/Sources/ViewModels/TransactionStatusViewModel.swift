@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import SwiftUI
+import Localization
 import Primitives
 import PrimitivesComponents
-import Localization
-import Components
 import Style
+import SwiftUI
 
 struct TransactionStatusViewModel {
     private let state: TransactionState
@@ -14,7 +14,7 @@ struct TransactionStatusViewModel {
 
     init(
         state: TransactionState,
-        onInfoAction: VoidAction
+        onInfoAction: VoidAction,
     ) {
         self.state = state
         self.onInfoAction = onInfoAction
@@ -34,7 +34,7 @@ extension TransactionStatusViewModel: ItemModelProvidable {
             titleTagType: state == .pending ? .progressView() : .image(stateViewModel.stateImage),
             subtitle: stateViewModel.title,
             subtitleStyle: TextStyle(font: .callout, color: stateViewModel.color),
-            infoAction: onInfoAction
+            infoAction: onInfoAction,
         ))
     }
 }

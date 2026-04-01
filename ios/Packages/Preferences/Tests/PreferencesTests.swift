@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import PreferencesTestKit
 import Primitives
+import Testing
 
-@testable import Preferences
 import Foundation
+@testable import Preferences
 
 struct PreferencesTests {
     private let preferences: Preferences = .mock()
 
     @Test
-    func testDefaultPreferences() {
+    func defaultPreferences() {
         #expect(preferences.currency == Currency.usd.rawValue)
 
         #expect(preferences.importFiatMappingsVersion == 0)
@@ -57,7 +57,7 @@ struct PreferencesTests {
     }
 
     @Test
-    func testUpdatePreferences() {
+    func updatePreferences() {
         preferences.currency = Currency.eur.rawValue
         #expect(preferences.currency == Currency.eur.rawValue)
 
@@ -111,7 +111,7 @@ struct PreferencesTests {
 
         preferences.setExplorerName(chain: .bitcoin, name: "btc")
         #expect(preferences.explorerName(chain: .bitcoin) == "btc")
-        
+
         preferences.skippedReleaseVersion = "1.2.3"
         #expect(preferences.skippedReleaseVersion == "1.2.3")
 
@@ -184,11 +184,10 @@ struct PreferencesTests {
         #expect(preferences.explorerName(chain: .bitcoin) == nil)
         #expect(preferences.skippedReleaseVersion == nil)
         #expect(preferences.perpetualLeverage == 10)
-
     }
 
     @Test
-    func testReinitializeReflectsExternalChanges() {
+    func reinitializeReflectsExternalChanges() {
         let testDefaults = UserDefaults(suiteName: "testReinitialize")!
         testDefaults.removePersistentDomain(forName: "testReinitialize")
 
@@ -215,7 +214,7 @@ struct PreferencesTests {
     }
 
     @Test
-    func testOptionalNilAssignment() {
+    func optionalNilAssignment() {
         preferences.currentWalletId = "wallet123"
         #expect(preferences.currentWalletId == "wallet123")
 

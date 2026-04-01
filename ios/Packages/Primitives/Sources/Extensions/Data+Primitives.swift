@@ -1,14 +1,12 @@
 import Foundation
 
 public extension Data {
-    
     // from https://github.com/trustwallet/wallet-core/blob/master/swift/Sources/Extensions/Data%2BHex.swift#L11
     init?(fromHex hex: String) {
-        let string: String
-        if hex.hasPrefix("0x") {
-            string = String(hex.dropFirst(2))
+        let string: String = if hex.hasPrefix("0x") {
+            String(hex.dropFirst(2))
         } else {
-            string = hex
+            hex
         }
 
         if string.count % 2 != 0 {
@@ -35,27 +33,27 @@ public extension Data {
             }
         }
     }
-    
+
     static func from(hex: String) throws -> Data {
         guard let data = Data(fromHex: hex) else {
             throw AnyError("invalid hex value")
         }
         return data
     }
-    
+
     /// Converts an ASCII byte to a hex value.
     private static func value(of nibble: UInt8) -> UInt8? {
         guard let letter = String(bytes: [nibble], encoding: .ascii) else { return nil }
         return UInt8(letter, radix: 16)
     }
-    
+
     var prettyJSON: String? {
         guard let object = try? JSONSerialization.jsonObject(with: self, options: []),
               let data = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]),
-              let prettyPrintedString = String(data: data, encoding:.utf8) else { return nil }
+              let prettyPrintedString = String(data: data, encoding: .utf8) else { return nil }
         return prettyPrintedString
     }
-    
+
     func encodeString() throws -> String {
         guard let string = String(data: self, encoding: .utf8) else {
             throw AnyError("unable to encode string")

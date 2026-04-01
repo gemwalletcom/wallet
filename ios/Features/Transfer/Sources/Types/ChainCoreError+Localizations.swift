@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Localization
 import Blockchain
+import Localization
 import SwiftUI
 
 extension ChainCoreError: @retroactive LocalizedError {

@@ -1,18 +1,17 @@
+import Components
+import ExplorerService
+import Localization
+import Onboarding
+import Primitives
+import PrimitivesComponents
+import Store
+import Style
 import SwiftUI
 import WalletService
-import Primitives
-import Components
-import Style
-import Localization
-import PrimitivesComponents
-import ExplorerService
-import Store
-import Onboarding
 
 @Observable
 @MainActor
 public final class WalletDetailViewModel {
-
     private let navigationPath: Binding<NavigationPath>
     let wallet: Wallet
     let walletService: WalletService
@@ -30,27 +29,27 @@ public final class WalletDetailViewModel {
         navigationPath: Binding<NavigationPath>,
         wallet: Wallet,
         walletService: WalletService,
-        explorerService: any ExplorerLinkFetchable = ExplorerService.standard
+        explorerService: any ExplorerLinkFetchable = ExplorerService.standard,
     ) {
         self.navigationPath = navigationPath
         self.wallet = wallet
         self.walletService = walletService
         self.explorerService = explorerService
-        self.nameInput = wallet.name
-        self.isPresentingAlertMessage = nil
-        self.isPresentingDeleteConfirmation = nil
-        self.isPresentingExportWallet = nil
-        self.walletQuery = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
+        nameInput = wallet.name
+        isPresentingAlertMessage = nil
+        isPresentingDeleteConfirmation = nil
+        isPresentingExportWallet = nil
+        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
     }
 
     var name: String {
         wallet.name
     }
-    
+
     var title: String {
-        return Localized.Common.wallet
+        Localized.Common.wallet
     }
-    
+
     var address: WalletDetailAddress? {
         switch wallet.type {
         case .multicoin:
@@ -62,8 +61,8 @@ public final class WalletDetailViewModel {
                     name: .none,
                     chain: account.chain,
                     address: account.address,
-                    assetImage: .none
-                )
+                    assetImage: .none,
+                ),
             )
         }
     }
@@ -71,14 +70,14 @@ public final class WalletDetailViewModel {
     func addressLink(account: SimpleAccount) -> BlockExplorerLink {
         explorerService.addressUrl(chain: account.chain, address: account.address)
     }
-    
+
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
         let avatar = WalletViewModel(wallet: wallet).avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,
             placeholder: avatar.placeholder,
-            chainPlaceholder: Images.Wallets.editFilled
+            chainPlaceholder: Images.Wallets.editFilled,
         )
     }
 }
@@ -89,7 +88,7 @@ extension WalletDetailViewModel {
     func rename(name: String) throws {
         try walletService.rename(walletId: wallet.walletId, newName: name)
     }
-    
+
     func getMnemonicWords() async throws -> [String] {
         try await walletService.getMnemonic(wallet: wallet)
     }
@@ -122,7 +121,7 @@ extension WalletDetailViewModel {
     func onShowSecretPhrase() {
         Task {
             do {
-                isPresentingExportWallet = .words(try await getMnemonicWords())
+                isPresentingExportWallet = try await .words(getMnemonicWords())
             } catch {
                 isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             }
@@ -132,7 +131,7 @@ extension WalletDetailViewModel {
     func onShowPrivateKey() {
         Task {
             do {
-                isPresentingExportWallet = .privateKey(try await getPrivateKey())
+                isPresentingExportWallet = try await .privateKey(getPrivateKey())
             } catch {
                 isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             }

@@ -1,9 +1,9 @@
 import Foundation
-import Primitives
-import WalletService
-import SwiftUI
 import Localization
+import Primitives
 import PrimitivesComponents
+import SwiftUI
+import WalletService
 
 public struct ImportWalletTypeViewModel {
     let walletService: WalletService
@@ -11,7 +11,7 @@ public struct ImportWalletTypeViewModel {
     public init(walletService: WalletService) {
         self.walletService = walletService
     }
-    
+
     var title: String {
         Localized.Wallet.Import.title
     }
@@ -19,7 +19,7 @@ public struct ImportWalletTypeViewModel {
     func items(for searchText: String) -> [Chain] {
         filterChains(for: searchText)
     }
-    
+
     func acceptTerms() {
         walletService.acceptTerms()
     }
@@ -29,7 +29,7 @@ public struct ImportWalletTypeViewModel {
 
 extension ImportWalletTypeViewModel: Equatable {
     public static func == (lhs: ImportWalletTypeViewModel, rhs: ImportWalletTypeViewModel) -> Bool {
-        return lhs.chains == rhs.chains
+        lhs.chains == rhs.chains
     }
 }
 

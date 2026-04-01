@@ -13,7 +13,7 @@ struct CurrencyViewModel: Sendable {
     var title: String {
         let localizedName = Locale.current.localizedString(forCurrencyCode: id) ?? .empty
 
-        if let flag = flag {
+        if let flag {
             return "\(flag) \(id) - \(localizedName)"
         } else {
             return "\(id) - \(localizedName)"

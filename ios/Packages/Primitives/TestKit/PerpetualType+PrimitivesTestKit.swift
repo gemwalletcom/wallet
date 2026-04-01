@@ -5,31 +5,31 @@ import Primitives
 
 public extension PerpetualType {
     static func mockOpen(
-        data: PerpetualConfirmData = .mock()
+        data: PerpetualConfirmData = .mock(),
     ) -> PerpetualType {
         .open(data)
     }
 
     static func mockClose(
-        data: PerpetualConfirmData = .mock()
+        data: PerpetualConfirmData = .mock(),
     ) -> PerpetualType {
         .close(data)
     }
 
     static func mockIncrease(
-        data: PerpetualConfirmData = .mock()
+        data: PerpetualConfirmData = .mock(),
     ) -> PerpetualType {
         .increase(data)
     }
 
     static func mockReduce(
-        data: PerpetualReduceData = .mock()
+        data: PerpetualReduceData = .mock(),
     ) -> PerpetualType {
         .reduce(data)
     }
 
     static func mockModify(
-        data: PerpetualModifyConfirmData = .mock()
+        data: PerpetualModifyConfirmData = .mock(),
     ) -> PerpetualType {
         .modify(data)
     }

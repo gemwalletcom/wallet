@@ -6,13 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.format
-import com.gemwallet.android.ui.models.PriceUIState
 import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PricePoint
@@ -125,8 +126,8 @@ internal fun buildChartUIModel(
             y = it.value,
             yLabel = currency.format(it.value, 2, dynamicPlace = true),
             timestamp = it.timestamp * 1000L,
-            percentage = PriceUIState.formatPercentage(percent, showZero = true),
-            priceState = PriceUIState.getState(percent),
+            percentage = percent.formatAsPercentage(),
+            priceState = percent.toPriceState(),
         )
     }
     val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0) * 1000L
@@ -142,8 +143,8 @@ internal fun buildChartUIModel(
                 y = it.price.price.toFloat(),
                 yLabel = currency.format(it.price.price, dynamicPlace = true),
                 timestamp = System.currentTimeMillis(),
-                percentage = PriceUIState.formatPercentage(percentage, showZero = true),
-                priceState = PriceUIState.getState(percentage),
+                percentage = percentage.formatAsPercentage(),
+                priceState = percentage.toPriceState(),
             )
         }
     val chartPoints = historicalPoints + listOfNotNull(currentPoint)

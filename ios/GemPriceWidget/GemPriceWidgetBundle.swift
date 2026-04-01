@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
 @main
 struct GemPriceWidgetBundle: WidgetBundle {

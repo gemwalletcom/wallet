@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct RoundButton: View {
     let title: String
@@ -13,14 +13,14 @@ public struct RoundButton: View {
         title: String,
         image: Image,
         isEnabled: Bool = true,
-        action: (() -> Void)? = nil
+        action: (() -> Void)? = nil,
     ) {
         self.action = action
         self.image = image
         self.isEnabled = isEnabled
         self.title = title
     }
-    
+
     public var body: some View {
         Button {
             action?()

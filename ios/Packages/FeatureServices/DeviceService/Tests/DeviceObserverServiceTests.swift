@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import DeviceServiceTestKit
 import Preferences
 import PreferencesTestKit
 import StoreTestKit
+import Testing
 
 @testable import DeviceService
 
 struct DeviceObserverServiceTests {
-
     @Test
     func handleSubscriptionsChangeInvalidatesAndUpdatesDevice() async throws {
         let preferences = Preferences.mock()
@@ -19,7 +18,7 @@ struct DeviceObserverServiceTests {
         let observerService = DeviceObserverService(
             deviceService: deviceService,
             subscriptionsService: .mock(preferences: preferences),
-            subscriptionsObserver: .mock()
+            subscriptionsObserver: .mock(),
         )
 
         try await observerService.handleSubscriptionsChange()

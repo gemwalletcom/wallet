@@ -5,7 +5,6 @@ import Testing
 @testable import WalletConnectorService
 
 struct WebSocketTests {
-
     @Test
     func initialState() {
         let socket = WebSocket.mock()
@@ -36,21 +35,21 @@ struct WebSocketTests {
 
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
-                for i in 0..<iterations {
+                for i in 0 ..< iterations {
                     socket.request = URLRequest(url: URL(string: "wss://test\(i).com")!)
                 }
             }
 
             group.addTask {
-                for _ in 0..<iterations {
+                for _ in 0 ..< iterations {
                     _ = socket.request
                     _ = socket.isConnected
                 }
             }
 
             group.addTask {
-                for _ in 0..<iterations {
-                    socket.onConnect = { }
+                for _ in 0 ..< iterations {
+                    socket.onConnect = {}
                     socket.onDisconnect = { _ in }
                     socket.onText = { _ in }
                 }
@@ -65,7 +64,7 @@ struct WebSocketTests {
 
         await confirmation(expectedCount: iterations) { confirm in
             await withTaskGroup(of: Void.self) { group in
-                for i in 0..<iterations {
+                for i in 0 ..< iterations {
                     group.addTask {
                         socket.write(string: "message\(i)") {
                             confirm()
@@ -83,19 +82,19 @@ struct WebSocketTests {
 
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
-                for _ in 0..<iterations {
+                for _ in 0 ..< iterations {
                     socket.connect()
                 }
             }
 
             group.addTask {
-                for _ in 0..<iterations {
+                for _ in 0 ..< iterations {
                     socket.disconnect()
                 }
             }
 
             group.addTask {
-                for _ in 0..<iterations {
+                for _ in 0 ..< iterations {
                     _ = socket.isConnected
                 }
             }

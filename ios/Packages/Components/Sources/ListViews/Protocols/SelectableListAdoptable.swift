@@ -8,7 +8,7 @@ public protocol SelectableListAdoptable {
 
     var state: StateViewType<SelectableListType<Item>> { get }
     var selectedItems: Set<Item> { get set }
-    
+
     var emptyStateTitle: String? { get }
     var errorTitle: String? { get }
 
@@ -30,7 +30,7 @@ public extension SelectableListAdoptable {
         case .navigationLink, .checkmark: true
         }
     }
-    
+
     var emptyStateTitle: String? { nil }
     var errorTitle: String? { nil }
 

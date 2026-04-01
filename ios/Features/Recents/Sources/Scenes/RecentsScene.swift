@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Primitives
 import PrimitivesComponents
-import Components
-import Style
 import Store
+import Style
+import SwiftUI
 
 public struct RecentsScene: View {
     @State private var model: RecentsSceneViewModel
@@ -25,8 +25,8 @@ public struct RecentsScene: View {
                                 with: ListItemView(
                                     title: assetModel.name,
                                     titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-                                    imageStyle: .asset(assetImage: assetModel.assetImage)
-                                )
+                                    imageStyle: .asset(assetImage: assetModel.assetImage),
+                                ),
                             ) {
                                 model.onSelect(recentAsset.asset)
                             }
@@ -44,7 +44,7 @@ public struct RecentsScene: View {
             .background { Colors.sheetInsetGroupedListStyle.ignoresSafeArea() }
             .searchable(
                 text: $model.searchQuery,
-                placement: .navigationBarDrawer(displayMode: .always)
+                placement: .navigationBarDrawer(displayMode: .always),
             )
             .autocorrectionDisabled()
             .overlay {
@@ -67,4 +67,3 @@ public struct RecentsScene: View {
         .bindQuery(model.query)
     }
 }
-

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Localization
+import Style
+import SwiftUI
 
 public struct OnboardingScene: View {
     @Binding private var isPresentingCreateWalletSheet: Bool
@@ -11,7 +11,7 @@ public struct OnboardingScene: View {
 
     public init(
         isPresentingCreateWalletSheet: Binding<Bool>,
-        isPresentingImportWalletSheet: Binding<Bool>
+        isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         _isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
         _isPresentingImportWalletSheet = isPresentingImportWalletSheet
@@ -23,18 +23,18 @@ public struct OnboardingScene: View {
             VStack(alignment: .center, spacing: 24) {
                 StateButton(
                     text: Localized.Wallet.createNewWallet,
-                    action: { isPresentingCreateWalletSheet = true }
+                    action: { isPresentingCreateWalletSheet = true },
                 )
                 StateButton(
                     text: Localized.Wallet.importExistingWallet,
-                    action: { isPresentingImportWalletSheet = true }
+                    action: { isPresentingImportWalletSheet = true },
                 )
             }
             .frame(maxWidth: .scene.button.maxWidth)
             .padding(.scene.bottom * 2)
         }
         .overlay(
-            LogoView()
+            LogoView(),
         )
         .frame(maxWidth: .infinity)
         .background(Colors.white)

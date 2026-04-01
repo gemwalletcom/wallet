@@ -6,22 +6,22 @@ import Primitives
 
 public extension GemApprovalData {
     func map() -> ApprovalData {
-        return ApprovalData(
+        ApprovalData(
             token: token,
             spender: spender,
             value: value,
-            isUnlimited: isUnlimited
+            isUnlimited: isUnlimited,
         )
     }
 }
 
 public extension ApprovalData {
     func map() -> GemApprovalData {
-        return GemApprovalData(
+        GemApprovalData(
             token: token,
             spender: spender,
             value: value,
-            isUnlimited: isUnlimited
+            isUnlimited: isUnlimited,
         )
     }
 }

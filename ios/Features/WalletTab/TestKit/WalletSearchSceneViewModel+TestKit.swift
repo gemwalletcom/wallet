@@ -1,20 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import WalletTab
-import Primitives
-import PrimitivesTestKit
-import AssetsService
-import AssetsServiceTestKit
 import ActivityService
 import ActivityServiceTestKit
-import BalanceService
-import BalanceServiceTestKit
-import Preferences
-import PreferencesTestKit
+import AssetsService
+import AssetsServiceTestKit
 import BalanceService
 import BalanceServiceTestKit
 import PerpetualService
 import PerpetualServiceTestKit
+import Preferences
+import PreferencesTestKit
+import Primitives
+import PrimitivesTestKit
+import WalletTab
 
 public extension WalletSearchSceneViewModel {
     @MainActor
@@ -25,7 +23,7 @@ public extension WalletSearchSceneViewModel {
         assetsEnabler: any AssetsEnabler = .mock(),
         balanceService: BalanceService = .mock(),
         perpetualService: PerpetualService = .mock(),
-        preferences: ObservablePreferences = .mock()
+        preferences: ObservablePreferences = .mock(),
     ) -> WalletSearchSceneViewModel {
         WalletSearchSceneViewModel(
             wallet: wallet,
@@ -37,7 +35,7 @@ public extension WalletSearchSceneViewModel {
             preferences: preferences,
             onDismissSearch: {},
             onSelectAssetAction: { _ in },
-            onAddToken: {}
+            onAddToken: {},
         )
     }
 }

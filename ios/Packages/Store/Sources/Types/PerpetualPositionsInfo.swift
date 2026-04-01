@@ -16,7 +16,7 @@ extension PerpetualPositionsInfo {
         return PerpetualPositionData(
             perpetual: perpetual.mapToPerpetual(),
             asset: asset.mapToAsset(),
-            position: firstPosition.mapToPerpetualPosition()
+            position: firstPosition.mapToPerpetualPosition(),
         )
     }
 }

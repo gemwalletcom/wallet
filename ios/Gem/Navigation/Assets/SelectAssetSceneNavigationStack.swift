@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Components
-import Style
-import FiatConnect
-import PrimitivesComponents
 import Assets
-import Transfer
+import Components
+import FiatConnect
+import Primitives
+import PrimitivesComponents
 import Recents
+import Style
+import SwiftUI
+import Transfer
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -28,19 +28,19 @@ struct SelectAssetSceneNavigationStack: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             SelectAssetScene(
-                model: model
+                model: model,
             )
             .onChange(of: model.assetSelection, onChangeAssetSelection)
             .toolbar {
                 ToolbarDismissItem(
                     type: .close,
-                    placement: .topBarLeading
+                    placement: .topBarLeading,
                 )
                 if model.showFilter {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         FilterButton(
                             isActive: model.filterModel.isAnyFilterSpecified,
-                            action: onSelectFilter
+                            action: onSelectFilter,
                         )
                     }
                 }
@@ -68,8 +68,8 @@ struct SelectAssetSceneNavigationStack: View {
                                 },
                                 onTransferAction: {
                                     navigationPath.append($0)
-                                }
-                            )
+                                },
+                            ),
                         )
                     case .receive:
                         ReceiveScene(
@@ -77,15 +77,15 @@ struct SelectAssetSceneNavigationStack: View {
                                 assetModel: AssetViewModel(asset: input.asset),
                                 wallet: model.wallet,
                                 address: input.assetAddress.address,
-                                assetsEnabler: assetsEnabler
-                            )
+                                assetsEnabler: assetsEnabler,
+                            ),
                         )
                     case .buy:
                         FiatConnectNavigationView(
                             model: viewModelFactory.fiatScene(
                                 assetAddress: input.assetAddress,
-                                wallet: model.wallet
-                            )
+                                wallet: model.wallet,
+                            ),
                         )
                     case .deposit:
                         AmountNavigationView(
@@ -94,22 +94,22 @@ struct SelectAssetSceneNavigationStack: View {
                                     type: .deposit(
                                         recipient: RecipientData(
                                             recipient: .hyperliquid,
-                                            amount: .none
-                                        )
+                                            amount: .none,
+                                        ),
                                     ),
-                                    asset: input.asset
+                                    asset: input.asset,
                                 ),
                                 wallet: model.wallet,
                                 onTransferAction: {
                                     navigationPath.append($0)
-                                }
-                            )
+                                },
+                            ),
                         )
                     case .withdraw:
                         let withdrawRecipient = Recipient(
                             name: model.wallet.name,
                             address: input.assetAddress.address,
-                            memo: nil
+                            memo: nil,
                         )
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
@@ -117,16 +117,16 @@ struct SelectAssetSceneNavigationStack: View {
                                     type: .withdraw(
                                         recipient: RecipientData(
                                             recipient: withdrawRecipient,
-                                            amount: .none
-                                        )
+                                            amount: .none,
+                                        ),
                                     ),
-                                    asset: input.asset
+                                    asset: input.asset,
                                 ),
                                 wallet: model.wallet,
                                 onTransferAction: {
                                     navigationPath.append($0)
-                                }
-                            )
+                                },
+                            ),
                         )
                     case .manage, .priceAlert, .swap:
                         EmptyView()
@@ -139,8 +139,8 @@ struct SelectAssetSceneNavigationStack: View {
                     model: viewModelFactory.confirmTransferScene(
                         wallet: model.wallet,
                         data: data,
-                        onComplete: { dismiss() }
-                    )
+                        onComplete: { dismiss() },
+                    ),
                 )
             }
         }
@@ -162,8 +162,8 @@ struct SelectAssetSceneNavigationStack: View {
                     types: model.recentsQuery.request.types,
                     filters: model.recentsQuery.request.filters,
                     activityService: activityService,
-                    onSelect: model.onSelectRecent
-                )
+                    onSelect: model.onSelectRecent,
+                ),
             )
         }
     }
@@ -180,10 +180,10 @@ extension SelectAssetSceneNavigationStack {
         if let new {
             model.assetSelection = nil
             switch new {
-            case .regular(let input):
+            case let .regular(input):
                 model.updateRecent(assetId: input.asset.id)
                 navigationPath.append(input)
-            case .recent(let input):
+            case let .recent(input):
                 navigationPath.append(input)
             }
         }

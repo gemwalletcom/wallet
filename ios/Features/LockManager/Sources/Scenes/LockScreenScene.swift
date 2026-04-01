@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
+import Style
+import SwiftUI
 
 struct LockScreenScene: View {
     @State private var model: LockSceneViewModel
@@ -17,7 +17,7 @@ struct LockScreenScene: View {
                 .overlay(alignment: .bottom) {
                     unlockButton
                 }
-                .onAppear() {
+                .onAppear {
                     if model.isLocked {
                         unlock()
                     }
@@ -25,7 +25,7 @@ struct LockScreenScene: View {
         }
         .animation(.smooth, value: model.isLocked)
         .frame(maxWidth: .infinity)
-        .onChange(of: model.isLocked) { oldsState, newState in
+        .onChange(of: model.isLocked) { _, newState in
             if newState {
                 unlock()
             }
@@ -58,7 +58,7 @@ extension LockScreenScene {
     @ViewBuilder
     var placeholderView: some View {
         LogoView()
-        .background(Colors.white)
+            .background(Colors.white)
     }
 }
 

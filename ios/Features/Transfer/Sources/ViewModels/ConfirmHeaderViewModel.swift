@@ -14,8 +14,8 @@ extension ConfirmHeaderViewModel: ItemModelProvidable {
         .header(
             TransactionHeaderItemModel(
                 headerType: headerType,
-                showClearHeader: showClearHeader
-            )
+                showClearHeader: showClearHeader,
+            ),
         )
     }
 }

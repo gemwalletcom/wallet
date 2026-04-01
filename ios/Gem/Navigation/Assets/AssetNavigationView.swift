@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Localization
-import Store
-import Components
-import InfoSheet
-import PriceAlerts
 import Assets
+import Components
+import Foundation
+import InfoSheet
+import Localization
+import PriceAlerts
+import Primitives
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 struct AssetNavigationView: View {
     @State private var model: AssetSceneViewModel
@@ -20,7 +20,7 @@ struct AssetNavigationView: View {
 
     var body: some View {
         AssetScene(
-            model: model
+            model: model,
         )
         .bindQuery(model.assetQuery, model.bannersQuery, model.transactionsQuery)
         .toolbar {
@@ -32,7 +32,7 @@ struct AssetNavigationView: View {
                 AdaptiveActionMenu(
                     title: model.title,
                     items: model.menuItems,
-                    label: { model.optionsImage }
+                    label: { model.optionsImage },
                 )
             }
         }
@@ -45,7 +45,7 @@ struct AssetNavigationView: View {
                 ConfirmTransferNavigationStack(
                     wallet: model.walletModel.wallet,
                     transferData: data,
-                    onComplete: model.onTransferComplete
+                    onComplete: model.onTransferComplete,
                 )
             case .share:
                 ShareSheet(activityItems: [model.shareAssetUrl.absoluteString])

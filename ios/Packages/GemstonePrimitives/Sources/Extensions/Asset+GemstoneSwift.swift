@@ -11,7 +11,7 @@ public extension Asset {
             name: asset.name,
             symbol: asset.symbol,
             decimals: asset.decimals,
-            type: asset.type
+            type: asset.type,
         )
     }
 
@@ -19,14 +19,14 @@ public extension Asset {
         switch id.chain {
         case .hyperCore:
             switch map().assetType {
-            case .native: return Asset.hypercoreSpotUSDC()
-            case .perpetual: return Asset.hypercoreUSDC()
-            default: return Asset.hypercoreSpotUSDC()
+            case .native: Asset.hypercoreSpotUSDC()
+            case .perpetual: Asset.hypercoreUSDC()
+            default: Asset.hypercoreSpotUSDC()
             }
         default:
             switch id.type {
-            case .native: return self
-            case .token: return id.chain.asset
+            case .native: self
+            case .token: id.chain.asset
             }
         }
     }
@@ -36,7 +36,7 @@ public extension Asset {
             asset: self,
             properties: .defaultValue(assetId: id),
             score: .defaultValue(assetId: id),
-            price: nil
+            price: nil,
         )
     }
 }

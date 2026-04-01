@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct TransferDataMetadata: Sendable, Hashable {
     public let assetId: AssetId
@@ -17,7 +17,7 @@ public struct TransferDataMetadata: Sendable, Hashable {
         feeAssetId: AssetId,
         assetBalance: Balance,
         assetFeeBalance: Balance,
-        assetPrices: [AssetId: Price]
+        assetPrices: [AssetId: Price],
     ) {
         self.assetId = assetId
         self.feeAssetId = feeAssetId

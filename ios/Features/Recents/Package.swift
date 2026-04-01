@@ -11,10 +11,12 @@ let package = Package(
     products: [
         .library(
             name: "Recents",
-            targets: ["Recents"]),
+            targets: ["Recents"],
+        ),
         .library(
             name: "RecentsTestKit",
-            targets: ["RecentsTestKit"]),
+            targets: ["RecentsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -37,7 +39,7 @@ let package = Package(
                 "Store",
                 .product(name: "ActivityService", package: "FeatureServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "RecentsTestKit",
@@ -46,7 +48,7 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
-    ]
+    ],
 )

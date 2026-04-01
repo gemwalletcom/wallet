@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Stake
-import InfoSheet
 import Components
 import FiatConnect
-import PrimitivesComponents
+import InfoSheet
 import Perpetuals
+import Primitives
+import PrimitivesComponents
+import Stake
+import SwiftUI
 import Transfer
 
 struct AmountNavigationView: View {
@@ -28,7 +28,7 @@ struct AmountNavigationView: View {
                 case let .fiatConnect(assetAddress, wallet):
                     NavigationStack {
                         FiatConnectNavigationView(
-                            model: viewModelFactory.fiatScene(assetAddress: assetAddress, wallet: wallet)
+                            model: viewModelFactory.fiatScene(assetAddress: assetAddress, wallet: wallet),
                         )
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
@@ -38,13 +38,13 @@ struct AmountNavigationView: View {
                     LeveragePickerSheet(
                         title: leverageSelection.title,
                         leverageOptions: leverageSelection.options,
-                        selectedLeverage: $leverageSelection.selected
+                        selectedLeverage: $leverageSelection.selected,
                     )
                     .onChange(of: leverageSelection.selected, model.onChangeLeverage)
                 case let .autoclose(openData):
                     AutocloseSheet(
                         openData: openData,
-                        onComplete: model.onAutocloseComplete
+                        onComplete: model.onAutocloseComplete,
                     )
                 }
             }
@@ -68,8 +68,8 @@ struct AmountNavigationView: View {
                             chain: model.asset.chain,
                             currentValidator: validator,
                             validators: stake.validatorSelection.options,
-                            selectValidator: model.onValidatorSelected
-                        )
+                            selectValidator: model.onValidatorSelected,
+                        ),
                     )
                 }
             }

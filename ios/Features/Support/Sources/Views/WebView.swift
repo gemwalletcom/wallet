@@ -5,8 +5,8 @@ import WebKit
 
 struct WebView: UIViewRepresentable {
     let model: WebSceneViewModel
-    
-    func makeUIView(context: Context) -> WKWebView {
+
+    func makeUIView(context _: Context) -> WKWebView {
         let webView = WKWebView()
         webView.isOpaque = false
         webView.backgroundColor = UIColor.clear
@@ -14,13 +14,13 @@ struct WebView: UIViewRepresentable {
         webView.navigationDelegate = model
         return webView
     }
-    
-    func updateUIView(_ webView: WKWebView, context: Context) {
+
+    func updateUIView(_ webView: WKWebView, context _: Context) {
         let request = URLRequest(url: model.url)
         webView.load(request)
     }
 
-    static func dismantleUIView(_ webView: WKWebView, coordinator: ()) {
+    static func dismantleUIView(_ webView: WKWebView, coordinator _: ()) {
         webView.navigationDelegate = nil
     }
 }

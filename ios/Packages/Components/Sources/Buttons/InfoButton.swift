@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct InfoButton: View {
-    
-    let action: (() -> Void)
-    
+    let action: () -> Void
+
     public init(action: @escaping (() -> Void)) {
         self.action = action
     }
-    
+
     public var body: some View {
         Button(action: action) {
             Images.System.info

@@ -6,11 +6,11 @@ public struct BannerAction: Identifiable, Sendable {
     public let id: String
     public let type: BannerActionType
     public let url: URL?
-    
+
     public init(
         id: String,
         type: BannerActionType,
-        url: URL?
+        url: URL?,
     ) {
         self.id = id
         self.type = type

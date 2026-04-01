@@ -8,7 +8,7 @@ public extension Interval {
     static func seconds(_ value: Int) -> Interval { Interval(value) }
     static func minutes(_ value: Int) -> Interval { Interval(value) * 60 }
 
-    struct AnimationDuration {
+    enum AnimationDuration {
         /// 0.15s
         public static let fast: Interval = 0.15
         /// 0.2s

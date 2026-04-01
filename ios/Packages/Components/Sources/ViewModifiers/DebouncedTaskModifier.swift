@@ -38,10 +38,10 @@ private struct DebouncedTaskModifier<T: DebouncableTrigger>: ViewModifier {
 }
 
 public extension View {
-    func debouncedTask<T: DebouncableTrigger>(
-        id trigger: T?,
+    func debouncedTask(
+        id trigger: (some DebouncableTrigger)?,
         interval: Duration = .debounce,
-        action: @Sendable @escaping () async -> Void
+        action: @Sendable @escaping () async -> Void,
     ) -> some View {
         modifier(DebouncedTaskModifier(trigger: trigger, interval: interval, action: action))
     }

@@ -24,7 +24,7 @@ public extension View {
         modifier(TimerModifier(interval: interval, id: 0, action: action))
     }
 
-    func onTimer<ID: Equatable & Sendable>(every interval: TimeInterval, id: ID, action: @Sendable @escaping () async -> Void) -> some View {
+    func onTimer(every interval: TimeInterval, id: some Equatable & Sendable, action: @Sendable @escaping () async -> Void) -> some View {
         modifier(TimerModifier(interval: interval, id: id, action: action))
     }
 }

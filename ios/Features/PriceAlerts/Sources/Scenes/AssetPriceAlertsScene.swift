@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Store
-import Primitives
-import Style
 import Components
 import Localization
+import Primitives
 import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 public struct AssetPriceAlertsScene: View {
     @State private var model: AssetPriceAlertsViewModel
@@ -14,7 +14,7 @@ public struct AssetPriceAlertsScene: View {
     public init(model: AssetPriceAlertsViewModel) {
         _model = State(initialValue: model)
     }
-    
+
     public var body: some View {
         List {
             Section {
@@ -52,13 +52,13 @@ public struct AssetPriceAlertsScene: View {
                 model: SetPriceAlertViewModel(
                     walletId: model.walletId,
                     asset: model.asset,
-                    priceAlertService: model.priceAlertService
-                ) { model.onSetPriceAlertComplete(message: $0) }
+                    priceAlertService: model.priceAlertService,
+                ) { model.onSetPriceAlertComplete(message: $0) },
             )
         }
         .toast(message: $model.isPresentingToastMessage)
     }
-    
+
     private var autoAlertToggleView: some View {
         Toggle(isOn: model.isAutoAlertEnabledBinding) {
             ListAssetItemView(model: model.autoAlertItemModel)

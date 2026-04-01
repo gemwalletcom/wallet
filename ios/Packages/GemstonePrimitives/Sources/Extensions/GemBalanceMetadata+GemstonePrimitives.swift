@@ -4,14 +4,14 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemBalanceMetadata {
-    public func map() -> BalanceMetadata {
+public extension GemBalanceMetadata {
+    func map() -> BalanceMetadata {
         BalanceMetadata(
             votes: votes,
             energyAvailable: energyAvailable,
             energyTotal: energyTotal,
             bandwidthAvailable: bandwidthAvailable,
-            bandwidthTotal: bandwidthTotal
+            bandwidthTotal: bandwidthTotal,
         )
     }
 }

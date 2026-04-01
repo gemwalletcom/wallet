@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
-import PrimitivesTestKit
 import Primitives
+import PrimitivesTestKit
 import StakeTestKit
+import Testing
 
 @testable import Stake
 
 struct DelegationSceneViewModelTests {
-
     @Test
     func showManage() {
         #expect(DelegationSceneViewModel.mock(wallet: .mock(type: .multicoin)).showManage == true)

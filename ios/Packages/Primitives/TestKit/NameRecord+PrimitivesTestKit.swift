@@ -8,13 +8,13 @@ public extension NameRecord {
         name: String = "test.eth",
         chain: Chain = .ethereum,
         address: String = "0x1234567890123456789012345678901234567890",
-        provider: NameProvider = .ens
+        provider: NameProvider = .ens,
     ) -> NameRecord {
         NameRecord(
             name: name,
             chain: chain,
             address: address,
-            provider: provider
+            provider: provider,
         )
     }
 }

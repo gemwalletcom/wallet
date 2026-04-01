@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 import Primitives
 
 struct AddNodeResult: Sendable {
@@ -16,7 +16,7 @@ struct AddNodeResult: Sendable {
         chainID: String,
         blockNumber: BigInt,
         isInSync: Bool,
-        latency: Latency
+        latency: Latency,
     ) {
         self.url = url
         self.chainID = chainID

@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
     alias(libs.plugins.android.library)
     id("com.google.dagger.hilt.android")
-    id("com.google.gms.google-services")
     id("com.google.devtools.ksp")
 }
 

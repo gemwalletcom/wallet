@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct ReceiveScene: View {
     @State private var model: ReceiveViewModel
@@ -29,7 +29,7 @@ public struct ReceiveScene: View {
                                 }
                             }
                             .frame(size: model.qrSize)
-                            
+
                             Text(model.address.preventingHyphenation)
                                 .multilineTextAlignment(.center)
                                 .textStyle(TextStyle(font: .subheadline, color: Colors.secondaryText, fontWeight: .medium))
@@ -43,7 +43,7 @@ public struct ReceiveScene: View {
                     .background(
                         RoundedRectangle(cornerRadius: .medium)
                             .fill(Colors.listStyleColor)
-                            .shadow(color: Color.black.opacity(.opacity25), radius: Sizing.shadow.radius, x: .zero, y: Sizing.shadow.yOffset)
+                            .shadow(color: Color.black.opacity(.opacity25), radius: Sizing.shadow.radius, x: .zero, y: Sizing.shadow.yOffset),
                     )
                 }
                 Text(.init(model.warningMessage))
@@ -58,7 +58,7 @@ public struct ReceiveScene: View {
             StateButton(
                 text: model.copyTitle,
                 image: Images.System.copy,
-                action: model.onCopyAddress
+                action: model.onCopyAddress,
             )
             .frame(maxWidth: .scene.button.maxWidth)
         }
@@ -78,7 +78,7 @@ public struct ReceiveScene: View {
         }
         .copyToast(
             model: model.copyModel,
-            isPresenting: $model.isPresentingCopyToast
+            isPresenting: $model.isPresentingCopyToast,
         )
         .task {
             await model.onLoadImage()

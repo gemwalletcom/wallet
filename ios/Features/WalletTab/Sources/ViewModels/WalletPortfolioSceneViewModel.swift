@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
 import Formatters
+import Foundation
 import Localization
-import PrimitivesComponents
 import PriceService
+import Primitives
+import PrimitivesComponents
 import Store
 
 @Observable
@@ -31,20 +31,20 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
         wallet: Wallet,
         portfolioService: PortfolioService,
         priceService: PriceService,
-        currencyCode: String
+        currencyCode: String,
     ) {
-        self.service = portfolioService
+        service = portfolioService
         self.priceService = priceService
         self.wallet = wallet
 
-        self.assetsQuery = ObservableQuery(
+        assetsQuery = ObservableQuery(
             AssetsRequest(walletId: wallet.walletId, filters: [.enabledBalance, .hasBalance]),
-            initialValue: []
+            initialValue: [],
         )
         self.currencyCode = currencyCode
-        self.currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
-        self.priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
-        self.percentFormatter = CurrencyFormatter(type: .percent, currencyCode: currencyCode)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
+        priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
+        percentFormatter = CurrencyFormatter(type: .percent, currencyCode: currencyCode)
     }
 
     var navigationTitle: String { Localized.Wallet.Portfolio.title }
@@ -53,23 +53,23 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
     public var periods: [ChartPeriod] { [.day, .week, .month, .year, .all] }
     public var chartState: StateViewType<ChartValuesViewModel> {
         guard assets.isNotEmpty else { return .noData }
-        return state.map { $0.chart }
+        return state.map(\.chart)
     }
 
     var allTimeValues: [ListItemModel] {
-        guard case .data(let data) = state else { return [] }
+        guard case let .data(data) = state else { return [] }
         let allTime = AllTimeValueViewModel(priceFormatter: priceFormatter, percentFormatter: percentFormatter)
         return [
             data.portfolio.allTimeHigh.map { allTime.allTimeHigh(chartValue: $0) },
             data.portfolio.allTimeLow.map { allTime.allTimeLow(chartValue: $0) },
-        ].compactMap { $0 }
+        ].compactMap(\.self)
     }
 }
 
 // MARK: - Business Logic
 
-extension WalletPortfolioSceneViewModel {
-    public func fetch() async {
+public extension WalletPortfolioSceneViewModel {
+    func fetch() async {
         state = .loading
         do {
             let rate = try priceService.getRate(currency: currencyCode)

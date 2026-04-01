@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import PrimitivesComponents
+import Testing
 
 struct AssetScoreViewModelTests {
-
     @Test
-    func testWarning() {
+    func warning() {
         #expect(!AssetScoreTypeViewModel(score: 0).hasWarning)
         #expect(!AssetScoreTypeViewModel(score: 5).hasWarning)
         #expect(AssetScoreTypeViewModel(score: 6).hasWarning)
@@ -20,7 +19,7 @@ struct AssetScoreViewModelTests {
         #expect(AssetScoreTypeViewModel(score: 10).status == "Unverified")
         #expect(AssetScoreTypeViewModel(score: 20).status.isEmpty)
     }
-    
+
     @Test
     func testShouldShowBanner() {
         #expect(AssetScoreTypeViewModel(score: 0).shouldShowBanner)

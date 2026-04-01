@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import BalanceServiceTestKit
+import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
-import PreferencesTestKit
-import BalanceServiceTestKit
 import StoreTestKit
+import Testing
 import WalletTabTestKit
 
-@testable import WalletTab
 @testable import Store
+@testable import WalletTab
 
 @MainActor
 struct WalletSearchSceneViewModelTests {
-
     @Test
     func recentActivityTypes() {
         #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).recentsQuery.request.types == RecentActivityType.allCases)
@@ -32,10 +31,10 @@ struct WalletSearchSceneViewModelTests {
     func hasMoreAssets() {
         let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
 
-        model.searchQuery.value = WalletSearchResult(assets: (0..<12).map { _ in .mock() }, perpetuals: [])
+        model.searchQuery.value = WalletSearchResult(assets: (0 ..< 12).map { _ in .mock() }, perpetuals: [])
         #expect(model.hasMoreAssets == false)
 
-        model.searchQuery.value = WalletSearchResult(assets: (0..<13).map { _ in .mock() }, perpetuals: [])
+        model.searchQuery.value = WalletSearchResult(assets: (0 ..< 13).map { _ in .mock() }, perpetuals: [])
         #expect(model.hasMoreAssets == true)
     }
 
@@ -43,10 +42,10 @@ struct WalletSearchSceneViewModelTests {
     func hasMorePerpetuals() {
         let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
 
-        model.searchQuery.value = WalletSearchResult(assets: [], perpetuals: (0..<3).map { _ in .mock() })
+        model.searchQuery.value = WalletSearchResult(assets: [], perpetuals: (0 ..< 3).map { _ in .mock() })
         #expect(model.hasMorePerpetuals == false)
 
-        model.searchQuery.value = WalletSearchResult(assets: [], perpetuals: (0..<4).map { _ in .mock() })
+        model.searchQuery.value = WalletSearchResult(assets: [], perpetuals: (0 ..< 4).map { _ in .mock() })
         #expect(model.hasMorePerpetuals == true)
     }
 
@@ -56,7 +55,7 @@ struct WalletSearchSceneViewModelTests {
         let enabledAssetIds: [AssetId] = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(
                 assetsEnabler: .mock(onEnableAssets: { _, assetIds, _ in continuation.resume(returning: assetIds) }),
-                balanceService: .mock(balanceStore: .mock(db: db))
+                balanceService: .mock(balanceStore: .mock(db: db)),
             )
             model.onSelectPinAsset(.mock(metadata: .mock(isBalanceEnabled: false, isPinned: false)), value: true)
         }

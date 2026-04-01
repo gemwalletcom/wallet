@@ -11,7 +11,7 @@ struct WalletTransactionInfo: FetchableRecord, Decodable {
     var transactionWallet: TransactionWallet {
         TransactionWallet(
             transaction: transaction.mapToTransaction(),
-            wallet: wallet.mapToWallet()
+            wallet: wallet.mapToWallet(),
         )
     }
 }

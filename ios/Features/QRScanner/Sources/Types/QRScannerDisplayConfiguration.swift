@@ -21,7 +21,7 @@ struct QRScannerDisplayConfiguration {
         cornerLength: CGFloat,
         lineWidth: CGFloat,
         overlayColor: Color,
-        bracketColor: Color
+        bracketColor: Color,
     ) {
         self.dimmedViewOpacity = dimmedViewOpacity
         self.squareScale = squareScale
@@ -41,6 +41,6 @@ extension QRScannerDisplayConfiguration {
         cornerLength: 25,
         lineWidth: 4,
         overlayColor: .black,
-        bracketColor: .white
+        bracketColor: .white,
     )
 }

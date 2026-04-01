@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Components
-import Store
-import PrimitivesComponents
-import Localization
 import InfoSheet
+import Localization
+import Primitives
+import PrimitivesComponents
+import Store
+import SwiftUI
 
 public struct ChartScene: View {
     @State private var model: ChartSceneViewModel
@@ -23,15 +23,15 @@ public struct ChartScene: View {
                     label: {
                         ListItemView(
                             title: model.priceAlertsViewModel.priceAlertsTitle,
-                            subtitle: model.priceAlertsViewModel.priceAlertCount
+                            subtitle: model.priceAlertsViewModel.priceAlertCount,
                         )
-                    }
+                    },
                 )
             } else if model.isPriceAvailable {
                 NavigationCustomLink(
                     with: ListItemView(
-                        title: model.priceAlertsViewModel.setPriceAlertTitle
-                    )
+                        title: model.priceAlertsViewModel.setPriceAlertTitle,
+                    ),
                 ) {
                     model.onSelectSetPriceAlerts()
                 }
@@ -60,12 +60,12 @@ public struct ChartScene: View {
         Section {
             ForEach(items, id: \.title) { item in
                 switch item.action {
-                case .explorer(let explorerContext):
+                case let .explorer(explorerContext):
                     SafariNavigationLink(url: explorerContext.explorerLink.url) {
                         ListItemView(title: item.title, subtitle: item.subtitle)
                     }
                     .explorerContext(explorerContext)
-                case .info(let type):
+                case let .info(type):
                     marketItemView(item, infoAction: { model.onSelectInfoSheet(type) })
                 case .none:
                     marketItemView(item)
@@ -83,7 +83,7 @@ public struct ChartScene: View {
             subtitle: item.subtitle,
             subtitleExtra: item.subtitleExtra,
             subtitleStyleExtra: item.subtitleExtraStyle ?? .calloutSecondary,
-            infoAction: infoAction
+            infoAction: infoAction,
         )
     }
 }

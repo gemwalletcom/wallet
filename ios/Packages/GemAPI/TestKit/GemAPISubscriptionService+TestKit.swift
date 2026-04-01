@@ -14,7 +14,7 @@ public actor GemAPISubscriptionServiceMock: GemAPISubscriptionService {
     public init(
         delay: Duration? = nil,
         subscriptions: [WalletSubscriptionChains] = [],
-        getSubscriptionsError: Error? = nil
+        getSubscriptionsError: Error? = nil,
     ) {
         self.delay = delay
         self.subscriptions = subscriptions
@@ -32,7 +32,7 @@ public actor GemAPISubscriptionServiceMock: GemAPISubscriptionService {
         return subscriptions
     }
 
-    public func addSubscriptions(subscriptions: [WalletSubscription]) async throws {}
+    public func addSubscriptions(subscriptions _: [WalletSubscription]) async throws {}
 
-    public func deleteSubscriptions(subscriptions: [WalletSubscriptionChains]) async throws {}
+    public func deleteSubscriptions(subscriptions _: [WalletSubscriptionChains]) async throws {}
 }

@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import PrimitivesComponents
 import Style
+import SwiftUI
 
 public struct ContactsScene: View {
-
     let model: ContactsViewModel
 
     public init(model: ContactsViewModel) {

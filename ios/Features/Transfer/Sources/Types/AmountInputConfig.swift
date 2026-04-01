@@ -19,7 +19,7 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     var keyboardType: UIKeyboardType {
         switch sceneType {
         case .transfer, .deposit, .withdraw, .perpetual, .freeze, .unfreeze, .earn: .decimalPad
-        case .stake(let stakeType):
+        case let .stake(stakeType):
             switch stakeType {
             case .stake, .unstake: asset.chain == .tron ? .numberPad : .decimalPad
             case .redelegate, .withdraw: .decimalPad
@@ -44,9 +44,9 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     var actionStyle: CurrencyInputActionStyle? {
         switch sceneType {
         case .transfer: CurrencyInputActionStyle(
-            position: .secondary,
-            image: Images.Actions.swap.renderingMode(.template)
-        )
+                position: .secondary,
+                image: Images.Actions.swap.renderingMode(.template),
+            )
         case .deposit, .withdraw, .perpetual, .stake, .freeze, .unfreeze, .earn: nil
         }
     }

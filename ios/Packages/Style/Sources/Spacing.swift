@@ -42,14 +42,14 @@ public extension Spacing {
     static let extraLarge: CGFloat = space32
 
     static func spacingOr(condition: Bool, value: Spacing, opposite: Spacing = .zero) -> Spacing {
-        return condition ? value : opposite
+        condition ? value : opposite
     }
 
     var edgeInsets: EdgeInsets {
         EdgeInsets(top: self, leading: self, bottom: self, trailing: self)
     }
 
-    struct scene {
+    enum scene {
         /// 16
         public static let top: CGFloat = space16
         /// 8
@@ -57,7 +57,7 @@ public extension Spacing {
         /// 72
         public static let bannerHeight: CGFloat = 72
 
-        public struct button {
+        public enum button {
             /// 340
             public static let maxWidth: CGFloat = 340
             /// 44
@@ -66,7 +66,7 @@ public extension Spacing {
             public static let height: CGFloat = 50
         }
 
-        public struct content {
+        public enum content {
             /// 360
             public static let maxWidth: CGFloat = 360
         }
@@ -74,11 +74,12 @@ public extension Spacing {
 }
 
 public extension Sizing {
-    struct button {
+    enum button {
         public static let paddingHorizontal: CGFloat = .space12
         public static let paddingVertical: CGFloat = .space12
     }
-    struct image {
+
+    enum image {
         /// 10
         public static let tiny: CGFloat = 10
         /// 22
@@ -100,14 +101,14 @@ public extension Sizing {
         public static let asset: CGFloat = 44
         /// 44
         public static let app: CGFloat = Self.asset
-        
-        public struct overlayImage {
+
+        public enum overlayImage {
             /// 16
             public static let chain: CGFloat = 16
         }
     }
 
-    struct list {
+    enum list {
         /// 100
         public static let minHeight: CGFloat = 100
         /// 16
@@ -117,23 +118,23 @@ public extension Sizing {
         /// 28
         public static let settings: CGFloat = 28
 
-        public struct selected {
+        public enum selected {
             /// 20
             public static let image: CGFloat = 20
         }
 
-        public struct assets {
+        public enum assets {
             public static let height: CGFloat = Sizing.image.asset
             /// 40
             public static let widget: CGFloat = 40
         }
 
-        public struct transactions {
+        public enum transactions {
             public static let height: CGFloat = Sizing.image.asset
         }
     }
 
-    struct shadow {
+    enum shadow {
         public static let radius: CGFloat = 10
         public static let yOffset: CGFloat = 5
     }

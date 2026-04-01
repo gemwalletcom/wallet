@@ -19,12 +19,12 @@ public struct WalletService: Sendable {
         keystore: any Keystore,
         walletStore: WalletStore,
         preferences: ObservablePreferences,
-        avatarService: AvatarService
+        avatarService: AvatarService,
     ) {
         self.keystore = keystore
         self.walletStore = walletStore
         self.avatarService = avatarService
-        self.walletSessionService = WalletSessionService(walletStore: walletStore, preferences: preferences)
+        walletSessionService = WalletSessionService(walletStore: walletStore, preferences: preferences)
         self.preferences = preferences
     }
 
@@ -80,7 +80,7 @@ public struct WalletService: Sendable {
             name: name,
             type: type,
             isWalletsEmpty: wallets.isEmpty,
-            source: source
+            source: source,
         )
         try walletStore.addWallet(wallet)
         preferences.invalidateSubscriptions()

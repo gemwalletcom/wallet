@@ -6,15 +6,17 @@ let package = Package(
     name: "Stake",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Stake",
-            targets: ["Stake"]),
+            targets: ["Stake"],
+        ),
         .library(
             name: "StakeTestKit",
-            targets: ["StakeTestKit"]),
+            targets: ["StakeTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -48,7 +50,7 @@ let package = Package(
                 "Formatters",
                 "Style",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "StakeTestKit",
@@ -57,7 +59,7 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StakeServiceTestKit", package: "ChainServices"),
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "StakeTests",
@@ -65,9 +67,9 @@ let package = Package(
                 "StakeTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StakeServiceTestKit", package: "ChainServices"),
-                "Stake"
+                "Stake",
             ],
-            path: "Tests"
+            path: "Tests",
         ),
-    ]
+    ],
 )

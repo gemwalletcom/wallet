@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Foundation
+import Localization
 import NFTService
 import Primitives
-import Store
-import Localization
-import SwiftUI
 import PrimitivesComponents
+import Store
+import SwiftUI
 import WalletService
 
 @Observable
@@ -26,12 +26,12 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     public init(
         nftService: NFTService,
         walletService: WalletService,
-        wallet: Wallet
+        wallet: Wallet,
     ) {
         self.nftService = nftService
         self.walletService = walletService
         self.wallet = wallet
-        self.query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .all), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .all), initialValue: [])
     }
 
     public var title: String { Localized.Nft.collections }
@@ -43,7 +43,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     public var content: CollectionsContent {
         CollectionsContent(
             items: verifiedItems,
-            unverifiedCount: unverifiedCount
+            unverifiedCount: unverifiedCount,
         )
     }
 

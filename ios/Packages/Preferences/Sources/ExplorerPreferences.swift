@@ -5,7 +5,7 @@ import Primitives
 
 public struct ExplorerPreferences: Sendable {
     private let preferences: Preferences
-    
+
     public init(preferences: Preferences = .standard) {
         self.preferences = preferences
     }

@@ -3,22 +3,22 @@
 import Foundation
 import SwiftUI
 
-extension View {
+public extension View {
     @MainActor
-    public func presentationDetentsForCurrentDeviceSize(expandable: Bool = false) -> some View {
+    func presentationDetentsForCurrentDeviceSize(expandable: Bool = false) -> some View {
         switch DeviceSize.current {
         case .small:
-            return self.presentationDetents([.large])
+            return presentationDetents([.large])
         case .medium, .large:
             if expandable {
-                return self.presentationDetents([.medium, .large])
+                return presentationDetents([.medium, .large])
             }
-            return self.presentationDetents([.medium])
+            return presentationDetents([.medium])
         }
     }
-    
+
     @ViewBuilder
-    public func enabled(_ value: Bool) -> some View {
-        self.disabled(!value)
+    func enabled(_ value: Bool) -> some View {
+        disabled(!value)
     }
 }

@@ -3,8 +3,8 @@
 import Foundation
 import Primitives
 
-extension AssetMarket {
-    public static func mock(
+public extension AssetMarket {
+    static func mock(
         marketCap: Double? = 1_000_000,
         marketCapFdv: Double? = 2_000_000,
         marketCapRank: Int32? = 1,
@@ -13,7 +13,7 @@ extension AssetMarket {
         totalSupply: Double? = 200_000,
         maxSupply: Double? = 300_000,
         allTimeHighValue: ChartValuePercentage? = ChartValuePercentage(date: .now, value: 100, percentage: -10),
-        allTimeLowValue: ChartValuePercentage? = ChartValuePercentage(date: .now, value: 1, percentage: 100)
+        allTimeLowValue: ChartValuePercentage? = ChartValuePercentage(date: .now, value: 1, percentage: 100),
     ) -> AssetMarket {
         AssetMarket(
             marketCap: marketCap,
@@ -24,7 +24,7 @@ extension AssetMarket {
             totalSupply: totalSupply,
             maxSupply: maxSupply,
             allTimeHighValue: allTimeHighValue,
-            allTimeLowValue: allTimeLowValue
+            allTimeLowValue: allTimeLowValue,
         )
     }
 }

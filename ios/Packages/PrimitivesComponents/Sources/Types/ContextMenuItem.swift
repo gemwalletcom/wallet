@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ContextMenuItem: View {
     private let title: String
@@ -15,7 +15,7 @@ public struct ContextMenuItem: View {
         systemImage: String? = nil,
         role: ButtonRole? = nil,
         defaultColor: Color = Colors.black,
-        action: @escaping () -> Void
+        action: @escaping () -> Void,
     ) {
         self.title = title
         self.systemImage = systemImage

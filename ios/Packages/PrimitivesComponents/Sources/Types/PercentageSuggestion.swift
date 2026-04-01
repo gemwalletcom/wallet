@@ -10,7 +10,7 @@ public struct PercentageSuggestion: SuggestionViewable {
     public var inputValue: String { String(value) }
 
     public init(value: Int) {
-        self.id = value
+        id = value
         self.value = value
     }
 }

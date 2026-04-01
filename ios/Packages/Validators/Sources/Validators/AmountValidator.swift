@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
-import Primitives
 import Formatters
+import Foundation
+import Primitives
 
 public struct AmountValidator: FormattedValidator {
     public enum Source: Sendable {
@@ -23,7 +23,7 @@ public struct AmountValidator: FormattedValidator {
         formatter: ValueFormatter,
         decimals: Int,
         source: Source,
-        validators: [any ValueValidator<BigInt>]
+        validators: [any ValueValidator<BigInt>],
     ) {
         self.formatter = formatter
         self.decimals = decimals
@@ -39,47 +39,47 @@ public struct AmountValidator: FormattedValidator {
         switch source {
         case .asset:
             canonical = text
-        case .fiat(let price, let converter):
+        case let .fiat(price, converter):
             guard let price else { throw TransferError.invalidAmount }
             canonical = (try? converter.convertToAmount(
                 fiatValue: text,
                 price: price,
-                decimals: decimals
+                decimals: decimals,
             )).or(.zero)
         }
 
         return try formatter.inputNumber(
             from: canonical,
-            decimals: decimals
+            decimals: decimals,
         )
     }
 }
 
 public extension TextValidator where Self == AmountValidator {
     static func amount(
-         source: AmountValidator.Source,
-         formatter: ValueFormatter = .init(style: .full),
-         decimals: Int,
-         validators: [any ValueValidator<BigInt>]
-     ) -> Self {
-         .init(
-             formatter: formatter,
-             decimals: decimals,
-             source: source,
-             validators: validators
-         )
-     }
-    
+        source: AmountValidator.Source,
+        formatter: ValueFormatter = .init(style: .full),
+        decimals: Int,
+        validators: [any ValueValidator<BigInt>],
+    ) -> Self {
+        .init(
+            formatter: formatter,
+            decimals: decimals,
+            source: source,
+            validators: validators,
+        )
+    }
+
     static func assetAmount(
         formatter: ValueFormatter = .init(style: .full),
         decimals: Int,
-        validators: [any ValueValidator<BigInt>]
+        validators: [any ValueValidator<BigInt>],
     ) -> Self {
         .init(
             formatter: formatter,
             decimals: decimals,
             source: .asset,
-            validators: validators
+            validators: validators,
         )
     }
 
@@ -88,13 +88,13 @@ public extension TextValidator where Self == AmountValidator {
         converter: ValueConverter = .init(),
         price: AssetPrice?,
         decimals: Int,
-        validators: [any ValueValidator<BigInt>]
+        validators: [any ValueValidator<BigInt>],
     ) -> Self {
         .init(
             formatter: formatter,
             decimals: decimals,
             source: .fiat(price: price, converter: converter),
-            validators: validators
+            validators: validators,
         )
     }
 }

@@ -7,7 +7,7 @@ let package = Package(
     products: [
         .library(
             name: "GemstonePrimitives",
-            targets: ["GemstonePrimitives"]
+            targets: ["GemstonePrimitives"],
         ),
     ],
     dependencies: [
@@ -21,14 +21,14 @@ let package = Package(
                 "Gemstone",
                 "Primitives",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "GemstonePrimitivesTests",
             dependencies: [
                 "GemstonePrimitives",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-            ]
+            ],
         ),
-    ]
+    ],
 )

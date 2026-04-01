@@ -1,13 +1,12 @@
 import SwiftUI
 
 public extension View {
-    func numericTransition<V: Equatable>(for value: V) -> some View {
-        self.numericTransition(for: [value])
+    func numericTransition(for value: some Equatable) -> some View {
+        numericTransition(for: [value])
     }
-    
-    func numericTransition<V: Equatable>(for values: [V]) -> some View {
-        self
-            .contentTransition(.numericText(countsDown: true))
+
+    func numericTransition(for values: [some Equatable]) -> some View {
+        contentTransition(.numericText(countsDown: true))
             .animation(.default, value: values)
     }
 }

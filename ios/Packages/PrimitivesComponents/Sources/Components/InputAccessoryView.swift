@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Style
+import SwiftUI
 
 public struct InputAccessoryView<Item: SuggestionViewable>: View {
     private let isEditing: Bool
@@ -16,7 +16,7 @@ public struct InputAccessoryView<Item: SuggestionViewable>: View {
         suggestions: [Item],
         onSelect: @escaping (Item) -> Void,
         onDone: @escaping () -> Void,
-        button: StateButton
+        button: StateButton,
     ) {
         self.isEditing = isEditing
         self.suggestions = suggestions
@@ -30,7 +30,7 @@ public struct InputAccessoryView<Item: SuggestionViewable>: View {
             SuggestionsAccessoryView(
                 suggestions: suggestions,
                 onSelect: onSelect,
-                onDone: onDone
+                onDone: onDone,
             )
             .padding(.small)
         } else {

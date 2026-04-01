@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
-import Stake
 import PrimitivesTestKit
+import Stake
+import Testing
 
 struct ValidatorViewModelTests {
-
     @Test func aprText() {
         let model = ValidatorViewModel(validator: .mock(apr: 2.15))
 

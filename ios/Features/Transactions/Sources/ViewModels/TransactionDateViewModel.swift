@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import PrimitivesComponents
-import Localization
 import Components
+import Foundation
+import Localization
+import PrimitivesComponents
 
 struct TransactionDateViewModel: Sendable {
     private let date: Date
@@ -20,8 +20,8 @@ extension TransactionDateViewModel: ItemModelProvidable {
         .listItem(
             .text(
                 title: Localized.Transaction.date,
-                subtitle: formattedDate
-            )
+                subtitle: formattedDate,
+            ),
         )
     }
 }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 
 struct SwapMetadataViewModel: Sendable {
     let metadata: TransactionExtendedMetadata
@@ -15,7 +15,8 @@ struct SwapMetadataViewModel: Sendable {
         guard
             let swapMetadata = metadata.swapMetadata,
             let fromAsset = metadata.asset(for: swapMetadata.fromAsset),
-            let toAsset = metadata.asset(for: swapMetadata.toAsset) else {
+            let toAsset = metadata.asset(for: swapMetadata.toAsset)
+        else {
             return .none
         }
 
@@ -23,13 +24,13 @@ struct SwapMetadataViewModel: Sendable {
             from: AssetValuePrice(
                 asset: fromAsset,
                 value: BigInt.fromString(swapMetadata.fromValue),
-                price: metadata.price(for: swapMetadata.fromAsset)
+                price: metadata.price(for: swapMetadata.fromAsset),
             ),
             to: AssetValuePrice(
                 asset: toAsset,
                 value: BigInt.fromString(swapMetadata.toValue),
-                price: metadata.price(for: swapMetadata.toAsset)
-            )
+                price: metadata.price(for: swapMetadata.toAsset),
+            ),
         )
     }
 }

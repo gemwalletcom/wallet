@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import Style
-import GemstonePrimitives
 import QRScanner
+import Style
+import SwiftUI
 
 public struct ManageContactAddressScene: View {
-
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: ManageContactAddressViewModel
@@ -51,7 +50,7 @@ public struct ManageContactAddressScene: View {
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
             ChainSelectorView(
                 chain: model.chain,
-                onSelectChain: model.onSelectChain
+                onSelectChain: model.onSelectChain,
             )
         }
     }
@@ -72,7 +71,7 @@ extension ManageContactAddressScene {
         Section {
             AddressInputView(
                 model: $model.addressInputModel,
-                onSelectScan: model.onSelectScan
+                onSelectScan: model.onSelectScan,
             )
             .focused($focusedField, equals: .address)
         }
@@ -83,7 +82,7 @@ extension ManageContactAddressScene {
             FloatTextField(
                 model.memoTitle,
                 text: $model.memo,
-                allowClean: true
+                allowClean: true,
             )
             .focused($focusedField, equals: .memo)
             .textInputAutocapitalization(.never)

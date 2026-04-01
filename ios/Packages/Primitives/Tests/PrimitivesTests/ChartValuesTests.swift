@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Foundation
-import PrimitivesTestKit
 @testable import Primitives
+import PrimitivesTestKit
+import Testing
 
 struct ChartValuesTests {
-
     @Test
     func chartValues() throws {
         let values = ChartValues.mock(values: [100, 150, 80, 120])

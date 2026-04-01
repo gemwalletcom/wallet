@@ -9,7 +9,7 @@ public struct StateButtonStyle: ButtonStyle {
 
     public init(_ variant: ButtonType, palettee: ButtonStylePalette) {
         self.variant = variant
-        self.palette = palettee
+        palette = palettee
     }
 
     public func makeBody(configuration: Configuration) -> some View {
@@ -29,7 +29,7 @@ public struct StateButtonStyle: ButtonStyle {
             }
         }
     }
-    
+
     @ViewBuilder
     private func adoptiveShape(configuration: Configuration) -> some View {
         if #available(iOS 26, *) {
@@ -47,7 +47,7 @@ public struct StateButtonStyle: ButtonStyle {
     private func background(configuration: Configuration) -> Color {
         switch variant.state {
         case .normal: configuration.isPressed ? palette.backgroundPressed : palette.background
-        case .loading(let show): show ? palette.background : palette.backgroundDisabled
+        case let .loading(show): show ? palette.background : palette.backgroundDisabled
         case .disabled: palette.backgroundDisabled
         }
     }
@@ -55,7 +55,7 @@ public struct StateButtonStyle: ButtonStyle {
     private func foreground(configuration: Configuration) -> Color {
         switch variant.state {
         case .normal: configuration.isPressed ? palette.foregroundPressed : palette.foreground
-        case .loading(let show): show ? palette.foreground : palette.foreground.opacity(.semi)
+        case let .loading(show): show ? palette.foreground : palette.foreground.opacity(.semi)
         case .disabled: palette.foreground
         }
     }
@@ -63,14 +63,14 @@ public struct StateButtonStyle: ButtonStyle {
 
 // MARK: - ButtonStyle Static
 
-extension ButtonStyle where Self == StateButtonStyle {
-    public static func primary(_ state: ButtonState = .normal) -> Self {
+public extension ButtonStyle where Self == StateButtonStyle {
+    static func primary(_ state: ButtonState = .normal) -> Self {
         .init(.primary(state), palettee: .primary)
     }
 
-    public static func variant(_ variant: ButtonType) -> Self {
+    static func variant(_ variant: ButtonType) -> Self {
         switch variant {
-        case .primary(let state): .primary(state)
+        case let .primary(state): .primary(state)
         }
     }
 }
@@ -80,11 +80,11 @@ extension ButtonStyle where Self == StateButtonStyle {
 #Preview {
     List {
         Section("Helpers .primary") {
-            Button("Primary · normal")  { }
+            Button("Primary · normal") {}
                 .buttonStyle(.primary())
-            Button("Primary · loading") { }
+            Button("Primary · loading") {}
                 .buttonStyle(.primary(.loading()))
-            Button("Primary · disabled"){ }
+            Button("Primary · disabled") {}
                 .buttonStyle(.primary(.disabled))
         }
     }

@@ -3,13 +3,12 @@
 import Foundation
 import SwiftUI
 
-extension Color {
-
-    public var uiColor: UIColor {
-        return UIColor(self)
+public extension Color {
+    var uiColor: UIColor {
+        UIColor(self)
     }
 
-    public init(hex: String) {
+    init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
@@ -29,12 +28,12 @@ extension Color {
             .sRGB,
             red: Double(r) / 255,
             green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255,
         )
     }
 
-    static func dynamicColor(_ light: String, dark: String? = .none) -> Color {
+    internal static func dynamicColor(_ light: String, dark: String? = .none) -> Color {
         let lightColor = Color(hex: light)
         let darkColor = dark.map { Color(hex: $0) }
         return UIColor.dynamicColor(lightColor, dark: darkColor)

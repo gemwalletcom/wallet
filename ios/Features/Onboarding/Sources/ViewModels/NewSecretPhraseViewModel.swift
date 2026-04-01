@@ -1,16 +1,15 @@
-import Foundation
-import WalletService
-import Primitives
-import SwiftUI
-import Localization
-import PrimitivesComponents
-import Formatters
 import Components
+import Formatters
+import Foundation
+import Localization
+import Primitives
+import PrimitivesComponents
 import Style
+import SwiftUI
+import WalletService
 
 struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
-
-    private let onCreateWallet: (([String]) -> Void)
+    private let onCreateWallet: ([String]) -> Void
     let words: [String]
 
     var calloutViewStyle: CalloutViewStyle? {
@@ -23,11 +22,11 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
 
     init(
         walletService: WalletService,
-        onCreateWallet: @escaping (([String]) -> Void)
+        onCreateWallet: @escaping (([String]) -> Void),
     ) {
         self.onCreateWallet = onCreateWallet
         do {
-            self.words = try walletService.createWallet()
+            words = try walletService.createWallet()
         } catch {
             fatalError("Unable to create wallet")
         }
@@ -39,7 +38,7 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     var copyModel: CopyTypeViewModel {
         CopyTypeViewModel(
             type: .secretPhrase,
-            copyValue: MnemonicFormatter.fromArray(words: words)
+            copyValue: MnemonicFormatter.fromArray(words: words),
         )
     }
 }

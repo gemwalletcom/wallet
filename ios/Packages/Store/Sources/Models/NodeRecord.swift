@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct NodeRecord: Codable, FetchableRecord, PersistableRecord  {
+struct NodeRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "nodes"
-    
+
     enum Columns {
         static let id = Column("id")
         static let url = Column("url")
@@ -24,7 +24,7 @@ struct NodeRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension NodeRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.autoIncrementedPrimaryKey(Columns.id.name)
             $0.column(Columns.url.name, .text)
                 .unique()
@@ -40,28 +40,28 @@ extension NodeRecord: CreateTable {
 
 extension NodeRecord {
     func mapToChainNode() -> ChainNode {
-        return ChainNode(
+        ChainNode(
             chain: chain.rawValue,
-            node: mapToNode()
+            node: mapToNode(),
         )
     }
-    
+
     func mapToNode() -> Node {
-        return Node(
+        Node(
             url: url,
             status: NodeState(rawValue: status) ?? .inactive,
-            priority: priority.asInt32
+            priority: priority.asInt32,
         )
     }
 }
 
 extension Node {
     func mapToRecord(chain: Chain) -> NodeRecord {
-        return NodeRecord(
+        NodeRecord(
             url: url,
             chain: chain,
             status: status.rawValue,
-            priority: Int(priority)
+            priority: Int(priority),
         )
     }
 }

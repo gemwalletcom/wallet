@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Keystore
 import Foundation
+import Keystore
 import LocalAuthentication
+import Testing
 
 @testable import LockManager
 
 @MainActor
 struct LockSceneViewModelTests {
     @Test
-    func testInitializationWhenAuthEnabled() {
+    func initializationWhenAuthEnabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         #expect(viewModel.state == .locked)
@@ -21,10 +21,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testInitializationWhenAuthDisabled() {
+    func initializationWhenAuthDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         #expect(viewModel.state == .unlocked)
@@ -34,7 +34,7 @@ struct LockSceneViewModelTests {
     func testUnlockClearsStateAndSetsTimerToFuture() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
@@ -42,18 +42,18 @@ struct LockSceneViewModelTests {
         await viewModel.unlock()
         #expect(viewModel.state == .unlocked)
         #expect(viewModel.shouldShowLockScreen == false)
-        #expect(viewModel.lastUnlockTime  == .distantFuture)
+        #expect(viewModel.lastUnlockTime == .distantFuture)
         #expect(mockService.didCallAuthenticate)
     }
 
     @Test
-    func testCancelledUnlockStaysOnPlaceholder() async {
+    func cancelledUnlockStaysOnPlaceholder() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         mockService.errorToThrow = BiometryAuthenticationError.cancelled
-        let viewModel  = LockSceneViewModel(service: mockService)
+        let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
 
         await viewModel.unlock()
@@ -63,10 +63,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testUnlockSuccess() async {
+    func unlockSuccess() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         mockService.shouldAuthenticateSucceed = true
         let viewModel = LockSceneViewModel(service: mockService)
@@ -79,10 +79,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testUnlockFailure() async {
+    func unlockFailure() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         mockService.errorToThrow = BiometryAuthenticationError.authenticationFailed
         let viewModel = LockSceneViewModel(service: mockService)
@@ -95,15 +95,15 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testInactiveThenActiveNoGracePeriodLocksImmediately() {
+    func inactiveThenActiveNoGracePeriodLocksImmediately() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
-            lockPeriod: .oneMinute
+            lockPeriod: .oneMinute,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0)   // long ago → shouldLock = true
+        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0) // long ago → shouldLock = true
 
         viewModel.handleSceneChange(to: .inactive)
         viewModel.handleSceneChange(to: .background)
@@ -114,15 +114,15 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testGracePeriodExtendedDuringBackgrounding() {
+    func gracePeriodExtendedDuringBackgrounding() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
-            lockPeriod: .oneMinute
+            lockPeriod: .oneMinute,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = .now + 0.5        // inside grace period
+        viewModel.lastUnlockTime = .now + 0.5 // inside grace period
 
         viewModel.handleSceneChange(to: .background)
 
@@ -132,12 +132,12 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testTogglingAuthOffResetsViewModel() async throws {
+    func togglingAuthOffResetsViewModel() async throws {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
-        let viewModel  = LockSceneViewModel(service: mockService)
+        let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
         viewModel.handleSceneChange(to: .inactive) // showPlaceholderPreview true
 
@@ -149,11 +149,11 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testChangingLockPeriodDoesNotTriggerImmediateLock() throws {
+    func changingLockPeriodDoesNotTriggerImmediateLock() throws {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
-            lockPeriod: .oneMinute
+            lockPeriod: .oneMinute,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
@@ -168,7 +168,7 @@ struct LockSceneViewModelTests {
     func testIsLockedPropertyWhenAuthEnabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
@@ -183,10 +183,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testIsLockedPropertyWhenAuthDisabled() {
+    func isLockedPropertyWhenAuthDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
@@ -204,7 +204,7 @@ struct LockSceneViewModelTests {
     func testShouldShowLockScreen() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
@@ -220,10 +220,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testHandleSceneChangeWhenAutoLockDisabled() {
+    func handleSceneChangeWhenAutoLockDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
@@ -238,10 +238,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testShouldLockWhenAutoLockDisabled() {
+    func shouldLockWhenAutoLockDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0)
@@ -250,10 +250,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testUnlockWhenAutoLockDisabled() async {
+    func unlockWhenAutoLockDisabled() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
@@ -264,11 +264,11 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testRapidSceneChanges() {
+    func rapidSceneChanges() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
-            lockPeriod: .oneMinute
+            lockPeriod: .oneMinute,
         )
 
         let viewModel = LockSceneViewModel(service: mockService)
@@ -284,10 +284,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testUnlockWithUnexpectedError() async {
+    func unlockWithUnexpectedError() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let unexpectedError = NSError(domain: "TestError", code: 999, userInfo: nil)
         mockService.errorToThrow = unexpectedError
@@ -300,10 +300,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testStateTransitionsWithAutoLockDisabled() async {
+    func stateTransitionsWithAutoLockDisabled() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
@@ -316,27 +316,27 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testIsAutoLockEnabledProperty() {
+    func isAutoLockEnabledProperty() {
         let mockServiceEnabled = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModelEnabled = LockSceneViewModel(service: mockServiceEnabled)
         #expect(viewModelEnabled.isAutoLockEnabled)
 
         let mockServiceDisabled = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModelDisabled = LockSceneViewModel(service: mockServiceDisabled)
         #expect(!viewModelDisabled.isAutoLockEnabled)
     }
 
     @Test
-    func testShouldLockPropertyWhenAutoLockEnabled() {
+    func shouldLockPropertyWhenAutoLockEnabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
@@ -348,10 +348,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testShouldLockPropertyWhenAutoLockDisabled() {
+    func shouldLockPropertyWhenAutoLockDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
-            availableAuth: .none
+            availableAuth: .none,
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
@@ -363,10 +363,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testHandleSceneChangeToActiveWhenUnlockedAndShouldLock() {
+    func handleSceneChangeToActiveWhenUnlockedAndShouldLock() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
@@ -382,10 +382,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testHandleSceneChangeWhenStateIsNotUnlocked() {
+    func handleSceneChangeWhenStateIsNotUnlocked() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         let initialStates: [LockSceneState] = [.locked, .unlocking, .lockedCanceled]
@@ -401,10 +401,10 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func testUnlockWithBiometryUnavailableError() async {
+    func unlockWithBiometryUnavailableError() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         mockService.errorToThrow = BiometryAuthenticationError.biometryUnavailable
         let viewModel = LockSceneViewModel(service: mockService)
@@ -419,7 +419,7 @@ struct LockSceneViewModelTests {
     func testResetLockState() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
-            availableAuth: .biometrics
+            availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
@@ -437,7 +437,7 @@ struct LockSceneViewModelTests {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
-            lockPeriod: .oneMinute
+            lockPeriod: .oneMinute,
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
@@ -468,16 +468,16 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
     init(isAuthEnabled: Bool,
          availableAuth: KeystoreAuthentication,
          lockPeriod: LockPeriod = .default,
-         isPrivacyLockEnabled: Bool = false
-    ) {
-        self.isAuthenticationEnabled = isAuthEnabled
-        self.availableAuthentication = availableAuth
+         isPrivacyLockEnabled: Bool = false)
+    {
+        isAuthenticationEnabled = isAuthEnabled
+        availableAuthentication = availableAuth
         self.lockPeriod = lockPeriod
         self.isPrivacyLockEnabled = isPrivacyLockEnabled
         self.lockPeriod = lockPeriod
     }
 
-    func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws {
+    func enableAuthentication(_ enable: Bool, context _: LAContext, reason _: String) async throws {
         isAuthenticationEnabled = enable
         if !enable {
             isPrivacyLockEnabled = false
@@ -485,7 +485,7 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
         }
     }
 
-    func authenticate(context: LAContext, reason: String) async throws {
+    func authenticate(context _: LAContext, reason _: String) async throws {
         didCallAuthenticate = true
         if let error = errorToThrow {
             throw error

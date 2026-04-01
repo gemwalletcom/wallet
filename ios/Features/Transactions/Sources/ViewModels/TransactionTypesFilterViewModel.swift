@@ -7,21 +7,20 @@ public struct TransactionTypesFilterViewModel: Equatable {
     public var selectedTypes: [TransactionFilterType]
 
     public init(types: [TransactionType]) {
-        self.allTransactionsTypes = types.map { $0.filterType }.unique().sorted()
-        self.selectedTypes = []
+        allTransactionsTypes = types.map(\.filterType).unique().sorted()
+        selectedTypes = []
     }
-    
+
     public var requestFilters: [TransactionType] {
         selectedTypes.map { TransactionFilterTypeViewModel(type: $0).filters }.reduce([], +)
     }
 
     public var typeModel: TransactionsFilterTypeViewModel {
         TransactionsFilterTypeViewModel(
-            type: TransactionsFilterType(selectedTypes: selectedTypes)
+            type: TransactionsFilterType(selectedTypes: selectedTypes),
         )
     }
 
     public var isAnySelected: Bool { !selectedTypes.isEmpty }
     public var isEmpty: Bool { allTransactionsTypes.isEmpty }
 }
-

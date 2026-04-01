@@ -10,7 +10,7 @@ public final class TransferDataCallback<T: Identifiable & Sendable>: Sendable, I
 
     public init(
         payload: T,
-        delegate: @escaping ConfirmTransferDelegate
+        delegate: @escaping ConfirmTransferDelegate,
     ) {
         self.payload = payload
         self.delegate = delegate

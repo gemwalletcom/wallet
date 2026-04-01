@@ -8,8 +8,8 @@ public enum AssetSelectionType: Hashable {
 
     public var input: SelectAssetInput {
         switch self {
-        case .regular(let input), .recent(let input):
-            return input
+        case let .regular(input), let .recent(input):
+            input
         }
     }
 }

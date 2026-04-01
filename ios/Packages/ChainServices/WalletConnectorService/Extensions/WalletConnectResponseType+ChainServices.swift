@@ -7,9 +7,9 @@ import ReownWalletKit
 extension WalletConnectResponseType {
     func map() -> AnyCodable {
         switch self {
-        case .string(let value):
+        case let .string(value):
             return AnyCodable(value)
-        case .object(let json):
+        case let .object(json):
             guard let obj = try? JSONSerialization.jsonObject(with: json.encodedData()) else {
                 return AnyCodable(json)
             }

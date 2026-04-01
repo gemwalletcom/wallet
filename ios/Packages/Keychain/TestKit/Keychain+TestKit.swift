@@ -6,26 +6,29 @@ import LocalAuthentication
 
 public struct KeychainMock: Keychain {
     public init() {}
-    
-    public func accessibility(_ accessibility: Accessibility, authenticationPolicy: AuthenticationPolicy) -> Keychain {
-        KeychainMock()
-    }
-    public func authenticationContext(_ authenticationContext: LAContext) -> Keychain {
+
+    public func accessibility(_: Accessibility, authenticationPolicy _: AuthenticationPolicy) -> Keychain {
         KeychainMock()
     }
 
-    public func get(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String? {
-        nil
+    public func authenticationContext(_: LAContext) -> Keychain {
+        KeychainMock()
     }
-    public func getString(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> String?{
-        nil
-    }
-    public func getData(_ key: String, ignoringAttributeSynchronizable: Bool) throws -> Data?{
+
+    public func get(_: String, ignoringAttributeSynchronizable _: Bool) throws -> String? {
         nil
     }
 
-    public func set(_ value: String, key: String, ignoringAttributeSynchronizable: Bool) throws {}
-    public func set(_ value: Data, key: String, ignoringAttributeSynchronizable: Bool) throws {}
+    public func getString(_: String, ignoringAttributeSynchronizable _: Bool) throws -> String? {
+        nil
+    }
 
-    public func remove(_ key: String, ignoringAttributeSynchronizable: Bool) throws {}
+    public func getData(_: String, ignoringAttributeSynchronizable _: Bool) throws -> Data? {
+        nil
+    }
+
+    public func set(_: String, key _: String, ignoringAttributeSynchronizable _: Bool) throws {}
+    public func set(_: Data, key _: String, ignoringAttributeSynchronizable _: Bool) throws {}
+
+    public func remove(_: String, ignoringAttributeSynchronizable _: Bool) throws {}
 }

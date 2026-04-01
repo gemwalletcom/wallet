@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import CryptoKit
+import Foundation
 import Primitives
 
 public struct DeviceKeyPair: Sendable {
@@ -19,6 +19,6 @@ public struct DeviceKeyPair: Sendable {
     public init() {
         let privateKey = Curve25519.Signing.PrivateKey()
         self.privateKey = privateKey.rawRepresentation
-        self.publicKey = privateKey.publicKey.rawRepresentation
+        publicKey = privateKey.publicKey.rawRepresentation
     }
 }

@@ -1,28 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import Perpetuals
 import Primitives
 import Store
-import Perpetuals
+import SwiftUI
 
 struct PerpetualsPreviewView: View {
-    
     @State private var viewModel: PerpetualsPreviewViewModel
     private let wallet: Wallet
-    
+
     init(wallet: Wallet) {
         self.wallet = wallet
         _viewModel = State(initialValue: PerpetualsPreviewViewModel(walletId: wallet.walletId))
     }
-    
+
     var body: some View {
         Group {
             if viewModel.hasNoPositions {
                 NavigationLink(value: Scenes.Perpetuals()) {
                     ListItemView(
                         title: "Trade Perpetuals",
-                        subtitle: viewModel.tradePerpetualsSubtitle
+                        subtitle: viewModel.tradePerpetualsSubtitle,
                     )
                 }
             } else {

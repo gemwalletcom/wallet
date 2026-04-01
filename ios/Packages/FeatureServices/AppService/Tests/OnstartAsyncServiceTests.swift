@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import AppServiceTestKit
+import Foundation
 import Primitives
+import Testing
 
 @testable import AppService
 
 struct OnstartAsyncServiceTests {
-
     @Test
     func runEmpty() async {
         let service = OnstartAsyncService.mock()

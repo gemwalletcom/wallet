@@ -1,21 +1,21 @@
+import Components
 import Foundation
-import Primitives
-import SwiftUI
 import Localization
 import Preferences
-import WalletService
-import Components
+import Primitives
 import Store
+import SwiftUI
+import WalletService
 
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-#if DEBUG
-    public static let walletsLimit = 1000
-#else
-    public static let walletsLimit = 100
-#endif
-    
+    #if DEBUG
+        public static let walletsLimit = 1000
+    #else
+        public static let walletsLimit = 100
+    #endif
+
     private let service: WalletService
     private let isPresentingCreateWalletSheet: Binding<Bool>
     private let isPresentingImportWalletSheet: Binding<Bool>
@@ -35,19 +35,19 @@ public final class WalletsSceneViewModel {
         navigationPath: Binding<NavigationPath>,
         walletService: WalletService,
         isPresentingCreateWalletSheet: Binding<Bool>,
-        isPresentingImportWalletSheet: Binding<Bool>
+        isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         self.navigationPath = navigationPath
-        self.service = walletService
-        self.currentWalletId = service.currentWalletId
-        self.isPresentingAlertMessage = nil
-        self.walletDelete = nil
+        service = walletService
+        currentWalletId = service.currentWalletId
+        isPresentingAlertMessage = nil
+        walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
         self.isPresentingImportWalletSheet = isPresentingImportWalletSheet
-        self.pinnedWalletsQuery = ObservableQuery(WalletsRequest(isPinned: true), initialValue: [])
-        self.walletsQuery = ObservableQuery(WalletsRequest(isPinned: false), initialValue: [])
+        pinnedWalletsQuery = ObservableQuery(WalletsRequest(isPinned: true), initialValue: [])
+        walletsQuery = ObservableQuery(WalletsRequest(isPinned: false), initialValue: [])
     }
-    
+
     var title: String {
         Localized.Wallets.title
     }
@@ -121,11 +121,11 @@ extension WalletsSceneViewModel {
             debugLog("WalletsSceneViewModel move error: \(error)")
         }
     }
-    
+
     func onDelete(wallet: Wallet) {
         walletDelete = wallet
     }
-    
+
     func onPin(wallet: Wallet) {
         do {
             try pin(wallet)
@@ -133,7 +133,7 @@ extension WalletsSceneViewModel {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }
     }
-    
+
     func onDeleteConfirmed(wallet: Wallet) async {
         do {
             try await delete(wallet)
@@ -152,7 +152,7 @@ extension WalletsSceneViewModel {
         if wallets.count > WalletsSceneViewModel.walletsLimit {
             isPresentingAlertMessage = AlertMessage(
                 title: Localized.Errors.Wallets.Limit.title,
-                message: Localized.Errors.Wallets.Limit.description(WalletsSceneViewModel.walletsLimit)
+                message: Localized.Errors.Wallets.Limit.description(WalletsSceneViewModel.walletsLimit),
             )
             return false
         }
@@ -167,22 +167,22 @@ extension WalletsSceneViewModel {
             let to = try wallets.getElement(safe: destination)
             try swapOrder(
                 from: from.walletId,
-                to: to.walletId
+                to: to.walletId,
             )
-        } else if source == 0 || wallets.count == destination  { // moving to last position
-            for i in source..<destination-1 {
-                let to = try wallets.getElement(safe: i+1)
+        } else if source == 0 || wallets.count == destination { // moving to last position
+            for i in source ..< destination - 1 {
+                let to = try wallets.getElement(safe: i + 1)
                 try swapOrder(
                     from: from.walletId,
-                    to: to.walletId
+                    to: to.walletId,
                 )
             }
-        } else if source == wallets.count-1 { // moving to the first position
-            for i in stride(from: wallets.count-1, through: destination+1, by: -1) {
-                let to = try wallets.getElement(safe: i-1)
+        } else if source == wallets.count - 1 { // moving to the first position
+            for i in stride(from: wallets.count - 1, through: destination + 1, by: -1) {
+                let to = try wallets.getElement(safe: i - 1)
                 try swapOrder(
                     from: from.walletId,
-                    to: to.walletId
+                    to: to.walletId,
                 )
             }
         }

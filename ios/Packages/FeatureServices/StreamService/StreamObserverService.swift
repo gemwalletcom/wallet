@@ -14,7 +14,7 @@ public actor StreamObserverService: Sendable {
     public init(
         subscriptionService: StreamSubscriptionService,
         eventService: StreamEventService,
-        webSocket: any WebSocketConnectable
+        webSocket: any WebSocketConnectable,
     ) {
         self.subscriptionService = subscriptionService
         self.eventService = eventService
@@ -32,7 +32,7 @@ public actor StreamObserverService: Sendable {
 
         observeTask = Task { [weak self] in
             guard let self else { return }
-            await self.observeConnection()
+            await observeConnection()
         }
     }
 
@@ -53,7 +53,7 @@ public actor StreamObserverService: Sendable {
 
             switch event {
             case .connected: await subscriptionService.resubscribe()
-            case .message(let data): await handleMessage(data)
+            case let .message(data): await handleMessage(data)
             case .disconnected: break
             }
         }

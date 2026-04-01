@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Localization
+import Primitives
 
 struct TransactionFilterTypeViewModel {
     private let type: TransactionFilterType
@@ -21,7 +21,7 @@ struct TransactionFilterTypeViewModel {
         case .others: Localized.Transfer.Other.title
         }
     }
-    
+
     var filters: [TransactionType] {
         switch type {
         case .transfers: [.transfer, .transferNFT]

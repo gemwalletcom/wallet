@@ -12,7 +12,7 @@ public struct ExponentialReconnection: Reconnectable {
 
     public init(
         multiplier: Double = 0.3,
-        maxDelay: TimeInterval = 60
+        maxDelay: TimeInterval = 60,
     ) {
         self.multiplier = multiplier
         self.maxDelay = maxDelay

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
 import Localization
+import Primitives
+import SwiftUI
 
 public struct ExplorerContextModifier: ViewModifier {
     @State private var isPresentingUrl: URL?
@@ -15,7 +15,7 @@ public struct ExplorerContextModifier: ViewModifier {
         content
             .contextMenu([
                 .copy(value: copyValue.rawValue),
-                .url(title: Localized.Transaction.viewOn(explorerLink.name), onOpen: { isPresentingUrl = explorerLink.url })
+                .url(title: Localized.Transaction.viewOn(explorerLink.name), onOpen: { isPresentingUrl = explorerLink.url }),
             ])
             .safariSheet(url: $isPresentingUrl)
     }

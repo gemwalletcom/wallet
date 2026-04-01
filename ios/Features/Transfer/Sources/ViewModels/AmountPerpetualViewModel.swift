@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Foundation
 import Formatters
+import Foundation
 import GemstonePrimitives
 import Localization
-import PerpetualService
 import Perpetuals
+import PerpetualService
 import Preferences
 import Primitives
 import PrimitivesComponents
 import Style
 
-struct AmountPerpetualLimits {
+enum AmountPerpetualLimits {
     static let minDeposit = BigInt(5_000_000)
     static let minWithdraw = BigInt(2_000_000)
 }
@@ -34,8 +34,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     init(asset: Asset, data: PerpetualRecipientData, preferences: Preferences = .standard) {
         self.asset = asset
         self.data = data
-        self.currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
-        (self.leverageSelection, self.leverageTextStyle) = Self.makeLeverageSelection(data: data, preferences: preferences)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
+        (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, preferences: preferences)
     }
 
     var leverageTitle: String { Localized.Perpetual.leverage }
@@ -51,7 +51,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         AutocloseFormatter().format(
             takeProfit: takeProfit.flatMap { currencyFormatter.double(from: $0) },
-            stopLoss: stopLoss.flatMap { currencyFormatter.double(from: $0) }
+            stopLoss: stopLoss.flatMap { currencyFormatter.double(from: $0) },
         )
     }
 
@@ -61,7 +61,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             PerpetualDirectionViewModel(direction: transferData.direction).title
         case .increase:
             PerpetualDirectionViewModel(direction: transferData.direction).increaseTitle
-        case .reduce(_, _, let direction):
+        case let .reduce(_, _, direction):
             PerpetualDirectionViewModel(direction: direction).reduceTitle
         }
     }
@@ -75,20 +75,20 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             PerpetualFormatter(provider: .hypercore).minimumOrderUsdAmount(
                 price: transferData.price,
                 decimals: transferData.asset.decimals,
-                leverage: leverage
-            )
+                leverage: leverage,
+            ),
         )
     }
 
     var canChangeValue: Bool { true }
     var reserveForFee: BigInt { .zero }
 
-    func shouldReserveFee(from assetData: AssetData) -> Bool { false }
+    func shouldReserveFee(from _: AssetData) -> Bool { false }
 
     func availableValue(from assetData: AssetData) -> BigInt {
         switch data.positionAction {
         case .open, .increase: assetData.balance.available
-        case .reduce(_, let available, _): available
+        case let .reduce(_, available, _): available
         }
     }
 
@@ -109,14 +109,14 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
                 .map { formatter.formatPrice($0, decimals: transferData.asset.decimals) },
             stopLoss: stopLoss
                 .flatMap { currencyFormatter.double(from: $0) }
-                .map { formatter.formatPrice($0, decimals: transferData.asset.decimals) }
+                .map { formatter.formatPrice($0, decimals: transferData.asset.decimals) },
         )
 
         return TransferData(
             type: .perpetual(transferData.asset, perpetualType),
             recipientData: data.recipient,
             value: value,
-            canChangeValue: true
+            canChangeValue: true,
         )
     }
 
@@ -130,13 +130,13 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             size: size,
             assetDecimals: transferData.asset.decimals,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
     }
 
     private static func makeLeverageSelection(
         data: PerpetualRecipientData,
-        preferences: Preferences
+        preferences: Preferences,
     ) -> (SelectionState<LeverageOption>?, TextStyle) {
         guard case let .open(openData) = data.positionAction else {
             return (nil, .callout)
@@ -147,14 +147,14 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         let selected = LeverageOption.option(desiredValue: preferences.perpetualLeverage, from: options)
         let textStyle = TextStyle(
             font: .callout,
-            color: PerpetualDirectionViewModel(direction: openData.direction).color
+            color: PerpetualDirectionViewModel(direction: openData.direction).color,
         )
 
         let selection = SelectionState(
             options: options,
             selected: selected,
             isEnabled: true,
-            title: Localized.Perpetual.leverage
+            title: Localized.Perpetual.leverage,
         )
 
         return (selection, textStyle)

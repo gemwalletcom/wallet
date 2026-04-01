@@ -10,20 +10,17 @@ import WalletCore
 internal import GemstonePrimitives
 
 final class PolkadotService: Sendable {
-
-    init() {
-
-    }
+    init() {}
 
     func feePayload(input: TransactionInput) throws -> String {
-        guard case .polkadot(
-            let sequence,
-            let genesisHash,
-            let blockHash,
-            let blockNumber,
-            let specVersion,
-            let transactionVersion,
-            let period
+        guard case let .polkadot(
+            sequence,
+            genesisHash,
+            blockHash,
+            blockNumber,
+            specVersion,
+            transactionVersion,
+            period,
         ) = input.metadata else {
             throw AnyError("")
         }
@@ -58,11 +55,11 @@ final class PolkadotService: Sendable {
 }
 
 extension PolkadotService: GemGatewayEstimateFee {
-    public func getFee(chain: Gemstone.Chain, input: Gemstone.GemTransactionLoadInput) async throws -> Gemstone.GemTransactionLoadFee? {
-        return .none
+    func getFee(chain _: Gemstone.Chain, input _: Gemstone.GemTransactionLoadInput) async throws -> Gemstone.GemTransactionLoadFee? {
+        .none
     }
 
-    public func getFeeData(chain: Gemstone.Chain, input: GemTransactionLoadInput) async throws -> String? {
-        try feePayload(input: try input.map())
+    func getFeeData(chain _: Gemstone.Chain, input: GemTransactionLoadInput) async throws -> String? {
+        try feePayload(input: input.map())
     }
 }

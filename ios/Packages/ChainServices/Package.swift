@@ -6,7 +6,7 @@ let package = Package(
     name: "ChainServices",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(name: "NameService", targets: ["NameService"]),
@@ -39,10 +39,10 @@ let package = Package(
             name: "NameService",
             dependencies: [
                 "Primitives",
-                "GemAPI"
+                "GemAPI",
             ],
             path: "NameService",
-            exclude: ["TestKit"]
+            exclude: ["TestKit"],
         ),
         .target(
             name: "NameServiceTestKit",
@@ -50,7 +50,7 @@ let package = Package(
                 "NameService",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "NameService/TestKit"
+            path: "NameService/TestKit",
         ),
         .target(
             name: "StakeService",
@@ -61,7 +61,7 @@ let package = Package(
                 "ChainService",
             ],
             path: "StakeService",
-            exclude: ["TestKit"]
+            exclude: ["TestKit"],
         ),
         .target(
             name: "StakeServiceTestKit",
@@ -70,9 +70,9 @@ let package = Package(
                 .product(name: "GemAPITestKit", package: "GemAPI"),
                 "ChainServiceTestKit",
                 "Primitives",
-                "StakeService"
+                "StakeService",
             ],
-            path: "StakeService/TestKit"
+            path: "StakeService/TestKit",
         ),
         .target(
             name: "NodeService",
@@ -82,7 +82,7 @@ let package = Package(
                 "ChainService",
             ],
             path: "NodeService",
-            exclude: ["TestKit", "Tests"]
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "NodeServiceTestKit",
@@ -90,7 +90,7 @@ let package = Package(
                 "NodeService",
                 .product(name: "StoreTestKit", package: "Store"),
             ],
-            path: "NodeService/TestKit"
+            path: "NodeService/TestKit",
         ),
         .testTarget(
             name: "NodeServiceTests",
@@ -100,7 +100,7 @@ let package = Package(
                 "Primitives",
                 .product(name: "StoreTestKit", package: "Store"),
             ],
-            path: "NodeService/Tests"
+            path: "NodeService/Tests",
         ),
         .target(
             name: "WalletConnectorService",
@@ -114,7 +114,7 @@ let package = Package(
                 .product(name: "WalletConnectNetworking", package: "reown-swift"),
             ],
             path: "WalletConnectorService",
-            exclude: ["TestKit", "Tests"]
+            exclude: ["TestKit", "Tests"],
         ),
         .target(
             name: "WalletConnectorServiceTestKit",
@@ -122,7 +122,7 @@ let package = Package(
                 "WalletConnectorService",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "WalletConnectorService/TestKit"
+            path: "WalletConnectorService/TestKit",
         ),
         .target(
             name: "ScanService",
@@ -131,7 +131,7 @@ let package = Package(
                 "Blockchain",
             ],
             path: "ScanService",
-            exclude: ["TestKit"]
+            exclude: ["TestKit"],
         ),
         .target(
             name: "ScanServiceTestKit",
@@ -141,17 +141,17 @@ let package = Package(
                 "Blockchain",
                 "NativeProviderService",
             ],
-            path: "ScanService/TestKit"
+            path: "ScanService/TestKit",
         ),
         .target(
             name: "ExplorerService",
             dependencies: [
                 "Primitives",
                 "GemstonePrimitives",
-                "Preferences"
+                "Preferences",
             ],
             path: "ExplorerService",
-            exclude: ["Tests", "TestKit"]
+            exclude: ["Tests", "TestKit"],
         ),
         .target(
             name: "ChainService",
@@ -160,7 +160,7 @@ let package = Package(
                 "Blockchain",
             ],
             path: "ChainService",
-            exclude: ["TestKit"]
+            exclude: ["TestKit"],
         ),
         .target(
             name: "ChainServiceTestKit",
@@ -171,14 +171,14 @@ let package = Package(
                 "Blockchain",
                 .product(name: "BlockchainTestKit", package: "Blockchain"),
             ],
-            path: "ChainService/TestKit"
+            path: "ChainService/TestKit",
         ),
         .testTarget(
             name: "WalletConnectorServiceTests",
             dependencies: [
                 "WalletConnectorService",
             ],
-            path: "WalletConnectorService/Tests"
+            path: "WalletConnectorService/Tests",
         ),
-    ]
+    ],
 )

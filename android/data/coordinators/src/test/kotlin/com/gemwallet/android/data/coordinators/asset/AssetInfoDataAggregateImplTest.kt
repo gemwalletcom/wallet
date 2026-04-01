@@ -47,7 +47,7 @@ class AssetInfoDataAggregateImplTest {
     @Test
     fun assetInfoDataAggregate_id_returnsAssetId() {
         val assetInfo = createAssetInfo(asset = btcAsset)
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals(btcAsset.id, aggregate.id)
     }
@@ -55,7 +55,7 @@ class AssetInfoDataAggregateImplTest {
     @Test
     fun assetInfoDataAggregate_title_returnsAssetName() {
         val assetInfo = createAssetInfo(asset = btcAsset)
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("Bitcoin", aggregate.title)
     }
@@ -63,7 +63,7 @@ class AssetInfoDataAggregateImplTest {
     @Test
     fun assetInfoDataAggregate_asset_returnsAsset() {
         val assetInfo = createAssetInfo(asset = btcAsset)
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals(btcAsset, aggregate.asset)
     }
@@ -74,7 +74,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             balance = AssetBalance.create(btcAsset, available = "100000000")
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = true)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = true)
 
         assertEquals("*****", aggregate.balance)
     }
@@ -85,7 +85,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             balance = AssetBalance.create(btcAsset, available = "100000000")
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
         assertEquals("1.00 BTC", aggregate.balance)
     }
 
@@ -95,7 +95,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             balance = AssetBalance.create(btcAsset, available = "0")
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("0 BTC", aggregate.balance)
     }
@@ -107,7 +107,7 @@ class AssetInfoDataAggregateImplTest {
             balance = AssetBalance.create(btcAsset, available = "100000000"),
             price = createAssetPriceInfo(price = 50000.0)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = true)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = true)
 
         assertEquals("*****", aggregate.balanceEquivalent)
     }
@@ -119,7 +119,7 @@ class AssetInfoDataAggregateImplTest {
             balance = AssetBalance.create(btcAsset, available = "100000000"),
             price = createAssetPriceInfo(price = 50000.0)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
         assertEquals("\$50,000.00", aggregate.balanceEquivalent)
     }
 
@@ -130,7 +130,7 @@ class AssetInfoDataAggregateImplTest {
             balance = AssetBalance.create(btcAsset, available = "100000000"),
             price = null
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("", aggregate.balanceEquivalent)
     }
@@ -142,9 +142,22 @@ class AssetInfoDataAggregateImplTest {
             balance = AssetBalance.create(btcAsset, available = "100000000"),
             price = createAssetPriceInfo(price = 0.0)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("", aggregate.balanceEquivalent)
+    }
+
+    @Test
+    fun assetInfoDataAggregate_balanceEquivalent_nonFinitePrice_returnsEmpty() {
+        val assetInfo = createAssetInfo(
+            asset = btcAsset,
+            balance = AssetBalance.create(btcAsset, available = "100000000"),
+            price = createAssetPriceInfo(price = Double.NaN)
+        )
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
+
+        assertEquals("", aggregate.balanceEquivalent)
+        assertEquals("", aggregate.price?.valueFormatted)
     }
 
     @Test
@@ -153,7 +166,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             balance = AssetBalance.create(btcAsset, available = "0")
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertTrue(aggregate.isZeroBalance)
     }
@@ -164,12 +177,12 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -5.000002)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertNotNull(aggregate.price)
         assertEquals(Currency.USD, aggregate.price?.currency)
         assertEquals(50000.0, aggregate.price?.value)
-        assertEquals("\$50,000.00", aggregate.price?.valueFormated)
+        assertEquals("\$50,000.00", aggregate.price?.valueFormatted)
         assertEquals(-5.000002, aggregate.price?.changePercentage)
         assertEquals("-5.00%", aggregate.price?.changePercentageFormatted)
         assertEquals(PriceState.Down, aggregate.price?.state)
@@ -181,11 +194,11 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.000006)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals(-0.000006, aggregate.price?.changePercentage)
-        assertEquals("0.00%", aggregate.price?.changePercentageFormatted)
-        assertEquals(PriceState.None, aggregate.price?.state)
+        assertEquals("-0.00%", aggregate.price?.changePercentageFormatted)
+        assertEquals(PriceState.Down, aggregate.price?.state)
     }
 
     @Test
@@ -194,55 +207,43 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.000006)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals(0.000006, aggregate.price?.changePercentage)
-        assertEquals("0.00%", aggregate.price?.changePercentageFormatted)
-        assertEquals(PriceState.None, aggregate.price?.state)
+        assertEquals("+0.00%", aggregate.price?.changePercentageFormatted)
+        assertEquals(PriceState.Up, aggregate.price?.state)
     }
 
 
     @Test
     fun assetInfoDataAggregate_small_change_value() {
-        AssetInfoDataAggregateImpl(
-            createAssetInfo(
-                asset = btcAsset,
-                price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.06)
-            ),
-            hideBalance = false
-        ).let { aggregate ->
+        createAssetInfo(
+            asset = btcAsset,
+            price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.06)
+        ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("-0.06%", aggregate.price?.changePercentageFormatted)
             assertEquals(PriceState.Down, aggregate.price?.state)
         }
-        AssetInfoDataAggregateImpl(
-            createAssetInfo(
-                asset = btcAsset,
-                price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.02)
-            ),
-            hideBalance = false
-        ).let { aggregate ->
+        createAssetInfo(
+            asset = btcAsset,
+            price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.02)
+        ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("-0.02%", aggregate.price?.changePercentageFormatted)
             assertEquals(PriceState.Down, aggregate.price?.state)
         }
 
-        AssetInfoDataAggregateImpl(
-            createAssetInfo(
-                asset = btcAsset,
-                price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.06)
-            ),
-            hideBalance = false
-        ).let { aggregate ->
+        createAssetInfo(
+            asset = btcAsset,
+            price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.06)
+        ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("+0.06%", aggregate.price?.changePercentageFormatted)
             assertEquals(PriceState.Up, aggregate.price?.state)
         }
 
-        AssetInfoDataAggregateImpl(
-            createAssetInfo(
-                asset = btcAsset,
-                price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.02)
-            ),
-            hideBalance = false
-        ).let { aggregate ->
+        createAssetInfo(
+            asset = btcAsset,
+            price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.02)
+        ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("+0.02%", aggregate.price?.changePercentageFormatted)
             assertEquals(PriceState.Up, aggregate.price?.state)
         }
@@ -254,7 +255,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             price = null
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertNull(aggregate.price)
     }
@@ -265,7 +266,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             position = 5
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals(5, aggregate.position)
     }
@@ -289,7 +290,7 @@ class AssetInfoDataAggregateImplTest {
                 rankScore = 0
             )
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertTrue(aggregate.pinned)
     }
@@ -313,7 +314,7 @@ class AssetInfoDataAggregateImplTest {
                 rankScore = 0
             )
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertFalse(aggregate.pinned)
     }
@@ -324,7 +325,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             metadata = null
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertFalse(aggregate.pinned)
     }
@@ -335,7 +336,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             owner = account
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", aggregate.accountAddress)
     }
@@ -346,7 +347,7 @@ class AssetInfoDataAggregateImplTest {
             asset = btcAsset,
             owner = null
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("", aggregate.accountAddress)
     }
@@ -357,7 +358,7 @@ class AssetInfoDataAggregateImplTest {
             asset = ethAsset,
             price = createAssetPriceInfo(price = 3000.0, currency = Currency.EUR)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertNotNull(aggregate.price)
         assertEquals(Currency.EUR, aggregate.price?.currency)
@@ -371,7 +372,7 @@ class AssetInfoDataAggregateImplTest {
             balance = AssetBalance.create(ethAsset, available = "1000000000000000000"),
             price = createAssetPriceInfo(price = 3000.0, currency = Currency.EUR)
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("€3,000.00", aggregate.balanceEquivalent)
     }
@@ -387,7 +388,7 @@ class AssetInfoDataAggregateImplTest {
                 pending = "20000000"
             )
         )
-        val aggregate = AssetInfoDataAggregateImpl(assetInfo, hideBalance = false)
+        val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
         assertEquals("1.00 BTC", aggregate.balance)
     }

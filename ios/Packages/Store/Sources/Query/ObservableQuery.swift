@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Combine
 import Foundation
 import GRDB
-import Combine
 import Primitives
 
 @Observable
 @MainActor
 public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, BindableQuery {
-
     public var request: Request {
         didSet {
             guard request != oldValue else { return }
@@ -23,7 +22,7 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
 
     public init(_ request: Request, initialValue: Request.Value) {
         self.request = request
-        self.value = initialValue
+        value = initialValue
     }
 
     public func bind(dbQueue: DatabaseQueue) {
@@ -41,13 +40,13 @@ public final class ObservableQuery<Request: DatabaseQueryable>: Sendable, Bindab
         .publisher(in: dbQueue, scheduling: .immediate)
         .sink(
             receiveCompletion: { completion in
-                if case .failure(let error) = completion {
+                if case let .failure(error) = completion {
                     debugLog("ObservableQuery<\(Request.self)> error: \(error)")
                 }
             },
             receiveValue: { [weak self] newValue in
                 self?.value = newValue
-            }
+            },
         )
     }
 }

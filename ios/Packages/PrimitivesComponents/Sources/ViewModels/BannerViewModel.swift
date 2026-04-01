@@ -8,7 +8,7 @@ import Primitives
 import Style
 import SwiftUI
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 
 struct BannerViewModel {
     enum BannerViewType {
@@ -25,7 +25,7 @@ struct BannerViewModel {
     var image: AssetImage? {
         switch banner.event {
         case .stake, .accountActivation, .activateAsset:
-            guard let asset = asset else {
+            guard let asset else {
                 return .none
             }
             return AssetImage.resourceImage(image: asset.chain.rawValue)
@@ -45,7 +45,7 @@ struct BannerViewModel {
     var title: String? {
         switch banner.event {
         case .stake:
-            guard let asset = asset else {
+            guard let asset else {
                 return .none
             }
             return Localized.Banner.Stake.title(asset.name)
@@ -67,12 +67,12 @@ struct BannerViewModel {
     var description: String? {
         switch banner.event {
         case .stake:
-            guard let asset = asset else {
+            guard let asset else {
                 return .none
             }
             return Localized.Banner.Stake.description(asset.symbol)
         case .accountActivation:
-            guard let asset = asset, let fee = asset.chain.accountActivationFee else {
+            guard let asset, let fee = asset.chain.accountActivationFee else {
                 return .none
             }
             let amount = ValueFormatter(style: .full)
@@ -83,7 +83,7 @@ struct BannerViewModel {
         case .accountBlockedMultiSignature:
             return Localized.Warnings.multiSignatureBlocked(asset?.name ?? "")
         case .activateAsset:
-            guard let asset = asset else {
+            guard let asset else {
                 return .none
             }
             return Localized.Banner.ActivateAsset.description(asset.symbol, asset.chain.asset.name)
@@ -101,12 +101,12 @@ struct BannerViewModel {
     var imageSize: CGFloat {
         switch banner.event {
         case .stake,
-                .accountActivation,
-                .enableNotifications,
-                .accountBlockedMultiSignature,
-                .activateAsset,
-                .suspiciousAsset,
-                .tradePerpetuals: .image.asset
+             .accountActivation,
+             .enableNotifications,
+             .accountBlockedMultiSignature,
+             .activateAsset,
+             .suspiciousAsset,
+             .tradePerpetuals: .image.asset
         case .onboarding: .image.medium
         }
     }
@@ -114,78 +114,78 @@ struct BannerViewModel {
     var cornerRadius: CGFloat {
         switch banner.event {
         case .stake,
-            .accountActivation,
-            .activateAsset,
-            .suspiciousAsset,
-            .tradePerpetuals: 14
+             .accountActivation,
+             .activateAsset,
+             .suspiciousAsset,
+             .tradePerpetuals: 14
         case .enableNotifications,
-            .accountBlockedMultiSignature,
-            .onboarding: 0
+             .accountBlockedMultiSignature,
+             .onboarding: 0
         }
     }
-    
+
     var action: BannerAction {
         BannerAction(id: banner.id, type: .event(banner.event), url: url)
     }
-    
+
     var closeAction: BannerAction {
         BannerAction(id: banner.id, type: .closeBanner, url: nil)
     }
-    
+
     var url: URL? {
         switch banner.event {
         case .stake,
-            .enableNotifications,
-            .activateAsset,
-            .onboarding,
-            .tradePerpetuals:
-            return.none
+             .enableNotifications,
+             .activateAsset,
+             .onboarding,
+             .tradePerpetuals:
+            .none
         case .accountActivation:
-            return asset?.chain.accountActivationFeeUrl
+            asset?.chain.accountActivationFeeUrl
         case .accountBlockedMultiSignature:
-            return Docs.url(.tronMultiSignature)
+            Docs.url(.tronMultiSignature)
         case .suspiciousAsset:
-            return Docs.url(.tokenVerification)
+            Docs.url(.tokenVerification)
         }
     }
-    
+
     var imageStyle: ListItemImageStyle? {
         ListItemImageStyle(
             assetImage: image,
             imageSize: imageSize,
-            cornerRadiusType: .custom(cornerRadius)
+            cornerRadiusType: .custom(cornerRadius),
         )
     }
-    
+
     var viewType: BannerViewType {
         switch banner.event {
         case .stake,
-                .accountActivation,
-                .enableNotifications,
-                .accountBlockedMultiSignature,
-                .activateAsset,
-                .suspiciousAsset,
-                .tradePerpetuals: .list
+             .accountActivation,
+             .enableNotifications,
+             .accountBlockedMultiSignature,
+             .activateAsset,
+             .suspiciousAsset,
+             .tradePerpetuals: .list
         case .onboarding: .banner
         }
     }
-    
+
     var buttons: [BannerButtonViewModel] {
         switch banner.event {
         case .stake,
-                .accountActivation,
-                .enableNotifications,
-                .accountBlockedMultiSignature,
-                .activateAsset,
-                .suspiciousAsset,
-                .tradePerpetuals: []
+             .accountActivation,
+             .enableNotifications,
+             .accountBlockedMultiSignature,
+             .activateAsset,
+             .suspiciousAsset,
+             .tradePerpetuals: []
         case .onboarding: [
-            BannerButtonViewModel(button: .buy, banner: banner),
-            BannerButtonViewModel(button: .receive, banner: banner)
-        ]
+                BannerButtonViewModel(button: .buy, banner: banner),
+                BannerButtonViewModel(button: .receive, banner: banner),
+            ]
         }
     }
-    
+
     private var asset: Asset? {
         if let asset = banner.asset {
             return asset
@@ -195,5 +195,5 @@ struct BannerViewModel {
 }
 
 extension BannerViewModel: Identifiable {
-    public var id: String { banner.id }
+    var id: String { banner.id }
 }

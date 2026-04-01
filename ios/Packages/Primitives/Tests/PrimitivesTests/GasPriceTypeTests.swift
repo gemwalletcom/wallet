@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import BigInt
+import Foundation
 @testable import Primitives
+import Testing
 
 struct GasPriceTypeTests {
     @Test

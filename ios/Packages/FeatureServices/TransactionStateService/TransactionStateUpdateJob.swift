@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import GemstonePrimitives
-import Store
-import ChainService
 import Blockchain
+import ChainService
+import Foundation
+import GemstonePrimitives
+import Primitives
+import Store
 
 struct TransactionStateUpdateJob: Job {
     private let transactionWallet: TransactionWallet
@@ -21,22 +21,22 @@ struct TransactionStateUpdateJob: Job {
             configuration: AdaptiveConfiguration(
                 initialInterval: min(
                     .milliseconds(transaction.assetId.chain.blockTime),
-                    minInitialInterval
+                    minInitialInterval,
                 ),
                 maxInterval: minInitialInterval * 3,
-                stepFactor: 1.1
+                stepFactor: 1.1,
             ),
-            timeLimit: .none
+            timeLimit: .none,
         )
     }
 
-    private var transaction: Transaction { transactionWallet.transaction}
+    private var transaction: Transaction { transactionWallet.transaction }
 
     init(
         transactionWallet: TransactionWallet,
         stateService: TransactionStateProvider,
         swapResultProvider: SwapResultProvider,
-        postProcessingService: TransactionPostProcessingService
+        postProcessingService: TransactionPostProcessingService,
     ) {
         self.transactionWallet = transactionWallet
         self.stateService = stateService
@@ -47,18 +47,18 @@ struct TransactionStateUpdateJob: Job {
     func run() async -> JobStatus {
         switch transaction.state {
         case .inTransit:
-            return await runWithTimeoutHandling(checkSwapStatus)
+            await runWithTimeoutHandling(checkSwapStatus)
         case .pending:
-            return await runWithTimeoutHandling(checkChainState)
+            await runWithTimeoutHandling(checkChainState)
         case .confirmed, .reverted, .failed:
-            return .complete
+            .complete
         }
     }
 
     func onComplete() async throws {
         try await postProcessingService.process(
             wallet: transactionWallet.wallet,
-            transaction: transactionWallet.transaction
+            transaction: transactionWallet.transaction,
         )
     }
 
@@ -88,7 +88,7 @@ struct TransactionStateUpdateJob: Job {
         do {
             return try await operation()
         } catch {
-            if isTransactionTimedOut && !isNetworkError(error) {
+            if isTransactionTimedOut, !isNetworkError(error) {
                 try? stateService.updateState(state: .failed, for: transaction)
                 return .complete
             }

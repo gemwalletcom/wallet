@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import WalletTab
 import BalanceServiceTestKit
 import BannerServiceTestKit
 import DiscoverAssetsServiceTestKit
-import WalletServiceTestKit
+import Foundation
 import PreferencesTestKit
+import Primitives
 import PrimitivesTestKit
+import WalletServiceTestKit
+import WalletTab
 
 public extension WalletSceneViewModel {
     static func mock(wallet: Wallet = .mock()) -> WalletSceneViewModel {
@@ -19,7 +19,7 @@ public extension WalletSceneViewModel {
             walletService: .mock(),
             observablePreferences: .mock(),
             wallet: wallet,
-            isPresentingSelectedAssetInput: .constant(.none)
+            isPresentingSelectedAssetInput: .constant(.none),
         )
     }
 }

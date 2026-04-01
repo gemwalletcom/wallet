@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import PrimitivesTestKit
-import PrimitivesComponents
 import Components
+@testable import Perpetuals
 import PerpetualService
 import PerpetualServiceTestKit
 import PerpetualsTestKit
-@testable import Perpetuals
+import Primitives
+import PrimitivesComponents
+import PrimitivesTestKit
+import Testing
 
 struct PerpetualPortfolioSceneViewModelTests {
-
     @Test
     @MainActor
     func navigationTitle() {
@@ -64,16 +63,16 @@ struct PerpetualPortfolioSceneViewModelTests {
         let model = PerpetualPortfolioSceneViewModel.mock()
         model.state = .data(.mock(day: .mock(
             accountValueHistory: ChartDateValue.mockHistory(values: [100, 110]),
-            pnlHistory: ChartDateValue.mockHistory(values: [0, 10])
+            pnlHistory: ChartDateValue.mockHistory(values: [0, 10]),
         )))
 
         model.selectedChartType = .value
-        if case .data(let chartModel) = model.chartState {
+        if case let .data(chartModel) = model.chartState {
             #expect(chartModel.type == .priceChange)
         }
 
         model.selectedChartType = .pnl
-        if case .data(let chartModel) = model.chartState {
+        if case let .data(chartModel) = model.chartState {
             #expect(chartModel.type == .priceChange)
         }
     }
@@ -99,13 +98,13 @@ struct PerpetualPortfolioSceneViewModelTests {
         model.selectedChartType = .value
         model.state = .data(.mock(day: .mock(accountValueHistory: ChartDateValue.mockHistory(values: [0, 50, 30, 100]))))
 
-        if case .data(let chartModel) = model.chartState {
+        if case let .data(chartModel) = model.chartState {
             #expect(chartModel.price?.price == 50)
             #expect(chartModel.price?.priceChangePercentage24h == 100)
         }
 
         model.state = .data(.mock(day: .mock(accountValueHistory: ChartDateValue.mockHistory(values: [50, 100, 75]))))
-        if case .data(let chartModel) = model.chartState {
+        if case let .data(chartModel) = model.chartState {
             #expect(chartModel.price?.price == 25)
             #expect(chartModel.price?.priceChangePercentage24h == 50)
         }
@@ -116,11 +115,11 @@ extension PerpetualPortfolioSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        perpetualService: PerpetualServiceable = PerpetualService.mock()
+        perpetualService: PerpetualServiceable = PerpetualService.mock(),
     ) -> PerpetualPortfolioSceneViewModel {
         PerpetualPortfolioSceneViewModel(
             wallet: wallet,
-            perpetualService: perpetualService
+            perpetualService: perpetualService,
         )
     }
 }

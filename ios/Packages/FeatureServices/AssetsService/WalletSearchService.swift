@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
-import Store
 import GemAPI
 import Preferences
+import Primitives
+import Store
 
 public struct WalletSearchService: Sendable {
     private let assetsService: AssetsService
@@ -20,7 +20,7 @@ public struct WalletSearchService: Sendable {
         perpetualStore: PerpetualStore,
         priceStore: PriceStore,
         preferences: Preferences,
-        searchProvider: any GemAPISearchService = GemAPIService.shared
+        searchProvider: any GemAPISearchService = GemAPIService.shared,
     ) {
         self.assetsService = assetsService
         self.searchStore = searchStore
@@ -34,7 +34,7 @@ public struct WalletSearchService: Sendable {
         let response = try await searchProvider.search(
             query: query,
             chains: WalletSearchScope.chains(for: wallet),
-            tags: [tag].compactMap { $0 }
+            tags: [tag].compactMap(\.self),
         )
         let prices: [AssetPrice] = response.assets.compactMap { asset in
             guard let price = asset.price else { return nil }
@@ -42,7 +42,7 @@ public struct WalletSearchService: Sendable {
                 assetId: asset.asset.id,
                 price: price.price,
                 priceChangePercentage24h: price.priceChangePercentage24h,
-                updatedAt: price.updatedAt
+                updatedAt: price.updatedAt,
             )
         }
 
@@ -54,11 +54,11 @@ public struct WalletSearchService: Sendable {
         }
         try assetsService.addBalancesIfMissing(
             walletId: wallet.walletId,
-            assetIds: response.assets.map { $0.asset.id }
+            assetIds: response.assets.map(\.asset.id),
         )
 
         let searchKey = tag.map { query.isEmpty ? "tag:\($0.rawValue)" : query } ?? query
-        try searchStore.add(type: .asset, query: searchKey, ids: response.assets.map { $0.asset.id.identifier })
+        try searchStore.add(type: .asset, query: searchKey, ids: response.assets.map(\.asset.id.identifier))
         if tag == nil {
             try searchStore.add(type: .perpetual, query: searchKey, ids: response.perpetuals.map(\.perpetual.id))
         }

@@ -3,7 +3,6 @@
 import SwiftUI
 
 public struct ColorButtonStyle: ButtonStyle {
-
     let palette: ButtonStylePalette
     let paddingHorizontal: CGFloat
     let paddingVertical: CGFloat
@@ -15,7 +14,7 @@ public struct ColorButtonStyle: ButtonStyle {
         paddingHorizontal: CGFloat,
         paddingVertical: CGFloat,
         cornerRadius: CGFloat,
-        glassEffect: GlassEffectSettings
+        glassEffect: GlassEffectSettings,
     ) {
         self.paddingHorizontal = paddingHorizontal
         self.paddingVertical = paddingVertical
@@ -53,169 +52,169 @@ public struct ColorButtonStyle: ButtonStyle {
 
 // MARK: - ButtonStyle Static
 
-extension ButtonStyle where Self == ColorButtonStyle {
-    public static func blue(
+public extension ButtonStyle where Self == ColorButtonStyle {
+    static func blue(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .blue,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func blueGrayPressed(
+    static func blueGrayPressed(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .blueGrayPressed,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
-    
-    public static func gray(
+
+    static func gray(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .gray,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func lightGray(
+    static func lightGray(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .lightGray,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func white(
+    static func white(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .white,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func empty(
+    static func empty(
         paddingHorizontal: CGFloat = .space12,
         paddingVertical: CGFloat = .small,
         cornerRadius: CGFloat = .small,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .empty,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func amount(
+    static func amount(
         paddingHorizontal: CGFloat = .small,
         paddingVertical: CGFloat = .small,
         cornerRadius: CGFloat = .small,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .amount,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func listStyleColor(
+    static func listStyleColor(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .listStyleColor,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
-    
-    public static func red(
+
+    static func red(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .red,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
-    
-    public static func green(
+
+    static func green(
         paddingHorizontal: CGFloat = .button.paddingHorizontal,
         paddingVertical: CGFloat = .button.paddingVertical,
         cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .green,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 
-    public static func listEmpty(
+    static func listEmpty(
         paddingHorizontal: CGFloat = .small,
         paddingVertical: CGFloat = .small,
         cornerRadius: CGFloat = .small,
-        glassEffect: GlassEffectSettings = .isInteractive
+        glassEffect: GlassEffectSettings = .isInteractive,
     ) -> ColorButtonStyle {
         ColorButtonStyle(
             palette: .listEmpty,
             paddingHorizontal: paddingHorizontal,
             paddingVertical: paddingVertical,
             cornerRadius: cornerRadius,
-            glassEffect: glassEffect
+            glassEffect: glassEffect,
         )
     }
 }
@@ -225,21 +224,21 @@ extension ButtonStyle where Self == ColorButtonStyle {
 #Preview {
     List {
         Section("ColorButtonStyle presets") {
-            Button("Blue"){}
+            Button("Blue") {}
                 .buttonStyle(.blue())
-            Button("Blue Gray Pressed"){}
+            Button("Blue Gray Pressed") {}
                 .buttonStyle(.blueGrayPressed())
-            Button("Gray"){}
+            Button("Gray") {}
                 .buttonStyle(.gray())
-            Button("Light Gray"){}
+            Button("Light Gray") {}
                 .buttonStyle(.lightGray())
-            Button("List Style Color"){}
+            Button("List Style Color") {}
                 .buttonStyle(.listStyleColor())
-            Button("White"){}
+            Button("White") {}
                 .buttonStyle(.white())
-            Button("Empty"){}
+            Button("Empty") {}
                 .buttonStyle(.empty())
-            Button("Amount"){}
+            Button("Amount") {}
                 .buttonStyle(.amount())
         }
     }

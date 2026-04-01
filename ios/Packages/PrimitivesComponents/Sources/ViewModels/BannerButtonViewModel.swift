@@ -19,7 +19,7 @@ struct BannerButtonViewModel: Identifiable {
         case .receive: Localized.Wallet.receive
         }
     }
-    
+
     @MainActor
     var style: ColorButtonStyle {
         switch button {
@@ -27,7 +27,7 @@ struct BannerButtonViewModel: Identifiable {
         case .receive: .empty(paddingVertical: .small)
         }
     }
-    
+
     var action: BannerAction {
         BannerAction(id: banner.id, type: .button(button), url: nil)
     }

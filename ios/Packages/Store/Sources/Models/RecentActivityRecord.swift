@@ -26,7 +26,7 @@ struct RecentActivityRecord: Codable, PersistableRecord, FetchableRecord, TableR
         toAssetId: AssetId?,
         walletId: String,
         type: RecentActivityType,
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
     ) {
         self.assetId = assetId
         self.toAssetId = toAssetId
@@ -38,7 +38,7 @@ struct RecentActivityRecord: Codable, PersistableRecord, FetchableRecord, TableR
 
 extension RecentActivityRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.assetId.name, .text)
                 .notNull()
                 .indexed()

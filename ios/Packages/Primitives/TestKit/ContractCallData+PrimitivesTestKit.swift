@@ -2,18 +2,18 @@
 
 import Primitives
 
-extension ContractCallData {
-    public static func mock(
+public extension ContractCallData {
+    static func mock(
         contractAddress: String = "",
         callData: String = "",
         approval: ApprovalData? = nil,
-        gasLimit: String? = nil
+        gasLimit: String? = nil,
     ) -> ContractCallData {
         ContractCallData(
             contractAddress: contractAddress,
             callData: callData,
             approval: approval,
-            gasLimit: gasLimit
+            gasLimit: gasLimit,
         )
     }
 }

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Style
 import InfoSheet
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 struct MarketValueViewModel {
     enum Action {
@@ -30,7 +30,7 @@ struct MarketValueViewModel {
         subtitleExtraStyle: TextStyle? = .none,
         action: Action = .none,
         titleTag: String? = .none,
-        titleTagStyle: TextStyle? = .none
+        titleTagStyle: TextStyle? = .none,
     ) {
         self.title = title
         self.titleExtra = titleExtra

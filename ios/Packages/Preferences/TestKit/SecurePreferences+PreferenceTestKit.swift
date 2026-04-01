@@ -5,9 +5,8 @@ import Preferences
 
 public extension SecurePreferences {
     static func mock(
-        keychain: any KeychainPreferenceStorable = MockKeychainPreference.mock()
+        keychain: any KeychainPreferenceStorable = MockKeychainPreference.mock(),
     ) -> SecurePreferences {
         SecurePreferences(keychain: keychain)
     }
 }
-

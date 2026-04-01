@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import PrimitivesComponents
 import Components
 import Localization
+import Primitives
+import PrimitivesComponents
+import SwiftUI
 
 struct ChainSelectorScene: View {
-
     @State private var model: NetworkSelectorViewModel
 
     private let onSelectChain: (Chain) -> Void
@@ -15,8 +14,8 @@ struct ChainSelectorScene: View {
     init(chain: Chain?, onSelectChain: @escaping (Chain) -> Void) {
         _model = State(initialValue: NetworkSelectorViewModel(
             state: .data(.plain(Chain.allCases)),
-            selectedItems: [chain].compactMap { $0 },
-            selectionType: .checkmark
+            selectedItems: [chain].compactMap(\.self),
+            selectionType: .checkmark,
         ))
         self.onSelectChain = onSelectChain
     }
@@ -29,7 +28,7 @@ struct ChainSelectorScene: View {
                     onSelectChain(chain)
                 }
             },
-            listContent: { ChainView(model: ChainViewModel(chain: $0)) }
+            listContent: { ChainView(model: ChainViewModel(chain: $0)) },
         )
         .navigationTitle(Localized.Transfer.network)
     }

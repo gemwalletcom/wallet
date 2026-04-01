@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct PriceAlertsRequest: DatabaseQueryable {
-    
     public let assetId: AssetId?
 
     public init(assetId: AssetId? = nil) {
@@ -17,15 +16,15 @@ public struct PriceAlertsRequest: DatabaseQueryable {
             .including(required: AssetRecord.priceAlert)
             .including(optional: AssetRecord.price)
             .order(AssetRecord.Columns.rank.desc)
-            
-        if let assetId = assetId {
+
+        if let assetId {
             request = request.filter(AssetRecord.Columns.id == assetId.identifier)
         }
-            
+
         return try request
             .asRequest(of: PriceAlertInfo.self)
             .fetchAll(db)
-            .map { $0.data }
+            .map(\.data)
     }
 }
 
@@ -42,7 +41,7 @@ extension PriceAlertInfo {
         PriceAlertData(
             asset: asset.mapToAsset(),
             price: price?.mapToPrice(),
-            priceAlert: priceAlert.map()
+            priceAlert: priceAlert.map(),
         )
     }
 }

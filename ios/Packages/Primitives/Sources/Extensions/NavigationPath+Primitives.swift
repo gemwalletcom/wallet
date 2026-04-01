@@ -5,6 +5,6 @@ import SwiftUI
 
 public extension NavigationPath {
     mutating func removeAll() {
-        removeLast(self.count)
+        removeLast(count)
     }
 }

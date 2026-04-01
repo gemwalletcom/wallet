@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import Style
+import SwiftUI
 
 public struct TransactionView: View {
     private let model: TransactionViewModel
@@ -20,7 +20,7 @@ public struct TransactionView: View {
             titleTagType: model.titleTagType,
             subtitle: model.subtitleTextValue,
             subtitleExtra: model.subtitleExtraTextValue,
-            imageStyle: .asset(assetImage: model.assetImage)
+            imageStyle: .asset(assetImage: model.assetImage),
         )
         .explorerContext(model.explorerContext)
     }
@@ -29,13 +29,15 @@ public struct TransactionView: View {
 // MARK: - Previews
 
 private struct ExplorerMock: ExplorerLinkFetchable {
-    func addressUrl(chain: Chain, address: String) -> BlockExplorerLink {
-       .init(name: "", link: "")
+    func addressUrl(chain _: Chain, address _: String) -> BlockExplorerLink {
+        .init(name: "", link: "")
     }
-    func transactionUrl(chain: Chain, hash: String) -> BlockExplorerLink {
-       .init(name: "", link: "")
+
+    func transactionUrl(chain _: Chain, hash _: String) -> BlockExplorerLink {
+        .init(name: "", link: "")
     }
-    func swapTransactionUrl(chain: Chain, provider: String, identifier: String) -> BlockExplorerLink? {
+
+    func swapTransactionUrl(chain _: Chain, provider _: String, identifier _: String) -> BlockExplorerLink? {
         .init(name: "", link: "")
     }
 }
@@ -59,7 +61,7 @@ private struct ExplorerMock: ExplorerLinkFetchable {
         utxoInputs: [],
         utxoOutputs: [],
         metadata: nil,
-        createdAt: Date()
+        createdAt: Date(),
     )
     let pendingTransactionExtendedMock = TransactionExtended(
         transaction: pendingTransactionMock,
@@ -70,13 +72,13 @@ private struct ExplorerMock: ExplorerLinkFetchable {
         assets: [],
         prices: [],
         fromAddress: AddressName(chain: .smartChain, address: "0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB", name: "test1", type: nil, status: .verified),
-        toAddress: AddressName(chain: .smartChain, address: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", name: "test2", type: nil, status: .verified)
+        toAddress: AddressName(chain: .smartChain, address: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F", name: "test2", type: nil, status: .verified),
     )
 
     let transactionVMMock = TransactionViewModel(
         explorerService: ExplorerMock(),
         transaction: pendingTransactionExtendedMock,
-        currency: Currency.usd.rawValue
+        currency: Currency.usd.rawValue,
     )
 
     TransactionView(model: transactionVMMock)

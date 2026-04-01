@@ -11,12 +11,12 @@ import struct Gemstone.WcSuiTransactionData
 extension WalletConnectTransaction {
     func map() -> WalletConnectorTransaction {
         switch self {
-        case .ethereum(let data): .ethereum(data.map())
-        case .solana(let data, let outputType): .solana(data.transaction, outputType.map())
-        case .sui(let data, let outputType): .sui(data.transaction, outputType.map())
-        case .ton(let messages, let outputType): .ton(messages, outputType.map())
-        case .bitcoin(let data, let outputType): .bitcoin(data, outputType.map())
-        case .tron(let data, let outputType): .tron(data, outputType.map())
+        case let .ethereum(data): .ethereum(data.map())
+        case let .solana(data, outputType): .solana(data.transaction, outputType.map())
+        case let .sui(data, outputType): .sui(data.transaction, outputType.map())
+        case let .ton(messages, outputType): .ton(messages, outputType.map())
+        case let .bitcoin(data, outputType): .bitcoin(data, outputType.map())
+        case let .tron(data, outputType): .tron(data, outputType.map())
         }
     }
 }
@@ -34,7 +34,7 @@ extension WcEthereumTransactionData {
             maxFeePerGas: maxFeePerGas,
             maxPriorityFeePerGas: maxPriorityFeePerGas,
             nonce: nonce,
-            data: data
+            data: data,
         )
     }
 }

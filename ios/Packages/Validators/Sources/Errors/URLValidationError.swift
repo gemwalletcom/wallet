@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Localization
 import Foundation
+import Localization
 
 enum URLValidationError: LocalizedError {
     case invalidUrl

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Store
-import Primitives
-import Style
 import Components
 import Localization
+import Primitives
 import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 public struct PriceAlertsScene: View {
     @State private var model: PriceAlertsSceneViewModel
@@ -25,7 +25,7 @@ public struct PriceAlertsScene: View {
                     NavigationLink(value: Scenes.Price(asset: alert.asset)) {
                         alertView(alert: alert)
                     }
-                }
+                },
             )
         }
         .bindQuery(model.query)
@@ -54,14 +54,14 @@ private extension PriceAlertsScene {
         Section {
             Toggle(
                 model.enableTitle,
-                isOn: $model.isPriceAlertsEnabled
+                isOn: $model.isPriceAlertsEnabled,
             )
             .toggleStyle(AppToggleStyle())
         } footer: {
             Text(Localized.PriceAlerts.getNotifiedExplainMessage)
         }
     }
-    
+
     func alertView(alert: PriceAlertData) -> some View {
         ListAssetItemView(model: PriceAlertItemViewModel(data: alert))
             .swipeActions(edge: .trailing) {

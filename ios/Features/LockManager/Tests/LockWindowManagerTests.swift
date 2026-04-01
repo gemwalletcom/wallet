@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import SwiftUI
 import Keystore
 @testable import LockManager
+import SwiftUI
+import Testing
 
 @MainActor
 struct LockWindowManagerTests {
     @Test
-    func testInitialization() {
+    func initialization() {
         let manager = LockWindowManagerMock.mock()
         #expect(manager.overlayWindow == nil)
     }
 
     @Test
-    func testShowLockScreenCreatesWindow() {
+    func showLockScreenCreatesWindow() {
         let manager = LockWindowManagerMock.mock()
         manager.toggleLock(show: true)
 
@@ -24,7 +24,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testDismissWhileLockedDoesNotRemoveWindow() {
+    func dismissWhileLockedDoesNotRemoveWindow() {
         let manager = LockWindowManagerMock.mock()
         manager.toggleLock(show: true)
         manager.toggleLock(show: false)
@@ -34,11 +34,11 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testDismissAfterUnlockRemovesWindow() {
+    func dismissAfterUnlockRemovesWindow() {
         let manager = LockWindowManagerMock.mock()
         manager.toggleLock(show: true)
 
-        manager.lockModel.state  = .unlocked
+        manager.lockModel.state = .unlocked
         manager.lockModel.lastUnlockTime = .distantFuture
         manager.toggleLock(show: false)
 
@@ -46,21 +46,21 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testSetPhaseInactiveShowsPlaceholder() {
+    func setPhaseInactiveShowsPlaceholder() {
         let manager = LockWindowManagerMock.mock()
         manager.setPhase(phase: .inactive)
         #expect(manager.showLockScreen)
     }
 
     @Test
-    func testSetPhaseActiveAutoLocks() {
+    func setPhaseActiveAutoLocks() {
         let manager = LockWindowManagerMock.mock()
         manager.setPhase(phase: .active)
         #expect(manager.lockModel.state == .locked)
     }
 
     @Test
-    func testBackgroundSchedulesAutoLock() {
+    func backgroundSchedulesAutoLock() {
         let manager = LockWindowManagerMock.mock(lockPeriod: .oneMinute)
         manager.lockModel.state = .unlocked
         manager.lockModel.lastUnlockTime = .distantFuture
@@ -73,7 +73,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testAutoLockDisabledResetsState() {
+    func autoLockDisabledResetsState() {
         let manager = LockWindowManagerMock.mock(isAuthEnabled: false)
         manager.lockModel.state = .locked
         manager.setPhase(phase: .active)
@@ -83,7 +83,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testOverlayWindowIsReused() {
+    func overlayWindowIsReused() {
         let manager = LockWindowManagerMock.mock()
         manager.toggleLock(show: true)
         let first = manager.overlayWindow
@@ -93,7 +93,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testOverlayVisibleWhenPrivacySwitchDisabled() {
+    func overlayVisibleWhenPrivacySwitchDisabled() {
         let manager = LockWindowManagerMock.mock(isPrivacyLockEnabled: false)
         manager.toggleLock(show: true)
 
@@ -102,7 +102,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testOverlayVisibleWhenPrivacySwitchEnabled() {
+    func overlayVisibleWhenPrivacySwitchEnabled() {
         let manager = LockWindowManagerMock.mock(isPrivacyLockEnabled: true)
         manager.toggleLock(show: true)
 
@@ -111,7 +111,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testSecondPresentKeepsOverlayIfConditionsUnchanged() {
+    func secondPresentKeepsOverlayIfConditionsUnchanged() {
         let manager = LockWindowManagerMock.mock(isPrivacyLockEnabled: false)
         manager.toggleLock(show: true)
         manager.toggleLock(show: false)
@@ -123,9 +123,9 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func testNoOverlayWhenAuthenticationDisabled() {
+    func noOverlayWhenAuthenticationDisabled() {
         let manager = LockWindowManagerMock.mock(isAuthEnabled: false,
-                                             isPrivacyLockEnabled: true)
+                                                 isPrivacyLockEnabled: true)
 
         #expect(manager.isPrivacyLockVisible == false)
         #expect(manager.overlayWindow == nil)

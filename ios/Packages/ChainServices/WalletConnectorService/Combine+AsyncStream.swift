@@ -13,7 +13,7 @@ extension AnyPublisher where Failure == Never, Output: Sendable {
                 },
                 receiveValue: { value in
                     continuation.yield(value)
-                }
+                },
             )
             continuation.onTermination = { _ in cancellable.cancel() }
         }

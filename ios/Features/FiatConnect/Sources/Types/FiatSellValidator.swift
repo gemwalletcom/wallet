@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
+import Formatters
 import Foundation
 import Primitives
 import Validators
-import BigInt
-import Formatters
 
 struct FiatSellValidator: ValueValidator {
     typealias Formatted = BigInt
@@ -17,14 +17,14 @@ struct FiatSellValidator: ValueValidator {
     init(
         quote: FiatQuote?,
         availableBalance: BigInt,
-        asset: Asset
+        asset: Asset,
     ) {
         self.quote = quote
         self.availableBalance = availableBalance
         self.asset = asset
     }
 
-    func validate(_ value: BigInt) throws {
+    func validate(_: BigInt) throws {
         guard let quote else { return }
 
         let amount = try formatter.number(from: String(quote.cryptoAmount), decimals: asset.decimals.asInt)

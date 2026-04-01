@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import InfoSheet
+import Localization
 import Primitives
+import PrimitivesComponents
 import Store
 import Style
-import InfoSheet
-import PrimitivesComponents
-import Localization
+import SwiftUI
 
 public struct WalletScene: View {
     private var model: WalletSceneViewModel
@@ -20,14 +20,14 @@ public struct WalletScene: View {
         @Bindable var preferences = model.observablePreferences
 
         List {
-            Section { } header: {
+            Section {} header: {
                 WalletHeaderView(
                     model: model.walletHeaderModel,
                     isPrivacyEnabled: $preferences.isHideBalanceEnabled,
                     balanceActionType: .privacyToggle,
                     onHeaderAction: model.onHeaderAction,
                     onSubtitleAction: model.onSelectPortfolio,
-                    onInfoAction: model.onSelectWatchWalletInfo
+                    onInfoAction: model.onSelectWatchWalletInfo,
                 )
                 .padding(.top, .space6)
             }
@@ -46,7 +46,7 @@ public struct WalletScene: View {
                 Section {
                     BannerView(
                         banner: banner,
-                        action: model.onBanner
+                        action: model.onBanner,
                     )
                 }
                 .listRowInsets(.zero)
@@ -60,7 +60,7 @@ public struct WalletScene: View {
                         onHideAsset: model.onHideAsset,
                         onPinAsset: model.onPinAsset,
                         onCopyAddress: model.onCopyAddress,
-                        showBalancePrivacy: $preferences.isHideBalanceEnabled
+                        showBalancePrivacy: $preferences.isHideBalanceEnabled,
                     )
                 } header: {
                     PinnedSectionHeader()
@@ -75,7 +75,7 @@ public struct WalletScene: View {
                     onHideAsset: model.onHideAsset,
                     onPinAsset: model.onPinAsset,
                     onCopyAddress: model.onCopyAddress,
-                    showBalancePrivacy: $preferences.isHideBalanceEnabled
+                    showBalancePrivacy: $preferences.isHideBalanceEnabled,
                 )
             } header: {
                 if model.isLoadingAssets {
@@ -87,7 +87,7 @@ public struct WalletScene: View {
                 ListButton(
                     title: model.manageTokenTitle,
                     image: model.manageImage,
-                    action: model.onSelectManage
+                    action: model.onSelectManage,
                 )
                 .accessibilityIdentifier("manage")
                 .padding(.medium)

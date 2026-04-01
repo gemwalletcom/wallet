@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct CurrencyTextField: View {
     @Environment(\.isEnabled) var isEnabled
@@ -31,7 +31,7 @@ public struct CurrencyTextField: View {
         text: Binding<String>,
         currencySymbol: String,
         currencyPosition: CurrencyPosition,
-        keyboardType: UIKeyboardType
+        keyboardType: UIKeyboardType,
     ) {
         _text = text
         self.placeholder = placeholder
@@ -74,8 +74,8 @@ public struct CurrencyTextField: View {
 }
 
 #Preview {
-    @Previewable @State var textLeading: String = "10"
-    @Previewable @State var textTrailing: String = "100"
+    @Previewable @State var textLeading = "10"
+    @Previewable @State var textTrailing = "100"
 
     return VStack {
         CurrencyTextField("0", text: $textLeading, currencySymbol: "$", currencyPosition: .leading, keyboardType: .numberPad)

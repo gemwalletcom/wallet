@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Primitives
 import PrimitivesComponents
-import Components
 
 struct ConfirmMemoViewModel {
     private let type: TransferDataType

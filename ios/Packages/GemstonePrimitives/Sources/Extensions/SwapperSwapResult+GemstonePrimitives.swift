@@ -6,9 +6,9 @@ import Primitives
 
 public extension Gemstone.SwapperSwapResult {
     func map() throws -> Primitives.SwapResult {
-        Primitives.SwapResult(
+        try Primitives.SwapResult(
             status: status.map(),
-            metadata: try metadata?.map()
+            metadata: metadata?.map(),
         )
     }
 }
@@ -25,12 +25,12 @@ public extension Gemstone.SwapperSwapStatus {
 
 public extension Gemstone.SwapperTransactionSwapMetadata {
     func map() throws -> Primitives.TransactionSwapMetadata {
-        Primitives.TransactionSwapMetadata(
-            fromAsset: try AssetId(id: fromAsset),
+        try Primitives.TransactionSwapMetadata(
+            fromAsset: AssetId(id: fromAsset),
             fromValue: fromValue,
-            toAsset: try AssetId(id: toAsset),
+            toAsset: AssetId(id: toAsset),
             toValue: toValue,
-            provider: provider
+            provider: provider,
         )
     }
 }

@@ -2,7 +2,7 @@
 
 import SwiftUI
 
-public struct SystemImage {
+public enum SystemImage {
     public static let settings = "gearshape"
     public static let qrCodeViewfinder = "qrcode.viewfinder"
     public static let qrCode = "qrcode"

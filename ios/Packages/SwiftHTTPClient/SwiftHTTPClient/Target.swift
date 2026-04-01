@@ -21,16 +21,16 @@ public enum ContentType: String {
 
 public extension TargetType {
     var cachePolicy: URLRequest.CachePolicy {
-        return .useProtocolCachePolicy
+        .useProtocolCachePolicy
     }
 }
 
 public extension TargetType {
     var contentType: String {
-        return ContentType.json.rawValue
+        ContentType.json.rawValue
     }
 
     var headers: [String: String] {
-        return [:]
+        [:]
     }
 }

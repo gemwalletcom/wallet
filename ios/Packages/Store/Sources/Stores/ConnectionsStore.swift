@@ -5,28 +5,27 @@ import GRDB
 import Primitives
 
 public struct ConnectionsStore: Sendable {
-    
     let db: DatabaseQueue
-    
+
     public init(db: DB) {
         self.db = db.dbQueue
     }
-    
+
     // MARK: - Public methods
-    
+
     public func addConnection(_ connection: WalletConnection) throws {
         try db.write { db in
             try connection.record.insert(db)
         }
     }
-    
+
     public func getConnection(id: String) throws -> WalletConnection {
         try db.read { db in
             let result = try WalletRecord
                 .including(required: WalletRecord.connection)
                 .asRequest(of: WalletConnectionInfo.self)
                 .filter(
-                    TableAlias(name: WalletConnectionRecord.databaseTableName)[WalletConnectionRecord.Columns.sessionId] == id
+                    TableAlias(name: WalletConnectionRecord.databaseTableName)[WalletConnectionRecord.Columns.sessionId] == id,
                 )
                 .fetchOne(db)
             guard let connection = result else {
@@ -35,12 +34,12 @@ public struct ConnectionsStore: Sendable {
             return connection.mapToWalletConnection()
         }
     }
-    
+
     public func getSessions() throws -> [WalletConnectionSession] {
         try db.read { db in
             try WalletConnectionRecord
                 .fetchAll(db)
-                .map { $0.session }
+                .map(\.session)
         }
     }
 
@@ -50,23 +49,23 @@ public struct ConnectionsStore: Sendable {
             try connection.upsert(db)
         }
     }
-    
-    public func delete(ids: [String]) throws {
-        return try db.write { db in
+
+    public func delete(ids: [String]) throws -> Int {
+        try db.write { db in
             try WalletConnectionRecord
-                .filter(ids.contains(WalletConnectionRecord.Columns.id) || ids.contains(WalletConnectionRecord.Columns.sessionId) )
+                .filter(ids.contains(WalletConnectionRecord.Columns.id) || ids.contains(WalletConnectionRecord.Columns.sessionId))
                 .deleteAll(db)
         }
     }
-    
-    public func deleteAll() throws {
-        return try db.write { db in
+
+    public func deleteAll() throws -> Int {
+        try db.write { db in
             try WalletConnectionRecord.deleteAll(db)
         }
     }
-    
+
     // MARK: - Private methods
-    
+
     private func getConnection(id: String) throws -> WalletConnectionRecord {
         try db.read { db in
             guard let connection = try WalletConnectionRecord

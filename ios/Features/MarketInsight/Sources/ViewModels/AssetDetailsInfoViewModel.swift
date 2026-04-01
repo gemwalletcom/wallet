@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import ExplorerService
+import Foundation
+import GemstonePrimitives
+import Localization
 import Preferences
+import Primitives
 import PrimitivesComponents
-import Formatters
 
 struct AssetDetailsInfoViewModel {
     private let priceData: PriceData
@@ -16,11 +16,11 @@ struct AssetDetailsInfoViewModel {
     init(
         priceData: PriceData,
         explorerService: ExplorerService = .standard,
-        currency: String = Preferences.standard.currency
+        currency: String = Preferences.standard.currency,
     ) {
         self.priceData = priceData
         self.explorerService = explorerService
-        self.market = priceData.market.map {
+        market = priceData.market.map {
             AssetMarketViewModel(market: $0, assetSymbol: priceData.asset.symbol, currency: currency)
         }
     }
@@ -55,10 +55,10 @@ struct AssetDetailsInfoViewModel {
             action: contract.flatMap { contract in
                 contractExplorerLink.map {
                     MarketValueViewModel.Action.explorer(
-                        ExplorerContextData(copyValue: .address(value: contract, chain: priceData.asset.chain), explorerLink: $0)
+                        ExplorerContextData(copyValue: .address(value: contract, chain: priceData.asset.chain), explorerLink: $0),
                     )
                 }
-            } ?? .none
+            } ?? .none,
         )
     }
 

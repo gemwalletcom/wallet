@@ -8,11 +8,11 @@ let package = Package(
     products: [
         .library(
             name: "Primitives",
-            targets: ["Primitives"]
+            targets: ["Primitives"],
         ),
         .library(
             name: "PrimitivesTestKit",
-            targets: ["PrimitivesTestKit"]
+            targets: ["PrimitivesTestKit"],
         ),
     ],
     dependencies: [
@@ -24,21 +24,21 @@ let package = Package(
             dependencies: [
                 .product(name: "BigInt", package: "BigInt"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "PrimitivesTestKit",
             dependencies: [
                 "Primitives",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "PrimitivesTests",
             dependencies: [
                 "Primitives",
                 "PrimitivesTestKit",
-            ]
+            ],
         ),
-    ]
+    ],
 )

@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct AsyncImageView: View {
-    
     let url: URL?
     let size: CGFloat
     let placeholder: Placeholder
@@ -12,11 +11,11 @@ public struct AsyncImageView: View {
     public enum Placeholder {
         case letter(Character)
     }
-    
+
     public init(
         url: URL?,
         size: CGFloat = 40,
-        placeholder: Placeholder = Placeholder.letter(" ")
+        placeholder: Placeholder = Placeholder.letter(" "),
     ) {
         self.url = url
         self.size = size
@@ -28,7 +27,7 @@ public struct AsyncImageView: View {
             $0.resizable()
         } placeholder: {
             switch placeholder {
-            case .letter(let character):
+            case let .letter(character):
                 Text(String(character).capitalized)
                     .fontWeight(.semibold)
                     .frame(width: size, height: size)
@@ -37,6 +36,6 @@ public struct AsyncImageView: View {
             }
         }
         .frame(width: size, height: size)
-        .cornerRadius(size/2)
+        .cornerRadius(size / 2)
     }
 }

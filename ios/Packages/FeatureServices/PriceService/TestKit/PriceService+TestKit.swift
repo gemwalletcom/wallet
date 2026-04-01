@@ -8,11 +8,11 @@ import StoreTestKit
 public extension PriceService {
     static func mock(
         priceStore: PriceStore = .mock(),
-        fiatRateStore: FiatRateStore = .mock()
+        fiatRateStore: FiatRateStore = .mock(),
     ) -> Self {
         PriceService(
             priceStore: priceStore,
-            fiatRateStore: fiatRateStore
+            fiatRateStore: fiatRateStore,
         )
     }
 }

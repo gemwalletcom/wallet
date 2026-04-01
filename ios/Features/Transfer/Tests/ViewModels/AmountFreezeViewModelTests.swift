@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import Transfer
 
 struct AmountFreezeViewModelTests {
-
     @Test
     func title() {
         #expect(AmountFreezeViewModel(asset: .mockTron(), action: .freeze, resource: .bandwidth).title == "Freeze")

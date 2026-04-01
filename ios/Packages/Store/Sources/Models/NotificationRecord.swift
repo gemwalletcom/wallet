@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
 struct NotificationRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "notifications"
@@ -24,7 +24,7 @@ struct NotificationRecord: Codable, FetchableRecord, PersistableRecord {
 
 extension NotificationRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.primaryKey(Columns.id.name, .text)
                 .notNull()
             $0.column(Columns.walletId.name, .text)
@@ -43,11 +43,11 @@ extension NotificationRecord: CreateTable {
 
 extension NotificationRecord {
     func mapToNotification() throws -> Primitives.InAppNotification {
-        Primitives.InAppNotification(
-            walletId: try WalletId.from(id: walletId),
+        try Primitives.InAppNotification(
+            walletId: WalletId.from(id: walletId),
             readAt: readAt,
             createdAt: createdAt,
-            item: item
+            item: item,
         )
     }
 }
@@ -59,7 +59,7 @@ extension Primitives.InAppNotification {
             walletId: walletId.id,
             readAt: readAt,
             createdAt: createdAt,
-            item: item
+            item: item,
         )
     }
 }

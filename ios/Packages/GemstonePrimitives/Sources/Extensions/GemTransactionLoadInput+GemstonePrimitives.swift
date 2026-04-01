@@ -14,12 +14,12 @@ public extension GemTransactionLoadInput {
             gasPrice: signerInput.fee.gasPriceType.map(),
             memo: signerInput.memo,
             isMaxValue: signerInput.useMaxAmount,
-            metadata: signerInput.metadata.map()
+            metadata: signerInput.metadata.map(),
         )
     }
 
     func map() throws -> TransactionInput {
-        return try TransactionInput(
+        try TransactionInput(
             type: inputType.map(),
             asset: inputType.getAsset().map(),
             senderAddress: senderAddress,
@@ -28,7 +28,7 @@ public extension GemTransactionLoadInput {
             balance: BigInt.zero, // Would need to be provided from context
             gasPrice: gasPrice.map(),
             memo: memo,
-            metadata: metadata.map()
+            metadata: metadata.map(),
         )
     }
 }
@@ -43,7 +43,7 @@ public extension TransactionInput {
             gasPrice: gasPrice.map(),
             memo: memo,
             isMaxValue: feeInput.isMaxAmount,
-            metadata: metadata.map()
+            metadata: metadata.map(),
         )
     }
 }

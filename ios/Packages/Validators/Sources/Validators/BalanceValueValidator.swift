@@ -4,7 +4,6 @@ import Foundation
 import Primitives
 
 public struct BalanceValueValidator<V>: ValueValidator where V: ValueValidatable {
-
     private let available: V
     private let asset: Asset
 

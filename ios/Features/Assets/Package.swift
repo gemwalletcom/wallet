@@ -6,15 +6,17 @@ let package = Package(
     name: "Assets",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Assets",
-            targets: ["Assets"]),
+            targets: ["Assets"],
+        ),
         .library(
             name: "AssetsTestKit",
-            targets: ["AssetsTestKit"]),
+            targets: ["AssetsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -30,7 +32,7 @@ let package = Package(
         .package(name: "QRScanner", path: "../QRScanner"),
         .package(name: "Recents", path: "../Recents"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices")
+        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
     ],
     targets: [
         .target(
@@ -56,9 +58,9 @@ let package = Package(
                 .product(name: "PriceService", package: "FeatureServices"),
                 .product(name: "BannerService", package: "FeatureServices"),
                 .product(name: "ChainService", package: "ChainServices"),
-                .product(name: "ActivityService", package: "FeatureServices")
+                .product(name: "ActivityService", package: "FeatureServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "AssetsTestKit",
@@ -70,9 +72,9 @@ let package = Package(
                 .product(name: "PriceServiceTestKit", package: "FeatureServices"),
                 .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
                 "Components",
-                "Assets"
+                "Assets",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "AssetsTests",
@@ -84,8 +86,8 @@ let package = Package(
                 .product(name: "PriceServiceTestKit", package: "FeatureServices"),
                 .product(name: "PriceAlertServiceTestKit", package: "FeatureServices"),
                 .product(name: "BannerServiceTestKit", package: "FeatureServices"),
-                "AssetsTestKit"
-            ]
-        )
-    ]
+                "AssetsTestKit",
+            ],
+        ),
+    ],
 )

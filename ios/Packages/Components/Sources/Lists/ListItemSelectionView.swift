@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemSelectionView<T: Hashable>: View {
     let title: String?
@@ -12,9 +12,9 @@ public struct ListItemSelectionView<T: Hashable>: View {
     let titleTag: String?
     let titleTagType: TitleTagType
     let titleTagStyle: TextStyle
-    
+
     let imageStyle: ListItemImageStyle?
-    
+
     let value: T?
     let selection: T?
     let action: ((T) -> Void)?
@@ -33,7 +33,7 @@ public struct ListItemSelectionView<T: Hashable>: View {
         placeholders: [ListItemViewPlaceholderType] = [],
         value: T,
         selection: T?,
-        action: ((T) -> Void)?
+        action: ((T) -> Void)?,
     ) {
         self.title = title
         self.titleExtra = titleExtra
@@ -50,22 +50,22 @@ public struct ListItemSelectionView<T: Hashable>: View {
     }
 
     public var body: some View {
-         SelectionView(
-             value: value,
-             selection: selection,
-             action: action
-         ) {
-             ListItemView(
-                 title: title,
-                 titleTag: titleTag,
-                 titleTagStyle: titleTagStyle,
-                 titleTagType: titleTagType,
-                 titleExtra: titleExtra,
-                 subtitle: subtitle,
-                 subtitleExtra: subtitleExtra,
-                 imageStyle: imageStyle,
-                 placeholders: placeholders
-             )
-         }
-     }
+        SelectionView(
+            value: value,
+            selection: selection,
+            action: action,
+        ) {
+            ListItemView(
+                title: title,
+                titleTag: titleTag,
+                titleTagStyle: titleTagStyle,
+                titleTagType: titleTagType,
+                titleExtra: titleExtra,
+                subtitle: subtitle,
+                subtitleExtra: subtitleExtra,
+                imageStyle: imageStyle,
+                placeholders: placeholders,
+            )
+        }
+    }
 }

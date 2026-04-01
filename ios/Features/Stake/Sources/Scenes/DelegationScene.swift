@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import PrimitivesComponents
+import SwiftUI
 
 public struct DelegationScene: View {
     private let model: DelegationSceneViewModel
@@ -13,13 +13,13 @@ public struct DelegationScene: View {
 
     public var body: some View {
         List {
-            Section { } header: {
+            Section {} header: {
                 WalletHeaderView(
                     model: model.model,
                     isPrivacyEnabled: .constant(false),
                     balanceActionType: .none,
                     onHeaderAction: nil,
-                    onInfoAction: nil
+                    onInfoAction: nil,
                 )
                 .padding(.top, .small)
             }
@@ -54,7 +54,7 @@ public struct DelegationScene: View {
                         subtitleStyle: model.model.subtitleStyle,
                         subtitleExtra: model.model.rewardsFiatValueText,
                         subtitleStyleExtra: model.model.subtitleExtraStyle,
-                        imageStyle: model.assetImageStyle
+                        imageStyle: model.assetImageStyle,
                     )
                 }
             }

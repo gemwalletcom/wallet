@@ -6,10 +6,10 @@ import PrimitivesTestKit
 
 public extension Transaction {
     static func mock(
-        id: String = "1",
+        id _: String = "1",
         type: TransactionType = .transfer,
         assetId: AssetId = .mock(),
-        metadata: AnyCodableValue? = nil
+        metadata: AnyCodableValue? = nil,
     ) -> Transaction {
         Transaction(
             id: TransactionId(chain: .ethereum, hash: "1"),
@@ -29,7 +29,7 @@ public extension Transaction {
             utxoInputs: [],
             utxoOutputs: [],
             metadata: metadata,
-            createdAt: .now
+            createdAt: .now,
         )
     }
 }

@@ -2,24 +2,20 @@ package com.gemwallet.android.ui.components.list_item
 
 import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.Constants
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.PriceUIState
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.Chain
@@ -40,10 +36,7 @@ fun ValidatorItem(
         trailingIcon = {
             if (isSelected) {
                 Spacer(modifier = Modifier.size(space4))
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "selected_delegation",
-                )
+                SelectionCheckmark()
             }
         },
         onClick = onClick
@@ -70,16 +63,14 @@ fun ValidatorItem(
         trailing = {
             Row (verticalAlignment = Alignment.CenterVertically) {
                 ListItemSupportText(R.string.stake_apr, " ${data.formatApr()}")
-                Box(modifier = Modifier.padding(bottom = 2.dp)) {
-                    trailingIcon()
-                }
+                trailingIcon()
             }
         },
     )
 }
 
 fun DelegationValidator.formatApr(): String {
-    return PriceUIState.formatPercentage(apr, showSign = false, showZero = true)
+    return apr.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 }
 
 fun DelegationValidator.getIconUrl(): String {

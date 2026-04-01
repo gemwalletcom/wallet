@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 
 struct ArrayPrimitivesTests {
     @Test
@@ -28,4 +28,3 @@ struct ArrayPrimitivesTests {
         #expect(Array(input.shuffleInGroups(groupSize: 2).suffix(2)).asSet() == ["3", "4"].asSet())
     }
 }
-

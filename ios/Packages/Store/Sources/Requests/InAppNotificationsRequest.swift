@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct InAppNotificationsRequest: DatabaseQueryable {
-
     public var walletId: String
 
     public init(walletId: String) {

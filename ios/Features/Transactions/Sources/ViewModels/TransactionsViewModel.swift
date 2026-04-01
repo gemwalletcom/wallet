@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
-import Store
-import Localization
-import TransactionsService
 import ExplorerService
-import PrimitivesComponents
-import WalletService
+import Foundation
+import Localization
 import Preferences
+import Primitives
+import PrimitivesComponents
+import Store
+import TransactionsService
+import WalletService
 
 @Observable
 @MainActor
@@ -33,14 +33,14 @@ public final class TransactionsViewModel {
         walletService: WalletService,
         wallet: Wallet,
         type: TransactionsRequestType,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.walletService = walletService
         self.transactionsService = transactionsService
 
         self.type = type
         self.wallet = wallet
-        self.filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
         self.preferences = preferences
     }
 
@@ -60,18 +60,18 @@ public final class TransactionsViewModel {
 
 // MARK: - Business Logic
 
-extension TransactionsViewModel {
-    public func onChangeWallet(_ oldWallet: Wallet?, _ newWallet: Wallet?) {
+public extension TransactionsViewModel {
+    func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
         if let newWallet, wallet != newWallet {
             refresh(for: newWallet)
         }
     }
 
-    public func onSelectFilterButton() {
+    func onSelectFilterButton() {
         isPresentingSheet = .filter
     }
 
-    public func fetch() async {
+    func fetch() async {
         do {
             try await transactionsService.updateAll(walletId: walletId)
         } catch {

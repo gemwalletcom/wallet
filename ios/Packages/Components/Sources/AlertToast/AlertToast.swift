@@ -1,11 +1,10 @@
 // Adopted from https://github.com/elai950/AlertToast
 
-import SwiftUI
 import Combine
 import Style
+import SwiftUI
 
 public struct AlertToast: View {
-
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     public let systemImage: String
@@ -19,7 +18,7 @@ public struct AlertToast: View {
         imageColor: Color,
         title: String,
         titleColor: Color? = nil,
-        titleFont: Font? = nil
+        titleFont: Font? = nil,
     ) {
         self.systemImage = systemImage
         self.imageColor = imageColor
@@ -64,7 +63,6 @@ public struct AlertToast: View {
 }
 
 public struct AlertToastModifier: ViewModifier {
-
     @Binding var isPresenting: Bool
 
     var duration: TimeInterval = 2
@@ -73,8 +71,8 @@ public struct AlertToastModifier: ViewModifier {
 
     var alert: () -> AlertToast
 
-    var onTap: (() -> Void)? = nil
-    var completion: (() -> Void)? = nil
+    var onTap: (() -> Void)?
+    var completion: (() -> Void)?
 
     @ViewBuilder
     private func main() -> some View {
@@ -102,10 +100,10 @@ public struct AlertToastModifier: ViewModifier {
                 ZStack {
                     main()
                 }
-                .animation(.spring(), value: isPresenting)
+                .animation(.spring(), value: isPresenting),
             )
             .task(id: isPresenting) {
-                if isPresenting && duration > 0 && duration.isFinite {
+                if isPresenting, duration > 0, duration.isFinite {
                     try? await Task.sleep(for: .seconds(duration))
                     withAnimation(.spring()) {
                         isPresenting = false
@@ -123,7 +121,7 @@ public extension View {
         offsetY: CGFloat = 0,
         alert: @escaping () -> AlertToast,
         onTap: (() -> Void)? = nil,
-        completion: (() -> Void)? = nil
+        completion: (() -> Void)? = nil,
     ) -> some View {
         modifier(AlertToastModifier(
             isPresenting: isPresenting,
@@ -132,7 +130,7 @@ public extension View {
             offsetY: offsetY,
             alert: alert,
             onTap: onTap,
-            completion: completion
+            completion: completion,
         ))
     }
 }

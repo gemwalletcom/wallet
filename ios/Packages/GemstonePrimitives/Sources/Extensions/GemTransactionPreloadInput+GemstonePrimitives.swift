@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Gemstone
+import Primitives
 
-extension TransactionPreloadInput {
-    public func map() throws -> GemTransactionPreloadInput {
-        return GemTransactionPreloadInput(
-            inputType: try inputType.map(),
+public extension TransactionPreloadInput {
+    func map() throws -> GemTransactionPreloadInput {
+        try GemTransactionPreloadInput(
+            inputType: inputType.map(),
             senderAddress: senderAddress,
-            destinationAddress: destinationAddress
+            destinationAddress: destinationAddress,
         )
     }
 }

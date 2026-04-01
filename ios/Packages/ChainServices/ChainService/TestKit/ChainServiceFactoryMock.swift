@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import ChainService
-import Primitives
 import Blockchain
 import BlockchainTestKit
+import ChainService
+import Foundation
+import Primitives
 
 public final class ChainServiceFactoryMock: ChainServiceFactorable, Sendable {
-
     private let chainService: any ChainServiceable
 
     public var requestInterceptor: any RequestInterceptable {
@@ -18,7 +17,7 @@ public final class ChainServiceFactoryMock: ChainServiceFactorable, Sendable {
         self.chainService = chainService
     }
 
-    public func service(for chain: Chain) -> any ChainServiceable {
+    public func service(for _: Chain) -> any ChainServiceable {
         chainService
     }
 }

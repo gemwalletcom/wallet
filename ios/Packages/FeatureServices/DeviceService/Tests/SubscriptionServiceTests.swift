@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 
 @testable import DeviceService
 
@@ -14,12 +14,12 @@ struct SubscriptionServiceTests {
                 source: .import,
                 subscriptions: [
                     AddressChains(address: "btc1", chains: [.bitcoin]),
-                    AddressChains(address: "eth1", chains: [.ethereum])
-                ]
-            )
+                    AddressChains(address: "eth1", chains: [.ethereum]),
+                ],
+            ),
         ]
         let remote = [
-            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin])
+            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin]),
         ]
 
         let changes = SubscriptionService.calculateChanges(local: local, remote: remote)
@@ -38,12 +38,12 @@ struct SubscriptionServiceTests {
                 walletId: "wallet1",
                 source: .import,
                 subscriptions: [
-                    AddressChains(address: "btc1", chains: [.bitcoin])
-                ]
-            )
+                    AddressChains(address: "btc1", chains: [.bitcoin]),
+                ],
+            ),
         ]
         let remote = [
-            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum])
+            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum]),
         ]
 
         let changes = SubscriptionService.calculateChanges(local: local, remote: remote)
@@ -58,7 +58,7 @@ struct SubscriptionServiceTests {
     func deleteEntireWallet() {
         let local: [WalletSubscription] = []
         let remote = [
-            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum])
+            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum]),
         ]
 
         let changes = SubscriptionService.calculateChanges(local: local, remote: remote)
@@ -77,9 +77,9 @@ struct SubscriptionServiceTests {
                 source: .import,
                 subscriptions: [
                     AddressChains(address: "btc1", chains: [.bitcoin]),
-                    AddressChains(address: "eth1", chains: [.ethereum])
-                ]
-            )
+                    AddressChains(address: "eth1", chains: [.ethereum]),
+                ],
+            ),
         ]
         let remote: [WalletSubscriptionChains] = []
 
@@ -99,12 +99,12 @@ struct SubscriptionServiceTests {
                 source: .import,
                 subscriptions: [
                     AddressChains(address: "btc1", chains: [.bitcoin]),
-                    AddressChains(address: "eth1", chains: [.ethereum])
-                ]
-            )
+                    AddressChains(address: "eth1", chains: [.ethereum]),
+                ],
+            ),
         ]
         let remote = [
-            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum])
+            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum]),
         ]
 
         let changes = SubscriptionService.calculateChanges(local: local, remote: remote)
@@ -121,21 +121,21 @@ struct SubscriptionServiceTests {
                 walletId: "wallet1",
                 source: .import,
                 subscriptions: [
-                    AddressChains(address: "btc1", chains: [.bitcoin])
-                ]
+                    AddressChains(address: "btc1", chains: [.bitcoin]),
+                ],
             ),
             WalletSubscription(
                 walletId: "wallet2",
                 source: .import,
                 subscriptions: [
                     AddressChains(address: "eth1", chains: [.ethereum]),
-                    AddressChains(address: "poly1", chains: [.polygon])
-                ]
-            )
+                    AddressChains(address: "poly1", chains: [.polygon]),
+                ],
+            ),
         ]
         let remote = [
             WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum]),
-            WalletSubscriptionChains(walletId: "wallet3", chains: [.solana])
+            WalletSubscriptionChains(walletId: "wallet3", chains: [.solana]),
         ]
 
         let changes = SubscriptionService.calculateChanges(local: local, remote: remote)
@@ -162,12 +162,12 @@ struct SubscriptionServiceTests {
                 source: .import,
                 subscriptions: [
                     AddressChains(address: "eth1", chains: [.ethereum]),
-                    AddressChains(address: "btc1", chains: [.bitcoin])
-                ]
-            )
+                    AddressChains(address: "btc1", chains: [.bitcoin]),
+                ],
+            ),
         ]
         let remote = [
-            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum])
+            WalletSubscriptionChains(walletId: "wallet1", chains: [.bitcoin, .ethereum]),
         ]
 
         let changes = SubscriptionService.calculateChanges(local: local, remote: remote)

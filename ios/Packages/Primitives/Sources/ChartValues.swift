@@ -16,7 +16,7 @@ public struct ChartValues: Sendable {
         lowerBoundValue: Double,
         upperBoundValue: Double,
         lowerBoundDate: Date,
-        upperBoundDate: Date
+        upperBoundDate: Date,
     ) {
         self.charts = charts
         self.lowerBoundValue = lowerBoundValue
@@ -26,12 +26,13 @@ public struct ChartValues: Sendable {
     }
 
     public static func from(charts: [ChartDateValue]) throws -> ChartValues {
-        let values = charts.map { $0.value }
-        let dates = charts.map { $0.date }
+        let values = charts.map(\.value)
+        let dates = charts.map(\.date)
         guard let lowerBoundValue = values.min(),
               let upperBoundValue = values.max(),
               let lowerBoundDateIndex = values.firstIndex(of: lowerBoundValue),
-              let upperBoundDateIndex = values.firstIndex(of: upperBoundValue) else {
+              let upperBoundDateIndex = values.firstIndex(of: upperBoundValue)
+        else {
             throw AnyError("not able to calculate lower and upper bound")
         }
 
@@ -40,7 +41,7 @@ public struct ChartValues: Sendable {
             lowerBoundValue: lowerBoundValue,
             upperBoundValue: upperBoundValue,
             lowerBoundDate: dates[lowerBoundDateIndex],
-            upperBoundDate: dates[upperBoundDateIndex]
+            upperBoundDate: dates[upperBoundDateIndex],
         )
     }
 
@@ -49,11 +50,13 @@ public struct ChartValues: Sendable {
         let padding = range * 0.05
         return [lowerBoundValue - padding, upperBoundValue + padding]
     }
+
     public var xScale: [Date] {
         guard let first = charts.first?.date, let last = charts.last?.date else { return [] }
         let padding = last.timeIntervalSince(first) * 0.02
         return [first, last.addingTimeInterval(padding)]
     }
+
     public var hasVariation: Bool { lowerBoundValue != upperBoundValue }
 
     public var firstValue: Double { charts.first?.value ?? 0 }

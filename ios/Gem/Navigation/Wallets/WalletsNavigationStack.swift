@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Primitives
-import Onboarding
 import ManageWallets
+import Onboarding
+import Primitives
 import Style
+import SwiftUI
 
 struct WalletsNavigationStack: View {
     @Environment(\.walletService) private var walletService
@@ -25,22 +25,22 @@ struct WalletsNavigationStack: View {
                     navigationPath: $navigationPath,
                     walletService: walletService,
                     isPresentingCreateWalletSheet: $isPresentingCreateWalletSheet,
-                    isPresentingImportWalletSheet: $isPresentingImportWalletSheet
-                )
+                    isPresentingImportWalletSheet: $isPresentingImportWalletSheet,
+                ),
             )
             .navigationDestination(for: Scenes.WalletDetail.self) {
                 WalletDetailScene(
                     model: WalletDetailViewModel(
                         navigationPath: $navigationPath,
                         wallet: $0.wallet,
-                        walletService: walletService
-                    )
+                        walletService: walletService,
+                    ),
                 )
             }
             .navigationDestination(for: Scenes.WalletSelectImage.self) {
                 WalletImageScene(model: WalletImageViewModel(
                     wallet: $0.wallet,
-                    avatarService: avatarService
+                    avatarService: avatarService,
                 ))
             }
             .sheet(isPresented: $isPresentingCreateWalletSheet) {
@@ -48,8 +48,8 @@ struct WalletsNavigationStack: View {
                     model: CreateWalletModel(
                         walletService: walletService,
                         avatarService: avatarService,
-                        onComplete: { dismiss() }
-                    )
+                        onComplete: { dismiss() },
+                    ),
                 )
             }
             .sheet(isPresented: $isPresentingImportWalletSheet) {
@@ -58,8 +58,8 @@ struct WalletsNavigationStack: View {
                         walletService: walletService,
                         avatarService: avatarService,
                         nameService: nameService,
-                        onComplete: { dismiss() }
-                    )
+                        onComplete: { dismiss() },
+                    ),
                 )
             }
             .toolbar {

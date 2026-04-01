@@ -13,13 +13,13 @@ public enum SelectedAssetType: Sendable, Hashable, Identifiable {
 
     public var id: String {
         switch self {
-        case .send(let type): "send_\(type.id)"
-        case .receive(let type): "receive_\(type.id)"
-        case .stake(let asset): "stake_\(asset.id)"
-        case .earn(let asset): "earn_\(asset.id)"
-        case .buy(let asset, _): "buy_\(asset.id)"
-        case .sell(let asset, _): "sell_\(asset.id)"
-        case .swap(let fromAsset, let toAsset): "swap_\(fromAsset.id)_\(toAsset?.id.identifier ?? "")"
+        case let .send(type): "send_\(type.id)"
+        case let .receive(type): "receive_\(type.id)"
+        case let .stake(asset): "stake_\(asset.id)"
+        case let .earn(asset): "earn_\(asset.id)"
+        case let .buy(asset, _): "buy_\(asset.id)"
+        case let .sell(asset, _): "sell_\(asset.id)"
+        case let .swap(fromAsset, toAsset): "swap_\(fromAsset.id)_\(toAsset?.id.identifier ?? "")"
         }
     }
 }

@@ -3,6 +3,7 @@ package com.gemwallet.android.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.BuildConfig
+import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
@@ -11,11 +12,13 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.features.onboarding.OnboardingDest
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.ui.navigation.walletRootRoute
 import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -34,11 +37,27 @@ class AppViewModel @Inject constructor(
     private val switchPushEnabled: SwitchPushEnabled,
     private val walletsRepository: WalletsRepository,
     private val gemApiClient: GemApiClient,
+    getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(AppState())
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppUIState())
+    private val startDestination = MutableStateFlow<String?>(null)
+    val startDestinationState = startDestination.asStateFlow()
+    private val walletReadyState = getWalletSummary.getWalletSummary()
+        .map { it != null }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val launchReadyState = combine(
+        startDestinationState,
+        walletReadyState,
+    ) { destination, isWalletReady ->
+        when (destination) {
+            null -> false
+            walletRootRoute -> isWalletReady
+            else -> true
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isTermsAccepted = userConfig.isTermsAccepted()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -53,6 +72,9 @@ class AppViewModel @Inject constructor(
 
 
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            startDestination.value = getStartDestination()
+        }
         viewModelScope.launch {
             handleAppVersion()
             rateAs()
@@ -75,24 +97,26 @@ class AppViewModel @Inject constructor(
         if (BuildConfig.DEBUG) {
             return@withContext
         }
-        val lastRelease = runCatching {
-            gemApiClient.getConfig().releases
-                ?.filter {
-                    val versionFlavor = when (it.store) {
-                        PlatformStore.GooglePlay -> "google"
-                        PlatformStore.Fdroid -> "fdroid"
-                        PlatformStore.Huawei -> "huawei"
-                        PlatformStore.SolanaStore -> "solana"
-                        PlatformStore.SamsungStore -> "samsung"
-                        PlatformStore.ApkUniversal -> "universal"
-                        PlatformStore.AppStore -> it.store.string
-                        PlatformStore.Emerald -> "emerald"
-                        PlatformStore.Local -> "local"
-                    }
-                    BuildConfig.FLAVOR == versionFlavor
-                }
-                ?.firstOrNull()
+        val config = runCatching {
+            gemApiClient.getConfig()
         }.getOrNull() ?: return@withContext
+
+        val lastRelease = config.releases
+            .filter {
+                val versionFlavor = when (it.store) {
+                    PlatformStore.GooglePlay -> "google"
+                    PlatformStore.Fdroid -> "fdroid"
+                    PlatformStore.Huawei -> "huawei"
+                    PlatformStore.SolanaStore -> "solana"
+                    PlatformStore.SamsungStore -> "samsung"
+                    PlatformStore.ApkUniversal -> "universal"
+                    PlatformStore.AppStore -> it.store.string
+                    PlatformStore.Emerald -> "emerald"
+                    PlatformStore.Local -> "local"
+                }
+                BuildConfig.FLAVOR == versionFlavor
+            }
+            .firstOrNull() ?: return@withContext
 
         val skipVersion = userConfig.getAppVersionSkip().firstOrNull()
         val lastVersion = lastRelease.version
@@ -137,9 +161,9 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    suspend fun getStartDestination(): String = withContext(Dispatchers.IO) {
+    private suspend fun getStartDestination(): String = withContext(Dispatchers.IO) {
         if (sessionRepository.session().firstOrNull() != null) {
-            "/"
+            walletRootRoute
         } else {
             OnboardingDest.route
         }

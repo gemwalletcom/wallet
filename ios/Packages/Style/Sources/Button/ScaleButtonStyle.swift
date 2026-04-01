@@ -10,8 +10,8 @@ public struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-extension ButtonStyle where Self == ScaleButtonStyle {
-    public static var scale: Self {
+public extension ButtonStyle where Self == ScaleButtonStyle {
+    static var scale: Self {
         ScaleButtonStyle()
     }
 }

@@ -3,14 +3,14 @@
 import Foundation
 import class Gemstone.Config
 import class Gemstone.Explorer
-import Primitives
 import GemstonePrimitives
 import Preferences
+import Primitives
 
 public struct ExplorerService {
     private let preferences: any ExplorerPreferencesStorable
 
-    public static let standard: ExplorerService = ExplorerService()
+    public static let standard: ExplorerService = .init()
 
     public init(preferences: any ExplorerPreferencesStorable = ExplorerPreferences()) {
         self.preferences = preferences
@@ -52,7 +52,7 @@ public struct ExplorerService {
         let (name, explorer) = getExplorer(chain: chain)
         return makeLink(name: name, url: explorer.getValidatorUrl(explorerName: name, address: address))
     }
-    
+
     // MARK: - Private
 
     private func getExplorer(chain: Chain) -> (String, Gemstone.Explorer) {
@@ -63,7 +63,7 @@ public struct ExplorerService {
         guard let url, let parsed = URL(string: url) else { return nil }
         return BlockExplorerLink(name: name, link: parsed.absoluteString)
     }
-    
+
     private func explorerNameOrDefault(chain: Chain) -> String {
         let name = preferences.get(chain: chain)
         let explorers = Self.explorers(chain: chain)
@@ -85,4 +85,4 @@ extension ExplorerService: ExplorerPreferencesStorable {
 
 // MARK: - ExplorerLinkFetchable
 
-extension ExplorerService: ExplorerLinkFetchable { }
+extension ExplorerService: ExplorerLinkFetchable {}

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
 import Foundation
+import Primitives
 
 struct CustomNodeULRFetchable: NodeURLFetchable {
     let url: URL
@@ -12,5 +12,5 @@ struct CustomNodeULRFetchable: NodeURLFetchable {
         self.requestInterceptor = requestInterceptor
     }
 
-    func node(for chain: Chain) -> URL { url }
+    func node(for _: Chain) -> URL { url }
 }

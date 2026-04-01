@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
-import Primitives
 import Components
-import PrimitivesComponents
 import Formatters
+import Foundation
 import Localization
+import Primitives
+import PrimitivesComponents
 
 struct RewardRedemptionOptionViewModel: Identifiable {
     let option: RewardRedemptionOption
@@ -16,7 +16,7 @@ struct RewardRedemptionOptionViewModel: Identifiable {
     var title: String {
         switch option.redemptionType {
         case .asset, .giftAsset:
-            return Localized.Rewards.WaysSpend.Asset.title(valueText)
+            Localized.Rewards.WaysSpend.Asset.title(valueText)
         }
     }
 

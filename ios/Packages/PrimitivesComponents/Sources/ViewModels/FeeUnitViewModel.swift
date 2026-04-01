@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Formatters
 import Foundation
 import Localization
 import Primitives
-import Formatters
 
 public struct FeeUnitViewModel {
     private let unit: FeeUnit
@@ -16,12 +16,12 @@ public struct FeeUnitViewModel {
         unit: FeeUnit,
         decimals: Int,
         symbol: String,
-        formatter: CurrencyFormatter
+        formatter: CurrencyFormatter,
     ) {
         self.unit = unit
         self.decimals = decimals
         self.symbol = symbol
-        self.currencyFormatter = formatter
+        currencyFormatter = formatter
     }
 
     public var value: String {
@@ -45,7 +45,7 @@ public struct FeeUnitViewModel {
             return String(
                 format: "%@ %@",
                 valueFormatter.string(unit.value, decimals: decimals),
-                symbol
+                symbol,
             )
         }
     }

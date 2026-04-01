@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 import PrimitivesComponents
 
 @Observable
@@ -13,24 +13,24 @@ final class AssetSceneBannersViewModel: Sendable {
 
     init(
         assetData: AssetData,
-        banners: [Banner]
+        banners: [Banner],
     ) {
         self.assetData = assetData
         self.banners = banners
     }
-    
+
     var allBanners: [Banner] {
         (extraBanners + banners)
             .filter { shouldShowBanner($0) }
             .sorted { $0 < $1 }
     }
-    
+
     // MARK: - Private
 
     private var extraBanners: [Banner] {
         [
             .activateAssetBanner(assetData.asset),
-            .suspiciousAssetBanner()
+            .suspiciousAssetBanner(),
         ]
     }
 
@@ -53,7 +53,7 @@ extension Banner {
             asset: asset,
             chain: .none,
             event: .activateAsset,
-            state: .alwaysActive
+            state: .alwaysActive,
         )
     }
 
@@ -63,7 +63,7 @@ extension Banner {
             asset: .none,
             chain: .none,
             event: .suspiciousAsset,
-            state: .alwaysActive
+            state: .alwaysActive,
         )
     }
 }

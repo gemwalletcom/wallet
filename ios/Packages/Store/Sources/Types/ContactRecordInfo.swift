@@ -13,7 +13,7 @@ extension ContactRecordInfo {
     var contactData: ContactData {
         ContactData(
             contact: contact.contact,
-            addresses: addresses.map { $0.contactAddress }
+            addresses: addresses.map(\.contactAddress),
         )
     }
 }

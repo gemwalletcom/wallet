@@ -14,6 +14,9 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
@@ -28,7 +31,6 @@ import com.gemwallet.android.model.getStackedAmount
 import com.gemwallet.android.model.reservedFormatted
 import com.gemwallet.android.model.totalFormatted
 import com.gemwallet.android.model.totalStakeFormatted
-import com.gemwallet.android.ui.models.PriceUIState
 import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIState
@@ -239,13 +241,8 @@ class AssetDetailsViewModel @Inject constructor(
                 },
                 iconUrl = asset.id.getIconUrl(),
                 priceValue = if (price == 0.0) "" else currency.format(price, dynamicPlace = true),
-                priceDayChanges = PriceUIState.formatPercentage(
-                    value = assetInfo.price?.price?.priceChangePercentage24h ?: 0.0,
-                    showZero = true,
-                ),
-                priceChangedType = PriceUIState.getState(
-                    assetInfo.price?.price?.priceChangePercentage24h ?: 0.0
-                ),
+                priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
+                priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toPriceState(),
                 tokenType = asset.type,
                 isBuyEnabled = assetInfo.metadata?.isBuyEnabled == true,
                 isSwapEnabled = assetInfo.metadata?.isSwapEnabled == true,
@@ -267,7 +264,7 @@ class AssetDetailsViewModel @Inject constructor(
                     },
                     stake = if (asset.id.type() == AssetSubtype.NATIVE && StakeChain.isStaked(asset.id.chain)) {
                         if (stakeBalance == 0.0) {
-                            "APR ${PriceUIState.formatPercentage(assetInfo.stakeApr ?: 0.0, false)}"
+                            "APR ${(assetInfo.stakeApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
                         } else {
                             balances.totalStakeFormatted()
                         }
@@ -284,6 +281,3 @@ class AssetDetailsViewModel @Inject constructor(
         }
     }
 }
-
-
-

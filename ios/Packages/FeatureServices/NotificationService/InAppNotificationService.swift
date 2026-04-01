@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GemAPI
+import Preferences
+import Primitives
 import Store
 import WalletService
-import Preferences
 
 public struct InAppNotificationService: Sendable {
     private let apiService: GemAPINotificationService
@@ -15,7 +15,7 @@ public struct InAppNotificationService: Sendable {
     public init(
         apiService: GemAPINotificationService = GemAPIService.shared,
         walletService: WalletService,
-        store: InAppNotificationStore
+        store: InAppNotificationStore,
     ) {
         self.apiService = apiService
         self.walletService = walletService
@@ -27,7 +27,7 @@ public struct InAppNotificationService: Sendable {
         let newTimestamp = Int(Date.now.timeIntervalSince1970)
 
         let notifications = try await apiService.getNotifications(
-            fromTimestamp: preferences.notificationsTimestamp
+            fromTimestamp: preferences.notificationsTimestamp,
         )
         try store.addNotifications(notifications)
 

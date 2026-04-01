@@ -1,27 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Preferences
-import PrimitivesComponents
 import Components
-import Style
-import Localization
 import Formatters
+import Foundation
+import Localization
+import Preferences
+import Primitives
+import PrimitivesComponents
+import Style
 
 struct MarketsViewModel: Sendable {
     let markets: Markets
-    
+
     private let currencyFormatter: CurrencyFormatter
-    
+
     init(
         markets: Markets,
-        currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Preferences.standard.currency)
+        currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Preferences.standard.currency),
     ) {
         self.markets = markets
         self.currencyFormatter = currencyFormatter
     }
-    
+
     var marketCapViewModel: PriceListItemViewModel {
         PriceListItemViewModel(
             title: Localized.Asset.marketCap,
@@ -29,10 +29,10 @@ struct MarketsViewModel: Sendable {
                 price: Price(
                     price: Double(markets.marketCap),
                     priceChangePercentage24h: Double(markets.marketCapChangePercentage24h),
-                    updatedAt: .now
+                    updatedAt: .now,
                 ),
-                currencyCode: currencyFormatter.currencyCode
-            )
+                currencyCode: currencyFormatter.currencyCode,
+            ),
         )
     }
 }

@@ -2,7 +2,7 @@
 
 import Foundation
 
-public struct RetryIntervalCalculator {
+public enum RetryIntervalCalculator {
     static func initialInterval(for config: JobConfiguration) -> Duration {
         switch config {
         case let .fixed(duration, _): duration
@@ -12,7 +12,7 @@ public struct RetryIntervalCalculator {
 
     static func nextInterval(
         config: JobConfiguration,
-        currentInterval: Duration
+        currentInterval: Duration,
     ) -> Duration {
         switch config {
         case let .fixed(duration, _):
@@ -20,7 +20,7 @@ public struct RetryIntervalCalculator {
         case let .adaptive(config, _):
             max(
                 config.initialInterval,
-                min(currentInterval * config.stepFactor, config.maxInterval)
+                min(currentInterval * config.stepFactor, config.maxInterval),
             )
         }
     }

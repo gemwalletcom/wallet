@@ -4,7 +4,7 @@ import Foundation
 
 extension Node: Identifiable {
     public var id: String {
-        return "\(url)"
+        "\(url)"
     }
 }
 
@@ -12,15 +12,15 @@ extension Node: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(url)
     }
-    
+
     public static func == (lhs: Node, rhs: Node) -> Bool {
-        return lhs.url == rhs.url
+        lhs.url == rhs.url
     }
 }
 
 extension ChainNode: Identifiable {
     public var id: String {
-        return "\(chain)\(node.url)"
+        "\(chain)\(node.url)"
     }
 }
 
@@ -29,8 +29,8 @@ extension ChainNode: Hashable {
         hasher.combine(chain)
         hasher.combine(node.url)
     }
-    
+
     public static func == (lhs: ChainNode, rhs: ChainNode) -> Bool {
-        return lhs.chain == rhs.chain && lhs.node.url == rhs.node.url
+        lhs.chain == rhs.chain && lhs.node.url == rhs.node.url
     }
 }

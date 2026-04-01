@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import WalletService
-import SwiftUI
-import Style
-import Localization
-import PrimitivesComponents
 import Components
+import Foundation
 import GemstonePrimitives
+import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
+import WalletService
 
 @Observable
 @MainActor
 final class VerifyPhraseViewModel {
-
     private let words: [String]
     private let shuffledWords: [String]
     private let onComplete: ([String]) -> Void
@@ -26,14 +25,14 @@ final class VerifyPhraseViewModel {
 
     init(
         words: [String],
-        onComplete: @escaping ([String]) -> Void
+        onComplete: @escaping ([String]) -> Void,
     ) {
         self.words = words
-        self.shuffledWords = words.shuffleInGroups(groupSize: 4)
-        self.wordsVerified = Array(repeating: "", count: words.count)
+        shuffledWords = words.shuffleInGroups(groupSize: 4)
+        wordsVerified = Array(repeating: "", count: words.count)
         self.onComplete = onComplete
     }
-    
+
     var title: String {
         Localized.VerifyPhrase.title
     }
@@ -50,11 +49,11 @@ final class VerifyPhraseViewModel {
             }
             .splitInSubArrays(into: wordsVerified.count / 2)
     }
-    
+
     var rowsSections: [[WordIndex]] {
         selectRows.chunks(4)
     }
-    
+
     var selectRows: [WordIndex] {
         shuffledWords
             .enumerated()
@@ -62,7 +61,7 @@ final class VerifyPhraseViewModel {
                 WordIndex(index: $0.offset, word: $0.element)
             }
     }
-    
+
     func pickWord(index: WordIndex) {
         if words[wordsIndex] == index.word {
             wordsVerified[wordsIndex] = index.word
@@ -74,7 +73,7 @@ final class VerifyPhraseViewModel {
             buttonState = .normal
         }
     }
-    
+
     func isVerified(index: WordIndex) -> Bool {
         selectedIndexes.contains(index)
     }

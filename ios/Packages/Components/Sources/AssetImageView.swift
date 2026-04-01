@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct AssetImageView: View {
     @Environment(\.displayScale) private var scale
@@ -13,6 +13,7 @@ public struct AssetImageView: View {
         default: size / 3
         }
     }
+
     private let assetImage: AssetImage
     private let overlayPadding: CGFloat = 2
     private var cornerRadius: CGFloat { style?.cornerRadius ?? size / 2 }
@@ -21,7 +22,7 @@ public struct AssetImageView: View {
     public init(
         assetImage: AssetImage,
         size: CGFloat = .image.asset,
-        style: Style? = nil
+        style: Style? = nil,
     ) {
         self.assetImage = assetImage
         self.size = max(1, size)
@@ -39,7 +40,7 @@ public struct AssetImageView: View {
             },
             placeholder: {
                 placeholderView
-            }
+            },
         )
         .frame(width: size, height: size)
         .cornerRadius(cornerRadius)
@@ -109,8 +110,8 @@ public struct AssetImageView: View {
 
 // MARK: - Style
 
-extension AssetImageView {
-    public struct Style: Sendable, Equatable {
+public extension AssetImageView {
+    struct Style: Sendable, Equatable {
         public let foregroundColor: Color?
         public let cornerRadius: CGFloat?
         public let fontWeight: Font.Weight?
@@ -118,7 +119,7 @@ extension AssetImageView {
         public init(
             foregroundColor: Color? = nil,
             cornerRadius: CGFloat? = nil,
-            fontWeight: Font.Weight? = nil
+            fontWeight: Font.Weight? = nil,
         ) {
             self.foregroundColor = foregroundColor
             self.cornerRadius = cornerRadius
@@ -134,9 +135,9 @@ extension AssetImageView {
                 type: "SPL",
                 imageURL: URL(string: "https://example.com/token.png"),
                 placeholder: Image(systemName: "bitcoinsign.circle"),
-                chainPlaceholder: Image(systemName: "bolt.circle.fill")
+                chainPlaceholder: Image(systemName: "bolt.circle.fill"),
             ),
-            size: .image.medium
+            size: .image.medium,
         )
 
         AssetImageView(
@@ -144,20 +145,20 @@ extension AssetImageView {
                 type: "MIGRAINE",
                 imageURL: nil,
                 placeholder: nil,
-                chainPlaceholder: Image(systemName: "bolt.circle.fill")
+                chainPlaceholder: Image(systemName: "bolt.circle.fill"),
             ),
-            size: .image.medium
+            size: .image.medium,
         )
         .preferredColorScheme(.dark)
-        
+
         AssetImageView(
             assetImage: AssetImage(
                 type: Emoji.WalletAvatar.gem.rawValue,
                 imageURL: nil,
                 placeholder: nil,
-                chainPlaceholder: Image(systemName: "bolt.circle.fill")
+                chainPlaceholder: Image(systemName: "bolt.circle.fill"),
             ),
-            size: .image.medium
+            size: .image.medium,
         )
         .preferredColorScheme(.dark)
     }

@@ -26,7 +26,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
         address: String,
         name: String,
         type: AddressType?,
-        status: VerificationStatus
+        status: VerificationStatus,
     ) {
         self.chain = chain
         self.address = address
@@ -38,7 +38,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
 
 extension AddressRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName) {
+        try db.create(table: databaseTableName) {
             $0.column(Columns.chain.name, .text)
                 .notNull()
                 .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
@@ -62,7 +62,7 @@ extension AddressRecord {
             address: address,
             name: name,
             type: type,
-            status: status
+            status: status,
         )
     }
 }
