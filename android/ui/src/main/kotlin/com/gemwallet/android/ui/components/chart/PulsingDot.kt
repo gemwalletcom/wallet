@@ -16,25 +16,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 private object PulseMetrics {
-    const val CONTAINER_SCALE = 5
     const val DURATION_MS = 1800
-    const val SECOND_RING_DELAY_MS = 400
-    val ringStroke = 1.5.dp
-    val innerGlowRadius = 6.dp   // iOS: .shadow(radius: 6)
-    val outerGlowRadius = 12.dp  // iOS: .shadow(radius: 12)
-    const val RING1_MAX_SCALE = 3f
+    const val RING2_PHASE_OFFSET = 0.4f / 1.8f
+    const val RING1_MAX_SCALE = 3.0f
     const val RING2_MAX_SCALE = 2.5f
+    const val CONTAINER_SCALE = 5
+    val ringStroke = 1.5.dp
 }
 
 private object PulseAlpha {
-    const val INNER_GLOW = 0.80f  // iOS: .opacity(.strong)
-    const val OUTER_GLOW = 0.40f  // iOS: .opacity(.semiMedium)
-    const val RING_BASE = 0.32f   // 0.40 * 0.80
+    const val RING_STROKE = 0.40f
+    const val RING_OPACITY = 0.80f
 }
 
 @Composable
@@ -44,25 +42,16 @@ fun PulsingDot(
     dotSize: Dp = 8.dp,
 ) {
     val containerSize = dotSize * PulseMetrics.CONTAINER_SCALE
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val transition = rememberInfiniteTransition(label = "pulse")
 
-    val progress1 by infiniteTransition.animateFloat(
+    val progress by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(PulseMetrics.DURATION_MS, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "ring1",
-    )
-    val progress2 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(PulseMetrics.DURATION_MS, delayMillis = PulseMetrics.SECOND_RING_DELAY_MS, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "ring2",
+        label = "ring",
     )
 
     Box(modifier = modifier.size(containerSize), contentAlignment = Alignment.Center) {
@@ -71,29 +60,8 @@ fun PulsingDot(
             val dotRadius = dotSize.toPx() / 2
             val ringStrokePx = PulseMetrics.ringStroke.toPx()
 
-            val outerGlowR = dotRadius + PulseMetrics.outerGlowRadius.toPx()
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(0f to color.copy(alpha = PulseAlpha.OUTER_GLOW), 1f to color.copy(alpha = 0f)),
-                    center = center,
-                    radius = outerGlowR,
-                ),
-                radius = outerGlowR,
-                center = center,
-            )
-            val innerGlowR = dotRadius + PulseMetrics.innerGlowRadius.toPx()
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(0f to color.copy(alpha = PulseAlpha.INNER_GLOW), 1f to color.copy(alpha = 0f)),
-                    center = center,
-                    radius = innerGlowR,
-                ),
-                radius = innerGlowR,
-                center = center,
-            )
-
-            drawPulseRing(center, dotRadius, ringStrokePx, color, progress1, PulseMetrics.RING1_MAX_SCALE)
-            drawPulseRing(center, dotRadius, ringStrokePx, color, progress2, PulseMetrics.RING2_MAX_SCALE)
+            drawPulseRing(center, dotRadius, ringStrokePx, color, progress, PulseMetrics.RING1_MAX_SCALE)
+            drawPulseRing(center, dotRadius, ringStrokePx, color, (progress + PulseMetrics.RING2_PHASE_OFFSET) % 1f, PulseMetrics.RING2_MAX_SCALE)
 
             drawCircle(
                 brush = Brush.radialGradient(
@@ -108,7 +76,7 @@ fun PulsingDot(
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawPulseRing(
+private fun DrawScope.drawPulseRing(
     center: Offset,
     dotRadius: Float,
     strokeWidth: Float,
@@ -118,11 +86,12 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawPulseRing(
 ) {
     val eased = easeOutQuad(progress)
     val scale = 1f + (maxScale - 1f) * eased
+    val alpha = PulseAlpha.RING_STROKE * PulseAlpha.RING_OPACITY * (1f - eased)
     drawCircle(
-        color = color.copy(alpha = PulseAlpha.RING_BASE * (1f - eased)),
+        color = color.copy(alpha = alpha),
         radius = dotRadius * scale,
         center = center,
-        style = Stroke(width = strokeWidth),
+        style = Stroke(width = strokeWidth * scale),
     )
 }
 
