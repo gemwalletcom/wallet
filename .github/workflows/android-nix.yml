@@ -38,6 +38,9 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
+      - name: Install Rust Android targets
+        run: nix-shell shell.nix --run "rustup default stable && rustup target add x86_64-linux-android aarch64-linux-android armv7-linux-androideabi"
+
       - name: Build release APK
         run: |
           touch android/local.properties

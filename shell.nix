@@ -28,6 +28,8 @@ in
 pkgs.mkShell {
   buildInputs = [
     pkgs.temurin-bin-17
+    pkgs.rustup
+    pkgs.cargo-ndk
     androidSdk
   ];
 
