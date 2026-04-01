@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import ActivityService
+import Components
 import Foundation
-import SwiftUI
-import Primitives
-import Store
+import Localization
 import PerpetualService
 import Preferences
+import Primitives
 import PrimitivesComponents
-import Components
-import Localization
+import Store
 import Style
-import ActivityService
+import SwiftUI
 
 @Observable
 @MainActor
@@ -47,7 +47,7 @@ final class PerpetualsSceneViewModel {
         observerService: any PerpetualObservable<HyperliquidSubscription>,
         activityService: ActivityService,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
-        onSelectAsset: ((Asset) -> Void)? = nil
+        onSelectAsset: ((Asset) -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.perpetualService = perpetualService
@@ -55,10 +55,10 @@ final class PerpetualsSceneViewModel {
         self.activityService = activityService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
-        self.positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, searchQuery: ""), initialValue: [])
-        self.perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
-        self.walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.walletId), initialValue: .zero)
-        self.recentsQuery = ObservableQuery(RecentActivityRequest(walletId: wallet.walletId, limit: 10, types: [.perpetual]), initialValue: [])
+        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, searchQuery: ""), initialValue: [])
+        perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
+        walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.walletId), initialValue: .zero)
+        recentsQuery = ObservableQuery(RecentActivityRequest(walletId: wallet.walletId, limit: 10, types: [.perpetual]), initialValue: [])
     }
 
     var navigationTitle: String { Localized.Perpetuals.title }
@@ -68,6 +68,7 @@ final class PerpetualsSceneViewModel {
     var noMarketsText: String? {
         !isSearching ? Localized.Perpetuals.EmptyState.noMarkets : Localized.Perpetuals.EmptyState.noMarketsFound
     }
+
     var pinImage: Image { Images.System.pin }
     var searchImage: Image { Images.System.search }
 
@@ -82,10 +83,9 @@ final class PerpetualsSceneViewModel {
     var headerViewModel: PerpetualsHeaderViewModel {
         PerpetualsHeaderViewModel(
             walletType: wallet.type,
-            balance: walletBalance
+            balance: walletBalance,
         )
     }
-    
 }
 
 // MARK: - Businesss Logic
@@ -162,7 +162,7 @@ extension PerpetualsSceneViewModel {
         do {
             try activityService.updateRecent(
                 data: RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
-                walletId: wallet.walletId
+                walletId: wallet.walletId,
             )
         } catch {
             debugLog("Failed to update recent activity: \(error)")

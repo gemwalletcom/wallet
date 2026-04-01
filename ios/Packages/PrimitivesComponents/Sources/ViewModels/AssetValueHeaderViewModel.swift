@@ -23,12 +23,12 @@ struct AssetValueHeaderViewModel: HeaderViewModel {
     var title: String {
         switch data.value {
         case .unlimited:
-            return Localized.Simulation.Header.unlimitedAsset(data.asset.symbol)
-        case .exact(let value):
-            return Self.formatter.string(
+            Localized.Simulation.Header.unlimitedAsset(data.asset.symbol)
+        case let .exact(value):
+            Self.formatter.string(
                 value,
                 decimals: data.asset.decimals.asInt,
-                currency: data.asset.symbol
+                currency: data.asset.symbol,
             )
         }
     }

@@ -60,10 +60,8 @@ class TransactionsViewModel @Inject constructor(
     .distinctUntilChanged()
     .stateIn(viewModelScope, started = SharingStarted.Eagerly, emptyList())
 
-    val ticker = tickerFlow(true, 5 * DateUtils.MINUTE_IN_MILLIS) {
-        if (it.complete) refresh()
-    }
-    .stateIn(viewModelScope, started = WhileSubscribed(5000), null)
+    val ticker = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) { refresh() }
+        .stateIn(viewModelScope, started = WhileSubscribed(5000), null)
 
     init {
         refresh()

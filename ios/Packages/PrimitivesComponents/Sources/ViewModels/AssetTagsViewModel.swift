@@ -2,8 +2,8 @@
 
 import Foundation
 import Primitives
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct AssetTagsViewModel {
     public let selectType: SelectAssetType
@@ -13,28 +13,28 @@ public struct AssetTagsViewModel {
         self.selectType = selectType
         self.selectedTag = selectedTag
     }
-    
+
     public var tags: [AssetTag] {
         switch selectType {
-        case .receive(let type):
+        case let .receive(type):
             switch type {
             case .asset: [.stablecoins]
             case .collection: []
             }
         case .manage,
-            .priceAlert,
-            .swap: [.trending, .stablecoins]
+             .priceAlert,
+             .swap: [.trending, .stablecoins]
         case .buy: [.trendingFiatPurchase, .stablecoins]
         case .send: [.stablecoins]
         case .deposit, .withdraw: [.stablecoins]
         }
     }
-    
+
     public var items: [AssetTagViewModel] {
         let tagViewModels = tags.map { AssetTagViewModel(tag: .tag($0), isSelected: selectedTag == .tag($0)) }
         return tags.isEmpty ? [] : [AssetTagViewModel(tag: .all, isSelected: selectedTag == .all)] + tagViewModels
     }
-    
+
     public var query: String? {
         switch selectedTag {
         case .all: nil

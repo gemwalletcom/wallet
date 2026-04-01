@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Style
-import Localization
 import Components
+import Foundation
+import Localization
+import Primitives
 import PrimitivesComponents
+import Style
 
 public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
     private let item: CoreListItem
@@ -15,10 +15,10 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
     public let url: URL?
 
     public init(notification: InAppNotification) {
-        self.id = notification.id
-        self.item = notification.item
-        self.isRead = notification.isRead
-        self.url = notification.item.url?.asURL
+        id = notification.id
+        item = notification.item
+        isRead = notification.isRead
+        url = notification.item.url?.asURL
     }
 
     var listItemModel: ListItemModel {
@@ -30,7 +30,7 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
             subtitle: item.value,
             subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
             subtitleExtra: item.subvalue,
-            imageStyle: imageStyle
+            imageStyle: imageStyle,
         )
     }
 
@@ -40,15 +40,15 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
             assetImage: assetImage(for: icon),
             imageSize: .image.asset,
             alignment: .top,
-            cornerRadiusType: .rounded
+            cornerRadiusType: .rounded,
         )
     }
 
     private func assetImage(for icon: CoreListItemIcon) -> AssetImage {
         switch icon {
-        case .emoji(let emoji): AssetImage(type: emoji.value)
-        case .asset(let assetId): AssetIdViewModel(assetId: assetId).assetImage
-        case .image(let url): AssetImage(imageURL: url.asURL)
+        case let .emoji(emoji): AssetImage(type: emoji.value)
+        case let .asset(assetId): AssetIdViewModel(assetId: assetId).assetImage
+        case let .image(url): AssetImage(imageURL: url.asURL)
         }
     }
 }

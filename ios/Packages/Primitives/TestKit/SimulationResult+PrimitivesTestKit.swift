@@ -2,18 +2,18 @@
 
 import Primitives
 
-extension SimulationResult {
-    public static func mock(
+public extension SimulationResult {
+    static func mock(
         warnings: [SimulationWarning] = [],
         balanceChanges: [SimulationBalanceChange] = [],
         payload: [SimulationPayloadField] = [],
-        header: SimulationHeader? = nil
+        header: SimulationHeader? = nil,
     ) -> SimulationResult {
         SimulationResult(
             warnings: warnings,
             balanceChanges: balanceChanges,
             payload: payload,
-            header: header
+            header: header,
         )
     }
 }

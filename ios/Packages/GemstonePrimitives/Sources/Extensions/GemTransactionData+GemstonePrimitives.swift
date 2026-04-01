@@ -4,11 +4,11 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemTransactionData {
-    public func map() throws -> Primitives.TransactionData {
-        return TransactionData(
-            fee: try fee.map(),
-            metadata: try metadata.map()
+public extension GemTransactionData {
+    func map() throws -> Primitives.TransactionData {
+        try TransactionData(
+            fee: fee.map(),
+            metadata: metadata.map(),
         )
     }
 }

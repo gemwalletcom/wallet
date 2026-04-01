@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Localization
 import Primitives
+import SwiftUI
 
 struct ConnectionScene: View {
     @Environment(\.dismiss) private var dismiss
     let model: ConnectionSceneViewModel
-    
+
     var body: some View {
         List {
             Section {
@@ -30,7 +30,7 @@ struct ConnectionScene: View {
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
     }
-    
+
     func disconnect() async {
         do {
             try await model.disconnect()

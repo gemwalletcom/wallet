@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BalanceService
 import BigInt
 import Components
+import Formatters
 import Foundation
+import enum Gemstone.SwapperError
+import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
 import Preferences
+import PriceService
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import SwapService
-import BalanceService
-import PriceService
-import enum Gemstone.SwapperError
-import struct Gemstone.SwapperQuote
-import Formatters
 import Validators
 
 @MainActor
@@ -41,7 +41,7 @@ public final class SwapSceneViewModel {
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var selectedSwapQuote: SwapperQuote?
-    var amountInputModel: InputValidationViewModel = InputValidationViewModel(mode: .onDemand)
+    var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""
     var fetchTrigger: SwapFetchTrigger?
 
@@ -59,18 +59,17 @@ public final class SwapSceneViewModel {
         priceUpdater: any PriceUpdater,
         swapQuotesProvider: SwapQuotesProvidable,
         swapQuoteDataProvider: any SwapQuoteDataProvidable,
-        onSwap: TransferDataAction = nil
+        onSwap: TransferDataAction = nil,
     ) {
-
         let pairSelectorModel = input.pairSelector
         self.pairSelectorModel = pairSelectorModel
         self.preferences = preferences
-        self.wallet = input.wallet
+        wallet = input.wallet
         self.balanceUpdater = balanceUpdater
         self.priceUpdater = priceUpdater
 
-        self.fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.walletId, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
-        self.toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.walletId, assetId: pairSelectorModel.toAssetId), initialValue: nil)
+        fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.walletId, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
+        toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.walletId, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.swapQuotesProvider = swapQuotesProvider
         self.swapQuoteDataProvider = swapQuoteDataProvider
         self.onSwap = onSwap
@@ -91,7 +90,7 @@ public final class SwapSceneViewModel {
             preferences: preferences,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
-            }
+            },
         )
     }
 
@@ -100,14 +99,14 @@ public final class SwapSceneViewModel {
             swapState: swapState,
             isAmountValid: amountInputModel.isValid,
             fromAsset: fromAsset,
-            onAction: onSelectActionButton
+            onAction: onSelectActionButton,
         )
     }
 
     var isSwitchAssetButtonDisabled: Bool {
         swapState.isLoading
     }
-    
+
     var shouldShowAdditionalInfo: Bool {
         swapState.quotes.isLoading == false
     }
@@ -117,12 +116,13 @@ public final class SwapSceneViewModel {
     }
 
     var assetIds: [AssetId] {
-        [fromAsset?.asset.id, toAsset?.asset.id].compactMap { $0 }
+        [fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self)
     }
-    
+
     var errorInfoAction: VoidAction {
-        guard case .error(let error) = swapState.quotes,
-              case .NoQuoteAvailable = error.swapperError else {
+        guard case let .error(error) = swapState.quotes,
+              case .NoQuoteAvailable = error.swapperError
+        else {
             return nil
         }
         return VoidAction { [weak self] in
@@ -140,12 +140,11 @@ public final class SwapSceneViewModel {
                     assetData: assetData,
                     formatter: .medium,
                     currencyCode: preferences.currency,
-                    currencyFormatterType: .currency
-                )
-            )
+                    currencyFormatterType: .currency,
+                ),
+            ),
         )
     }
-
 }
 
 // MARK: - Business Logic
@@ -217,7 +216,7 @@ extension SwapSceneViewModel {
     }
 
     func onSelectAssetReceive() {
-        guard let fromAsset = fromAsset else { return }
+        guard let fromAsset else { return }
         let (chains, assetIds) = swapQuotesProvider.supportedAssets(for: fromAsset.asset.id)
         isPresentingInfoSheet = .selectAsset(.receive(chains: chains, assetIds: assetIds))
     }
@@ -256,7 +255,7 @@ extension SwapSceneViewModel {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: amountInputModel.text,
-            formatter: formatter
+            formatter: formatter,
         )
     }
 
@@ -273,7 +272,7 @@ extension SwapSceneViewModel {
         do {
             toValue = try toValueFormatter.format(
                 quoteValue: quote.toValue,
-                decimals: asset.decimals.asInt
+                decimals: asset.decimals.asInt,
             )
         } catch {
             debugLog("SwapScene apply quote error: \(error)")
@@ -283,7 +282,7 @@ extension SwapSceneViewModel {
     private func applyPercentToFromValue(percent: Int, assetData: AssetData) {
         amountInputModel.text = formatter.format(
             value: assetData.balance.available.multiply(byPercent: percent),
-            decimals: assetData.asset.decimals.asInt
+            decimals: assetData.asset.decimals.asInt,
         )
     }
 
@@ -295,6 +294,7 @@ extension SwapSceneViewModel {
 
     private func setFetchTrigger(isImmediate: Bool) {
         guard let input = currentInput else {
+            resetToValue()
             swapState.quotes = .noData
             swapState.swapTransferData = .noData
             selectedSwapQuote = nil
@@ -304,13 +304,13 @@ extension SwapSceneViewModel {
         fetchTrigger = SwapFetchTrigger(input: input, isImmediate: isImmediate)
 
         Task {
-            let assetIds = [fromAsset?.asset.id, toAsset?.asset.id].compactMap { $0 }
+            let assetIds = [fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self)
             try await priceUpdater.addPrices(assetIds: assetIds)
         }
     }
 
     private func swap() {
-        guard let fromAsset = fromAsset, let toAsset = toAsset, let quote = selectedSwapQuote else {
+        guard let fromAsset, let toAsset, let quote = selectedSwapQuote else {
             return
         }
 
@@ -323,7 +323,7 @@ extension SwapSceneViewModel {
                     fromAsset: fromAsset.asset,
                     toAsset: toAsset.asset,
                     quote: quote,
-                    quoteData: data
+                    quoteData: data,
                 )
                 onSwap?(transferData)
                 swapState.swapTransferData = .noData
@@ -333,6 +333,7 @@ extension SwapSceneViewModel {
             }
         }
     }
+
     private func performFetch(input: SwapQuoteInput) async {
         do {
             swapState.swapTransferData = .noData
@@ -343,16 +344,18 @@ extension SwapSceneViewModel {
                 fromAsset: input.fromAsset,
                 toAsset: input.toAsset,
                 amount: input.value,
-                useMaxAmount: input.useMaxAmount
+                useMaxAmount: input.useMaxAmount,
             )
 
+            guard currentInput == input else { return }
             swapState.quotes = .data(swapQuotes)
             selectedSwapQuote = swapQuotes.first(where: { $0 == selectedSwapQuote }) ?? swapQuotes.first
             if let selectedSwapQuote, let asset = toAsset?.asset {
                 applyQuote(selectedSwapQuote, asset: asset)
             }
         } catch {
-            if !error.isCancelled && !Task.isCancelled {
+            if !error.isCancelled, !Task.isCancelled {
+                guard currentInput == input else { return }
                 swapState.quotes = .error(error)
                 selectedSwapQuote = nil
                 amountInputModel.update(error: nil)
@@ -372,9 +375,9 @@ extension SwapSceneViewModel {
                 source: .asset,
                 decimals: assetData.asset.decimals.asInt,
                 validators: [
-                    BalanceValueValidator<BigInt>(available: assetData.balance.available, asset: assetData.asset)
-                ]
-            )]
+                    BalanceValueValidator<BigInt>(available: assetData.balance.available, asset: assetData.asset),
+                ],
+            )],
         )
     }
 
@@ -383,11 +386,12 @@ extension SwapSceneViewModel {
         case .retryQuotes: setFetchTrigger(isImmediate: true)
         case .retrySwap: swap()
         case .insufficientBalance: break
-        case .useMinAmount(let amount, let asset): applyMinAmount(amount, asset: asset)
+        case let .useMinAmount(amount, asset): applyMinAmount(amount, asset: asset)
         case .swap:
             if let priceImpactModel = swapDetailsViewModel?.priceImpactModel,
                let warningText = priceImpactModel.highImpactWarningDescription,
-               priceImpactModel.showPriceImpactWarning {
+               priceImpactModel.showPriceImpactWarning
+            {
                 isPresentingPriceImpactConfirmation = warningText
                 return
             }

@@ -1,11 +1,11 @@
-import Foundation
-import SwiftUI
-import Primitives
-import Localization
-import PrimitivesComponents
 import BalanceService
 import Components
-import Formatters
+import Foundation
+import GemstonePrimitives
+import Localization
+import Primitives
+import PrimitivesComponents
+import SwiftUI
 
 @Observable
 @MainActor
@@ -22,13 +22,13 @@ public final class ReceiveViewModel: Sendable {
 
     public var isPresentingShareSheet: Bool = false
     public var isPresentingCopyToast: Bool = false
-    public var renderedImage: UIImage? = nil
+    public var renderedImage: UIImage?
 
     public init(
         assetModel: AssetViewModel,
         wallet: Wallet,
         address: String,
-        assetsEnabler: any AssetsEnabler
+        assetsEnabler: any AssetsEnabler,
     ) {
         self.assetModel = assetModel
         self.wallet = wallet
@@ -54,7 +54,7 @@ public final class ReceiveViewModel: Sendable {
 
     var warningMessage: String {
         [Localized.Receive.warning(assetModel.symbol.boldMarkdown(), assetModel.networkFullName.boldMarkdown()), memoWarningText]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .joined(separator: " ")
     }
 
@@ -69,7 +69,7 @@ public final class ReceiveViewModel: Sendable {
     var copyModel: CopyTypeViewModel {
         CopyTypeViewModel(
             type: .address(assetModel.asset, address: addressShort),
-            copyValue: address
+            copyValue: address,
         )
     }
 
@@ -93,9 +93,9 @@ public final class ReceiveViewModel: Sendable {
             from: address,
             size: CGSize(
                 width: qrSize,
-                height: qrSize
+                height: qrSize,
             ),
-            logo: UIImage.name("logo-dark")
+            logo: UIImage.name("logo-dark"),
         )
     }
 }

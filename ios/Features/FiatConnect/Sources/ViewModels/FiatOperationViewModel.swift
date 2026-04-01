@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
-import GemAPI
-import Components
-import Localization
-import PrimitivesComponents
-import Formatters
-import Validators
 import BigInt
+import Components
+import Formatters
+import Foundation
+import GemAPI
+import Localization
+import Primitives
+import PrimitivesComponents
+import SwiftUI
+import Validators
 
 @MainActor
 @Observable
@@ -29,17 +29,17 @@ final class FiatOperationViewModel {
     init(
         operation: FiatOperation,
         asset: Asset,
-        currencyFormatter: CurrencyFormatter
+        currencyFormatter: CurrencyFormatter,
     ) {
         self.operation = operation
         self.asset = asset
         self.currencyFormatter = currencyFormatter
-        self.amount = String(operation.defaultAmount)
-        self.inputValidationModel = InputValidationViewModel(
+        amount = String(operation.defaultAmount)
+        inputValidationModel = InputValidationViewModel(
             mode: .onDemand,
-            validators: []
+            validators: [],
         )
-        self.inputValidationModel.text = amount
+        inputValidationModel.text = amount
         updateValidators()
     }
 
@@ -64,7 +64,7 @@ final class FiatOperationViewModel {
         }
 
         if inputValidationModel.isInvalid {
-            if case .data(let fiatQuotes) = quotesState, fiatQuotes.amount == amount {
+            if case let .data(fiatQuotes) = quotesState, fiatQuotes.amount == amount {
                 return
             }
             quotesState = .noData
@@ -109,7 +109,7 @@ final class FiatOperationViewModel {
         }
 
         switch quotesState {
-        case .data(let fiatQuotes):
+        case let .data(fiatQuotes):
             return fiatQuotes.amount == amount
         case .loading, .noData, .error:
             return false
@@ -125,8 +125,8 @@ final class FiatOperationViewModel {
         inputValidationModel.update(
             validators: operation.validators(
                 availableBalance: availableBalance,
-                selectedQuote: selectedQuote
-            )
+                selectedQuote: selectedQuote,
+            ),
         )
     }
 
@@ -146,7 +146,6 @@ final class FiatOperationViewModel {
 }
 
 extension FiatOperationViewModel {
-
     private var selectedQuoteViewModel: FiatQuoteViewModel? {
         guard let selectedQuote else { return nil }
         return FiatQuoteViewModel(asset: asset, quote: selectedQuote, selectedQuote: nil, formatter: currencyFormatter)

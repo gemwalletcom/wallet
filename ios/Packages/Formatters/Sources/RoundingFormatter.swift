@@ -3,7 +3,6 @@
 import Foundation
 
 public struct RoundingFormatter: Sendable {
-
     public init() {}
 
     public func roundedValues<T: BinaryFloatingPoint>(for value: T, byPercent: T) -> [T] {

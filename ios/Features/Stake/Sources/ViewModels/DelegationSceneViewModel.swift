@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import SwiftUI
-import Style
 import Components
-import Localization
-import PrimitivesComponents
+import Foundation
 import GemstonePrimitives
+import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct DelegationSceneViewModel {
     public let model: DelegationViewModel
@@ -24,7 +24,7 @@ public struct DelegationSceneViewModel {
         asset: Asset,
         validators: [DelegationValidator],
         onAmountInputAction: AmountInputAction,
-        onTransferAction: TransferDataAction
+        onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.model = model
@@ -48,9 +48,11 @@ public struct DelegationSceneViewModel {
         }
         return ListItemField(title: title, value: model.validatorText)
     }
+
     public var aprModel: AprViewModel {
         AprViewModel(apr: model.delegation.validator.apr)
     }
+
     public var stateTitle: String { Localized.Transaction.status }
     public var manageTitle: String { Localized.Common.manage }
     public var rewardsTitle: String { Localized.Stake.rewards }
@@ -124,8 +126,8 @@ public struct DelegationSceneViewModel {
 
 // MARK: - Actions
 
-extension DelegationSceneViewModel {
-    public func onSelectAction(_ action: DelegationActionType) {
+public extension DelegationSceneViewModel {
+    func onSelectAction(_ action: DelegationActionType) {
         switch action {
         case .stake:
             onAmountInputAction?(amountInput(.stake(.stake(validators: validators, recommended: model.delegation.validator))))
@@ -160,9 +162,9 @@ extension DelegationSceneViewModel {
             type: .stake(asset, stakeType),
             recipientData: RecipientData(
                 recipient: Recipient(name: providerText, address: model.delegation.validator.id, memo: ""),
-                amount: .none
+                amount: .none,
             ),
-            value: model.delegation.base.balanceValue
+            value: model.delegation.base.balanceValue,
         )
     }
 
@@ -177,9 +179,9 @@ extension DelegationSceneViewModel {
     }
 
     private var recommendedValidator: DelegationValidator? {
-        guard let validatorId = StakeRecommendedValidators().randomValidatorId(chain: model.delegation.base.assetId.chain) else {
-            return .none
-        }
-        return validators.first(where: { $0.id == validatorId })
+        StakeRecommendedValidators().randomValidator(
+            chain: model.delegation.base.assetId.chain,
+            from: validators,
+        )
     }
 }

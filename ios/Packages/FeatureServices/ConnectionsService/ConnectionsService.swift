@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Preferences
+import Primitives
 import Store
 import WalletConnectorService
-import Primitives
-import Preferences
 
 public final class ConnectionsService: Sendable {
     private let store: ConnectionsStore
@@ -21,7 +21,7 @@ public final class ConnectionsService: Sendable {
         store: ConnectionsStore,
         signer: any WalletConnectorSignable,
         connector: WalletConnectorServiceable,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.store = store
         self.signer = signer
@@ -33,21 +33,21 @@ public final class ConnectionsService: Sendable {
         store: ConnectionsStore,
         signer: any WalletConnectorSignable,
         nodeProvider: any NodeURLFetchable,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.init(
             store: store,
             signer: signer,
             connector: WalletConnectorService(signer: signer, nodeProvider: nodeProvider),
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }
 
 // MARK: - Public
 
-extension ConnectionsService {
-    public func setup() async throws {
+public extension ConnectionsService {
+    func setup() async throws {
         checkExistSessions()
         try connector.configure()
         if isWalletConnectActivated {
@@ -55,18 +55,18 @@ extension ConnectionsService {
         }
     }
 
-    public func pair(uri: String) async throws {
+    func pair(uri: String) async throws {
         if !isWalletConnectActivated {
             try await setupConnector()
         }
         try await connector.pair(uri: uri)
     }
 
-    public func disconnect(session: WalletConnectionSession) async throws {
+    func disconnect(session: WalletConnectionSession) async throws {
         try await disconnect(sessionId: session.sessionId)
     }
 
-    public func updateSessions() {
+    func updateSessions() {
         connector.updateSessions()
     }
 }
@@ -75,7 +75,7 @@ extension ConnectionsService {
 
 extension ConnectionsService {
     private func disconnect(sessionId: String) async throws {
-        try store.delete(ids: [sessionId])
+        _ = try store.delete(ids: [sessionId])
         try await connector.disconnect(sessionId: sessionId)
     }
 

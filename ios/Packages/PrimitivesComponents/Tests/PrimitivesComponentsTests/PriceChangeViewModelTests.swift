@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Style
-import PrimitivesComponentsTestKit
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
+import Style
+import Testing
 
 struct PriceChangeViewModelTests {
-
     @Test
     func textPositive() {
         #expect(PriceChangeViewModel.mock(value: 100).text == "+$100.00")

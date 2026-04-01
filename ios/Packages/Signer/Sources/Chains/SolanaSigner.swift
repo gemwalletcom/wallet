@@ -26,14 +26,14 @@ struct SolanaSigner: Signable {
         let amount = input.value.asUInt
         let destinationAddress = input.destinationAddress
 
-        guard case .solana(let senderTokenAddress, let recipientTokenAddress, let solanaTokenProgram, _) = input.metadata,
-              let token = solanaTokenProgram, let senderTokenAddress = senderTokenAddress
+        guard case let .solana(senderTokenAddress, recipientTokenAddress, solanaTokenProgram, _) = input.metadata,
+              let token = solanaTokenProgram, let senderTokenAddress
         else {
             throw AnyError("unknown solana metadata")
         }
 
         switch recipientTokenAddress {
-        case .some(let recipientTokenAddress):
+        case let .some(recipientTokenAddress):
             let type = SolanaSigningInput.OneOf_TransactionType.tokenTransferTransaction(.with {
                 $0.amount = amount
                 $0.decimals = decimals
@@ -66,7 +66,7 @@ struct SolanaSigner: Signable {
         }
     }
 
-    func signNftTransfer(input: SignerInput, privateKey: Data) throws -> String {
+    func signNftTransfer(input _: SignerInput, privateKey _: Data) throws -> String {
         throw AnyError.notImplemented
     }
 
@@ -125,12 +125,12 @@ struct SolanaSigner: Signable {
     }
 
     func signStake(input: SignerInput, privateKey: Data) throws -> [String] {
-        guard case .stake(_, let type) = input.type else {
+        guard case let .stake(_, type) = input.type else {
             throw AnyError("invalid type")
         }
         let transactionType: SolanaSigningInput.OneOf_TransactionType
         switch type {
-        case .stake(let validator):
+        case let .stake(validator):
             transactionType = .delegateStakeTransaction(.with {
                 $0.validatorPubkey = validator.id
                 $0.value = input.value.asUInt
@@ -142,7 +142,7 @@ struct SolanaSigner: Signable {
                 accounts: [
                     SolanaAccountMeta(pubkey: input.senderAddress, isSigner: true, isWritable: true),
                 ],
-                data: Base58.encodeNoCheck(data: memo.encodedData())
+                data: Base58.encodeNoCheck(data: memo.encodedData()),
             )
             let data = try JSONEncoder().encode(instruction)
             let instructionJson = try data.encodeString()
@@ -152,11 +152,11 @@ struct SolanaSigner: Signable {
             return try [
                 signRawTransaction(transaction: transaction, privateKey: privateKey),
             ]
-        case .unstake(let delegation):
+        case let .unstake(delegation):
             transactionType = .deactivateStakeTransaction(.with {
                 $0.stakeAccount = delegation.base.delegationId
             })
-        case .withdraw(let delegation):
+        case let .withdraw(delegation):
             transactionType = .withdrawTransaction(.with {
                 $0.stakeAccount = delegation.base.delegationId
                 $0.value = delegation.base.balanceValue.asUInt
@@ -174,7 +174,7 @@ struct SolanaSigner: Signable {
     }
 
     private func transcodeBase58ToBase64(_ string: String) throws -> String {
-        return try Base58.decodeNoCheck(string: string)
+        try Base58.decodeNoCheck(string: string)
             .base64EncodedString()
             .paddded
     }

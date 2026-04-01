@@ -7,32 +7,32 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "Localization",
-            targets: ["Localization"]
+            targets: ["Localization"],
         ),
         .library(
             name: "WidgetLocalization",
-            targets: ["WidgetLocalization"]
-        )
+            targets: ["WidgetLocalization"],
+        ),
     ],
     targets: [
         .target(
             name: "Localization",
             path: "Sources",
             resources: [
-                .process("Resources")
-            ]
+                .process("Resources"),
+            ],
         ),
         .target(
             name: "WidgetLocalization",
             path: "WidgetSources",
             resources: [
-                .process("Resources")
-            ]
+                .process("Resources"),
+            ],
         ),
-    ]
+    ],
 )

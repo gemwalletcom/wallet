@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
-import Store
-import Preferences
-import Localization
 import BalanceService
-import PrimitivesComponents
 import Components
+import Foundation
+import Localization
+import Preferences
+import Primitives
+import PrimitivesComponents
+import Store
 import Style
+import SwiftUI
 
 @Observable
 @MainActor
@@ -33,14 +33,14 @@ public final class AssetsResultsSceneViewModel {
         balanceService: BalanceService,
         preferences: Preferences,
         request: WalletSearchRequest,
-        onSelectAsset: @escaping (Asset) -> Void
+        onSelectAsset: @escaping (Asset) -> Void,
     ) {
         self.wallet = wallet
         self.assetsEnabler = assetsEnabler
         self.balanceService = balanceService
         self.preferences = preferences
-        self.searchQuery = ObservableQuery(request, initialValue: .empty)
-        self.onSelectAssetAction = onSelectAsset
+        searchQuery = ObservableQuery(request, initialValue: .empty)
+        onSelectAssetAction = onSelectAsset
     }
 
     var title: String { Localized.Assets.title }
@@ -54,7 +54,7 @@ public final class AssetsResultsSceneViewModel {
             for: assetData,
             onCopy: { [weak self] in
                 self?.isPresentingToastMessage = .copy(
-                    CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message
+                    CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message,
                 )
             },
             onPin: { [weak self] in
@@ -62,7 +62,7 @@ public final class AssetsResultsSceneViewModel {
             },
             onAddToWallet: { [weak self] in
                 self?.onAddToWallet(assetData.asset)
-            }
+            },
         )
     }
 }

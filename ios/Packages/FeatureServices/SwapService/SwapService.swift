@@ -47,7 +47,7 @@ public final class SwapService: Sendable, SwappableChainsProvider {
 
         return (
             swapAssetList.chains.compactMap { try? $0.map() },
-            swapAssetList.assetIds.compactMap { try? Primitives.AssetId(id: $0) }
+            swapAssetList.assetIds.compactMap { try? Primitives.AssetId(id: $0) },
         )
     }
 
@@ -63,8 +63,8 @@ public final class SwapService: Sendable, SwappableChainsProvider {
                 slippage: getDefaultSlippage(chain: fromAsset.id.chain.rawValue),
                 fee: getReferralFees(),
                 preferredProviders: [],
-                useMaxAmount: useMaxAmount
-            )
+                useMaxAmount: useMaxAmount,
+            ),
         )
         let quotes = try await swapper.getQuote(request: swapRequest)
         try Task.checkCancellation()

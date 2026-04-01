@@ -6,7 +6,7 @@ import Primitives
 public extension ReferralQuota {
     static func mock(
         limit: Int32 = 10,
-        available: Int32 = 5
+        available: Int32 = 5,
     ) -> ReferralQuota {
         ReferralQuota(limit: limit, available: available)
     }
@@ -15,7 +15,7 @@ public extension ReferralQuota {
 public extension ReferralAllowance {
     static func mock(
         daily: ReferralQuota = .mock(),
-        weekly: ReferralQuota = .mock()
+        weekly: ReferralQuota = .mock(),
     ) -> ReferralAllowance {
         ReferralAllowance(daily: daily, weekly: weekly)
     }
@@ -24,7 +24,7 @@ public extension ReferralAllowance {
 public extension ReferralCodeActivation {
     static func mock(
         swapCompleted: Bool = false,
-        swapAmount: Int32 = 0
+        swapAmount: Int32 = 0,
     ) -> ReferralCodeActivation {
         ReferralCodeActivation(swapCompleted: swapCompleted, swapAmount: swapAmount)
     }
@@ -35,7 +35,7 @@ public extension ReferralActivation {
         verifyCompleted: Bool = false,
         verifyAfter: Date? = nil,
         swapCompleted: Bool = false,
-        swapAmount: Int32 = 0
+        swapAmount: Int32 = 0,
     ) -> ReferralActivation {
         ReferralActivation(verifyCompleted: verifyCompleted, verifyAfter: verifyAfter, swapCompleted: swapCompleted, swapAmount: swapAmount)
     }
@@ -52,7 +52,7 @@ public extension Rewards {
         disableReason: String? = nil,
         referralAllowance: ReferralAllowance = .mock(),
         referralCodeActivation: ReferralCodeActivation? = nil,
-        referralActivation: ReferralActivation? = nil
+        referralActivation: ReferralActivation? = nil,
     ) -> Rewards {
         Rewards(
             code: code,
@@ -64,7 +64,7 @@ public extension Rewards {
             disableReason: disableReason,
             referralAllowance: referralAllowance,
             referralCodeActivation: referralCodeActivation,
-            referralActivation: referralActivation
+            referralActivation: referralActivation,
         )
     }
 }

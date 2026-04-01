@@ -10,7 +10,7 @@ public extension PriceAlert {
         price: Double? = .none,
         pricePercentChange: Double? = .none,
         priceDirection: PriceAlertDirection? = .none,
-        lastNotifiedAt: Date? = .none
+        lastNotifiedAt: Date? = .none,
     ) -> PriceAlert {
         PriceAlert(
             assetId: assetId,
@@ -18,7 +18,7 @@ public extension PriceAlert {
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: priceDirection,
-            lastNotifiedAt: lastNotifiedAt
+            lastNotifiedAt: lastNotifiedAt,
         )
     }
 }

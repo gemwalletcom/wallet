@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableRecord  {
+struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "transactions_v23"
-    
+
     enum Columns {
         static let id = Column("id")
         static let walletId = Column("walletId")
@@ -60,26 +60,26 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
     // delete asset / price properties as they could be fetched from assets / prics
     static let asset = belongsTo(AssetRecord.self, key: "asset", using: ForeignKey(["assetId"], to: ["id"]))
     static let feeAsset = belongsTo(AssetRecord.self, key: "feeAsset", using: ForeignKey(["feeAssetId"], to: ["id"]))
-    
+
     static let price = belongsTo(PriceRecord.self, key: "price", using: ForeignKey(["assetId"], to: ["assetId"]))
     static let feePrice = belongsTo(PriceRecord.self, key: "feePrice", using: ForeignKey(["feeAssetId"], to: ["assetId"]))
-    
+
     static let fromAddress = belongsTo(AddressRecord.self, key: "fromAddress", using: ForeignKey(["chain", "from"], to: ["chain", "address"]))
     static let toAddress = belongsTo(AddressRecord.self, key: "toAddress", using: ForeignKey(["chain", "to"], to: ["chain", "address"]))
-    
+
     static let assetsAssociation = hasMany(TransactionAssetAssociationRecord.self)
     static let pricesAssociation = hasMany(TransactionAssetAssociationRecord.self)
     static let assets = hasMany(AssetRecord.self, through: assetsAssociation, using: TransactionAssetAssociationRecord.asset)
     static let prices = hasMany(
         PriceRecord.self,
         through: pricesAssociation,
-        using: TransactionAssetAssociationRecord.price
+        using: TransactionAssetAssociationRecord.price,
     )
 }
 
 extension TransactionRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName) {
+        try db.create(table: databaseTableName) {
             $0.autoIncrementedPrimaryKey(Columns.id.name)
                 .indexed()
             $0.column(Columns.walletId.name, .text)
@@ -131,7 +131,7 @@ extension TransactionRecord: CreateTable {
                 .notNull()
             $0.uniqueKey([
                 Columns.walletId.name,
-                Columns.transactionId.name
+                Columns.transactionId.name,
             ])
         }
     }
@@ -139,7 +139,7 @@ extension TransactionRecord: CreateTable {
 
 extension TransactionRecord {
     func mapToTransaction() -> Transaction {
-        return Transaction(
+        Transaction(
             id: TransactionId(chain: assetId.chain, hash: hash),
             assetId: assetId,
             from: from,
@@ -157,14 +157,14 @@ extension TransactionRecord {
             utxoInputs: [],
             utxoOutputs: [],
             metadata: metadata,
-            createdAt: createdAt
+            createdAt: createdAt,
         )
     }
 }
 
 extension Transaction {
     func record(walletId: String) throws -> TransactionRecord {
-        return TransactionRecord(
+        TransactionRecord(
             walletId: walletId,
             transactionId: id.identifier,
             hash: id.hash,
@@ -185,7 +185,7 @@ extension Transaction {
             direction: direction,
             metadata: metadata,
             createdAt: createdAt,
-            updatedAt: Date()
+            updatedAt: Date(),
         )
     }
 }

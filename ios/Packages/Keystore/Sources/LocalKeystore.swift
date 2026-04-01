@@ -11,7 +11,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 
     public init(
         directory: String = "keystore",
-        keystorePassword: KeystorePassword = LocalKeystorePassword()
+        keystorePassword: KeystorePassword = LocalKeystorePassword(),
     ) {
         do {
             // migrate keystore from documents directory to applocation support directory
@@ -21,9 +21,9 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
                 name: directory,
                 fromDirectory: .documentDirectory,
                 toDirectory: .applicationSupportDirectory,
-                isDirectory: true
+                isDirectory: true,
             )
-            self.walletKeyStore = WalletKeyStore(directory: keystoreURL)
+            walletKeyStore = WalletKeyStore(directory: keystoreURL)
         } catch {
             fatalError("keystore initialization error: \(error)")
         }
@@ -39,20 +39,20 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         name: String,
         type: KeystoreImportType,
         isWalletsEmpty: Bool,
-        source: WalletSource
+        source: WalletSource,
     ) async throws -> Primitives.Wallet {
         let password = try await getOrCreatePassword(createPasswordIfNone: isWalletsEmpty)
         let walletId = try ImportIdentifier.from(type).walletId()
 
         return try await queue.asyncTask { [walletKeyStore] in
             switch type {
-            case .phrase(let words, let chains):
+            case let .phrase(words, chains):
                 try walletKeyStore.importWallet(id: walletId, name: name, words: words, chains: chains, password: password, source: source)
-            case .single(let words, let chain):
+            case let .single(words, chain):
                 try walletKeyStore.importWallet(id: walletId, name: name, words: words, chains: [chain], password: password, source: source)
-            case .privateKey(let text, let chain):
+            case let .privateKey(text, chain):
                 try walletKeyStore.importPrivateKey(id: walletId, name: name, key: text, chain: chain, password: password, source: source)
-            case .address(let address, let chain):
+            case let .address(address, chain):
                 Wallet.makeView(name: name, chain: chain, address: address)
             }
         }
@@ -60,7 +60,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 
     public func setupChains(chains: [Chain], for wallets: [Primitives.Wallet]) throws -> [Primitives.Wallet] {
         let filteredWallets = wallets.filter {
-            let enabled = Set($0.accounts.map(\.chain)).intersection(chains).map { $0 }
+            let enabled = Set($0.accounts.map(\.chain)).intersection(chains).map(\.self)
             let missing = Set(chains).subtracting(enabled)
             return missing.isNotEmpty
         }
@@ -77,7 +77,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
                     wallet: $0,
                     existingChains: existingChains,
                     newChains: chains.asSet().subtracting(existingChains.asSet()).asArray(),
-                    password: password
+                    password: password,
                 )
             }
     }
@@ -94,10 +94,10 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
                     // in some cases wallet already deleted, just ignore
                     switch error {
                     case .unknownWalletInWalletCore,
-                        .unknownWalletIdInWalletCore,
-                        .unknownWalletInWalletCoreList,
-                        .invalidPrivateKey,
-                        .invalidPrivateKeyEncoding:
+                         .unknownWalletIdInWalletCore,
+                         .unknownWalletInWalletCoreList,
+                         .invalidPrivateKey,
+                         .invalidPrivateKeyEncoding:
                         break
                     @unknown default:
                         throw error
@@ -139,7 +139,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
                 walletId: wallet.keystoreId,
                 type: wallet.type,
                 password: password,
-                chain: chain
+                chain: chain,
             )
         }
     }

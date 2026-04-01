@@ -18,6 +18,8 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.lockTime
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
@@ -34,7 +36,6 @@ import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.PriceUIState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.features.stake.models.StakeAction
 import com.gemwallet.android.features.stake.presents.components.stakeActions
@@ -48,6 +49,7 @@ fun StakeScene(
     inSync: Boolean,
     assetInfo: AssetInfo,
     actions: List<StakeAction>,
+    isStakeEnabled: Boolean,
     delegations: List<Delegation>,
     amountAction: AmountTransactionAction,
     onRefresh: () -> Unit,
@@ -89,6 +91,7 @@ fun StakeScene(
 
                 stakeActions(
                     actions = actions,
+                    isStakeEnabled = isStakeEnabled,
                     assetId = assetInfo.id(),
                     amountAction = amountAction,
                     onConfirm = onConfirm,
@@ -126,7 +129,7 @@ internal fun LazyListScope.apr(apr: Double) {
     item {
         PropertyItem(
             title = stringResource(id = R.string.stake_apr, ""),
-            data = PriceUIState.formatPercentage(apr, false),
+            data = apr.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
             listPosition = ListPosition.Middle
         )
     }

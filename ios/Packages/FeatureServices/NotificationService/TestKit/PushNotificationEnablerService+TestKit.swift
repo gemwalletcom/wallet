@@ -8,7 +8,7 @@ import PreferencesTestKit
 public extension PushNotificationEnablerService {
     static func mock(preferences: Preferences = .mock()) -> Self {
         PushNotificationEnablerService(
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Primitives
-import Formatters
 
 public enum CopyValue: Sendable, Equatable, Hashable {
     case plain(String)
@@ -9,15 +9,15 @@ public enum CopyValue: Sendable, Equatable, Hashable {
 
     public var rawValue: String {
         switch self {
-        case .plain(let value): value
-        case .address(let value, _): value
+        case let .plain(value): value
+        case let .address(value, _): value
         }
     }
 
     public var displayValue: String {
         switch self {
-        case .plain(let value): value
-        case .address(let value, let chain):
+        case let .plain(value): value
+        case let .address(value, chain):
             AddressFormatter(style: .short, address: value, chain: chain).value()
         }
     }

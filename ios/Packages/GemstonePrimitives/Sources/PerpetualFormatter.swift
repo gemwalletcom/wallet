@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Gemstone
+import Primitives
 
 public struct PerpetualFormatter {
     private let perpetual: Gemstone.Perpetual
 
     public init(provider: Primitives.PerpetualProvider) {
-        self.perpetual = Gemstone.Perpetual(provider: provider.map())
+        perpetual = Gemstone.Perpetual(provider: provider.map())
     }
 
     public func minimumOrderUsdAmount(price: Double, decimals: Int32, leverage: UInt8) -> UInt64 {

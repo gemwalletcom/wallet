@@ -19,6 +19,7 @@ coilCompose = "3.4.0"
 vico = "2.4.3"
 zxing-core = "3.5.4"
 coreKtx = "1.18.0"
+coreSplashscreen = "1.2.0"
 datastore = "1.2.1"
 material3AdaptiveAndroid = "1.0.0-alpha06"
 firebaseMessaging = "25.0.1"
@@ -58,6 +59,7 @@ tink = "1.20.0"
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 ktx-core = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }

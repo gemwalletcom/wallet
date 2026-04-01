@@ -63,7 +63,7 @@ abstract class StakeDao {
             "base.shares as shares" +
             " " +
         "FROM stake_delegation_base as base " +
-        "LEFT JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
+        "INNER JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
         "WHERE asset_id=:assetId AND address=:address " +
         "ORDER BY validator.name"
     )
@@ -89,7 +89,7 @@ abstract class StakeDao {
                 "base.shares as shares" +
                 " " +
         "FROM stake_delegation_base as base " +
-                "LEFT JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
+                "INNER JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
                 "WHERE base.delegation_id=:delegationId AND validator.id=:validatorId"
     )
 

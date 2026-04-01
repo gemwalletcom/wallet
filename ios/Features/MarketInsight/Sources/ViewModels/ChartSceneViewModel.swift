@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
-import Store
+import Formatters
+import Foundation
+import InfoSheet
 import Localization
-import PrimitivesComponents
-import PriceService
 import Preferences
 import PriceAlertService
+import PriceService
+import Primitives
+import PrimitivesComponents
+import Store
 import SwiftUI
-import Formatters
-import InfoSheet
 
 @MainActor
 @Observable
@@ -46,18 +46,18 @@ public final class ChartSceneViewModel: ChartListViewable {
         priceAlertService: PriceAlertService,
         walletId: WalletId,
         currentPeriod: ChartPeriod = ChartValuesViewModel.defaultPeriod,
-        onSetPriceAlert: @escaping (Asset) -> Void
+        onSetPriceAlert: @escaping (Asset) -> Void,
     ) {
         self.service = service
         self.priceService = priceService
         self.assetModel = assetModel
         self.priceAlertService = priceAlertService
         self.walletId = walletId
-        self.selectedPeriod = currentPeriod
-        self.priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
+        selectedPeriod = currentPeriod
+        priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
         self.onSetPriceAlert = onSetPriceAlert
     }
-    
+
     var priceDataModel: AssetDetailsInfoViewModel? {
         guard let priceData else { return nil }
         return AssetDetailsInfoViewModel(priceData: priceData)
@@ -66,13 +66,13 @@ public final class ChartSceneViewModel: ChartListViewable {
 
 // MARK: - Business Logic
 
-extension ChartSceneViewModel {
-    public func fetch() async {
+public extension ChartSceneViewModel {
+    func fetch() async {
         chartState = .loading
         do {
             let values = try await service.getCharts(
                 assetId: assetModel.asset.id,
-                period: selectedPeriod
+                period: selectedPeriod,
             )
             if let market = values.market {
                 try priceService.updateMarketPrice(assetId: assetModel.asset.id, market: market, currency: preferences.currency)
@@ -84,7 +84,7 @@ extension ChartSceneViewModel {
                 ChartDateValue(date: Date(timeIntervalSince1970: TimeInterval($0.timestamp)), value: Double($0.value) * rate)
             }
 
-            if let price = price, let last = charts.last, price.updatedAt > last.date {
+            if let price, let last = charts.last, price.updatedAt > last.date {
                 charts.append(ChartDateValue(date: .now, value: price.price))
             }
 
@@ -94,7 +94,7 @@ extension ChartSceneViewModel {
                 period: selectedPeriod,
                 price: price?.mapToPrice(),
                 values: chartValues,
-                formatter: formatter
+                formatter: formatter,
             )
             chartState = .data(model)
         } catch {
@@ -102,11 +102,11 @@ extension ChartSceneViewModel {
         }
     }
 
-    public func onSelectSetPriceAlerts() {
+    func onSelectSetPriceAlerts() {
         onSetPriceAlert(assetModel.asset)
     }
 
-    func onSelectInfoSheet(_ type: InfoSheetType) {
+    internal func onSelectInfoSheet(_ type: InfoSheetType) {
         isPresentingInfoSheet = type
     }
 }

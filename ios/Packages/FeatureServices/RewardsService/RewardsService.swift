@@ -20,7 +20,7 @@ public struct RewardsService: RewardsServiceable, Sendable {
 
     public init(
         apiService: GemAPIRewardsService = GemAPIService.shared,
-        authService: AuthServiceable
+        authService: AuthServiceable,
     ) {
         self.apiService = apiService
         self.authService = authService

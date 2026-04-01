@@ -4,28 +4,28 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemWalletConnectionSessionAppMetadata {
-    public func map() -> WalletConnectionSessionAppMetadata {
-        return WalletConnectionSessionAppMetadata(
-            name: self.name,
-            description: self.description,
-            url: self.url,
-            icon: self.icon
+public extension GemWalletConnectionSessionAppMetadata {
+    func map() -> WalletConnectionSessionAppMetadata {
+        WalletConnectionSessionAppMetadata(
+            name: name,
+            description: description,
+            url: url,
+            icon: icon,
         )
     }
 }
 
-extension WalletConnectionSessionAppMetadata {
-    public func map() -> GemWalletConnectionSessionAppMetadata {
-        return GemWalletConnectionSessionAppMetadata(
-            name: self.name,
-            description: self.description,
-            url: self.url,
-            icon: self.icon
+public extension WalletConnectionSessionAppMetadata {
+    func map() -> GemWalletConnectionSessionAppMetadata {
+        GemWalletConnectionSessionAppMetadata(
+            name: name,
+            description: description,
+            url: url,
+            icon: icon,
         )
     }
 
-    public var shortName: String {
-        Gemstone.walletConnectAppShortName(metadata: self.map())
+    var shortName: String {
+        Gemstone.walletConnectAppShortName(metadata: map())
     }
 }

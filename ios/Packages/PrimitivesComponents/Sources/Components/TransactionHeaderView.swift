@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import Style
+import SwiftUI
 
 public enum TransactionHeaderType {
     case amount(AmountDisplay)
@@ -15,36 +15,36 @@ public enum TransactionHeaderType {
 
 public struct TransactionHeaderView: View {
     public let type: TransactionHeaderType
-    
+
     public init(type: TransactionHeaderType) {
         self.type = type
     }
-    
+
     public var body: some View {
         VStack(alignment: .center) {
             switch type {
-            case .amount(let display):
+            case let .amount(display):
                 WalletHeaderView(
                     model: TransactionAmountHeaderViewModel(display: display),
                     isPrivacyEnabled: .constant(false),
                     balanceActionType: .none,
                     onHeaderAction: nil,
-                    onInfoAction: nil
+                    onInfoAction: nil,
                 )
-            case .swap(let from, let to):
+            case let .swap(from, to):
                 SwapAmountView(from: from, to: to)
-            case .nft(let name, let image):
+            case let .nft(name, image):
                 NftPreviewView(assetImage: image, name: name, size: .image.large)
-            case .asset(let image):
+            case let .asset(image):
                 AssetImageView(assetImage: image, size: .image.large)
                     .padding(.bottom, .space12)
-            case .assetValue(let data):
+            case let .assetValue(data):
                 WalletHeaderView(
                     model: AssetValueHeaderViewModel(data: data),
                     isPrivacyEnabled: .constant(false),
                     balanceActionType: .none,
                     onHeaderAction: nil,
-                    onInfoAction: nil
+                    onInfoAction: nil,
                 )
             }
         }

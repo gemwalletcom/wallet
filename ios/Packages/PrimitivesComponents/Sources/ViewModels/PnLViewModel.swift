@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import Components
 import Formatters
+import Foundation
 import Localization
 import Primitives
 import Style
 import SwiftUI
-import Components
 
 public struct PnLViewModel {
     private let pnl: Double?
@@ -18,7 +18,7 @@ public struct PnLViewModel {
         pnl: Double?,
         marginAmount: Double,
         currencyFormatter: CurrencyFormatter,
-        percentFormatter: CurrencyFormatter
+        percentFormatter: CurrencyFormatter,
     ) {
         self.pnl = pnl
         self.marginAmount = marginAmount

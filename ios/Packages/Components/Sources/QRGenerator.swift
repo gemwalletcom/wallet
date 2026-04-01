@@ -1,6 +1,6 @@
+import CoreImage.CIFilterBuiltins
 import Foundation
 import SwiftUI
-import CoreImage.CIFilterBuiltins
 
 public actor QRCodeGenerator {
     private let context = CIContext(options: nil)
@@ -15,7 +15,7 @@ public actor QRCodeGenerator {
         logoQRScale: CGFloat = 0.24,
         logoBackgroundScale: CGFloat = 0.78,
         backgroundColor: UIColor = .white,
-        cornerRadius: CGFloat = 16
+        cornerRadius: CGFloat = 16,
     ) -> UIImage? {
         guard let qrCodeImage = createQRCode(from: string, size: size) else {
             return nil
@@ -27,12 +27,12 @@ public actor QRCodeGenerator {
             logoQRScale: logoQRScale,
             logoBackgroundScale: logoBackgroundScale,
             backgroundColor: backgroundColor,
-            cornerRadius: cornerRadius
+            cornerRadius: cornerRadius,
         ) : qrCodeImage
     }
 
     private func createQRCode(from string: String, size: CGSize) -> UIImage? {
-        guard let data = string.data(using: .ascii) else { return nil}
+        guard let data = string.data(using: .ascii) else { return nil }
         filter.message = data
         filter.correctionLevel = "H"
 
@@ -55,7 +55,7 @@ public actor QRCodeGenerator {
         logoQRScale: CGFloat,
         logoBackgroundScale: CGFloat,
         backgroundColor: UIColor,
-        cornerRadius: CGFloat
+        cornerRadius: CGFloat,
     ) -> UIImage {
         let format = UIGraphicsImageRendererFormat.preferred()
         let renderer = UIGraphicsImageRenderer(size: qrCodeImage.size, format: format)

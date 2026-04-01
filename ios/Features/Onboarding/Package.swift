@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "Onboarding",
-            targets: ["Onboarding"]),
+            targets: ["Onboarding"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -25,7 +26,7 @@ let package = Package(
         .package(name: "Keystore", path: "../../Packages/Keystore"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
-        .package(name: "Store", path: "../../Packages/Store")
+        .package(name: "Store", path: "../../Packages/Store"),
     ],
     targets: [
         .target(
@@ -44,9 +45,9 @@ let package = Package(
                 .product(name: "BannerService", package: "FeatureServices"),
                 .product(name: "AvatarService", package: "FeatureServices"),
                 "Formatters",
-                "Store"
+                "Store",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "OnboardingTest",
@@ -58,7 +59,7 @@ let package = Package(
                 .product(name: "NameServiceTestKit", package: "ChainServices"),
                 .product(name: "StoreTestKit", package: "Store"),
             ],
-            path: "Tests"
-        )
-    ]
+            path: "Tests",
+        ),
+    ],
 )

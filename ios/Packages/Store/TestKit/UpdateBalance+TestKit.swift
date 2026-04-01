@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Store
 import Primitives
 import PrimitivesTestKit
+import Store
 
-public extension Array where Element == UpdateBalance {
+public extension [UpdateBalance] {
     static func mock(assets: [AssetBasic] = .mock()) -> Self {
         assets.enumerated().compactMap { index, asset in
             // skip the first asset to avoid having all mocks with a balance
@@ -14,7 +14,7 @@ public extension Array where Element == UpdateBalance {
                 assetId: asset.asset.id,
                 type: .token(UpdateTokenBalance(available: UpdateBalanceValue(value: "\(index)", amount: Double(index)))),
                 updatedAt: .now,
-                isActive: true
+                isActive: true,
             )
         }
     }

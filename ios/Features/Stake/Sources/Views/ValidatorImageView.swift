@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Style
+import SwiftUI
 
 public struct ValidatorImageView: View {
-
     private let model: ValidatorViewModel
 
     public init(model: ValidatorViewModel) {
@@ -18,7 +17,7 @@ public struct ValidatorImageView: View {
             AsyncImageView(
                 url: model.imageUrl,
                 size: .image.asset,
-                placeholder: .letter(model.validator.name.first ?? " ")
+                placeholder: .letter(model.validator.name.first ?? " "),
             )
         case .earn:
             let image = model.image ?? Images.Logo.logo

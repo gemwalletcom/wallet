@@ -10,14 +10,14 @@ public actor SerialExecutor {
     deinit {
         currentTask?.cancel()
     }
-    
+
     public func execute<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
         let previousTask = currentTask
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             currentTask = Task {
                 await previousTask?.value
-                
+
                 do {
                     let result = try await operation()
                     continuation.resume(returning: result)
@@ -27,17 +27,17 @@ public actor SerialExecutor {
             }
         }
     }
-    
+
     public func executeWithCancellation<T: Sendable>(_ operation: @escaping @Sendable () async throws -> T) async throws -> T {
         currentTask?.cancel()
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             currentTask = Task {
                 guard !Task.isCancelled else {
                     continuation.resume(throwing: CancellationError())
                     return
                 }
-                
+
                 do {
                     let result = try await operation()
                     continuation.resume(returning: result)

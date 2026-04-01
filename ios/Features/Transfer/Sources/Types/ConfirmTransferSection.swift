@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
+import Foundation
+import Primitives
 import PrimitivesComponents
 import Swap
-import Primitives
+import SwiftUI
 
 enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case header
@@ -15,7 +15,7 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case fee
     case error
 
-    public var id: String { rawValue }
+    var id: String { rawValue }
 }
 
 public enum ConfirmTransferItem: Identifiable, Equatable, Sendable {

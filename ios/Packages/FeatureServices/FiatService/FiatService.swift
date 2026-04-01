@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GemAPI
+import Primitives
 import Store
 
 public struct FiatService: Sendable {
@@ -11,7 +11,7 @@ public struct FiatService: Sendable {
 
     public init(
         apiService: any GemAPIFiatService,
-        store: FiatTransactionStore
+        store: FiatTransactionStore,
     ) {
         self.apiService = apiService
         self.store = store

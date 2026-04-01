@@ -11,7 +11,7 @@ public final class GemAPIPriceAlertServiceMock: GemAPIPriceAlertService, @unchec
         self.priceAlerts = priceAlerts
     }
 
-    public func getPriceAlerts(assetId: String?) async throws -> [PriceAlert] { priceAlerts }
-    public func addPriceAlerts(priceAlerts: [PriceAlert]) async throws {}
-    public func deletePriceAlerts(priceAlerts: [PriceAlert]) async throws {}
+    public func getPriceAlerts(assetId _: String?) async throws -> [PriceAlert] { priceAlerts }
+    public func addPriceAlerts(priceAlerts _: [PriceAlert]) async throws {}
+    public func deletePriceAlerts(priceAlerts _: [PriceAlert]) async throws {}
 }

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import Localization
 import Primitives
+import PrimitivesComponents
 import Store
 import Style
-import Localization
-import PrimitivesComponents
+import SwiftUI
 
 public struct WalletsScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -27,7 +27,7 @@ public struct WalletsScene: View {
                             Images.Wallets.create
                             Text(Localized.Wallet.createNewWallet)
                         }
-                    }
+                    },
                 )
                 Button(
                     action: model.onSelectImportWallet,
@@ -36,7 +36,7 @@ public struct WalletsScene: View {
                             Images.Wallets.import
                             Text(Localized.Wallet.importExistingWallet)
                         }
-                    }
+                    },
                 )
             }
 
@@ -49,7 +49,7 @@ public struct WalletsScene: View {
                             onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                             onEdit: model.onEdit,
                             onPin: model.onPin,
-                            onDelete: model.onDelete
+                            onDelete: model.onDelete,
                         )
                     }
                     .onMove(perform: model.onMovePinned)
@@ -69,7 +69,7 @@ public struct WalletsScene: View {
                         onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                         onEdit: model.onEdit,
                         onPin: model.onPin,
-                        onDelete: model.onDelete
+                        onDelete: model.onDelete,
                     )
                 }
                 .onMove(perform: model.onMove)
@@ -85,12 +85,11 @@ public struct WalletsScene: View {
                 Button(
                     Localized.Common.delete,
                     role: .destructive,
-                    action: { Task { await model.onDeleteConfirmed(wallet: wallet) } }
+                    action: { Task { await model.onDeleteConfirmed(wallet: wallet) } },
                 )
-            }
+            },
         )
         .navigationBarTitle(model.title)
         .bindQuery(model.pinnedWalletsQuery, model.walletsQuery)
     }
 }
-

@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.Hyperliquid
+import struct Gemstone.GemChartCandleUpdate
+import struct Gemstone.GemHyperliquidOpenOrder
 import struct Gemstone.GemPerpetualBalance
 import struct Gemstone.GemPerpetualPosition
-import struct Gemstone.GemHyperliquidOpenOrder
-import struct Gemstone.GemChartCandleUpdate
+import class Gemstone.Hyperliquid
 import Primitives
 import WebSocketClient
 
 public actor HyperliquidObserverService: PerpetualObservable {
-
     private let perpetualService: HyperliquidPerpetualServiceable
     private let webSocket: any WebSocketConnectable
     private let hyperliquid = Hyperliquid()
@@ -24,9 +23,9 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     public init(
         nodeProvider: any NodeURLFetchable,
-        perpetualService: HyperliquidPerpetualServiceable
+        perpetualService: HyperliquidPerpetualServiceable,
     ) {
-        self.webSocket = WebSocketConnection(url: nodeProvider.node(for: .hyperCore))
+        webSocket = WebSocketConnection(url: nodeProvider.node(for: .hyperCore))
         self.perpetualService = perpetualService
     }
 
@@ -93,7 +92,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
             switch event {
             case .connected:
                 await handleConnected()
-            case .message(let data):
+            case let .message(data):
                 await handleMessage(data)
             case .disconnected:
                 break
@@ -113,15 +112,15 @@ public actor HyperliquidObserverService: PerpetualObservable {
     private func handleMessage(_ data: Data) async {
         do {
             switch try hyperliquid.parseWebsocketData(data: data) {
-            case .clearinghouseState(let balance, let newPositions):
+            case let .clearinghouseState(balance, newPositions):
                 try handleClearinghouseState(balance: balance, newPositions: newPositions)
-            case .openOrders(let orders):
+            case let .openOrders(orders):
                 try handleOpenOrders(orders: orders)
-            case .candle(let candle):
+            case let .candle(candle):
                 try await handleCandle(candle: candle)
-            case .allMids(let prices):
+            case let .allMids(prices):
                 try perpetualService.updatePrices(prices)
-            case .subscriptionResponse(let subscriptionType):
+            case let .subscriptionResponse(subscriptionType):
                 debugLog("HyperliquidObserver: subscription response - \(subscriptionType)")
             case .unknown:
                 debugLog("HyperliquidObserver: unknown message: \(String(data: data, encoding: .utf8) ?? "nil")")
@@ -133,37 +132,37 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func handleClearinghouseState(
         balance: GemPerpetualBalance,
-        newPositions: [GemPerpetualPosition]
+        newPositions: [GemPerpetualPosition],
     ) throws {
         guard let walletId = currentWallet?.walletId else { return }
 
-        let diff = hyperliquid.diffClearinghousePositions(
+        let diff = try hyperliquid.diffClearinghousePositions(
             newPositions: newPositions,
-            existingPositions: try perpetualService.getHypercorePositions(walletId: walletId)
+            existingPositions: perpetualService.getHypercorePositions(walletId: walletId),
         )
 
         try perpetualService.updateBalance(
             walletId: walletId,
-            balance: balance
+            balance: balance,
         )
         try perpetualService.diffPositions(
             deleteIds: diff.deletePositionIds,
             positions: diff.positions,
-            walletId: walletId
+            walletId: walletId,
         )
     }
 
     private func handleOpenOrders(orders: [GemHyperliquidOpenOrder]) throws {
         guard let walletId = currentWallet?.walletId else { return }
 
-        let diff = hyperliquid.diffOpenOrdersPositions(
+        let diff = try hyperliquid.diffOpenOrdersPositions(
             orders: orders,
-            existingPositions: try perpetualService.getHypercorePositions(walletId: walletId)
+            existingPositions: perpetualService.getHypercorePositions(walletId: walletId),
         )
         try perpetualService.diffPositions(
             deleteIds: diff.deletePositionIds,
             positions: diff.positions,
-            walletId: walletId
+            walletId: walletId,
         )
     }
 
@@ -187,6 +186,6 @@ public actor HyperliquidObserverService: PerpetualObservable {
     }
 
     private func send(_ request: some Encodable) async throws {
-        try await webSocket.send(try encoder.encode(request).encodeString())
+        try await webSocket.send(encoder.encode(request).encodeString())
     }
 }

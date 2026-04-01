@@ -6,12 +6,12 @@ public extension WCPairingProposal {
     static func mock(
         pairingId: String = "pairing-id",
         proposal: WalletConnectionSessionProposal = .mock(),
-        verificationStatus: WalletConnectionVerificationStatus = .verified
+        verificationStatus: WalletConnectionVerificationStatus = .verified,
     ) -> WCPairingProposal {
         WCPairingProposal(
             pairingId: pairingId,
             proposal: proposal,
-            verificationStatus: verificationStatus
+            verificationStatus: verificationStatus,
         )
     }
 }

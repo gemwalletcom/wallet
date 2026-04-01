@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct SecretPhraseGridView: View {
     private let rows: [[WordIndex]]
@@ -9,12 +9,12 @@ public struct SecretPhraseGridView: View {
 
     public init(
         rows: [[WordIndex]],
-        highlightIndex: Int? = .none
+        highlightIndex: Int? = .none,
     ) {
         self.rows = rows
         self.highlightIndex = highlightIndex
     }
-    
+
     public var body: some View {
         Grid(alignment: .leading) {
             ForEach(rows, id: \.self) { words in

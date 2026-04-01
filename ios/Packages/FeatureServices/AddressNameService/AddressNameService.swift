@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemAPI
-import Store
 import Primitives
+import Store
 
 public struct AddressNameService: Sendable {
     private let addressStore: AddressStore
     private let apiService: any GemAPIAddressNamesService
-    
+
     public init(
         addressStore: AddressStore,
-        apiService: any GemAPIAddressNamesService = GemAPIService()
+        apiService: any GemAPIAddressNamesService = GemAPIService(),
     ) {
         self.addressStore = addressStore
         self.apiService = apiService
     }
-    
+
     public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
         try addressStore.getAddressName(chain: chain, address: address)
     }

@@ -4,8 +4,8 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemAssetType {
-    public func map() -> AssetType {
+public extension GemAssetType {
+    func map() -> AssetType {
         switch self {
         case .native: .native
         case .erc20: .erc20
@@ -24,8 +24,8 @@ extension GemAssetType {
     }
 }
 
-extension AssetType {
-    public func map() -> GemAssetType {
+public extension AssetType {
+    func map() -> GemAssetType {
         switch self {
         case .native: .native
         case .erc20: .erc20
@@ -44,20 +44,20 @@ extension AssetType {
     }
 }
 
-extension GemAsset {
-    public func map() throws -> Asset {
-        Asset(
-            id: try AssetId(id: id),
+public extension GemAsset {
+    func map() throws -> Asset {
+        try Asset(
+            id: AssetId(id: id),
             name: name,
             symbol: symbol,
             decimals: decimals,
-            type: assetType.map()
+            type: assetType.map(),
         )
     }
 }
 
-extension Asset {
-    public func map() -> GemAsset {
+public extension Asset {
+    func map() -> GemAsset {
         GemAsset(
             id: id.identifier,
             chain: id.chain.rawValue,
@@ -65,7 +65,7 @@ extension Asset {
             name: name,
             symbol: symbol,
             decimals: decimals,
-            assetType: type.map()
+            assetType: type.map(),
         )
     }
 }

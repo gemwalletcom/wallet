@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Formatters
+import Testing
 
 struct RoundingFormatterTests {
-
     let formatter = RoundingFormatter()
 
     @Test
@@ -17,8 +16,8 @@ struct RoundingFormatterTests {
         #expect(formatter.roundedValues(for: 103.0, byPercent: 5) == [97, 109])
         #expect(formatter.roundedValues(for: 767.55, byPercent: 5) == [700, 800])
         #expect(formatter.roundedValues(for: 2283.0, byPercent: 5) == [2150, 2400])
-        #expect(formatter.roundedValues(for: 95432.0, byPercent: 5) == [90000, 100000])
-        #expect(formatter.roundedValues(for: 110000.0, byPercent: 5) == [104000, 116000])
-        #expect(formatter.roundedValues(for: 149000.0, byPercent: 5) == [141000, 156000])
+        #expect(formatter.roundedValues(for: 95432.0, byPercent: 5) == [90000, 100_000])
+        #expect(formatter.roundedValues(for: 110_000.0, byPercent: 5) == [104_000, 116_000])
+        #expect(formatter.roundedValues(for: 149_000.0, byPercent: 5) == [141_000, 156_000])
     }
 }

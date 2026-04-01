@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import ExplorerService
+import Formatters
 import Foundation
 import Primitives
-import Components
 import PrimitivesComponents
-import SwiftUI
 import Style
-import Formatters
-import ExplorerService
+import SwiftUI
 
 public struct DelegationViewModel: Sendable {
-
     public let delegation: Delegation
     public let currencyCode: String
     private let asset: Asset
@@ -39,14 +38,14 @@ public struct DelegationViewModel: Sendable {
         asset: Asset,
         formatter: ValueFormatter = .short,
         currencyCode: String,
-        exploreService: ExplorerService = .standard
+        exploreService: ExplorerService = .standard,
     ) {
         self.delegation = delegation
         self.currencyCode = currencyCode
         self.asset = asset
         self.formatter = formatter
         self.exploreService = exploreService
-        self.priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
+        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
 
     public var state: DelegationState {
@@ -89,10 +88,10 @@ public struct DelegationViewModel: Sendable {
             }
             return formatter.string(delegation.base.rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
         case .pending,
-            .inactive,
-            .activating,
-            .deactivating,
-            .awaitingWithdrawal:
+             .inactive,
+             .activating,
+             .deactivating,
+             .awaitingWithdrawal:
             return .none
         }
     }

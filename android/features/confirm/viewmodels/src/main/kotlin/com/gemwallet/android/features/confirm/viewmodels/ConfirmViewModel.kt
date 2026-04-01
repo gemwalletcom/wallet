@@ -33,11 +33,15 @@ import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.getDelegatePreparedAmount
 import com.gemwallet.android.serializer.jsonEncoder
+import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
+import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
+import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.assetRoutePath
 import com.gemwallet.android.ui.models.navigation.stakeRoute
 import com.gemwallet.android.ui.models.navigation.swapRoute
 import com.gemwallet.android.features.confirm.models.AmountUIModel
+import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.ConfirmError
 import com.gemwallet.android.features.confirm.models.ConfirmProperty
 import com.gemwallet.android.features.confirm.models.ConfirmState
@@ -130,8 +134,8 @@ class ConfirmViewModel @Inject constructor(
         val review = simulation?.toWalletConnectReview() ?: WalletConnectReview()
         val headerAssetId = simulation?.header?.assetId
         val asset = when {
-            headerAssetId == null -> null
-            headerAssetId == params?.assetId -> params?.asset
+            headerAssetId == null || params == null -> null
+            headerAssetId == params.assetId -> params.asset
             else -> headerAssetInfo?.asset
         }
         review.copy(headerAsset = asset)
@@ -224,13 +228,17 @@ class ConfirmViewModel @Inject constructor(
             fromAsset = assetInfo,
             fromAmount = amount.atomicValue.toString(),
             toAsset = toAssetInfo,
-            toAmount = (request as? ConfirmParams.SwapParams)?.toAmount.toString(),
+            toAmount = (request as? ConfirmParams.SwapParams)?.toAmount?.toString(),
             nftAsset = (request as? ConfirmParams.NftParams)?.nftAsset,
             currency = currency,
         )
     }
     .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val detailElements = combine(request, assetsInfo, ::buildDetailElements)
+    .flowOn(Dispatchers.Default)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
         request ?: return@combine emptyList()
@@ -463,6 +471,46 @@ class ConfirmViewModel @Inject constructor(
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
         val str = assetId.toIdentifier()
         return firstOrNull { it.id().toIdentifier() ==  str}
+    }
+
+    private fun buildDetailElements(
+        request: ConfirmParams?,
+        assetsInfo: List<AssetInfo>?,
+    ): List<ConfirmDetailElement> {
+        return listOfNotNull(
+            buildSwapDetailElement(request as? ConfirmParams.SwapParams, assetsInfo),
+        )
+    }
+
+    private fun buildSwapDetailElement(
+        params: ConfirmParams.SwapParams?,
+        assetsInfo: List<AssetInfo>?,
+    ): ConfirmDetailElement.SwapDetails? {
+        val params = params ?: return null
+        val assetsInfo = assetsInfo ?: return null
+        val fromAssetInfo = assetsInfo.getByAssetId(params.fromAsset.id) ?: return null
+        val toAssetInfo = assetsInfo.getByAssetId(params.toAsset.id) ?: return null
+
+        val provider = SwapProviderUIModelFactory.create(
+            providerId = params.providerId,
+            title = params.protocol,
+            receiveAsset = toAssetInfo,
+            toValue = params.toAmount.toString(),
+        )
+        val model = SwapDetailsUIModelFactory.create(
+            SwapDetailsUIModelInput(
+                payAsset = fromAssetInfo,
+                receiveAsset = toAssetInfo,
+                fromValue = params.fromAmount.toString(),
+                toValue = params.toAmount.toString(),
+                provider = provider,
+                slippageBps = params.slippageBps,
+                etaInSeconds = params.etaInSeconds,
+                isProviderSelectable = false,
+            )
+        ) ?: return null
+
+        return ConfirmDetailElement.SwapDetails(model)
     }
 
     private fun assembleMetadata(signerParams: SignerParams) = when (val input = signerParams.input) {

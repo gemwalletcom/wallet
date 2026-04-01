@@ -9,7 +9,7 @@ public protocol NameServiceable: Sendable {
 public extension NameServiceable {
     func canResolveName(name: String) -> Bool {
         let nameParts = name.split(separator: ".")
-        guard nameParts.count >= 2 && nameParts.last?.count ?? 0 >= 1 else {
+        guard nameParts.count >= 2, nameParts.last?.count ?? 0 >= 1 else {
             return false
         }
         return true

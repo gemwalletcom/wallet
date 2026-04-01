@@ -26,16 +26,16 @@ public struct FiatTransactionViewModel: Sendable {
             titleStyle: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
             titleTag: titleTag(statusModel),
             titleTagStyle: titleTagStyle(statusModel),
-            titleExtra: transaction.provider.displayName,
+            titleExtra: "\(info.asset.name) (\(transaction.provider.displayName))",
             titleStyleExtra: .footnote,
             subtitle: amount,
             subtitleStyle: TextStyle(font: .callout, color: subtitleColor, fontWeight: .semibold),
             subtitleExtra: fiatValueText,
             subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
-            imageStyle: .asset(assetImage: assetImage)
+            imageStyle: .asset(assetImage: providerImage),
         )
     }
-    
+
     public var detailsUrl: URL? {
         info.detailsUrl?.asURL
     }
@@ -51,14 +51,14 @@ extension FiatTransactionViewModel {
         }
     }
 
-    private var assetImage: AssetImage {
-        AssetIdViewModel(assetId: info.asset.id).assetImage
+    private var providerImage: AssetImage {
+        .image(transaction.provider.image)
     }
 
     private func titleTag(_ model: FiatTransactionStatusViewModel) -> String? {
         switch transaction.status {
-        case .complete: .none
-        case .pending, .failed, .unknown: model.title
+        case .complete, .unknown: .none
+        case .pending, .failed: model.title
         }
     }
 
@@ -66,7 +66,7 @@ extension FiatTransactionViewModel {
         TextStyle(
             font: Font.system(.footnote, weight: .medium),
             color: model.color,
-            background: model.background
+            background: model.background,
         )
     }
 
@@ -81,8 +81,8 @@ extension FiatTransactionViewModel {
 
     private var subtitleColor: Color {
         switch transaction.status {
-        case .failed: Colors.gray
-        case .pending, .complete, .unknown: Colors.black
+        case .failed, .unknown: Colors.gray
+        case .pending, .complete: Colors.black
         }
     }
 }

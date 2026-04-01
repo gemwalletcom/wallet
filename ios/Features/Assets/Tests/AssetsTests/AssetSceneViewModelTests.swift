@@ -1,23 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import SwiftUI
+import AssetsServiceTestKit
+import BalanceServiceTestKit
+import BannerServiceTestKit
 import BigInt
+import PriceAlertServiceTestKit
+import PriceServiceTestKit
 import Primitives
 import PrimitivesTestKit
-import BalanceServiceTestKit
-import AssetsServiceTestKit
+import SwiftUI
+import Testing
 import TransactionsServiceTestKit
-import PriceServiceTestKit
-import PriceAlertServiceTestKit
-import BannerServiceTestKit
 
 @testable import Assets
 @testable import Store
 
 @MainActor
 struct AssetSceneViewModelTests {
-
     @Test
     func showManageToken() {
         #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isBalanceEnabled: true))).showManageToken == false)
@@ -93,13 +92,13 @@ extension AssetSceneViewModel {
             bannerService: .mock(),
             input: AssetSceneInput(
                 wallet: .mock(),
-                asset: assetData.asset
+                asset: assetData.asset,
             ),
-            isPresentingSelectedAssetInput: .constant(.none)
+            isPresentingSelectedAssetInput: .constant(.none),
         )
         model.assetQuery.value = ChainAssetData(
             assetData: assetData,
-            feeAssetData: AssetData.with(asset: assetData.asset.chain.asset)
+            feeAssetData: AssetData.with(asset: assetData.asset.chain.asset),
         )
         return model
     }

@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct ContactStore: Sendable {
-
     let db: DatabaseQueue
 
     public init(db: DB) {
@@ -48,7 +47,7 @@ public struct ContactStore: Sendable {
             try ContactAddressRecord
                 .filter(ContactAddressRecord.Columns.contactId == contactId)
                 .fetchAll(db)
-                .map { $0.id }
+                .map(\.id)
         }
     }
 

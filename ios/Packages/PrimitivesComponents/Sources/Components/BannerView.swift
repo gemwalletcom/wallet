@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import Components
+import Foundation
+import Primitives
 import Style
+import SwiftUI
 
 public struct BannerView: View {
     private let model: BannerViewModel
-    private let action: ((BannerAction) -> Void)
+    private let action: (BannerAction) -> Void
 
     public init(
         banner: Banner,
-        action: @escaping (BannerAction) -> Void
+        action: @escaping (BannerAction) -> Void,
     ) {
-        self.model = BannerViewModel(banner: banner)
+        model = BannerViewModel(banner: banner)
         self.action = action
     }
 
@@ -24,7 +24,7 @@ public struct BannerView: View {
             case .list: listView
             case .banner: bannerView
             }
-            
+
             if model.canClose {
                 closeButton
                     .padding([.top, .trailing], .medium)
@@ -44,12 +44,12 @@ private extension BannerView {
                     ListItemView(
                         title: model.title,
                         titleExtra: model.description,
-                        imageStyle: model.imageStyle
+                        imageStyle: model.imageStyle,
                     )
 
                     Spacer(minLength: model.canClose ? .extraLarge : .zero)
                 }
-            }
+            },
         )
         .buttonStyle(.listStyleColor(glassEffect: .disabled))
     }
@@ -59,13 +59,13 @@ private extension BannerView {
             if let image = model.image {
                 AssetImageView(assetImage: image, size: model.imageSize)
             }
-            
+
             VStack(spacing: .small) {
                 if let title = model.title {
                     Text(title)
                         .textStyle(TextStyle(font: .body, color: .primary, fontWeight: .semibold))
                 }
-                
+
                 if let subtitle = model.description {
                     Text(subtitle)
                         .textStyle(.bodySecondary)
@@ -88,7 +88,7 @@ private extension BannerView {
         .padding()
         .frame(maxWidth: .infinity)
     }
-    
+
     private var closeButton: some View {
         Button {
             action(model.closeAction)
@@ -102,7 +102,7 @@ private extension BannerView {
                 .liquidGlass { _ in
                     ListButton(
                         image: Images.System.xmarkCircle,
-                        action: { action(model.closeAction) }
+                        action: { action(model.closeAction) },
                     )
                     .foregroundStyle(Colors.gray)
                 }
@@ -110,4 +110,3 @@ private extension BannerView {
         .buttonStyle(.borderless)
     }
 }
-

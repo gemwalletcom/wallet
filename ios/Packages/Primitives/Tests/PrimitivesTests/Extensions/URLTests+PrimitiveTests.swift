@@ -6,7 +6,6 @@ import Testing
 @testable import Primitives
 
 struct URLTests {
-
     @Test
     func testCleanHost() {
         #expect(URL(string: "https://www.example.com")?.cleanHost() == "example.com")

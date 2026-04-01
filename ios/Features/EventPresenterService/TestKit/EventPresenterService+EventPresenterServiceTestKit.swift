@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 @testable import EventPresenterService
+import Foundation
 
 public extension EventPresenterService {
     static func mock() -> EventPresenterService {

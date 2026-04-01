@@ -16,7 +16,7 @@ public struct TransferConfirmationInput: Sendable {
         wallet: Wallet,
         transactionData: TransactionData,
         amount: TransferAmount,
-        delegate: TransferDataCallback.ConfirmTransferDelegate?
+        delegate: TransferDataCallback.ConfirmTransferDelegate?,
     ) {
         self.data = data
         self.wallet = wallet

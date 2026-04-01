@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Style
-import Localization
 import Components
+import Foundation
+import Localization
 import Primitives
+import Style
+import SwiftUI
 
 struct AcceptTermsScene: View {
     @State private var model: AcceptTermsViewModel
-    
+
     init(model: AcceptTermsViewModel) {
         self.model = model
     }
@@ -18,7 +18,7 @@ struct AcceptTermsScene: View {
         List {
             CalloutView(style: .header(title: model.message))
                 .cleanListRow()
-            
+
             ForEach($model.items) { $item in
                 Section {
                     Toggle(isOn: $item.isConfirmed) {
@@ -34,7 +34,7 @@ struct AcceptTermsScene: View {
             StateButton(
                 text: Localized.Onboarding.AcceptTerms.continue,
                 type: .primary(model.state),
-                action: { model.onNext?() }
+                action: { model.onNext?() },
             )
         }
         .contentMargins([.top], .extraSmall, for: .scrollContent)

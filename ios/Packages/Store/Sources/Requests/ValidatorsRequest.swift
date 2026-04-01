@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct ValidatorsRequest: DatabaseQueryable {
-
     private let chain: Chain
     private let providerType: StakeProviderType
 
@@ -24,6 +23,6 @@ public struct ValidatorsRequest: DatabaseQueryable {
             .filter(StakeValidatorRecord.Columns.name != "")
             .order(StakeValidatorRecord.Columns.apr.desc)
             .fetchAll(db)
-            .map { $0.validator }
+            .map(\.validator)
     }
 }

@@ -1,13 +1,14 @@
+import ActivityService
+import AddressNameService
+import BigInt
+import Blockchain
+import ChainService
+import EventPresenterService
+
 // Copyright (c). Gem Wallet. All rights reserved.
 import ExplorerService
 import Keystore
 import Primitives
-import BigInt
-import Blockchain
-import ChainService
-import AddressNameService
-import ActivityService
-import EventPresenterService
 
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
@@ -29,7 +30,7 @@ public struct ConfirmService: Sendable {
         chainService: any ChainServiceable,
         addressNameService: AddressNameService,
         activityService: ActivityService,
-        eventPresenterService: EventPresenterService
+        eventPresenterService: EventPresenterService,
     ) {
         self.explorerService = explorerService
         self.metadataProvider = metadataProvider
@@ -54,13 +55,13 @@ public struct ConfirmService: Sendable {
         wallet: Wallet,
         data: TransferData,
         priority: FeePriority,
-        available: BigInt
+        available: BigInt,
     ) async throws -> TransferTransactionData {
         try await transferTransactionProvider.loadTransferTransactionData(
             wallet: wallet,
             data: data,
             priority: priority,
-            available: available
+            available: available,
         )
     }
 
@@ -84,7 +85,7 @@ public struct ConfirmService: Sendable {
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
         chainService.defaultPriority(for: type)
     }
-    
+
     public func getAddressName(chain: Chain, address: String) throws -> AddressName? {
         try addressNameService.getAddressName(chain: chain, address: address)
     }

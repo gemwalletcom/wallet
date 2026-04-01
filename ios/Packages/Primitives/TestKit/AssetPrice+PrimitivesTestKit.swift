@@ -3,18 +3,18 @@
 import Foundation
 import Primitives
 
-extension AssetPrice {
-    public static func mock(
+public extension AssetPrice {
+    static func mock(
         assetId: AssetId = .mock(),
         price: Double = 1,
         priceChangePercentage24h: Double = 1,
-        updatedAt: Date = .now
+        updatedAt: Date = .now,
     ) -> AssetPrice {
         AssetPrice(
             assetId: assetId,
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
         )
     }
 }

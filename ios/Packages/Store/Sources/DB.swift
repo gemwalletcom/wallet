@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
 import os
+import Primitives
 
 public struct DB: Sendable {
     private static let ignoreMethods = ["COMMIT TRANSACTION", "PRAGMA query_only", "BEGIN DEFERRED TRANSACTION"].asSet()
@@ -11,7 +11,7 @@ public struct DB: Sendable {
 
     public init(
         fileName: String = "db.sqlite",
-        configuration: GRDB.Configuration = DB.defaultConfiguration
+        configuration: GRDB.Configuration = DB.defaultConfiguration,
     ) {
         do {
             // TODO: - remove the logic FileMigrator in 2026
@@ -20,7 +20,7 @@ public struct DB: Sendable {
                 name: fileName,
                 fromDirectory: .documentDirectory,
                 toDirectory: .applicationSupportDirectory,
-                isDirectory: false
+                isDirectory: false,
             )
             dbQueue = try DatabaseQueue(path: databaseURL.path(percentEncoded: false), configuration: configuration)
         } catch {
@@ -28,7 +28,7 @@ public struct DB: Sendable {
                 "DB Initialization error: %{public}@",
                 log: .default,
                 type: .fault,
-                error.localizedDescription
+                error.localizedDescription,
             )
             fatalError("DB Initialization error: \(error)")
         }
@@ -44,7 +44,7 @@ public struct DB: Sendable {
                 "DB Migration error: %{public}@",
                 log: .default,
                 type: .fault,
-                error.localizedDescription
+                error.localizedDescription,
             )
             fatalError("DB Migration error: \(error)")
         }
@@ -53,27 +53,27 @@ public struct DB: Sendable {
     public static let defaultConfiguration: GRDB.Configuration = {
         var config = GRDB.Configuration()
         #if DEBUG
-        config.publicStatementArguments = true
-        config.prepareDatabase { db in
-            db.trace { //sql in
-                switch $0 {
-                case .profile(let statement, let duration):
-                    break
-                    //debugLog("profile SQL> \(statement)")
-                case .statement(let statement):
-                    let sql = statement.sql
+            config.publicStatementArguments = true
+            config.prepareDatabase { db in
+                db.trace { // sql in
+                    switch $0 {
+                    case let .profile(statement, duration):
+                        break
+                    // debugLog("profile SQL> \(statement)")
+                    case let .statement(statement):
+                        let sql = statement.sql
 
-                    if ignoreMethods.filter({ sql.description.contains($0) }).isEmpty {
-                        // debugLog("SQL> \(sql)")
+                        if ignoreMethods.filter({ sql.description.contains($0) }).isEmpty {
+                            // debugLog("SQL> \(sql)")
+                        }
                     }
                 }
             }
-        }
         #endif
         return config
     }()
 }
 
 var isRunningTests: Bool {
-    return ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 }

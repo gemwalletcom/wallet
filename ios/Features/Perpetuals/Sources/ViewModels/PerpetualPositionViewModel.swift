@@ -17,7 +17,7 @@ public struct PerpetualPositionViewModel {
 
     public init(
         _ data: PerpetualPositionData,
-        currencyStyle: CurrencyFormatterType = .currency
+        currencyStyle: CurrencyFormatterType = .currency,
     ) {
         self.data = data
         currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
@@ -58,14 +58,14 @@ public struct PerpetualPositionViewModel {
             pnl: data.position.pnl,
             marginAmount: data.position.marginAmount,
             currencyFormatter: currencyFormatter,
-            percentFormatter: percentFormatter
+            percentFormatter: percentFormatter,
         )
     }
 
     public var pnlField: ListItemField {
         ListItemField(
             title: TextValue(text: pnlViewModel.title, style: .body),
-            value: TextValue(text: pnlViewModel.text ?? "", style: pnlViewModel.textStyle)
+            value: TextValue(text: pnlViewModel.text ?? "", style: pnlViewModel.textStyle),
         )
     }
 
@@ -81,7 +81,7 @@ public struct PerpetualPositionViewModel {
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
             takeProfit: data.position.takeProfit?.price,
-            stopLoss: data.position.stopLoss?.price
+            stopLoss: data.position.stopLoss?.price,
         )
     }
 
@@ -93,7 +93,7 @@ public struct PerpetualPositionViewModel {
     public var fundingPaymentsField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Info.FundingPayments.title, style: .body),
-            value: TextValue(text: fundingPaymentsModel.text ?? "-", style: fundingPaymentsModel.textStyle)
+            value: TextValue(text: fundingPaymentsModel.text ?? "-", style: fundingPaymentsModel.textStyle),
         )
     }
 
@@ -111,7 +111,7 @@ public struct PerpetualPositionViewModel {
         guard let price = data.position.liquidationPrice, price > 0 else { return .none }
         return ListItemField(
             title: TextValue(text: Localized.Info.LiquidationPrice.title, style: .body),
-            value: TextValue(text: currencyFormatter.string(price), style: liquidationPriceTextStyle)
+            value: TextValue(text: currencyFormatter.string(price), style: liquidationPriceTextStyle),
         )
     }
 }

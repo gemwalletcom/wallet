@@ -4,7 +4,6 @@ import SwiftUI
 
 @Observable
 public final class WalletConnectorPresenter: Sendable {
-
     @MainActor
     public var isPresentingError: String?
     @MainActor
@@ -12,7 +11,7 @@ public final class WalletConnectorPresenter: Sendable {
     @MainActor
     public var isPresentingSheet: WalletConnectorSheetType?
 
-    public init() { }
+    public init() {}
 
     @MainActor
     public func complete(type: WalletConnectorSheetType) {
@@ -29,6 +28,6 @@ public final class WalletConnectorPresenter: Sendable {
         }
 
         type.reject(ConnectionsError.userCancelled)
-        self.isPresentingSheet = nil
+        isPresentingSheet = nil
     }
 }

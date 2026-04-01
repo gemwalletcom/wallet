@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
 import Primitives
+import WalletCore
 
 struct PolkadotSigner: Signable {
-    
     func sign(input: SignerInput, message: PolkadotSigningInput.OneOf_MessageOneof, privateKey: Data) throws -> String {
         guard case let .polkadot(sequence, genesisHash, blockHash, blockNumber, specVersion, transactionVersion, period) = input.metadata else {
             throw SignerError.incompleteData
@@ -26,16 +25,16 @@ struct PolkadotSigner: Signable {
             $0.messageOneof = message
         }
         let output: PolkadotSigningOutput = AnySigner.sign(input: input, coin: .polkadot)
-        
+
         if !output.errorMessage.isEmpty {
             throw AnyError(output.errorMessage)
         }
-        
+
         return output.encoded.hexString.append0x
     }
-    
+
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
-        return try sign(
+        try sign(
             input: input,
             message: .balanceCall(.with {
                 $0.transfer = .with {
@@ -49,8 +48,7 @@ struct PolkadotSigner: Signable {
                     }
                 }
             }),
-            privateKey: privateKey
+            privateKey: privateKey,
         )
     }
 }
-    

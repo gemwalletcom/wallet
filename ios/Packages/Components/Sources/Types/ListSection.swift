@@ -13,13 +13,13 @@ public struct ListSection<T: Sendable & Identifiable>: Identifiable, Sendable {
         type: ID,
         title: String? = nil,
         image: Image? = nil,
-        values: [T]
+        values: [T],
     ) where ID.RawValue == String {
         self.init(
             id: type.rawValue,
             title: title,
             image: image,
-            values: values
+            values: values,
         )
     }
 
@@ -27,7 +27,7 @@ public struct ListSection<T: Sendable & Identifiable>: Identifiable, Sendable {
         id: String,
         title: String?,
         image: Image?,
-        values: [T]
+        values: [T],
     ) {
         self.id = id
         self.title = title

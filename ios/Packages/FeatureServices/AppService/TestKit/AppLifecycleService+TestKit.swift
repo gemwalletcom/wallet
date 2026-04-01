@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Preferences
-import PreferencesTestKit
-import DeviceService
-import DeviceServiceTestKit
-import StreamService
-import StreamServiceTestKit
-import PerpetualService
-import PerpetualServiceTestKit
+@testable import AppService
 import ConnectionsService
 import ConnectionsServiceTestKit
-@testable import AppService
+import DeviceService
+import DeviceServiceTestKit
+import Foundation
+import PerpetualService
+import PerpetualServiceTestKit
+import Preferences
+import PreferencesTestKit
+import StreamService
+import StreamServiceTestKit
 
 public extension AppLifecycleService {
     static func mock(
@@ -20,7 +20,7 @@ public extension AppLifecycleService {
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
         streamSubscriptionService: StreamSubscriptionService = .mock(),
-        hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock()
+        hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
             preferences: preferences,
@@ -28,7 +28,7 @@ public extension AppLifecycleService {
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
-            hyperliquidObserverService: hyperliquidObserverService
+            hyperliquidObserverService: hyperliquidObserverService,
         )
     }
 }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import WalletTab
 
@@ -13,9 +13,9 @@ struct WalletSceneBannersViewModelTests {
         let model = WalletSceneBannersViewModel(
             banners: [
                 .mock(event: .onboarding, state: .alwaysActive),
-                .mock(event: .enableNotifications, state: .active)
+                .mock(event: .enableNotifications, state: .active),
             ],
-            totalFiatValue: 42
+            totalFiatValue: 42,
         )
 
         #expect(model.allBanners.first?.event == .enableNotifications)

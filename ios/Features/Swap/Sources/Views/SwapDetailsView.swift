@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
-import PrimitivesComponents
+import Foundation
 import InfoSheet
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
+import SwiftUI
 
 public struct SwapDetailsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -21,7 +21,7 @@ public struct SwapDetailsView: View {
         VStack {
             switch model.state {
             case .data: listView
-            case .error(let error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccured, error: error.asAnyError(asset: model.fromAsset)) }
+            case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccured, error: error.asAnyError(asset: model.fromAsset)) }
             case .loading: LoadingView()
             case .noData: List { ListItemErrorView(errorTitle: nil, error: AnyError(Localized.Errors.errorOccured)) }
             }
@@ -42,7 +42,7 @@ public struct SwapDetailsView: View {
             SelectableListNavigationStack(
                 model: model.swapProvidersViewModel,
                 onFinishSelection: model.onFinishSwapProviderSelection,
-                listContent: { SimpleListItemView(model: $0) }
+                listContent: { SimpleListItemView(model: $0) },
             )
         }
     }
@@ -53,7 +53,7 @@ public struct SwapDetailsView: View {
                 let view = SimpleListItemView(model: model.selectedProviderItem)
                 if model.allowSelectProvider {
                     NavigationCustomLink(
-                        with: view
+                        with: view,
                     ) {
                         model.onSelectProvidersSelection()
                     }
@@ -64,13 +64,13 @@ public struct SwapDetailsView: View {
                 Text(Localized.Common.provider)
                     .listRowInsets(.horizontalMediumInsets)
             }
-            
+
             Section {
                 if let rateText = model.rateText {
                     ListItemRotateView(
                         title: model.rateTitle,
                         subtitle: rateText,
-                        action: model.switchRateDirection
+                        action: model.switchRateDirection,
                     )
                 }
 
@@ -80,17 +80,16 @@ public struct SwapDetailsView: View {
 
                 PriceImpactView(
                     model: model.priceImpactModel,
-                    infoAction: model.onSelectPriceImpactInfoSheet
+                    infoAction: model.onSelectPriceImpactInfoSheet,
                 )
 
                 ListItemView(field: model.minReceiveField)
 
                 ListItemView(
                     field: model.slippageField,
-                    infoAction: model.onSelectSlippageInfoSheet
+                    infoAction: model.onSelectSlippageInfoSheet,
                 )
             }
         }
     }
 }
-

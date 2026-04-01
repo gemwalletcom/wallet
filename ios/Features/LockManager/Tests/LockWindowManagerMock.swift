@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Keystore
 @testable import LockManager
+import SwiftUI
 
 @MainActor
 final class LockWindowManagerMock: LockWindowManageable {
-
     var lockModel: LockSceneViewModel
     var overlayWindow: UIWindow?
 
@@ -38,7 +37,7 @@ final class LockWindowManagerMock: LockWindowManageable {
         if overlayWindow == nil {
             overlayWindow = Self.makeWindow(
                 model: lockModel,
-                visible: lockModel.isPrivacyLockVisible
+                visible: lockModel.isPrivacyLockVisible,
             )
         }
         togglePrivacyLock(visible: lockModel.isPrivacyLockVisible)
@@ -47,7 +46,7 @@ final class LockWindowManagerMock: LockWindowManageable {
 
     private func dismiss() {
         guard !lockModel.isPrivacyLockVisible else { return }
-        overlayWindow?.alpha   = 0
+        overlayWindow?.alpha = 0
         overlayWindow?.isHidden = true
         overlayWindow = nil
     }
@@ -67,13 +66,13 @@ final class LockWindowManagerMock: LockWindowManageable {
         isAuthEnabled: Bool = true,
         availableAuth: KeystoreAuthentication = .biometrics,
         isPrivacyLockEnabled: Bool = false,
-        lockPeriod: LockPeriod = .oneMinute
+        lockPeriod: LockPeriod = .oneMinute,
     ) -> LockWindowManagerMock {
         let service = MockBiometryAuthenticationService(
             isAuthEnabled: isAuthEnabled,
             availableAuth: availableAuth,
             lockPeriod: lockPeriod,
-            isPrivacyLockEnabled: isPrivacyLockEnabled
+            isPrivacyLockEnabled: isPrivacyLockEnabled,
         )
         return .init(lockModel: LockSceneViewModel(service: service))
     }

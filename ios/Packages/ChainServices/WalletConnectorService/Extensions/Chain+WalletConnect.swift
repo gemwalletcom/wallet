@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import class Gemstone.WalletConnect
+import Primitives
 import struct WalletConnectUtils.Blockchain
 
 extension Chain {
@@ -17,15 +17,15 @@ extension Chain {
     }
 
     var blockchain: Blockchain? {
-        if let namespace = namespace, let reference = reference {
+        if let namespace, let reference {
             return Blockchain(namespace: namespace, reference: reference)
         }
         return .none
     }
 }
 
-extension Blockchain {
-    public var chain: Chain? {
+public extension Blockchain {
+    var chain: Chain? {
         guard let chain = WalletConnect.shared.getChain(caip2: namespace, caip10: reference) else {
             return .none
         }

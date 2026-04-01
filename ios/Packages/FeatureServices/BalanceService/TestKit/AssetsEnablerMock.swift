@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BalanceService
 import Foundation
 import Primitives
-import BalanceService
 
 public struct AssetsEnablerMock: AssetsEnabler {
     private let onEnableAssets: (@Sendable (Wallet, [AssetId], Bool) async throws -> Void)?
@@ -15,12 +15,12 @@ public struct AssetsEnablerMock: AssetsEnabler {
         try await onEnableAssets?(wallet, assetIds, enabled)
     }
 
-    public func enableAssetId(wallet: Wallet, assetId: AssetId) async throws {}
+    public func enableAssetId(wallet _: Wallet, assetId _: AssetId) async throws {}
 }
 
 public extension AssetsEnabler where Self == AssetsEnablerMock {
     static func mock(
-        onEnableAssets: (@Sendable (Wallet, [AssetId], Bool) async throws -> Void)? = nil
+        onEnableAssets: (@Sendable (Wallet, [AssetId], Bool) async throws -> Void)? = nil,
     ) -> AssetsEnablerMock {
         AssetsEnablerMock(onEnableAssets: onEnableAssets)
     }

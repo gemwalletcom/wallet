@@ -3,10 +3,10 @@
 import Foundation
 import Primitives
 
-extension SwapData {
-    public static func mock(
+public extension SwapData {
+    static func mock(
         quote: SwapQuote = .mock(),
-        data: SwapQuoteData = .mock()
+        data: SwapQuoteData = .mock(),
     ) -> SwapData {
         SwapData(quote: quote, data: data)
     }

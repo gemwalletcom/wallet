@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
 internal import BigInt
 
-struct BalanceRecord: Codable, FetchableRecord, PersistableRecord  {
-    
+struct BalanceRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "balances"
-    
+
     enum Columns {
         static let assetId = Column("assetId")
         static let walletId = Column("walletId")
@@ -44,19 +43,19 @@ struct BalanceRecord: Codable, FetchableRecord, PersistableRecord  {
 
     var assetId: AssetId
     var walletId: String
-    
+
     var available: String
     var availableAmount: Double
-    
+
     var frozen: String
     var frozenAmount: Double
-    
+
     var locked: String
     var lockedAmount: Double
-    
+
     var staked: String
     var stakedAmount: Double
-    
+
     var pending: String
     var pendingAmount: Double
 
@@ -65,10 +64,10 @@ struct BalanceRecord: Codable, FetchableRecord, PersistableRecord  {
 
     var rewards: String
     var rewardsAmount: Double
-    
+
     var reserved: String
     var reservedAmount: Double
-    
+
     var withdrawable: String
     var withdrawableAmount: Double
 
@@ -76,11 +75,11 @@ struct BalanceRecord: Codable, FetchableRecord, PersistableRecord  {
     var earnAmount: Double
 
     var totalAmount: Double
-    
+
     var isEnabled: Bool
     var isPinned: Bool
     var isActive: Bool
-    
+
     var metadata: BalanceMetadata?
 
     var lastUsedAt: Date?
@@ -89,7 +88,7 @@ struct BalanceRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension BalanceRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.assetId.name, .text)
                 .notNull()
                 .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
@@ -97,20 +96,20 @@ extension BalanceRecord: CreateTable {
                 .notNull()
                 .indexed()
                 .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
-            
+
             // balances
             $0.column(Columns.available.name, .text).defaults(to: "0")
             $0.column(Columns.availableAmount.name, .numeric).defaults(to: 0)
-            
+
             $0.column(Columns.frozen.name, .text).defaults(to: "0")
             $0.column(Columns.frozenAmount.name, .double).defaults(to: 0)
-            
+
             $0.column(Columns.locked.name, .text).defaults(to: "0")
             $0.column(Columns.lockedAmount.name, .double).defaults(to: 0)
-            
+
             $0.column(Columns.staked.name, .text).defaults(to: "0")
             $0.column(Columns.stakedAmount.name, .double).defaults(to: 0)
-            
+
             $0.column(Columns.pending.name, .text).defaults(to: "0")
             $0.column(Columns.pendingAmount.name, .double).defaults(to: 0)
 
@@ -119,10 +118,10 @@ extension BalanceRecord: CreateTable {
 
             $0.column(Columns.rewards.name, .text).defaults(to: "0")
             $0.column(Columns.rewardsAmount.name, .double).defaults(to: 0)
-            
+
             $0.column(Columns.reserved.name, .text).defaults(to: "0")
             $0.column(Columns.reservedAmount.name, .double).defaults(to: 0)
-            
+
             $0.column(Columns.withdrawable.name, .text).defaults(to: "0")
             $0.column(Columns.withdrawableAmount.name, .double).defaults(to: 0)
 
@@ -130,11 +129,11 @@ extension BalanceRecord: CreateTable {
             $0.column(Columns.earnAmount.name, .double).defaults(to: 0)
 
             $0.column(sql: totalAmountSQlCreation)
-            
+
             $0.column(Columns.isEnabled.name, .boolean).defaults(to: true).indexed()
             $0.column(Columns.isPinned.name, .boolean).defaults(to: false).indexed()
             $0.column(Columns.isActive.name, .boolean).defaults(to: true).indexed()
-            
+
             $0.column(Columns.metadata.name, .jsonText)
             $0.column(Columns.lastUsedAt.name, .date)
             $0.column(Columns.updatedAt.name, .date)
@@ -144,7 +143,7 @@ extension BalanceRecord: CreateTable {
             ])
         }
     }
-    
+
     static let totalAmountSQlCreation = "totalAmount DOUBLE AS (availableAmount + frozenAmount + lockedAmount + stakedAmount + pendingAmount + rewardsAmount + earnAmount)"
 }
 
@@ -154,7 +153,7 @@ extension BalanceRecord: Identifiable {
 
 extension BalanceRecord {
     func mapToBalance() -> Balance {
-        return Balance(
+        Balance(
             available: BigInt(stringLiteral: available),
             frozen: BigInt(stringLiteral: frozen),
             locked: BigInt(stringLiteral: locked),
@@ -165,21 +164,21 @@ extension BalanceRecord {
             reserved: BigInt(stringLiteral: reserved),
             withdrawable: BigInt(stringLiteral: withdrawable),
             earn: BigInt(stringLiteral: earn),
-            metadata: metadata
+            metadata: metadata,
         )
     }
-    
+
     func mapToAssetBalance() -> AssetBalance {
-        return AssetBalance(
+        AssetBalance(
             assetId: assetId,
-            balance: mapToBalance()
+            balance: mapToBalance(),
         )
     }
-    
+
     func mapToWalletAssetBalanace() -> WalletAssetBalance {
-        return WalletAssetBalance(
+        WalletAssetBalance(
             walletId: walletId,
-            balance: mapToAssetBalance()
+            balance: mapToAssetBalance(),
         )
     }
 }

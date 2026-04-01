@@ -8,10 +8,10 @@ struct ToolbarItemViewModifier<V: View>: ViewModifier {
 
     init(
         placement: ToolbarItemPlacement,
-        @ViewBuilder content: @escaping () -> V
+        @ViewBuilder content: @escaping () -> V,
     ) {
         self.placement = placement
-        self.toolbarContent = content
+        toolbarContent = content
     }
 
     func body(content: Content) -> some View {
@@ -23,9 +23,9 @@ struct ToolbarItemViewModifier<V: View>: ViewModifier {
 }
 
 extension View {
-    func toolbarItemView<Content: View>(
+    func toolbarItemView(
         placement: ToolbarItemPlacement,
-        @ViewBuilder content: @escaping () -> Content
+        @ViewBuilder content: @escaping () -> some View,
     ) -> some View {
         modifier(ToolbarItemViewModifier(placement: placement, content: content))
     }

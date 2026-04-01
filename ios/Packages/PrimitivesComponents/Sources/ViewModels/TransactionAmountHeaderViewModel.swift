@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
+import Foundation
 import Primitives
 import Style
+import SwiftUI
 
 struct TransactionAmountHeaderViewModel: HeaderViewModel {
-
     let display: AmountDisplay
 
     let isWatchWallet: Bool = false

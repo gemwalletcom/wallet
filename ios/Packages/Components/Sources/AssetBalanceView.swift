@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct AssetBalanceView<SecondaryView: View>: View {
     let image: AssetImage
@@ -13,7 +13,7 @@ public struct AssetBalanceView<SecondaryView: View>: View {
         image: AssetImage,
         title: String,
         balance: String?,
-        @ViewBuilder secondary: @escaping () -> SecondaryView
+        @ViewBuilder secondary: @escaping () -> SecondaryView,
     ) {
         self.image = image
         self.title = title
@@ -29,7 +29,7 @@ public struct AssetBalanceView<SecondaryView: View>: View {
                 VStack(alignment: .leading, spacing: .tiny) {
                     Text(title)
                         .textStyle(.headline.weight(.semibold))
-                    if let balance {                    
+                    if let balance {
                         Text(balance)
                             .textStyle(TextStyle(font: .callout, color: Colors.gray, fontWeight: .medium))
                     }
@@ -37,7 +37,7 @@ public struct AssetBalanceView<SecondaryView: View>: View {
                 .lineLimit(1)
                 .truncationMode(.tail)
             },
-            secondary: secondary
+            secondary: secondary,
         )
     }
 }

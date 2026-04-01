@@ -16,7 +16,7 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         isAuthenticationEnabled: Bool = false,
         lockPeriod: LockPeriod? = .default,
         availableAuthentication: KeystoreAuthentication = .none,
-        privacyLockStatus: PrivacyLockStatus? = .none
+        privacyLockStatus: PrivacyLockStatus? = .none,
     ) {
         self.memoryPassword = memoryPassword
         self.isAuthenticationEnabled = isAuthenticationEnabled
@@ -25,18 +25,18 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         self.lockPeriod = lockPeriod
     }
 
-    public func setPassword(_ password: String, authentication: KeystoreAuthentication) throws {
+    public func setPassword(_ password: String, authentication _: KeystoreAuthentication) throws {
         memoryPassword = password
     }
-    
-    public  func getPassword() throws -> String {
+
+    public func getPassword() throws -> String {
         memoryPassword
     }
-    
+
     public func getAuthentication() throws -> KeystoreAuthentication {
         availableAuthentication
     }
-    
+
     public func getAvailableAuthentication() -> KeystoreAuthentication {
         availableAuthentication
     }
@@ -49,7 +49,7 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         lockPeriod = period
     }
 
-    public func enableAuthentication(_ enable: Bool, context: LAContext) throws {
+    public func enableAuthentication(_ enable: Bool, context _: LAContext) throws {
         isAuthenticationEnabled = enable
     }
 

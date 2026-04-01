@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Style
-import Primitives
 import BalanceService
 import BannerService
-import DiscoverAssetsService
-import Preferences
-import Store
-import Localization
-import PrimitivesComponents
-import InfoSheet
 import Components
-import WalletService
+import DiscoverAssetsService
 import Formatters
+import Foundation
+import InfoSheet
+import Localization
+import Preferences
+import Primitives
+import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
+import WalletService
 
 @Observable
 @MainActor
@@ -41,7 +41,7 @@ public final class WalletSceneViewModel: Sendable {
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingSheet: WalletSheetType?
     public var isPresentingSearch = false
-    public var isPresentingUrl: URL? = nil
+    public var isPresentingUrl: URL?
     public var isPresentingToastMessage: ToastMessage?
 
     public var isLoadingAssets: Bool = false
@@ -53,7 +53,7 @@ public final class WalletSceneViewModel: Sendable {
         walletService: WalletService,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
-        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
         self.assetDiscoveryService = assetDiscoveryService
@@ -62,9 +62,9 @@ public final class WalletSceneViewModel: Sendable {
         self.walletService = walletService
         self.observablePreferences = observablePreferences
 
-        self.totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, balanceType: .wallet), initialValue: .zero)
-        self.assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: [.enabledBalance]), initialValue: [])
-        self.bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.walletId, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
+        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, balanceType: .wallet), initialValue: .zero)
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: [.enabledBalance]), initialValue: [])
+        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.walletId, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
@@ -96,7 +96,7 @@ public final class WalletSceneViewModel: Sendable {
         let walletModel = WalletViewModel(wallet: wallet)
         return WalletBarViewViewModel(
             name: walletModel.name,
-            image: walletModel.avatarImage
+            image: walletModel.avatarImage,
         )
     }
 
@@ -105,51 +105,50 @@ public final class WalletSceneViewModel: Sendable {
             walletType: wallet.type,
             totalValue: totalFiatValue,
             currencyCode: currencyCode,
-            bannerEventsViewModel: HeaderBannerEventViewModel(events: banners.map(\.event))
+            bannerEventsViewModel: HeaderBannerEventViewModel(events: banners.map(\.event)),
         )
     }
 
     var walletBannersModel: WalletSceneBannersViewModel {
         WalletSceneBannersViewModel(
             banners: banners,
-            totalFiatValue: totalFiatValue.value
+            totalFiatValue: totalFiatValue.value,
         )
     }
-
 }
 
 // MARK: - Business Logic
 
-extension WalletSceneViewModel {
-    func fetch() {
+public extension WalletSceneViewModel {
+    internal func fetch() {
         Task {
             shouldStartLoadingAssets()
-            await fetch(wallet: wallet, assetIds: assets.map { $0.asset.id })
+            await fetch(wallet: wallet, assetIds: assets.map(\.asset.id))
             isLoadingAssets = false
         }
     }
-    
-    public func onSelectWalletBar() {
+
+    func onSelectWalletBar() {
         isPresentingSheet = .wallets
     }
 
-    public func onSelectManage() {
+    func onSelectManage() {
         isPresentingSheet = .selectAsset(.manage)
     }
 
-    public func onToggleSearch() {
+    func onToggleSearch() {
         isPresentingSearch.toggle()
     }
 
-    public func onSelectAddCustomToken() {
+    func onSelectAddCustomToken() {
         isPresentingSheet = .addAsset
     }
 
-    func onSelectPortfolio() {
+    internal func onSelectPortfolio() {
         isPresentingSheet = .portfolio
     }
 
-    func onHeaderAction(type: HeaderButtonType) {
+    internal func onHeaderAction(type: HeaderButtonType) {
         switch type {
         case .buy: isPresentingSheet = .selectAsset(.buy)
         case .send: isPresentingSheet = .selectAsset(.send)
@@ -158,21 +157,21 @@ extension WalletSceneViewModel {
         }
     }
 
-    func onCloseBanner(banner: Banner) {
+    internal func onCloseBanner(banner: Banner) {
         bannerService.onClose(banner)
     }
 
-    func onSelectWatchWalletInfo() {
+    internal func onSelectWatchWalletInfo() {
         isPresentingSheet = .infoSheet(.watchWallet)
     }
 
-    func onBanner(action: BannerAction) {
+    internal func onBanner(action: BannerAction) {
         switch action.type {
         case .event, .closeBanner:
             Task {
                 try await handleBanner(action: action)
             }
-        case .button(let bannerButton):
+        case let .button(bannerButton):
             switch bannerButton {
             case .buy: isPresentingSheet = .selectAsset(.buy)
             case .receive: isPresentingSheet = .selectAsset(.receive(.asset))
@@ -181,7 +180,7 @@ extension WalletSceneViewModel {
         isPresentingUrl = action.url
     }
 
-    func onHideAsset(_ assetId: AssetId) {
+    internal func onHideAsset(_ assetId: AssetId) {
         do {
             try balanceService.hideAsset(walletId: wallet.walletId, assetId: assetId)
         } catch {
@@ -189,7 +188,7 @@ extension WalletSceneViewModel {
         }
     }
 
-    func onPinAsset(_ asset: Asset, value: Bool) {
+    internal func onPinAsset(_ asset: Asset, value: Bool) {
         do {
             try balanceService.setPinned(value, walletId: wallet.walletId, assetId: asset.id)
             isPresentingToastMessage = .pin(asset.name, pinned: value)
@@ -198,11 +197,11 @@ extension WalletSceneViewModel {
         }
     }
 
-    func onCopyAddress(_ message: String) {
+    internal func onCopyAddress(_ message: String) {
         isPresentingToastMessage = .copy(message)
     }
 
-    public func onChangeWallet(_ oldWallet: Wallet?, _ newWallet: Wallet?) {
+    func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
         guard let newWallet else { return }
 
         if wallet.walletId != newWallet.walletId {
@@ -212,33 +211,33 @@ extension WalletSceneViewModel {
         }
     }
 
-    public func onWalletTabReselected(_: Bool, _: Bool) {
-         isPresentingSearch = false
+    func onWalletTabReselected(_: Bool, _: Bool) {
+        isPresentingSearch = false
     }
-    
-    func shouldStartLoadingAssets() {
+
+    internal func shouldStartLoadingAssets() {
         let preferences = WalletPreferences(walletId: wallet.walletId)
         isLoadingAssets = !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
     }
-    
-    public func onTransferComplete() {
+
+    func onTransferComplete() {
         isPresentingSheet = nil
     }
 
-    public func onSetPriceAlertComplete(message: String) {
+    func onSetPriceAlertComplete(message: String) {
         isPresentingSheet = nil
         isPresentingToastMessage = .priceAlert(message: message)
     }
 
-    public func presentTransferData(_ data: TransferData) {
+    func presentTransferData(_ data: TransferData) {
         isPresentingSheet = .transferData(data)
     }
 
-    public func presentPerpetualRecipientData(_ data: PerpetualRecipientData) {
+    func presentPerpetualRecipientData(_ data: PerpetualRecipientData) {
         isPresentingSheet = .perpetualRecipientData(data)
     }
 
-    public func presentPriceAlert(_ asset: Asset) {
+    func presentPriceAlert(_ asset: Asset) {
         isPresentingSheet = .setPriceAlert(asset)
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public enum FeeOption: Sendable {
     case tokenAccountCreation
@@ -19,7 +19,7 @@ public struct Fee: Sendable {
         fee: BigInt,
         gasPriceType: GasPriceType,
         gasLimit: BigInt,
-        options: FeeOptionMap = [:]
+        options: FeeOptionMap = [:],
     ) {
         self.fee = fee
         self.gasPriceType = gasPriceType
@@ -31,18 +31,18 @@ public struct Fee: Sendable {
     public var priorityFee: BigInt { gasPriceType.priorityFee }
     public var unitPrice: BigInt { gasPriceType.unitPrice }
     public var totalFee: BigInt { fee + optionsFee }
-    public var optionsFee: BigInt { options.map { $0.value }.reduce(0, +) }
+    public var optionsFee: BigInt { options.map(\.value).reduce(0, +) }
 
     public func withOptions(_ options: FeeOptionMap) -> Fee {
-        return Fee(
+        Fee(
             fee: fee,
             gasPriceType: gasPriceType,
             gasLimit: gasLimit,
-            options: options
+            options: options,
         )
     }
 }
 
 // MARK: - Equatable
 
-extension Fee: Equatable { }
+extension Fee: Equatable {}

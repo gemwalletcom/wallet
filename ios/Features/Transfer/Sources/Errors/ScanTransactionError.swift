@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import Localization
+import Primitives
 
 enum ScanTransactionError: Error, Equatable, Sendable {
     case malicious
@@ -13,7 +13,7 @@ extension ScanTransactionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .malicious: Localized.Errors.ScanTransaction.Malicious.description
-        case .memoRequired(let symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
+        case let .memoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
         }
     }
 }

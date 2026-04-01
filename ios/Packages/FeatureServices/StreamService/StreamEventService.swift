@@ -1,15 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Store
-import PriceService
-import PriceAlertService
 import BalanceService
-import TransactionsService
+import FiatService
+import Foundation
 import NFTService
 import PerpetualService
 import Preferences
+import PriceAlertService
+import PriceService
+import Primitives
+import Store
+import TransactionsService
 
 public struct StreamEventService: Sendable {
     private let walletStore: WalletStore
@@ -20,6 +21,7 @@ public struct StreamEventService: Sendable {
     private let transactionsService: TransactionsService
     private let nftService: NFTService
     private let perpetualService: any HyperliquidPerpetualServiceable
+    private let fiatService: FiatService
     private let preferences: Preferences
 
     public init(
@@ -31,7 +33,8 @@ public struct StreamEventService: Sendable {
         transactionsService: TransactionsService,
         nftService: NFTService,
         perpetualService: any HyperliquidPerpetualServiceable,
-        preferences: Preferences
+        fiatService: FiatService,
+        preferences: Preferences,
     ) {
         self.walletStore = walletStore
         self.notificationStore = notificationStore
@@ -41,25 +44,28 @@ public struct StreamEventService: Sendable {
         self.transactionsService = transactionsService
         self.nftService = nftService
         self.perpetualService = perpetualService
+        self.fiatService = fiatService
         self.preferences = preferences
     }
 
     public func handle(_ event: StreamEvent) async {
         switch event {
-        case .prices(let payload):
+        case let .prices(payload):
             await perform { try handlePrices(payload) }
-        case .balances(let updates):
-            Task { await self.perform { try await self.handleBalanceUpdates(updates) } }
-        case .transactions(let update):
-            Task { await self.perform { try await self.transactionsService.updateAll(walletId: update.walletId) } }
-        case .nft(let update):
-            Task { await self.perform { try await self.handleNftUpdate(update) } }
-        case .perpetual(let update):
-            Task { await self.perform { try await self.handlePerpetualUpdate(update) } }
-        case .inAppNotification(let update):
+        case let .balances(updates):
+            Task { await perform { try await handleBalanceUpdates(updates) } }
+        case let .transactions(update):
+            Task { await perform { try await transactionsService.updateAll(walletId: update.walletId) } }
+        case let .nft(update):
+            Task { await perform { try await handleNftUpdate(update) } }
+        case let .perpetual(update):
+            Task { await perform { try await handlePerpetualUpdate(update) } }
+        case let .inAppNotification(update):
             await perform { try notificationStore.addNotifications([update.notification]) }
         case .priceAlerts:
-            Task { await self.perform { try await self.priceAlertService.update() } }
+            Task { await perform { try await priceAlertService.update() } }
+        case let .fiatTransaction(update):
+            Task { await perform { try await handleFiatTransactionUpdate(update) } }
         }
     }
 }
@@ -88,13 +94,17 @@ extension StreamEventService {
         }
     }
 
-    private func handleNftUpdate(_ update: StreamNftUpdate) async throws {
+    private func handleNftUpdate(_ update: StreamWalletUpdate) async throws {
         guard let wallet = try walletStore.getWallet(id: update.walletId) else { return }
         try await nftService.updateAssets(wallet: wallet)
     }
 
-    private func handlePerpetualUpdate(_ update: StreamPerpetualUpdate) async throws {
+    private func handlePerpetualUpdate(_ update: StreamWalletUpdate) async throws {
         guard let wallet = try walletStore.getWallet(id: update.walletId), let account = wallet.hyperliquidAccount else { return }
         try await perpetualService.fetchPositions(walletId: update.walletId, address: account.address)
+    }
+
+    private func handleFiatTransactionUpdate(_ update: StreamWalletUpdate) async throws {
+        try await fiatService.updateTransactions(walletId: update.walletId)
     }
 }

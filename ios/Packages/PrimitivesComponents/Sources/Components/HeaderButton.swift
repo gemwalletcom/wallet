@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import SwiftUI
 import Localization
 import Style
-import Components
+import SwiftUI
 
 public enum HeaderButtonViewType: Identifiable {
     case button
@@ -13,7 +13,7 @@ public enum HeaderButtonViewType: Identifiable {
     public var id: String {
         switch self {
         case .button: "button"
-        case let .menuButton(title, items): "\(title ?? "")_\(items.map { $0.id }.joined(separator: ","))"
+        case let .menuButton(title, items): "\(title ?? "")_\(items.map(\.id).joined(separator: ","))"
         }
     }
 }
@@ -26,15 +26,15 @@ public struct HeaderButton: Identifiable {
     public init(
         type: HeaderButtonType,
         viewType: HeaderButtonViewType = .button,
-        isEnabled: Bool
+        isEnabled: Bool,
     ) {
         self.type = type
         self.isEnabled = isEnabled
         self.viewType = viewType
     }
-    
+
     public var id: String { "\(type.rawValue)_\(viewType.id)" }
-    
+
     public var title: String {
         switch type {
         case .send: Localized.Wallet.send
@@ -48,7 +48,7 @@ public struct HeaderButton: Identifiable {
         case .withdraw: Localized.Wallet.withdraw
         }
     }
-    
+
     public var image: Image {
         switch type {
         case .send: Images.System.paperplane

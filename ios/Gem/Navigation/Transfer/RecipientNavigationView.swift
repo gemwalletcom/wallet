@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Primitives
-import Transfer
 import QRScanner
+import SwiftUI
+import Transfer
 
 struct RecipientNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -16,10 +16,10 @@ struct RecipientNavigationView: View {
 
     var body: some View {
         RecipientScene(
-            model: model
+            model: model,
         )
         .sheet(item: $model.isPresentingScanner) { value in
-            ScanQRCodeNavigationStack() {
+            ScanQRCodeNavigationStack {
                 model.onHandleScan($0, for: value)
             }
         }
@@ -28,8 +28,8 @@ struct RecipientNavigationView: View {
                 model: viewModelFactory.amountScene(
                     input: AmountInput(type: .transfer(recipient: data), asset: model.asset),
                     wallet: model.wallet,
-                    onTransferAction: model.onTransferAction
-                )
+                    onTransferAction: model.onTransferAction,
+                ),
             )
         }
     }

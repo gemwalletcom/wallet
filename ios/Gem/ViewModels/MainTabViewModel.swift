@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
-import Primitives
-import Store
 import GemstonePrimitives
 import Preferences
-import Components
+import Primitives
+import Store
 
 @Observable
 @MainActor
@@ -18,7 +18,7 @@ final class MainTabViewModel {
 
     init(wallet: Wallet) {
         self.wallet = wallet
-        self.transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.walletId, state: .pending), initialValue: 0)
+        transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.walletId, state: .pending), initialValue: 0)
     }
 
     var walletId: WalletId { wallet.walletId }
@@ -30,7 +30,7 @@ final class MainTabViewModel {
     }
 
     var isMarketEnabled: Bool {
-        false //TODO: Disabled. Preferences.standard.isDeveloperEnabled && wallet.type == .multicoin
+        false // TODO: Disabled. Preferences.standard.isDeveloperEnabled && wallet.type == .multicoin
     }
 
     var isCollectionsEnabled: Bool {

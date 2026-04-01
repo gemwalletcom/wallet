@@ -1,17 +1,16 @@
-import SwiftUI
-import Primitives
 import Components
-import Style
 import Localization
+import Primitives
 import PrimitivesComponents
 import Recents
+import Style
+import SwiftUI
 
 public struct SelectAssetScene: View {
-
     @State private var model: SelectAssetViewModel
 
     public init(
-        model: SelectAssetViewModel
+        model: SelectAssetViewModel,
     ) {
         _model = State(wrappedValue: model)
     }
@@ -20,16 +19,16 @@ public struct SelectAssetScene: View {
         SearchableWrapper(
             content: { list },
             isSearching: $model.isSearching,
-            dismissSearch: $model.isDismissSearch
+            dismissSearch: $model.isDismissSearch,
         )
         .searchable(
             text: $model.searchModel.searchableQuery,
-            placement: .navigationBarDrawer(displayMode: .always)
+            placement: .navigationBarDrawer(displayMode: .always),
         )
         .if(model.isNetworkSearchEnabled) {
             $0.debounce(
                 value: $model.searchModel.searchableQuery.wrappedValue,
-                action: model.search(query:)
+                action: model.search(query:),
             )
         }
         .overlay {
@@ -40,9 +39,9 @@ public struct SelectAssetScene: View {
                     model: EmptyContentTypeViewModel(
                         type: .search(
                             type: .assets,
-                            action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil
-                        )
-                    )
+                            action: model.showAddToken ? { model.onSelectAddCustomToken() } : nil,
+                        ),
+                    ),
                 )
             }
         }
@@ -53,7 +52,7 @@ public struct SelectAssetScene: View {
         .ifLet(model.copyTypeViewModel) {
             $0.copyToast(
                 model: $1,
-                isPresenting: $model.isPresentingCopyToast
+                isPresenting: $model.isPresentingCopyToast,
             )
         }
         .navigationBarTitle(model.title)
@@ -65,7 +64,7 @@ public struct SelectAssetScene: View {
                 Section {} header: {
                     TagsView(
                         tags: model.searchModel.tagsViewModel.items,
-                        onSelect: { model.setSelected(tag: $0.tag) }
+                        onSelect: { model.setSelected(tag: $0.tag) },
                     )
                 }
                 .textCase(nil)
@@ -75,7 +74,7 @@ public struct SelectAssetScene: View {
             if model.showRecents {
                 RecentActivitySectionView(
                     models: model.recentModels,
-                    onSelectRecents: model.onSelectRecents
+                    onSelectRecents: model.onSelectRecents,
                 ) { assetModel in
                     switch model.selectType {
                     case .send, .receive, .buy:
@@ -139,8 +138,8 @@ public struct SelectAssetScene: View {
                         assetData: assetData,
                         currencyCode: model.currencyCode,
                         type: model.selectType.listType,
-                        action: model.onAssetAction
-                    )
+                        action: model.onAssetAction,
+                    ),
                 ) {
                     model.onSelectAsset(assetData)
                 }
@@ -149,7 +148,7 @@ public struct SelectAssetScene: View {
                     assetData: assetData,
                     currencyCode: model.currencyCode,
                     type: model.selectType.listType,
-                    action: model.onAssetAction
+                    action: model.onAssetAction,
                 )
             case .swap, .priceAlert:
                 NavigationCustomLink(
@@ -157,8 +156,8 @@ public struct SelectAssetScene: View {
                         assetData: assetData,
                         currencyCode: model.currencyCode,
                         type: model.selectType.listType,
-                        action: model.onAssetAction
-                    )
+                        action: model.onAssetAction,
+                    ),
                 ) {
                     model.selectAsset(asset: assetData.asset)
                 }
@@ -166,4 +165,3 @@ public struct SelectAssetScene: View {
         }
     }
 }
-

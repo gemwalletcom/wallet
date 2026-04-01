@@ -1,18 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AvatarService
+import Components
+import ExplorerService
 import Foundation
-import SwiftUI
+import GemstonePrimitives
+import ImageGalleryService
+import InfoSheet
+import Localization
+import NFTService
 import Primitives
 import PrimitivesComponents
-import Localization
-import Components
 import Style
-import ImageGalleryService
-import AvatarService
-import Formatters
-import ExplorerService
-import NFTService
-import InfoSheet
+import SwiftUI
 
 @Observable
 @MainActor
@@ -37,7 +37,7 @@ public final class CollectibleViewModel {
         avatarService: AvatarService,
         nftService: NFTService,
         explorerService: ExplorerService = ExplorerService.standard,
-        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
         self.assetData = assetData
@@ -55,12 +55,12 @@ public final class CollectibleViewModel {
             .custom(
                 title: Localized.Nft.saveToPhotos,
                 systemImage: SystemImage.gallery,
-                action: onSelectSaveToGallery
+                action: onSelectSaveToGallery,
             ),
             .custom(
                 title: Localized.Nft.setAsAvatar,
                 systemImage: SystemImage.emoji,
-                action: onSelectSetAsAvatar
+                action: onSelectSetAsAvatar,
             ),
         ]
     }
@@ -99,7 +99,7 @@ public final class CollectibleViewModel {
         contractField.map {
             CollectibleInfoRow(
                 field: $0,
-                action: contractExplorerContext.map { .explorer($0) } ?? .copy(contractValue)
+                action: contractExplorerContext.map { .explorer($0) } ?? .copy(contractValue),
             )
         }
     }
@@ -118,7 +118,7 @@ public final class CollectibleViewModel {
         explorerService.nftUrl(
             chain: assetData.asset.chain,
             contractAddress: contractValue,
-            tokenId: tokenIdValue
+            tokenId: tokenIdValue,
         )
     }
 
@@ -139,21 +139,21 @@ public final class CollectibleViewModel {
         AssetImage(
             imageURL: .none,
             placeholder: ChainImage(chain: assetData.asset.chain).image,
-            chainPlaceholder: .none
+            chainPlaceholder: .none,
         )
     }
-    
+
     var isSendEnabled: Bool {
         wallet.canSign &&
-        assetData.asset.chain.isNFTSupported &&
-        Self.enabledChainTypes.contains(assetData.asset.chain.type)
+            assetData.asset.chain.isNFTSupported &&
+            Self.enabledChainTypes.contains(assetData.asset.chain.type)
     }
-    
+
     var headerButtons: [HeaderButton] {
         [
             HeaderButton(
                 type: .send,
-                isEnabled: isSendEnabled
+                isEnabled: isSendEnabled,
             ),
             HeaderButton(
                 type: .more,
@@ -163,9 +163,9 @@ public final class CollectibleViewModel {
                         .button(title: Localized.Nft.saveToPhotos, systemImage: SystemImage.gallery, action: onSelectSaveToGallery),
                         .button(title: Localized.Nft.setAsAvatar, systemImage: SystemImage.emoji, action: onSelectSetAsAvatar),
                         .button(title: Localized.Nft.Report.reportButtonTitle, role: .destructive, action: onSelectReport),
-                    ]
+                    ],
                 ),
-                isEnabled: true
+                isEnabled: true,
             ),
         ]
     }
@@ -189,11 +189,11 @@ public final class CollectibleViewModel {
     var socialLinksViewModel: SocialLinksViewModel {
         SocialLinksViewModel(assetLinks: assetData.collection.links)
     }
-    
+
     var tokenIdRow: CollectibleInfoRow {
         CollectibleInfoRow(
             field: tokenIdField,
-            action: tokenIdExplorerContext.map { .explorer($0) } ?? .copy(tokenIdValue)
+            action: tokenIdExplorerContext.map { .explorer($0) } ?? .copy(tokenIdValue),
         )
     }
 }
@@ -217,7 +217,7 @@ extension CollectibleViewModel {
         case .send:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
                 type: .send(.nft(assetData.asset)),
-                assetAddress: AssetAddress(asset: account.chain.asset, address: account.address)
+                assetAddress: AssetAddress(asset: account.chain.asset, address: account.address),
             )
         case .buy, .sell, .receive, .swap, .stake, .more, .deposit, .withdraw:
             fatalError()
@@ -245,10 +245,10 @@ extension CollectibleViewModel {
                                     Task { @MainActor in
                                         self.openSettings()
                                     }
-                                }
+                                },
                             ),
-                            .cancel(title: Localized.Common.cancel)
-                        ]
+                            .cancel(title: Localized.Common.cancel),
+                        ],
                     )
                 }
             }
@@ -265,7 +265,7 @@ extension CollectibleViewModel {
             }
         }
     }
-    
+
     func onSelectReport() {
         isPresentingReportSheet = true
     }
@@ -273,7 +273,7 @@ extension CollectibleViewModel {
     func onReportComplete() {
         isPresentingReportSheet = false
         isPresentingToast = .success(Localized.Transaction.Status.confirmed)
-	}
+    }
 
     func onSelectStatus() {
         isPresentingInfoSheet = .assetStatus(scoreViewModel.scoreType)

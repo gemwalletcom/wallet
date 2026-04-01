@@ -6,9 +6,9 @@ public extension SimulationWarningType {
 
     private var approvalRawValue: Optional<String?> {
         switch self {
-        case .tokenApproval(let approval): .some(approval.value)
-        case .permitApproval(let approval): .some(approval.value)
-        case .permitBatchApproval(let value): .some(value)
+        case let .tokenApproval(approval): .some(approval.value)
+        case let .permitApproval(approval): .some(approval.value)
+        case let .permitBatchApproval(value): .some(value)
         default: .none
         }
     }

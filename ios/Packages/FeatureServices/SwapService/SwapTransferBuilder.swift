@@ -12,26 +12,26 @@ public struct SwapTransferDataFactory: Sendable {
         fromAsset: Asset,
         toAsset: Asset,
         quote: Gemstone.SwapperQuote,
-        quoteData: Gemstone.GemSwapQuoteData
+        quoteData: Gemstone.GemSwapQuoteData,
     ) throws -> TransferData {
         let recipient = try Recipient(
             name: .none,
             address: wallet.account(for: toAsset.chain).address,
-            memo: .none
+            memo: .none,
         )
         let result = try SwapData(
             quote: quote.map(),
-            data: quoteData.map()
+            data: quoteData.map(),
         )
 
         return TransferData(
             type: .swap(
                 fromAsset,
                 toAsset,
-                result
+                result,
             ),
             recipientData: RecipientData(recipient: recipient, amount: .none),
-            value: BigInt(stringLiteral: quote.request.value)
+            value: BigInt(stringLiteral: quote.request.value),
         )
     }
 }

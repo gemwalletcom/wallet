@@ -4,7 +4,6 @@ import Foundation
 import WebSocketClient
 
 public actor WebSocketConnectionMock: WebSocketConnectable {
-
     private var continuation: AsyncStream<WebSocketEvent>.Continuation?
     private var sentData: [Data] = []
 

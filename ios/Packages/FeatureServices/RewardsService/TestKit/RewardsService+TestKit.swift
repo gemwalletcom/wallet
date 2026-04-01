@@ -16,7 +16,7 @@ public struct RewardsServiceMock: RewardsServiceable, Sendable {
         createReferralResult: Result<Rewards, Error> = .success(.mock()),
         useCodeError: Error? = nil,
         redemptionOptionResult: Result<RewardRedemptionOption, Error> = .success(.mock()),
-        redeemResult: Result<RedemptionResult, Error> = .success(.mock())
+        redeemResult: Result<RedemptionResult, Error> = .success(.mock()),
     ) {
         self.rewardsResult = rewardsResult
         self.createReferralResult = createReferralResult
@@ -25,15 +25,15 @@ public struct RewardsServiceMock: RewardsServiceable, Sendable {
         self.redeemResult = redeemResult
     }
 
-    public func getRewards(wallet: Wallet) async throws -> Rewards {
+    public func getRewards(wallet _: Wallet) async throws -> Rewards {
         try rewardsResult.get()
     }
 
-    public func createReferral(wallet: Wallet, code: String) async throws -> Rewards {
+    public func createReferral(wallet _: Wallet, code _: String) async throws -> Rewards {
         try createReferralResult.get()
     }
 
-    public func useReferralCode(wallet: Wallet, referralCode: String) async throws {
+    public func useReferralCode(wallet _: Wallet, referralCode _: String) async throws {
         if let error = useCodeError {
             throw error
         }
@@ -43,11 +43,11 @@ public struct RewardsServiceMock: RewardsServiceable, Sendable {
         URL(string: "\(Constants.App.website)/join?code=\(code)")!
     }
 
-    public func getRedemptionOption(code: String) async throws -> RewardRedemptionOption {
+    public func getRedemptionOption(code _: String) async throws -> RewardRedemptionOption {
         try redemptionOptionResult.get()
     }
 
-    public func redeem(wallet: Wallet, redemptionId: String) async throws -> RedemptionResult {
+    public func redeem(wallet _: Wallet, redemptionId _: String) async throws -> RedemptionResult {
         try redeemResult.get()
     }
 }

@@ -1,26 +1,25 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
+import Primitives
+import PrimitivesTestKit
 import StakeService
 import StakeServiceTestKit
 import StakeTestKit
-import PrimitivesTestKit
-import Primitives
+import Testing
 
-@testable import Store
 @testable import Stake
+@testable import Store
 
 @MainActor
 struct StakeSceneViewModelTests {
-
     @Test
-    func testAprValue() throws {
+    func aprValue() throws {
         #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: 13.5)).stakeAprModel.subtitle.text == "13.50%")
         #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: 0)).stakeAprModel.subtitle.text == .empty)
         #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: .none)).stakeAprModel.subtitle.text == .empty)
     }
-    
+
     @Test
     func testLockTimeField() throws {
         #expect(StakeSceneViewModel.mock(chain: .tron).lockTimeField.value.text == "14 days")
@@ -30,7 +29,7 @@ struct StakeSceneViewModelTests {
     func minimumStakeAmount() throws {
         #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField?.value.text == "1.00 TRX")
     }
-    
+
     @Test
     func showManage() throws {
         #expect(StakeSceneViewModel.mock(wallet: .mock(type: .multicoin)).showManage == true)

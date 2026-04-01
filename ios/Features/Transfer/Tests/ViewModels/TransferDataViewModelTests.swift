@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Testing
 import Localization
-@testable import Transfer
 @testable import Primitives
 import PrimitivesTestKit
+import Testing
+@testable import Transfer
 
 struct TransferDataViewModelTests {
-
     @Test
     func depositTitle() {
         #expect(TransferDataViewModel.mock(type: .deposit(.mock())).title == "Deposit")
@@ -33,26 +32,26 @@ struct TransferDataViewModelTests {
             feeAssetId: .mock(),
             assetBalance: Balance(available: 1000, frozen: 500, locked: 300),
             assetFeeBalance: Balance(available: 1000),
-            assetPrices: [:]
+            assetPrices: [:],
         )
 
         #expect(
             TransferDataViewModel.mock(type: .stake(.mock(), .unfreeze(.bandwidth)))
-                .availableValue(metadata: metadata) == BigInt(500)
+                .availableValue(metadata: metadata) == BigInt(500),
         )
         #expect(
             TransferDataViewModel.mock(type: .stake(.mock(), .unfreeze(.energy)))
-                .availableValue(metadata: metadata) == BigInt(300)
+                .availableValue(metadata: metadata) == BigInt(300),
         )
     }
 }
 
 private extension TransferDataViewModel {
     static func mock(
-        type: TransferDataType = .transfer(.mock())
+        type: TransferDataType = .transfer(.mock()),
     ) -> TransferDataViewModel {
         TransferDataViewModel(
-            data: TransferData.mock(type: type)
+            data: TransferData.mock(type: type),
         )
     }
 }

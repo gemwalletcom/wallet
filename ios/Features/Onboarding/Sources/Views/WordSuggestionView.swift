@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Style
-import WalletCore
 import Primitives
+import Style
+import SwiftUI
+import WalletCore
 
 struct WordSuggestionView: View {
-    
     let words: [String]
     var selectWord: StringAction = .none
 

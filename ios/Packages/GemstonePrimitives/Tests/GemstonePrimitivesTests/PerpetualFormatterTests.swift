@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import Foundation
 import GemstonePrimitives
 import Primitives
-import Foundation
+import Testing
 
 struct PerpetualPriceFormatterTests {
-
     let formatter = PerpetualFormatter(provider: PerpetualProvider.hypercore)
-    
+
     @Test
     func formatInputPrice() {
         let usLocale = Locale(identifier: "en_US")

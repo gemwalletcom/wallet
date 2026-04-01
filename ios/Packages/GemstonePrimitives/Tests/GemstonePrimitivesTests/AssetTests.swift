@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 
 @testable import GemstonePrimitives
 
@@ -10,7 +10,7 @@ final class AssetTests {
     let tokenAsset = Asset(id: AssetId(chain: .ethereum, tokenId: "0x123"), name: "", symbol: "", decimals: 18, type: .erc20)
 
     @Test
-    func testAssetFee() {
+    func assetFee() {
         #expect(nativeAsset.feeAsset == nativeAsset)
         #expect(tokenAsset.feeAsset != tokenAsset)
         #expect(tokenAsset.feeAsset == nativeAsset)

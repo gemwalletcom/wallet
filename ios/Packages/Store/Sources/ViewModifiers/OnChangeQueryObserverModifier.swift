@@ -8,12 +8,12 @@ struct OnChangeBindQueryModifier<Q: DatabaseQueryable>: ViewModifier where Q.Val
 
     let query: ObservableQuery<Q>
     let initial: Bool
-    let action: ((Q.Value, Q.Value) -> Void)
+    let action: (Q.Value, Q.Value) -> Void
 
     init(
         query: ObservableQuery<Q>,
         initial: Bool = false,
-        action: @escaping ((Q.Value, Q.Value) -> Void)
+        action: @escaping ((Q.Value, Q.Value) -> Void),
     ) {
         self.query = query
         self.initial = initial
@@ -27,7 +27,7 @@ struct OnChangeBindQueryModifier<Q: DatabaseQueryable>: ViewModifier where Q.Val
             }
             .onChange(
                 of: query.value,
-                initial: initial
+                initial: initial,
             ) { oldValue, newValue in
                 action(oldValue, newValue)
             }
@@ -38,14 +38,14 @@ public extension View {
     func onChangeBindQuery<Q: DatabaseQueryable>(
         _ query: ObservableQuery<Q>,
         initial: Bool = false,
-        action: @escaping ((Q.Value, Q.Value) -> Void)
+        action: @escaping ((Q.Value, Q.Value) -> Void),
     ) -> some View where Q.Value: Equatable {
         modifier(
             OnChangeBindQueryModifier(
                 query: query,
                 initial: initial,
-                action: action
-            )
+                action: action,
+            ),
         )
     }
 }

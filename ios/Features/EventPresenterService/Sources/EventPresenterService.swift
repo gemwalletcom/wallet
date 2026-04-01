@@ -3,7 +3,6 @@
 import Foundation
 
 public final class EventPresenterService: Sendable {
-
     @MainActor
     public var toastPresenter = ToastEventPresenter()
 

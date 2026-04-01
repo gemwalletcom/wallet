@@ -12,6 +12,6 @@ public enum HeaderButtonType: String, Identifiable, CaseIterable, Sendable {
     case more
     case deposit
     case withdraw
-    
+
     public var id: String { rawValue }
 }

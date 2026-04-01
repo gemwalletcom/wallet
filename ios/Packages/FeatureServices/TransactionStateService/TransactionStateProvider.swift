@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Blockchain
+import ChainService
 import Foundation
 import Primitives
 import Store
-import ChainService
-import Blockchain
 
 struct TransactionStateProvider: Sendable {
     private let transactionStore: TransactionStore
@@ -12,7 +12,7 @@ struct TransactionStateProvider: Sendable {
 
     init(
         transactionStore: TransactionStore,
-        chainServiceFactory: any ChainServiceFactorable
+        chainServiceFactory: any ChainServiceFactorable,
     ) {
         self.transactionStore = transactionStore
         self.chainServiceFactory = chainServiceFactory
@@ -25,9 +25,9 @@ struct TransactionStateProvider: Sendable {
                 id: transaction.id.hash,
                 senderAddress: transaction.from,
                 recipientAddress: transaction.to,
-                block: try Int.from(string: transaction.blockNumber ?? "0"),
-                createdAt: transaction.createdAt
-            )
+                block: Int.from(string: transaction.blockNumber ?? "0"),
+                createdAt: transaction.createdAt,
+            ),
         )
     }
 
@@ -36,38 +36,38 @@ struct TransactionStateProvider: Sendable {
 
         try updateState(
             state: stateChanges.state,
-            for: transaction
+            for: transaction,
         )
 
         for change in stateChanges.changes {
             let transactionId = transaction.id.identifier
             switch change {
-            case .networkFee(let networkFee):
-                try transactionStore.updateNetworkFee(
+            case let .networkFee(networkFee):
+                _ = try transactionStore.updateNetworkFee(
                     transactionId: transaction.id.identifier,
-                    networkFee: networkFee.description
+                    networkFee: networkFee.description,
                 )
-            case .hashChange(_, let newHash):
+            case let .hashChange(_, newHash):
                 let newTransactionId = Primitives.Transaction.id(chain: transaction.assetId.chain, hash: newHash)
                 try transactionStore.updateTransactionId(
                     oldTransactionId: transactionId,
                     transactionId: newTransactionId,
-                    hash: newHash
+                    hash: newHash,
                 )
-            case .blockNumber(let block):
-                try transactionStore.updateBlockNumber(transactionId: transactionId, block: block)
-            case .createdAt(let date):
-                try transactionStore.updateCreatedAt(transactionId: transactionId, date: date)
-            case .metadata(let metadata):
-                try transactionStore.updateMetadata(transactionId: transactionId, metadata: metadata)
+            case let .blockNumber(block):
+                _ = try transactionStore.updateBlockNumber(transactionId: transactionId, block: block)
+            case let .createdAt(date):
+                _ = try transactionStore.updateCreatedAt(transactionId: transactionId, date: date)
+            case let .metadata(metadata):
+                _ = try transactionStore.updateMetadata(transactionId: transactionId, metadata: metadata)
             }
         }
     }
 
     func updateState(state: TransactionState, for transaction: Transaction) throws {
-        try transactionStore.updateState(
+        _ = try transactionStore.updateState(
             id: transaction.id.identifier,
-            state: state
+            state: state,
         )
     }
 }

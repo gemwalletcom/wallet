@@ -15,7 +15,7 @@ public enum AssetListType: Sendable, Identifiable {
         case .wallet: "wallet"
         case .manage: "manage"
         case .view: "view"
-        case .copy(let type): "copy_\(type.id)"
+        case let .copy(type): "copy_\(type.id)"
         case .price: "price"
         }
     }

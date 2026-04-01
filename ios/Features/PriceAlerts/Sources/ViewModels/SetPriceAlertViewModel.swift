@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import Primitives
-import Preferences
 import Components
-import PriceAlertService
-import Style
-import Localization
 import Formatters
+import Foundation
+import Localization
+import Preferences
+import PriceAlertService
+import Primitives
 import PrimitivesComponents
+import Store
+import Style
 
 @MainActor
 @Observable
@@ -33,15 +33,15 @@ public final class SetPriceAlertViewModel {
         asset: Asset,
         priceAlertService: PriceAlertService,
         price: Double? = nil,
-        onComplete: StringAction
+        onComplete: StringAction,
     ) {
         self.asset = asset
         self.priceAlertService = priceAlertService
         self.onComplete = onComplete
-        self.state = SetPriceAlertViewModelState(price: price)
-        self.assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
+        state = SetPriceAlertViewModelState(price: price)
+        assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
-    
+
     func percentageSuggestions(for price: Price?) -> [PercentageSuggestion] {
         guard let currentPrice = price?.price else { return [] }
         return percentageSuggestionsFormatter.suggestions(for: currentPrice).map {
@@ -54,7 +54,7 @@ public final class SetPriceAlertViewModel {
         return roundingFormatter.roundedValues(for: currentPrice, byPercent: priceSuggestionPercent).map { value in
             PriceSuggestion(
                 title: currencyFormatter.string(value),
-                value: value
+                value: value,
             )
         }
     }
@@ -62,7 +62,7 @@ public final class SetPriceAlertViewModel {
     func onSelectSuggestion(_ suggestion: some SuggestionViewable) {
         state.amount = suggestion.inputValue
     }
-    
+
     var alertDirectionTitle: String {
         switch (state.type, state.alertDirection) {
         case (.price, .up): Localized.PriceAlerts.SetAlert.priceOver
@@ -73,7 +73,7 @@ public final class SetPriceAlertViewModel {
         case (.percentage, .none): .empty
         }
     }
-    
+
     var isEnabledConfirmButton: Bool {
         guard !state.amount.isEmpty,
               currencyFormatter.double(from: state.amount) != .zero,
@@ -83,7 +83,7 @@ public final class SetPriceAlertViewModel {
         }
         return true
     }
-    
+
     var confirmButtonState: ButtonState {
         isEnabledConfirmButton ? .normal : .disabled
     }
@@ -94,7 +94,7 @@ public final class SetPriceAlertViewModel {
             alertDirection: state.alertDirection,
             assetData: assetData,
             formatter: currencyFormatter,
-            onTapActionButton: toggleAlertDirection
+            onTapActionButton: toggleAlertDirection,
         )
     }
 
@@ -104,49 +104,47 @@ public final class SetPriceAlertViewModel {
             assetDataModel: AssetDataViewModel(
                 assetData: assetData,
                 formatter: .abbreviated,
-                currencyCode: currencyFormatter.currencyCode
+                currencyCode: currencyFormatter.currencyCode,
             ),
-            type: .price
+            type: .price,
         )
     }
-    
+
     func onChangeAlertType(_: SetPriceAlertType, type: SetPriceAlertType) {
         state.type = type
     }
-    
+
     func setAlertDirection(for price: Price?) {
         switch state.type {
         case .price:
             state.alertDirection = priceAlertDirection(
                 amount: state.amount,
-                price: price?.price
+                price: price?.price,
             )
         case .percentage:
             break
         }
     }
-    
+
     // MARK: - Private
-    
+
     private var amountValue: Double? {
         currencyFormatter.double(from: state.amount)
     }
-    
+
     private var completeMessage: String {
         guard let amountValue else { return .empty }
-        let amount: String = {
-            switch state.type {
-            case .price: currencyFormatter.string(amountValue)
-            case .percentage: "\(amountValue)%"
-            }
-        }()
+        let amount: String = switch state.type {
+        case .price: currencyFormatter.string(amountValue)
+        case .percentage: "\(amountValue)%"
+        }
         let message = [alertDirectionTitle.lowercased(), amount].joined(separator: " ")
         return Localized.PriceAlerts.addedFor(message)
     }
-    
+
     private func priceAlertDirection(
         amount: String,
-        price: Double?
+        price: Double?,
     ) -> PriceAlertDirection? {
         guard let price,
               let priceValue = currencyFormatter.normalizedDouble(from: price),
@@ -154,7 +152,7 @@ public final class SetPriceAlertViewModel {
         else {
             return nil
         }
-        
+
         switch amountValue {
         case _ where amountValue > priceValue:
             return .up
@@ -164,24 +162,22 @@ public final class SetPriceAlertViewModel {
             return nil
         }
     }
-    
+
     private func priceAlert() -> PriceAlert {
-        let (price, pricePercentChange): (Double?, Double?) = {
-            switch state.type {
-            case .price: (amountValue, nil)
-            case .percentage: (nil, amountValue)
-            }
-        }()
+        let (price, pricePercentChange): (Double?, Double?) = switch state.type {
+        case .price: (amountValue, nil)
+        case .percentage: (nil, amountValue)
+        }
         return PriceAlert(
             assetId: asset.id,
             currency: preferences.currency,
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: state.alertDirection,
-            lastNotifiedAt: .none
+            lastNotifiedAt: .none,
         )
     }
-    
+
     private func toggleAlertDirection() {
         switch state.alertDirection {
         case .up: state.alertDirection = .down
@@ -203,17 +199,17 @@ extension SetPriceAlertViewModel {
             debugLog("Set price alert error: \(error.localizedDescription)")
         }
     }
-    
+
     private func updateNotificationsIfNeeded() async {
         guard !preferences.isPushNotificationsEnabled else { return }
-        
+
         do {
             preferences.isPushNotificationsEnabled = try await requestPermissions()
         } catch {
             debugLog("pushesUpdate error: \(error)")
         }
     }
-    
+
     private func requestPermissions() async throws -> Bool {
         try await priceAlertService.requestPermissions()
     }

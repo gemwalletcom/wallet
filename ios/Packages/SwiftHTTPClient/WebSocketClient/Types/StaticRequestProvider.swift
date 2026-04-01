@@ -10,7 +10,7 @@ public struct StaticRequestProvider: WebSocketRequestProvider {
     }
 
     public init(url: URL) {
-        self.request = URLRequest(url: url)
+        request = URLRequest(url: url)
     }
 
     public func makeRequest() -> URLRequest {

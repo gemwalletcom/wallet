@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import StoreTestKit
 import BalanceServiceTestKit
-import PrimitivesTestKit
 import Primitives
+import PrimitivesTestKit
+import StoreTestKit
+import Testing
 
 @testable import Store
 @testable import WalletService

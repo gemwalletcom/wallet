@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
+import Localization
 import Primitives
 import Style
-import Localization
-import Formatters
-import Components
 
 struct AddNodeResultViewModel: Sendable {
     static let valueFormatter = ValueFormatter.full_US

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -19,20 +20,25 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.create_wallet.components.WordChip
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.theme.SceneSizing
+import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.isSmallScreen
 import com.gemwallet.android.ui.theme.paddingDefault
 import kotlin.math.min
+
+private const val wordsPerGroup = 4
+private const val verifyGroupCount = 3
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -45,10 +51,10 @@ internal fun CheckPhrase(
 
     val random = remember {
         val shuffled = mutableListOf<Pair<Int, String>>()
-        for (i in 0..words.size / 4) {
+        for (i in 0..words.size / wordsPerGroup) {
             val part = words.mapIndexed { index, word -> Pair(index, word) }.subList(
-                fromIndex = i * 4,
-                toIndex = min(i * 4 + 4, words.size)
+                fromIndex = i * wordsPerGroup,
+                toIndex = min(i * wordsPerGroup + wordsPerGroup, words.size)
             ).shuffled()
             shuffled.addAll(part)
         }
@@ -100,9 +106,11 @@ internal fun CheckPhrase(
         }
     ) {
         Column(
-            modifier = Modifier.verticalScroll(rememberScrollState())
+            modifier = Modifier.verticalScroll(rememberScrollState()),
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
         ) {
             Text(
+                modifier = Modifier.padding(horizontal = paddingDefault),
                 text = stringResource(id = R.string.secret_phrase_confirm_quick_test_title),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,
@@ -110,19 +118,22 @@ internal fun CheckPhrase(
             Spacer16()
             PhraseLayout(
                 words = render,
+                modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
             )
             AnimatedVisibility(visible = !isDone || !isSmallScreen) {
                 FlowRow(
                     modifier = Modifier
-                        .padding(vertical = 16.dp)
+                        .padding(vertical = paddingDefault)
+                        .widthIn(max = SceneSizing.contentMaxWidth)
                         .fillMaxWidth(),
-                    maxItemsInEachRow = 4,
-                    horizontalArrangement = Arrangement.Center,
+                    maxItemsInEachRow = wordsPerGroup,
+                    horizontalArrangement = Arrangement.spacedBy(space8, Alignment.CenterHorizontally),
+                    verticalArrangement = Arrangement.spacedBy(space8),
                 ) {
                     if (isSmallScreen) {
-                        val slice = result.size / 4
-                        if (slice < 3) {
-                            (random.slice(slice * 4..<slice * 4 + 4)).forEach {word ->
+                        val slice = result.size / wordsPerGroup
+                        if (slice < verifyGroupCount) {
+                            (random.slice(slice * wordsPerGroup..<slice * wordsPerGroup + wordsPerGroup)).forEach {word ->
                                 WordChip(word.second, result.getOrNull(word.first) != word.second, onWordClick)
                             }
                         }

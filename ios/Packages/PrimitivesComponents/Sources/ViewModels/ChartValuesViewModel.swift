@@ -26,7 +26,7 @@ public struct ChartValuesViewModel: Sendable {
         lineColor: Color = Colors.blue,
         formatter: CurrencyFormatter,
         type: ChartValueType = .price,
-        headerValue: Double? = nil
+        headerValue: Double? = nil,
     ) {
         self.period = period
         self.price = price
@@ -58,7 +58,7 @@ public struct ChartValuesViewModel: Sendable {
         charts: [ChartDateValue],
         period: ChartPeriod,
         formatter: CurrencyFormatter,
-        showHeaderValue: Bool = false
+        showHeaderValue: Bool = false,
     ) -> ChartValuesViewModel? {
         guard let values = try? ChartValues.from(charts: charts), values.hasVariation else {
             return nil
@@ -66,7 +66,7 @@ public struct ChartValuesViewModel: Sendable {
         let price = Price(
             price: values.lastValue - values.firstValue,
             priceChangePercentage24h: PriceChangeCalculator.calculate(.percentage(from: values.firstValue, to: values.lastValue)),
-            updatedAt: .now
+            updatedAt: .now,
         )
         return ChartValuesViewModel(
             period: period,
@@ -74,7 +74,7 @@ public struct ChartValuesViewModel: Sendable {
             values: values,
             formatter: formatter,
             type: .priceChange,
-            headerValue: showHeaderValue ? values.lastValue : nil
+            headerValue: showHeaderValue ? values.lastValue : nil,
         )
     }
 

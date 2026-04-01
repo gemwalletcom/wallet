@@ -8,10 +8,9 @@ public struct TransactionData: Sendable {
 
     public init(
         fee: Fee,
-        metadata: TransactionLoadMetadata = .none
+        metadata: TransactionLoadMetadata = .none,
     ) {
         self.fee = fee
         self.metadata = metadata
     }
 }
-

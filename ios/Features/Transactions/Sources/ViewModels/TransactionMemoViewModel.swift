@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Primitives
 import PrimitivesComponents
-import Components
 
 struct TransactionMemoViewModel: Sendable {
     private let transaction: Transaction
@@ -17,10 +17,10 @@ struct TransactionMemoViewModel: Sendable {
 
 extension TransactionMemoViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard transaction.assetId.chain.isMemoSupported, transaction.memo?.isEmpty == false else { return .empty } 
+        guard transaction.assetId.chain.isMemoSupported, transaction.memo?.isEmpty == false else { return .empty }
 
         return .listItem(
-            MemoViewModel(memo: transaction.memo).listItemModel
+            MemoViewModel(memo: transaction.memo).listItemModel,
         )
     }
 }

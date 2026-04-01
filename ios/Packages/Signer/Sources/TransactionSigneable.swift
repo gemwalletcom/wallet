@@ -8,6 +8,6 @@ public protocol TransactionSigneable: Sendable {
         transfer: TransferData,
         transactionData: TransactionData,
         amount: TransferAmount,
-        wallet: Wallet
+        wallet: Wallet,
     ) async throws -> [String]
 }

@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Store
-import Primitives
 import Components
-import Localization
 import InfoSheet
+import Localization
+import Primitives
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 public struct StakeScene: View {
     private let model: StakeSceneViewModel
@@ -55,7 +55,7 @@ extension StakeScene {
                 }
                 .enabled(model.isStakeEnabled)
             }
-            
+
             if model.showFreeze {
                 NavigationLink(value: model.freezeDestination) {
                     ListItemView(title: model.freezeTitle)
@@ -72,7 +72,7 @@ extension StakeScene {
                 NavigationLink(value: model.claimRewardsDestination) {
                     ListItemView(
                         title: model.claimRewardsTitle,
-                        subtitle: model.claimRewardsText
+                        subtitle: model.claimRewardsText,
                     )
                 }
             }
@@ -88,14 +88,14 @@ extension StakeScene {
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
-            case .data(let delegations):
+            case let .data(delegations):
                 ForEach(delegations) { delegation in
                     NavigationLink(value: model.navigationDestination(for: delegation)) {
                         DelegationView(delegation: delegation)
                     }
                 }
                 .listRowInsets(.assetListRowInsets)
-            case .error(let error):
+            case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccured, error: error)
             }
         }
@@ -106,11 +106,11 @@ extension StakeScene {
             ListItemView(
                 title: model.stakeAprModel.title,
                 subtitle: model.stakeAprModel.subtitle,
-                infoAction: model.onAprInfo
+                infoAction: model.onAprInfo,
             )
             ListItemView(
                 field: model.lockTimeField,
-                infoAction: model.onLockTimeInfo
+                infoAction: model.onLockTimeInfo,
             )
             if let minAmountField = model.minAmountField {
                 ListItemView(field: minAmountField)

@@ -17,6 +17,7 @@ import com.wallet.core.primitives.AssetId
 
 internal fun LazyListScope.stakeActions(
     actions: List<StakeAction>,
+    isStakeEnabled: Boolean,
     assetId: AssetId,
     amountAction: AmountTransactionAction,
     onConfirm: () -> Unit
@@ -46,11 +47,21 @@ internal fun LazyListScope.stakeActions(
             }
             is StakeAction.Rewards -> onConfirm
         }
+        val enabled = !item.requiresValidators() || isStakeEnabled
         PropertyItem(
-            modifier = Modifier.clickable(onClick = onClick),
-            title = { PropertyTitleText(title) },
-            data = { PropertyDataText(item.data ?: "", badge = { DataBadgeChevron() }) },
+            modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
+            title = { PropertyTitleText(text = title) },
+            data = {
+                PropertyDataText(
+                    text = item.data ?: "",
+                    badge = { DataBadgeChevron() },
+                )
+            },
             listPosition = position
         )
     }
+}
+
+internal fun StakeAction.requiresValidators(): Boolean {
+    return this == StakeAction.Stake
 }

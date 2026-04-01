@@ -1,45 +1,44 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
-extension Transaction {
-
-    public static func id(chain: Chain, hash: String) -> String {
-        return String(format: "%@_%@", chain.rawValue, hash)
+public extension Transaction {
+    static func id(chain: Chain, hash: String) -> String {
+        String(format: "%@_%@", chain.rawValue, hash)
     }
-    
-    public var chain: Chain {
+
+    var chain: Chain {
         assetId.chain
     }
 
-    public var valueBigInt: BigInt {
-        return BigInt(value) ?? .zero
+    var valueBigInt: BigInt {
+        BigInt(value) ?? .zero
     }
 
-    public var feeBigInt: BigInt {
-        return BigInt(fee) ?? .zero
+    var feeBigInt: BigInt {
+        BigInt(fee) ?? .zero
     }
 
-    public var assetIds: [AssetId] {
+    var assetIds: [AssetId] {
         switch type {
         case .transfer,
-            .tokenApproval,
-            .stakeDelegate,
-            .stakeUndelegate,
-            .stakeRedelegate,
-            .stakeRewards,
-            .stakeWithdraw,
-            .assetActivation,
-            .transferNFT,
-            .smartContractCall,
-            .perpetualOpenPosition,
-            .perpetualClosePosition,
-            .perpetualModifyPosition,
-            .stakeFreeze,
-            .stakeUnfreeze,
-            .earnDeposit,
-            .earnWithdraw:
+             .tokenApproval,
+             .stakeDelegate,
+             .stakeUndelegate,
+             .stakeRedelegate,
+             .stakeRewards,
+             .stakeWithdraw,
+             .assetActivation,
+             .transferNFT,
+             .smartContractCall,
+             .perpetualOpenPosition,
+             .perpetualClosePosition,
+             .perpetualModifyPosition,
+             .stakeFreeze,
+             .stakeUnfreeze,
+             .earnDeposit,
+             .earnWithdraw:
             return [assetId]
         case .swap:
             guard let swapMetadata = metadata?.decode(TransactionSwapMetadata.self) else {
@@ -49,9 +48,9 @@ extension Transaction {
         }
     }
 
-    public var swapProvider: String? {
+    var swapProvider: String? {
         metadata?.decode(TransactionSwapMetadata.self)?.provider
     }
 }
 
-extension Transaction: Identifiable { }
+extension Transaction: Identifiable {}

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct Balance: Codable, Equatable, Hashable, Sendable {
     public var available: BigInt
@@ -27,7 +27,7 @@ public struct Balance: Codable, Equatable, Hashable, Sendable {
         reserved: BigInt = .zero,
         withdrawable: BigInt = .zero,
         earn: BigInt = .zero,
-        metadata: BalanceMetadata? = .none
+        metadata: BalanceMetadata? = .none,
     ) {
         self.available = available
         self.frozen = frozen

@@ -6,12 +6,13 @@ let package = Package(
     name: "InAppNotifications",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "InAppNotifications",
-            targets: ["InAppNotifications"]),
+            targets: ["InAppNotifications"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -34,7 +35,7 @@ let package = Package(
                 "PrimitivesComponents",
                 .product(name: "NotificationService", package: "FeatureServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
-    ]
+    ],
 )

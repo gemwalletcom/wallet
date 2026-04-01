@@ -6,11 +6,11 @@ import Primitives
 public extension RedelegateData {
     static func mock(
         delegation: Delegation = .mock(),
-        toValidator: DelegationValidator = .mock()
+        toValidator: DelegationValidator = .mock(),
     ) -> RedelegateData {
         RedelegateData(
             delegation: delegation,
-            toValidator: toValidator
+            toValidator: toValidator,
         )
     }
 }

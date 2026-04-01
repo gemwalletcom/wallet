@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 public struct AutocloseSheet: View {
     @State private var model: AutocloseSceneViewModel

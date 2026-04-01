@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import Primitives
+import Style
+import SwiftUI
 
 public struct InputValidationField<TrailingView: View>: View {
     @Binding private var model: InputValidationViewModel
@@ -21,7 +21,7 @@ public struct InputValidationField<TrailingView: View>: View {
         placeholder: String,
         allowClean: Bool = true,
         onClean: VoidAction = nil,
-        @ViewBuilder trailingView: () -> TrailingView = { EmptyView() }
+        @ViewBuilder trailingView: () -> TrailingView = { EmptyView() },
     ) {
         self.trailingView = trailingView()
         _model = model
@@ -41,7 +41,7 @@ public struct InputValidationField<TrailingView: View>: View {
                 onClean: onClean,
                 trailingView: {
                     trailingView
-                }
+                },
             )
 
             if let message = model.error?.localizedDescription {

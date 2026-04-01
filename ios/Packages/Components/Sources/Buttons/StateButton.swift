@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public protocol StateButtonViewable: Sendable {
     var title: String { get }
@@ -12,8 +12,8 @@ public protocol StateButtonViewable: Sendable {
     @MainActor func action()
 }
 
-extension StateButtonViewable {
-    public var infoText: String? { nil }
+public extension StateButtonViewable {
+    var infoText: String? { nil }
 }
 
 public struct StateButton: View {
@@ -34,11 +34,11 @@ public struct StateButton: View {
         infoTitle: String? = nil,
         infoTitleStyle: TextStyle = .calloutSecondary,
         truncationMode: Text.TruncationMode = .tail,
-        action: @escaping () -> Void
+        action: @escaping () -> Void,
     ) {
-        self.textValue = TextValue(text: text, style: textStyle, truncationMode: truncationMode)
+        textValue = TextValue(text: text, style: textStyle, truncationMode: truncationMode)
         self.type = type
-        self.infoTextValue = infoTitle.map({ TextValue(text: $0, style: infoTitleStyle) })
+        infoTextValue = infoTitle.map { TextValue(text: $0, style: infoTitleStyle) }
         self.action = action
         self.image = image
     }
@@ -75,16 +75,16 @@ public extension StateButton {
             type: model.type,
             image: model.icon,
             infoTitle: model.infoText,
-            action: model.action
+            action: model.action,
         )
     }
 }
 
 public extension ButtonType {
-    static func primary<T>(
-        _ viewState: StateViewType<T>,
+    static func primary(
+        _ viewState: StateViewType<some Any>,
         showProgress: Bool = true,
-        isDisabled: Bool? = nil
+        isDisabled: Bool? = nil,
     ) -> Self {
         if let isDisabled, isDisabled {
             return .primary(.disabled)
@@ -93,7 +93,7 @@ public extension ButtonType {
         case .loading: return .primary(.loading(showProgress: showProgress))
         case .noData: return .primary(.disabled)
         case .data: return .primary(.normal)
-        case .error: 
+        case .error:
             if let isDisabled, !isDisabled {
                 return .primary(.normal)
             }

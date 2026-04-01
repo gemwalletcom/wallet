@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Localization
-import Style
 import Components
-import Primitives
-import SwiftUI
-import PrimitivesComponents
-import struct Gemstone.SwapperQuote
+import Foundation
 import enum Gemstone.SwapperError
+import struct Gemstone.SwapperQuote
+import Localization
+import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 enum SwapButtonAction: Equatable {
     case retryQuotes
@@ -29,18 +29,18 @@ struct SwapButtonViewModel: StateButtonViewable {
         swapState: SwapState,
         isAmountValid: Bool,
         fromAsset: AssetData?,
-        onAction: @MainActor @Sendable @escaping () -> Void
+        onAction: @MainActor @Sendable @escaping () -> Void,
     ) {
         self.swapState = swapState
         self.isAmountValid = isAmountValid
         self.fromAsset = fromAsset
-        self.perform = onAction
+        perform = onAction
     }
 
     var title: String {
         switch buttonAction {
         case .retryQuotes, .retrySwap: Localized.Common.tryAgain
-        case .insufficientBalance(let asset): Localized.Transfer.insufficientBalance(asset.symbol)
+        case let .insufficientBalance(asset): Localized.Transfer.insufficientBalance(asset.symbol)
         case .useMinAmount: Localized.Swap.useMinimumAmount
         case .swap: Localized.Wallet.swap
         }
@@ -64,6 +64,7 @@ struct SwapButtonViewModel: StateButtonViewable {
         case .swap: swapState.swapTransferData.isLoading ? .primary(swapState.swapTransferData) : .primary(swapState.quotes)
         }
     }
+
     var isVisible: Bool { !swapState.quotes.isNoData }
 
     func action() { perform() }
@@ -73,21 +74,21 @@ struct SwapButtonViewModel: StateButtonViewable {
 
 extension SwapButtonViewModel {
     private var useMinAmount: SwapButtonAction? {
-        guard case .error(let error) = swapState.quotes,
-              case .InputAmountError(let amount) = error as? SwapperError,
+        guard case let .error(error) = swapState.quotes,
+              case let .InputAmountError(amount) = error as? SwapperError,
               let amount,
               let fromAsset else { return nil }
         return .useMinAmount(amount: amount, asset: fromAsset.asset)
     }
 
     private var canRetryQuotes: Bool {
-        guard case .error(let error) = swapState.quotes,
+        guard case let .error(error) = swapState.quotes,
               let retryableError = error as? RetryableError else { return false }
         return retryableError.isRetryAvailable
     }
 
     private var canRetrySwap: Bool {
-        guard case .error(let error) = swapState.swapTransferData,
+        guard case let .error(error) = swapState.swapTransferData,
               let retryableError = error as? RetryableError else { return false }
         return retryableError.isRetryAvailable
     }

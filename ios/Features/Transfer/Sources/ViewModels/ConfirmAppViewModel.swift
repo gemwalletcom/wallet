@@ -17,35 +17,35 @@ public struct ConfirmAppViewModel: ItemModelProvidable {
     var websiteURL: URL? {
         switch type {
         case .transfer,
-                .deposit,
-                .withdrawal,
-                .transferNft,
-                .swap,
-                .tokenApprove,
-                .stake,
-                .account,
-                .perpetual,
-                .earn: .none
-        case .generic(_, let metadata, _):
+             .deposit,
+             .withdrawal,
+             .transferNft,
+             .swap,
+             .tokenApprove,
+             .stake,
+             .account,
+             .perpetual,
+             .earn: .none
+        case let .generic(_, metadata, _):
             URL(string: metadata.url)
         }
     }
 
-    var websiteTitle: String { Localized.Settings.website  }
+    var websiteTitle: String { Localized.Settings.website }
 }
 
 // MARK: - ItemModelPrividable
 
-extension ConfirmAppViewModel {
-    public var itemModel: ConfirmTransferItemModel {
+public extension ConfirmAppViewModel {
+    var itemModel: ConfirmTransferItemModel {
         guard let name = appValue else { return .empty }
 
         return .app(
             ListItemModel(
                 title: Localized.WalletConnect.app,
                 subtitle: name,
-                imageStyle: .list(assetImage: assetImage)
-            )
+                imageStyle: .list(assetImage: assetImage),
+            ),
         )
     }
 }
@@ -56,16 +56,16 @@ extension ConfirmAppViewModel {
     private var appValue: String? {
         switch type {
         case .transfer,
-                .deposit,
-                .withdrawal,
-                .transferNft,
-                .swap,
-                .tokenApprove,
-                .stake,
-                .account,
-                .perpetual,
-                .earn: .none
-        case .generic(_, let metadata, _):
+             .deposit,
+             .withdrawal,
+             .transferNft,
+             .swap,
+             .tokenApprove,
+             .stake,
+             .account,
+             .perpetual,
+             .earn: .none
+        case let .generic(_, metadata, _):
             metadata.shortName
         }
     }
@@ -73,16 +73,16 @@ extension ConfirmAppViewModel {
     private var assetImage: AssetImage? {
         switch type {
         case .transfer,
-                .deposit,
-                .withdrawal,
-                .transferNft,
-                .swap,
-                .tokenApprove,
-                .stake,
-                .account,
-                .perpetual,
-                .earn:
-                .none
+             .deposit,
+             .withdrawal,
+             .transferNft,
+             .swap,
+             .tokenApprove,
+             .stake,
+             .account,
+             .perpetual,
+             .earn:
+            .none
         case let .generic(_, session, _):
             AssetImage(imageURL: session.icon.asURL)
         }

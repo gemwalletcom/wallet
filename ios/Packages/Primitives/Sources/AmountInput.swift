@@ -5,7 +5,7 @@ public typealias AmountInputAction = ((AmountInput) -> Void)?
 public struct AmountInput {
     public let type: AmountType
     public let asset: Asset
-    
+
     public init(type: AmountType, asset: Asset) {
         self.type = type
         self.asset = asset

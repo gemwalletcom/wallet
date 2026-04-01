@@ -1,22 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Preferences
-import Store
-import WalletConnectorServiceTestKit
 import ConnectionsService
 import ConnectionsServiceTestKit
+import Preferences
+import Store
+import Testing
 @testable import WalletConnector
+import WalletConnectorServiceTestKit
 
 struct ConnectionsServiceTests {
     let preferences: Preferences = .mock()
-    
+
     @Test
     func walletConnectActivation() async throws {
         try await firstRun()
         try await secondRun()
     }
-    
+
     @Test
     func migration() async throws {
         let db = DB.mock()
@@ -31,7 +31,7 @@ struct ConnectionsServiceTests {
             store: store,
             signer: WalletConnectorSigner.mock(),
             connector: connector,
-            preferences: preferences
+            preferences: preferences,
         )
 
         try await service.setup()
@@ -46,12 +46,12 @@ struct ConnectionsServiceTests {
         try await service.setup()
         await #expect(connector.isSetup == false)
         #expect(service.isWalletConnectActivated == false)
-        
+
         try await service.pair(uri: .empty)
         await #expect(connector.isSetup == true)
         #expect(service.isWalletConnectActivated)
     }
-    
+
     private func secondRun() async throws {
         let connector = WalletConnectorServiceMock()
         let service: ConnectionsService = .mock(connector: connector, preferences: preferences)
@@ -65,13 +65,13 @@ struct ConnectionsServiceTests {
 extension ConnectionsService {
     static func mock(
         connector: WalletConnectorServiceMock,
-        preferences: Preferences
+        preferences: Preferences,
     ) -> ConnectionsService {
         ConnectionsService(
             store: .mock(),
             signer: WalletConnectorSigner.mock(),
             connector: connector,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

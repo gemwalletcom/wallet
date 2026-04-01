@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
-struct MarketAssetRecord: Codable, FetchableRecord, PersistableRecord  {
-    
+struct MarketAssetRecord: Codable, FetchableRecord, PersistableRecord {
     enum Columns {
         static let tag = Column("tag")
         static let assetId = Column("assetId")
     }
-    
+
     static let databaseTableName: String = "markets_assets"
 
     var tag: AssetTag
@@ -19,7 +18,7 @@ struct MarketAssetRecord: Codable, FetchableRecord, PersistableRecord  {
 
 extension MarketAssetRecord: CreateTable {
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.tag.name, .text)
                 .notNull()
             $0.column(Columns.assetId.name, .text)

@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import Components
+import Foundation
+import Primitives
+import SwiftUI
 
 struct ValidatorSelectionView: View {
-
     private let value: ListItemValue<DelegationValidator>
     private let selection: String?
     private let action: ((DelegationValidator) -> Void)?
@@ -14,7 +13,7 @@ struct ValidatorSelectionView: View {
     init(
         value: ListItemValue<DelegationValidator>,
         selection: String?,
-        action: ((DelegationValidator) -> Void)?
+        action: ((DelegationValidator) -> Void)?,
     ) {
         self.value = value
         self.selection = selection
@@ -32,7 +31,7 @@ struct ValidatorSelectionView: View {
                 subtitle: value.subtitle,
                 subtitleExtra: .none,
                 value: value.value.id,
-                selection: selection
+                selection: selection,
             ) { _ in
                 action?(value.value)
             }

@@ -9,7 +9,7 @@ public extension Permit2ApprovalData {
             spender: "0x",
             value: "1000000000000000000",
             permit2Contract: "0x",
-            permit2Nonce: 123456789
+            permit2Nonce: 123_456_789,
         )
     }
 }

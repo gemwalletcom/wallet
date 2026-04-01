@@ -1,24 +1,24 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
-import Primitives
 import GemAPI
-import WidgetKit
 import Preferences
+import Primitives
 import Style
+import SwiftUI
+import WidgetKit
 
-internal struct WidgetPriceService {
+struct WidgetPriceService {
     private let pricesService: any GemAPIPricesService
     private let assetsService: any GemAPIAssetsService
     private let preferences = SharedPreferences()
 
     init() {
-        self.pricesService = GemAPIService()
-        self.assetsService = GemAPIService()
+        pricesService = GemAPIService()
+        assetsService = GemAPIService()
     }
 
-    internal func coins(_ widgetFamily: WidgetFamily) -> [AssetId] {
+    func coins(_ widgetFamily: WidgetFamily) -> [AssetId] {
         switch widgetFamily {
         case .systemSmall:
             [AssetId(chain: .bitcoin, tokenId: nil)]
@@ -33,21 +33,21 @@ internal struct WidgetPriceService {
         }
     }
 
-    internal func fetchTopCoinPrices(widgetFamily: WidgetFamily = .systemMedium) async -> PriceWidgetEntry {
+    func fetchTopCoinPrices(widgetFamily: WidgetFamily = .systemMedium) async -> PriceWidgetEntry {
         let coins = coins(widgetFamily)
         let currency = preferences.currency
 
         do {
             let (assets, prices) = try await (
                 assetsService.getAssets(assetIds: coins),
-                pricesService.getPrices(currency: currency, assetIds: coins)
+                pricesService.getPrices(currency: currency, assetIds: coins),
             )
 
-            return PriceWidgetEntry(
+            return await PriceWidgetEntry(
                 date: Date(),
-                coinPrices: await coinPrices(assets: assets, prices: prices),
+                coinPrices: coinPrices(assets: assets, prices: prices),
                 currency: currency,
-                widgetFamily: widgetFamily
+                widgetFamily: widgetFamily,
             )
         } catch {
             return PriceWidgetEntry.error(error: error.localizedDescription, widgetFamily: widgetFamily)
@@ -63,17 +63,17 @@ extension WidgetPriceService {
             for asset in assets {
                 guard let assetPrice = prices.first(where: { $0.assetId == asset.asset.id }) else { continue }
                 group.addTask {
-                    CoinPrice(
+                    await CoinPrice(
                         assetId: asset.asset.id,
                         name: asset.asset.name,
                         symbol: asset.asset.symbol,
                         price: assetPrice.price,
                         priceChangePercentage24h: assetPrice.priceChangePercentage24h,
-                        image: await Self.image(for: asset.asset.id)
+                        image: Self.image(for: asset.asset.id),
                     )
                 }
             }
-            return await group.compactMap { $0 }.reduce(into: []) { $0.append($1) }
+            return await group.compactMap(\.self).reduce(into: []) { $0.append($1) }
         }
     }
 

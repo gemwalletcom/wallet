@@ -21,7 +21,7 @@ func selectableListTypeItemTests() async throws {
     let items2 = [TestItem(3), TestItem(4)]
     let sectionedList = SelectableListType.section([
         ListSection(id: "1", title: "Section 1", image: nil, values: items),
-        ListSection(id: "2", title: "Section 2", image: nil, values: items2)
+        ListSection(id: "2", title: "Section 2", image: nil, values: items2),
     ])
     #expect(sectionedList.items == items + items2)
 }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import PrimitivesTestKit
+import Testing
 
 @testable import Validators
 
@@ -11,7 +11,7 @@ struct AddressTextValidatorTests {
     let validBTC = "bc1qhgxl7yjhaazdhrfh0tzge572wkyp43h7t64fal"
 
     @Test
-    func testValidatesCorrectAddress() throws {
+    func validatesCorrectAddress() throws {
         let eth = AddressTextValidator(asset: .mockBNB())
         try eth.validate(validETH)
 
@@ -20,7 +20,7 @@ struct AddressTextValidatorTests {
     }
 
     @Test
-    func testThrowsOnInvalidAddress() {
+    func throwsOnInvalidAddress() {
         let validator = AddressTextValidator(asset: .mock())
 
         #expect(throws: TransferError.invalidAddress(asset: .mock())) {

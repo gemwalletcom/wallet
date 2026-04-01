@@ -21,11 +21,11 @@ public final class AmountFreezeViewModel: AmountDataProvidable {
     init(asset: Asset, action: Action, resource: Resource) {
         self.asset = asset
         self.action = action
-        self.resourceSelection = SelectionState(
+        resourceSelection = SelectionState(
             options: [.bandwidth, .energy],
             selected: resource,
             isEnabled: true,
-            title: Localized.Stake.resource
+            title: Localized.Stake.resource,
         )
     }
 
@@ -54,7 +54,7 @@ public final class AmountFreezeViewModel: AmountDataProvidable {
     var canChangeValue: Bool { true }
 
     var reserveForFee: BigInt {
-        return switch action {
+        switch action {
         case .freeze: BigInt(Gemstone.Config.shared.getStakeConfig(chain: asset.chain.rawValue).reservedForFees)
         case .unfreeze: BigInt.zero
         }
@@ -69,7 +69,7 @@ public final class AmountFreezeViewModel: AmountDataProvidable {
     }
 
     func availableValue(from assetData: AssetData) -> BigInt {
-        return switch action {
+        switch action {
         case .freeze: assetData.balance.available
         case .unfreeze: resourceSelection.selected == .bandwidth ? assetData.balance.frozen : assetData.balance.locked
         }
@@ -80,7 +80,7 @@ public final class AmountFreezeViewModel: AmountDataProvidable {
         let title = ResourceViewModel(resource: resource).title
         return RecipientData(
             recipient: Recipient(name: title, address: title, memo: nil),
-            amount: nil
+            amount: nil,
         )
     }
 
@@ -93,7 +93,7 @@ public final class AmountFreezeViewModel: AmountDataProvidable {
             type: .stake(asset, stakeType),
             recipientData: recipientData(),
             value: value,
-            canChangeValue: canChangeValue
+            canChangeValue: canChangeValue,
         )
     }
 }

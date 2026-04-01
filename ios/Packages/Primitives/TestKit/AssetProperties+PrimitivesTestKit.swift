@@ -13,7 +13,7 @@ public extension AssetProperties {
             stakingApr: stakingApr,
             isEarnable: false,
             earnApr: nil,
-            hasImage: hasImage
+            hasImage: hasImage,
         )
     }
 }

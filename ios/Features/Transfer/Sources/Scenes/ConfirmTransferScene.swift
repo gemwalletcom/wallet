@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import Localization
-import PrimitivesComponents
-import Swap
 import Primitives
+import PrimitivesComponents
+import Style
+import Swap
+import SwiftUI
 
 public struct ConfirmTransferScene: View {
     @Bindable var model: ConfirmTransferSceneViewModel
@@ -18,7 +18,7 @@ public struct ConfirmTransferScene: View {
     public var body: some View {
         ListSectionView(
             provider: model,
-            content: content(for:)
+            content: content(for:),
         )
         .contentMargins([.top], .small, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -29,7 +29,7 @@ public struct ConfirmTransferScene: View {
         .debounce(
             value: model.feeModel.priority,
             interval: .none,
-            action: model.onChangeFeePriority
+            action: model.onChangeFeePriority,
         )
         .taskOnce { model.fetch() }
         .navigationTitle(model.title)
@@ -42,19 +42,18 @@ public struct ConfirmTransferScene: View {
 // MARK: - UI Components
 
 extension ConfirmTransferScene {
-
     @ViewBuilder
     private func content(for itemModel: ConfirmTransferItemModel) -> some View {
         switch itemModel {
         case let .header(model):
             TransactionHeaderListItemView(
                 headerType: model.headerType,
-                showClearHeader: model.showClearHeader
+                showClearHeader: model.showClearHeader,
             )
         case let .app(model):
             ListItemImageView(model: model)
                 .contextMenu(
-                    .url(title: self.model.websiteTitle, onOpen: self.model.onSelectOpenWebsiteURL)
+                    .url(title: self.model.websiteTitle, onOpen: self.model.onSelectOpenWebsiteURL),
                 )
         case let .sender(model):
             ListItemImageView(model: model)
@@ -65,24 +64,24 @@ extension ConfirmTransferScene {
             ListItemImageView(model: model)
         case let .memo(model):
             ListItemView(model: model)
-                .contextMenu( model.subtitle.map ({ [.copy(value: $0)] }) ?? [] )
-        case .swapDetails(let model):
+                .contextMenu(model.subtitle.map { [.copy(value: $0)] } ?? [])
+        case let .swapDetails(model):
             NavigationCustomLink(
                 with: SwapDetailsListView(model: model),
-                action: { self.model.onSelectSwapDetails() }
+                action: { self.model.onSelectSwapDetails() },
             )
-        case .perpetualDetails(let model):
+        case let .perpetualDetails(model):
             NavigationCustomLink(
                 with: ListItemView(model: model.listItemModel),
-                action: { self.model.onSelectPerpetualDetails(model) }
+                action: { self.model.onSelectPerpetualDetails(model) },
             )
-        case .perpetualModifyPosition(let model):
+        case let .perpetualModifyPosition(model):
             ListItemView(model: model.listItemModel)
         case let .networkFee(model, selectable):
             if selectable {
                 NavigationCustomLink(
                     with: ListItemView(model: model),
-                    action: self.model.onSelectFeePicker
+                    action: self.model.onSelectFeePicker,
                 )
             } else {
                 ListItemView(model: model)
@@ -94,13 +93,13 @@ extension ConfirmTransferScene {
                 SimulationPayloadFieldsContent(
                     fields: fields,
                     fieldViewModel: self.model.payloadFieldViewModel(for:),
-                    contextMenuItems: self.model.contextMenuItems(for:)
+                    contextMenuItems: self.model.contextMenuItems(for:),
                 )
 
                 if self.model.hasPayloadDetails {
                     NavigationCustomLink(
                         with: ListItemView(title: Localized.Common.details),
-                        action: self.model.onSelectPayloadDetails
+                        action: self.model.onSelectPayloadDetails,
                     )
                 }
             }
@@ -108,7 +107,7 @@ extension ConfirmTransferScene {
             ListItemErrorView(
                 errorTitle: title,
                 error: error,
-                infoAction: onInfoAction
+                infoAction: onInfoAction,
             )
         case .empty:
             EmptyView()

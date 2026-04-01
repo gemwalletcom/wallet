@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Localization
+import Style
+import SwiftUI
 
 public struct SwapDetailsListView: View {
     private let model: SwapDetailsViewModel
-    
+
     public init(model: SwapDetailsViewModel) {
         self.model = model
     }
@@ -15,9 +15,9 @@ public struct SwapDetailsListView: View {
     public var body: some View {
         HStack {
             ListItemView(title: Localized.Common.details)
-            
+
             Spacer(minLength: .extraSmall)
-            
+
             if let rate = model.rateText {
                 HStack(spacing: .tiny) {
                     Text(rate)

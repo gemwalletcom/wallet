@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
-import Localization
-import Components
 
 struct TransactionNetworkViewModel: Sendable {
     private let chain: Chain
@@ -21,7 +21,7 @@ extension TransactionNetworkViewModel: ItemModelProvidable {
         .network(
             title: Localized.Transfer.network,
             subtitle: chain.asset.name,
-            image: AssetIdViewModel(assetId: chain.assetId).networkAssetImage
+            image: AssetIdViewModel(assetId: chain.assetId).networkAssetImage,
         )
     }
 }

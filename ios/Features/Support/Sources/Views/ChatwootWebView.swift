@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Style
 import SwiftUI
 import WebKit
-import Style
 
 struct ChatwootWebView: UIViewRepresentable {
     let model: ChatwootWebViewModel
-    
-    func makeUIView(context: Context) -> WKWebView {
+
+    func makeUIView(context _: Context) -> WKWebView {
         let configuration = model.configureWebView()
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
@@ -18,12 +18,12 @@ struct ChatwootWebView: UIViewRepresentable {
 
         return webView
     }
-    
-    func updateUIView(_ webView: WKWebView, context: Context) {
+
+    func updateUIView(_ webView: WKWebView, context _: Context) {
         webView.loadHTMLString(model.htmlContent, baseURL: model.baseUrl)
     }
-    
-    static func dismantleUIView(_ webView: WKWebView, coordinator: ()) {
+
+    static func dismantleUIView(_ webView: WKWebView, coordinator _: ()) {
         webView.navigationDelegate = nil
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
     }

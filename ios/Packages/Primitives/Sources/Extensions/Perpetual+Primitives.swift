@@ -2,8 +2,8 @@
 
 import Foundation
 
-extension PerpetualMarginType {
-    public init(id: String) throws {
+public extension PerpetualMarginType {
+    init(id: String) throws {
         if let type = PerpetualMarginType(rawValue: id) {
             self = type
         } else {
@@ -12,8 +12,8 @@ extension PerpetualMarginType {
     }
 }
 
-extension PerpetualDirection {
-    public init(id: String) throws {
+public extension PerpetualDirection {
+    init(id: String) throws {
         if let direction = PerpetualDirection(rawValue: id) {
             self = direction
         } else {
@@ -22,16 +22,16 @@ extension PerpetualDirection {
     }
 }
 
-extension Perpetual {
-    public var coin: String {
+public extension Perpetual {
+    var coin: String {
         assetId.tokenId?.components(separatedBy: AssetId.subTokenSeparator).last ?? name
     }
 
-    public var marginType: PerpetualMarginType { isIsolatedOnly ? .isolated : .cross }
+    var marginType: PerpetualMarginType { isIsolatedOnly ? .isolated : .cross }
 }
 
-extension PerpetualSearchData {
-    public var assetBasic: AssetBasic {
+public extension PerpetualSearchData {
+    var assetBasic: AssetBasic {
         AssetBasic(
             asset: asset,
             properties: AssetProperties(
@@ -43,10 +43,10 @@ extension PerpetualSearchData {
                 stakingApr: nil,
                 isEarnable: false,
                 earnApr: nil,
-                hasImage: false
+                hasImage: false,
             ),
             score: AssetScore(rank: 0),
-            price: nil
+            price: nil,
         )
     }
 }

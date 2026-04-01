@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import Components
-import Style
+import Foundation
+import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct ChainSettingsScene: View {
     @State private var model: ChainSettingsSceneViewModel
@@ -27,12 +27,12 @@ public struct ChainSettingsScene: View {
                         subtitle: .none,
                         subtitleExtra: .none,
                         value: nodeModel.chainNode.host,
-                        selection: model.selectedNode.host
+                        selection: model.selectedNode.host,
                     ) { _ in
                         model.onSelectNode(nodeModel.chainNode)
                     }
                     .contextMenu(
-                        .copy(value: nodeModel.chainNode.node.url)
+                        .copy(value: nodeModel.chainNode.node.url),
                     )
                     .if(model.canDelete(node: nodeModel.chainNode)) {
                         $0.swipeActions(edge: .trailing) {
@@ -44,7 +44,7 @@ public struct ChainSettingsScene: View {
                     }
                 }
             }
-            
+
             Section(model.explorerTitle) {
                 ForEach(model.explorers, id: \.self) { explorer in
                     ListItemSelectionView(
@@ -56,7 +56,7 @@ public struct ChainSettingsScene: View {
                         subtitleExtra: .none,
                         value: explorer,
                         selection: model.selectedExplorer,
-                        action: model.onSelectExplorer(name:)
+                        action: model.onSelectExplorer(name:),
                     )
                 }
             }
@@ -68,13 +68,13 @@ public struct ChainSettingsScene: View {
             model.deleteConfirmationTitle(for: model.nodeDelete?.host ?? ""),
             presenting: $model.nodeDelete,
             sensoryFeedback: .warning,
-            actions: { chainNode in
+            actions: { _ in
                 Button(
                     model.deleteButtonTitle,
                     role: .destructive,
-                    action: model.onDeleteNode
+                    action: model.onDeleteNode,
                 )
-            }
+            },
         )
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -90,16 +90,16 @@ public struct ChainSettingsScene: View {
                     model: AddNodeSceneViewModel(
                         chain: model.chain,
                         nodeService: model.nodeService,
-                        chainServiceFactory: model.chainServiceFactory
+                        chainServiceFactory: model.chainServiceFactory,
                     ),
-                    onDismiss: model.onDismissImportNode
+                    onDismiss: model.onDismissImportNode,
                 )
             }
         }
         .navigationTitle(model.title)
         .listSectionSpacing(.compact)
         .taskOnce {
-            Task { await model.fetch()}
+            Task { await model.fetch() }
         }
     }
 }

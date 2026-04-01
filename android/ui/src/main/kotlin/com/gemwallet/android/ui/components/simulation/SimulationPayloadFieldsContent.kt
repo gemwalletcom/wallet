@@ -67,7 +67,7 @@ private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kin
 }
 
 private fun fieldValue(field: SimulationPayloadField): String = when (field.fieldType) {
-    SimulationPayloadFieldType.Address -> field.value.getAddressEllipsisText(maxLength = 10)
+    SimulationPayloadFieldType.Address -> field.value.getAddressEllipsisText()
     SimulationPayloadFieldType.Timestamp -> field.value.toTimestampText()
     else -> field.value
 }

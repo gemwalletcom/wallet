@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import Primitives
 import Style
 import SwiftUI
-import Localization
 
 public struct TransactionStateViewModel {
     let state: TransactionState
@@ -21,7 +21,7 @@ public struct TransactionStateViewModel {
         case .reverted: Localized.Transaction.Status.reverted
         }
     }
-    
+
     public var description: String {
         switch state {
         case .pending, .inTransit: Localized.Info.Transaction.Pending.description
@@ -29,7 +29,7 @@ public struct TransactionStateViewModel {
         case .failed, .reverted: Localized.Info.Transaction.Error.description
         }
     }
-    
+
     public var stateImage: Image {
         switch state {
         case .pending, .inTransit: Images.Transaction.State.pending

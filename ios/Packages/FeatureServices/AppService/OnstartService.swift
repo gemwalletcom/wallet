@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Store
-import Primitives
-import NodeService
 import AssetsService
+import Foundation
 import GemAPI
+import NodeService
 import Preferences
-import WalletService
+import Primitives
+import Store
 import UIKit
+import WalletService
 
 // OnstartService runs services before the app starts.
 // See OnstartAsyncService for any background tasks to run after start
 public struct OnstartService: Sendable {
-
     private let assetListService: any GemAPIAssetsListService
     private let assetsService: AssetsService
     private let assetStore: AssetStore
@@ -27,7 +26,7 @@ public struct OnstartService: Sendable {
         assetStore: AssetStore,
         nodeStore: NodeStore,
         preferences: Preferences,
-        walletService: WalletService
+        walletService: WalletService,
     ) {
         self.assetListService = assetListService
         self.assetsService = assetsService
@@ -50,7 +49,7 @@ public struct OnstartService: Sendable {
         preferences.incrementLaunchesCount()
 
         #if DEBUG
-        configureScreenshots()
+            configureScreenshots()
         #endif
     }
 }
@@ -58,14 +57,13 @@ public struct OnstartService: Sendable {
 // MARK: - Private
 
 extension OnstartService {
-
     private func migrations() throws {
         try walletService.setup(chains: AssetConfiguration.allChains)
         try ImportAssetsService(
             assetListService: assetListService,
             assetsService: assetsService,
             assetStore: assetStore,
-            preferences: preferences
+            preferences: preferences,
         ).migrate()
 
         if !preferences.hasCurrency, let currency = Locale.current.currency {
@@ -84,7 +82,7 @@ extension OnstartService {
             try FileManager.default.addSkipBackupAttributeToItemAtURL(directory.url)
 
             #if DEBUG
-            debugLog("Excluded backup directory: \(directory.directory)")
+                debugLog("Excluded backup directory: \(directory.directory)")
             #endif
         }
     }
@@ -92,7 +90,7 @@ extension OnstartService {
     @MainActor
     private func validateDeviceSecurity() {
         let device = UIDevice.current
-        if !device.isSimulator && (device.isJailBroken || device.isFridaDetected) {
+        if !device.isSimulator, device.isJailBroken || device.isFridaDetected {
             fatalError()
         }
     }

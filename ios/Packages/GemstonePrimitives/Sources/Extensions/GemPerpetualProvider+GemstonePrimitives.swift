@@ -4,16 +4,16 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.PerpetualProvider {
-    public func map() -> Primitives.PerpetualProvider {
+public extension Gemstone.PerpetualProvider {
+    func map() -> Primitives.PerpetualProvider {
         switch self {
         case .hypercore: .hypercore
         }
     }
 }
 
-extension Primitives.PerpetualProvider {
-    public func map() -> Gemstone.PerpetualProvider {
+public extension Primitives.PerpetualProvider {
+    func map() -> Gemstone.PerpetualProvider {
         switch self {
         case .hypercore: .hypercore
         }

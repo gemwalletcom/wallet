@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import NodeServiceTestKit
 import Primitives
 import Store
 import StoreTestKit
-import NodeServiceTestKit
+import Testing
 
 @testable import NodeService
 
 struct NodeServiceTests {
-
     @Test
     func getNodeSelectedReturnsDefaultWhenNotSet() {
         #expect(NodeService.mock().getNodeSelected(chain: .ethereum).node.url == Chain.ethereum.defaultChainNode.node.url)

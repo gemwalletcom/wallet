@@ -19,20 +19,35 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     init(asset: Asset, action: StakeAmountType) {
         self.asset = asset
         self.action = action
-        self.validatorSelection = Self.makeValidatorSelection(action: action)
+        validatorSelection = Self.makeValidatorSelection(action: action)
     }
 
     private static func makeValidatorSelection(action: StakeAmountType) -> SelectionState<DelegationValidator> {
         switch action {
         case let .stake(validators, recommended):
-            SelectionState(options: validators, selected: recommended ?? validators[0], isEnabled: true, title: Localized.Stake.validator)
+            SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
         case let .unstake(delegation):
             SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
         case let .redelegate(_, validators, recommended):
-            SelectionState(options: validators, selected: recommended ?? validators[0], isEnabled: true, title: Localized.Stake.validator)
+            SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
         case let .withdraw(delegation):
             SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
         }
+    }
+
+    private static func selectedValidator(
+        from validators: [DelegationValidator],
+        recommended: DelegationValidator?,
+    ) -> DelegationValidator {
+        if let recommended {
+            return recommended
+        }
+
+        guard let selected = validators.first else {
+            preconditionFailure("Stake validator selection requires at least one validator")
+        }
+
+        return selected
     }
 
     public var validatorSelectType: ValidatorSelectType {
@@ -105,12 +120,12 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             if asset.chain == .tron {
                 let staked = BigNumberFormatter.standard.number(
                     from: Int(assetData.balance.metadata?.votes ?? 0),
-                    decimals: Int(assetData.asset.decimals)
+                    decimals: Int(assetData.asset.decimals),
                 )
                 return (assetData.balance.frozen + assetData.balance.locked) - staked
             }
             return assetData.balance.available
-        case .unstake(let delegation), .redelegate(let delegation, _, _), .withdraw(let delegation):
+        case let .unstake(delegation), let .redelegate(delegation, _, _), let .withdraw(delegation):
             return delegation.base.balanceValue
         }
     }
@@ -120,9 +135,9 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             recipient: Recipient(
                 name: validatorSelection.selected.name,
                 address: validatorSelection.selected.id,
-                memo: Localized.Stake.viagem
+                memo: Localized.Stake.viagem,
             ),
-            amount: nil
+            amount: nil,
         )
     }
 
@@ -130,18 +145,18 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         let stakeType: StakeType = switch action {
         case .stake:
             .stake(validatorSelection.selected)
-        case .unstake(let delegation):
+        case let .unstake(delegation):
             .unstake(delegation)
-        case .redelegate(let delegation, _, _):
+        case let .redelegate(delegation, _, _):
             .redelegate(RedelegateData(delegation: delegation, toValidator: validatorSelection.selected))
-        case .withdraw(let delegation):
+        case let .withdraw(delegation):
             .withdraw(delegation)
         }
         return TransferData(
             type: .stake(asset, stakeType),
             recipientData: recipientData(),
             value: value,
-            canChangeValue: canChangeValue
+            canChangeValue: canChangeValue,
         )
     }
 }

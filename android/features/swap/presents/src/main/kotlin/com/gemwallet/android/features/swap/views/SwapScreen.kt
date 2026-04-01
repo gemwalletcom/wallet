@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.ConfirmParams
@@ -12,8 +13,8 @@ import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
-import com.gemwallet.android.features.swap.views.dialogs.ProviderListDialog
-import com.gemwallet.android.features.swap.views.dialogs.SwapDetailsDialog
+import com.gemwallet.android.ui.ObserveStartedState
+import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -31,15 +32,12 @@ fun SwapScreen(
     val fromEquivalent by viewModel.payEquivalentFormatted.collectAsStateWithLifecycle()
     val toEquivalent by viewModel.toEquivalentFormatted.collectAsStateWithLifecycle()
     val swapState by viewModel.uiSwapScreenState.collectAsStateWithLifecycle()
-    val currentProvider by viewModel.currentProvider.collectAsStateWithLifecycle()
-    val providers by viewModel.providers.collectAsStateWithLifecycle()
-    val priceImpact by viewModel.priceImpact.collectAsStateWithLifecycle()
-    val rate by viewModel.rate.collectAsStateWithLifecycle()
-    val swapDetailsProperties by viewModel.details.collectAsStateWithLifecycle()
+    val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
 
-    val isShowProviderSelect = remember { mutableStateOf(false) }
-    val isShowPriceImpactAlert = remember { mutableStateOf(false) }
-    val isShowDetails = remember { mutableStateOf(false) }
+    var isShowPriceImpactAlert by remember { mutableStateOf(false) }
+    var isShowDetails by remember { mutableStateOf(false) }
+
+    ObserveStartedState(viewModel::setRefreshEnabled)
 
     LaunchedEffect(payId, receiveId, select) {
         select ?: return@LaunchedEffect
@@ -52,7 +50,7 @@ fun SwapScreen(
         )
     }
 
-    val onSwap: () -> Unit =  {
+    val onSwap: () -> Unit = {
         when (swapState) {
             SwapState.Ready -> viewModel.swap(onConfirm)
             is SwapState.Error -> viewModel.refresh()
@@ -64,49 +62,37 @@ fun SwapScreen(
         swapState = swapState,
         pay = pay,
         receive = receive,
-        priceImpact = priceImpact,
+        swapDetails = swapDetails,
         payEquivalent = fromEquivalent,
         receiveEquivalent = toEquivalent,
-        rate = rate,
-        isShowPriceImpactAlert = isShowPriceImpactAlert,
-        selectState = {
-            val select = it ?: return@SwapScene
-            onSelect(select, pay?.id(), receive?.id())
+        onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
+        onSelectAsset = { type ->
+            onSelect(type, pay?.id(), receive?.id())
         },
         switchSwap = viewModel::switchSwap,
         payValue = viewModel.payValue,
         receiveValue = viewModel.receiveValue,
         onCancel = onCancel,
-        onDetails = { isShowDetails.value = true },
-    ) {
-        when (swapState) {
-            SwapState.Ready -> viewModel.swap(onConfirm)
-            is SwapState.Error -> viewModel.refresh()
-            else -> {}
-        }
-    }
+        onDetails = { isShowDetails = true },
+        onSwap = onSwap,
+    )
 
     PriceImpactWarningDialog(
-        isShowPriceImpactAlert = isShowPriceImpactAlert,
-        priceImpact = priceImpact,
+        isVisible = isShowPriceImpactAlert,
+        priceImpact = swapDetails?.priceImpact,
         asset = pay?.asset,
+        onDismiss = { isShowPriceImpactAlert = false },
         onContinue = onSwap,
     )
 
-    SwapDetailsDialog(
-        provider = currentProvider,
-        providers = providers,
-        properties = swapDetailsProperties,
-        isShowProviderSelect = isShowProviderSelect,
-        isShow = isShowDetails,
-        isUpdated = swapState == SwapState.GetQuote,
-    )
-
-    ProviderListDialog(
-        isShow = isShowProviderSelect,
-        isUpdated = swapState == SwapState.GetQuote,
-        currentProvider = currentProvider?.swapProvider?.id,
-        providers = providers,
-        onProviderSelect = viewModel::setProvider
+    SwapDetailsBottomSheet(
+        isVisible = isShowDetails,
+        isLoading = swapState == SwapState.GetQuote,
+        model = swapDetails,
+        onDismiss = { isShowDetails = false },
+        skipPartiallyExpanded = true,
+        onProviderSelect = { provider ->
+            viewModel.setProvider(provider)
+        },
     )
 }

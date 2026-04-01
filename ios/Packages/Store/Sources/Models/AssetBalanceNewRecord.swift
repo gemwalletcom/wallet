@@ -6,10 +6,9 @@ import Primitives
 
 // Only used to create record. totalAmount is computed property and throws an error
 
-struct AssetBalanceNewRecord: Codable, PersistableRecord  {
-    
+struct AssetBalanceNewRecord: Codable, PersistableRecord {
     static let databaseTableName: String = BalanceRecord.databaseTableName
-    
+
     var assetId: AssetId
     var walletId: String
     var isEnabled: Bool

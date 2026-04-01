@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import BannerServiceTestKit
 import Primitives
 import PrimitivesTestKit
-import BannerServiceTestKit
+import Testing
 import WalletTabTestKit
 
-@testable import WalletTab
 @testable import Store
+@testable import WalletTab
 
 @MainActor
 struct WalletSceneViewModelTests {
@@ -29,7 +29,7 @@ struct WalletSceneViewModelTests {
         model.bannersQuery.value = [
             .mock(event: .stake, state: .active),
             .mock(event: .enableNotifications, state: .cancelled),
-            .mock(event: .accountActivation, state: .alwaysActive)
+            .mock(event: .accountActivation, state: .alwaysActive),
         ]
 
         #expect(model.walletBannersModel.allBanners.first?.state == .alwaysActive)

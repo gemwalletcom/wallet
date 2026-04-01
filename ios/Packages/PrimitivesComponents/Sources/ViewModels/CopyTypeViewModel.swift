@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
+import GemstonePrimitives
 import Localization
+import Primitives
 import Style
 import UIKit
-import Formatters
 
 public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
     public let type: CopyType
@@ -19,13 +19,13 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
         switch type {
         case .secretPhrase: Localized.Common.copied(Localized.Common.secretPhrase)
         case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
-        case .address(let asset, let address):
+        case let .address(asset, address):
             Localized.Common.copied(
                 String(
                     format: "%@ (%@) ",
                     asset.name,
-                    AddressFormatter(style: .short, address: address, chain: asset.chain).value()
-                )
+                    AddressFormatter(style: .short, address: address, chain: asset.chain).value(),
+                ),
             )
         }
     }
@@ -38,7 +38,7 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
         case .address: .none
         }
     }
-    
+
     public func copy() {
         Self.copyToClipboard(copyValue, expirationTime: expirationTimeInternal)
     }
@@ -55,7 +55,7 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
     static func pasteboardOptions(expirationTime: TimeInterval?) -> [UIPasteboard.OptionsKey: Any] {
         var options: [UIPasteboard.OptionsKey: Any] = [:]
 
-        if let expirationTime = expirationTime {
+        if let expirationTime {
             options[.localOnly] = true
             options[.expirationDate] = Date().addingTimeInterval(expirationTime)
         }

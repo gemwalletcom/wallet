@@ -9,7 +9,7 @@ extension SwapperProviderData {
         SwapperProviderData(
             provider: .mock(),
             slippageBps: 50,
-            routes: [.mock()]
+            routes: [.mock()],
         )
     }
-} 
+}

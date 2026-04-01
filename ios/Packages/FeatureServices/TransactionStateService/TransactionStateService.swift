@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BalanceService
+import ChainService
+import EarnService
 import Foundation
 import protocol Gemstone.GemSwapperProtocol
-import Primitives
-import Store
-import ChainService
-import StakeService
-import EarnService
-import BalanceService
 import NFTService
+import Primitives
+import StakeService
+import Store
 
 public struct TransactionStateService: Sendable {
     private let transactionStore: TransactionStore
     private let stateService: TransactionStateProvider
     private let swapResultProvider: SwapResultProvider
     private let postProcessingService: TransactionPostProcessingService
-    private let runner: JobRunner = JobRunner()
+    private let runner: JobRunner = .init()
 
     public init(
         transactionStore: TransactionStore,
@@ -24,12 +24,12 @@ public struct TransactionStateService: Sendable {
         earnService: EarnService,
         nftService: NFTService,
         chainServiceFactory: any ChainServiceFactorable,
-        balanceUpdater: any BalanceUpdater
+        balanceUpdater: any BalanceUpdater,
     ) {
         self.transactionStore = transactionStore
         self.stateService = TransactionStateProvider(
             transactionStore: transactionStore,
-            chainServiceFactory: chainServiceFactory
+            chainServiceFactory: chainServiceFactory,
         )
         self.swapResultProvider = SwapResultProvider(swapper: swapper)
         self.postProcessingService = TransactionPostProcessingService(
@@ -37,7 +37,7 @@ public struct TransactionStateService: Sendable {
             balanceUpdater: balanceUpdater,
             stakeService: stakeService,
             earnService: earnService,
-            nftService: nftService
+            nftService: nftService,
         )
     }
 
@@ -50,9 +50,9 @@ public struct TransactionStateService: Sendable {
     public func addTransactions(wallet: Wallet, transactions: [Transaction]) throws {
         try transactionStore.addTransactions(
             walletId: wallet.walletId,
-            transactions: transactions
+            transactions: transactions,
         )
-        runUpdate(for: transactions.map({ TransactionWallet(transaction: $0, wallet: wallet) }))
+        runUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
     }
 }
 
@@ -65,7 +65,7 @@ extension TransactionStateService {
                 transactionWallet: $0,
                 stateService: stateService,
                 swapResultProvider: swapResultProvider,
-                postProcessingService: postProcessingService
+                postProcessingService: postProcessingService,
             )
         }
         Task {

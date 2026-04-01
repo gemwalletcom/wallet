@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Style
-import PrimitivesComponents
 import Components
+import Foundation
 import Localization
 import Primitives
+import PrimitivesComponents
 import Store
+import Style
+import SwiftUI
 
 public struct WalletImageScene: View {
     enum Tab: Equatable {
@@ -28,7 +28,7 @@ public struct WalletImageScene: View {
                 AvatarView(
                     avatarImage: WalletViewModel(wallet: dbWallet).avatarImage,
                     size: model.emojiViewSize,
-                    action: setDefaultAvatar
+                    action: setDefaultAvatar,
                 )
                 .padding(.top, .medium)
                 .padding(.bottom, .extraLarge)
@@ -48,7 +48,7 @@ public struct WalletImageScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(Colors.grayBackground)
     }
-    
+
     private var pickerView: some View {
         Picker("", selection: $selectedTab) {
             Text(Localized.Common.emoji).tag(Tab.emoji)
@@ -56,14 +56,14 @@ public struct WalletImageScene: View {
         }
         .pickerStyle(.segmented)
     }
-    
+
     @ViewBuilder
     private var listView: some View {
         ScrollView {
             LazyVGrid(
                 columns: model.getColumns(for: selectedTab),
                 alignment: .center,
-                spacing: .medium
+                spacing: .medium,
             ) {
                 switch selectedTab {
                 case .emoji:
@@ -80,11 +80,11 @@ public struct WalletImageScene: View {
             }
         }
     }
-    
+
     private var emojiListView: some View {
         ForEach(model.emojiList) { value in
             NavigationCustomLink(
-                with: EmojiView(color: value.color, emoji: value.emoji)
+                with: EmojiView(color: value.color, emoji: value.emoji),
             ) {
                 model.setAvatarEmoji(value: value)
                 onDismiss()
@@ -93,7 +93,7 @@ public struct WalletImageScene: View {
             .transition(.opacity)
         }
     }
-    
+
     private var nftAssetListView: some View {
         ForEach(model.buildNftAssetsItems(from: model.nftDataList)) { item in
             let view = GridPosterView(model: GridPosterViewModel(assetImage: item.assetImage, title: nil))
@@ -115,12 +115,12 @@ private extension WalletImageScene {
             await model.setImage(from: url)
         }
     }
-    
+
     func setDefaultAvatar() {
         model.setDefaultAvatar()
         onDismiss()
     }
-    
+
     func onDismiss() {
         switch model.source {
         case .onboarding: dismiss()

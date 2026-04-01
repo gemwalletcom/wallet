@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
+import SwiftUI
 
 struct PerpetualSectionView: View {
     let perpetuals: [PerpetualData]
@@ -13,7 +13,7 @@ struct PerpetualSectionView: View {
         perpetuals: [PerpetualData],
         onPin: @escaping (String, Bool) -> Void,
         onSelect: @escaping (Asset) -> Void,
-        emptyText: String? = nil
+        emptyText: String? = nil,
     ) {
         self.perpetuals = perpetuals
         self.onPin = onPin
@@ -30,7 +30,7 @@ struct PerpetualSectionView: View {
                 PerpetualListItem(
                     perpetualData: perpetualData,
                     onPin: onPin,
-                    onSelect: onSelect
+                    onSelect: onSelect,
                 )
             }
         }

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Testing
 import BigInt
+import Foundation
 import Primitives
+import Testing
 
 @testable import Validators
 
@@ -12,20 +12,20 @@ struct MaximumValueValidatorTests {
     private let maxText = "100 USDC"
 
     @Test
-    func testPassesEqualOrLess() throws {
+    func passesEqualOrLess() throws {
         let validator = MaximumValueValidator<BigInt>(
             maximumValue: max,
-            maximumValueText: maxText
+            maximumValueText: maxText,
         )
         try validator.validate(max - 1)
         try validator.validate(max)
     }
 
     @Test
-    func testThrowsAboveMaximum() {
+    func throwsAboveMaximum() {
         let validator = MaximumValueValidator<BigInt>(
             maximumValue: max,
-            maximumValueText: maxText
+            maximumValueText: maxText,
         )
         #expect(throws: AnyError("Maximum allowed value is \(maxText)")) {
             try validator.validate(max + 1)

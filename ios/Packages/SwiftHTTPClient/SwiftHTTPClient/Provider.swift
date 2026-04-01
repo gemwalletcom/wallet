@@ -3,6 +3,7 @@ import Foundation
 public protocol ProviderType: Sendable {
     associatedtype Target: TargetType
 }
+
 public protocol BatchTargetType: TargetType {}
 
 let encoder: JSONEncoder = {
@@ -19,7 +20,7 @@ public struct Provider<T: TargetType>: ProviderType {
 
     public init(
         session: URLSession = .shared,
-        options: ProviderOptions<T> = ProviderOptions(baseUrl: nil)
+        options: ProviderOptions<T> = ProviderOptions(baseUrl: nil),
     ) {
         self.session = session
         self.options = options
@@ -33,7 +34,7 @@ public struct Provider<T: TargetType>: ProviderType {
             data: api.data,
             contentType: api.contentType,
             cachePolicy: api.cachePolicy,
-            headers: api.headers
+            headers: api.headers,
         ).build(encoder: encoder)
         if let interceptor = options.requestInterceptor {
             try interceptor(&request, api)
@@ -43,13 +44,13 @@ public struct Provider<T: TargetType>: ProviderType {
     }
 }
 
-extension Provider where T: BatchTargetType {
-    public func requestBatch(_ targets: [T]) async throws -> Response {
+public extension Provider where T: BatchTargetType {
+    func requestBatch(_ targets: [T]) async throws -> Response {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
 
         let payload = try JSONSerialization.data(withJSONObject: targets.compactMap {
-            guard case .encodable(let req) = $0.data else { return nil }
+            guard case let .encodable(req) = $0.data else { return nil }
             return try? encoder.encode(req)
         }.compactMap {
             try? JSONSerialization.jsonObject(with: $0)
@@ -65,7 +66,7 @@ extension Provider where T: BatchTargetType {
             data: .data(payload),
             contentType: ContentType.json.rawValue,
             cachePolicy: .useProtocolCachePolicy,
-            headers: [:]
+            headers: [:],
         ).build(encoder: encoder)
 
         let (data, response) = try await session.data(for: request, delegate: nil)

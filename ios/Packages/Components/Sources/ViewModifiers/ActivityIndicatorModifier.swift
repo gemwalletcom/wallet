@@ -4,17 +4,17 @@ import SwiftUI
 public struct ActivityIndicator: UIViewRepresentable {
     @Binding var isAnimating: Bool
     let style: UIActivityIndicatorView.Style
-    
+
     public init(isAnimating: Binding<Bool>, style: UIActivityIndicatorView.Style) {
         _isAnimating = isAnimating
         self.style = style
     }
 
-    public func makeUIView(context: UIViewRepresentableContext<ActivityIndicator>) -> UIActivityIndicatorView {
+    public func makeUIView(context _: UIViewRepresentableContext<ActivityIndicator>) -> UIActivityIndicatorView {
         UIActivityIndicatorView(style: style)
     }
 
-    public func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<ActivityIndicator>) {
+    public func updateUIView(_ uiView: UIActivityIndicatorView, context _: UIViewRepresentableContext<ActivityIndicator>) {
         isAnimating ? uiView.startAnimating() : uiView.stopAnimating()
     }
 }
@@ -40,7 +40,7 @@ private struct ActivityIndicatorOverlay: ViewModifier {
                         .cornerRadius(20)
                         .position(
                             x: geo.size.width / 2,
-                            y: geo.size.height / 2
+                            y: geo.size.height / 2,
                         )
                         .transition(.opacity.combined(with: .scale))
                     }

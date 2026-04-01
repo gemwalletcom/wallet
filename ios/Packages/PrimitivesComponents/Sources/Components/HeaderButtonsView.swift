@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
 import Components
+import Foundation
 import Primitives
+import SwiftUI
 
 public typealias HeaderButtonAction = @MainActor @Sendable (HeaderButtonType) -> Void
 
@@ -17,7 +17,7 @@ public struct HeaderButtonsView: View {
 
     public init(
         buttons: [HeaderButton],
-        action: HeaderButtonAction? = nil
+        action: HeaderButtonAction? = nil,
     ) {
         self.buttons = buttons
         self.action = action
@@ -39,7 +39,7 @@ public struct HeaderButtonsView: View {
                 RoundButton(
                     title: button.title,
                     image: button.image,
-                    isEnabled: button.isEnabled
+                    isEnabled: button.isEnabled,
                 ) {
                     action?(button.type)
                 }
@@ -52,9 +52,9 @@ public struct HeaderButtonsView: View {
                             title: button.title,
                             image: button.image,
                             isEnabled: button.isEnabled,
-                            action: {} // action empty, handled by menu
+                            action: {}, // action empty, handled by menu
                         )
-                    }
+                    },
                 )
             }
         }
@@ -66,7 +66,7 @@ public struct HeaderButtonsView: View {
 // MARK: - Previews
 
 #Preview {
-    let buttons = HeaderButtonType.allCases.map({ HeaderButton(type: $0, isEnabled: true) })
+    let buttons = HeaderButtonType.allCases.map { HeaderButton(type: $0, isEnabled: true) }
     return VStack {
         Spacer()
         HeaderButtonsView(buttons: buttons, action: nil)

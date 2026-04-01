@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 struct TransferDataTypeTests {
     @Test
@@ -17,10 +17,11 @@ struct TransferDataTypeTests {
         #expect(
             TransferData
                 .mock(
-                    type: .perpetual(.mock(), .close(.mock(direction: .long, assetIndex: 0, price: "100", size: "1")))
-                ).type.shouldIgnoreValueCheck == true
+                    type: .perpetual(.mock(), .close(.mock(direction: .long, assetIndex: 0, price: "100", size: "1"))),
+                ).type.shouldIgnoreValueCheck == true,
         )
     }
+
     // MARK: - canChangeValue
 
     @Test
@@ -49,8 +50,8 @@ struct TransferDataTypeTests {
             TransferData
                 .mock(
                     type: .perpetual(.mock(), .close(.mock(direction: .long, assetIndex: 0, price: "100", size: "1"))),
-                    canChangeValue: false
-                ).canChangeValue == false
+                    canChangeValue: false,
+                ).canChangeValue == false,
         )
     }
 

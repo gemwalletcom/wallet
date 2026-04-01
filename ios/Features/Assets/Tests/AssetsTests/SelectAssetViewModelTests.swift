@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import AssetsTestKit
 import Primitives
 import PrimitivesTestKit
-import AssetsTestKit
+import Testing
 
 @testable import Assets
 
 @MainActor
 struct SelectAssetViewModelTests {
-
     @Test
     func recentActivityTypes() {
         let model = SelectAssetViewModel.mock()

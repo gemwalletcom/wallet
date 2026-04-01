@@ -1,19 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Formatters
+import Style
 import SwiftUI
 import WidgetKit
-import Style
-import Formatters
 
 struct WidgetContentView: View {
     private let viewModel: PriceWidgetViewModel
     private let showErrorMessage: Bool
-    
+
     init(viewModel: PriceWidgetViewModel, showErrorMessage: Bool = true) {
         self.viewModel = viewModel
         self.showErrorMessage = showErrorMessage
     }
-    
+
     @ViewBuilder
     var body: some View {
         if viewModel.entry.error != nil {
@@ -27,10 +27,10 @@ struct WidgetContentView: View {
                             coin: bitcoin,
                             currencyFormatter: CurrencyFormatter(
                                 type: .abbreviated,
-                                currencyCode: viewModel.entry.currency
+                                currencyCode: viewModel.entry.currency,
                             ),
-                            percentFormatter: CurrencyFormatter.percent
-                        )
+                            percentFormatter: CurrencyFormatter.percent,
+                        ),
                     )
                 }
             default:
@@ -39,10 +39,10 @@ struct WidgetContentView: View {
                         model: CoinPriceRowViewModel(
                             coin: coin,
                             currencyFormatter: CurrencyFormatter(
-                                currencyCode: viewModel.entry.currency
+                                currencyCode: viewModel.entry.currency,
                             ),
-                            percentFormatter: CurrencyFormatter.percent
-                        )
+                            percentFormatter: CurrencyFormatter.percent,
+                        ),
                     )
                 }
             }

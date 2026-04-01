@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Primitives
 import Localization
+import Primitives
 import Style
+import SwiftUI
 
 public struct NetworkFeeScene: View {
     @Environment(\.dismiss) private var dismiss
@@ -23,7 +23,7 @@ public struct NetworkFeeScene: View {
                         HStack {
                             EmojiView(
                                 color: Colors.grayBackground,
-                                emoji: feeRate.emoji
+                                emoji: feeRate.emoji,
                             )
                             .frame(width: Sizing.image.asset, height: Sizing.image.asset)
 
@@ -39,7 +39,7 @@ public struct NetworkFeeScene: View {
                                 action: {
                                     model.priority = $0
                                     dismiss()
-                                }
+                                },
                             )
                         }
                     }
@@ -55,7 +55,7 @@ public struct NetworkFeeScene: View {
                 title: model.title,
                 subtitle: model.value,
                 subtitleExtra: model.fiatValue,
-                placeholders: [.subtitle]
+                placeholders: [.subtitle],
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

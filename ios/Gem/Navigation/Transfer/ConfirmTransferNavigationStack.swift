@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import SwiftUI
-import Primitives
 import ChainService
-import Transfer
 import ExplorerService
+import Foundation
+import Primitives
 import Signer
 import Style
+import SwiftUI
+import Transfer
 
 struct ConfirmTransferNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -16,24 +16,24 @@ struct ConfirmTransferNavigationStack: View {
     private let transferData: TransferData
     private let onComplete: VoidAction
 
-    public init(
+    init(
         wallet: Wallet,
         transferData: TransferData,
-        onComplete: VoidAction
+        onComplete: VoidAction,
     ) {
         self.wallet = wallet
         self.transferData = transferData
         self.onComplete = onComplete
     }
-    
+
     var body: some View {
         NavigationStack {
             ConfirmTransferNavigationView(
                 model: viewModelFactory.confirmTransferScene(
                     wallet: wallet,
                     data: transferData,
-                    onComplete: onComplete
-                )
+                    onComplete: onComplete,
+                ),
             )
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

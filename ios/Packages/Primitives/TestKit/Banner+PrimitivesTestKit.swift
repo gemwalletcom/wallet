@@ -9,14 +9,14 @@ public extension Banner {
         asset: Asset? = .mock(),
         chain: Chain? = .bitcoin,
         event: BannerEvent = .stake,
-        state: BannerState = .active
+        state: BannerState = .active,
     ) -> Banner {
         Banner(
             wallet: wallet,
             asset: asset,
             chain: chain,
             event: event,
-            state: state
+            state: state,
         )
     }
 }

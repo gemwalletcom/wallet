@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 struct PulsingDotView: View {
     private let color: Color
@@ -11,7 +11,7 @@ struct PulsingDotView: View {
     init(
         color: Color,
         dotSize: CGFloat = 8,
-        isAnimated: Bool = true
+        isAnimated: Bool = true,
     ) {
         self.color = color
         self.dotSize = dotSize
@@ -37,8 +37,8 @@ extension PulsingDotView {
                     colors: [Colors.white, color],
                     center: .center,
                     startRadius: 0,
-                    endRadius: dotSize / 2
-                )
+                    endRadius: dotSize / 2,
+                ),
             )
             .frame(width: dotSize, height: dotSize)
             .shadow(color: color.opacity(.strong), radius: 6)
@@ -51,7 +51,7 @@ extension PulsingDotView {
             size: dotSize,
             maxScale: scale,
             delay: delay,
-            isAnimated: isAnimated
+            isAnimated: isAnimated,
         )
     }
 }

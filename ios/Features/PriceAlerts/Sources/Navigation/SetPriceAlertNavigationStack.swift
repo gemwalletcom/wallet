@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import PrimitivesComponents
+import SwiftUI
 
 public struct SetPriceAlertNavigationStack: View {
     private let model: SetPriceAlertViewModel

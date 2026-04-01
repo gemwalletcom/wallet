@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import Primitives
 
 public struct PriceImpactValue: Equatable, Sendable {
-    let type: PriceImpactType
+    let type: SwapPriceImpactType
     let value: String
 }

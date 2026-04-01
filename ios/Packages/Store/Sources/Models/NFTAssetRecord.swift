@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GRDB
+import Primitives
 
 struct NFTAssetRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "nft_assets"
 
-    struct Columns {
+    enum Columns {
         static let id = Column("id")
         static let collectionId = Column("collectionId")
         static let contractAddress = Column("contractAddress")
@@ -35,18 +35,17 @@ struct NFTAssetRecord: Codable, FetchableRecord, PersistableRecord {
 
     var resourceUrl: String
     var resourceMimeType: String
-    
+
     var previewImageUrl: String
     var previewImageMimeType: String
-    
+
     static let collection = belongsTo(NFTCollectionRecord.self)
     static let assetAssociations = hasMany(NFTAssetAssociationRecord.self)
 }
 
 extension NFTAssetRecord: CreateTable {
-    
     static func create(db: Database) throws {
-        try db.create(table: Self.databaseTableName, ifNotExists: true) {
+        try db.create(table: databaseTableName, ifNotExists: true) {
             $0.column(Columns.id.name, .text)
                 .primaryKey()
             $0.column(Columns.contractAddress.name, .text)
@@ -89,7 +88,7 @@ extension NFTAsset {
             resourceUrl: resource.url,
             resourceMimeType: resource.mimeType,
             previewImageUrl: images.preview.url,
-            previewImageMimeType: images.preview.mimeType
+            previewImageMimeType: images.preview.mimeType,
         )
     }
 }
@@ -109,10 +108,10 @@ extension NFTAssetRecord {
             images: NFTImages(
                 preview: NFTResource(
                     url: previewImageUrl,
-                    mimeType: previewImageMimeType
-                )
+                    mimeType: previewImageMimeType,
+                ),
             ),
-            attributes: attributes ?? []
+            attributes: attributes ?? [],
         )
     }
 }

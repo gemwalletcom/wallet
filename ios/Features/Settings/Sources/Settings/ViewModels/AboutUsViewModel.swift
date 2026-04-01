@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
+import AppService
+import Components
+import GemstonePrimitives
 import Localization
 import Preferences
-import GemstonePrimitives
-import Components
-import PrimitivesComponents
-import AppService
 import Primitives
+import PrimitivesComponents
+import Style
+import SwiftUI
 
 @Observable
 @MainActor
@@ -18,7 +18,7 @@ public final class AboutUsViewModel: Sendable {
 
     public init(
         preferences: ObservablePreferences,
-        releaseService: AppReleaseService
+        releaseService: AppReleaseService,
     ) {
         self.preferences = preferences
         self.releaseService = releaseService
@@ -41,6 +41,7 @@ public final class AboutUsViewModel: Sendable {
         let number = Bundle.main.buildVersionNumber
         return "\(version) (\(number))"
     }
+
     var versionTextImage: AssetImage { AssetImage.image(Images.Settings.version) }
 
     var contextDevTitle: String {
@@ -50,6 +51,7 @@ public final class AboutUsViewModel: Sendable {
             Localized.Settings.enableValue(Localized.Settings.developer)
         }
     }
+
     var contextDeveloperImage: String { SystemImage.info }
 
     var contextMenuItems: [ContextMenuItemType] {
@@ -58,15 +60,16 @@ public final class AboutUsViewModel: Sendable {
             .custom(
                 title: contextDevTitle,
                 systemImage: contextDeveloperImage,
-                action: toggleDeveloperMode
-            )
+                action: toggleDeveloperMode,
+            ),
         ]
     }
-    
+
     var release: Release?
     var releaseVersion: String? {
         release?.version
     }
+
     var releaseImage: AssetImage {
         AssetImage.image(Images.Settings.gem)
     }
@@ -76,11 +79,11 @@ extension AboutUsViewModel {
     func toggleDeveloperMode() {
         preferences.isDeveloperEnabled.toggle()
     }
-    
+
     func fetch() async {
         release = await releaseService.getNewestRelease()
     }
-    
+
     func onUpdate() {
         UIApplication.shared.open(PublicConstants.url(.appStore))
     }

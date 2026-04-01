@@ -6,7 +6,6 @@ import Testing
 @testable import WebSocketClient
 
 struct ExponentialReconnectionTests {
-
     @Test
     func reconnectAfterWithDefaultMultiplier() {
         let reconnection = ExponentialReconnection(multiplier: 0.3, maxDelay: 10)

@@ -6,22 +6,22 @@ public extension LatencyType {
     static func from(duration: Double) -> LatencyType {
         switch duration {
         case ..<1024:
-            return .fast
+            .fast
         case ..<2048:
-            return .normal
+            .normal
         default:
-            return .slow
+            .slow
         }
     }
 }
 
 public extension Latency {
     var type: LatencyType { latency_type }
-    
+
     static func from(duration: Double) -> Latency {
         Latency(
             latency_type: LatencyType.from(duration: duration),
-            value: duration
+            value: duration,
         )
     }
 }

@@ -2,12 +2,11 @@
 
 import Foundation
 
-public struct VersionCheck {
-    
+public enum VersionCheck {
     public static func isVersionHigher(new: String, current: String) -> Bool {
         let newComponents = new.components(separatedBy: ".").compactMap { Int($0) }
         let currentComponents = current.components(separatedBy: ".").compactMap { Int($0) }
-        
+
         for (newComponent, currentComponent) in zip(newComponents, currentComponents) {
             if newComponent > currentComponent {
                 return true

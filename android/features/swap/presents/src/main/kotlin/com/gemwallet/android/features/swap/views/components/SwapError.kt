@@ -61,7 +61,7 @@ internal fun SwapError(state: SwapState, pay: AssetInfo?) {
                 modifier = Modifier.size(smallIconSize),
                 imageVector = Icons.Outlined.Warning,
                 tint = MaterialTheme.colorScheme.error,
-                contentDescription = ""
+                contentDescription = null,
             )
             Spacer8()
             Text(

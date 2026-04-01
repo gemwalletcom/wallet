@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Primitives
-import Components
 
 @MainActor
 public protocol ChartListViewable: AnyObject, Observable {
@@ -12,6 +12,6 @@ public protocol ChartListViewable: AnyObject, Observable {
     func fetch() async
 }
 
-extension ChartListViewable {
-    public var periods: [ChartPeriod] { [.hour, .day, .week, .month, .year, .all] }
+public extension ChartListViewable {
+    var periods: [ChartPeriod] { [.hour, .day, .week, .month, .year, .all] }
 }

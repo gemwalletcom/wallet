@@ -14,7 +14,7 @@ extension AutocloseOpenData {
         size: Double = 1.0,
         assetDecimals: Int32 = 8,
         takeProfit: String? = nil,
-        stopLoss: String? = nil
+        stopLoss: String? = nil,
     ) -> AutocloseOpenData {
         AutocloseOpenData(
             assetId: assetId,
@@ -25,7 +25,7 @@ extension AutocloseOpenData {
             size: size,
             assetDecimals: assetDecimals,
             takeProfit: takeProfit,
-            stopLoss: stopLoss
+            stopLoss: stopLoss,
         )
     }
 }

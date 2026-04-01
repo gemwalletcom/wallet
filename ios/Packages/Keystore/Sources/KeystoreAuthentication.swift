@@ -14,14 +14,14 @@ extension KeystoreAuthentication {
     var policy: AuthenticationPolicy {
         switch self {
         case .biometrics:
-            return [.biometryAny, .or, .devicePasscode]
+            [.biometryAny, .or, .devicePasscode]
         case .passcode:
-            return [.devicePasscode]
+            [.devicePasscode]
         case .none:
-            return []
+            []
         }
     }
-    
+
     static var availableAuthenticationType: KeystoreAuthentication {
         let context = LAContext()
         do {

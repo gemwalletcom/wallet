@@ -17,14 +17,14 @@ public enum ListItemViewPlaceholderType: Identifiable, CaseIterable {
 }
 
 public struct ListItemModel {
-    public struct StyleDefaults {
+    public enum StyleDefaults {
         public static let titleStyle: TextStyle = .body
         public static let titleTagStyle: TextStyle = .body
         public static let titleExtraStyle: TextStyle = .footnote
         public static let subtitleStyle: TextStyle = .calloutSecondary
         public static let subtitleExtraStyle: TextStyle = .calloutSecondary
     }
-    
+
     public struct TitleConfiguration {
         let title: TextValue
         let titleExtra: TextValue?
@@ -72,7 +72,7 @@ public struct ListItemModel {
         subtitleExtraLineLimit: Int? = 1,
         imageStyle: ListItemImageStyle? = nil,
         placeholders: [ListItemViewPlaceholderType] = [],
-        infoAction: (() -> Void)? = nil
+        infoAction: (() -> Void)? = nil,
     ) {
         self.title = title
         self.titleStyle = titleStyle
@@ -102,8 +102,8 @@ public struct ListItemModel {
     public var subtitleExtraTextValue: TextValue? { subtitleExtra.map { TextValue(text: $0, style: subtitleStyleExtra, lineLimit: subtitleExtraLineLimit) } }
 
     public var titleView: TextValue? { titleTextValue }
-    public var subtitleView: TextValue? { 
-        showPlaceholderProgress(for: .subtitle, value: subtitleTextValue) ? nil : subtitleTextValue 
+    public var subtitleView: TextValue? {
+        showPlaceholderProgress(for: .subtitle, value: subtitleTextValue) ? nil : subtitleTextValue
     }
 
     public var titleConfiguration: TitleConfiguration? {
@@ -113,11 +113,11 @@ public struct ListItemModel {
                 titleExtra: titleExtraTextValue,
                 titleTag: titleTagTextValue,
                 titleTagType: titleTagType,
-                infoAction: infoAction
+                infoAction: infoAction,
             )
         }
     }
-    
+
     public var imageAlignment: VerticalAlignment { imageStyle?.alignment ?? .center }
 
     public var loadingTintColor: Color { subtitleTextValue?.style.color ?? Colors.gray }

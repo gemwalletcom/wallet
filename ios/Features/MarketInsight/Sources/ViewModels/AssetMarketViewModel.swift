@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
 import Formatters
+import Foundation
+import InfoSheet
 import Localization
+import Primitives
 import PrimitivesComponents
 import Style
-import InfoSheet
 
 struct AssetMarketViewModel {
     private let market: AssetMarket
@@ -18,12 +18,12 @@ struct AssetMarketViewModel {
     init(
         market: AssetMarket,
         assetSymbol: String,
-        currency: String
+        currency: String,
     ) {
         self.market = market
         self.assetSymbol = assetSymbol
         self.currency = currency
-        self.currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency)
+        currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency)
     }
 
     // MARK: - Market
@@ -34,7 +34,7 @@ struct AssetMarketViewModel {
                 title: Localized.Asset.marketCap,
                 subtitle: formatCurrency(market.marketCap),
                 titleTag: " #\(rank) ",
-                titleTagStyle: TextStyle(font: .system(.body), color: Colors.grayLight, background: Colors.grayVeryLight)
+                titleTagStyle: TextStyle(font: .system(.body), color: Colors.grayLight, background: Colors.grayVeryLight),
             )
         }
         return MarketValueViewModel(title: Localized.Asset.marketCap, subtitle: formatCurrency(market.marketCap))
@@ -48,7 +48,7 @@ struct AssetMarketViewModel {
         MarketValueViewModel(
             title: Localized.Info.FullyDilutedValuation.title,
             subtitle: formatCurrency(market.marketCapFdv),
-            action: .info(.fullyDilutedValuation)
+            action: .info(.fullyDilutedValuation),
         )
     }
 
@@ -58,7 +58,7 @@ struct AssetMarketViewModel {
         MarketValueViewModel(
             title: Localized.Asset.circulatingSupply,
             subtitle: formatSupply(market.circulatingSupply),
-            action: .info(.circulatingSupply)
+            action: .info(.circulatingSupply),
         )
     }
 
@@ -66,7 +66,7 @@ struct AssetMarketViewModel {
         MarketValueViewModel(
             title: Localized.Asset.totalSupply,
             subtitle: formatSupply(market.totalSupply),
-            action: .info(.totalSupply)
+            action: .info(.totalSupply),
         )
     }
 
@@ -74,7 +74,7 @@ struct AssetMarketViewModel {
         MarketValueViewModel(
             title: Localized.Info.MaxSupply.title,
             subtitle: market.maxSupply == 0 ? "∞ \(assetSymbol)" : formatSupply(market.maxSupply),
-            action: .info(.maxSupply)
+            action: .info(.maxSupply),
         )
     }
 
@@ -93,7 +93,7 @@ struct AssetMarketViewModel {
     private var allTime: AllTimeValueViewModel {
         AllTimeValueViewModel(
             priceFormatter: CurrencyFormatter(currencyCode: currency),
-            percentFormatter: CurrencyFormatter(type: .percent, currencyCode: currency)
+            percentFormatter: CurrencyFormatter(type: .percent, currencyCode: currency),
         )
     }
 
@@ -107,7 +107,7 @@ struct AssetMarketViewModel {
             titleExtra: item.titleExtra,
             subtitle: item.subtitle,
             subtitleExtra: item.subtitleExtra,
-            subtitleExtraStyle: item.subtitleStyleExtra
+            subtitleExtraStyle: item.subtitleStyleExtra,
         )
     }
 

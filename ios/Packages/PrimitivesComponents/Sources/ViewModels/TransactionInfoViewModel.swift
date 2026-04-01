@@ -6,7 +6,7 @@ import Formatters
 import Foundation
 import Primitives
 
-internal import GemstonePrimitives
+import GemstonePrimitives
 
 public struct TransactionInfoViewModel: Sendable {
     private let asset: Asset
@@ -17,7 +17,7 @@ public struct TransactionInfoViewModel: Sendable {
     private let feeAsset: Asset
     private let feeAssetPrice: Price?
     private let feeValue: BigInt?
-    
+
     private let currency: String
 
     public init(
@@ -28,7 +28,7 @@ public struct TransactionInfoViewModel: Sendable {
         feeAssetPrice: Price?,
         value: BigInt,
         feeValue: BigInt?,
-        direction: TransactionDirection?
+        direction: TransactionDirection?,
     ) {
         self.currency = currency
         self.asset = asset
@@ -39,7 +39,7 @@ public struct TransactionInfoViewModel: Sendable {
         self.feeValue = feeValue
         self.direction = direction
     }
-    
+
     public var isZero: Bool {
         value.isZero
     }
@@ -51,7 +51,7 @@ public struct TransactionInfoViewModel: Sendable {
             value: value,
             direction: direction,
             currency: currency,
-            formatter: formatter
+            formatter: formatter,
         )
     }
 
@@ -62,7 +62,7 @@ public struct TransactionInfoViewModel: Sendable {
                 price: feeAssetPrice,
                 value: $0,
                 currency: currency,
-                formatter: .medium
+                formatter: .medium,
             )
         }
     }
@@ -70,21 +70,21 @@ public struct TransactionInfoViewModel: Sendable {
     public func headerType(input: TransactionHeaderInputType) -> TransactionHeaderType {
         switch input {
         case let .amount(showFiat): .amount(
-            amountDisplay().fiatVisibility(showFiat)
-        )
-        case let .nft(name, id): .nft(
-            name: name,
-            image: AssetImage(
-                type: "NFT",
-                imageURL: AssetImageFormatter().getNFTUrl(for: id),
-                placeholder: .none,
-                chainPlaceholder: .none
+                amountDisplay().fiatVisibility(showFiat),
             )
-        )
+        case let .nft(name, id): .nft(
+                name: name,
+                image: AssetImage(
+                    type: "NFT",
+                    imageURL: AssetImageFormatter().getNFTUrl(for: id),
+                    placeholder: .none,
+                    chainPlaceholder: .none,
+                ),
+            )
         case let .swap(swapInput): .swap(
-            from: swapAmountField(input: swapInput.from),
-            to: swapAmountField(input: swapInput.to)
-        )
+                from: swapAmountField(input: swapInput.from),
+                to: swapAmountField(input: swapInput.to),
+            )
         case .symbol: .amount(.symbol(asset: asset))
         case .assetImage: .asset(image: AssetViewModel(asset: asset).assetImage)
         }
@@ -92,16 +92,16 @@ public struct TransactionInfoViewModel: Sendable {
 }
 
 extension TransactionInfoViewModel {
-    private func swapAmountField(input: AssetValuePrice) -> SwapAmountField  {
+    private func swapAmountField(input: AssetValuePrice) -> SwapAmountField {
         let display = AmountDisplay.numeric(
             data: input,
-            style: .init(formatter: .medium, currencyCode: currency)
+            style: .init(formatter: .medium, currencyCode: currency),
         )
 
         return SwapAmountField(
             assetImage: AssetIdViewModel(assetId: input.asset.id).assetImage,
             amount: display.amount.text,
-            fiatAmount: display.fiat?.text
+            fiatAmount: display.fiat?.text,
         )
     }
 }

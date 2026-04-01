@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
 import PriceAlertService
 import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import PriceAlerts
 @testable import Store
@@ -22,7 +22,7 @@ struct AssetPriceAlertsViewModelTests {
         let model = AssetPriceAlertsViewModel.mock()
         model.query.value = [alert1, alert2, alert3, autoAlert]
 
-        #expect(model.alertsModel.map { $0.data } == [alert3, alert2, alert1])
+        #expect(model.alertsModel.map(\.data) == [alert3, alert2, alert1])
         #expect(model.isAutoAlertEnabledBinding.wrappedValue == true)
     }
 }
@@ -31,12 +31,12 @@ extension AssetPriceAlertsViewModel {
     static func mock(
         priceAlertService: PriceAlertService = .mock(),
         walletId: WalletId = .mock(),
-        asset: Asset = .mock()
+        asset: Asset = .mock(),
     ) -> AssetPriceAlertsViewModel {
         AssetPriceAlertsViewModel(
             priceAlertService: priceAlertService,
             walletId: walletId,
-            asset: asset
+            asset: asset,
         )
     }
 }

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import BigInt
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
+import Testing
 
 struct SwapQuoteInputTests {
     @Test
@@ -12,7 +12,7 @@ struct SwapQuoteInputTests {
         let availableBalance = BigInt("1000000000000000000")
         let fromAsset = AssetData.mock(
             asset: .mockEthereum(),
-            balance: .mock(available: availableBalance)
+            balance: .mock(available: availableBalance),
         )
         let toAsset = AssetData.mock(asset: .mockEthereumUSDT())
         let formatter = SwapValueFormatter(valueFormatter: .full)
@@ -21,7 +21,7 @@ struct SwapQuoteInputTests {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: "1",
-            formatter: formatter
+            formatter: formatter,
         )
 
         #expect(input.value == availableBalance)
@@ -33,7 +33,7 @@ struct SwapQuoteInputTests {
         let availableBalance = BigInt("1000000000000000000")
         let fromAsset = AssetData.mock(
             asset: .mockEthereum(),
-            balance: .mock(available: availableBalance)
+            balance: .mock(available: availableBalance),
         )
         let toAsset = AssetData.mock(asset: .mockEthereumUSDT())
         let formatter = SwapValueFormatter(valueFormatter: .full)
@@ -42,7 +42,7 @@ struct SwapQuoteInputTests {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: "0.5",
-            formatter: formatter
+            formatter: formatter,
         )
 
         #expect(input.value == BigInt("500000000000000000"))
@@ -55,7 +55,7 @@ struct SwapQuoteInputTests {
         let usdtAsset = Asset.mockEthereumUSDT()
         let fromAsset = AssetData.mock(
             asset: usdtAsset,
-            balance: .mock(available: availableBalance)
+            balance: .mock(available: availableBalance),
         )
         let toAsset = AssetData.mock(asset: .mockEthereum())
         let formatter = SwapValueFormatter(valueFormatter: .full)
@@ -64,7 +64,7 @@ struct SwapQuoteInputTests {
             fromAsset: fromAsset,
             toAsset: toAsset,
             fromValue: "1",
-            formatter: formatter
+            formatter: formatter,
         )
 
         #expect(input.value == availableBalance)

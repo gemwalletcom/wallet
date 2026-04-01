@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
 import PrimitivesTestKit
+import Testing
 
 @testable import PrimitivesComponents
 
 struct AssetViewModelTests {
-
     @Test
     func subtitleSymbol() {
         #expect(AssetViewModel(asset: .mock()).subtitleSymbol == "BTC")

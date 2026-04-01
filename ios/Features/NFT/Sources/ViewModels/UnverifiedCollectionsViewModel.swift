@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
-import Primitives
-import Store
+import Foundation
 import Localization
-import SwiftUI
+import Primitives
 import PrimitivesComponents
+import Store
+import SwiftUI
 
 @Observable
 @MainActor
@@ -20,7 +20,7 @@ public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable
 
     public init(wallet: Wallet) {
         self.wallet = wallet
-        self.query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .unverified), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .unverified), initialValue: [])
     }
 
     public var title: String { Localized.Asset.Verification.unverified }

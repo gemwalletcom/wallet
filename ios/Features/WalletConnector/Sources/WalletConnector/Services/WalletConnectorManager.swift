@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Primitives
+import SwiftUI
 import WalletConnectorService
 
 public final class WalletConnectorManager {
@@ -17,14 +17,14 @@ public final class WalletConnectorManager {
 extension WalletConnectorManager: WalletConnectorInteractable {
     public func sessionReject(error: any Error) async {
         let ignoreErrors = [
-            "User cancelled" // User cancelled throw by WalletConnect if session proposal is rejected
+            "User cancelled", // User cancelled throw by WalletConnect if session proposal is rejected
         ]
         guard !ignoreErrors.contains(error.localizedDescription) else {
             return
         }
         await MainActor.run { [weak self] in
             guard let self else { return }
-            self.presenter.isPresentingError = error.localizedDescription
+            presenter.isPresentingError = error.localizedDescription
         }
     }
 
@@ -45,7 +45,7 @@ extension WalletConnectorManager: WalletConnectorInteractable {
         try await presentSheet(payload: transferData, sheetType: { .transferData($0) })
     }
 
-    public func sendRawTransaction(transferData: WCTransferData) async throws -> String {
+    public func sendRawTransaction(transferData _: WCTransferData) async throws -> String {
         fatalError("")
     }
 
@@ -53,7 +53,7 @@ extension WalletConnectorManager: WalletConnectorInteractable {
 
     private func presentSheet<T: Identifiable & Sendable>(
         payload: T,
-        sheetType: @Sendable @escaping (TransferDataCallback<T>) -> WalletConnectorSheetType
+        sheetType: @Sendable @escaping (TransferDataCallback<T>) -> WalletConnectorSheetType,
     ) async throws -> String {
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: String.self)
 

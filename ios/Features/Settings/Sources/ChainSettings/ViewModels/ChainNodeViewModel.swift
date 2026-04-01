@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
-import Style
-import Localization
 import Formatters
+import Foundation
+import Localization
+import Primitives
+import Style
 
 struct ChainNodeViewModel: Sendable {
     let chainNode: ChainNode
@@ -16,7 +16,7 @@ struct ChainNodeViewModel: Sendable {
     init(
         chainNode: ChainNode,
         statusState: NodeStatusState,
-        formatter: ValueFormatter
+        formatter: ValueFormatter,
     ) {
         self.chainNode = chainNode
         self.statusState = statusState
@@ -26,14 +26,12 @@ struct ChainNodeViewModel: Sendable {
     var title: String {
         guard let host = chainNode.host else { return "" }
 
-        let flag: String? = {
-            switch host {
-            case Constants.nodesAsiaURL.cleanHost(): "🇯🇵"
-            case Constants.nodesEuropeURL.cleanHost(): "🇪🇺"
-            case Constants.nodesURL.cleanHost(): "🇺🇸"
-            default: nil
-            }
-        }()
+        let flag: String? = switch host {
+        case Constants.nodesAsiaURL.cleanHost(): "🇯🇵"
+        case Constants.nodesEuropeURL.cleanHost(): "🇪🇺"
+        case Constants.nodesURL.cleanHost(): "🇺🇸"
+        default: nil
+        }
 
         if let flag {
             return Localized.Nodes.gemWalletNode + " " + flag
@@ -45,7 +43,7 @@ struct ChainNodeViewModel: Sendable {
         nodeStatusModel
             .latestBlockText(
                 title: Localized.Nodes.ImportNode.latestBlock,
-                formatter: formatter
+                formatter: formatter,
             )
     }
 
@@ -61,10 +59,10 @@ struct ChainNodeViewModel: Sendable {
     }
 
     var titleTagStyle: TextStyle {
-        return TextStyle(
+        TextStyle(
             font: .footnote.weight(.medium),
             color: nodeStatusModel.color,
-            background: nodeStatusModel.background
+            background: nodeStatusModel.background,
         )
     }
 
@@ -90,4 +88,3 @@ extension ChainNode {
         host?.contains("gemnodes.com") ?? false
     }
 }
-

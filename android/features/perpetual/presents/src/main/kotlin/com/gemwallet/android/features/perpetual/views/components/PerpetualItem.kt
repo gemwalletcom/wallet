@@ -86,7 +86,7 @@ fun PerpetualItem(
         } else {
             {
                 PriceInfo(
-                    price = item.price.valueFormated,
+                    price = item.price.valueFormatted,
                     changes = item.price.changePercentageFormatted,
                     state = item.price.state,
                     style = MaterialTheme.typography.bodyMedium,

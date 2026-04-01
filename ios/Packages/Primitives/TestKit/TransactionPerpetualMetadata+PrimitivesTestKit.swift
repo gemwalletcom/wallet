@@ -9,14 +9,14 @@ public extension TransactionPerpetualMetadata {
         price: Double = 0,
         direction: PerpetualDirection = .long,
         isLiquidation: Bool? = nil,
-        provider: PerpetualProvider? = .hypercore
+        provider: PerpetualProvider? = .hypercore,
     ) -> TransactionPerpetualMetadata {
         TransactionPerpetualMetadata(
             pnl: pnl,
             price: price,
             direction: direction,
             isLiquidation: isLiquidation,
-            provider: provider
+            provider: provider,
         )
     }
 }

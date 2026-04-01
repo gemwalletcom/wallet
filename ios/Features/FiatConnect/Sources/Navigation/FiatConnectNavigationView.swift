@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Store
 import Components
 import Localization
+import Primitives
+import Store
 import Style
+import SwiftUI
 
 public struct FiatConnectNavigationView: View {
     @State private var model: FiatSceneViewModel
@@ -16,7 +16,7 @@ public struct FiatConnectNavigationView: View {
 
     public var body: some View {
         FiatScene(
-            model: model
+            model: model,
         )
         .onChangeBindQuery(model.assetQuery, action: model.onAssetDataChange)
         .ifElse(
@@ -28,7 +28,7 @@ public struct FiatConnectNavigationView: View {
             },
             elseContent: {
                 $0.navigationTitle(model.title)
-            }
+            },
         )
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -41,15 +41,15 @@ public struct FiatConnectNavigationView: View {
             FiatTransactionsScene(
                 model: FiatTransactionsViewModel(
                     walletId: model.walletId,
-                    service: model.fiatService
-                )
+                    service: model.fiatService,
+                ),
             )
         }
         .sheet(isPresented: $model.isPresentingFiatProvider) {
             SelectableListNavigationStack(
                 model: model.fiatProviderViewModel,
                 onFinishSelection: model.onSelectQuotes,
-                listContent: { SimpleListItemView(model: $0) }
+                listContent: { SimpleListItemView(model: $0) },
             )
         }
     }

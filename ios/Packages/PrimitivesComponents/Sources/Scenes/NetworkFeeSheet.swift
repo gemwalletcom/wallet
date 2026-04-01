@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
 import Style
+import SwiftUI
 
 public struct NetworkFeeSheet: View {
     private let model: NetworkFeeSceneViewModel
@@ -19,7 +19,7 @@ public struct NetworkFeeSheet: View {
                 .presentationBackground(Colors.grayBackground)
         }
     }
-    
+
     private var presentationDetent: Set<PresentationDetent> {
         if model.showFeeRates {
             return Set([.medium, .large])

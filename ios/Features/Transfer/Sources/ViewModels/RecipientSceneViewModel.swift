@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import GemstonePrimitives
-import Localization
-import PrimitivesComponents
-import WalletService
 import Components
-import Style
-import NameService
-import Keystore
-import NodeService
-import SwiftUI
-import ScanService
 import Formatters
+import Foundation
+import GemstonePrimitives
+import Keystore
+import Localization
+import NameService
+import NodeService
+import Primitives
+import PrimitivesComponents
+import ScanService
 import Store
+import Style
+import SwiftUI
+import WalletService
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
@@ -48,7 +48,7 @@ public final class RecipientSceneViewModel {
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         onRecipientDataAction: RecipientDataAction,
-        onTransferAction: TransferDataAction
+        onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -58,17 +58,17 @@ public final class RecipientSceneViewModel {
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
 
-        self.addressInputModel = AddressInputViewModel(
+        addressInputModel = AddressInputViewModel(
             chain: asset.chain,
             nameService: nameService,
             placeholder: recipientField,
             validators: [
                 .required(requireName: recipientField),
-                .address(asset)
-            ]
+                .address(asset),
+            ],
         )
 
-        self.contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
+        contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
     }
 
     var tittle: String { Localized.Transfer.Recipient.title }
@@ -80,7 +80,7 @@ public final class RecipientSceneViewModel {
             type: "NFT",
             imageURL: assetImageFormatter.getNFTUrl(for: nftAsset.id),
             placeholder: .none,
-            chainPlaceholder: .none
+            chainPlaceholder: .none,
         )
     }
 
@@ -98,10 +98,10 @@ public final class RecipientSceneViewModel {
                 ListItemValueSection(
                     section: sectionTitle(for: $0),
                     image: sectionImage(for: $0),
-                    values: sectionRecipients(for: $0)
+                    values: sectionRecipients(for: $0),
                 )
             }
-            .filter({ $0.values.isNotEmpty })
+            .filter(\.values.isNotEmpty)
     }
 }
 
@@ -116,8 +116,8 @@ extension RecipientSceneViewModel {
                 name: addressInputModel.nameResolveState.result,
                 address: addressInputModel.text,
                 memo: memo,
-                amount: amount.isEmpty ? .none : amount
-            )
+                amount: amount.isEmpty ? .none : amount,
+            ),
         )
     }
 
@@ -139,7 +139,7 @@ extension RecipientSceneViewModel {
         }
     }
 
-    func onChangeAddressText(_: String, new: String) {
+    func onChangeAddressText(_: String, new _: String) {
         if !amount.isEmpty {
             amount = .empty
         }
@@ -147,7 +147,7 @@ extension RecipientSceneViewModel {
 
     func onSelectRecipient(_ recipient: RecipientAddress) {
         handle(
-            recipientData: makeRecipientData(recipient: recipient)
+            recipientData: makeRecipientData(recipient: recipient),
         )
     }
 }
@@ -165,7 +165,7 @@ extension RecipientSceneViewModel {
 
         return RecipientData(
             recipient: recipient,
-            amount: amount
+            amount: amount,
         )
     }
 
@@ -174,30 +174,30 @@ extension RecipientSceneViewModel {
             recipient: Recipient(
                 name: recipient.name,
                 address: recipient.address,
-                memo: recipient.memo
+                memo: recipient.memo,
             ),
-            amount: .none
+            amount: .none,
         )
     }
 
-    //TODO: Add unit tests, will be added once moved to package
+    // TODO: Add unit tests, will be added once moved to package
     private func paymentScan(string: String) throws -> PaymentScanResult {
         let payment = try PaymentURLDecoder.decode(string)
 
         return PaymentScanResult(
             address: payment.address,
             amount: payment.amount,
-            memo: payment.memo
+            memo: payment.memo,
         )
     }
 
-     func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
-        if let amount = payment.amount, (showMemo ? ((payment.memo?.isEmpty) == nil) : true),
+    func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
+        if let amount = payment.amount, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
            asset.chain.isValidAddress(payment.address)
         {
             let transferType: TransferDataType = switch type {
-            case .asset(let asset): .transfer(asset)
-            case .nft(let asset): .transferNft(asset)
+            case let .asset(asset): .transfer(asset)
+            case let .nft(asset): .transferNft(asset)
             }
 
             let value = try formatter.inputNumber(from: amount, decimals: asset.decimals.asInt)
@@ -205,12 +205,12 @@ extension RecipientSceneViewModel {
                 recipient: Recipient(
                     name: .none,
                     address: payment.address,
-                    memo: payment.memo
+                    memo: payment.memo,
                 ),
-                amount: .none
+                amount: .none,
             )
             return .transferData(
-                TransferData(type: transferType, recipientData: recipientData, value: value, canChangeValue: false)
+                TransferData(type: transferType, recipientData: recipientData, value: value, canChangeValue: false),
             )
         }
 
@@ -225,7 +225,7 @@ extension RecipientSceneViewModel {
             WalletRecipientSectionViewModel(
                 wallets: walletService.wallets.filter { $0.id != wallet.id },
                 section: section,
-                chain: asset.chain
+                chain: asset.chain,
             ).listItems
         }
     }
@@ -252,14 +252,14 @@ extension RecipientSceneViewModel {
         let payment = try paymentScan(string: string)
         let scanResult = try getRecipientScanResult(payment: payment)
         switch scanResult {
-        case .transferData(let data):
+        case let .transferData(data):
             handle(transferData: data)
-        case .recipient(let address, let memo, let amount):
+        case let .recipient(address, memo, amount):
             // TODO: - open if all fields filled
             addressInputModel.update(text: address)
 
-            if let memo = memo { self.memo = memo }
-            if let amount = amount { self.amount = amount }
+            if let memo { self.memo = memo }
+            if let amount { self.amount = amount }
         }
     }
 
@@ -267,7 +267,7 @@ extension RecipientSceneViewModel {
         switch type {
         case .asset:
             onRecipientDataAction?(recipientData)
-        case .nft(let asset):
+        case let .nft(asset):
             handle(transferData: TransferData(type: .transferNft(asset), recipientData: recipientData, value: .zero, canChangeValue: true))
         }
     }

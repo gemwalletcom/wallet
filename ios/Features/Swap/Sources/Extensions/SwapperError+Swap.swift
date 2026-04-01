@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import enum Gemstone.SwapperError
 import Formatters
+import enum Gemstone.SwapperError
 import Localization
 import Primitives
 
@@ -17,7 +17,7 @@ extension Gemstone.SwapperError: @retroactive RetryableError {
 
     public func message(asset: Asset) -> String {
         switch self {
-        case .InputAmountError(let minAmount):
+        case let .InputAmountError(minAmount):
             if let minAmount, let value = BigInt(minAmount), !value.isZero {
                 let value = ValueFormatter(style: .auto).string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
                 return Localized.Errors.Swap.minimumAmount(value.boldMarkdown())

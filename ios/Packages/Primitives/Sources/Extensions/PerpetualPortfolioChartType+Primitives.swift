@@ -2,6 +2,6 @@
 
 import Foundation
 
-extension PerpetualPortfolioChartType {
-    public var id: String { rawValue }
+public extension PerpetualPortfolioChartType {
+    var id: String { rawValue }
 }

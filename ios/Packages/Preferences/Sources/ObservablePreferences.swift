@@ -67,7 +67,7 @@ public final class ObservablePreferences: Sendable {
             }
         }
     }
-    
+
     @ObservationIgnored
     public var isAcceptTermsCompleted: Bool {
         get {
@@ -110,6 +110,6 @@ public final class ObservablePreferences: Sendable {
 
 // MARK: - EnvironmentValues
 
-extension EnvironmentValues {
-    @Entry public var observablePreferences: ObservablePreferences = .default
+public extension EnvironmentValues {
+    @Entry var observablePreferences: ObservablePreferences = .default
 }

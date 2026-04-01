@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import GemstonePrimitives
+import Primitives
 
-struct ScanTransactionValidator {
+enum ScanTransactionValidator {
     static func validate(
         transaction: ScanTransaction,
         asset: Asset,
-        memo: String?
+        memo: String?,
     ) throws {
         if transaction.isMalicious {
             throw ScanTransactionError.malicious

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Components
+import Foundation
 
 public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
     private let items: [Item]
@@ -11,7 +11,7 @@ public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
     public init(
         items: [Item],
         dateKeyPath: KeyPath<Item, Date>,
-        transform: @escaping (Item) -> T
+        transform: @escaping (Item) -> T,
     ) {
         self.items = items
         self.dateKeyPath = dateKeyPath
@@ -26,7 +26,7 @@ public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
                     id: date.ISO8601Format(),
                     title: TransactionDateFormatter(date: date).section,
                     image: nil,
-                    values: items.map(transform)
+                    values: items.map(transform),
                 )
             }
     }

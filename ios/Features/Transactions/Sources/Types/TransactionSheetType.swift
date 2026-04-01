@@ -12,7 +12,7 @@ enum TransactionSheetType: Identifiable {
         switch self {
         case .share: "share"
         case .feeDetails: "feeDetails"
-        case .info(let type): "info_\(type.id)"
+        case let .info(type): "info_\(type.id)"
         }
     }
 }

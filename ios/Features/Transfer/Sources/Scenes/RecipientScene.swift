@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Components
 import Primitives
 import PrimitivesComponents
 import Store
+import Style
+import SwiftUI
 
 public struct RecipientScene: View {
     public enum Field: Int, Hashable, Identifiable {
@@ -25,16 +25,16 @@ public struct RecipientScene: View {
     public var body: some View {
         @Bindable var model = model
         List {
-            Section { } header: {
+            Section {} header: {
                 Group {
                     switch model.type {
-                    case .asset(let asset):
+                    case let .asset(asset):
                         AssetPreviewView(model: AssetViewModel(asset: asset))
-                    case .nft(let nftAsset):
+                    case let .nft(nftAsset):
                         NftPreviewView(
                             assetImage: model.nftAssetImage(for: nftAsset),
                             name: nftAsset.name,
-                            size: .image.semiLarge
+                            size: .image.semiLarge,
                         )
                     }
                 }
@@ -46,7 +46,7 @@ public struct RecipientScene: View {
             Section {
                 AddressInputView(
                     model: $model.addressInputModel,
-                    onSelectScan: { model.onSelectScan(field: .address) }
+                    onSelectScan: { model.onSelectScan(field: .address) },
                 )
                 .focused($focusedField, equals: .address)
             }
@@ -60,9 +60,9 @@ public struct RecipientScene: View {
                         trailingView: {
                             ListButton(
                                 image: Images.System.qrCodeViewfinder,
-                                action: { model.onSelectScan(field: .memo) }
+                                action: { model.onSelectScan(field: .memo) },
                             )
-                        }
+                        },
                     )
                     .focused($focusedField, equals: .memo)
                     .keyboardType(.alphabet)
@@ -77,7 +77,7 @@ public struct RecipientScene: View {
                         let recipient = $0.value
                         NavigationCustomLink(
                             with: ListItemView(title: $0.title ?? $0.value.name, subtitle: $0.subtitle),
-                            action: { onSelectRecipient(recipient) }
+                            action: { onSelectRecipient(recipient) },
                         )
                     }
                 } header: {
@@ -93,7 +93,7 @@ public struct RecipientScene: View {
             StateButton(
                 text: model.actionButtonTitle,
                 type: .primary(model.actionButtonState),
-                action: onSelectContinue
+                action: onSelectContinue,
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

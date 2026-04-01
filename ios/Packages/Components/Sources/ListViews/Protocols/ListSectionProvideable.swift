@@ -11,7 +11,7 @@ public protocol ItemModelProvidable<ItemModel> {
 public protocol ListSectionProvideable: Sendable {
     associatedtype Item: Identifiable & Sendable
     associatedtype ItemModel
-    
+
     var sections: [ListSection<Item>] { get }
     func itemModel(for type: Item) -> any ItemModelProvidable<ItemModel>
 }

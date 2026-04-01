@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,7 +80,7 @@ fun WalletItem(
             ListItemSupportText(
                 when (type) {
                     WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
-                    else -> walletAddress?.getAddressEllipsisText() ?: ""
+                    else -> walletAddress?.getAddressEllipsisText(chain = walletChain) ?: ""
                 },
             )
         },
@@ -92,11 +91,7 @@ fun WalletItem(
             ) {
                 Spacer16()
                 if (isCurrent) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "checked",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
+                    SelectionCheckmark()
                 }
                 if (onEdit != null) {
                     Spacer8()

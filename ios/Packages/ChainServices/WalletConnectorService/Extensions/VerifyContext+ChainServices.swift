@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import ReownWalletKit
 import enum Gemstone.WalletConnectionVerificationStatus
+import ReownWalletKit
 
 extension ReownWalletKit.VerifyContext.ValidationStatus {
     func map() -> WalletConnectionVerificationStatus {

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Primitives
-import BigInt
 
 public extension TransferDataExtra {
     static func mock(
@@ -11,7 +11,7 @@ public extension TransferDataExtra {
         gasPrice: GasPriceType? = nil,
         data: Data? = nil,
         outputType: TransferDataOutputType = .encodedTransaction,
-        outputAction: TransferDataOutputAction = .send
+        outputAction: TransferDataOutputAction = .send,
     ) -> TransferDataExtra {
         TransferDataExtra(
             to: to,
@@ -19,7 +19,7 @@ public extension TransferDataExtra {
             gasPrice: gasPrice,
             data: data,
             outputType: outputType,
-            outputAction: outputAction
+            outputAction: outputAction,
         )
     }
 }

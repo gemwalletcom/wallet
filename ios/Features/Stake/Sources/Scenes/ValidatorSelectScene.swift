@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import Primitives
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct ValidatorSelectScene: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var model: ValidatorSelectSceneViewModel
 
     public init(model: ValidatorSelectSceneViewModel) {

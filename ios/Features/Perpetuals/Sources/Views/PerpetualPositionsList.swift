@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
+import Components
 import Primitives
 import PrimitivesComponents
-import Components
+import SwiftUI
 
 public struct PerpetualPositionsList: View {
     private let positions: [PerpetualPositionData]
@@ -11,7 +11,7 @@ public struct PerpetualPositionsList: View {
 
     public init(
         positions: [PerpetualPositionData],
-        onSelect: AssetAction = nil
+        onSelect: AssetAction = nil,
     ) {
         self.positions = positions
         self.onSelect = onSelect
@@ -22,7 +22,7 @@ public struct PerpetualPositionsList: View {
             if let onSelect {
                 NavigationCustomLink(
                     with: listItem(for: position),
-                    action: { onSelect(position.perpetualData.asset) }
+                    action: { onSelect(position.perpetualData.asset) },
                 )
             } else {
                 NavigationLink(value: Scenes.Perpetual(position.perpetualData)) {
@@ -35,8 +35,8 @@ public struct PerpetualPositionsList: View {
     private func listItem(for position: PerpetualPositionData) -> ListAssetItemView {
         ListAssetItemView(
             model: PerpetualPositionItemViewModel(
-                model: PerpetualPositionViewModel(position)
-            )
+                model: PerpetualPositionViewModel(position),
+            ),
         )
     }
 }

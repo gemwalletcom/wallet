@@ -5,7 +5,7 @@ public struct Response {
     public let body: Data
     public let headers: [String: String]
 
-    public init(code: Int, body: Data, headers: [String : String]) {
+    public init(code: Int, body: Data, headers: [String: String]) {
         self.code = code
         self.body = body
         self.headers = headers
@@ -28,10 +28,10 @@ public struct Response {
     }
 
     public func map<T: Decodable>(as type: T.Type, _ decoder: JSONDecoder = Self.standardDecoder) throws -> T {
-        return try decoder.decode(type, from: body)
+        try decoder.decode(type, from: body)
     }
 
-    public func mapOrError<T: Decodable, E: Decodable & LocalizedError>(as type: T.Type, asError: E.Type, _ decoder: JSONDecoder = Self.standardDecoder) throws -> T {
+    public func mapOrError<T: Decodable>(as type: T.Type, asError: (some Decodable & LocalizedError).Type, _ decoder: JSONDecoder = Self.standardDecoder) throws -> T {
         do {
             return try decoder.decode(type, from: body)
         } catch {
@@ -46,6 +46,7 @@ public struct Response {
         return try decoder.decode(type, from: body)
     }
 }
+
 // same code lives in primitives, allow to inject json / date formatter on init
 
 private extension Formatter {

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Localization
 import PrimitivesComponents
 import Store
+import SwiftUI
 
 public struct WalletPortfolioScene: View {
     @State private var model: WalletPortfolioSceneViewModel

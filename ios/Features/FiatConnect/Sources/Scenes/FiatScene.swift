@@ -1,9 +1,9 @@
-import SwiftUI
-import Primitives
-import Style
 import Components
-import Store
+import Primitives
 import PrimitivesComponents
+import Store
+import Style
+import SwiftUI
 
 public struct FiatScene: View {
     @State private var model: FiatSceneViewModel
@@ -16,7 +16,7 @@ public struct FiatScene: View {
         List {
             CurrencyInputValidationView(
                 model: $model.inputValidationModel,
-                config: model.currencyInputConfig
+                config: model.currencyInputConfig,
             )
             .padding(.top, .medium)
             .listGroupRowStyle()
@@ -27,7 +27,7 @@ public struct FiatScene: View {
             StateButton(
                 text: model.actionButtonTitle,
                 type: .primary(model.actionButtonState, showProgress: true),
-                action: model.onSelectContinue
+                action: model.onSelectContinue,
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)
@@ -73,7 +73,7 @@ extension FiatScene {
                         }
                     }
                     .fixedSize()
-                }
+                },
             )
         }
     }
@@ -92,12 +92,12 @@ extension FiatScene {
                     let view = ListItemImageView(
                         title: model.providerTitle,
                         subtitle: quote.provider.name,
-                        assetImage: model.providerAssetImage(quote.provider)
+                        assetImage: model.providerAssetImage(quote.provider),
                     )
                     if model.allowSelectProvider {
                         NavigationCustomLink(
                             with: view,
-                            action: model.onSelectFiatProviders
+                            action: model.onSelectFiatProviders,
                         )
                     } else {
                         view
@@ -106,7 +106,7 @@ extension FiatScene {
                 } else {
                     EmptyView()
                 }
-            case .error(let error):
+            case let .error(error):
                 ListItemErrorView(errorTitle: model.errorTitle, error: error)
             }
         }

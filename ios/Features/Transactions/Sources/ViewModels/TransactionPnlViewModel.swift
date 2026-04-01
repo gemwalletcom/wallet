@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
-import Localization
 import Components
 import Formatters
-import SwiftUI
+import Foundation
+import Localization
+import Primitives
 import Style
+import SwiftUI
 
 struct TransactionPnlViewModel: Sendable {
     private let metadata: TransactionPerpetualMetadata?
@@ -30,7 +30,7 @@ extension TransactionPnlViewModel: ItemModelProvidable {
         return .pnl(
             title: Localized.Perpetual.pnl,
             value: "\(sign)\(pnlFormatted)",
-            color: color
+            color: color,
         )
     }
 }

@@ -11,7 +11,7 @@ let package = Package(
     products: [
         .library(
             name: "FiatConnect",
-            targets: ["FiatConnect"]
+            targets: ["FiatConnect"],
         ),
     ],
     dependencies: [
@@ -40,7 +40,7 @@ let package = Package(
                 .product(name: "FiatService", package: "FeatureServices"),
                 .product(name: "BalanceService", package: "FeatureServices"),
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "FiatConnectTests",
@@ -50,7 +50,7 @@ let package = Package(
                 .product(name: "FiatServiceTestKit", package: "FeatureServices"),
                 .product(name: "BalanceServiceTestKit", package: "FeatureServices"),
             ],
-            path: "Tests"
+            path: "Tests",
         ),
-    ]
+    ],
 )

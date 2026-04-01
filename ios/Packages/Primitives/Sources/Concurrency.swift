@@ -8,7 +8,7 @@ public final class Locked<Value>: @unchecked Sendable {
     private let lock = NSLock()
 
     public init(wrappedValue: Value) {
-        self.value = wrappedValue
+        value = wrappedValue
     }
 
     public var wrappedValue: Value {

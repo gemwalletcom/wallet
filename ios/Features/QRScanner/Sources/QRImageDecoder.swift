@@ -2,10 +2,11 @@
 
 import SwiftUI
 
-struct QRImageDecoder {
+enum QRImageDecoder {
     static func process(_ image: UIImage) throws -> String {
         guard let ciImage = CIImage(image: image),
-              let qrCode = detectQRCode(in: ciImage) else {
+              let qrCode = detectQRCode(in: ciImage)
+        else {
             throw QRScannerError.decoding
         }
         return qrCode
@@ -15,7 +16,7 @@ struct QRImageDecoder {
         let detector = CIDetector(
             ofType: CIDetectorTypeQRCode,
             context: nil,
-            options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]
+            options: [CIDetectorAccuracy: CIDetectorAccuracyHigh],
         )
         let features = detector?.features(in: image) as? [CIQRCodeFeature]
         return features?.first?.messageString

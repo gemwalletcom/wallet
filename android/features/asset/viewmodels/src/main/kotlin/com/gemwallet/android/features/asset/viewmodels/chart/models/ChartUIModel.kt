@@ -1,9 +1,10 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
+import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.components.chart.ChartPoint
-import com.gemwallet.android.ui.models.PriceUIState
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
@@ -42,8 +43,8 @@ internal fun ChartUIModel.Companion.from(
             y = chartValue.value,
             yLabel = currency.format(chartValue.value, 2, dynamicPlace = true),
             timestamp = chartValue.timestamp * 1000L,
-            percentage = PriceUIState.formatPercentage(changePercent, showZero = true),
-            priceState = PriceUIState.getState(changePercent),
+            percentage = changePercent.formatAsPercentage(),
+            priceState = changePercent.toPriceState(),
         )
     }
     val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0) * 1000L
@@ -59,8 +60,8 @@ internal fun ChartUIModel.Companion.from(
                 y = info.price.price.toFloat(),
                 yLabel = currency.format(info.price.price.toFloat(), 2, dynamicPlace = true),
                 timestamp = System.currentTimeMillis(),
-                percentage = PriceUIState.formatPercentage(changePercent, showZero = true),
-                priceState = PriceUIState.getState(changePercent),
+                percentage = changePercent.formatAsPercentage(),
+                priceState = changePercent.toPriceState(),
             )
         }
 

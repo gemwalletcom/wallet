@@ -6,6 +6,7 @@ import com.wallet.core.primitives.AuthenticatedRequest
 import com.wallet.core.primitives.Device
 import com.wallet.core.primitives.FiatQuoteUrl
 import com.wallet.core.primitives.FiatQuotes
+import com.wallet.core.primitives.FiatTransactionInfo
 import com.wallet.core.primitives.MigrateDeviceIdRequest
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PriceAlert
@@ -134,5 +135,10 @@ interface GemDeviceApiClient {
         @Header(WALLET_ID_HEADER) walletId: String,
         @Path("quote_id") quoteId: String
     ): FiatQuoteUrl?
+
+    @GET("/v2/devices/fiat/transactions")
+    suspend fun getFiatTransactions(
+        @Header(WALLET_ID_HEADER) walletId: String,
+    ): List<FiatTransactionInfo>
 
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct TransferData: Identifiable, Sendable, Hashable {
     public let type: TransferDataType
@@ -13,7 +13,7 @@ public struct TransferData: Identifiable, Sendable, Hashable {
         type: TransferDataType,
         recipientData: RecipientData,
         value: BigInt,
-        canChangeValue: Bool = true
+        canChangeValue: Bool = true,
     ) {
         self.type = type
         self.recipientData = recipientData
@@ -24,7 +24,7 @@ public struct TransferData: Identifiable, Sendable, Hashable {
     public var id: String {
         [type.transactionType.rawValue, recipientData.recipient.address, String(value)].joined(separator: "-")
     }
-    
+
     public var chain: Chain {
         type.chain
     }

@@ -4,8 +4,7 @@ import Foundation
 import GRDB
 import Primitives
 
-struct WalletIdMigration {
-
+enum WalletIdMigration {
     private static let childTables = [
         AccountRecord.databaseTableName,
         BalanceRecord.databaseTableName,
@@ -69,7 +68,8 @@ struct WalletIdMigration {
             let violations = try Row.fetchAll(db, sql: "PRAGMA foreign_key_check")
             for violation in violations {
                 if let table = violation["table"] as? String,
-                   let rowid = violation["rowid"] as? Int64 {
+                   let rowid = violation["rowid"] as? Int64
+                {
                     try? db.execute(sql: "DELETE FROM \(table) WHERE rowid = ?", arguments: [rowid])
                 }
             }
@@ -136,7 +136,8 @@ struct WalletIdMigration {
                 newId = "multicoin_\(address)"
             case .single, .privateKey, .view:
                 guard let address: String = row["address"],
-                      let chain: String = row["chain"] else {
+                      let chain: String = row["chain"]
+                else {
                     return nil
                 }
                 newId = "\(type.rawValue)_\(chain)_\(address)"

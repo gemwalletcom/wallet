@@ -3,7 +3,6 @@
 import Foundation
 
 public struct TargetRequestBuilder {
-
     let baseUrl: URL
     let method: HTTPMethod
     let path: String
@@ -11,25 +10,25 @@ public struct TargetRequestBuilder {
     let contentType: String
     let cachePolicy: URLRequest.CachePolicy
     let headers: [String: String]
-    
+
     func build(encoder: JSONEncoder) throws -> URLRequest {
         let string: String
         var httpBody: Data? = .none
         switch data {
-        case .params(let params):
-            let query = params.enumerated().map({ "\($1.key)=\($1.value)" }).joined(separator: "&")
+        case let .params(params):
+            let query = params.enumerated().map { "\($1.key)=\($1.value)" }.joined(separator: "&")
             if method == .GET {
                 string = "\(path)?\(query)"
             } else {
                 httpBody = Data(query.utf8)
                 string = path
             }
-        case .data(let data):
+        case let .data(data):
             httpBody = data
             string = path
         case .plain:
             string = path
-        case .encodable(let value):
+        case let .encodable(value):
             httpBody = try encoder.encode(value)
             string = path
         }

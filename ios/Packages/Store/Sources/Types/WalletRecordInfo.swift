@@ -11,7 +11,7 @@ struct WalletRecordInfo: FetchableRecord, Codable {
 
 extension WalletRecordInfo {
     func mapToWallet() -> Wallet? {
-        return Wallet(
+        Wallet(
             id: wallet.id,
             externalId: wallet.externalId,
             name: wallet.name,
@@ -21,7 +21,7 @@ extension WalletRecordInfo {
             order: wallet.order.asInt32,
             isPinned: wallet.isPinned,
             imageUrl: wallet.imageUrl,
-            source: wallet.source
+            source: wallet.source,
         )
     }
 }
@@ -33,9 +33,9 @@ struct WalletConnectionInfo: FetchableRecord, Codable {
 
 extension WalletConnectionInfo {
     func mapToWalletConnection() -> WalletConnection {
-        return WalletConnection(
+        WalletConnection(
             session: connection.session,
-            wallet: wallet.mapToWallet()
+            wallet: wallet.mapToWallet(),
         )
     }
 }

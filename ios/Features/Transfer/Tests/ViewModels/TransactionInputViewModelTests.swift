@@ -1,63 +1,63 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
 import BigInt
 import Preferences
+import Primitives
 import PrimitivesTestKit
+import Testing
 import Validators
 
 @testable import Transfer
 
 struct TransactionInputViewModelTests {
     @Test
-    func testValueWithAmount() {
+    func valueWithAmount() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
             transactionData: nil,
             metaData: nil,
-            transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false))
+            transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false)),
         )
-        
+
         #expect(viewModel.value == BigInt(200))
     }
-    
+
     @Test
-    func testValueWithError() {
+    func valueWithError() {
         let viewModel = TransactionInputViewModel(
             data: .mock(value: 100),
             transactionData: nil,
             metaData: nil,
-            transferAmount: .failure( TransferAmountCalculatorError.insufficientBalance(.mock()))
+            transferAmount: .failure(TransferAmountCalculatorError.insufficientBalance(.mock())),
         )
-        
+
         #expect(viewModel.value == 100)
     }
-    
+
     @Test
-    func testValueWithNilResult() {
+    func valueWithNilResult() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
             transactionData: nil,
             metaData: nil,
-            transferAmount: nil
+            transferAmount: nil,
         )
-        
+
         #expect(viewModel.value == .zero)
     }
-    
+
     @Test
     func testNetworkFeeText() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
             transactionData: .mock(),
             metaData: nil,
-            transferAmount: nil
+            transferAmount: nil,
         )
-        
+
         #expect(viewModel.networkFeeText == "0.00000001 BTC")
     }
-    
+
     @Test
     func testNetworkFeeFiatText() {
         let metaData = TransferDataMetadata(
@@ -65,27 +65,27 @@ struct TransactionInputViewModelTests {
             feeAssetId: .mock(),
             assetBalance: .zero,
             assetFeeBalance: .zero,
-            assetPrices: [.mock():.mock()]
+            assetPrices: [.mock(): .mock()],
         )
         let viewModel = TransactionInputViewModel(
             data: .mock(),
             transactionData: .mock(),
             metaData: metaData,
-            transferAmount: nil
+            transferAmount: nil,
         )
-        
+
         #expect(viewModel.networkFeeFiatText == "$0.000000015")
     }
-    
+
     @Test
-    func testNilFee() {
+    func nilFee() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
             transactionData: nil,
             metaData: nil,
-            transferAmount: nil
+            transferAmount: nil,
         )
-        
+
         #expect(viewModel.networkFeeText == "-")
         #expect(viewModel.networkFeeFiatText == nil)
     }

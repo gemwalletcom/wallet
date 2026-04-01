@@ -7,24 +7,24 @@ import Testing
 
 struct WordSuggesterTests {
     let suggester = WordSuggester()
-    
+
     @Test
-    func testSuggestPartial() {
+    func suggestPartial() {
         #expect(suggester.wordSuggestionCalculate(value: "ab").isNotEmpty)
     }
 
     @Test
-    func testEmptyWhenEndsWithSpace() {
+    func emptyWhenEndsWithSpace() {
         #expect(suggester.wordSuggestionCalculate(value: "ab ").isEmpty)
     }
 
     @Test
-    func testExactMatchReturnsEmpty() {
+    func exactMatchReturnsEmpty() {
         #expect(suggester.wordSuggestionCalculate(value: "abandon").isEmpty)
     }
 
     @Test
-    func testReplaceLastWord() {
+    func replaceLastWord() {
         #expect(suggester.selectWordCalculate(input: "abando", word: "abandon") == "abandon ")
     }
 }

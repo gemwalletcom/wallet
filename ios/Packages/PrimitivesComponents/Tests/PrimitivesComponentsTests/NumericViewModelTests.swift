@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import BigInt
+import Formatters
 import Primitives
 import PrimitivesTestKit
-import Formatters
 import Style
+import Testing
 
 @testable import PrimitivesComponents
 
@@ -16,14 +16,14 @@ struct NumericViewModelTests {
     let style = AmountDisplayStyle(
         sign: .incoming,
         formatter: .full,
-        currencyCode: "USD"
+        currencyCode: "USD",
     )
 
     @Test
     func amountText() {
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: style)
-        
+
         #expect(viewModel.amount.text == "+1 BTC")
         #expect(viewModel.amount.style.color == Colors.green)
     }
@@ -33,11 +33,11 @@ struct NumericViewModelTests {
         let outgoingStyle = AmountDisplayStyle(
             sign: .outgoing,
             formatter: .full,
-            currencyCode: "USD"
+            currencyCode: "USD",
         )
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: outgoingStyle)
-        
+
         #expect(viewModel.amount.text == "-1 BTC")
         #expect(viewModel.amount.style.color == Colors.black)
     }
@@ -47,11 +47,11 @@ struct NumericViewModelTests {
         let noSignStyle = AmountDisplayStyle(
             sign: .none,
             formatter: .full,
-            currencyCode: "USD"
+            currencyCode: "USD",
         )
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: noSignStyle)
-        
+
         #expect(viewModel.amount.text == "1 BTC")
         #expect(viewModel.amount.style.color == Colors.black)
     }
@@ -60,7 +60,7 @@ struct NumericViewModelTests {
     func fiatText() {
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: style)
-        
+
         #expect(viewModel.fiat?.text == "$2.00")
         #expect(viewModel.fiat?.style.color == Colors.gray)
     }
@@ -69,7 +69,7 @@ struct NumericViewModelTests {
     func fiatTextNilWhenPriceIsNil() {
         let data = AssetValuePrice(asset: asset, value: value, price: nil)
         let viewModel = NumericViewModel(data: data, style: style)
-        
+
         #expect(viewModel.fiat == nil)
     }
 
@@ -78,11 +78,11 @@ struct NumericViewModelTests {
         let zeroStyle = AmountDisplayStyle(
             sign: .incoming,
             formatter: .full,
-            currencyCode: "USD"
+            currencyCode: "USD",
         )
         let data = AssetValuePrice(asset: asset, value: BigInt.zero, price: price)
         let viewModel = NumericViewModel(data: data, style: zeroStyle)
-        
+
         #expect(viewModel.amount.text == "0 BTC")
     }
 }

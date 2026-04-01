@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import SwiftUI
 
 public struct CurrencyScene: View {
     @State private var model: CurrencySceneViewModel
@@ -23,7 +23,7 @@ public struct CurrencyScene: View {
                         subtitle: .none,
                         subtitleExtra: .none,
                         value: $0.value.currency,
-                        selection: model.currency
+                        selection: model.currency,
                     ) {
                         try? model.setCurrency($0)
                     }

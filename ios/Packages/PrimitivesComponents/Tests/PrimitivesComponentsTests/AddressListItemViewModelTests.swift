@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import PrimitivesComponents
-import Primitives
 import Components
+import Primitives
+import PrimitivesComponents
+import Testing
 
 struct AddressListItemViewModelTests {
-    
     @Test
     func subtitleWithName() {
         let model = AddressListItemViewModel.mock()
@@ -19,7 +18,7 @@ struct AddressListItemViewModelTests {
         let model = AddressListItemViewModel.mock(account: account)
         #expect(model.subtitle == "Alice")
     }
-    
+
     @Test
     func subtitleWithoutName() {
         let account = SimpleAccount(name: nil, chain: .ethereum, address: "0x123456789101112", assetImage: nil)
@@ -52,13 +51,13 @@ extension AddressListItemViewModel {
         title: String = "Recipient",
         account: SimpleAccount = SimpleAccount(name: "Alice", chain: .ethereum, address: "0x123456789101112", assetImage: nil),
         mode: Mode = .auto(addressStyle: .short),
-        addressLink: BlockExplorerLink = .init(name: "Mock", link: "https://mock.com")
+        addressLink: BlockExplorerLink = .init(name: "Mock", link: "https://mock.com"),
     ) -> AddressListItemViewModel {
         AddressListItemViewModel(
             title: title,
             account: account,
             mode: mode,
-            addressLink: addressLink
+            addressLink: addressLink,
         )
     }
 }

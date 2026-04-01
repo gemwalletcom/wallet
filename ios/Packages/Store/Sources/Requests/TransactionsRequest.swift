@@ -15,7 +15,7 @@ public struct TransactionsRequest: DatabaseQueryable {
         walletId: WalletId,
         type: TransactionsRequestType,
         filters: [TransactionsRequestFilter] = [],
-        limit: Int = 50
+        limit: Int = 50,
     ) {
         self.walletId = walletId
         self.type = type
@@ -32,7 +32,7 @@ public struct TransactionsRequest: DatabaseQueryable {
         type: TransactionsRequestType,
         filters: [TransactionsRequestFilter],
         walletId: WalletId,
-        limit: Int
+        limit: Int,
     ) throws -> [TransactionExtended] {
         let states = states(type: type)
         let types = types(type: type)
@@ -53,20 +53,20 @@ public struct TransactionsRequest: DatabaseQueryable {
             .limit(limit)
 
         switch type {
-        case .asset(let assetId):
+        case let .asset(assetId):
             request = request.joining(required: TransactionRecord.assetsAssociation.filter(TransactionAssetAssociationRecord.Columns.assetId == assetId.identifier))
-        case .assetsTransactionType(let assetIds, _, _):
+        case let .assetsTransactionType(assetIds, _, _):
             if !assetIds.isEmpty {
-                request = request.joining(required: TransactionRecord.assetsAssociation.filter(assetIds.map { $0.identifier }.contains(TransactionAssetAssociationRecord.Columns.assetId)))
+                request = request.joining(required: TransactionRecord.assetsAssociation.filter(assetIds.map(\.identifier).contains(TransactionAssetAssociationRecord.Columns.assetId)))
             }
-        case .transaction(let id):
+        case let .transaction(id):
             request = request.filter(TransactionRecord.Columns.transactionId == id)
         case .all, .pending:
             break
         }
 
-        filters.forEach {
-            request = Self.applyFilter(request: request, $0)
+        for filter in filters {
+            request = Self.applyFilter(request: request, filter)
         }
 
         return try request.asRequest(of: TransactionInfo.self)
@@ -80,13 +80,13 @@ public struct TransactionsRequest: DatabaseQueryable {
 extension TransactionsRequest {
     static func applyFilter(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsRequestFilter) -> QueryInterfaceRequest<TransactionRecord> {
         switch filter {
-        case .chains(let chains):
+        case let .chains(chains):
             guard !chains.isEmpty else { return request }
             return request.filter(chains.contains(TransactionRecord.Columns.chain))
-        case .types(let types):
+        case let .types(types):
             guard !types.isEmpty else { return request }
             return request.filter(types.contains(TransactionRecord.Columns.type))
-        case .assetRankGreaterThan(let rank):
+        case let .assetRankGreaterThan(rank):
             return request.joining(required: TransactionRecord.asset.filter(AssetRecord.Columns.rank > rank))
         }
     }
@@ -96,18 +96,18 @@ extension TransactionsRequest {
         case .pending:
             [TransactionState.pending.rawValue]
         case .all, .asset, .transaction:
-            TransactionState.allCases.map { $0.rawValue }
-        case .assetsTransactionType(_, _, let states):
-            states.map { $0.rawValue }
+            TransactionState.allCases.map(\.rawValue)
+        case let .assetsTransactionType(_, _, states):
+            states.map(\.rawValue)
         }
     }
 
     private static func types(type: TransactionsRequestType) -> [String] {
         switch type {
-        case .assetsTransactionType(_, let type, _):
+        case let .assetsTransactionType(_, type, _):
             [type.rawValue]
         case .pending, .all, .asset, .transaction:
-            TransactionType.allCases.map { $0.rawValue }
+            TransactionType.allCases.map(\.rawValue)
         }
     }
 }

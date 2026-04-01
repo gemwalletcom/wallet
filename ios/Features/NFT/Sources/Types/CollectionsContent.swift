@@ -8,7 +8,7 @@ public struct CollectionsContent: Sendable {
 
     public init(
         items: [GridPosterViewItem],
-        unverifiedCount: String? = nil
+        unverifiedCount: String? = nil,
     ) {
         self.items = items
         self.unverifiedCount = unverifiedCount

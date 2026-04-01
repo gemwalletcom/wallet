@@ -11,7 +11,6 @@ public enum NFTFilter: Sendable, Hashable {
 }
 
 public struct NFTRequest: DatabaseQueryable {
-
     private let walletId: WalletId
     private let filter: NFTFilter
 
@@ -26,8 +25,8 @@ public struct NFTRequest: DatabaseQueryable {
                 all: NFTCollectionRecord.assets
                     .joining(
                         required: NFTAssetRecord.assetAssociations
-                            .filter(NFTAssetAssociationRecord.Columns.walletId == walletId.id)
-                    )
+                            .filter(NFTAssetAssociationRecord.Columns.walletId == walletId.id),
+                    ),
             )
             .distinct()
             .asRequest(of: NFTCollectionRecordInfo.self)
@@ -35,13 +34,13 @@ public struct NFTRequest: DatabaseQueryable {
         switch filter {
         case .all: break
         case .unverified: request = request.filter(NFTCollectionRecord.Columns.status != VerificationStatus.verified.rawValue)
-        case .collection(let id): request = request.filter(NFTCollectionRecord.Columns.id == id)
+        case let .collection(id): request = request.filter(NFTCollectionRecord.Columns.id == id)
         }
 
         return try request
             .fetchAll(db)
             .map { $0.mapToNFTData() }
-            .filter { $0.assets.isNotEmpty }
+            .filter(\.assets.isNotEmpty)
     }
 }
 

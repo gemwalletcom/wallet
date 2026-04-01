@@ -6,21 +6,21 @@ import LocalAuthentication
 import Primitives
 
 public final class LocalKeystorePassword: KeystorePassword {
-    private struct Keys {
+    private enum Keys {
         static let password = "password"
         static let passwordAuthentication = "password_authentication"
         static let passwordAuthenticationPeriod = "password_authentication_period"
         static let passwordAuthenticationPrivacyLock = "password_authentication_privacy_lock"
     }
-    
+
     private let keychain: Keychain = KeychainDefault()
-    
+
     public init() {}
-    
+
     public func getAvailableAuthentication() -> KeystoreAuthentication {
         KeystoreAuthentication.availableAuthenticationType
     }
-    
+
     public func getAuthentication() throws -> KeystoreAuthentication {
         guard let value = try keychain.get(Keys.passwordAuthentication) else {
             return .none
@@ -66,21 +66,21 @@ public final class LocalKeystorePassword: KeystorePassword {
             try setAuthenticationLockPeriod(period: .default)
         }
     }
-    
+
     public func getPassword() throws -> String {
         try getPassword(context: LAContext())
     }
-    
+
     public func getPassword(context: LAContext) throws -> String {
         try keychain
             .authenticationContext(context)
             .get(Keys.password) ?? ""
     }
-    
+
     public func setPassword(_ password: String, authentication: KeystoreAuthentication) throws {
         try setPassword(password, authentication: authentication, context: LAContext())
     }
-    
+
     public func remove() throws {
         try keychain.remove(Keys.password)
         try keychain.remove(Keys.passwordAuthentication)
@@ -95,7 +95,7 @@ extension LocalKeystorePassword {
     private func setPassword(
         _ password: String,
         authentication: KeystoreAuthentication,
-        context: LAContext
+        context: LAContext,
     ) throws {
         try keychain
             .set(authentication.rawValue, key: Keys.passwordAuthentication)
@@ -116,8 +116,8 @@ extension LocalKeystorePassword {
 
 extension LAContext {
     func canEvaluatePolicyThrowing(policy: LAPolicy) throws {
-        var error : NSError?
+        var error: NSError?
         canEvaluatePolicy(policy, error: &error)
-        if let error = error { throw error }
+        if let error { throw error }
     }
 }

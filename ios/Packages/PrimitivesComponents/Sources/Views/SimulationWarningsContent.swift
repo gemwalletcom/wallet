@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import SwiftUI
 
 public struct SimulationWarningsContent: View {
     private let warnings: [SimulationWarning]
@@ -16,7 +16,7 @@ public struct SimulationWarningsContent: View {
             ListItemErrorView(
                 errorTitle: $0.title,
                 errorImageColor: $0.color,
-                error: AnyError($0.message)
+                error: AnyError($0.message),
             )
         }
     }

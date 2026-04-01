@@ -8,8 +8,8 @@ extension NFTData: Identifiable {
     }
 }
 
-extension NFTAsset {
-    public func getContractAddress() throws -> String {
+public extension NFTAsset {
+    func getContractAddress() throws -> String {
         guard let contractAddress else {
             throw AnyError("No contract address")
         }

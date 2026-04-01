@@ -51,13 +51,13 @@ public enum HyperliquidSubscription: Encodable, Hashable, Sendable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case .clearinghouseState(let user):
+        case let .clearinghouseState(user):
             try container.encode("clearinghouseState", forKey: .type)
             try container.encode(user, forKey: .user)
-        case .openOrders(let user):
+        case let .openOrders(user):
             try container.encode("openOrders", forKey: .type)
             try container.encode(user, forKey: .user)
-        case .candle(let subscription):
+        case let .candle(subscription):
             try container.encode("candle", forKey: .type)
             try container.encode(subscription.coin, forKey: .coin)
             try container.encode(subscription.interval, forKey: .interval)

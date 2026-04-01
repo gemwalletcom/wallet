@@ -1,33 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
-extension Chain {
-    public init(id: String) throws {
+public extension Chain {
+    init(id: String) throws {
         if let chain = Chain(rawValue: id) {
             self = chain
         } else {
             throw AnyError("invalid chain id: \(id)")
         }
     }
-    
-    public var assetId: AssetId {
+
+    var assetId: AssetId {
         AssetId(chain: self, tokenId: .none)
     }
-    
+
     // in most cases address is the case, except bitcoin cash
     // short and full simplifies bitcoincash address
-    public func shortAddress(address: String) -> String {
+    func shortAddress(address: String) -> String {
         switch self {
-        case .bitcoinCash: address.removePrefix("\(self.rawValue):")
+        case .bitcoinCash: address.removePrefix("\(rawValue):")
         default: address
         }
     }
-    
-    public func fullAddress(address: String) -> String {
+
+    func fullAddress(address: String) -> String {
         switch self {
-        case .bitcoinCash: address.addPrefix("\(self.rawValue):")
+        case .bitcoinCash: address.addPrefix("\(rawValue):")
         default: address
         }
     }
@@ -37,8 +37,8 @@ extension Chain: Identifiable {
     public var id: String { rawValue }
 }
 
-extension Chain {
-    public var stakeChain: StakeChain? {
+public extension Chain {
+    var stakeChain: StakeChain? {
         StakeChain(rawValue: rawValue)
     }
 }

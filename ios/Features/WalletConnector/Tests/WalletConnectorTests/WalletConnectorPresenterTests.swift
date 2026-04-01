@@ -1,14 +1,13 @@
 import Foundation
-import Testing
+import struct Gemstone.SignMessage
 import Primitives
 import PrimitivesTestKit
+import Testing
 import WalletConnectorService
-import struct Gemstone.SignMessage
 
 @testable import WalletConnector
 
 struct WalletConnectorPresenterTests {
-
     @Test
     @MainActor
     func completeDismissesSignMessageSheet() {
@@ -20,10 +19,10 @@ struct WalletConnectorPresenterTests {
                     session: .mock(),
                     wallet: .mock(),
                     message: SignMessage(chain: "ethereum", signType: .eip191, data: Data("test".utf8)),
-                    simulation: .mock()
+                    simulation: .mock(),
                 ),
-                delegate: { _ in }
-            )
+                delegate: { _ in },
+            ),
         )
 
         presenter.isPresentingSheet = type
@@ -42,7 +41,7 @@ struct WalletConnectorPresenterTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: Data("test".utf8)),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let task = Task {
@@ -68,7 +67,7 @@ struct WalletConnectorPresenterTests {
 }
 
 private func presentedSheet(from presenter: WalletConnectorPresenter) async -> WalletConnectorSheetType? {
-    for _ in 0..<10 {
+    for _ in 0 ..< 10 {
         if let sheet = await MainActor.run(body: { presenter.isPresentingSheet }) {
             return sheet
         }

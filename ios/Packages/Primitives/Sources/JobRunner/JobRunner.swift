@@ -42,7 +42,8 @@ extension JobRunner {
 
         while !Task.isCancelled {
             if let limit = job.configuration.timeLimit,
-               jobStart.duration(to: clock.now) >= limit {
+               jobStart.duration(to: clock.now) >= limit
+            {
                 debugLog("job \(job.id) completed by time limit")
                 return
             }
@@ -53,8 +54,7 @@ extension JobRunner {
             case .complete:
                 do {
                     try await job.onComplete()
-                }
-                catch {
+                } catch {
                     debugLog("job \(job.id) completed with error: \(error)")
                 }
                 return
@@ -68,7 +68,7 @@ extension JobRunner {
 
                 interval = RetryIntervalCalculator.nextInterval(
                     config: job.configuration,
-                    currentInterval: interval
+                    currentInterval: interval,
                 )
             }
         }

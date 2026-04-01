@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 extension Delegation: Identifiable {
     public var id: String {
@@ -31,11 +31,11 @@ public extension DelegationBase {
     }
 }
 
-extension DelegationValidator {
-    public static let systemId = "system"
-    public static let legacySystemId = "unstaking"
+public extension DelegationValidator {
+    static let systemId = "system"
+    static let legacySystemId = "unstaking"
 
-    public static func system(chain: Chain, name: String) -> DelegationValidator {
+    static func system(chain: Chain, name: String) -> DelegationValidator {
         DelegationValidator(
             chain: chain,
             id: systemId,
@@ -43,13 +43,13 @@ extension DelegationValidator {
             isActive: true,
             commission: .zero,
             apr: .zero,
-            providerType: .stake
+            providerType: .stake,
         )
     }
 }
 
-extension DelegationState {
-    public init(id: String) throws {
+public extension DelegationState {
+    init(id: String) throws {
         if let state = DelegationState(rawValue: id) {
             self = state
         } else {

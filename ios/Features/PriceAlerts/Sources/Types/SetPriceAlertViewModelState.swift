@@ -44,8 +44,8 @@ struct SetPriceAlertViewModelState {
 
     init(price: Double? = nil) {
         if let price {
-            self.type = .price
-            self.priceAmount = String(price)
+            type = .price
+            priceAmount = String(price)
         }
     }
 }

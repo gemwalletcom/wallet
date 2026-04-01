@@ -1,20 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import AddressNameServiceTestKit
 import Foundation
+import struct Gemstone.SignMessage
+import KeystoreTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
+import Testing
 import WalletConnectorService
 import WalletConnectorServiceTestKit
-import AddressNameServiceTestKit
-import KeystoreTestKit
-import struct Gemstone.SignMessage
 
 @testable import WalletConnector
 
 struct SignMessageSceneViewModelTests {
-
     @Test
     @MainActor
     func walletTextDisplaysPayloadWallet() {
@@ -24,14 +23,14 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: wallet,
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.walletText == "My Secure Wallet")
@@ -47,14 +46,14 @@ struct SignMessageSceneViewModelTests {
             session: session,
             wallet: wallet,
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.connectionViewModel.connection.wallet.id == "multicoin_0xspecific")
@@ -67,15 +66,15 @@ struct SignMessageSceneViewModelTests {
         let payload = SignMessagePayload.mock(
             session: .mock(metadata: .mock(
                 name: "PancakeSwap - Trade",
-                url: "https://pancakeswap.finance/swap"
-            ))
+                url: "https://pancakeswap.finance/swap",
+            )),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.appText == "PancakeSwap")
@@ -89,14 +88,14 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.title == "Review Request")
@@ -110,7 +109,7 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "bitcoin", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         #expect(payload.chain == .ethereum)
@@ -125,14 +124,14 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "bitcoin", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.networkText == "Ethereum")
@@ -146,14 +145,14 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.walletAssetImage == WalletViewModel(wallet: payload.wallet).avatarImage)
@@ -168,14 +167,14 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock()
+            simulation: .mock(),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(!viewModel.isButtonDisabled)
@@ -192,15 +191,15 @@ struct SignMessageSceneViewModelTests {
             simulation: .mock(warnings: [SimulationWarning(
                 severity: .warning,
                 warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil)),
-                message: nil
-            )])
+                message: nil,
+            )]),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(!viewModel.isButtonDisabled)
@@ -218,21 +217,21 @@ struct SignMessageSceneViewModelTests {
                 SimulationWarning(
                     severity: .warning,
                     warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: "1000")),
-                    message: nil
+                    message: nil,
                 ),
                 SimulationWarning(
                     severity: .warning,
                     warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: nil)),
-                    message: nil
+                    message: nil,
                 ),
-            ])
+            ]),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
@@ -247,14 +246,14 @@ struct SignMessageSceneViewModelTests {
             session: .mock(),
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip191, data: "test".data(using: .utf8)!),
-            simulation: .mock(warnings: [SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil)])
+            simulation: .mock(warnings: [SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil)]),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.isButtonDisabled)
@@ -272,21 +271,21 @@ struct SignMessageSceneViewModelTests {
                 SimulationWarning(
                     severity: .warning,
                     warning: .permitApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: "1000")),
-                    message: nil
+                    message: nil,
                 ),
                 SimulationWarning(
                     severity: .critical,
                     warning: .externallyOwnedSpender,
-                    message: nil
+                    message: nil,
                 ),
-            ])
+            ]),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
@@ -347,15 +346,15 @@ struct SignMessageSceneViewModelTests {
                     .standard(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
                     .standard(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
                     .standard(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
-                ]
-            )
+                ],
+            ),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.simulationWarnings.count == 1)
@@ -377,21 +376,21 @@ struct SignMessageSceneViewModelTests {
                 SimulationWarning(
                     severity: .warning,
                     warning: .permitApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x123"), value: "1000")),
-                    message: nil
+                    message: nil,
                 ),
                 SimulationWarning(
                     severity: .critical,
                     warning: .validationError,
-                    message: "Unable to verify spender is a contract"
+                    message: "Unable to verify spender is a contract",
                 ),
-            ])
+            ]),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
@@ -422,18 +421,17 @@ struct SignMessageSceneViewModelTests {
             message: SignMessage(chain: "ethereum", signType: .eip191, data: Data(message.utf8)),
             simulation: .mock(warnings: [
                 SimulationWarning(severity: .critical, warning: .validationError, message: "Chain ID mismatch"),
-            ])
+            ]),
         )
 
         let viewModel = SignMessageSceneViewModel(
             keystore: KeystoreMock(),
             addressNameService: .mock(),
             payload: payload,
-            confirmTransferDelegate: { _ in }
+            confirmTransferDelegate: { _ in },
         )
 
         #expect(viewModel.hasPayload)
         #expect(viewModel.primaryPayloadFields.count == 2)
     }
-
 }

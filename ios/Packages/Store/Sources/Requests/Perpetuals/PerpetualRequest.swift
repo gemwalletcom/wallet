@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct PerpetualRequest: DatabaseQueryable {
-
     public let assetId: AssetId
 
     public init(assetId: AssetId) {
@@ -28,8 +27,8 @@ public struct PerpetualRequest: DatabaseQueryable {
 
 extension PerpetualRequest: Equatable {}
 
-extension PerpetualData {
-    public static var empty: PerpetualData {
+public extension PerpetualData {
+    static var empty: PerpetualData {
         PerpetualData(
             perpetual: Perpetual(
                 id: "",
@@ -43,10 +42,10 @@ extension PerpetualData {
                 volume24h: .zero,
                 funding: .zero,
                 maxLeverage: 1,
-                isIsolatedOnly: false
+                isIsolatedOnly: false,
             ),
             asset: Asset(id: .init(chain: .bitcoin, tokenId: .none), name: "", symbol: "", decimals: 0, type: .native),
-            metadata: PerpetualMetadata(isPinned: false)
+            metadata: PerpetualMetadata(isPinned: false),
         )
     }
 }

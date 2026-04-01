@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BannerService
+import DeviceService
 import Foundation
 import Localization
 import NotificationService
-import DeviceService
-import BannerService
-import Primitives
 import Preferences
+import Primitives
 
 @Observable
 @MainActor
@@ -21,15 +21,15 @@ public final class NotificationsViewModel {
     public init(
         deviceService: any DeviceServiceable,
         bannerService: BannerService,
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) {
         self.deviceService = deviceService
         self.preferences = preferences
-        self.pushNotificationService = PushNotificationEnablerService(preferences: preferences)
-        self.isEnabled = preferences.isPushNotificationsEnabled
+        pushNotificationService = PushNotificationEnablerService(preferences: preferences)
+        isEnabled = preferences.isPushNotificationsEnabled
         self.bannerService = bannerService
     }
-    
+
     var title: String {
         Localized.Settings.Notifications.title
     }

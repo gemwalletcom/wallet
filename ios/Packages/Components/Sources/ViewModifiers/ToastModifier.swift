@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import SwiftUI
 import Style
+import SwiftUI
 
 struct ToastModifier: ViewModifier {
     private var isPresenting: Binding<Bool>
@@ -17,7 +17,7 @@ struct ToastModifier: ViewModifier {
         message: ToastMessage,
         duration: TimeInterval,
         tapToDismiss: Bool,
-        offsetY: CGFloat
+        offsetY: CGFloat,
     ) {
         self.isPresenting = isPresenting
         self.message = message
@@ -32,7 +32,7 @@ struct ToastModifier: ViewModifier {
                 AlertToast(
                     systemImage: message.image,
                     imageColor: Colors.black,
-                    title: message.title
+                    title: message.title,
                 )
             }
     }
@@ -58,13 +58,13 @@ private struct OptionalMessageToastModifier: ViewModifier {
                     get: { message != nil },
                     set: { showing in
                         if showing == false { message = nil }
-                    }
+                    },
                 ),
                 message: message ?? .empty(),
                 duration: duration,
                 tapToDismiss: tapToDismiss,
-                offsetY: offsetY
-            )
+                offsetY: offsetY,
+            ),
         )
     }
 }
@@ -79,14 +79,14 @@ public extension View {
         message: ToastMessage,
         duration: TimeInterval = Self.toastDuration,
         tapToDismiss: Bool = true,
-        offsetY: CGFloat = 0
+        offsetY: CGFloat = 0,
     ) -> some View {
         modifier(ToastModifier(
             isPresenting: isPresenting,
             message: message,
             duration: duration,
             tapToDismiss: tapToDismiss,
-            offsetY: offsetY
+            offsetY: offsetY,
         ))
     }
 
@@ -94,13 +94,13 @@ public extension View {
         message: Binding<ToastMessage?>,
         duration: TimeInterval = Self.toastDuration,
         tapToDismiss: Bool = true,
-        offsetY: CGFloat = 0
+        offsetY: CGFloat = 0,
     ) -> some View {
         modifier(OptionalMessageToastModifier(
             message: message,
             duration: duration,
             tapToDismiss: tapToDismiss,
-            offsetY: offsetY
+            offsetY: offsetY,
         ))
     }
 }

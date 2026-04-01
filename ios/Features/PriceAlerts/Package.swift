@@ -6,12 +6,13 @@ let package = Package(
     name: "PriceAlerts",
     platforms: [
         .iOS(.v17),
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "PriceAlerts",
-            targets: ["PriceAlerts"]),
+            targets: ["PriceAlerts"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -35,16 +36,16 @@ let package = Package(
                 "PrimitivesComponents",
                 "Store",
                 .product(name: "PriceAlertService", package: "FeatureServices"),
-                "Preferences"
+                "Preferences",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "PriceAlertsTests",
             dependencies: [
                 "PriceAlerts",
-                .product(name: "PriceAlertServiceTestKit", package: "FeatureServices")
-            ]
+                .product(name: "PriceAlertServiceTestKit", package: "FeatureServices"),
+            ],
         ),
-    ]
+    ],
 )

@@ -1,8 +1,7 @@
-import Testing
 @testable import Primitives
+import Testing
 
 struct SecureRandomTests {
-
     @Test
     func defaultLength() throws {
         let key = try SecureRandom.generateKey()

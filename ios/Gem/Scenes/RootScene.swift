@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
-import Localization
+import Components
 import GemstonePrimitives
-import Primitives
+import Localization
 import Onboarding
 import PriceService
-import Components
+import Primitives
+import Style
+import SwiftUI
 
 struct RootScene: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -25,7 +25,7 @@ struct RootScene: View {
             } else {
                 OnboardingScene(
                     isPresentingCreateWalletSheet: $model.isPresentingCreateWalletSheet,
-                    isPresentingImportWalletSheet: $model.isPresentingImportWalletSheet
+                    isPresentingImportWalletSheet: $model.isPresentingImportWalletSheet,
                 )
             }
         }
@@ -37,7 +37,7 @@ struct RootScene: View {
         .sheet(item: $model.isPresentingConnnectorSheet) { type in
             WalletConnectorNavigationStack(
                 type: type,
-                presenter: model.walletConnectorPresenter
+                presenter: model.walletConnectorPresenter,
             )
         }
         .sheet(isPresented: $model.isPresentingCreateWalletSheet) {
@@ -45,8 +45,8 @@ struct RootScene: View {
                 model: CreateWalletModel(
                     walletService: model.walletService,
                     avatarService: model.avatarService,
-                    onComplete: model.dismissCreateWallet
-                )
+                    onComplete: model.dismissCreateWallet,
+                ),
             )
         }
         .sheet(isPresented: $model.isPresentingImportWalletSheet) {
@@ -55,8 +55,8 @@ struct RootScene: View {
                     walletService: model.walletService,
                     avatarService: model.avatarService,
                     nameService: model.nameService,
-                    onComplete: model.dismissImportWallet
-                )
+                    onComplete: model.dismissImportWallet,
+                ),
             )
         }
         .alert(
@@ -66,31 +66,30 @@ struct RootScene: View {
                 Button(
                     Localized.Common.done,
                     role: .none,
-                    action: {}
+                    action: {},
                 )
             },
             message: {
                 Text(model.isPresentingConnectorError.valueOrEmpty)
-            }
+            },
         )
         .taskOnce(model.setup)
         .lockManaged(by: model.lockManager)
         .onChange(
             of: model.currentWallet,
             initial: true,
-            model.onChangeWallet
+            model.onChangeWallet,
         )
         .toast(
             isPresenting: $model.isPresentingConnectorBar,
             message: ToastMessage(
                 title: "\(Localized.WalletConnect.brandName)...",
-                image: SystemImage.network
+                image: SystemImage.network,
             ),
-            offsetY: -model.toastOffset
+            offsetY: -model.toastOffset,
         )
         .toast(message: $model.isPresentingToastMessage, offsetY: -model.toastOffset)
         .onChange(of: scenePhase, model.onScenePhaseChanged)
         .onChange(of: model.observablePreferences.isPerpetualEnabled, model.onPerpetualEnabledChanged)
     }
 }
-

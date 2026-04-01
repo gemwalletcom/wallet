@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import WalletConnectorService
 import Primitives
+import WalletConnectorService
 
 public enum WalletConnectorSheetType: Sendable, Identifiable {
     case transferData(TransferDataCallback<WCTransferData>)
@@ -10,19 +10,19 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
 
     public var id: Int {
         switch self {
-        case .transferData(let callback): callback.id.hashValue
-        case .signMessage(let callback): callback.id.hashValue
-        case .connectionProposal(let callback): callback.id.hashValue
+        case let .transferData(callback): callback.id.hashValue
+        case let .signMessage(callback): callback.id.hashValue
+        case let .connectionProposal(callback): callback.id.hashValue
         }
     }
 
     public func reject(_ error: Error) {
         switch self {
-        case .transferData(let callback):
+        case let .transferData(callback):
             callback.delegate(.failure(error))
-        case .signMessage(let callback):
+        case let .signMessage(callback):
             callback.delegate(.failure(error))
-        case .connectionProposal(let callback):
+        case let .connectionProposal(callback):
             callback.delegate(.failure(error))
         }
     }

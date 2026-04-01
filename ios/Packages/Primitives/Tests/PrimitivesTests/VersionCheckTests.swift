@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Primitives
+import Testing
 
 final class VersionCheckTests {
     @Test

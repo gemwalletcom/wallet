@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "NFT",
-            targets: ["NFT"]),
+            targets: ["NFT"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -22,7 +23,7 @@ let package = Package(
         .package(name: "SystemServices", path: "../../Packages/SystemServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "Store", path: "../../Packages/Store"),
-        .package(name: "Formatters", path: "../../Packages/Formatters"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
     ],
@@ -40,12 +41,12 @@ let package = Package(
                 "Store",
                 .product(name: "ImageGalleryService", package: "SystemServices"),
                 .product(name: "WalletService", package: "FeatureServices"),
-                "Formatters",
+                "GemstonePrimitives",
                 .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "AvatarService", package: "FeatureServices"),
                 "InfoSheet",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "NFTTests",
@@ -57,8 +58,8 @@ let package = Package(
                 "NFT",
                 "PrimitivesComponents",
                 .product(name: "AvatarService", package: "FeatureServices"),
-                "Store"
-            ]
-        )
-    ]
+                "Store",
+            ],
+        ),
+    ],
 )

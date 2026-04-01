@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Foundation
 import Primitives
-import Style
-import PrimitivesComponentsTestKit
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
+import Style
+import Testing
 
 struct ChartHeaderViewModelTests {
-
     @Test
     func priceText() {
         #expect(ChartHeaderViewModel.mock(price: 100).priceText == "$100.00")
@@ -48,5 +47,4 @@ struct ChartHeaderViewModelTests {
         #expect(ChartHeaderViewModel.mock().headerValueText == nil)
         #expect(ChartHeaderViewModel.mock(headerValue: 1500).headerValueText == "$1,500.00")
     }
-
 }

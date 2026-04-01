@@ -56,7 +56,7 @@ class GetPerpetualsImplTest {
     fun testGetPerpetuals_Formatting() = runBlocking {
         val result = getPerpetualsImpl.getPerpetuals(null).first()
         val item = result[0]
-        assertEquals("\$95,420.50", item.price.valueFormated)
+        assertEquals("\$95,420.50", item.price.valueFormatted)
         assertEquals("+2.50%", item.price.changePercentageFormatted)
         assertEquals(PriceState.Up, item.price.state)
         assertEquals("\$15.00B", item.volume)

@@ -16,9 +16,9 @@ public struct SelectAssetInput: Hashable {
 extension SelectAssetInput: Identifiable {
     public var id: String { type.id }
 
-    public var asset: Asset  { assetAddress.asset }
+    public var asset: Asset { assetAddress.asset }
     public var address: String { assetAddress.address }
-    public var fiatType: FiatQuoteType  {
+    public var fiatType: FiatQuoteType {
         switch type {
         case .send, .receive, .swap, .manage, .priceAlert, .deposit, .withdraw:
             fatalError("fiat operations not supported")

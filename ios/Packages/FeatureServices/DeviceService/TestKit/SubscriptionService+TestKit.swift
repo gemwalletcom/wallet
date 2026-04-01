@@ -11,12 +11,12 @@ public extension SubscriptionService {
     static func mock(
         subscriptionProvider: any GemAPISubscriptionService = GemAPISubscriptionServiceMock(),
         walletStore: WalletStore = .mock(),
-        preferences: Preferences = .standard
+        preferences: Preferences = .standard,
     ) -> SubscriptionService {
         SubscriptionService(
             subscriptionProvider: subscriptionProvider,
             walletStore: walletStore,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

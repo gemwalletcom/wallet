@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -30,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.isSmallScreen
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -125,8 +128,18 @@ fun Scene(
         },
         bottomBar = {
             if (mainAction != null) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    Box(modifier = Modifier.padding(mainActionPadding)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .navigationBarsPadding(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .widthIn(max = SceneSizing.buttonMaxWidth)
+                            .padding(mainActionPadding)
+                    ) {
                         mainAction()
                     }
                 }
@@ -139,8 +152,11 @@ fun Scene(
         }
     ) { paddingValues ->
         Box(
-            modifier = (if (navigationBarPadding) Modifier.navigationBarsPadding() else Modifier)
-                .padding(top = paddingValues.calculateTopPadding())
+            modifier = Modifier
+                .padding(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = if (navigationBarPadding) paddingValues.calculateBottomPadding() else 0.dp,
+                )
                 .fillMaxSize(),
         ) {
             Column(
@@ -154,8 +170,7 @@ fun Scene(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .imePadding(),
+                            .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         content(paddingValues)

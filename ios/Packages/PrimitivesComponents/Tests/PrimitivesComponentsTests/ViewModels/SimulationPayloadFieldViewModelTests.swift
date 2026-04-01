@@ -1,27 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
+import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
-import PrimitivesTestKit
 import PrimitivesComponents
-import Formatters
+import PrimitivesTestKit
+import Testing
 
 struct SimulationPayloadFieldViewModelTests {
-
     @Test
     func addressSubtitleWithName() {
         let field = SimulationPayloadField.standard(
             kind: .contract,
             value: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
             fieldType: .address,
-            display: .primary
+            display: .primary,
         )
         let viewModel = SimulationPayloadFieldViewModel(
             field: field,
             chain: .ethereum,
-            addressName: .mock(address: field.value, name: "Hyperliquid")
+            addressName: .mock(address: field.value, name: "Hyperliquid"),
         )
 
         #expect(viewModel.subtitle == "Hyperliquid (\(AddressFormatter(address: field.value, chain: .ethereum).value()))")
@@ -31,18 +31,18 @@ struct SimulationPayloadFieldViewModelTests {
     func timestampSubtitle() {
         let formatter = RelativeDateFormatter(
             locale: Locale(identifier: "en_US_POSIX"),
-            timeZone: TimeZone(secondsFromGMT: 0)!
+            timeZone: TimeZone(secondsFromGMT: 0)!,
         )
         let field = SimulationPayloadField.custom(
             label: "issuedAt",
             value: "2026-03-09T19:36:00Z",
             fieldType: .timestamp,
-            display: .secondary
+            display: .secondary,
         )
         let viewModel = SimulationPayloadFieldViewModel(
             field: field,
             chain: .ethereum,
-            relativeDateFormatter: formatter
+            relativeDateFormatter: formatter,
         )
 
         #expect(viewModel.subtitle == formatter.string(fromTimestampValue: field.value))
@@ -54,7 +54,7 @@ struct SimulationPayloadFieldViewModelTests {
             kind: .spender,
             value: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
             fieldType: .address,
-            display: .primary
+            display: .primary,
         )
         let viewModel = SimulationPayloadFieldViewModel(field: field, chain: .ethereum)
 
@@ -74,7 +74,7 @@ struct SimulationPayloadFieldViewModelTests {
             kind: .method,
             value: "Set Approval For All",
             fieldType: .text,
-            display: .primary
+            display: .primary,
         )
         let viewModel = SimulationPayloadFieldViewModel(field: field, chain: .ethereum)
 
@@ -85,22 +85,22 @@ struct SimulationPayloadFieldViewModelTests {
     func standardTitlesUseLocalizedValues() {
         #expect(SimulationPayloadFieldViewModel(
             field: .standard(kind: .contract, value: "0x1", fieldType: .address, display: .primary),
-            chain: .ethereum
+            chain: .ethereum,
         ).title == Localized.Asset.contract)
 
         #expect(SimulationPayloadFieldViewModel(
             field: .standard(kind: .method, value: "approve", fieldType: .text, display: .primary),
-            chain: .ethereum
+            chain: .ethereum,
         ).title == Localized.Common.method)
 
         #expect(SimulationPayloadFieldViewModel(
             field: .standard(kind: .token, value: "0x1", fieldType: .address, display: .primary),
-            chain: .ethereum
+            chain: .ethereum,
         ).title == Localized.Common.token)
 
         #expect(SimulationPayloadFieldViewModel(
             field: .standard(kind: .spender, value: "0x1", fieldType: .address, display: .primary),
-            chain: .ethereum
+            chain: .ethereum,
         ).title == Localized.Transfer.to)
     }
 
@@ -110,7 +110,7 @@ struct SimulationPayloadFieldViewModelTests {
             label: "issuedAt",
             value: "2026-03-09T19:36:00Z",
             fieldType: .timestamp,
-            display: .secondary
+            display: .secondary,
         )
 
         #expect(SimulationPayloadFieldViewModel(field: field, chain: .ethereum).title == "issuedAt")

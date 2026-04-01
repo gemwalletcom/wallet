@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import AssetsService
 import BalanceService
+import Foundation
 import GemAPI
-import Primitives
 import Preferences
+import Primitives
 
 public struct AssetDiscoveryService: AssetDiscoverable {
     private let assetsListService: any GemAPIAssetsListService
@@ -15,7 +15,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     public init(
         assetsListService: any GemAPIAssetsListService,
         assetService: AssetsService,
-        assetsEnabler: any AssetsEnabler
+        assetsEnabler: any AssetsEnabler,
     ) {
         self.assetsListService = assetsListService
         self.assetService = assetService
@@ -24,7 +24,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
 
     public func discoverAssets(wallet: Wallet) async throws {
         let preferences = WalletPreferences(walletId: wallet.walletId)
-        
+
         let assetIds = try await assetsListService.getDeviceAssets(walletId: wallet.id, fromTimestamp: preferences.assetsTimestamp)
 
         if assetIds.isNotEmpty {

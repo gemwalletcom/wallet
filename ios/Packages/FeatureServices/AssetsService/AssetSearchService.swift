@@ -10,7 +10,7 @@ public struct AssetSearchService: Sendable {
 
     public init(
         assetsService: AssetsService,
-        searchStore: SearchStore
+        searchStore: SearchStore,
     ) {
         self.assetsService = assetsService
         self.searchStore = searchStore
@@ -20,23 +20,23 @@ public struct AssetSearchService: Sendable {
         wallet: Wallet,
         query: String,
         priorityAssetsQuery: String?,
-        tag: AssetTag?
+        tag: AssetTag?,
     ) async throws -> [AssetBasic] {
         let assets = try await assetsService.searchAssets(
             query: query,
             chains: WalletSearchScope.chains(for: wallet),
-            tags: [tag].compactMap { $0 }
+            tags: [tag].compactMap(\.self),
         )
 
         try assetsService.addAssets(assets: assets)
 
         if let priorityAssetsQuery {
-            try searchStore.add(type: .asset, query: priorityAssetsQuery, ids: assets.map { $0.asset.id.identifier })
+            try searchStore.add(type: .asset, query: priorityAssetsQuery, ids: assets.map(\.asset.id.identifier))
         }
 
         try assetsService.addBalancesIfMissing(
             walletId: wallet.walletId,
-            assetIds: assets.map { $0.asset.id }
+            assetIds: assets.map(\.asset.id),
         )
 
         return assets

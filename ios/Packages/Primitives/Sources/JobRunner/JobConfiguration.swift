@@ -6,13 +6,13 @@ public enum JobConfiguration: Sendable {
     // Always wait the same fixed `Duration` between attempts.
     case fixed(
         duration: Duration,
-        timeLimit: Duration? = nil
+        timeLimit: Duration? = nil,
     )
 
     // Exponential back-off
     case adaptive(
         configuration: AdaptiveConfiguration,
-        timeLimit: Duration? = nil
+        timeLimit: Duration? = nil,
     )
 
     // auto-complete by time

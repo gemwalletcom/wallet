@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Formatters
+import Testing
 
 struct PercentageSuggestionsFormatterTests {
-
     let formatter = PercentageSuggestionsFormatter()
 
     @Test

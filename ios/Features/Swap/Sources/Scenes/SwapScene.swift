@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
-import Style
 import PrimitivesComponents
+import Style
+import SwiftUI
 
 public struct SwapScene: View {
     @FocusState private var focusedField: Bool
@@ -27,7 +27,7 @@ public struct SwapScene: View {
                     ListItemErrorView(
                         errorTitle: model.errorTitle,
                         error: error.asAnyError(asset: model.fromAsset?.asset),
-                        infoAction: model.errorInfoAction
+                        infoAction: model.errorInfoAction,
                     )
                 }
             }
@@ -43,12 +43,12 @@ public struct SwapScene: View {
                         Button(
                             model.buttonViewModel.title,
                             role: .destructive,
-                            action: model.onSelectSwapConfirmation
+                            action: model.onSelectSwapConfirmation,
                         )
                     },
                     message: {
                         Text(model.isPresentingPriceImpactConfirmation ?? "")
-                    }
+                    },
                 )
         }
         .navigationTitle(model.title)
@@ -61,7 +61,7 @@ public struct SwapScene: View {
             value: model.assetIds,
             initial: true,
             interval: .none,
-            action: model.onAssetIdsChange
+            action: model.onAssetIdsChange,
         )
         .onChange(of: model.amountInputModel.text, model.onChangeFromValue)
         .onChange(of: model.pairSelectorModel, model.onChangePair)
@@ -84,7 +84,7 @@ extension SwapScene {
                 model: model.swapTokenModel(type: .pay),
                 text: $model.amountInputModel.text,
                 onBalanceAction: model.onSelectFromMaxBalance,
-                onSelectAssetAction: model.onSelectAssetPay
+                onSelectAssetAction: model.onSelectAssetPay,
             )
             .buttonStyle(.borderless)
             .focused($focusedField)
@@ -94,14 +94,14 @@ extension SwapScene {
         } footer: {
             SwapChangeView(
                 fromId: $model.pairSelectorModel.fromAssetId,
-                toId: $model.pairSelectorModel.toAssetId
+                toId: $model.pairSelectorModel.toAssetId,
             )
-                .padding(.top, .small)
-                .frame(maxWidth: .infinity)
-                .disabled(model.isSwitchAssetButtonDisabled)
-                .textCase(nil)
-                .listRowSeparator(.hidden)
-                .listRowInsets(.horizontalMediumInsets)
+            .padding(.top, .small)
+            .frame(maxWidth: .infinity)
+            .disabled(model.isSwitchAssetButtonDisabled)
+            .textCase(nil)
+            .listRowSeparator(.hidden)
+            .listRowInsets(.horizontalMediumInsets)
         }
     }
 
@@ -113,7 +113,7 @@ extension SwapScene {
                 showLoading: model.isLoading,
                 disabledTextField: true,
                 onBalanceAction: {},
-                onSelectAssetAction: model.onSelectAssetReceive
+                onSelectAssetAction: model.onSelectAssetReceive,
             )
             .buttonStyle(.borderless)
         } header: {
@@ -127,7 +127,7 @@ extension SwapScene {
             if let swapDetailsViewModel = model.swapDetailsViewModel {
                 NavigationCustomLink(
                     with: SwapDetailsListView(model: swapDetailsViewModel),
-                    action: model.onSelectSwapDetails
+                    action: model.onSelectSwapDetails,
                 )
             }
         }
@@ -139,7 +139,7 @@ extension SwapScene {
             type: model.buttonViewModel.type,
             image: model.buttonViewModel.icon,
             infoTitle: model.buttonViewModel.infoText,
-            action: onSelectActionButton
+            action: onSelectActionButton,
         )
     }
 
@@ -152,7 +152,7 @@ extension SwapScene {
                 model.onSelectPercent($0.value)
             },
             onDone: { focusedField = false },
-            button: swapButton
+            button: swapButton,
         )
     }
 }

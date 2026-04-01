@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Formatters
+import Testing
 
 final class MnemonicFormatterTests {
-
     let wordsArray = ["test", "test2"]
     let wordsString = "test test2"
 
     @Test
     func testFromArray() {
-        #expect(MnemonicFormatter.fromArray(words:wordsArray) == wordsString)
+        #expect(MnemonicFormatter.fromArray(words: wordsArray) == wordsString)
     }
 
     @Test

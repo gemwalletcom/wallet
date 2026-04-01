@@ -6,14 +6,14 @@ import WalletCore
 
 struct BitcoinSigner: Signable {
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
-        return try sign(input: input, privateKey: privateKey)
+        try sign(input: input, privateKey: privateKey)
     }
 
-    func signTokenTransfer(input: SignerInput, privateKey: Data) throws -> String {
+    func signTokenTransfer(input _: SignerInput, privateKey _: Data) throws -> String {
         fatalError()
     }
 
-    func signData(input: Primitives.SignerInput, privateKey: Data) throws -> String {
+    func signData(input _: Primitives.SignerInput, privateKey _: Data) throws -> String {
         fatalError()
     }
 
@@ -28,7 +28,7 @@ struct BitcoinSigner: Signable {
                 input: input,
                 coinType: coinType,
                 privateKey: privateKey,
-                utxos: utxos
+                utxos: utxos,
             )
         }
 
@@ -55,9 +55,9 @@ struct BitcoinSigner: Signable {
         input: SignerInput,
         coinType: CoinType,
         privateKey: Data,
-        utxos: [BitcoinUnspentTransaction]
+        utxos: [BitcoinUnspentTransaction],
     ) throws -> String {
-        guard case .zcash(_, let branchId) = input.metadata else {
+        guard case let .zcash(_, branchId) = input.metadata else {
             throw AnyError("invalid zcash metadata")
         }
         var signingInput = BitcoinSigningInput.with {
@@ -91,7 +91,7 @@ struct BitcoinSigner: Signable {
         }
 
         let change = max(totalAvailable - targetAmount - fee, 0)
-        
+
         signingInput.amount = targetAmount
         signingInput.zip0317 = false
         signingInput.plan = try BitcoinTransactionPlan.with {
@@ -100,7 +100,7 @@ struct BitcoinSigner: Signable {
             $0.fee = fee
             $0.change = change
             $0.utxos = utxos
-            $0.branchID = Data(try Data.from(hex: branchId).reversed())
+            $0.branchID = try Data(Data.from(hex: branchId).reversed())
         }
 
         return try performSigning(signingInput: signingInput, coinType: coinType)

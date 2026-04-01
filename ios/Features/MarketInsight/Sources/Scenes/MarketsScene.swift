@@ -1,19 +1,18 @@
-import Foundation
-import SwiftUI
 import Components
+import Foundation
 import Localization
 import PrimitivesComponents
+import SwiftUI
 
 public struct MarketsScene: View {
-    
     @State private var model: MarketsSceneViewModel
-    
+
     public init(
-        model: MarketsSceneViewModel
+        model: MarketsSceneViewModel,
     ) {
         _model = State(initialValue: model)
     }
-    
+
     public var body: some View {
         List {
             switch model.state {
@@ -21,16 +20,16 @@ public struct MarketsScene: View {
                 Text("")
             case .loading:
                 LoadingView()
-            case .data(let data):
+            case let .data(data):
                 PriceListItemView(model: data.marketCapViewModel)
-            case .error(let error):
+            case let .error(error):
                 ListItemErrorView(errorTitle: .none, error: error)
             }
         }
         .refreshable {
             await model.fetch()
         }
-        .onAppear() {
+        .onAppear {
             Task {
                 await model.fetch()
             }

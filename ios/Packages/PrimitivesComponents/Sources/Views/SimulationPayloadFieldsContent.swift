@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
 import Primitives
+import SwiftUI
 
 public struct SimulationPayloadFieldsContent: View {
     private let fields: [SimulationPayloadField]
@@ -12,7 +12,7 @@ public struct SimulationPayloadFieldsContent: View {
     public init(
         fields: [SimulationPayloadField],
         fieldViewModel: @escaping (SimulationPayloadField) -> SimulationPayloadFieldViewModel,
-        contextMenuItems: @escaping (SimulationPayloadField) -> [ContextMenuItemType]
+        contextMenuItems: @escaping (SimulationPayloadField) -> [ContextMenuItemType],
     ) {
         self.fields = fields
         self.fieldViewModel = fieldViewModel

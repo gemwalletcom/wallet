@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Store
-import Primitives
 import Components
-import QRScanner
-import Style
-import PrimitivesComponents
 import Localization
+import Primitives
+import PrimitivesComponents
+import QRScanner
+import Store
+import Style
+import SwiftUI
 
 public struct ConnectionsScene: View {
     @State private var model: ConnectionsViewModel
@@ -22,15 +22,15 @@ public struct ConnectionsScene: View {
                 ButtonListItem(
                     title: model.pasteButtonTitle,
                     image: Images.System.paste,
-                    action: model.onPaste
+                    action: model.onPaste,
                 )
                 ButtonListItem(
                     title: model.scanQRCodeButtonTitle,
                     image: Images.System.qrCodeViewfinder,
-                    action: model.onScan
+                    action: model.onScan,
                 )
             }
-            
+
             ForEach(model.sections) { section in
                 Section(section.title.or(.empty)) {
                     ForEach(section.values) { connection in
@@ -40,7 +40,7 @@ public struct ConnectionsScene: View {
                                     Button(
                                         model.disconnectTitle,
                                         role: .destructive,
-                                        action: { model.onSelectDisconnect(connection) }
+                                        action: { model.onSelectDisconnect(connection) },
                                     )
                                     .tint(Colors.red)
                                 }
@@ -69,10 +69,10 @@ public struct ConnectionsScene: View {
             isPresenting: $model.isPresentingConnectorBar,
             message: ToastMessage(
                 title: "\(Localized.WalletConnect.brandName)...",
-                image: SystemImage.network
+                image: SystemImage.network,
             ),
             duration: .infinity,
-            tapToDismiss: false
+            tapToDismiss: false,
         )
         .navigationTitle(model.title)
         .taskOnce { model.fetch() }

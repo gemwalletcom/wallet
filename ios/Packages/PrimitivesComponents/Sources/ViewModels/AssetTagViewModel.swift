@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Localization
 import Primitives
 import Style
-import Components
 import SwiftUI
 
 public struct AssetTagViewModel: TagItemViewable {
@@ -24,7 +24,7 @@ public struct AssetTagViewModel: TagItemViewable {
         case let .tag(type):
             switch type {
             case .trending,
-                    .trendingFiatPurchase:
+                 .trendingFiatPurchase:
                 Localized.Assets.Tags.trending
             case .gainers: Localized.Assets.Tags.gainers
             case .losers: Localized.Assets.Tags.losers
@@ -33,6 +33,7 @@ public struct AssetTagViewModel: TagItemViewable {
             }
         }
     }
+
     public var image: Image? {
         // TODO: - integrate colorful images when available
         nil

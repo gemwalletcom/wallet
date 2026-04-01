@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import PriceAlertService
-import StoreTestKit
-import Store
 import DeviceService
 import DeviceServiceTestKit
-import GemAPITestKit
+import Foundation
 import GemAPI
-import PriceService
-import PriceServiceTestKit
+import GemAPITestKit
 import Preferences
 import PreferencesTestKit
+import PriceAlertService
+import PriceService
+import PriceServiceTestKit
+import Store
+import StoreTestKit
 
 public extension PriceAlertService {
     static func mock(
@@ -19,14 +19,14 @@ public extension PriceAlertService {
         apiService: any GemAPIPriceAlertService = GemAPIPriceAlertServiceMock(),
         deviceService: any DeviceServiceable = DeviceServiceMock(),
         priceUpdater: any PriceUpdater = .mock(),
-        preferences: Preferences = .mock()
+        preferences: Preferences = .mock(),
     ) -> PriceAlertService {
         PriceAlertService(
             store: store,
             apiService: apiService,
             deviceService: deviceService,
             priceUpdater: priceUpdater,
-            preferences: preferences
+            preferences: preferences,
         )
     }
 }

@@ -22,6 +22,7 @@ fun StakeScreen(
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val delegations by viewModel.delegations.collectAsStateWithLifecycle()
+    val isStakeEnabled by viewModel.isStakeEnabled.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
 
     if (assetInfo == null || (assetInfo?.stakeApr ?: 0.0) <= 0.0) {
@@ -35,6 +36,7 @@ fun StakeScreen(
             assetInfo = assetInfo!!,
             delegations = delegations,
             actions = actions,
+            isStakeEnabled = isStakeEnabled,
             onRefresh = viewModel::onRefresh,
             amountAction = amountAction,
             onConfirm = { viewModel.onRewards(onConfirm) },

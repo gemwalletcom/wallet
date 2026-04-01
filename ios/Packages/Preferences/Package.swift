@@ -11,31 +11,33 @@ let package = Package(
     products: [
         .library(
             name: "Preferences",
-            targets: ["Preferences"]),
+            targets: ["Preferences"],
+        ),
         .library(
             name: "PreferencesTestKit",
-            targets: ["PreferencesTestKit"]),
+            targets: ["PreferencesTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "Keychain", path: "../Keychain")
+        .package(name: "Keychain", path: "../Keychain"),
     ],
     targets: [
         .target(
             name: "Preferences",
             dependencies: [
                 "Primitives",
-                "Keychain"
+                "Keychain",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .target(
             name: "PreferencesTestKit",
             dependencies: [
                 "Primitives",
-                "Preferences"
+                "Preferences",
             ],
-            path: "TestKit"
+            path: "TestKit",
         ),
         .testTarget(
             name: "PreferencesTest",
@@ -44,7 +46,7 @@ let package = Package(
                 "PreferencesTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
-            path: "Tests"
-        )
-    ]
+            path: "Tests",
+        ),
+    ],
 )

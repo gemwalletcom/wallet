@@ -8,7 +8,7 @@ public extension TransactionsRequest {
         TransactionsRequest(
             walletId: walletId,
             type: .asset(assetId: assetId),
-            limit: limit
+            limit: limit,
         )
     }
 
@@ -18,9 +18,9 @@ public extension TransactionsRequest {
             type: .asset(assetId: assetId),
             filters: [.types([
                 TransactionType.perpetualOpenPosition.rawValue,
-                TransactionType.perpetualClosePosition.rawValue
+                TransactionType.perpetualClosePosition.rawValue,
             ])],
-            limit: limit
+            limit: limit,
         )
     }
 }

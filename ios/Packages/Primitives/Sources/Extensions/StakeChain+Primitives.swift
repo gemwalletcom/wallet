@@ -4,6 +4,6 @@ import Foundation
 
 public extension StakeChain {
     var chain: Chain {
-        Chain(rawValue: self.rawValue)!
+        Chain(rawValue: rawValue)!
     }
 }

@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import Localization
-@testable import Transfer
 @testable import Primitives
 import PrimitivesTestKit
+import Testing
+@testable import Transfer
 import TransferTestKit
 import Validators
 
 struct ConfirmNetworkFeeViewModelTests {
-
     @Test
     func loaded() {
         let fiatValue = "$2.50"
@@ -18,10 +17,10 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: "0.001 ETH",
             fiatValue: fiatValue,
-            infoAction: {}
+            infoAction: {},
         )
 
-        guard case .networkFee(let item, let selectable) = model.itemModel else { return }
+        guard case let .networkFee(item, selectable) = model.itemModel else { return }
         #expect(item.subtitle == fiatValue)
         #expect(selectable == true)
     }
@@ -34,10 +33,10 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: value,
             fiatValue: nil,
-            infoAction: {}
+            infoAction: {},
         )
 
-        guard case .networkFee(let item, let selectable) = model.itemModel else { return }
+        guard case let .networkFee(item, selectable) = model.itemModel else { return }
         #expect(item.subtitle == value)
         #expect(selectable == true)
     }
@@ -49,10 +48,10 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: nil,
             fiatValue: nil,
-            infoAction: {}
+            infoAction: {},
         )
 
-        guard case .networkFee(let item, let selectable) = model.itemModel else { return }
+        guard case let .networkFee(item, selectable) = model.itemModel else { return }
         #expect(item.subtitle == "-")
         #expect(selectable == false)
     }
@@ -65,20 +64,19 @@ struct ConfirmNetworkFeeViewModelTests {
             data: .mock(),
             transactionData: .mock(),
             metaData: nil,
-            transferAmount: .failure(.insufficientBalance(.mock()))
+            transferAmount: .failure(.insufficientBalance(.mock())),
         )
         let model = ConfirmNetworkFeeViewModel(
             state: .data(input),
             title: Localized.Transfer.networkFee,
             value: value,
             fiatValue: fiatValue,
-            infoAction: {}
+            infoAction: {},
         )
 
-        guard case .networkFee(let item, let selectable) = model.itemModel else { return }
+        guard case let .networkFee(item, selectable) = model.itemModel else { return }
         #expect(item.subtitle == value)
         #expect(item.subtitleExtra == fiatValue)
         #expect(selectable == true)
     }
 }
-

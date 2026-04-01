@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import struct Gemstone.PaymentWrapper
+import Testing
 
 @testable import GemstonePrimitives
 
@@ -14,19 +14,19 @@ final class PaymentURLDecoderTests {
             amount: .none,
             memo: .none,
             assetId: .none,
-            paymentLink: .none
+            paymentLink: .none,
         ))
     }
 
     @Test
-    func testSolana() throws {
+    func solana() throws {
         let result1 = try PaymentURLDecoder.decode("HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5")
         #expect(result1 == PaymentWrapper(
             address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
             amount: .none,
             memo: .none,
             assetId: .none,
-            paymentLink: .none
+            paymentLink: .none,
         ))
 
         let result2 = try PaymentURLDecoder.decode("solana:HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5?amount=0.266232")
@@ -35,7 +35,7 @@ final class PaymentURLDecoderTests {
             amount: "0.266232",
             memo: .none,
             assetId: "solana",
-            paymentLink: .none
+            paymentLink: .none,
         ))
     }
 }

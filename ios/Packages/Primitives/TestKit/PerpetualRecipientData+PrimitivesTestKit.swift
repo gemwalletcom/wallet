@@ -6,11 +6,11 @@ import Primitives
 public extension PerpetualRecipientData {
     static func mock(
         recipient: RecipientData = .mock(),
-        positionAction: PerpetualPositionAction = .open(.mock())
+        positionAction: PerpetualPositionAction = .open(.mock()),
     ) -> PerpetualRecipientData {
         PerpetualRecipientData(
             recipient: recipient,
-            positionAction: positionAction
+            positionAction: positionAction,
         )
     }
 }

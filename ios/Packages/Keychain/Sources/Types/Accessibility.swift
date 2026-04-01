@@ -91,34 +91,34 @@ extension Accessibility: RawRepresentable, CustomStringConvertible {
     public var rawValue: String {
         switch self {
         case .whenUnlocked:
-            return String(kSecAttrAccessibleWhenUnlocked)
+            String(kSecAttrAccessibleWhenUnlocked)
         case .afterFirstUnlock:
-            return String(kSecAttrAccessibleAfterFirstUnlock)
+            String(kSecAttrAccessibleAfterFirstUnlock)
         case .whenPasscodeSetThisDeviceOnly:
             if #available(OSX 10.10, *) {
-                return String(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly)
+                String(kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly)
             } else {
                 fatalError("'Accessibility.WhenPasscodeSetThisDeviceOnly' is not available on this version of OS.")
             }
         case .whenUnlockedThisDeviceOnly:
-            return String(kSecAttrAccessibleWhenUnlockedThisDeviceOnly)
+            String(kSecAttrAccessibleWhenUnlockedThisDeviceOnly)
         case .afterFirstUnlockThisDeviceOnly:
-            return String(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
+            String(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
         }
     }
 
     public var description: String {
         switch self {
         case .whenUnlocked:
-            return "WhenUnlocked"
+            "WhenUnlocked"
         case .afterFirstUnlock:
-            return "AfterFirstUnlock"
+            "AfterFirstUnlock"
         case .whenPasscodeSetThisDeviceOnly:
-            return "WhenPasscodeSetThisDeviceOnly"
+            "WhenPasscodeSetThisDeviceOnly"
         case .whenUnlockedThisDeviceOnly:
-            return "WhenUnlockedThisDeviceOnly"
+            "WhenUnlockedThisDeviceOnly"
         case .afterFirstUnlockThisDeviceOnly:
-            return "AfterFirstUnlockThisDeviceOnly"
+            "AfterFirstUnlockThisDeviceOnly"
         }
     }
 }

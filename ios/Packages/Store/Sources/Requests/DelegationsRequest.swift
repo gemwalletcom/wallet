@@ -5,7 +5,6 @@ import GRDB
 import Primitives
 
 public struct DelegationsRequest: DatabaseQueryable {
-
     private let walletId: WalletId
     private let assetId: AssetId
     private let providerType: StakeProviderType

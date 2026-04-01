@@ -25,14 +25,14 @@ struct ConfirmServiceTests {
     func simulationStateUsesTransferApprovalValue() {
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock()
+            assetsService: .mock(),
         )
 
         let state = service.makeState(
             data: TransferData.mock(type: .tokenApprove(.mockEthereumUSDT(), ApprovalData(token: "", spender: "", value: "1000000", isUnlimited: false))),
             simulation: SimulationResult.mock(payload: [
                 SimulationPayloadField.standard(kind: .value, value: "1000000", fieldType: .text, display: .primary),
-            ])
+            ]),
         )
 
         #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(1_000_000)))
@@ -47,12 +47,12 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore)
+            assetsService: .mock(assetStore: assetStore),
         )
 
         let state = await service.updateState(
             data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
-            simulation: SimulationResult.mock(header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true))
+            simulation: SimulationResult.mock(header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true)),
         )
 
         #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited))
@@ -65,7 +65,7 @@ struct ConfirmServiceTests {
 
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore)
+            assetsService: .mock(assetStore: assetStore),
         )
 
         let state = service.makeState(
@@ -75,8 +75,8 @@ struct ConfirmServiceTests {
                     SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
                     SimulationPayloadField.standard(kind: .value, value: "1", fieldType: .text, display: .primary),
                 ],
-                header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true)
-            )
+                header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true),
+            ),
         )
 
         #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited))
@@ -90,16 +90,16 @@ struct ConfirmServiceTests {
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(
                 addressStore: .mock(),
-                apiService: GemAPIAddressNamesServiceMock(error: NSError(domain: "test", code: 404))
+                apiService: GemAPIAddressNamesServiceMock(error: NSError(domain: "test", code: 404)),
             ),
-            assetsService: .mock()
+            assetsService: .mock(),
         )
 
         let state = await service.updateState(
             data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
             simulation: SimulationResult.mock(payload: [
                 SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
-            ])
+            ]),
         )
 
         #expect(state.primaryFields.count == 1)

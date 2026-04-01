@@ -145,7 +145,7 @@ public extension Gemstone.SimulationResult {
             warnings: warnings.map { try $0.map() },
             balanceChanges: balanceChanges.map { try $0.map() },
             payload: payload.map { $0.map() },
-            header: header.map { try $0.map() }
+            header: header.map { try $0.map() },
         )
     }
 }

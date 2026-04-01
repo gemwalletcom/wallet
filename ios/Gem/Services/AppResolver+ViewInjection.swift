@@ -1,19 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Store
+import SwiftUI
 
 extension View {
     func inject(resolver: AppResolver) -> some View {
-        self
-            .inject(storages: resolver.storages)
+        inject(storages: resolver.storages)
             .inject(services: resolver.services)
             .inject(navigation: resolver.navigation)
     }
 
     private func inject(services: AppResolver.Services) -> some View {
-        self
-            .environment(\.nodeService, services.nodeService)
+        environment(\.nodeService, services.nodeService)
             .environment(\.walletService, services.walletService)
             .environment(\.walletSessionService, services.walletSessionService)
             .environment(\.assetsEnabler, services.assetsEnabler)
@@ -38,16 +36,14 @@ extension View {
             .environment(\.viewModelFactory, services.viewModelFactory)
             .environment(\.inAppNotificationService, services.inAppNotificationService)
     }
-    
+
     private func inject(storages: AppResolver.Storages) -> some View {
-        self
-            .databaseQueue(storages.db.dbQueue)
+        databaseQueue(storages.db.dbQueue)
             .environment(\.keystore, storages.keystore)
             .environment(\.observablePreferences, storages.observablePreferences)
     }
 
     private func inject(navigation: NavigationStateManager) -> some View {
-        self
-            .environment(\.navigationState, navigation)
+        environment(\.navigationState, navigation)
     }
 }

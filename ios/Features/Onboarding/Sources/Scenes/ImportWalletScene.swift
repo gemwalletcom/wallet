@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import Style
 import Components
-import QRScanner
 import Localization
+import Primitives
 import PrimitivesComponents
+import QRScanner
+import Style
+import SwiftUI
 
 struct ImportWalletScene: View {
     enum Field {
@@ -36,7 +36,7 @@ struct ImportWalletScene: View {
                         TextField(
                             model.importType.description,
                             text: $model.input,
-                            axis: .vertical
+                            axis: .vertical,
                         )
                         .accessibilityIdentifier("importInputField")
                         .autocorrectionDisabled(true)
@@ -46,23 +46,23 @@ struct ImportWalletScene: View {
                         .frame(minHeight: 80, alignment: .top)
                         .focused($focusedField, equals: .input)
                         .padding(.top, .space12)
-                        
+
                         if let nameRecordViewModel = model.nameRecordViewModel, model.importType == .address {
                             NameRecordView(model: nameRecordViewModel)
                         }
                     }
-                    
+
                     HStack(alignment: .center, spacing: .medium) {
                         ListButton(
                             title: model.pasteButtonTitle,
                             image: model.pasteButtonImage,
-                            action: model.onPaste
+                            action: model.onPaste,
                         )
                         if model.type != .multicoin {
                             ListButton(
                                 title: model.qrButtonTitle,
                                 image: model.qrButtonImage,
-                                action: model.onSelectScanQR
+                                action: model.onSelectScanQR,
                             )
                         }
                     }
@@ -73,13 +73,13 @@ struct ImportWalletScene: View {
                     Text(.init(text))
                 }
             }
-            
+
             Section {} header: {
                 VStack(alignment: .center) {
                     StateButton(
                         text: Localized.Wallet.Import.action,
                         type: .primary(model.buttonState),
-                        action: model.onSelectActionButton
+                        action: model.onSelectActionButton,
                     )
                     .frame(height: .scene.button.height)
                     .frame(maxWidth: .scene.button.maxWidth)
@@ -94,7 +94,7 @@ struct ImportWalletScene: View {
             if model.importType.showToolbar, model.wordsSuggestion.isNotEmpty, focusedField == .input {
                 WordSuggestionView(
                     words: model.wordsSuggestion,
-                    selectWord: model.onSelectWord
+                    selectWord: model.onSelectWord,
                 )
                 .clipShape(Capsule())
                 .padding(.small)

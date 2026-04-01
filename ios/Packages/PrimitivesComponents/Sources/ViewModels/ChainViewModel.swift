@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Primitives
 import SwiftUI
-import Components
 
 public struct ChainViewModel: Sendable {
     private let chain: Chain
@@ -13,7 +13,7 @@ public struct ChainViewModel: Sendable {
 
     public var title: String { Asset(chain).name }
     public var image: Image {
-        return ChainImage(chain: chain).placeholder
+        ChainImage(chain: chain).placeholder
     }
 }
 

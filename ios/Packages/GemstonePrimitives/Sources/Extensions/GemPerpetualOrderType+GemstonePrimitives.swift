@@ -4,8 +4,8 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.GemPerpetualOrderType {
-    public func map() -> Primitives.PerpetualOrderType {
+public extension Gemstone.GemPerpetualOrderType {
+    func map() -> Primitives.PerpetualOrderType {
         switch self {
         case .market: .market
         case .limit: .limit
@@ -13,8 +13,8 @@ extension Gemstone.GemPerpetualOrderType {
     }
 }
 
-extension Primitives.PerpetualOrderType {
-    public func map() -> Gemstone.GemPerpetualOrderType {
+public extension Primitives.PerpetualOrderType {
+    func map() -> Gemstone.GemPerpetualOrderType {
         switch self {
         case .market: .market
         case .limit: .limit

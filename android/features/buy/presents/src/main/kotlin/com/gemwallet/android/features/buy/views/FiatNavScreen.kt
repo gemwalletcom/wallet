@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
+import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.wallet.core.primitives.Asset
@@ -29,6 +30,7 @@ import com.wallet.core.primitives.FiatQuoteType
 @Composable
 fun FiatNavScreen(
     cancelAction: CancelAction,
+    onFiatTransactions: () -> Unit,
     viewModel: FiatViewModel = hiltViewModel()
 ) {
     val urlLoading = remember { mutableStateOf(false) }
@@ -57,6 +59,7 @@ fun FiatNavScreen(
         onLotSelect = viewModel::updateAmount,
         onProviderSelect = viewModel::setProvider,
         onTypeClick = viewModel::setType,
+        onFiatTransactions = onFiatTransactions,
         onBuy = {
             urlLoading.value = true
             viewModel.getUrl {
@@ -84,7 +87,8 @@ fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Un
 
 @Composable
 fun BuyError.mapError(type: FiatQuoteType, asset: Asset) = when (this) {
-    BuyError.MinimumAmount -> stringResource(id = R.string.transfer_minimum_amount, "${FiatViewModel.MIN_FIAT_AMOUNT}$")
+    BuyError.MinimumAmount -> stringResource(id = R.string.transfer_minimum_amount, "${FiatViewModel.MIN_FIAT_AMOUNT.toInt()}$")
+    BuyError.MaximumAmount -> stringResource(id = R.string.transfer_maximum_amount, "${AmountValidator.MAX_FIAT_AMOUNT.toInt()}$")
     BuyError.QuoteNotAvailable -> stringResource(id = R.string.buy_no_results)
     BuyError.ValueIncorrect -> stringResource(id = R.string.errors_invalid_amount)
     BuyError.EmptyAmount -> stringResource(
@@ -93,6 +97,5 @@ fun BuyError.mapError(type: FiatQuoteType, asset: Asset) = when (this) {
             FiatQuoteType.Sell -> stringResource(R.string.sell_title, "")
         }
     )
-
     BuyError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, "${asset.name} (${asset.symbol})")
 }

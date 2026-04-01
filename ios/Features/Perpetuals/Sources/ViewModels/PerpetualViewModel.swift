@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
+import Formatters
 import Foundation
+import Localization
 import Primitives
 import PrimitivesComponents
-import Formatters
-import Components
-import Localization
 import Style
 import SwiftUI
 
@@ -20,20 +20,20 @@ public struct PerpetualViewModel {
         formatter.maximumFractionDigits = 5
         return formatter
     }()
-    
+
     public init(perpetual: Perpetual, currencyStyle: CurrencyFormatterType = .abbreviated) {
         self.perpetual = perpetual
-        self.currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
+        currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
     }
-    
+
     public var name: String {
         perpetual.name
     }
-    
+
     public var assetImage: AssetImage {
         AssetIdViewModel(assetId: perpetual.assetId).assetImage
     }
-    
+
     public var volumeField: ListItemField {
         ListItemField(title: Localized.Markets.dailyVolume, value: currencyFormatter.string(perpetual.volume24h))
     }
@@ -43,23 +43,22 @@ public struct PerpetualViewModel {
     }
 
     public var fundingRateField: ListItemField {
-        let text: String
-        if let formattedNumber = fundingRateFormatter.string(from: NSNumber(value: perpetual.funding)) {
-            text = "\(formattedNumber)%"
+        let text: String = if let formattedNumber = fundingRateFormatter.string(from: NSNumber(value: perpetual.funding)) {
+            "\(formattedNumber)%"
         } else {
-            text = percentFormatter.string(perpetual.funding)
+            percentFormatter.string(perpetual.funding)
         }
         return ListItemField(title: Localized.Info.FundingRate.title, value: text)
     }
-    
+
     public var priceText: String {
         currencyFormatter.string(perpetual.price)
     }
-    
+
     public var priceChangeText: String {
         percentFormatter.string(perpetual.pricePercentChange24h)
     }
-    
+
     public var priceChangeTextColor: Color {
         PriceChangeColor.color(for: perpetual.pricePercentChange24h)
     }

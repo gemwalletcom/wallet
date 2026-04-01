@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Primitives
 import Components
-import Formatters
+import Foundation
+import GemstonePrimitives
+import Primitives
 
 struct WalletRecipientSectionViewModel {
     private let wallets: [Wallet]
@@ -26,7 +26,7 @@ struct WalletRecipientSectionViewModel {
                 return ListItemValue(
                     title: wallet.name,
                     subtitle: AddressFormatter(address: account.address, chain: account.chain).value(),
-                    value: RecipientAddress(name: wallet.name, address: account.address, memo: nil)
+                    value: RecipientAddress(name: wallet.name, address: account.address, memo: nil),
                 )
             }
     }

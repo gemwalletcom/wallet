@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
 import PreferencesTestKit
 import Primitives
+import Testing
 
 @testable import Preferences
 
@@ -12,7 +12,7 @@ struct SecurePreferencesTests {
     private let mockDeviceToken: String = "Device Token #1"
 
     @Test
-    func testDefaultPreferences() {
+    func defaultPreferences() {
         #expect(throws: Never.self) {
             let deviceId = try preferences.get(key: .deviceId)
             let deviceToken = try preferences.get(key: .deviceToken)
@@ -23,7 +23,7 @@ struct SecurePreferencesTests {
     }
 
     @Test
-    func testUpdatePreferences() {
+    func updatePreferences() {
         #expect(throws: Never.self) {
             try preferences.set(value: mockDeviceId, key: .deviceId)
             let deviceId = try preferences.get(key: .deviceId)
@@ -62,7 +62,7 @@ struct SecurePreferencesTests {
     }
 
     @Test
-    func testGetDeviceIdUsesInstanceStorage() {
+    func getDeviceIdUsesInstanceStorage() {
         #expect(throws: Never.self) {
             try preferences.set(value: mockDeviceId, key: .deviceId)
             #expect(try preferences.getDeviceId() == mockDeviceId)

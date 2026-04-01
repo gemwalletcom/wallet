@@ -4,20 +4,20 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemAccountDataType {
-    public func map() -> AccountDataType {
+public extension GemAccountDataType {
+    func map() -> AccountDataType {
         switch self {
         case .activate:
-            return .activate
+            .activate
         }
     }
 }
 
-extension AccountDataType {
-    public func map() -> GemAccountDataType {
+public extension AccountDataType {
+    func map() -> GemAccountDataType {
         switch self {
         case .activate:
-            return .activate
+            .activate
         }
     }
 }

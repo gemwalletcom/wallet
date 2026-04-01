@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Foundation
 import Components
+import Foundation
+import Testing
 
 @testable import PrimitivesComponents
 
 struct StateViewTypeTests {
-
     @Test
     func setErrorIgnoresCancellation() {
         var state: StateViewType<String> = .loading

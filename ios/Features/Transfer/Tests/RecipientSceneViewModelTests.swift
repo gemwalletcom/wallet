@@ -1,17 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-import Primitives
-import PrimitivesTestKit
-import WalletServiceTestKit
-import NameServiceTestKit
 import Components
 import Formatters
+import NameServiceTestKit
+import Primitives
+import PrimitivesTestKit
+import Testing
 @testable import Transfer
+import WalletServiceTestKit
 
 @MainActor
 struct RecipientSceneViewModelTests {
-
     @Test
     func tittle() {
         #expect(RecipientSceneViewModel.mock().tittle == "Recipient")
@@ -80,14 +79,14 @@ struct RecipientSceneViewModelTests {
         let payment = PaymentScanResult(
             address: "0x1234567890123456789012345678901234567890",
             amount: "1",
-            memo: nil
+            memo: nil,
         )
 
         do {
             let result = try model.getRecipientScanResult(payment: payment)
 
             switch result {
-            case .transferData(let data):
+            case let .transferData(data):
                 #expect(data.recipientData.recipient.address == payment.address)
                 #expect(data.canChangeValue == false)
             case .recipient:
@@ -106,13 +105,13 @@ struct RecipientSceneViewModelTests {
         let payment = PaymentScanResult(
             address: "0x123",
             amount: nil,
-            memo: "test memo"
+            memo: "test memo",
         )
 
         let result = try model.getRecipientScanResult(payment: payment)
 
         switch result {
-        case .recipient(let address, let memo, let amount):
+        case let .recipient(address, memo, amount):
             #expect(address == payment.address)
             #expect(memo == payment.memo)
             #expect(amount == payment.amount)
@@ -120,6 +119,7 @@ struct RecipientSceneViewModelTests {
             Issue.record("Expected recipient but got transferData")
         }
     }
+
     @Test
     func nftAssetImage() {
         let nftAsset = NFTAsset.mock(id: "ethereum_0x123_1")
@@ -136,7 +136,7 @@ extension RecipientSceneViewModel {
         asset: Asset = .mockEthereum(),
         type: RecipientAssetType = .mockAsset(),
         onRecipientDataAction: RecipientDataAction = nil,
-        onTransferAction: TransferDataAction = nil
+        onTransferAction: TransferDataAction = nil,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
@@ -145,7 +145,7 @@ extension RecipientSceneViewModel {
             nameService: .mock(),
             type: type,
             onRecipientDataAction: onRecipientDataAction,
-            onTransferAction: onTransferAction
+            onTransferAction: onTransferAction,
         )
     }
 }

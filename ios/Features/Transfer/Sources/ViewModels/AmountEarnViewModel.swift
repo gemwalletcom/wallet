@@ -16,7 +16,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         asset: Asset,
         action: EarnType,
         earnService: any EarnDataProvidable,
-        wallet: Wallet
+        wallet: Wallet,
     ) {
         self.asset = asset
         self.action = action
@@ -26,8 +26,8 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     var provider: DelegationValidator {
         switch action {
-        case .deposit(let provider): provider
-        case .withdraw(let delegation): delegation.validator
+        case let .deposit(provider): provider
+        case let .withdraw(delegation): delegation.validator
         }
     }
 
@@ -50,12 +50,12 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     var canChangeValue: Bool { true }
     var reserveForFee: BigInt { .zero }
 
-    func shouldReserveFee(from assetData: AssetData) -> Bool { false }
+    func shouldReserveFee(from _: AssetData) -> Bool { false }
 
     func availableValue(from assetData: AssetData) -> BigInt {
         switch action {
         case .deposit: assetData.balance.available
-        case .withdraw(let delegation): delegation.base.balanceValue
+        case let .withdraw(delegation): delegation.base.balanceValue
         }
     }
 
@@ -66,7 +66,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     func recipientData() -> RecipientData {
         RecipientData(
             recipient: Recipient(name: provider.name, address: provider.id, memo: nil),
-            amount: nil
+            amount: nil,
         )
     }
 
@@ -76,16 +76,16 @@ public final class AmountEarnViewModel: AmountDataProvidable {
             assetId: asset.id,
             address: address,
             value: String(value),
-            earnType: action
+            earnType: action,
         )
         return TransferData(
             type: .earn(asset, action, earnData),
             recipientData: RecipientData(
                 recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
-                amount: nil
+                amount: nil,
             ),
             value: value,
-            canChangeValue: canChangeValue
+            canChangeValue: canChangeValue,
         )
     }
 }

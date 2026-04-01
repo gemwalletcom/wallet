@@ -3,7 +3,6 @@
 import Foundation
 
 public struct PercentageSuggestionsFormatter: Sendable {
-
     public init() {}
 
     public func suggestions(for price: Double) -> [Int] {

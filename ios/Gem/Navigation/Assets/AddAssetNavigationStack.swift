@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Primitives
-import ChainService
 import Assets
-import Style
+import ChainService
 import Localization
+import Primitives
+import Style
+import SwiftUI
 
 struct AddAssetNavigationStack: View {
-
     let wallet: Wallet
     @Environment(\.chainServiceFactory) private var chainServiceFactory
     @Environment(\.assetsService) private var assetsService
@@ -19,9 +18,9 @@ struct AddAssetNavigationStack: View {
             AddAssetScene(
                 model: AddAssetSceneViewModel(
                     wallet: wallet,
-                    service: AddAssetService(chainServiceFactory: chainServiceFactory)
+                    service: AddAssetService(chainServiceFactory: chainServiceFactory),
                 ),
-                action: addAsset
+                action: addAsset,
             )
             .navigationTitle(Localized.Settings.Networks.title)
             .navigationBarTitleDisplayMode(.inline)

@@ -24,7 +24,7 @@ struct LocalKeystoreTests {
                 name: "test",
                 type: .phrase(words: words, chains: [.ethereum]),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             #expect(wallet.accounts.count == 1)
@@ -40,7 +40,7 @@ struct LocalKeystoreTests {
                 name: "Solana Wallet",
                 type: .phrase(words: LocalKeystore.words, chains: [.solana]),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             #expect(wallet.accounts.count == 1)
@@ -59,7 +59,7 @@ struct LocalKeystoreTests {
                 name: "test",
                 type: .phrase(words: LocalKeystore.words, chains: chains),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             #expect(wallet.accounts == chains.map {
@@ -80,7 +80,7 @@ struct LocalKeystoreTests {
                 name: "Test Solana",
                 type: .privateKey(text: hex, chain: .solana),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .solana)
@@ -91,7 +91,7 @@ struct LocalKeystoreTests {
                 name: "Test Solana 2",
                 type: .privateKey(text: exported, chain: .solana),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
             let exportedKey = try await keystore2.getPrivateKey(wallet: wallet2, chain: .solana)
 
@@ -108,7 +108,7 @@ struct LocalKeystoreTests {
                 name: "Test Ethereum",
                 type: .privateKey(text: hex, chain: .ethereum),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .ethereum)
@@ -123,7 +123,7 @@ struct LocalKeystoreTests {
             name: "Test Solana",
             type: .phrase(words: LocalKeystore.words, chains: [.solana]),
             isWalletsEmpty: true,
-            source: .import
+            source: .import,
         )
 
         let text = "5A2EYggC6hiAAuRArnkAANGySDyqQUGrbBHXfKQD9DQ5XcSkReDswnRqb7x3KRrnie9qSL"
@@ -143,7 +143,7 @@ struct LocalKeystoreTests {
                 name: "test",
                 type: .phrase(words: LocalKeystore.words, chains: chains),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             #expect(wallet.accounts.count == chains.count)
@@ -151,12 +151,11 @@ struct LocalKeystoreTests {
             for account in wallet.accounts {
                 let chain = account.chain
                 let derivedAddress = account.address
-                let expected: String
-                switch chain {
+                let expected = switch chain {
                 case .bitcoin:
-                    expected = "bc1quvuarfksewfeuevuc6tn0kfyptgjvwsvrprk9d"
+                    "bc1quvuarfksewfeuevuc6tn0kfyptgjvwsvrprk9d"
                 case .litecoin:
-                    expected = "ltc1qhd8fxxp2dx3vsmpac43z6ev0kllm4n53t5sk0u"
+                    "ltc1qhd8fxxp2dx3vsmpac43z6ev0kllm4n53t5sk0u"
                 case .ethereum,
                      .smartChain,
                      .polygon,
@@ -185,49 +184,49 @@ struct LocalKeystoreTests {
                      .plasma,
                      .xLayer,
                      .stable:
-                    expected = "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
+                    "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
                 case .solana:
-                    expected = "57mwmnV2rFuVDmhiJEjonD7cfuFtcaP9QvYNGfDEWK71"
+                    "57mwmnV2rFuVDmhiJEjonD7cfuFtcaP9QvYNGfDEWK71"
                 case .thorchain:
-                    expected = "thor1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2kyhc65"
+                    "thor1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2kyhc65"
                 case .cosmos:
-                    expected = "cosmos142j9u5eaduzd7faumygud6ruhdwme98qsy2ekn"
+                    "cosmos142j9u5eaduzd7faumygud6ruhdwme98qsy2ekn"
                 case .osmosis:
-                    expected = "osmo142j9u5eaduzd7faumygud6ruhdwme98qclefqp"
+                    "osmo142j9u5eaduzd7faumygud6ruhdwme98qclefqp"
                 case .ton:
-                    expected = "UQDgEMqToTacHic7SnvnPFmvceG5auFkCcAw0mSCvzvKUaT4"
+                    "UQDgEMqToTacHic7SnvnPFmvceG5auFkCcAw0mSCvzvKUaT4"
                 case .tron:
-                    expected = "TQ5NMqJjhpQGK7YJbESKtNCo86PJ89ujio"
+                    "TQ5NMqJjhpQGK7YJbESKtNCo86PJ89ujio"
                 case .doge:
-                    expected = "DJRFZNg8jkUtjcpo2zJd92FUAzwRjitw6f"
+                    "DJRFZNg8jkUtjcpo2zJd92FUAzwRjitw6f"
                 case .aptos:
-                    expected = "0x7968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30"
+                    "0x7968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30"
                 case .sui:
-                    expected = "0xada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2"
+                    "0xada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2"
                 case .xrp:
-                    expected = "rPwE3gChNKtZ1mhH3Ko8YFGqKmGRWLWXV3"
+                    "rPwE3gChNKtZ1mhH3Ko8YFGqKmGRWLWXV3"
                 case .celestia:
-                    expected = "celestia142j9u5eaduzd7faumygud6ruhdwme98qpwmfv7"
+                    "celestia142j9u5eaduzd7faumygud6ruhdwme98qpwmfv7"
                 case .injective:
-                    expected = "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a"
+                    "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a"
                 case .sei:
-                    expected = "sei142j9u5eaduzd7faumygud6ruhdwme98qagm0sj"
+                    "sei142j9u5eaduzd7faumygud6ruhdwme98qagm0sj"
                 case .noble:
-                    expected = "noble142j9u5eaduzd7faumygud6ruhdwme98qc8l3wa"
+                    "noble142j9u5eaduzd7faumygud6ruhdwme98qc8l3wa"
                 case .near:
-                    expected = "0c91f6106ff835c0195d5388565a2d69e25038a7e23d26198f85caf6594117ec"
+                    "0c91f6106ff835c0195d5388565a2d69e25038a7e23d26198f85caf6594117ec"
                 case .stellar:
-                    expected = "GA3H6I4C5XUBYGVB66KXR27JV5KS3APSTKRUWOIXZ5MVWZKVTLXWKZ2P"
+                    "GA3H6I4C5XUBYGVB66KXR27JV5KS3APSTKRUWOIXZ5MVWZKVTLXWKZ2P"
                 case .bitcoinCash:
-                    expected = "qpzl3jxkzgvfd9flnd26leud5duv795fnv7vuaha70"
+                    "qpzl3jxkzgvfd9flnd26leud5duv795fnv7vuaha70"
                 case .algorand:
-                    expected = "JTJWO524JXIHVPGBDWFLJE7XUIA32ECOZOBLF2QP3V5TQBT3NKZSCG67BQ"
+                    "JTJWO524JXIHVPGBDWFLJE7XUIA32ECOZOBLF2QP3V5TQBT3NKZSCG67BQ"
                 case .polkadot:
-                    expected = "13nN6BGAoJwd7Nw1XxeBCx5YcBXuYnL94Mh7i3xBprqVSsFk"
+                    "13nN6BGAoJwd7Nw1XxeBCx5YcBXuYnL94Mh7i3xBprqVSsFk"
                 case .cardano:
-                    expected = "addr1qyr8jjfnypp95eq74aqzn7ss687ehxclgj7mu6gratmg3mul2040vt35dypp042awzsjk5xm3zr3zm5qh7454uwdv08s84ray2"
+                    "addr1qyr8jjfnypp95eq74aqzn7ss687ehxclgj7mu6gratmg3mul2040vt35dypp042awzsjk5xm3zr3zm5qh7454uwdv08s84ray2"
                 case .zcash:
-                    expected = "t1YYnByMzdGhQv3W3rnjHMrJs6HH4Y231gy"
+                    "t1YYnByMzdGhQv3W3rnjHMrJs6HH4Y231gy"
                 }
 
                 #expect(derivedAddress == expected, "\(chain) failed to match address")
@@ -243,17 +242,17 @@ struct LocalKeystoreTests {
                 name: "ETH only",
                 type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
             let solWallet = try await keystore.importWallet(
                 name: "SOL only",
                 type: .phrase(words: LocalKeystore.words, chains: [.solana]),
                 isWalletsEmpty: false,
-                source: .import
+                source: .import,
             )
             let updated = try keystore.setupChains(
                 chains: chains,
-                for: [ethWallet, solWallet]
+                for: [ethWallet, solWallet],
             )
 
             #expect(updated.count == 2)
@@ -272,12 +271,12 @@ struct LocalKeystoreTests {
                 name: "Complete wallet",
                 type: .phrase(words: LocalKeystore.words, chains: chains),
                 isWalletsEmpty: true,
-                source: .import
+                source: .import,
             )
 
             let result = try keystore.setupChains(
                 chains: chains,
-                for: [wallet]
+                for: [wallet],
             )
 
             #expect(result.isEmpty)
@@ -291,11 +290,11 @@ struct LocalKeystoreTests {
 
         #expect(try mockPassword.getPassword().isEmpty)
 
-        let _ = try await keystore.importWallet(
+        _ = try await keystore.importWallet(
             name: "First Wallet",
             type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
             isWalletsEmpty: true,
-            source: .import
+            source: .import,
         )
 
         #expect(try mockPassword.getPassword().count == 64)
@@ -312,7 +311,7 @@ struct LocalKeystoreTests {
                         name: "Wallet \(index)",
                         type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
                         isWalletsEmpty: false,
-                        source: .import
+                        source: .import,
                     )
                 }
             }

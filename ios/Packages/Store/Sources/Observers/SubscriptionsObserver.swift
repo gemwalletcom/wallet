@@ -8,7 +8,7 @@ public struct SubscriptionsObserver: Sendable {
     private let db: any DatabaseReader
 
     public init(dbQueue: some DatabaseReader) {
-        self.db = dbQueue
+        db = dbQueue
     }
 
     public func observe() -> AsyncValueObservation<[Account]> {

@@ -4,20 +4,20 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.GemEarnType {
-    public func map() throws -> Primitives.EarnType {
+public extension Gemstone.GemEarnType {
+    func map() throws -> Primitives.EarnType {
         switch self {
-        case .deposit(let validator): .deposit(try validator.map())
-        case .withdraw(let delegation): .withdraw(try delegation.map())
+        case let .deposit(validator): try .deposit(validator.map())
+        case let .withdraw(delegation): try .withdraw(delegation.map())
         }
     }
 }
 
-extension Primitives.EarnType {
-    public func map() -> Gemstone.GemEarnType {
+public extension Primitives.EarnType {
+    func map() -> Gemstone.GemEarnType {
         switch self {
-        case .deposit(let validator): .deposit(validator.map())
-        case .withdraw(let delegation): .withdraw(delegation.map())
+        case let .deposit(validator): .deposit(validator.map())
+        case let .withdraw(delegation): .withdraw(delegation.map())
         }
     }
 }

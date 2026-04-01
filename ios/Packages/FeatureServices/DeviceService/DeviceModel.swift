@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import UIKit
 import Foundation
+import UIKit
 
-extension UIDevice {
-    
-    public var osName: String {
+public extension UIDevice {
+    var osName: String {
         "\(UIDevice.current.systemName) \(UIDevice.current.systemVersion)"
     }
-    
+
     @MainActor
-    var machineIdentifier: String {
+    internal var machineIdentifier: String {
         var systemInfo = utsname()
         uname(&systemInfo)
         let mirror = Mirror(reflecting: systemInfo.machine)
@@ -23,7 +22,7 @@ extension UIDevice {
     /// Device model name mapping from machine identifier to readable name
     /// Source: https://gist.githubusercontent.com/adamawolf/3048717/raw/5b5afb4cf0d2d17ef268a7547dd532fdbbec8327/Apple_mobile_device_types.txt
     @MainActor
-    public var modelName: String {
+    var modelName: String {
         switch machineIdentifier {
         case "i386", "x86_64", "arm64": "iPhone Simulator"
         case "iPhone10,1", "iPhone10,4": "iPhone 8"

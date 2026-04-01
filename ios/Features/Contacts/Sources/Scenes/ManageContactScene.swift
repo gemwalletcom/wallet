@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Components
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
-import Localization
+import SwiftUI
 
 public struct ManageContactScene: View {
-
     @Environment(\.dismiss) private var dismiss
 
     @State private var model: ManageContactViewModel
@@ -53,7 +52,7 @@ public struct ManageContactScene: View {
             }
         }
     }
-    
+
     @ViewBuilder
     private func contactAddressScene(mode: ManageContactAddressViewModel.Mode) -> some View {
         ManageContactAddressScene(
@@ -61,8 +60,8 @@ public struct ManageContactScene: View {
                 contactId: model.contactId,
                 nameService: model.nameService,
                 mode: mode,
-                onComplete: model.onAddressComplete
-            )
+                onComplete: model.onAddressComplete,
+            ),
         )
     }
 }
@@ -75,7 +74,7 @@ extension ManageContactScene {
             InputValidationField(
                 model: $model.nameInputModel,
                 placeholder: model.nameTitle,
-                allowClean: true
+                allowClean: true,
             )
             .focused($focusedField, equals: .name)
             .textInputAutocapitalization(.words)
@@ -83,7 +82,7 @@ extension ManageContactScene {
             FloatTextField(
                 model.descriptionTitle,
                 text: $model.description,
-                allowClean: true
+                allowClean: true,
             )
             .focused($focusedField, equals: .description)
         }
@@ -124,4 +123,3 @@ extension ManageContactScene {
         dismiss()
     }
 }
-

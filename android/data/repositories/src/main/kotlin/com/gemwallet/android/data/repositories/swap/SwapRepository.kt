@@ -8,6 +8,7 @@ import com.gemwallet.android.cases.swap.GetSwapSupported
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.math.decodeHex
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
@@ -95,7 +96,7 @@ class SwapRepository(
                 chain = chain,
                 input = permit2Json.toByteArray(),
                 privateKey = key,
-            )
+            ).decodeHex()
         } finally {
             Arrays.fill(key, 0)
         }

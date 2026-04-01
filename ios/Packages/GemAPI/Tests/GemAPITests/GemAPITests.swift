@@ -1,28 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
+@testable import GemAPI
 import Primitives
 import SwiftHTTPClient
-@testable import GemAPI
+import Testing
 
 @Suite(.serialized)
 struct GemAPITests {
-
     @Test
     func walletScopedRequestWaitsForPreflight() async throws {
         let events = RequestEvents()
         let assetIds = try await withMockURLProtocol(
             observer: { _ in
                 events.record("request")
-            }
+            },
         ) {
             let service = makeService(
                 walletRequestPreflight: {
                     events.record("preflight-start")
                     try await Task.sleep(for: .milliseconds(20))
                     events.record("preflight-end")
-                }
+                },
             )
 
             return try await service.getDeviceAssets(walletId: "wallet", fromTimestamp: 0)
@@ -38,13 +37,13 @@ struct GemAPITests {
         let names = try await withMockURLProtocol(
             observer: { _ in
                 events.record("request")
-            }
+            },
         ) {
             let service = makeService(
                 responseBody: Data("[]".utf8),
                 walletRequestPreflight: {
                     events.record("preflight")
-                }
+                },
             )
 
             return try await service.getAddressNames(requests: [])
@@ -60,12 +59,12 @@ struct GemAPITests {
         await withMockURLProtocol(
             observer: { _ in
                 events.record("request")
-            }
+            },
         ) {
             let service = makeService(
                 walletRequestPreflight: {
                     throw TestError.failed
-                }
+                },
             )
 
             do {
@@ -90,7 +89,7 @@ private extension GemAPITests {
     func withMockURLProtocol<T>(
         responseBody: Data = Data("[]".utf8),
         observer: @escaping @Sendable (URLRequest) -> Void = { _ in },
-        _ body: () async throws -> T
+        _ body: () async throws -> T,
     ) async rethrows -> T {
         MockURLProtocol.observer = observer
         MockURLProtocol.handler = { request in
@@ -99,7 +98,7 @@ private extension GemAPITests {
                 url: url,
                 statusCode: 200,
                 httpVersion: nil,
-                headerFields: [:]
+                headerFields: [:],
             )!
             return (response, responseBody)
         }
@@ -111,8 +110,8 @@ private extension GemAPITests {
     }
 
     func makeService(
-        responseBody: Data = Data("[]".utf8),
-        walletRequestPreflight: (@Sendable () async throws -> Void)? = nil
+        responseBody _: Data = Data("[]".utf8),
+        walletRequestPreflight: (@Sendable () async throws -> Void)? = nil,
     ) -> GemAPIService {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockURLProtocol.self]
@@ -121,7 +120,7 @@ private extension GemAPITests {
         return GemAPIService(
             provider: Provider<GemAPI>(session: session),
             deviceProvider: Provider<GemDeviceAPI>(session: session),
-            walletRequestPreflight: walletRequestPreflight
+            walletRequestPreflight: walletRequestPreflight,
         )
     }
 }
@@ -130,7 +129,7 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) throws -> (HTTPURLResponse, Data))?
     nonisolated(unsafe) static var observer: (@Sendable (URLRequest) -> Void)?
 
-    override class func canInit(with request: URLRequest) -> Bool {
+    override class func canInit(with _: URLRequest) -> Bool {
         true
     }
 

@@ -11,7 +11,8 @@ let package = Package(
     products: [
         .library(
             name: "LockManager",
-            targets: ["LockManager"]),
+            targets: ["LockManager"],
+        ),
     ],
     dependencies: [
         .package(name: "Style", path: "../../Packages/Style"),
@@ -26,13 +27,13 @@ let package = Package(
                 "Style",
                 "Components",
                 "Localization",
-                "Keystore"
+                "Keystore",
             ],
-            path: "Sources"
+            path: "Sources",
         ),
         .testTarget(
             name: "LockManagerTests",
-            dependencies: ["LockManager"]
+            dependencies: ["LockManager"],
         ),
-    ]
+    ],
 )

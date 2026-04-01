@@ -13,12 +13,12 @@ public extension PerpetualData {
     static func mock(
         perpetual: Perpetual = .mock(),
         asset: Asset = .mock(),
-        metadata: PerpetualMetadata = .mock()
+        metadata: PerpetualMetadata = .mock(),
     ) -> PerpetualData {
         PerpetualData(
             perpetual: perpetual,
             asset: asset,
-            metadata: metadata
+            metadata: metadata,
         )
     }
 }

@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
-import Style
 import Localization
+import Style
+import SwiftUI
 
 public struct ScanQRCodeNavigationStack: View {
     private let resources: any QRScannerResources
 
-    let action: ((String) -> Void)
+    let action: (String) -> Void
 
     public init(action: @escaping (String) -> Void) {
-        self.resources = QRScanResources()
+        resources = QRScanResources()
         self.action = action
     }
 

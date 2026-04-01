@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Testing
-import WalletConnectSign
 @testable import WalletConnectorService
+import WalletConnectSign
 
 struct RejectionReasonChainServicesTests {
-
     @Test
     func mapsErrors() {
         #expect(RejectionReason(from: AutoNamespacesError.requiredMethodsNotSatisfied) == .unsupportedMethods)

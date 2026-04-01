@@ -9,7 +9,8 @@ public struct URLTextValidator: TextValidator {
 
     public func validate(_ text: String) throws {
         guard let url = try? URLDecoder().decode(text),
-              let host = url.host, host.contains(".") else {
+              let host = url.host, host.contains(".")
+        else {
             throw URLValidationError.invalidUrl
         }
     }

@@ -10,7 +10,7 @@ public enum TransactionsSheetType: Identifiable {
     public var id: String {
         switch self {
         case .filter: "filter"
-        case .selectAsset(let type): "selectAsset-\(type.id)"
+        case let .selectAsset(type): "selectAsset-\(type.id)"
         }
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import BigInt
+import Foundation
 
 public struct TransactionInput: Sendable {
     public let type: TransferDataType
@@ -23,7 +23,7 @@ public struct TransactionInput: Sendable {
         balance: BigInt,
         gasPrice: GasPriceType,
         memo: String?,
-        metadata: TransactionLoadMetadata
+        metadata: TransactionLoadMetadata,
     ) {
         self.type = type
         self.asset = asset
@@ -37,34 +37,32 @@ public struct TransactionInput: Sendable {
     }
 }
 
-extension TransactionInput {
-    public var feeInput: FeeInput {
-        return FeeInput(
+public extension TransactionInput {
+    var feeInput: FeeInput {
+        FeeInput(
             type: type,
             senderAddress: senderAddress,
             destinationAddress: destinationAddress,
             value: value,
             balance: balance,
             gasPrice: gasPrice,
-            memo: memo
+            memo: memo,
         )
     }
-    
-    public var defaultFee: Fee {
-        Fee(
-            fee: gasPrice.totalFee,
-            gasPriceType: gasPrice,
-            gasLimit: 1
-        )
-    }
-    
-    public func defaultFee(gasLimit: BigInt) -> Fee {
-        Fee(
-            fee: gasPrice.totalFee,
-            gasPriceType: gasPrice,
-            gasLimit: gasLimit
-        )
-    }
-    
-}
 
+    var defaultFee: Fee {
+        Fee(
+            fee: gasPrice.totalFee,
+            gasPriceType: gasPrice,
+            gasLimit: 1,
+        )
+    }
+
+    func defaultFee(gasLimit: BigInt) -> Fee {
+        Fee(
+            fee: gasPrice.totalFee,
+            gasPriceType: gasPrice,
+            gasLimit: gasLimit,
+        )
+    }
+}

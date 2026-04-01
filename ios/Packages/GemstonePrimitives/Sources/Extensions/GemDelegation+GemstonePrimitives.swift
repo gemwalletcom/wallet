@@ -4,42 +4,42 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension GemPrice {
-    public func map() -> Price {
+public extension GemPrice {
+    func map() -> Price {
         Price(
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: Date(timeIntervalSince1970: TimeInterval(updatedAt))
+            updatedAt: Date(timeIntervalSince1970: TimeInterval(updatedAt)),
         )
     }
 }
 
-extension Price {
-    public func map() -> GemPrice {
+public extension Price {
+    func map() -> GemPrice {
         GemPrice(
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: Int64(updatedAt.timeIntervalSince1970)
+            updatedAt: Int64(updatedAt.timeIntervalSince1970),
         )
     }
 }
 
-extension GemDelegation {
-    public func map() throws -> Delegation {
-        Delegation(
-            base: try base.map(),
-            validator: try validator.map(),
-            price: price?.map()
+public extension GemDelegation {
+    func map() throws -> Delegation {
+        try Delegation(
+            base: base.map(),
+            validator: validator.map(),
+            price: price?.map(),
         )
     }
 }
 
-extension Delegation {
-    public func map() -> GemDelegation {
+public extension Delegation {
+    func map() -> GemDelegation {
         GemDelegation(
             base: base.map(),
             validator: validator.map(),
-            price: price?.map()
+            price: price?.map(),
         )
     }
 }

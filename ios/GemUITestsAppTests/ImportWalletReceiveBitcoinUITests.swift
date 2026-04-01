@@ -4,7 +4,6 @@ import XCTest
 
 @MainActor
 final class ImportWalletReceiveBitcoinUITests: XCTestCase {
-
     override func setUpWithError() throws {
         try super.setUpWithError()
         continueAfterFailure = false
@@ -17,7 +16,7 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         app.logout()
 
         // OnboardingScene
-        if app.isOnboarding {        
+        if app.isOnboarding {
             app.tapImportWallet()
         }
 
@@ -35,7 +34,7 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         // ReceiveScene
         app.buttons["Copy"].firstMatch.tap()
         XCTAssertTrue(app.buttons[UITestKitConstants.bitcoinAddress].exists)
-        
+
         app.tapBack()
         app.tapBack()
         app.tapWalletBar()
@@ -45,7 +44,7 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
 
         importFlow(app: app, words: UITestKitConstants.words2)
     }
-    
+
     func importFlow(app: XCUIApplication, words: String) {
         // ImportWalletTypeScene
         app.buttons["Multi-Coin"].firstMatch.tap()
@@ -53,7 +52,7 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         // ImportWalletScene
         app.textFields["importInputField"].typeText(words)
         app.buttons["Import"].firstMatch.tap()
-        
+
         // SetupWalletScene
         app.buttons["Done"].firstMatch.tap()
     }

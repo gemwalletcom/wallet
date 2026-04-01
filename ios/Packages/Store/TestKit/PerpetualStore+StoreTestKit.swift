@@ -3,8 +3,8 @@
 import Foundation
 import Store
 
-extension PerpetualStore {
-    public static func mock() -> Self {
+public extension PerpetualStore {
+    static func mock() -> Self {
         Self(db: DB.mock())
     }
 }

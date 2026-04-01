@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import SwiftUI
 import Style
+import SwiftUI
 
 public struct ListItemView: View {
     private let model: ListItemModel
@@ -24,7 +24,7 @@ public struct ListItemView: View {
         subtitleStyleExtra: TextStyle = ListItemModel.StyleDefaults.subtitleExtraStyle,
         imageStyle: ListItemImageStyle? = nil,
         placeholders: [ListItemViewPlaceholderType] = [],
-        infoAction: (() -> Void)? = nil
+        infoAction: (() -> Void)? = nil,
     ) {
         self.init(model: ListItemModel(
             title: title,
@@ -40,10 +40,10 @@ public struct ListItemView: View {
             subtitleStyleExtra: subtitleStyleExtra,
             imageStyle: imageStyle,
             placeholders: placeholders,
-            infoAction: infoAction
+            infoAction: infoAction,
         ))
     }
-    
+
     public init(field: ListItemField, infoAction: (() -> Void)? = nil) {
         self.init(title: field.title, subtitle: field.value, infoAction: infoAction)
     }
@@ -57,7 +57,7 @@ public struct ListItemView: View {
         subtitleExtra: TextValue? = nil,
         imageStyle: ListItemImageStyle? = nil,
         placeholders: [ListItemViewPlaceholderType] = [],
-        infoAction: (() -> Void)? = nil
+        infoAction: (() -> Void)? = nil,
     ) {
         self.init(model: ListItemModel(
             title: title?.text,
@@ -78,7 +78,7 @@ public struct ListItemView: View {
             subtitleExtraLineLimit: subtitleExtra?.lineLimit,
             imageStyle: imageStyle,
             placeholders: placeholders,
-            infoAction: infoAction
+            infoAction: infoAction,
         ))
     }
 
@@ -88,7 +88,7 @@ public struct ListItemView: View {
                 AssetImageView(
                     assetImage: imageStyle.assetImage,
                     size: imageStyle.imageSize,
-                    style: .init(foregroundColor: imageStyle.foregroundColor, cornerRadius: imageStyle.cornerRadius, fontWeight: imageStyle.fontWeight)
+                    style: .init(foregroundColor: imageStyle.foregroundColor, cornerRadius: imageStyle.cornerRadius, fontWeight: imageStyle.fontWeight),
                 )
             }
             HStack {
@@ -116,7 +116,7 @@ public struct ListItemView: View {
 extension ListItemView {
     struct TitleView: View {
         private let configuration: ListItemModel.TitleConfiguration
-        
+
         init(configuration: ListItemModel.TitleConfiguration) {
             self.configuration = configuration
         }
@@ -169,7 +169,7 @@ extension ListItemView {
                 case let .progressView(scale):
                     LoadingView(size: .small, tint: titleTag.style.color)
                         .scaleEffect(scale)
-                case .image(let image):
+                case let .image(image):
                     image
                 }
             }
@@ -185,8 +185,8 @@ extension ListItemView {
 
 extension ListItemView {
     struct SubtitleView: View {
-        public let subtitle: TextValue
-        public let subtitleExtra: TextValue?
+        let subtitle: TextValue
+        let subtitleExtra: TextValue?
 
         var body: some View {
             VStack(alignment: .trailing, spacing: .tiny) {
@@ -220,21 +220,21 @@ extension ListItemView {
                 title: "Custom with Tag",
                 titleTag: "NEW",
                 titleTagStyle: TextStyle(font: .footnote, color: .white, background: .blue),
-                subtitle: "Custom configuration example"
+                subtitle: "Custom configuration example",
             ))
-            
+
             ListItemView(model: ListItemModel(
                 title: "With Image",
                 subtitle: "Custom with left image",
-                imageStyle: .list(assetImage: AssetImage.image(Images.System.faceid))
+                imageStyle: .list(assetImage: AssetImage.image(Images.System.faceid)),
             ))
-            
+
             ListItemView(model: ListItemModel(
                 title: "Loading State",
-                placeholders: [.subtitle]
+                placeholders: [.subtitle],
             ))
         }
-        
+
         Section("Complex Custom Examples") {
             ListItemView(model: ListItemModel(
                 title: "Full Featured",
@@ -244,7 +244,7 @@ extension ListItemView {
                 titleExtra: "Extra info",
                 subtitle: "Main subtitle",
                 subtitleExtra: "Extra subtitle",
-                imageStyle: .list(assetImage: AssetImage.image(Images.System.eye))
+                imageStyle: .list(assetImage: AssetImage.image(Images.System.eye)),
             ))
         }
     }.listStyle(.insetGrouped)

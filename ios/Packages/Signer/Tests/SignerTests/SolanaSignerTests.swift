@@ -7,7 +7,7 @@ import Testing
 import WalletCore
 
 struct SolanaSignerTests {
-    let fee = Fee(fee: .zero, gasPriceType: .solana(gasPrice: 5_000, priorityFee: 10_000, unitPrice: 200), gasLimit: 125_000)
+    let fee = Fee(fee: .zero, gasPriceType: .solana(gasPrice: 5000, priorityFee: 10000, unitPrice: 200), gasLimit: 125_000)
 
     @Test
     func testTransfer() throws {
@@ -25,8 +25,8 @@ struct SolanaSignerTests {
                 senderTokenAddress: nil,
                 recipientTokenAddress: nil,
                 tokenProgram: nil,
-                blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK"
-            )
+                blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
+            ),
         )
 
         let result = try SolanaSigner().signTransfer(input: input, privateKey: TestPrivateKey)
@@ -49,8 +49,8 @@ struct SolanaSignerTests {
                 senderTokenAddress: nil,
                 recipientTokenAddress: nil,
                 tokenProgram: nil,
-                blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK"
-            )
+                blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
+            ),
         )
 
         let result = try SolanaSigner().signTransfer(input: input, privateKey: TestPrivateKey)
@@ -73,8 +73,8 @@ struct SolanaSignerTests {
                 senderTokenAddress: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
                 recipientTokenAddress: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
                 tokenProgram: .token,
-                blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK"
-            )
+                blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
+            ),
         )
 
         let result = try SolanaSigner().signTransfer(input: input, privateKey: TestPrivateKey)
@@ -98,5 +98,4 @@ struct SolanaSignerTests {
         #expect(pubKey.verify(signature: sig, message: dataMessage))
         #expect(b58Sig == "2gK63KVgpUMjT612P2iyL1TCZx5zmwbXjNMQ9PqkVrLsUpNuPWUhJhGLp4puzXu87AoNtMASkzziUJmkKCv3wESR")
     }
-
 }

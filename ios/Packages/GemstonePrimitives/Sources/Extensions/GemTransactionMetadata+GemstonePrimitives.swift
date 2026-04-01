@@ -4,16 +4,16 @@ import Foundation
 import Gemstone
 import Primitives
 
-extension Gemstone.TransactionMetadata {
-    public func mapToAnyCodableValue() -> AnyCodableValue? {
+public extension Gemstone.TransactionMetadata {
+    func mapToAnyCodableValue() -> AnyCodableValue? {
         switch self {
-        case .perpetual(let perpetualMetadata):
+        case let .perpetual(perpetualMetadata):
             .encode(TransactionPerpetualMetadata(
                 pnl: perpetualMetadata.pnl,
                 price: perpetualMetadata.price,
                 direction: perpetualMetadata.direction.map(),
                 isLiquidation: perpetualMetadata.isLiquidation,
-                provider: perpetualMetadata.provider?.map()
+                provider: perpetualMetadata.provider?.map(),
             ))
         }
     }

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 import struct Gemstone.SignMessage
+import Primitives
 
 public struct SignMessagePayload: Sendable {
     public let chain: Chain
@@ -16,7 +16,7 @@ public struct SignMessagePayload: Sendable {
         session: WalletConnectionSession,
         wallet: Wallet,
         message: SignMessage,
-        simulation: SimulationResult
+        simulation: SimulationResult,
     ) {
         self.chain = chain
         self.wallet = wallet

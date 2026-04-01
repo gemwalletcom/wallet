@@ -9,7 +9,7 @@ public struct SwapPairSelectorViewModel: Equatable {
 
     public init(
         fromAssetId: AssetId?,
-        toAssetId: AssetId?
+        toAssetId: AssetId?,
     ) {
         self.fromAssetId = fromAssetId
         self.toAssetId = toAssetId
@@ -22,17 +22,17 @@ public extension SwapPairSelectorViewModel {
             if ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil {
                 return SwapPairSelectorViewModel(
                     fromAssetId: asset.chain.assetId,
-                    toAssetId: AssetId(chain: .ethereum)
+                    toAssetId: AssetId(chain: .ethereum),
                 )
             }
             return SwapPairSelectorViewModel(
                 fromAssetId: asset.chain.assetId,
-                toAssetId: nil
+                toAssetId: nil,
             )
         }
         return SwapPairSelectorViewModel(
             fromAssetId: asset.id,
-            toAssetId: asset.chain.assetId
+            toAssetId: asset.chain.assetId,
         )
     }
 }

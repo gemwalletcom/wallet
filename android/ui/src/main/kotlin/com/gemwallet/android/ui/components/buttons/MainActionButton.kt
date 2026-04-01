@@ -18,17 +18,22 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.theme.mainActionHeight
 
-val disableButtonColor = Color(0xFF1742C5)
+val disabledButtonContainerColor = Color(0xFF6085E9)
+val disabledButtonContentColor = Color.White
 
 @Composable
 fun MainActionButton(
     title: String,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        disabledContainerColor = disabledButtonContainerColor,
+        disabledContentColor = disabledButtonContentColor,
+    ),
     onClick: () -> Unit,
 ) {
-    MainActionButton(enabled && !loading, colors, onClick) {
+    MainActionButton(modifier, enabled && !loading, colors, onClick) {
         if (loading) {
             CircularProgressIndicator20(color = MaterialTheme.colorScheme.onPrimary)
         } else {
@@ -43,13 +48,17 @@ fun MainActionButton(
 
 @Composable
 fun MainActionButton(
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        disabledContainerColor = disabledButtonContainerColor,
+        disabledContentColor = disabledButtonContentColor,
+    ),
     onClick: () -> Unit,
     content: @Composable RowScope.() -> Unit
 ) {
     Button(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = mainActionHeight)
             .testTag("main_action"),

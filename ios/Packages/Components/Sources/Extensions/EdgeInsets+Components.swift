@@ -10,6 +10,6 @@ public extension EdgeInsets {
         top: .space12,
         leading: .space12,
         bottom: .space12,
-        trailing: .space12
+        trailing: .space12,
     )
 }
