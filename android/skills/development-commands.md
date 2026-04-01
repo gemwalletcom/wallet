@@ -25,7 +25,7 @@ just release
 ./gradlew clean
 ```
 
-For Docker packaging, reproducible builds, and artifact verification, read `release-and-verification.md`.
+For release builds and reproducible verification, read `release-and-verification.md`.
 
 ## Test and Quality Commands
 
@@ -47,4 +47,4 @@ just test
 - Prefer the local `just` wrappers for the standard debug build, Android test build, and connected-test flows
 - Run the narrowest relevant task while iterating, then finish with the appropriate broader validation
 - Use `just` for generation, localization, and repo bootstrap workflows
-- Keep release/reproducibility workflows separate from normal app iteration and use the dedicated release skill for them
+- Keep release workflows separate from normal app iteration

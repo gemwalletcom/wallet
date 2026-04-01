@@ -1,0 +1,47 @@
+name: Android Nix Build
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "android/**"
+      - "core"
+      - "core/**"
+      - "shell.nix"
+      - ".github/workflows/android-nix.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "android/**"
+      - "core"
+      - "core/**"
+      - "shell.nix"
+      - ".github/workflows/android-nix.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (Nix)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Build release APK
+        run: |
+          touch android/local.properties
+          nix-shell shell.nix --run "cd android && ./gradlew assembleUniversalRelease --no-configuration-cache"
+        env:
+          GPR_USERNAME: ${{ github.actor }}
+          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
