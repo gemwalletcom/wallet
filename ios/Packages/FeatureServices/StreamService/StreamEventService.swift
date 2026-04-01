@@ -105,6 +105,6 @@ extension StreamEventService {
     }
 
     private func handleFiatTransactionUpdate(_ update: StreamWalletUpdate) async throws {
-        try await fiatService.updateTransactions(walletId: WalletId(id: update.walletId))
+        try await fiatService.updateTransactions(walletId: update.walletId)
     }
 }
