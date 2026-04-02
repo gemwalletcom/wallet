@@ -195,6 +195,7 @@ extension SetPriceAlertViewModel {
             await updateNotificationsIfNeeded()
             onComplete?(completeMessage)
             try await priceAlertService.add(priceAlert: priceAlert())
+            try await priceAlertService.enablePriceAlerts()
         } catch {
             debugLog("Set price alert error: \(error.localizedDescription)")
         }
