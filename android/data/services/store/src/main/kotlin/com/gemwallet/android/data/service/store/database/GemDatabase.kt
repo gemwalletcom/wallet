@@ -16,6 +16,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationBase
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationValidator
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
+import com.gemwallet.android.data.service.store.database.entities.DbFiatTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAttribute
@@ -37,7 +38,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetada
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 68,
+    version = 69,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -64,6 +65,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbAssetMarket::class,
         DbAssetPriority::class,
         DbFiatRate::class,
+        DbFiatTransaction::class,
         DbRecentActivity::class,
         DbPerpetual::class,
         DbPerpetualAsset::class,
@@ -110,4 +112,6 @@ abstract class GemDatabase : RoomDatabase() {
     abstract fun perpetualPositionDao(): PerpetualPositionDao
 
     abstract fun perpetualBalanceDao(): PerpetualBalanceDao
+
+    abstract fun fiatTransactionsDao(): FiatTransactionsDao
 }

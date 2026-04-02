@@ -70,6 +70,7 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
 
 public extension WalletPortfolioSceneViewModel {
     func fetch() async {
+        guard assets.isNotEmpty else { return }
         state = .loading
         do {
             let rate = try priceService.getRate(currency: currencyCode)

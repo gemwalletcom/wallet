@@ -4,7 +4,7 @@ import android.text.format.DateUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.cases.transactions.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ui.models.TransactionTypeFilter

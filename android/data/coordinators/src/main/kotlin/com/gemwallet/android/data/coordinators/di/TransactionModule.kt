@@ -1,16 +1,22 @@
 package com.gemwallet.android.data.coordinators.di
 
+import android.content.Context
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
+import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
+import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemSwapper
 import javax.inject.Singleton
@@ -25,6 +31,22 @@ object TransactionModule {
     ): GetTransactions {
         return GetTransactionsImpl(transactionRepository)
     }
+    @Provides
+    @Singleton
+    fun provideSyncTransactions(
+        @ApplicationContext context: Context,
+        gemDeviceApiClient: GemDeviceApiClient,
+        saveTransactions: SaveTransactions,
+        assetsRepository: AssetsRepository,
+    ): SyncTransactions {
+        return SyncTransactionsImpl(
+            context = context,
+            gemDeviceApiClient = gemDeviceApiClient,
+            saveTransactions = saveTransactions,
+            assetsRepository = assetsRepository,
+        )
+    }
+
     @Provides
     @Singleton
     fun provideGetTransactionDetails(

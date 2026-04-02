@@ -10,6 +10,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.features.asset_select.presents.views.SelectBuyScreen
 import com.gemwallet.android.features.buy.views.FiatNavScreen
+import com.gemwallet.android.features.buy.views.FiatTransactionsNavScreen
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
@@ -20,7 +21,14 @@ data class FiatInput(val assetId: String)
 object FiatSelect
 
 @Serializable
+object FiatTransactions
+
+@Serializable
 object Fiat
+
+fun NavController.navigateToFiatTransactions(navOptions: NavOptions? = null) {
+    navigate(FiatTransactions, navOptions ?: navOptions { launchSingleTop = true })
+}
 
 fun NavController.navigateToBuyScreen(assetId: AssetId? = null, navOptions: NavOptions? = null) {
     if (assetId == null) {
@@ -33,11 +41,13 @@ fun NavController.navigateToBuyScreen(assetId: AssetId? = null, navOptions: NavO
 fun NavGraphBuilder.fiatScreen(
     cancelAction: CancelAction,
     onBuy: (AssetId) -> Unit,
+    onFiatTransactions: () -> Unit,
 ) {
     navigation<Fiat>(startDestination = FiatSelect) {
         composable<FiatInput> {
             FiatNavScreen(
-                cancelAction = cancelAction
+                cancelAction = cancelAction,
+                onFiatTransactions = onFiatTransactions,
             )
         }
 
@@ -47,6 +57,12 @@ fun NavGraphBuilder.fiatScreen(
                 onSelect = {
                     onBuy(it)
                 }
+            )
+        }
+
+        composable<FiatTransactions> {
+            FiatTransactionsNavScreen(
+                onClose = cancelAction,
             )
         }
     }

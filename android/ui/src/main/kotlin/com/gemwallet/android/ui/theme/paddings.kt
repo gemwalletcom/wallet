@@ -40,7 +40,7 @@ val mainActionHeight = 48.dp
 val sheetCornerSize = 28.dp
 
 object SceneSizing {
-    val buttonMaxWidth = 340.dp
+    val buttonMaxWidth = 380.dp
     val contentMaxWidth = 360.dp
 }
 

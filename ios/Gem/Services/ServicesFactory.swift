@@ -182,6 +182,10 @@ struct ServicesFactory {
             priceUpdater: streamSubscriptionService,
             preferences: preferences,
         )
+        let fiatService = FiatService(
+            apiService: apiService,
+            store: storeManager.fiatTransactionStore,
+        )
         let streamEventService = StreamEventService(
             walletStore: storeManager.walletStore,
             notificationStore: storeManager.inAppNotificationStore,
@@ -191,6 +195,7 @@ struct ServicesFactory {
             transactionsService: transactionsService,
             nftService: nftService,
             perpetualService: perpetualService,
+            fiatService: fiatService,
             preferences: preferences,
         )
         let streamObserverService = StreamObserverService(
@@ -289,10 +294,6 @@ struct ServicesFactory {
         )
 
         let contactService = ContactService(store: storeManager.contactStore, addressStore: storeManager.addressStore)
-        let fiatService = FiatService(
-            apiService: apiService,
-            store: storeManager.fiatTransactionStore,
-        )
 
         let appLifecycleService = AppLifecycleService(
             preferences: preferences,

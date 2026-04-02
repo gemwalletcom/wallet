@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.padding
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
@@ -29,15 +30,21 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
         is TransactionDetailsValue.Destination.Provider -> R.string.common_provider
     }
     val isCopied = when (property) {
+        is TransactionDetailsValue.Destination.Recipient,
+        is TransactionDetailsValue.Destination.Sender -> true
         is TransactionDetailsValue.Destination.Provider -> false
-        else -> true
     }
 
+    val displayData = when (property) {
+        is TransactionDetailsValue.Destination.Recipient,
+        is TransactionDetailsValue.Destination.Sender -> AddressFormatter(property.data).value()
+        is TransactionDetailsValue.Destination.Provider -> property.data
+    }
     PropertyItem(
         title = { PropertyTitleText(title) },
         data = {
             PropertyDataText(
-                text = property.data,
+                text = displayData,
                 modifier = Modifier
                     .clickable(enabled = isCopied) { clipboardManager.setPlainText(context, property.data) },
                 badge = if (isCopied) {

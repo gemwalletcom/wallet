@@ -1,31 +1,41 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Done
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemSupportText
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
-import com.gemwallet.android.ui.theme.tinyIconSize
 import com.gemwallet.android.features.confirm.models.FeeRateUIModel
 import com.gemwallet.android.features.confirm.models.FeeUIModel
 import com.wallet.core.primitives.FeePriority
@@ -33,19 +43,29 @@ import com.wallet.core.primitives.FeePriority
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeeDetails(
+    isVisible: Boolean,
     currentFee: FeeUIModel.FeeInfo?,
     fee: List<Fee>,
+    feeAssetInfo: AssetInfo?,
     onSelect: (FeePriority) -> Unit,
     onCancel: () -> Unit,
 ) {
     currentFee ?: return
-    ModalBottomSheet(onCancel) {
+    val sheetState = rememberModalBottomSheetState()
+    ModalBottomSheet(
+        isVisible = isVisible,
+        onDismissRequest = onCancel,
+        sheetState = sheetState,
+    ) {
         LazyColumn {
 
             if (fee.size > 1) {
+                item {
+                    SubheaderItem(R.string.transfer_network_fee)
+                }
                 itemsPositioned(fee) { position, item ->
                     FeePriorityView(
-                        FeeRateUIModel(item),
+                        FeeRateUIModel(item, feeAssetInfo),
                         item.priority == currentFee.priority,
                         position,
                     ) { onSelect(item.priority) }
@@ -74,33 +94,50 @@ fun FeeDetails(
 
 @Composable
 private fun FeePriorityView(fee: FeeRateUIModel, isSelected: Boolean, position: ListPosition, onClick: () -> Unit) {
-    PropertyItem(
-        modifier = Modifier.clickable(onClick = onClick),
+    ListItem(
+        modifier = Modifier.clickable { onClick() },
+        leading = {
+            EmojiCircle(fee.emoji, listItemIconSize, isSelected)
+        },
         title = {
-            PropertyTitleText(
+            ListItemTitleText(
                 text = when (fee.priority) {
-                    FeePriority.Fast -> "\uD83D\uDE80  ${stringResource(R.string.fee_rates_fast)}"
-                    FeePriority.Normal -> "\uD83D\uDC8E  ${stringResource(R.string.fee_rates_normal)}"
-                    FeePriority.Slow -> "\uD83D\uDC22  ${stringResource(R.string.fee_rates_slow)}"
+                    FeePriority.Fast -> stringResource(R.string.fee_rates_fast)
+                    FeePriority.Normal -> stringResource(R.string.fee_rates_normal)
+                    FeePriority.Slow -> stringResource(R.string.fee_rates_slow)
                 },
-                trailing = {
-                    if (isSelected) {
-                        Icon(
-                            modifier = Modifier.size(tinyIconSize),
-                            imageVector = Icons.Outlined.Done,
-                            contentDescription = null,
-                        )
-                    } else {
-                        Box(modifier = Modifier.size(tinyIconSize))
-                    }
-                }
             )
         },
-        data = {
-            PropertyDataText(
-                fee.price
-            )
+        trailing = {
+            Column(horizontalAlignment = Alignment.End) {
+                ListItemTitleText(fee.price)
+                val fiat = fee.fiatValue
+                if (fiat.isNotEmpty()) {
+                    ListItemSupportText(fiat)
+                }
+            }
         },
         listPosition = position,
+        minHeight = ListItemDefaults.defaultMinHeight,
     )
+}
+
+@Composable
+private fun EmojiCircle(emoji: String, size: Dp, isSelected: Boolean = false) {
+    IconWithBadge(
+        size = size,
+        badge = if (isSelected) {{ SelectionCheckmark(modifier = Modifier.fillMaxSize()) }} else null,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .background(MaterialTheme.colorScheme.secondary.copy(alpha = alpha10), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = emoji,
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        }
+    }
 }

@@ -87,6 +87,7 @@ fun ConfirmScreen(
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val allFee by viewModel.allFee.collectAsStateWithLifecycle()
+    val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
     val walletConnectReview by viewModel.walletConnectReview.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val isWalletConnect = params is ConfirmParams.TransferParams.Generic
@@ -226,16 +227,17 @@ fun ConfirmScreen(
             }
         }
 
-        if (showSelectTxSpeed) {
-            FeeDetails(
-                currentFee = feeModel as? FeeUIModel.FeeInfo,
-                fee = allFee,
-                onSelect = {
-                    showSelectTxSpeed = false
-                    viewModel.changeFeePriority(it)
-                },
-            ) { showSelectTxSpeed = false }
-        }
+        FeeDetails(
+            isVisible = showSelectTxSpeed,
+            currentFee = feeModel as? FeeUIModel.FeeInfo,
+            fee = allFee,
+            feeAssetInfo = feeAssetInfo,
+            onSelect = {
+                showSelectTxSpeed = false
+                viewModel.changeFeePriority(it)
+            },
+            onCancel = { showSelectTxSpeed = false },
+        )
 
         if (showWalletConnectDetails) {
             ModalBottomSheet(

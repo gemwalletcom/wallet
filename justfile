@@ -20,7 +20,7 @@ test:
     @echo "==> Test iOS app"
     @cd ios && just test
     @echo "==> Test Android app"
-    @cd android && just test
+    @cd android && just unit-test
 
 generate: generate-models generate-stone
 

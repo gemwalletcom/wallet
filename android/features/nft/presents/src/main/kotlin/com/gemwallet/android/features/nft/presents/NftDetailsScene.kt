@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -86,9 +87,15 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsUIModel) {
         PropertyItem(R.string.nft_collection, model.collection.name, listPosition = ListPosition.First)
         PropertyNetworkItem(model.collection.chain, listPosition = ListPosition.Middle)
         model.asset.contractAddress?.let {
-            PropertyItem(R.string.asset_contract, it, listPosition = ListPosition.Middle)
+            val text = AddressFormatter(it, chain = model.collection.chain).value()
+            PropertyItem(R.string.asset_contract, text, listPosition = ListPosition.Middle)
         }
-        PropertyItem(R.string.asset_token_id, model.asset.tokenId, listPosition = ListPosition.Last)
+        val tokenIdText = if (model.asset.tokenId.length > 16) {
+            AddressFormatter(model.asset.tokenId, chain = model.collection.chain).value()
+        } else {
+            "#${model.asset.tokenId}"
+        }
+        PropertyItem(R.string.asset_token_id, tokenIdText, listPosition = ListPosition.Last)
     }
 }
 

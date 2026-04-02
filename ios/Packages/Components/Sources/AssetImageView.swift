@@ -7,15 +7,7 @@ public struct AssetImageView: View {
     @Environment(\.displayScale) private var scale
 
     private let size: CGFloat
-    private var overlaySize: CGFloat {
-        switch size {
-        case ...48: size / 2.6
-        default: size / 3
-        }
-    }
-
     private let assetImage: AssetImage
-    private let overlayPadding: CGFloat = 2
     private var cornerRadius: CGFloat { style?.cornerRadius ?? size / 2 }
     private let style: Style?
 
@@ -28,8 +20,6 @@ public struct AssetImageView: View {
         self.size = max(1, size)
         self.style = style
     }
-
-    private var overlayOffset: CGFloat { (size / 2) - (overlaySize / 2) }
 
     public var body: some View {
         CachedAsyncImage(
@@ -50,7 +40,7 @@ public struct AssetImageView: View {
         .ifLet(style?.foregroundColor) { view, color in
             view.foregroundStyle(color)
         }
-        .overlay(overlayBadge)
+        .assetBadge(assetImage.chainPlaceholder, size: size)
     }
 
     @ViewBuilder
@@ -92,18 +82,27 @@ public struct AssetImageView: View {
                 .cornerRadius(cornerRadius)
         }
     }
+}
 
-    @ViewBuilder
-    private var overlayBadge: some View {
-        if let badgeImage = assetImage.chainPlaceholder {
-            badgeImage
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: overlaySize, height: overlaySize)
-                .padding(overlayPadding)
-                .background(Colors.listStyleColor)
-                .clipShape(Circle())
-                .offset(x: overlayOffset + (size / overlaySize), y: overlayOffset + (size / overlaySize))
+// MARK: - Badge Overlay
+
+public extension View {
+    func assetBadge(_ badgeImage: Image?, size: CGFloat = .image.asset) -> some View {
+        let overlaySize = size <= 48 ? size / 2.6 : size / 3
+        let overlayPadding: CGFloat = 2
+        let overlayOffset = (size / 2) - (overlaySize / 2)
+
+        return self.overlay {
+            if let badgeImage {
+                badgeImage
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: overlaySize, height: overlaySize)
+                    .padding(overlayPadding)
+                    .background(Colors.listStyleColor)
+                    .clipShape(Circle())
+                    .offset(x: overlayOffset + (size / overlaySize), y: overlayOffset + (size / overlaySize))
+            }
         }
     }
 }

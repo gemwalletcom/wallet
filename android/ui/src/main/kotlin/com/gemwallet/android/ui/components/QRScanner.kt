@@ -143,12 +143,12 @@ fun QRScannerScene(
     LaunchedEffect(imageUri) {
         val image = imageUri ?: return@LaunchedEffect
         coroutineScope.launch(Dispatchers.IO) {
-            val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image))
-                .copy(Bitmap.Config.RGBA_F16, true)
-            val intArray = IntArray(bitmap.getWidth() * bitmap.getHeight())
-            bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight())
-
             try {
+                val bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, image))
+                    .copy(Bitmap.Config.RGBA_F16, true)
+                val intArray = IntArray(bitmap.getWidth() * bitmap.getHeight())
+                bitmap.getPixels(intArray, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight())
+
                 val source = RGBLuminanceSource(
                     bitmap.getWidth(),
                     bitmap.getHeight(),
@@ -259,13 +259,15 @@ fun QRScannerScene(
 fun QRScanner(listener: (String) -> Unit) {
     val localContext = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFeature = remember {
-        androidx.camera.lifecycle.ProcessCameraProvider.Companion.getInstance(localContext)
+    val previewView = remember {
+        androidx.camera.view.PreviewView(localContext).also {
+            it.scaleType = androidx.camera.view.PreviewView.ScaleType.FILL_CENTER
+        }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView({ context ->
-            val previewView = androidx.camera.view.PreviewView(context).also {
-                it.scaleType = androidx.camera.view.PreviewView.ScaleType.FILL_CENTER
+    LaunchedEffect(Unit) {
+        try {
+            val provider = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                androidx.camera.lifecycle.ProcessCameraProvider.getInstance(localContext).get()
             }
             val preview = androidx.camera.core.Preview.Builder()
                 .build()
@@ -277,7 +279,7 @@ fun QRScanner(listener: (String) -> Unit) {
                 .build()
                 .also { imageAnalysis ->
                     imageAnalysis.setAnalyzer(
-                        ContextCompat.getMainExecutor(context),
+                        ContextCompat.getMainExecutor(localContext),
                         QRCodeAnalyzer(callback = {
                             imageAnalysis.clearAnalyzer()
                             listener.invoke(it)
@@ -287,18 +289,17 @@ fun QRScanner(listener: (String) -> Unit) {
             val selector = androidx.camera.core.CameraSelector.Builder()
                 .requireLensFacing(androidx.camera.core.CameraSelector.LENS_FACING_BACK)
                 .build()
-            try {
-                val provider = cameraProviderFeature.get()
-                provider.unbindAll()
-                provider.bindToLifecycle(
-                    lifecycleOwner,
-                    selector,
-                    preview,
-                    imageAnalyzer,
-                )
-            } catch (_: Throwable) { }
-            previewView
-        }, modifier = Modifier.fillMaxSize())
+            provider.unbindAll()
+            provider.bindToLifecycle(
+                lifecycleOwner,
+                selector,
+                preview,
+                imageAnalyzer,
+            )
+        } catch (_: Throwable) { }
+    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
         Box(modifier = Modifier
             .fillMaxSize()
         ) {

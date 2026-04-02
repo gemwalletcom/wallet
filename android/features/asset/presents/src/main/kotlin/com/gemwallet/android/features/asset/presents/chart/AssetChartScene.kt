@@ -22,7 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
-import com.gemwallet.android.ext.getAddressEllipsisText
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -237,7 +237,7 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
                     title = { PropertyTitleText(R.string.asset_contract) },
                     data = {
                         PropertyDataText(
-                            text = item.value.getAddressEllipsisText(chain = asset.chain),
+                            text = AddressFormatter(item.value, chain = asset.chain).value(),
                             badge = { DataBadgeChevron() }
                         )
                     },

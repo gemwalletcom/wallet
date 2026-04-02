@@ -22,14 +22,6 @@ public struct StreamMessagePrices: Codable, Sendable {
 	}
 }
 
-public struct StreamNftUpdate: Codable, Sendable {
-	public let walletId: WalletId
-
-	public init(walletId: WalletId) {
-		self.walletId = walletId
-	}
-}
-
 public struct StreamNotificationlUpdate: Codable, Sendable {
 	public let walletId: WalletId
 	public let notification: InAppNotification
@@ -37,14 +29,6 @@ public struct StreamNotificationlUpdate: Codable, Sendable {
 	public init(walletId: WalletId, notification: InAppNotification) {
 		self.walletId = walletId
 		self.notification = notification
-	}
-}
-
-public struct StreamPerpetualUpdate: Codable, Sendable {
-	public let walletId: WalletId
-
-	public init(walletId: WalletId) {
-		self.walletId = walletId
 	}
 }
 
@@ -66,14 +50,23 @@ public struct StreamTransactionsUpdate: Codable, Sendable {
 	}
 }
 
+public struct StreamWalletUpdate: Codable, Sendable {
+	public let walletId: WalletId
+
+	public init(walletId: WalletId) {
+		self.walletId = walletId
+	}
+}
+
 public enum StreamEvent: Codable, Sendable {
 	case prices(WebSocketPricePayload)
-	case balances([StreamBalanceUpdate])
+	case balances(StreamBalanceUpdate)
 	case transactions(StreamTransactionsUpdate)
 	case priceAlerts(StreamPriceAlertUpdate)
-	case nft(StreamNftUpdate)
-	case perpetual(StreamPerpetualUpdate)
+	case nft(StreamWalletUpdate)
+	case perpetual(StreamWalletUpdate)
 	case inAppNotification(StreamNotificationlUpdate)
+	case fiatTransaction(StreamWalletUpdate)
 
 	enum CodingKeys: String, CodingKey, Codable {
 		case prices,
@@ -82,7 +75,8 @@ public enum StreamEvent: Codable, Sendable {
 			priceAlerts,
 			nft,
 			perpetual,
-			inAppNotification
+			inAppNotification,
+			fiatTransaction
 	}
 
 	private enum ContainerCodingKeys: String, CodingKey {
@@ -99,7 +93,7 @@ public enum StreamEvent: Codable, Sendable {
 					return
 				}
 			case .balances:
-				if let content = try? container.decode([StreamBalanceUpdate].self, forKey: .data) {
+				if let content = try? container.decode(StreamBalanceUpdate.self, forKey: .data) {
 					self = .balances(content)
 					return
 				}
@@ -114,18 +108,23 @@ public enum StreamEvent: Codable, Sendable {
 					return
 				}
 			case .nft:
-				if let content = try? container.decode(StreamNftUpdate.self, forKey: .data) {
+				if let content = try? container.decode(StreamWalletUpdate.self, forKey: .data) {
 					self = .nft(content)
 					return
 				}
 			case .perpetual:
-				if let content = try? container.decode(StreamPerpetualUpdate.self, forKey: .data) {
+				if let content = try? container.decode(StreamWalletUpdate.self, forKey: .data) {
 					self = .perpetual(content)
 					return
 				}
 			case .inAppNotification:
 				if let content = try? container.decode(StreamNotificationlUpdate.self, forKey: .data) {
 					self = .inAppNotification(content)
+					return
+				}
+			case .fiatTransaction:
+				if let content = try? container.decode(StreamWalletUpdate.self, forKey: .data) {
+					self = .fiatTransaction(content)
 					return
 				}
 			}
@@ -156,6 +155,9 @@ public enum StreamEvent: Codable, Sendable {
 			try container.encode(content, forKey: .data)
 		case .inAppNotification(let content):
 			try container.encode(CodingKeys.inAppNotification, forKey: .event)
+			try container.encode(content, forKey: .data)
+		case .fiatTransaction(let content):
+			try container.encode(CodingKeys.fiatTransaction, forKey: .event)
 			try container.encode(content, forKey: .data)
 		}
 	}
