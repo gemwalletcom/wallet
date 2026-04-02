@@ -5,16 +5,12 @@ on:
     branches: ["main"]
     paths:
       - "android/**"
-      - "core"
-      - "core/**"
       - "shell.nix"
       - ".github/workflows/android-nix.yml"
   pull_request:
     branches: ["main"]
     paths:
       - "android/**"
-      - "core"
-      - "core/**"
       - "shell.nix"
       - ".github/workflows/android-nix.yml"
   workflow_dispatch:
@@ -41,7 +37,7 @@ jobs:
       - name: Install Rust Android targets
         run: nix-shell shell.nix --run "rustup default stable && rustup target add x86_64-linux-android aarch64-linux-android armv7-linux-androideabi"
 
-      - name: Build release APK
+      - name: Build debug APK
         run: |
           touch android/local.properties
           nix-shell shell.nix --run "cd android && ./gradlew assembleGoogleDebug --no-configuration-cache"
