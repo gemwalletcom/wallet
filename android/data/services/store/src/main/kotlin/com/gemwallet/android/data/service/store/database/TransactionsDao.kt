@@ -52,9 +52,6 @@ interface TransactionsDao {
     @Query("SELECT * FROM tx_swap_metadata WHERE tx_id=:txId")
     fun getMetadata(txId: String): DbTxSwapMetadata?
 
-    @Query("SELECT MAX(createdAt) FROM transactions WHERE walletId = :walletId")
-    fun getUpdateTime(walletId: String): Long
-
     @Query("DELETE FROM transactions WHERE state = 'Pending'")
     fun removePendingTransactions()
 }

@@ -4,7 +4,7 @@ import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
 import com.gemwallet.android.cases.device.SyncSubscription
-import com.gemwallet.android.cases.transactions.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
