@@ -13,9 +13,11 @@ import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.Currency
+import android.text.format.DateUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
@@ -71,15 +73,18 @@ class AssetChartViewModel @Inject constructor(
     .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val sync = assetIdStr.flatMapLatest { assetId ->
-        flow {
-            emit(true)
-            assetsRepository.syncMarketInfo(assetId?.toAssetId() ?: return@flow, null)
-            emit(false)
+    private val sync = assetIdStr.filterNotNull()
+        .mapNotNull { it.toAssetId() }
+        .flatMapLatest { assetId ->
+            flow<Unit> {
+                while (true) {
+                    assetsRepository.syncMarketInfo(assetId, null)
+                    delay(DateUtils.MINUTE_IN_MILLIS)
+                }
+            }
         }
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Unit)
 
     private fun List<AssetLink>.toModel() = mapNotNull {
         return@mapNotNull when (it.name) {

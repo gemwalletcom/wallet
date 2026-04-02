@@ -21,7 +21,7 @@ val iconSize = 32.dp
 
 val space0 = 0.dp
 val space2 = 2.dp
-private val space6 = 6.dp
+val space6 = 6.dp
 val space4 = 4.dp
 val space8 = 8.dp
 val space10 = 10.dp

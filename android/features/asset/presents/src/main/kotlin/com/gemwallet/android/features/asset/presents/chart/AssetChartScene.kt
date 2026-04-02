@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.asset.presents.chart
 
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -24,11 +26,12 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.model.compactFormatter
+import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.AsyncImage
-import com.gemwallet.android.ui.components.list_item.Badge
+import com.gemwallet.android.ui.components.list_item.ChipBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -124,80 +127,63 @@ private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
 
 private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?, explorerName: String) {
     marketInfo ?: return
-    val marketItems = mutableListOf<MarketInfoUIModel>().apply {
-        marketInfo.marketCap?.let {
-            add(
-                MarketInfoUIModel(
-                    type = MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap,
-                    value = currency.compactFormatter(it),
-                    badge = marketInfo.marketCapRank?.takeIf { it > 0 }
-                        .let { "#${marketInfo.marketCapRank}" }
-                )
-            )
-        }
-        marketInfo.marketCapFdv?.let {
-            add(
-                MarketInfoUIModel(
-                    type = MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
-                    value = currency.compactFormatter(it),
-                    info = InfoSheetEntity.FullyDilutedValuation,
-                )
-            )
-        }
-    }
-
-    val supplyItems = mutableListOf<MarketInfoUIModel>().apply {
-        marketInfo.circulatingSupply?.let {
-            add(
-                MarketInfoUIModel(
-                    type = MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
-                    value = currency.compactFormatter(it),
-                    info = InfoSheetEntity.CirculatingSupply,
-                )
-            )
-        }
-        marketInfo.totalSupply?.let {
-            add(
-                MarketInfoUIModel(
-                    type = MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
-                    value = currency.compactFormatter(it),
-                    info = InfoSheetEntity.TotalSupply,
-                )
-            )
-        }
-
-        marketInfo.maxSupply?.let {
-            add(
-                MarketInfoUIModel(
-                    type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
-                    value = currency.compactFormatter(it),
-                    info = InfoSheetEntity.MaxSupply,
-                )
-            )
-        }
+    val marketItems = listOfNotNull(
         asset.id.tokenId?.let {
-            add(
-                MarketInfoUIModel(
-                    type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
-                    value = it,
-                )
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
+                value = it,
             )
-        }
-    }
+        },
+        marketInfo.marketCap?.let {
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap,
+                value = currency.compactFormatter(it),
+                badge = marketInfo.marketCapRank?.takeIf { rank -> rank > 0 }?.let { "#$it" },
+            )
+        },
+        marketInfo.totalVolume?.let {
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
+                value = currency.compactFormatter(it),
+            )
+        },
+        marketInfo.marketCapFdv?.let {
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
+                value = currency.compactFormatter(it),
+                info = InfoSheetEntity.FullyDilutedValuation,
+            )
+        },
+    )
 
-    val allTime = mutableListOf<AllTimeUIModel>().apply {
-        marketInfo.allTimeHighValue?.let {
-            add(
-                AllTimeUIModel.High(it.date, it.value.toDouble(), it.percentage.toDouble())
+    val supplyItems = listOfNotNull(
+        marketInfo.circulatingSupply?.let {
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
+                value = asset.compactFormatter(it),
+                info = InfoSheetEntity.CirculatingSupply,
             )
-        }
+        },
+        marketInfo.totalSupply?.let {
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
+                value = asset.compactFormatter(it),
+                info = InfoSheetEntity.TotalSupply,
+            )
+        },
+        marketInfo.maxSupply?.let {
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
+                value = asset.formatSupply(it),
+                info = InfoSheetEntity.MaxSupply,
+            )
+        },
+    )
 
-        marketInfo.allTimeLowValue?.let {
-            add(
-                AllTimeUIModel.Low(it.date, it.value.toDouble(), it.percentage.toDouble())
-            )
-        }
-    }
+    val allTime = listOfNotNull(
+        marketInfo.allTimeHighValue?.let { AllTimeUIModel.High(it.date, it.value.toDouble(), it.percentage.toDouble()) },
+        marketInfo.allTimeLowValue?.let { AllTimeUIModel.Low(it.date, it.value.toDouble(), it.percentage.toDouble()) },
+    )
 
     marketProperties(asset, explorerName, marketItems)
     marketProperties(asset, explorerName, supplyItems)
@@ -208,6 +194,7 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
     itemsPositioned(items) { position, item ->
         when (item.type) {
             MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
+            MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
             MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
             MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
             MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply -> PropertyItem(item.type.label, item.value, listPosition = position, info = item.info)
@@ -215,7 +202,7 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
                 title = {
                     PropertyTitleText(
                         text = item.type.label,
-                        badge = item.badge?.let { { Badge(it) } }
+                        badge = item.badge?.let { { ChipBadge(it) } }
                     )
                 },
                 data = { PropertyDataText(item.value) },
@@ -258,17 +245,15 @@ private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, it
         }
         ListItem(
             listPosition = position,
-            title = @Composable { ListItemTitleText(stringResource(title)) },
+            title = { PropertyTitleText(text = stringResource(title)) },
             subtitle = { ListItemSupportText(dateFormat.format(Date(item.date))) },
             trailing = {
-                Column(
-                    modifier = Modifier.defaultMinSize(40.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    ListItemTitleText(currency.compactFormatter(item.value))
+                val rowScope = this
+                Column(horizontalAlignment = Alignment.End) {
+                    with(rowScope) { PropertyDataText(currency.compactFormatter(item.value)) }
                     ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toPriceState().color())
                 }
-           },
+            },
         )
     }
 

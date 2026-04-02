@@ -12,6 +12,7 @@ class MarketInfoUIModel(
 ) {
     enum class MarketInfoTypeUIModel(@param:StringRes val label: Int) {
         MarketCap(R.string.asset_market_cap),
+        TradingVolume(R.string.asset_trading_volume),
         CirculatingSupply(R.string.asset_circulating_supply),
         TotalSupply(R.string.asset_total_supply),
         MaxSupply(R.string.info_max_supply_title),
