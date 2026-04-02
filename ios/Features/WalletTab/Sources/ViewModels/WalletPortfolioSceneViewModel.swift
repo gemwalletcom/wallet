@@ -7,7 +7,6 @@ import Localization
 import PriceService
 import Primitives
 import PrimitivesComponents
-import Store
 
 @Observable
 @MainActor
@@ -22,8 +21,6 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter: CurrencyFormatter
 
-    public let assetsQuery: ObservableQuery<AssetsRequest>
-
     var state: StateViewType<WalletPortfolioData> = .loading
     public var selectedPeriod: ChartPeriod = .day
 
@@ -37,10 +34,6 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
         self.priceService = priceService
         self.wallet = wallet
 
-        assetsQuery = ObservableQuery(
-            AssetsRequest(walletId: wallet.walletId, filters: [.enabledBalance, .hasBalance]),
-            initialValue: [],
-        )
         self.currencyCode = currencyCode
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
@@ -48,11 +41,9 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
     }
 
     var navigationTitle: String { Localized.Wallet.Portfolio.title }
-    private var assets: [AssetData] { assetsQuery.value }
 
     public var periods: [ChartPeriod] { [.day, .week, .month, .year, .all] }
     public var chartState: StateViewType<ChartValuesViewModel> {
-        guard assets.isNotEmpty else { return .noData }
         return state.map(\.chart)
     }
 
@@ -70,11 +61,10 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
 
 public extension WalletPortfolioSceneViewModel {
     func fetch() async {
-        guard assets.isNotEmpty else { return }
         state = .loading
         do {
             let rate = try priceService.getRate(currency: currencyCode)
-            let portfolio = try await service.getPortfolioAssets(assets: assets, period: selectedPeriod)
+            let portfolio = try await service.getPortfolioAssets(walletId: wallet.walletId, period: selectedPeriod)
             let charts = portfolio.values.map {
                 ChartDateValue(date: Date(timeIntervalSince1970: TimeInterval($0.timestamp)), value: Double($0.value) * rate)
             }

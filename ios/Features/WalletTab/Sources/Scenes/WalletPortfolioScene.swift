@@ -3,7 +3,6 @@
 import Components
 import Localization
 import PrimitivesComponents
-import Store
 import SwiftUI
 
 public struct WalletPortfolioScene: View {
@@ -27,9 +26,6 @@ public struct WalletPortfolioScene: View {
             .navigationTitle(model.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarDismissItem(type: .close, placement: .cancellationAction)
-            .onChangeBindQuery(model.assetsQuery) { _, _ in
-                Task { await model.fetch() }
-            }
         }
     }
 }
