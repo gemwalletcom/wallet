@@ -131,7 +131,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
     if (isShowQRScan) {
         QrCodeRequest(onCancel = { isShowQRScan = false }) {
             isShowQRScan = false
-            viewModel.url.value = it
+            viewModel.url.value = it.trim()
             viewModel.onUrlChange()
         }
     }
@@ -164,7 +164,7 @@ private fun UrlField(
             TransferTextFieldActions(
                 value = value.value,
                 paste = {
-                    value.value = clipboardManager.getPlainText() ?: ""
+                    value.value = clipboardManager.getPlainText()?.trim().orEmpty()
                     onValueChange()
                 },
                 onClean = {

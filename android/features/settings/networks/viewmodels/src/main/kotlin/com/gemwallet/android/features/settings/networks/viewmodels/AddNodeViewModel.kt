@@ -76,7 +76,7 @@ class AddNodeViewModel @Inject constructor(
         val chain = state.value.chain ?: return
         val status = state.value.nodeState ?: return
         viewModelScope.launch {
-            val addResult = runCatching { addNodeCase.addNode(chain = chain, url.value) }
+            val addResult = runCatching { addNodeCase.addNode(chain = chain, status.url) }
             if (addResult.isFailure) {
                 state.update { it.copy(errorResId = R.string.errors_error_occured) }
                 return@launch
@@ -91,14 +91,15 @@ class AddNodeViewModel @Inject constructor(
 
     fun onUrlChange() {
         checkUrlJob?.cancel()
+        val input = url.value.trim()
         state.update { it.copy(nodeState = null, checking = false, errorResId = null) }
 
-        if (url.value.isValidNodeUrl()) {
-            val currentUrl = url.value
+        val nodeUrl = NodeUrlParser.parse(input)
+        if (nodeUrl != null) {
             checkUrlJob = viewModelScope.launch {
                 delay(500)
-                if (currentUrl == url.value) {
-                    checkUrl(currentUrl)
+                if (nodeUrl == NodeUrlParser.parse(url.value.trim())) {
+                    checkUrl(nodeUrl)
                 }
             }
         }
