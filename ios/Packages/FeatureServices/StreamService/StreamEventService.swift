@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BalanceService
+import FiatService
 import Foundation
 import NFTService
 import PerpetualService
@@ -20,6 +21,7 @@ public struct StreamEventService: Sendable {
     private let transactionsService: TransactionsService
     private let nftService: NFTService
     private let perpetualService: any HyperliquidPerpetualServiceable
+    private let fiatService: FiatService
     private let preferences: Preferences
 
     public init(
@@ -31,6 +33,7 @@ public struct StreamEventService: Sendable {
         transactionsService: TransactionsService,
         nftService: NFTService,
         perpetualService: any HyperliquidPerpetualServiceable,
+        fiatService: FiatService,
         preferences: Preferences,
     ) {
         self.walletStore = walletStore
@@ -41,6 +44,7 @@ public struct StreamEventService: Sendable {
         self.transactionsService = transactionsService
         self.nftService = nftService
         self.perpetualService = perpetualService
+        self.fiatService = fiatService
         self.preferences = preferences
     }
 
@@ -48,8 +52,8 @@ public struct StreamEventService: Sendable {
         switch event {
         case let .prices(payload):
             await perform { try handlePrices(payload) }
-        case let .balances(updates):
-            Task { await perform { try await handleBalanceUpdates(updates) } }
+        case let .balances(update):
+            Task { await perform { try await handleBalanceUpdate(update) } }
         case let .transactions(update):
             Task { await perform { try await transactionsService.updateAll(walletId: update.walletId) } }
         case let .nft(update):
@@ -60,6 +64,8 @@ public struct StreamEventService: Sendable {
             await perform { try notificationStore.addNotifications([update.notification]) }
         case .priceAlerts:
             Task { await perform { try await priceAlertService.update() } }
+        case let .fiatTransaction(update):
+            Task { await perform { try await handleFiatTransactionUpdate(update) } }
         }
     }
 }
@@ -81,20 +87,22 @@ extension StreamEventService {
         try priceService.updatePrices(payload.prices, currency: preferences.currency)
     }
 
-    private func handleBalanceUpdates(_ updates: [StreamBalanceUpdate]) async throws {
-        for (walletId, walletUpdates) in Dictionary(grouping: updates, by: \.walletId) {
-            guard let wallet = try walletStore.getWallet(id: walletId) else { continue }
-            await balanceUpdater.updateBalance(for: wallet, assetIds: walletUpdates.map(\.assetId))
-        }
+    private func handleBalanceUpdate(_ update: StreamBalanceUpdate) async throws {
+        guard let wallet = try walletStore.getWallet(id: update.walletId) else { return }
+        await balanceUpdater.updateBalance(for: wallet, assetIds: [update.assetId])
     }
 
-    private func handleNftUpdate(_ update: StreamNftUpdate) async throws {
+    private func handleNftUpdate(_ update: StreamWalletUpdate) async throws {
         guard let wallet = try walletStore.getWallet(id: update.walletId) else { return }
         try await nftService.updateAssets(wallet: wallet)
     }
 
-    private func handlePerpetualUpdate(_ update: StreamPerpetualUpdate) async throws {
+    private func handlePerpetualUpdate(_ update: StreamWalletUpdate) async throws {
         guard let wallet = try walletStore.getWallet(id: update.walletId), let account = wallet.hyperliquidAccount else { return }
         try await perpetualService.fetchPositions(walletId: update.walletId, address: account.address)
+    }
+
+    private func handleFiatTransactionUpdate(_ update: StreamWalletUpdate) async throws {
+        try await fiatService.updateTransactions(walletId: update.walletId)
     }
 }

@@ -19,19 +19,9 @@ data class StreamMessagePrices (
 )
 
 @Serializable
-data class StreamNftUpdate (
-	val walletId: WalletId
-)
-
-@Serializable
 data class StreamNotificationlUpdate (
 	val walletId: WalletId,
 	val notification: InAppNotification
-)
-
-@Serializable
-data class StreamPerpetualUpdate (
-	val walletId: WalletId
 )
 
 @Serializable
@@ -43,6 +33,11 @@ data class StreamPriceAlertUpdate (
 data class StreamTransactionsUpdate (
 	val walletId: WalletId,
 	val transactions: List<TransactionId>
+)
+
+@Serializable
+data class StreamWalletUpdate (
+	val walletId: WalletId
 )
 
 @Serializable
@@ -61,13 +56,16 @@ sealed class StreamEvent {
 	data class PriceAlerts(val data: StreamPriceAlertUpdate): StreamEvent()
 	@Serializable
 	@SerialName("nft")
-	data class Nft(val data: StreamNftUpdate): StreamEvent()
+	data class Nft(val data: StreamWalletUpdate): StreamEvent()
 	@Serializable
 	@SerialName("perpetual")
-	data class Perpetual(val data: StreamPerpetualUpdate): StreamEvent()
+	data class Perpetual(val data: StreamWalletUpdate): StreamEvent()
 	@Serializable
 	@SerialName("inAppNotification")
 	data class InAppNotification(val data: StreamNotificationlUpdate): StreamEvent()
+	@Serializable
+	@SerialName("fiatTransaction")
+	data class FiatTransaction(val data: StreamWalletUpdate): StreamEvent()
 }
 
 @Serializable

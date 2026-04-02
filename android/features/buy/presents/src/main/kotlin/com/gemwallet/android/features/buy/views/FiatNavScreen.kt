@@ -30,6 +30,7 @@ import com.wallet.core.primitives.FiatQuoteType
 @Composable
 fun FiatNavScreen(
     cancelAction: CancelAction,
+    onFiatTransactions: () -> Unit,
     viewModel: FiatViewModel = hiltViewModel()
 ) {
     val urlLoading = remember { mutableStateOf(false) }
@@ -58,6 +59,7 @@ fun FiatNavScreen(
         onLotSelect = viewModel::updateAmount,
         onProviderSelect = viewModel::setProvider,
         onTypeClick = viewModel::setType,
+        onFiatTransactions = onFiatTransactions,
         onBuy = {
             urlLoading.value = true
             viewModel.getUrl {

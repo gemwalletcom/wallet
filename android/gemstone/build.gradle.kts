@@ -66,7 +66,7 @@ val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
     outputs.dir(generatedKotlinDir.resolve("uniffi"))
-    commandLine("just", "bindgen-kotlin")
+    commandLine("/bin/sh", "-l", "-c", "just bindgen-kotlin")
 }
 
 val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
@@ -76,14 +76,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
     outputs.dir(jniLibsDir)
-    commandLine(
-        "cargo", "ndk",
-        "-t", "arm64-v8a",
-        "-t", "armeabi-v7a",
-        "-t", "x86_64",
-        "-o", jniLibsDir.absolutePath,
-        "build", "--lib"
-    )
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 -o ${jniLibsDir.absolutePath} build --lib")
 }
 
 tasks.configureEach {

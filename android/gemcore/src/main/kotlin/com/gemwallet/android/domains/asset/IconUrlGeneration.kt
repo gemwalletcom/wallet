@@ -10,6 +10,7 @@ import com.wallet.core.primitives.AssetType
 import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatProvider
+import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import uniffi.gemstone.SwapperProvider
@@ -68,6 +69,8 @@ fun Asset.getIconUrl(): String {
 }
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
+
+fun FiatProviderName.getFiatProviderIcon(): String = "file:///android_asset/fiat/${string}.svg"
 
 fun FiatProvider.getFiatProviderIcon(): String = "file:///android_asset/fiat/${name.lowercase()}.svg"
 

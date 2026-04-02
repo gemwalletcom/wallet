@@ -20,27 +20,27 @@ public struct NetworkFeeScene: View {
             if model.showFeeRates {
                 Section {
                     ForEach(model.feeRatesViewModels) { feeRate in
-                        HStack {
-                            EmojiView(
-                                color: Colors.grayBackground,
-                                emoji: feeRate.emoji,
-                            )
-                            .frame(width: Sizing.image.asset, height: Sizing.image.asset)
+                        let isSelected = feeRate.feeRate.priority == model.priority
+                        Button {
+                            model.priority = feeRate.feeRate.priority
+                            dismiss()
+                        } label: {
+                            HStack(spacing: .space12) {
+                                EmojiView(
+                                    color: Colors.grayBackground,
+                                    emoji: feeRate.emoji,
+                                )
+                                .frame(width: Sizing.image.asset, height: Sizing.image.asset)
+                                .assetBadge(isSelected ? Images.Wallets.selected : nil)
 
-                            ListItemSelectionView(
-                                title: feeRate.title,
-                                titleExtra: feeRate.valueText,
-                                titleTag: .none,
-                                titleTagType: .none,
-                                subtitle: .none,
-                                subtitleExtra: .none,
-                                value: feeRate.feeRate.priority,
-                                selection: model.priority,
-                                action: {
-                                    model.priority = $0
-                                    dismiss()
-                                },
-                            )
+                                ListItemView(
+                                    title: feeRate.title,
+                                    subtitle: feeRate.valueText,
+                                    subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
+                                    subtitleExtra: model.fiatValueForRate(feeRate),
+                                    subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),
+                                )
+                            }
                         }
                     }
                 } footer: {

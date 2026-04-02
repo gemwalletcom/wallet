@@ -7,6 +7,7 @@ import FiatService
 import Foundation
 import InfoSheet
 import Localization
+import Preferences
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -75,6 +76,7 @@ public final class ConfirmTransferSceneViewModel {
         feeModel = NetworkFeeSceneViewModel(
             chain: data.chain,
             priority: confirmService.defaultPriority(for: data.type),
+            currency: Currency(rawValue: Preferences.standard.currency) ?? .usd,
         )
 
         metadata = try? confirmService.getMetadata(wallet: wallet, data: data)
@@ -349,7 +351,10 @@ extension ConfirmTransferSceneViewModel {
 
             simulationState = await nextSimulationState
             self.metadata = metadata
-            feeModel.update(rates: transferTransactionData.rates)
+            feeModel.update(
+                rates: transferTransactionData.rates,
+                feeAssetPrice: metadata.feePrice
+            )
             updateState(
                 with: transactionInputViewModel(
                     transferAmount: transferAmount,

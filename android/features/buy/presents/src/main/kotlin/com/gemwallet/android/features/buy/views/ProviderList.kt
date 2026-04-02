@@ -2,7 +2,6 @@ package com.gemwallet.android.features.buy.views
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -13,6 +12,7 @@ import androidx.compose.ui.Modifier
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -20,7 +20,6 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
 import com.wallet.core.primitives.FiatProvider
@@ -69,20 +68,20 @@ private fun FiatProviderListItemView(
     ListItem(
         modifier = Modifier.clickable(onClick = onProviderSelect),
         leading = {
-            AsyncImage(
-                model = provider.provider.getFiatProviderIcon(),
-                size = listItemIconSize,
-            )
-        },
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemTitleText(provider.provider.name)
-                if (isSelected) {
-                    Spacer8()
-                    SelectionCheckmark()
-                }
+            if (isSelected) {
+                IconWithBadge(
+                    icon = provider.provider.getFiatProviderIcon(),
+                    size = listItemIconSize,
+                    badge = { SelectionCheckmark() },
+                )
+            } else {
+                AsyncImage(
+                    model = provider.provider.getFiatProviderIcon(),
+                    size = listItemIconSize,
+                )
             }
         },
+        title = { ListItemTitleText(provider.provider.name) },
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(provider.cryptoText)

@@ -29,6 +29,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -188,16 +189,18 @@ private fun SwapProviderListItemView(
 ) {
     ListItem(
         modifier = Modifier.clickable { onProviderSelect(provider.id) },
-        leading = { SwapProviderIcon(provider.icon, listItemIconSize) },
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemTitleText(provider.title)
-                if (isSelected) {
-                    Spacer8()
-                    SelectionCheckmark()
-                }
+        leading = {
+            if (isSelected) {
+                IconWithBadge(
+                    icon = provider.icon,
+                    size = listItemIconSize,
+                    badge = { SelectionCheckmark() },
+                )
+            } else {
+                SwapProviderIcon(provider.icon, listItemIconSize)
             }
         },
+        title = { ListItemTitleText(provider.title) },
         trailing = { SwapProviderAmounts(provider) },
         listPosition = listPosition,
     )

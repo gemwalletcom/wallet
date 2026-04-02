@@ -200,7 +200,7 @@ class ConfirmViewModel @Inject constructor(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val feeAssetInfo = preloadData.filterNotNull().flatMapLatest { signerParams ->
+    val feeAssetInfo = preloadData.filterNotNull().flatMapLatest { signerParams ->
         assetsRepository.getAssetInfo(signerParams.fee().feeAssetId)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)

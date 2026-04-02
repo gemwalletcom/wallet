@@ -126,6 +126,7 @@ extension TransactionSceneViewModel {
         NetworkFeeSceneViewModel(
             chain: model.transaction.transaction.assetId.chain,
             priority: .normal,
+            currency: Currency(rawValue: preferences.currency) ?? .usd,
             value: model.infoModel.feeDisplay?.amount.text,
             fiatValue: model.infoModel.feeDisplay?.fiat?.text,
         )

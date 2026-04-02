@@ -8,8 +8,10 @@ import SwiftUI
 @MainActor
 public final class NetworkFeeSceneViewModel {
     private let chain: Chain
+    private let currency: Currency
 
     private var rates: [FeeRate] = []
+    private var feeAssetPrice: Price?
 
     public var priority: FeePriority
     public var value: String?
@@ -18,13 +20,13 @@ public final class NetworkFeeSceneViewModel {
     public init(
         chain: Chain,
         priority: FeePriority,
-        rates: [FeeRate] = [],
+        currency: Currency,
         value: String? = nil,
         fiatValue: String? = nil,
     ) {
         self.chain = chain
         self.priority = priority
-        self.rates = rates
+        self.currency = currency
         self.value = value
         self.fiatValue = fiatValue
     }
@@ -50,13 +52,26 @@ public final class NetworkFeeSceneViewModel {
     public var showFeeRates: Bool {
         rates.count > 1
     }
+
+    public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
+        guard chain.feeUnitType == .native, let price = feeAssetPrice else { return nil }
+        let display = AmountDisplay.numeric(
+            asset: chain.asset,
+            price: price,
+            value: rate.feeRate.gasPriceType.totalFee,
+            currency: currency.rawValue,
+            formatter: .medium,
+        )
+        return display.fiat?.text
+    }
 }
 
 // MARK: - Business Logic
 
 public extension NetworkFeeSceneViewModel {
-    func update(rates: [FeeRate]) {
+    func update(rates: [FeeRate], feeAssetPrice: Price?) {
         self.rates = rates
+        self.feeAssetPrice = feeAssetPrice
     }
 
     func update(value: String?, fiatValue: String?) {

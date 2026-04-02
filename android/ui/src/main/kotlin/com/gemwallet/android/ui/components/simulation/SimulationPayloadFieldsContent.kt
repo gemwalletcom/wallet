@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.components.simulation
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import com.gemwallet.android.ext.getAddressEllipsisText
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -67,7 +67,7 @@ private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kin
 }
 
 private fun fieldValue(field: SimulationPayloadField): String = when (field.fieldType) {
-    SimulationPayloadFieldType.Address -> field.value.getAddressEllipsisText()
+    SimulationPayloadFieldType.Address -> AddressFormatter(field.value).value()
     SimulationPayloadFieldType.Timestamp -> field.value.toTimestampText()
     else -> field.value
 }
