@@ -42,17 +42,7 @@ nix-shell shell.nix --run "cd android && ./gradlew assembleGoogleDebug"
 2. Run: `nix-prefetch-url --unpack https://github.com/NixOS/nixpkgs/archive/<commit>.tar.gz`
 3. Update `url` and `sha256` in `shell.nix`
 
-## Previous approach (Docker)
-
-Docker was previously used but removed due to:
-- R8's non-deterministic map-id required fragile post-build patching
-- Base image publishing added friction to the release process
-- Slow builds compared to native
-
-Nix replaces Docker by providing a hermetic environment without container overhead.
-
 ## Next steps
 
-1. Add a `verify.sh` script that rebuilds a tagged release in `nix-shell` and compares against the published APK (strip signatures with `apksigcopier`, then diff)
-2. Test cross-platform: confirm identical output on Linux x86_64 and macOS arm64
-3. Integrate verification into CI as an optional workflow dispatch
+1. Test cross-platform: confirm identical output on Linux x86_64 and macOS arm64
+2. Integrate verification into CI as an optional workflow dispatch

@@ -8,7 +8,7 @@ OFFICIAL_APK="${2:?Usage: verify.sh <tag> <official.apk>}"
 OUT_DIR="artifacts/reproducible/${TAG}"
 
 command -v nix-shell >/dev/null || { echo "Nix is required. Install: curl -L https://nixos.org/nix/install | sh -s -- --daemon"; exit 1; }
-command -v apksigcopier >/dev/null || { echo "apksigcopier is required. Install: pip install apksigcopier"; exit 1; }
+command -v apksigcopier >/dev/null || { echo "apksigcopier is required. Install: uv tool install apksigcopier"; exit 1; }
 
 mkdir -p "${OUT_DIR}"
 cp "${OFFICIAL_APK}" "${OUT_DIR}/official.apk"
