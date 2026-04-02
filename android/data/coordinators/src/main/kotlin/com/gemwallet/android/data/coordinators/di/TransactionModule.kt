@@ -5,7 +5,7 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
-import com.gemwallet.android.cases.transactions.PutTransactions
+import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
@@ -36,13 +36,13 @@ object TransactionModule {
     fun provideSyncTransactions(
         @ApplicationContext context: Context,
         gemDeviceApiClient: GemDeviceApiClient,
-        putTransactions: PutTransactions,
+        saveTransactions: SaveTransactions,
         assetsRepository: AssetsRepository,
     ): SyncTransactions {
         return SyncTransactionsImpl(
             context = context,
             gemDeviceApiClient = gemDeviceApiClient,
-            putTransactions = putTransactions,
+            saveTransactions = saveTransactions,
             assetsRepository = assetsRepository,
         )
     }

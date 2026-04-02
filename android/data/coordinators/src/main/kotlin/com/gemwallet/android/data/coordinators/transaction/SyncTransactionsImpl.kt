@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import android.content.Context
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.cases.transactions.PutTransactions
+import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.WalletPreferences
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
@@ -15,7 +15,7 @@ import com.wallet.core.primitives.Wallet
 class SyncTransactionsImpl(
     private val context: Context,
     private val gemDeviceApiClient: GemDeviceApiClient,
-    private val putTransactions: PutTransactions,
+    private val saveTransactions: SaveTransactions,
     private val assetsRepository: AssetsRepository,
 ) : SyncTransactions {
 
@@ -26,7 +26,7 @@ class SyncTransactionsImpl(
         }.getOrNull() ?: return
 
         prefetchAssets(wallet, transactions)
-        putTransactions.putTransactions(walletId = wallet.id, transactions)
+        saveTransactions.saveTransactions(walletId = wallet.id, transactions)
         preferences.transactionsTimestamp = currentTimestamp()
     }
 
@@ -39,7 +39,7 @@ class SyncTransactionsImpl(
         }.getOrNull() ?: return
 
         prefetchAssets(wallet, transactions)
-        putTransactions.putTransactions(walletId = wallet.id, transactions)
+        saveTransactions.saveTransactions(walletId = wallet.id, transactions)
         preferences.setTransactionsForAssetTimestamp(assetId, currentTimestamp())
     }
 

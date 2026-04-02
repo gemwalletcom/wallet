@@ -28,7 +28,7 @@ class WalletPreferences(context: Context, walletId: String) {
     }
 
     companion object {
-        private const val KEY_TRANSACTIONS_TIMESTAMP = "transactions_timestamp_v1"
-        private const val KEY_TRANSACTIONS_FOR_ASSET = "transactions_for_asset_v1"
+        private const val KEY_TRANSACTIONS_TIMESTAMP = "transactions_timestamp"
+        private const val KEY_TRANSACTIONS_FOR_ASSET = "transactions_for_asset"
     }
 }
