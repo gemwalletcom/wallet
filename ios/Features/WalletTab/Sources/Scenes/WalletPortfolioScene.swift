@@ -27,7 +27,9 @@ public struct WalletPortfolioScene: View {
             .navigationTitle(model.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarDismissItem(type: .close, placement: .cancellationAction)
-            .bindQuery(model.assetsQuery)
+            .onChangeBindQuery(model.assetsQuery) { _, _ in
+                Task { await model.fetch() }
+            }
         }
     }
 }
