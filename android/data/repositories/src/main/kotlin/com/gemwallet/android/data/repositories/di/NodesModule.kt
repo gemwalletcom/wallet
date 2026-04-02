@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
 import com.gemwallet.android.cases.nodes.AddNodeCase
+import com.gemwallet.android.cases.nodes.DeleteNodeCase
 import com.gemwallet.android.cases.nodes.GetBlockExplorers
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
@@ -17,6 +18,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import uniffi.gemstone.Config
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -24,9 +26,14 @@ object NodesModule {
 
     @Provides
     @Singleton
+    fun provideGemstoneConfig(): Config = Config()
+
+    @Provides
+    @Singleton
     fun provideNodesRepository(
         @ApplicationContext context: Context,
         nodesDao: NodesDao,
+        config: Config,
     ): NodesRepository = NodesRepository(
         nodesDao = nodesDao,
         configStore = ConfigStore(
@@ -35,6 +42,7 @@ object NodesModule {
                 Context.MODE_PRIVATE
             )
         ),
+        config = config,
     )
 
     @Provides
@@ -57,4 +65,7 @@ object NodesModule {
 
     @Provides
     fun provideAddNodeCase(repository: NodesRepository): AddNodeCase = repository
+
+    @Provides
+    fun provideDeleteNodeCase(repository: NodesRepository): DeleteNodeCase = repository
 }

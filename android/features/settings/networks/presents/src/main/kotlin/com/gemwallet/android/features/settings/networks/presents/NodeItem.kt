@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,96 +17,106 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.gemwallet.android.cases.nodes.getGemNodeUrl
-import com.gemwallet.android.model.NodeStatus
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
+import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer6
-import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Node
 import com.wallet.core.primitives.NodeState
 
 @Composable
 internal fun NodeItem(
-    chain: Chain,
-    node: Node,
-    selected: Boolean,
-    nodeStatus: NodeStatus?,
+    model: NodeRowUiModel,
     listPosition: ListPosition,
+    isDeleteRevealed: Boolean,
+    onDeleteReveal: () -> Unit,
+    onDeleteCollapse: () -> Unit,
     onSelect: (Node) -> Unit,
+    onDelete: (() -> Unit)?,
 ) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = { onSelect(node) }),
-        title = {
-            ListItemTitleText(
-                text = if (node.url == getGemNodeUrl(chain)) {
-                    "Gem Wallet Node"
-                } else {
-                    node.url.replace("https://", "").replace("http://", "")
-                },
-                titleBadge = { NodeItemStatus(nodeStatus) }
-            )
-        },
-        subtitle = {
-            val blockNumber = nodeStatus?.blockNumber?.takeIf { it > 0UL }?.let {
-                DecimalFormat.getInstance().format(nodeStatus.blockNumber.toLong())
-            } ?: ""
+    val content: @Composable (ListPosition) -> Unit = { position ->
+        ListItem(
+            modifier = Modifier.clickable(onClick = { onSelect(model.node) }),
+            title = {
+                ListItemTitleText(
+                    text = model.title(),
+                    titleBadge = { NodeItemStatus(model.statusState) }
+                )
+            },
+            subtitle = {
+                ListItemSupportText(
+                    text = model.latestBlockText(),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            },
+            listPosition = position,
+            trailing = if (model.selected) {
+                @Composable {
+                    SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
+                }
+            } else null
+        )
+    }
 
-            Text(
-                text = "${stringResource(R.string.nodes_import_node_latest_block)} - $blockNumber",
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
+    if (onDelete == null) {
+        content(listPosition)
+        return
+    }
+
+    SwipeableItemWithActions(
+        isRevealed = isDeleteRevealed,
+        actions = {
+            ActionIcon(
+                onClick = onDelete,
+                backgroundColor = MaterialTheme.colorScheme.error,
+                icon = Icons.Default.Delete,
+                contentDescription = stringResource(R.string.common_delete),
             )
         },
         listPosition = listPosition,
-        trailing = if (selected) {
-            @Composable {
-                SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
-            }
-        } else null
+        onExpanded = onDeleteReveal,
+        onCollapsed = onDeleteCollapse,
+        content = content,
     )
 }
 
 @Composable
-private fun NodeItemStatus(nodeStatus: NodeStatus?) {
-    if (nodeStatus?.loading == true) {
+private fun NodeItemStatus(statusState: NodeStatusState) {
+    if (statusState is NodeStatusState.Loading) {
         Spacer6()
         CircularProgressIndicator14()
         return
     }
-    val color = when {
-        nodeStatus?.loading == true -> Color.Transparent
-        nodeStatus?.inSync == true -> when {
-            nodeStatus.latency < 1024UL -> MaterialTheme.colorScheme.tertiary
-            nodeStatus.latency < 2048UL -> Color(0xffff9314)
-            else -> MaterialTheme.colorScheme.error
-        }
-        else -> MaterialTheme.colorScheme.error
-    }
+
+    val color = statusState.statusColor()
     Row(
         Modifier
-            .padding(start = 5.dp)
-            .background(color = color.copy(alpha = alpha10), shape = RoundedCornerShape(6.dp)),
+            .padding(start = paddingHalfSmall)
+            .background(color = color.copy(alpha = alpha10), shape = RoundedCornerShape(space6)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val text = if (nodeStatus?.inSync == true) {
-            stringResource(R.string.common_latency_in_ms, nodeStatus.latency.toLong())
-        } else {
-            stringResource(R.string.errors_error)
-        }
         Text(
-            modifier = Modifier.padding(start = 5.dp, top = 2.dp, end = paddingHalfSmall, bottom = 2.dp),
-            text = text,
+            modifier = Modifier.padding(
+                start = paddingHalfSmall,
+                top = space2,
+                end = paddingHalfSmall,
+                bottom = space2,
+            ),
+            text = statusState.statusText(),
             color = color,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -113,27 +125,71 @@ private fun NodeItemStatus(nodeStatus: NodeStatus?) {
     }
 }
 
+@Composable
+private fun NodeStatusState.statusText(): String = when (this) {
+    NodeStatusState.Error -> stringResource(R.string.errors_error)
+    is NodeStatusState.Loading -> ""
+    is NodeStatusState.Result -> stringResource(R.string.common_latency_in_ms, latency.toLong())
+}
+
+@Composable
+private fun NodeStatusState.statusColor(): Color = when (this) {
+    NodeStatusState.Error -> MaterialTheme.colorScheme.error
+    is NodeStatusState.Loading -> Color.Transparent
+    is NodeStatusState.Result -> {
+        when {
+            latency < 1024UL -> MaterialTheme.colorScheme.tertiary
+            latency < 2048UL -> Color(0xffff9314)
+            else -> MaterialTheme.colorScheme.error
+        }
+    }
+}
+
+@Composable
+private fun NodeRowUiModel.title(): String {
+    return gemNodeFlag?.let { "${stringResource(R.string.nodes_gem_wallet_node)} $it" } ?: host
+}
+
+@Composable
+private fun NodeRowUiModel.latestBlockText(): String {
+    val blockValue = when (val currentState = statusState) {
+        NodeStatusState.Error,
+        NodeStatusState.Loading -> "-"
+        is NodeStatusState.Result -> currentState.latestBlock
+            .takeIf { it > 0UL }
+            ?.let { DecimalFormat.getInstance().format(it.toLong()) }
+            ?: "-"
+    }
+
+    return "${stringResource(R.string.nodes_import_node_latest_block)}: $blockValue"
+}
+
 @Preview
 @Composable
 fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
-            chain = Chain.Ethereum,
-            node = Node(
-                url = "some.url.eth",
-                status = NodeState.Active,
-                priority = 0,
+            model = NodeRowUiModel(
+                node = Node(
+                    url = "https://some.url.eth",
+                    status = NodeState.Active,
+                    priority = 0,
+                ),
+                host = "some.url.eth",
+                selected = true,
+                canDelete = true,
+                statusState = NodeStatusState.Result(
+                    latestBlock = 123902302938UL,
+                    latency = 440UL,
+                    chainId = "ethereum",
+                ),
             ),
-            selected = true,
             listPosition = ListPosition.Middle,
-            nodeStatus = NodeStatus(
-                url = "",
-                chainId = Chain.Ethereum.string,
-                blockNumber = 123902302938UL,
-                inSync = true,
-                latency = 440UL,
-                loading = false,
-            )
-        ) { }
+            isDeleteRevealed = false,
+            onDeleteReveal = {},
+            onDeleteCollapse = {},
+            onSelect = {},
+            onDelete = {},
+        )
     }
 }

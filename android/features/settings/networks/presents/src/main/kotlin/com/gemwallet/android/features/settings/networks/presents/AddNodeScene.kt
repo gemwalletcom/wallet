@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.QrCodeRequest
@@ -31,13 +33,14 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.list_item.AssetListItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
 import com.wallet.core.primitives.Chain
 import java.text.NumberFormat
 
@@ -48,8 +51,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
 
     DisposableEffect(chain) {
         viewModel.init(chain)
-
-        onDispose {  }
+        onDispose { }
     }
 
     var isShowQRScan by remember { mutableStateOf(false) }
@@ -63,7 +65,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
-                enabled = uiModel.status != null,
+                enabled = uiModel.canImport,
                 loading = uiModel.checking,
             ) {
                 viewModel.addUrl()
@@ -80,16 +82,18 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         )
         UrlField(
             value = viewModel.url,
+            error = uiModel.errorResId?.let { stringResource(it) }.orEmpty(),
             onValueChange = viewModel::onUrlChange,
             onQRScan = {
                 isShowQRScan = true
             }
         )
         Spacer16()
-        if (uiModel.status != null) {
+        if (uiModel.canImport) {
             val nf = NumberFormat.getInstance()
+            val status = requireNotNull(uiModel.status)
 
-            PropertyItem(R.string.nodes_import_node_chain_id, uiModel.status?.chainId ?: "")
+            PropertyItem(R.string.nodes_import_node_chain_id, status.chainId)
             PropertyItem(
                 title = {
                     PropertyTitleText(R.string.nodes_import_node_in_sync)
@@ -98,7 +102,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
                     PropertyDataText(
                         "",
                         badge = {
-                            if (uiModel.status?.inSync == true) {
+                            if (status.inSync) {
                                 Icon(
                                     imageVector = Icons.Default.CheckCircleOutline,
                                     tint = MaterialTheme.colorScheme.tertiary,
@@ -115,8 +119,12 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
                     )
                 },
             )
-            PropertyItem(R.string.nodes_import_node_latest_block, nf.format(uiModel.status?.blockNumber?.toLong() ?: ""))
-            PropertyItem(R.string.nodes_import_node_latency, stringResource(R.string.common_latency_in_ms, uiModel.status?.latency?.toLong() ?: 0))
+            PropertyItem(R.string.nodes_import_node_latest_block, nf.format(status.blockNumber.toLong()))
+            PropertyItem(
+                R.string.nodes_import_node_latency,
+                stringResource(R.string.common_latency_in_ms, status.latency.toLong())
+            )
+            WarningItem()
         }
     }
 
@@ -132,6 +140,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
 @Composable
 private fun UrlField(
     value: MutableState<String> = mutableStateOf(""),
+    error: String = "",
     onValueChange: () -> Unit,
     onQRScan: () -> Unit,
 ) {
@@ -146,6 +155,7 @@ private fun UrlField(
         value = value.value,
         singleLine = true,
         label = stringResource(R.string.common_url),
+        error = error,
         onValueChange = { newValue ->
             value.value = newValue
             onValueChange()
@@ -157,9 +167,29 @@ private fun UrlField(
                     value.value = clipboardManager.getPlainText() ?: ""
                     onValueChange()
                 },
-                onClean = { value.value = "" },
+                onClean = {
+                    value.value = ""
+                    onValueChange()
+                },
                 qrScanner = onQRScan
             )
         }
+    )
+}
+
+@Composable
+private fun WarningItem() {
+    ListItem(
+        listPosition = ListPosition.Single,
+        title = {
+            ListItemTitleText(stringResource(R.string.asset_verification_warning_title))
+        },
+        subtitle = {
+            Text(
+                text = stringResource(R.string.nodes_import_node_warning_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+        },
     )
 }

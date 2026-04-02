@@ -19,9 +19,6 @@ fun NetworksScreen(
     viewModel: NetworksViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val nodes by viewModel.nodes.collectAsStateWithLifecycle()
-    val nodeStates by viewModel.nodeStates.collectAsStateWithLifecycle()
-    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     val selectListState = rememberLazyListState()
 
@@ -62,11 +59,9 @@ fun NetworksScreen(
             )
             false -> NetworkScene(
                 state = state,
-                nodes = nodes,
-                nodeStates = nodeStates,
-                isRefreshing = isRefreshing != null,
                 onRefresh = { viewModel.refresh() },
                 onSelectNode = viewModel::onSelectNode,
+                onDeleteNode = viewModel::onDeleteNode,
                 onSelectBlockExplorer = viewModel::onSelectBlockExplorer,
                 onCancel = viewModel::onSelectChain
             )

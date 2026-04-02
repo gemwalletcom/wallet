@@ -17,7 +17,6 @@ class NodeStatusService(
                 blockNumber = result.latestBlockNumber,
                 inSync = true,
                 latency = result.latencyMs,
-                loading = false
             )
         } catch (_: Throwable) {
             null
