@@ -10,7 +10,7 @@ public enum GemAPI: TargetType {
     case getPrices(AssetPricesRequest)
     case getCharts(AssetId, period: String)
     case getAsset(AssetId)
-    case getAssets([AssetId])
+    case getAssets([AssetId], currency: String?)
     case getSearchAssets(query: String, chains: [Chain], tags: [AssetTag])
     case getSearch(query: String, chains: [Chain], tags: [AssetTag])
     case markets
@@ -38,23 +38,27 @@ public enum GemAPI: TargetType {
     public var path: String {
         switch self {
         case .getSwapAssets:
-            "/v1/swap/assets"
+            return "/v1/swap/assets"
         case .getConfig:
-            "/v1/config"
+            return "/v1/config"
         case let .getCharts(assetId, _):
-            "/v1/charts/\(assetId.identifier)"
+            return "/v1/charts/\(assetId.identifier)"
         case let .getAsset(id):
-            "/v1/assets/\(id.identifier.replacingOccurrences(of: "/", with: "%2F"))"
-        case .getAssets:
-            "/v1/assets"
+            return "/v1/assets/\(id.identifier.replacingOccurrences(of: "/", with: "%2F"))"
+        case let .getAssets(_, currency):
+            var path = "/v1/assets"
+            if let currency {
+                path += "?currency=\(currency)"
+            }
+            return path
         case .getSearchAssets:
-            "/v1/assets/search"
+            return "/v1/assets/search"
         case .getSearch:
-            "/v1/search"
+            return "/v1/search"
         case .getPrices:
-            "/v1/prices"
+            return "/v1/prices"
         case .markets:
-            "/v1/markets"
+            return "/v1/markets"
         }
     }
 
@@ -65,7 +69,7 @@ public enum GemAPI: TargetType {
              .getAsset,
              .markets:
             .plain
-        case let .getAssets(value):
+        case let .getAssets(value, _):
             .encodable(value.map(\.identifier))
         case let .getCharts(_, period):
             .params([

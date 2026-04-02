@@ -44,7 +44,7 @@ public final class WalletPortfolioSceneViewModel: ChartListViewable {
 
     public var periods: [ChartPeriod] { [.day, .week, .month, .year, .all] }
     public var chartState: StateViewType<ChartValuesViewModel> {
-        return state.map(\.chart)
+        state.map(\.chart)
     }
 
     var allTimeValues: [ListItemModel] {
