@@ -11,7 +11,7 @@ import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
-import com.gemwallet.android.data.repositories.assets.PriceWebSocketClient
+import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class App : Application(), SingletonImageLoader.Factory,  Application.ActivityLifecycleCallbacks {
 
     @Inject
-    lateinit var priceClient: PriceWebSocketClient
+    lateinit var streamObserver: StreamObserverService
     @Inject
     lateinit var syncPerpetualPositions: SyncPerpetualPositions
 
@@ -49,11 +49,11 @@ class App : Application(), SingletonImageLoader.Factory,  Application.ActivityLi
     }
 
     override fun onActivityResumed(activity: Activity) {
-        priceClient.start()
+        streamObserver.start()
     }
 
     override fun onActivityStopped(activity: Activity) {
-        priceClient.stop()
+        streamObserver.stop()
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) { }

@@ -1,20 +1,29 @@
 package com.gemwallet.android.data.repositories.di
 
+import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.AddressStatusService
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
+import com.gemwallet.android.cases.nft.LoadNFTCase
 import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.cases.transactions.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.PriceWebSocketClient
+import com.gemwallet.android.data.repositories.assets.UpdateBalances
+import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.stream.StreamEventHandler
+import com.gemwallet.android.data.repositories.stream.StreamObserverService
+import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.services.gemapi.GemApiClient
-import com.gemwallet.android.model.BuildInfo
+import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,7 +46,7 @@ object AssetsModule {
         balancesService: BalancesService,
         getChangedTransactions: GetChangedTransactions,
         searchTokensCase: SearchTokensCase,
-        priceClient: PriceWebSocketClient,
+        subscriptionService: StreamSubscriptionService,
     ): AssetsRepository = AssetsRepository(
         gemApi = gemApiClient,
         assetsDao = assetsDao,
@@ -48,7 +57,7 @@ object AssetsModule {
         getChangedTransactions = getChangedTransactions,
         balancesService = balancesService,
         searchTokensCase = searchTokensCase,
-        priceClient = priceClient
+        subscriptionService = subscriptionService,
     )
 
     @Provides
@@ -69,21 +78,69 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun providePriceClient(
-        sessionRepository: SessionRepository,
-        buildInfo: BuildInfo,
-        assetsDao: AssetsDao,
+    fun provideUpdateBalances(
+        balancesDao: BalancesDao,
+        balancesService: BalancesService,
+    ): UpdateBalances = UpdateBalances(
+        balancesDao = balancesDao,
+        balancesService = balancesService,
+    )
+
+    @Provides
+    @Singleton
+    fun provideStreamEventHandler(
         pricesDao: PricesDao,
+        sessionRepository: SessionRepository,
+        syncTransactions: dagger.Lazy<SyncTransactions>,
+        loadNFTCase: LoadNFTCase,
+        syncPriceAlerts: SyncPriceAlerts,
+        buyRepository: dagger.Lazy<BuyRepository>,
+        walletsRepository: WalletsRepository,
+        assetsDao: AssetsDao,
+        updateBalances: UpdateBalances,
+    ): StreamEventHandler = StreamEventHandler(
+        pricesDao = pricesDao,
+        sessionRepository = sessionRepository,
+        syncTransactions = syncTransactions,
+        loadNFTCase = loadNFTCase,
+        syncPriceAlerts = syncPriceAlerts,
+        buyRepository = buyRepository,
+        walletsRepository = walletsRepository,
+        assetsDao = assetsDao,
+        updateBalances = updateBalances,
+    )
+
+    @Provides
+    @Singleton
+    fun provideStreamSubscriptionService(
+        assetsDao: AssetsDao,
         priceAlertsDao: PriceAlertsDao,
-    ): PriceWebSocketClient {
-        return PriceWebSocketClient(
-            sessionRepository = sessionRepository,
-            buildInfo = buildInfo,
-            assetsDao = assetsDao,
-            pricesDao = pricesDao,
-            priceAlertsDao = priceAlertsDao
-        )
-    }
+    ): StreamSubscriptionService = StreamSubscriptionService(
+        assetsDao = assetsDao,
+        priceAlertsDao = priceAlertsDao,
+    )
+
+    @Provides
+    @Singleton
+    fun provideDeviceRequestSigner(
+        getDeviceId: GetDeviceId,
+    ): DeviceRequestSigner = DeviceRequestSigner(
+        getDeviceId = getDeviceId,
+    )
+
+    @Provides
+    @Singleton
+    fun provideStreamObserverService(
+        sessionRepository: SessionRepository,
+        deviceRequestSigner: DeviceRequestSigner,
+        subscriptionService: StreamSubscriptionService,
+        eventHandler: StreamEventHandler,
+    ): StreamObserverService = StreamObserverService(
+        sessionRepository = sessionRepository,
+        deviceRequestSigner = deviceRequestSigner,
+        subscriptionService = subscriptionService,
+        eventHandler = eventHandler,
+    )
 
     @Provides
     @Singleton
