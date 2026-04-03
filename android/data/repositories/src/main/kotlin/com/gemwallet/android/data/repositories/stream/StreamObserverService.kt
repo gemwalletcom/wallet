@@ -130,6 +130,6 @@ class StreamObserverService(
 
     companion object {
         private const val TAG = "StreamObserverService"
-        private const val PING_INTERVAL_MS = 15_000L
+        private const val PING_INTERVAL_MS = 30_000L
     }
 }
