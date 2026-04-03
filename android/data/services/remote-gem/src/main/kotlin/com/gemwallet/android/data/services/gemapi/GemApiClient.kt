@@ -28,7 +28,6 @@ interface GemApiClient {
     @POST("/v1/assets")
     suspend fun getAssets(
         @Body ids: List<AssetId>,
-        @Query("currency") currency: String? = null,
     ): List<AssetBasic>
 
     @GET("/v1/assets/search")
