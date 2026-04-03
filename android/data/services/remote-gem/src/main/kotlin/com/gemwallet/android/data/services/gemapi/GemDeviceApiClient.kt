@@ -10,6 +10,7 @@ import com.wallet.core.primitives.FiatQuotes
 import com.wallet.core.primitives.FiatTransactionData
 import com.wallet.core.primitives.MigrateDeviceIdRequest
 import com.wallet.core.primitives.NFTData
+import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.RedemptionRequest
 import com.wallet.core.primitives.RedemptionResult
@@ -33,6 +34,10 @@ import retrofit2.http.Query
 const val WALLET_ID_HEADER = "x-wallet-id"
 
 interface GemDeviceApiClient {
+
+    // Name resolve
+    @GET("/v2/devices/name/resolve/{name}")
+    suspend fun resolve(@Path("name") name: String, @Query("chain") chain: String): NameRecord
 
     // Device manage
     @GET("/v2/devices")
