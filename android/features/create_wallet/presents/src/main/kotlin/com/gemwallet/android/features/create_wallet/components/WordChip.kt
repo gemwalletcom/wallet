@@ -76,7 +76,7 @@ internal fun WordChip(
     }
 }
 
-fun vibrateDevice(context: Context) {
+private fun vibrateDevice(context: Context) {
     val vibrator = context.getSystemService(Vibrator::class.java)
     vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
 }
