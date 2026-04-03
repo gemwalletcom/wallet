@@ -10,6 +10,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.ext.VersionCheck
 import com.gemwallet.android.features.onboarding.OnboardingDest
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.navigation.walletRootRoute
@@ -121,7 +122,7 @@ class AppViewModel @Inject constructor(
         val skipVersion = userConfig.getAppVersionSkip().firstOrNull()
         val lastVersion = lastRelease.version
         userConfig.setLatestVersion(lastVersion)
-        if (lastVersion.compareTo(BuildConfig.VERSION_NAME) > 0 && skipVersion != lastVersion/* && current.store != PlatformStore.ApkUniversal*/) {
+        if (VersionCheck.isVersionHigher(new = lastVersion, current = BuildConfig.VERSION_NAME) && skipVersion != lastVersion/* && current.store != PlatformStore.ApkUniversal*/) {
             state.update { it.copy(intent = AppIntent.ShowUpdate, version = lastVersion) }
         }
     }
