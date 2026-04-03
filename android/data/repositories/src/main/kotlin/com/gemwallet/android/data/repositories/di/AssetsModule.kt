@@ -46,7 +46,7 @@ object AssetsModule {
         balancesService: BalancesService,
         getChangedTransactions: GetChangedTransactions,
         searchTokensCase: SearchTokensCase,
-        subscriptionService: StreamSubscriptionService,
+        streamSubscriptionService: StreamSubscriptionService,
     ): AssetsRepository = AssetsRepository(
         gemApi = gemApiClient,
         assetsDao = assetsDao,
@@ -57,7 +57,7 @@ object AssetsModule {
         getChangedTransactions = getChangedTransactions,
         balancesService = balancesService,
         searchTokensCase = searchTokensCase,
-        subscriptionService = subscriptionService,
+        streamSubscriptionService = streamSubscriptionService,
     )
 
     @Provides
@@ -133,12 +133,12 @@ object AssetsModule {
     fun provideStreamObserverService(
         sessionRepository: SessionRepository,
         deviceRequestSigner: DeviceRequestSigner,
-        subscriptionService: StreamSubscriptionService,
+        streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
         deviceRequestSigner = deviceRequestSigner,
-        subscriptionService = subscriptionService,
+        subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,
     )
 

@@ -80,7 +80,7 @@ class AssetsRepository @Inject constructor(
     private val balancesService: BalancesService,
     getChangedTransactions: GetChangedTransactions,
     private val searchTokensCase: SearchTokensCase,
-    private val subscriptionService: StreamSubscriptionService,
+    private val streamSubscriptionService: StreamSubscriptionService,
     private val updateBalances: UpdateBalances = UpdateBalances(balancesDao, balancesService),
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetAsset, AddRecentActivity, GetRecent {
@@ -120,7 +120,7 @@ class AssetsRepository @Inject constructor(
         }
         val updateBalancesJob = async { updateBalances(assetId) }
         val syncAssetMetadataJob = async { syncAssetMetadata(assetId) }
-        subscriptionService.addAssetIds(listOf(assetId))
+        streamSubscriptionService.addAssetIds(listOf(assetId))
         updateBalancesJob.await()
         syncAssetMetadataJob.await()
     }
@@ -170,7 +170,7 @@ class AssetsRepository @Inject constructor(
                 if (isVisible) assetIds.add(asset.id)
             }
         if (assetIds.isNotEmpty()) {
-            subscriptionService.addAssetIds(assetIds)
+            streamSubscriptionService.addAssetIds(assetIds)
         }
     }
 
@@ -283,12 +283,12 @@ class AssetsRepository @Inject constructor(
     suspend fun resolve(wallet: Wallet, assetsId: List<AssetId>) = withContext(Dispatchers.IO) {
         if (assetsId.isEmpty()) return@withContext
         try {
-            val resolvedAssets = gemApi.getAssets(assetsId).mapNotNull {
+            val assets = gemApi.getAssets(assetsId).mapNotNull {
                 val asset = it.asset
                 val address = wallet.getAccount(asset.chain)?.address ?: return@mapNotNull null
                 address to asset
             }
-            addAll(wallet.id, resolvedAssets, visible = true)
+            add(wallet.id, assets, visible = true)
         } catch (_: Throwable) {
             return@withContext
         }
@@ -343,7 +343,7 @@ class AssetsRepository @Inject constructor(
         }
         if (visibility) {
             updateBalances(assetId)
-            subscriptionService.addAssetIds(listOf(assetId))
+            streamSubscriptionService.addAssetIds(listOf(assetId))
         }
     }
 
@@ -362,16 +362,16 @@ class AssetsRepository @Inject constructor(
     suspend fun add(walletId: String, accountAddress: String, asset: Asset, visible: Boolean) {
         insertAsset(walletId, accountAddress, asset, visible)
         if (visible) {
-            subscriptionService.addAssetIds(listOf(asset.id))
+            streamSubscriptionService.addAssetIds(listOf(asset.id))
         }
     }
 
-    suspend fun addAll(walletId: String, assets: List<Pair<String, Asset>>, visible: Boolean) {
+    suspend fun add(walletId: String, assets: List<Pair<String, Asset>>, visible: Boolean) {
         assets.forEach { (accountAddress, asset) ->
             insertAsset(walletId, accountAddress, asset, visible)
         }
         if (visible) {
-            subscriptionService.addAssetIds(assets.map { it.second.id })
+            streamSubscriptionService.addAssetIds(assets.map { it.second.id })
         }
     }
 
@@ -447,7 +447,7 @@ class AssetsRepository @Inject constructor(
         runCatching { assetsDao.setConfig(config.copy(isVisible = visibility)) }
 
         if (visibility) {
-            subscriptionService.addAssetIds(listOf(assetId))
+            streamSubscriptionService.addAssetIds(listOf(assetId))
         }
     }
 
