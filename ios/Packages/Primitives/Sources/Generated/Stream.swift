@@ -60,7 +60,7 @@ public struct StreamWalletUpdate: Codable, Sendable {
 
 public enum StreamEvent: Codable, Sendable {
 	case prices(WebSocketPricePayload)
-	case balances([StreamBalanceUpdate])
+	case balances(StreamBalanceUpdate)
 	case transactions(StreamTransactionsUpdate)
 	case priceAlerts(StreamPriceAlertUpdate)
 	case nft(StreamWalletUpdate)
@@ -93,7 +93,7 @@ public enum StreamEvent: Codable, Sendable {
 					return
 				}
 			case .balances:
-				if let content = try? container.decode([StreamBalanceUpdate].self, forKey: .data) {
+				if let content = try? container.decode(StreamBalanceUpdate.self, forKey: .data) {
 					self = .balances(content)
 					return
 				}

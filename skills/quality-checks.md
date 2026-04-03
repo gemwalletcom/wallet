@@ -14,6 +14,8 @@ Run the checks that match the area you touched.
 
 Use the narrowest relevant test target while iterating, then finish with the broader validation required by the change.
 
+Closing a task requires at least one real build or test command for the changed area. Do not substitute `git diff`, static inspection, or reasoning for execution. If execution is blocked by unrelated repo state, include the exact command and the blocking failure in the handoff.
+
 ## iOS
 
 ```bash

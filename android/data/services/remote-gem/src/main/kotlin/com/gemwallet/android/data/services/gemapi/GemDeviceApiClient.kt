@@ -4,9 +4,10 @@ import com.gemwallet.android.model.TransactionsResponse
 import com.wallet.core.primitives.AuthNonce
 import com.wallet.core.primitives.AuthenticatedRequest
 import com.wallet.core.primitives.Device
+import com.wallet.core.primitives.FiatAssets
 import com.wallet.core.primitives.FiatQuoteUrl
 import com.wallet.core.primitives.FiatQuotes
-import com.wallet.core.primitives.FiatTransactionInfo
+import com.wallet.core.primitives.FiatTransactionData
 import com.wallet.core.primitives.MigrateDeviceIdRequest
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PriceAlert
@@ -61,7 +62,7 @@ interface GemDeviceApiClient {
 
     // Price Alerts
     @GET("/v2/devices/price_alerts")
-    suspend fun getPriceAlerts(): List<PriceAlert>
+    suspend fun getPriceAlerts(@Query("asset_id") assetId: String? = null): List<PriceAlert>
 
     @POST("/v2/devices/price_alerts")
     suspend fun includePriceAlert(@Body alerts: List<PriceAlert>): String
@@ -121,6 +122,12 @@ interface GemDeviceApiClient {
     suspend fun getAuthNonce(): AuthNonce?
 
     // BUY
+    @GET("/v2/devices/fiat/assets/buy")
+    suspend fun getBuyableFiatAssets(): FiatAssets
+
+    @GET("/v2/devices/fiat/assets/sell")
+    suspend fun getSellableFiatAssets(): FiatAssets
+
     @GET("/v2/devices/fiat/quotes/{type}/{asset_id}")
     suspend fun getFiatQuotes(
         @Header(WALLET_ID_HEADER)  walletId: String,
@@ -139,6 +146,6 @@ interface GemDeviceApiClient {
     @GET("/v2/devices/fiat/transactions")
     suspend fun getFiatTransactions(
         @Header(WALLET_ID_HEADER) walletId: String,
-    ): List<FiatTransactionInfo>
+    ): List<FiatTransactionData>
 
 }

@@ -1,7 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
 import com.gemwallet.android.blockchain.clients.algorand.AlgorandSignClient
 import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
 import com.gemwallet.android.blockchain.clients.cardano.CardanoSignClient
@@ -20,7 +18,7 @@ import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.device.SyncSubscription
-import com.gemwallet.android.cases.transactions.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -102,8 +100,6 @@ object DataModule {
         buyRepository: BuyRepository,
         syncTransactions: SyncTransactions,
         syncSubscription: SyncSubscription,
-        syncPerpetuals: SyncPerpetuals,
-        syncPriceAlerts: SyncPriceAlerts,
     ): SyncService {
         return SyncService(
             sessionRepository = sessionRepository,
@@ -111,8 +107,6 @@ object DataModule {
             syncTransactions = syncTransactions,
             buyRepository = buyRepository,
             syncSubscription = syncSubscription,
-            syncPerpetuals = syncPerpetuals,
-            syncPriceAlerts = syncPriceAlerts,
         )
     }
 }

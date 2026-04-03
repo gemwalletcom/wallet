@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
-import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
+import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.cases.nft.LoadNFTCase
-import com.gemwallet.android.cases.transactions.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -31,7 +31,7 @@ class StreamEventHandler(
     private val sessionRepository: SessionRepository,
     private val syncTransactions: dagger.Lazy<SyncTransactions>,
     private val loadNFTCase: LoadNFTCase,
-    private val syncPriceAlerts: SyncPriceAlerts,
+    private val updatePriceAlerts: UpdatePriceAlerts,
     private val buyRepository: dagger.Lazy<BuyRepository>,
     private val walletsRepository: WalletsRepository,
     private val assetsDao: AssetsDao,
@@ -75,8 +75,8 @@ class StreamEventHandler(
         }
     }
 
-    private suspend fun handleBalances(updates: List<StreamBalanceUpdate>) {
-        val assetIds = updates.map { it.assetId.toIdentifier() }
+    private suspend fun handleBalances(update: StreamBalanceUpdate) {
+        val assetIds = listOf(update.assetId.toIdentifier())
         assetsDao.getAssetsInfo(assetIds)
             .toAssetInfoModel()
             .firstOrNull()
@@ -99,8 +99,8 @@ class StreamEventHandler(
         syncTransactions.get().syncTransactions(wallet)
     }
 
-    private fun handlePriceAlerts() {
-        syncPriceAlerts.syncPriceAlerts()
+    private suspend fun handlePriceAlerts() {
+        updatePriceAlerts.update()
     }
 
     private suspend fun handleNft(update: StreamWalletUpdate) {
@@ -109,7 +109,8 @@ class StreamEventHandler(
     }
 
     private suspend fun handleFiatTransaction(update: StreamWalletUpdate) {
-        buyRepository.get().updateFiatTransactions(update.walletId.id)
+        val wallet = walletsRepository.getWallet(update.walletId.id).firstOrNull() ?: return
+        buyRepository.get().updateFiatTransactions(wallet)
     }
 
     companion object {

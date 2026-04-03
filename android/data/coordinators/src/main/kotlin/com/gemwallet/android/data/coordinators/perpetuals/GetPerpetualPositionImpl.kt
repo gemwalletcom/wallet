@@ -30,7 +30,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val size: String = Currency.USD.format(data.position.size)
 
-    override val entryPrice: String = data.position.entryPrice?.let { Currency.USD.format(it) } ?: ""
+    override val entryPrice: String = Currency.USD.format(data.position.entryPrice)
 
     override val liquidationPrice: String = data.position.liquidationPrice?.let {  Currency.USD.format(it) } ?: ""
 

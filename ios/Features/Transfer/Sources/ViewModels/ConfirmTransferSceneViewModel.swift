@@ -353,7 +353,7 @@ extension ConfirmTransferSceneViewModel {
             self.metadata = metadata
             feeModel.update(
                 rates: transferTransactionData.rates,
-                feeAssetPrice: metadata.feePrice
+                feeAssetPrice: metadata.feePrice,
             )
             updateState(
                 with: transactionInputViewModel(

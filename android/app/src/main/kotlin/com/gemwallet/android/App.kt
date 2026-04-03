@@ -15,9 +15,8 @@ import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
-
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory,  Application.ActivityLifecycleCallbacks {
+class App : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
 
     @Inject
     lateinit var streamObserver: StreamObserverService

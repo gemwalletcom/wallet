@@ -5,11 +5,11 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecordPriority
 import com.gemwallet.android.data.services.gemapi.GemApiClient
-import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetProperties
@@ -49,21 +49,7 @@ class TokensRepository (
             runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
             assets
         } else {
-            runCatching { assetsDao.insert(tokens.map { it.toRecord() }) }
-            runCatching {
-                pricesDao.getRates(currency).firstOrNull()?.let { rate ->
-                    tokens.mapNotNull {
-                        val price = it.price ?: return@mapNotNull null
-                        DbPrice(
-                            assetId = it.asset.id.toIdentifier(),
-                            value = rate.rate * price.price,
-                            usdValue = price.price,
-                            dayChanged = price.priceChangePercentage24h,
-                            currency = currency.string,
-                        )
-                    }
-                }?.let { prices -> pricesDao.insert(prices) }
-            }
+            updateAssets(tokens, currency)
             assetsPriorityDao.put(tokens.toRecordPriority(tags.toPriorityQuery(query)))
             tokens
         }
@@ -71,9 +57,8 @@ class TokensRepository (
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {
-        val result = gemApiClient.getAssets(assetIds)
-        val record = result.map { it.toRecord() }
-        runCatching { assetsDao.insert(record) }
+        val result = gemApiClient.getAssets(assetIds, currency.string)
+        updateAssets(result, currency)
         return true
     }
 
@@ -92,6 +77,18 @@ class TokensRepository (
         .toRecord()
         runCatching { assetsDao.insert(record) }
         return true
+    }
+
+    private suspend fun updateAssets(assets: List<AssetBasic>, currency: Currency) {
+        runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
+        runCatching {
+            val rate = pricesDao.getRates(currency).firstOrNull() ?: return@runCatching
+            val prices = assets.toPriceRecord(rate.toDTO())
+
+            if (prices.isNotEmpty()) {
+                pricesDao.insert(prices)
+            }
+        }
     }
 }
 

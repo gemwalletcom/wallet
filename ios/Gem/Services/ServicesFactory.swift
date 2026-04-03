@@ -161,7 +161,7 @@ struct ServicesFactory {
             priceStore: storeManager.priceStore,
             fiatRateStore: storeManager.fiatRateStore,
         )
-        let portfolioService = PortfolioService(apiService: apiService)
+        let portfolioService = PortfolioService(apiService: apiService, assetStore: storeManager.assetStore)
         let perpetualService = Self.makePerpetualService(
             perpetualStore: storeManager.perpetualStore,
             assetStore: storeManager.assetStore,
@@ -184,6 +184,7 @@ struct ServicesFactory {
         )
         let fiatService = FiatService(
             apiService: apiService,
+            assetsService: assetsService,
             store: storeManager.fiatTransactionStore,
         )
         let streamEventService = StreamEventService(

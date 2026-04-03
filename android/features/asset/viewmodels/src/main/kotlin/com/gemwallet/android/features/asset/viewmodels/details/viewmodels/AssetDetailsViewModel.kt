@@ -1,16 +1,17 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
-import android.text.format.DateUtils
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
-import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
+import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
@@ -21,7 +22,6 @@ import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isStaked
-import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetInfo
@@ -45,11 +45,9 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -72,17 +70,16 @@ class AssetDetailsViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val getTransactions: GetTransactions,
     private val priceAlertsStateCoordinator: PriceAlertsStateCoordinator,
-    private val syncPriceAlerts: SyncPriceAlerts,
+    private val priceAlertRepository: PriceAlertRepository,
+    private val updatePriceAlerts: UpdatePriceAlerts,
     private val getPriceAlerts: GetPriceAlerts,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val hasMultiSign: HasMultiSign,
+    private val syncTransactions: SyncTransactions,
 ) : ViewModel() {
 
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val tickerState = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) { refresh() }
-        .stateIn(viewModelScope, started = WhileSubscribed(5000), null)
 
     val uiState = MutableStateFlow<AssetInfoUIState>(AssetInfoUIState.Idle(AssetInfoUIState.SyncState.Process))
 
@@ -90,8 +87,7 @@ class AssetDetailsViewModel @Inject constructor(
         .onEach { assetId ->
             assetId ?: return@onEach
             priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(assetId))
-
-            syncAssetInfo(assetId)
+            syncAssetInfo(assetId, refreshPriceAlerts = true)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -131,40 +127,43 @@ class AssetDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val sync: Flow<Unit> = combine(uiState, model) { uiState, model ->
-            if (uiState is AssetInfoUIState.Idle
-                    && (uiState.sync == AssetInfoUIState.SyncState.Wait || uiState.sync == AssetInfoUIState.SyncState.Process)
-            ) {
-                model ?: return@combine
-                syncAssetInfo(model.assetInfo.asset.id)
-            }
-        }
-        .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Unit)
-
     val uiModel = model.map { it?.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun refresh(state: AssetInfoUIState.SyncState = AssetInfoUIState.SyncState.Wait) {
-        uiState.update { AssetInfoUIState.Idle(state) }
+    fun refresh() {
+        val assetId = assetId.value ?: return
+        syncAssetInfo(assetId, showLoading = true, refreshPriceAlerts = true)
     }
 
-    private fun syncAssetInfo(assetId: AssetId) {
-        uiState.update {
-            AssetInfoUIState.Idle(
-                if ((it as? AssetInfoUIState.Idle)?.sync != AssetInfoUIState.SyncState.Process) {
-                    AssetInfoUIState.SyncState.Loading
-                } else {
-                    AssetInfoUIState.SyncState.None
-                }
-            )
+    private fun syncAssetInfo(assetId: AssetId, showLoading: Boolean = false, refreshPriceAlerts: Boolean = false) {
+        val currentSync = (uiState.value as? AssetInfoUIState.Idle)?.sync
+        if (showLoading || currentSync == AssetInfoUIState.SyncState.Process) {
+            uiState.update {
+                AssetInfoUIState.Idle(
+                    if (showLoading) {
+                        AssetInfoUIState.SyncState.Loading
+                    } else {
+                        AssetInfoUIState.SyncState.None
+                    }
+                )
+            }
         }
-        viewModelScope.launch { // TODO: Review coroutines
-            syncPriceAlerts.syncPriceAlerts()
+
+        if (refreshPriceAlerts) {
+            viewModelScope.launch {
+                if (priceAlertRepository.hasAssetPriceAlerts(assetId)) {
+                    runCatching { updatePriceAlerts.update(assetId) }
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            val wallet = session.value?.wallet ?: return@launch
             assetsRepository.syncAssetInfo(
                 assetId = assetId,
-                wallet = session.value?.wallet ?: return@launch,
+                wallet = wallet,
             )
+            syncTransactions.syncTransactions(wallet, assetId)
         }
         viewModelScope.launch {
             delay(300)
@@ -179,14 +178,6 @@ class AssetDetailsViewModel @Inject constructor(
             else -> return@launch
         }
         priceAlertsStateCoordinator.priceAlertState(event)
-    }
-
-    fun pushGranted() {
-        priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.PushGranted(assetId.value ?: return))
-    }
-
-    fun pushRejected() {
-        priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.PushRejected(assetId.value ?: return))
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {

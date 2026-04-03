@@ -1,14 +1,14 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
+import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.AddressStatusService
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.nft.LoadNFTCase
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.cases.transactions.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.buy.BuyRepository
@@ -93,7 +93,7 @@ object AssetsModule {
         sessionRepository: SessionRepository,
         syncTransactions: dagger.Lazy<SyncTransactions>,
         loadNFTCase: LoadNFTCase,
-        syncPriceAlerts: SyncPriceAlerts,
+        updatePriceAlerts: UpdatePriceAlerts,
         buyRepository: dagger.Lazy<BuyRepository>,
         walletsRepository: WalletsRepository,
         assetsDao: AssetsDao,
@@ -103,7 +103,7 @@ object AssetsModule {
         sessionRepository = sessionRepository,
         syncTransactions = syncTransactions,
         loadNFTCase = loadNFTCase,
-        syncPriceAlerts = syncPriceAlerts,
+        updatePriceAlerts = updatePriceAlerts,
         buyRepository = buyRepository,
         walletsRepository = walletsRepository,
         assetsDao = assetsDao,

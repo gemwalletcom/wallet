@@ -44,6 +44,7 @@ import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetTag
+import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
@@ -118,57 +119,42 @@ class AssetsRepository @Inject constructor(
             )
         }
         val updateBalancesJob = async { updateBalances(assetId) }
-        val getAssetFull = async { syncMarketInfo(assetId, account) }
+        val syncAssetMetadataJob = async { syncAssetMetadata(assetId) }
         subscriptionService.addAssetIds(listOf(assetId))
         updateBalancesJob.await()
-        getAssetFull.await()
+        syncAssetMetadataJob.await()
     }
 
-    suspend fun syncMarketInfo(assetId: AssetId, owner: Account?) = withContext(Dispatchers.IO) {
-        val assetInfo = if (owner == null) {
-            getTokensInfo(listOf(assetId.toIdentifier())).map { it.firstOrNull() }
-        } else {
-            getAssetInfo(assetId)
-        }.firstOrNull() ?: return@withContext
-        val currency = assetInfo.price?.currency ?: Currency.USD
+    suspend fun syncAssetMetadata(assetId: AssetId) = withContext(Dispatchers.IO) {
         val assetIdIdentifier = assetId.toIdentifier()
-        val assetFullJob = async {
-            try {
-                gemApi.getAsset(assetIdIdentifier)
-            } catch (_: Throwable) {
-                null
-            }
-        }
-        val marketInfoJob = async {
-            try {
-                gemApi.getMarket(assetIdIdentifier, currency.string)
-            } catch (_: Throwable) {
-                null
-            }
-
-        }
-
-        val assetFull = assetFullJob.await() ?: return@withContext
-        val marketInfo = marketInfoJob.await()
+        val assetFull = try {
+            gemApi.getAsset(assetIdIdentifier)
+        } catch (_: Throwable) {
+            null
+        } ?: return@withContext
         val record = DbAsset(
-            id = assetInfo.id().toIdentifier(),
+            id = assetIdIdentifier,
             name = assetFull.asset.name,
-            symbol = assetInfo.asset.symbol,
-            decimals = assetInfo.asset.decimals,
-            type = assetInfo.asset.type,
-            chain = assetInfo.asset.chain,
+            symbol = assetFull.asset.symbol,
+            decimals = assetFull.asset.decimals,
+            type = assetFull.asset.type,
+            chain = assetFull.asset.chain,
             isBuyEnabled = assetFull.properties.isBuyable,
             isSellEnabled = assetFull.properties.isSellable,
             isStakeEnabled = assetFull.properties.isStakeable,
-            isSwapEnabled = assetInfo.id().chain.isSwapSupport(),
+            isSwapEnabled = assetFull.asset.chain.isSwapSupport(),
             stakingApr = assetFull.properties.stakingApr,
             rank = assetFull.score.rank,
             updatedAt = System.currentTimeMillis(),
         )
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
-        val marketRecord = marketInfo?.market?.toRecord(assetId) ?: DbAssetMarket(assetId.toIdentifier())
         assetsDao.update(record)
-        runCatching { assetsDao.insert(linkRecords, marketRecord) }
+        runCatching { assetsDao.addLinks(linkRecords) }
+    }
+
+    suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {
+        val rate = getCurrencyRate(currency).firstOrNull()?.rate ?: return@withContext
+        assetsDao.setMarket(market.convert(rate).toRecord(assetId))
     }
 
     /**
@@ -214,6 +200,10 @@ class AssetsRepository @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
+    fun getAssetInfoImmediate(assetId: AssetId): AssetInfo? {
+        return assetsDao.getAssetInfoImmediate(assetId.toIdentifier(), assetId.chain)?.toDTO()
+    }
+
     suspend fun getToken(assetId: AssetId): Flow<Asset?> = withContext(Dispatchers.IO) {
         assetsDao.getTokenInfo(assetId.toIdentifier(), assetId.chain).map { it?.toDTO()?.asset }
     }
@@ -237,37 +227,8 @@ class AssetsRepository @Inject constructor(
     suspend fun getWidgetTokens(currency: Currency): List<AssetInfo> = withContext(Dispatchers.IO) {
         val widgetAssetIds = listOf(AssetId(Chain.Bitcoin), AssetId(Chain.Ethereum), AssetId(Chain.Solana))
 
-        if (getTokensInfo(widgetAssetIds.map { it.toIdentifier() }).firstOrNull().isNullOrEmpty()) {
-            searchTokensCase.search(widgetAssetIds, currency)
-        }
-
-        val marketsByAssetId = widgetAssetIds.map { assetId ->
-            async {
-                val market = try {
-                    gemApi.getMarket(assetId.toIdentifier(), currency.string)
-                } catch (_: Throwable) {
-                    null
-                }
-                assetId to market
-            }
-        }
-        .awaitAll()
-        .toMap()
-        (getTokensInfo(widgetAssetIds.map { it.toIdentifier() }).firstOrNull() ?: emptyList())
-            .map { assetInfo ->
-                val marketPrice = marketsByAssetId[assetInfo.asset.id]?.price ?: return@map assetInfo
-                assetInfo.copy(
-                    price = AssetPriceInfo(
-                        currency = currency,
-                        price = AssetPrice(
-                            assetId = assetInfo.asset.id,
-                            price = marketPrice.price,
-                            priceChangePercentage24h = marketPrice.priceChangePercentage24h,
-                            updatedAt = System.currentTimeMillis()
-                        )
-                    )
-                )
-            }
+        searchTokensCase.search(widgetAssetIds, currency)
+        getTokensInfo(widgetAssetIds.map { it.toIdentifier() }).firstOrNull() ?: emptyList()
     }
 
     suspend fun searchToken(assetId: AssetId, currency: Currency): Boolean {
@@ -460,6 +421,20 @@ class AssetsRepository @Inject constructor(
         return assetsDao.getAssetMarket(id.toIdentifier())
             .map { it?.toDTO() }
             .flowOn(Dispatchers.IO)
+    }
+
+    private fun AssetMarket.convert(rate: Double): AssetMarket {
+        return copy(
+            marketCap = marketCap?.times(rate),
+            marketCapFdv = marketCapFdv?.times(rate),
+            totalVolume = totalVolume?.times(rate),
+            allTimeHighValue = allTimeHighValue?.convert(rate),
+            allTimeLowValue = allTimeLowValue?.convert(rate),
+        )
+    }
+
+    private fun ChartValuePercentage.convert(rate: Double): ChartValuePercentage {
+        return copy(value = value * rate.toFloat())
     }
 
     private fun Account.isVisibleByDefault(type: WalletType): Boolean {
