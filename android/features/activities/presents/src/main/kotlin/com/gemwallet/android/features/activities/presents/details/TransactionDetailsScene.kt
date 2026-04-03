@@ -14,6 +14,7 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.features.activities.presents.details.components.DestinationPropertyItem
 import com.gemwallet.android.features.activities.presents.details.components.TransactionExplorer
 import com.gemwallet.android.features.activities.presents.details.components.TransactionStatusProperty
+import com.gemwallet.android.features.activities.presents.details.components.ValidatorPropertyItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
@@ -75,6 +76,7 @@ fun TransactionDetailsScene(
                         )
                         is TransactionDetailsValue.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = position)
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
+                        is TransactionDetailsValue.Validator -> ValidatorPropertyItem(item, position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
                     }
                 }

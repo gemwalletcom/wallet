@@ -191,6 +191,14 @@ class TransactionDetailsAggregateImpl(
         }
     }
 
+    override val validator: TransactionDetailsValue.Validator? = when (data.transaction.type) {
+        TransactionType.StakeDelegate,
+        TransactionType.StakeUndelegate,
+        TransactionType.StakeRedelegate,
+        TransactionType.StakeWithdraw -> TransactionDetailsValue.Validator(data.transaction.to)
+        else -> null
+    }
+
     override val valueGroups: List<ValueGroup<TransactionDetailsValue>>
         get() = listOf(
             ValueGroup(listOf(amount)),
@@ -199,6 +207,7 @@ class TransactionDetailsAggregateImpl(
                     date,
                     status,
                     destination,
+                    validator,
                     network
                 )
             ),

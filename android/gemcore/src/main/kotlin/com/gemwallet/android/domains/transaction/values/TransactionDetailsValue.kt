@@ -48,5 +48,7 @@ sealed interface TransactionDetailsValue {
 
     class Network(val data: Asset) : TransactionDetailsValue
 
+    class Validator(val address: String) : TransactionDetailsValue
+
     class Explorer(val url: String, val name: String) : TransactionDetailsValue
 }
