@@ -3,14 +3,23 @@
 import Foundation
 
 actor MemoryCache {
-    private var map = [String: Data]()
-
-    func set(key: String, value: Data, ttl _: Duration) async {
-        // TODO: Implement ttl check
-        map[key] = value
+    private struct Entry {
+        let data: Data
+        let expiresAt: ContinuousClock.Instant
     }
 
-    func get(key: String) async -> Data? {
-        map[key]
+    private var map = [String: Entry]()
+
+    func set(key: String, value: Data, ttl: Duration) {
+        map[key] = Entry(data: value, expiresAt: .now + ttl)
+    }
+
+    func get(key: String) -> Data? {
+        guard let entry = map[key] else { return nil }
+        if ContinuousClock.now >= entry.expiresAt {
+            map[key] = nil
+            return nil
+        }
+        return entry.data
     }
 }
