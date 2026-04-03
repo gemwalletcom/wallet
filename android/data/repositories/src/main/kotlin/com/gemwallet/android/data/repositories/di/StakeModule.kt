@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.blockchain.services.StakeService
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.service.store.database.StakeDao
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import dagger.Module
 import dagger.Provides
@@ -21,12 +20,9 @@ object StakeModule {
         stakeDao: StakeDao,
         gateway: GemGateway,
         gemApiStaticClient: GemApiStaticClient,
-        gemApiClient: GemApiClient,
     ): StakeRepository = StakeRepository(
         stakeDao = stakeDao,
         gemApiStaticClient = gemApiStaticClient,
-        gemApiClient = gemApiClient,
         stakeService = StakeService(gateway),
     )
 }
-

@@ -7,10 +7,15 @@ extension PriceAlert: Identifiable {
         if price == nil, pricePercentChange == nil, priceDirection == nil {
             return assetId.identifier
         }
-        let price = price.map { String(format: "%g", $0) } ?? .none
-        let pricePercentChange = pricePercentChange.map { String(format: "%g", $0) } ?? .none
-        return [assetId.identifier, currency, price, pricePercentChange, priceDirection?.rawValue].compactMap(\.self)
-            .joined(separator: "_")
+        return [
+            assetId.identifier,
+            currency,
+            price.map { Self.formatValue($0) },
+            pricePercentChange.map { Self.formatValue($0) },
+            priceDirection?.rawValue,
+        ]
+        .compactMap { $0 }
+        .joined(separator: "_")
     }
 }
 
@@ -41,4 +46,10 @@ public extension PriceAlert {
         case .price, .pricePercentChange: lastNotifiedAt == nil
         }
     }
+
+    private static func formatValue(_ value: Double) -> String {
+        let str = String(value)
+        return str.hasSuffix(".0") ? String(str.dropLast(2)) : str
+    }
 }
+

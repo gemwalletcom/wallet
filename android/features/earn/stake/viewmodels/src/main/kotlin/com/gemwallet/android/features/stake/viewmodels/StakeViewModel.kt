@@ -13,6 +13,7 @@ import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.ext.claimed
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
@@ -47,14 +48,16 @@ class StakeViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
+    private val initialAssetId = stateHandle.get<String>(assetIdArg)?.toAssetId()
+        ?: error("Missing assetId")
 
-    private val assetId = stateHandle.getStateFlow<String?>(assetIdArg, null)
-        .filterNotNull()
-        .map { it.toAssetId() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val assetId = stateHandle.getStateFlow(assetIdArg, initialAssetId.toIdentifier())
+        .map { it.toAssetId() ?: initialAssetId }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialAssetId)
 
-    val assetInfo = assetId.filterNotNull().flatMapLatest { assetsRepository.getAssetInfo(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val assetInfo = assetId
+        .flatMapLatest { assetsRepository.getAssetInfo(it).filterNotNull() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetsRepository.getAssetInfoImmediate(initialAssetId))
 
     private val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -62,11 +65,11 @@ class StakeViewModel @Inject constructor(
     val walletType = session.mapLatest { it?.wallet?.type }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val account = session.combine(assetId.filterNotNull()) { session, assetId ->
+    private val account = session.combine(assetId) { session, assetId ->
         session?.wallet?.getAccount(assetId.chain)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val delegations = account.combine(assetId.filterNotNull()) { account, assetId -> Pair(account, assetId) }
+    val delegations = account.combine(assetId) { account, assetId -> Pair(account, assetId) }
         .flatMapLatest {
             val (account, assetId) = it
             val accountAddress = account?.address ?: return@flatMapLatest emptyFlow()
@@ -74,7 +77,7 @@ class StakeViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isStakeEnabled = assetId.filterNotNull()
+    val isStakeEnabled = assetId
         .flatMapLatest { stakeRepository.getValidators(it.chain) }
         .mapLatest { validators -> validators.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -86,34 +89,35 @@ class StakeViewModel @Inject constructor(
     val actions = combine(
         session.mapLatest { it?.wallet?.type }.filterNotNull(),
         rewardsBalance,
-        assetInfo,
+        assetInfo.filterNotNull(),
     ) { walletType, rewardsBalance, assetInfo ->
         if (walletType == WalletType.View) {
             return@combine emptyList()
         }
         listOfNotNull(
             StakeAction.Stake,
-            StakeAction.Freeze.takeIf { assetInfo?.stakeChain?.freezed() == true },
-            StakeAction.Unfreeze.takeIf { assetInfo?.stakeChain?.freezed() == true },
+            StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
+            StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { assetInfo?.chain?.claimed == true && rewardsBalance > BigInteger.ZERO }
-                ?.let { StakeAction.Rewards(assetInfo?.asset?.format(Crypto(rewardsBalance)) ?: "") },
+                .takeIf { assetInfo.chain?.claimed == true && rewardsBalance > BigInteger.ZERO }
+                ?.let { StakeAction.Rewards(assetInfo.asset.format(Crypto(rewardsBalance))) },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)
 
-    val isSync = combine(sync, assetId.filterNotNull(), account.filterNotNull()) { sync, assetId, account -> Triple(sync, assetId, account) }
+    val isSync = combine(sync, assetInfo.filterNotNull(), account.filterNotNull()) { sync, assetInfo, account ->
+        Triple(sync, assetInfo, account)
+    }
         .flatMapLatest {
-            val (isSync, assetId, account) = it
+            val (isSync, assetInfo, account) = it
             flow {
                 if (!isSync) {
                     emit(false)
                     return@flow
                 }
                 emit(true)
-                assetsRepository.syncMarketInfo(assetId, account)
-                stakeRepository.sync(assetId.chain, account.address)
+                stakeRepository.sync(assetInfo.asset.chain, account.address, assetInfo.stakeApr ?: 0.0)
                 emit(false)
                 sync.update { false }
             }

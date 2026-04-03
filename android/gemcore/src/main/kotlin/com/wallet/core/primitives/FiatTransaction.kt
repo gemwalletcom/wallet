@@ -41,9 +41,15 @@ data class FiatTransaction (
 )
 
 @Serializable
-data class FiatTransactionInfo (
+data class FiatTransactionAssetData (
 	val transaction: FiatTransaction,
 	val asset: Asset,
+	val detailsUrl: String? = null
+)
+
+@Serializable
+data class FiatTransactionData (
+	val transaction: FiatTransaction,
 	val detailsUrl: String? = null
 )
 

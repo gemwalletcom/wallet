@@ -8,6 +8,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 class ExcludePriceAlertImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
@@ -43,6 +45,10 @@ class ExcludePriceAlertImpl(
         )
         val priceAlertInfo = priceAlertRepository.getSamePriceAlert(priceAlert) ?: return
         priceAlertRepository.disable(priceAlertInfo.id)
-        runCatching { gemDeviceApiClient.excludePriceAlert(listOf(priceAlertInfo.priceAlert)) }
+        try {
+            gemDeviceApiClient.excludePriceAlert(listOf(priceAlertInfo.priceAlert))
+        } catch (_: Exception) {
+            currentCoroutineContext().ensureActive()
+        }
     }
 }

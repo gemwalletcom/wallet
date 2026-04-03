@@ -47,3 +47,5 @@ Before finishing a task:
 4. Review security impact for changes affecting secrets, signing, auth, transactions, or wallet recovery
 5. If `core/` changed, regenerate bindings/models and verify both apps
 6. Remove dead code, keep imports clean, and follow platform patterns
+
+Do not close a task based only on reasoning, `git diff`, or file inspection. Run real verification commands for the changed area. If verification is blocked by unrelated repo state, report the exact command you ran and the blocking failure explicitly.

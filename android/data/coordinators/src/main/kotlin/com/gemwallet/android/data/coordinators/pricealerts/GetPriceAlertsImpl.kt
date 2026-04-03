@@ -7,9 +7,11 @@ import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.shouldDisplay
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
@@ -30,14 +32,17 @@ class GetPriceAlertsImpl(
     override fun getPriceAlerts(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
         return priceAlertRepository.getPriceAlerts(assetId)
             .flatMapLatest { items ->
-                val index = items.groupBy { it.priceAlert.assetId.toIdentifier() }
-                assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { items ->
-                    items.mapNotNull { assetInfo ->
-                        index[assetInfo.id().toIdentifier()]?.mapNotNull { item ->
+                val index = items
+                    .filter { it.priceAlert.shouldDisplay }
+                    .groupBy { it.priceAlert.assetId.toIdentifier() }
+                assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { assetInfos ->
+                    assetInfos.mapNotNull { assetInfo ->
+                        val assetPrice = assetInfo.price ?: return@mapNotNull null
+                        index[assetInfo.id().toIdentifier()]?.map { item ->
                             PriceAlertDataAggregateImpl(
                                 id = item.id,
                                 asset = assetInfo.asset,
-                                assetPrice = assetInfo.price ?: return@mapNotNull null,
+                                assetPrice = assetPrice,
                                 priceAlert = item.priceAlert,
                             )
                         }
@@ -70,13 +75,7 @@ class PriceAlertDataAggregateImpl(
                     else -> PriceState.Down
                 }
             } else {
-                assetPrice.price.priceChangePercentage24h.let {
-                    if (it > 0) {
-                        PriceState.Up
-                    } else {
-                        PriceState.Up
-                    }
-                }
+                assetPrice.price.priceChangePercentage24h.toPriceState()
             }
         }
     }

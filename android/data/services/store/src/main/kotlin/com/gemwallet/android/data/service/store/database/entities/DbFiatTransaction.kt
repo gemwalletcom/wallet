@@ -7,8 +7,9 @@ import androidx.room.Relation
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
+import com.wallet.core.primitives.FiatTransactionAssetData
+import com.wallet.core.primitives.FiatTransactionData
 import com.wallet.core.primitives.FiatTransaction
-import com.wallet.core.primitives.FiatTransactionInfo
 import com.wallet.core.primitives.FiatTransactionStatus
 
 @Entity(
@@ -39,7 +40,7 @@ data class DbFiatTransactionWithAsset(
     val asset: DbAsset,
 )
 
-fun FiatTransactionInfo.toRecord(walletId: String) = DbFiatTransaction(
+fun FiatTransactionData.toRecord(walletId: String) = DbFiatTransaction(
     id = transaction.id,
     walletId = walletId,
     assetId = transaction.assetId.toIdentifier(),
@@ -53,11 +54,11 @@ fun FiatTransactionInfo.toRecord(walletId: String) = DbFiatTransaction(
     detailsUrl = detailsUrl,
 )
 
-fun List<FiatTransactionInfo>.toRecord(walletId: String) = map { it.toRecord(walletId) }
+fun List<FiatTransactionData>.toRecord(walletId: String) = map { it.toRecord(walletId) }
 
-fun DbFiatTransactionWithAsset.toDTO(): FiatTransactionInfo? {
+fun DbFiatTransactionWithAsset.toDTO(): FiatTransactionAssetData? {
     val asset = asset.toDTO() ?: return null
-    return FiatTransactionInfo(
+    return FiatTransactionAssetData(
         transaction = FiatTransaction(
             id = transaction.id,
             assetId = asset.id,

@@ -25,7 +25,7 @@ fun StakeScreen(
     val isStakeEnabled by viewModel.isStakeEnabled.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
 
-    if (assetInfo == null || (assetInfo?.stakeApr ?: 0.0) <= 0.0) {
+    if (assetInfo == null) {
         LoadingScene(
             title = stringResource(id = R.string.transfer_stake_title),
             onCancel = onCancel,
