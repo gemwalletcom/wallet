@@ -2,7 +2,7 @@ package com.gemwallet.android.features.recipient.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.cases.name.ResolveNameCase
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,12 +14,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class AddressChainViewModel @Inject constructor(
-    private val gemDeviceClient: GemDeviceApiClient,
+    private val resolveNameCase: ResolveNameCase,
 ) : ViewModel() {
 
     private var nameResolveJob: Job? = null
@@ -54,11 +53,7 @@ class AddressChainViewModel @Inject constructor(
         state.update { State(isLoading = true) }
         nameResolveJob = viewModelScope.launch(Dispatchers.IO) {
             delay(500L)
-            val nameRecord = try {
-                gemDeviceClient.resolve(input.lowercase(Locale.getDefault()), chain.string)
-            } catch (err: Throwable) {
-                null
-            }
+            val nameRecord = resolveNameCase.resolveName(input, chain)
             setNameRecord(nameRecord, input)
         }
     }
