@@ -64,10 +64,10 @@ internal fun ImportInput(
     DisposableEffect(Unit) {
         viewModel.onResolved(onResolved)
 
-        onDispose { }
+        onDispose {}
     }
 
-    val errorColor =  MaterialTheme.colorScheme.error
+    val errorColor = MaterialTheme.colorScheme.error
     val clipboardManager = LocalClipboard.current.nativeClipboard
     val interactionSource = remember { MutableInteractionSource() }
 

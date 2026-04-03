@@ -46,7 +46,7 @@ internal fun WalletTypeTab(
                     WalletType.PrivateKey -> stringResource(id = R.string.common_private_key)
                 },
                 maxLines = 1,
-                color =  MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
         selectedContentColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
