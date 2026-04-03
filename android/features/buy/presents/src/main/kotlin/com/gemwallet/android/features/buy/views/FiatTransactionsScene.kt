@@ -24,11 +24,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
-import com.wallet.core.primitives.FiatTransactionInfo
+import com.wallet.core.primitives.FiatTransactionAssetData
 
 @Composable
 fun FiatTransactionsScene(
-    transactions: List<FiatTransactionInfo>,
+    transactions: List<FiatTransactionAssetData>,
     onClose: () -> Unit,
     onRefresh: () -> Unit,
 ) {

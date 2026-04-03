@@ -4,7 +4,6 @@ import com.gemwallet.android.blockchain.services.StakeService
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
@@ -22,21 +21,19 @@ import java.math.BigInteger
 
 class StakeRepository(
     private val gemApiStaticClient: GemApiStaticClient,
-    private val gemApiClient: GemApiClient,
     private val stakeService: StakeService,
     private val stakeDao: StakeDao,
 ) {
     private val recommendedValidators = Config().getValidators()
 
-
-    suspend fun sync(chain: Chain, address: String) = withContext(Dispatchers.IO) {
-        val apr = try {
-            gemApiClient.getAsset(chain.string).properties.stakingApr ?: return@withContext
-        } catch (_: Throwable) {
-            return@withContext
+    suspend fun sync(chain: Chain, address: String, apr: Double) = withContext(Dispatchers.IO) {
+        if (stakeDao.getValidators(chain).first().isEmpty()) {
+            syncValidators(chain, apr)
+            syncDelegations(chain, address)
+        } else {
+            syncDelegations(chain, address)
+            syncValidators(chain, apr)
         }
-        syncValidators(chain, apr)
-        syncDelegations(chain, address)
     }
 
     private suspend fun syncDelegations(chain: Chain, address: String) = withContext(Dispatchers.IO) {

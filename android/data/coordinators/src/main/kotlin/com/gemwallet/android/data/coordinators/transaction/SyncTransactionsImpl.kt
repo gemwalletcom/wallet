@@ -43,7 +43,7 @@ class SyncTransactionsImpl(
         preferences.setTransactionsForAssetTimestamp(assetId, currentTimestamp())
     }
 
-    private fun currentTimestamp(): Long = currentTimestamp()
+    private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000
 
     private suspend fun prefetchAssets(wallet: Wallet, transactions: List<Transaction>) {
         val assetIds = transactions.map { transaction ->

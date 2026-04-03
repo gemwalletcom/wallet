@@ -124,7 +124,7 @@ class FiatViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val ticker = tickerFlow(DateUtils.MINUTE_IN_MILLIS) {}
+    private val ticker = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {

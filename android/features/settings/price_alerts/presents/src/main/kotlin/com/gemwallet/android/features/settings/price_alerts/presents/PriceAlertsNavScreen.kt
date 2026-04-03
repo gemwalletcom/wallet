@@ -13,7 +13,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertViewModel
 import com.wallet.core.primitives.AssetId
 
@@ -31,7 +30,7 @@ fun PriceAlertsNavScreen(
 
     val data by viewModel.data.collectAsStateWithLifecycle()
     val priceAlertState by viewModel.priceAlertState.collectAsStateWithLifecycle()
-    val syncState by viewModel.forceSync.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val assetId by viewModel.assetId.collectAsStateWithLifecycle()
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
@@ -54,7 +53,7 @@ fun PriceAlertsNavScreen(
                 assetId = assetId,
                 data = data,
                 enabled = priceAlertState is PriceAlertsStateEvent.Enable,
-                syncState = syncState,
+                syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),
                 onEnablePriceAlerts = viewModel::togglePriceAlerts,
                 onChart = onChart,
@@ -67,7 +66,4 @@ fun PriceAlertsNavScreen(
         }
     }
 
-    if (priceAlertState is PriceAlertsStateEvent.PushRequested) {
-        PushRequest(onNotificationEnable = viewModel::pushGranted, onDismiss = viewModel::pushRejected)
-    }
 }

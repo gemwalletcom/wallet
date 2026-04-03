@@ -1,8 +1,5 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.BuildConfig
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.buy.BuyRepository
@@ -21,20 +18,17 @@ class SyncService @Inject constructor(
     private val syncTransactions: SyncTransactions,
     private val buyRepository: BuyRepository,
     private val syncSubscription: SyncSubscription,
-    private val syncPerpetuals: SyncPerpetuals,
-    private val syncPriceAlerts: SyncPriceAlerts,
 ) {
 
     suspend fun sync() = withContext(Dispatchers.IO) {
-        listOf(
-            async { syncTransactions.syncTransactions(sessionRepository.session().firstOrNull()?.wallet ?: return@async) },
-            async { buyRepository.sync() },
-            async { syncPriceAlerts.syncPriceAlerts() },
-        ).awaitAll()
-        syncSubscription.syncSubscription(walletsRepository.getAll().firstOrNull() ?: emptyList())
-
-        if (BuildConfig.DEBUG) {
-            syncPerpetuals.syncPerpetuals()
+        val wallet = sessionRepository.session().firstOrNull()?.wallet
+        buildList {
+            add(async { buyRepository.sync() })
+            wallet?.let { wallet ->
+                add(async { syncTransactions.syncTransactions(wallet) })
+            }
         }
+            .awaitAll()
+        syncSubscription.syncSubscription(walletsRepository.getAll().firstOrNull() ?: emptyList())
     }
 }

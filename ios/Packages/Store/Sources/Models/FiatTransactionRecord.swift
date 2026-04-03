@@ -77,8 +77,8 @@ struct FiatTransactionRecordInfo: FetchableRecord, Codable {
 }
 
 extension FiatTransactionRecordInfo {
-    func map() -> FiatTransactionInfo {
-        FiatTransactionInfo(
+    func map() -> FiatTransactionAssetData {
+        FiatTransactionAssetData(
             transaction: FiatTransaction(
                 id: fiatTransaction.id,
                 assetId: fiatTransaction.assetId,
@@ -96,7 +96,7 @@ extension FiatTransactionRecordInfo {
     }
 }
 
-extension FiatTransactionInfo {
+extension FiatTransactionData {
     func record(walletId: String) -> FiatTransactionRecord {
         FiatTransactionRecord(
             id: transaction.id,

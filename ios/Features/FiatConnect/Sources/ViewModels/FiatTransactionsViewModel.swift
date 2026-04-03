@@ -15,9 +15,9 @@ public final class FiatTransactionsViewModel {
     let walletId: WalletId
 
     public let query: ObservableQuery<FiatTransactionsRequest>
-    var transactions: [FiatTransactionInfo] { query.value }
+    var transactions: [FiatTransactionAssetData] { query.value }
 
-    var sections: [ListSection<FiatTransactionInfo>] {
+    var sections: [ListSection<FiatTransactionAssetData>] {
         DateSectionBuilder(items: transactions, dateKeyPath: \.transaction.createdAt).build()
     }
 

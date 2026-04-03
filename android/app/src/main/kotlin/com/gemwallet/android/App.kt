@@ -10,19 +10,15 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.svg.SvgDecoder
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.data.repositories.assets.PriceWebSocketClient
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
-
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory,  Application.ActivityLifecycleCallbacks {
+class App : Application(), SingletonImageLoader.Factory, Application.ActivityLifecycleCallbacks {
 
     @Inject
     lateinit var priceClient: PriceWebSocketClient
-    @Inject
-    lateinit var syncPerpetualPositions: SyncPerpetualPositions
 
     override fun onCreate() {
         super.onCreate()

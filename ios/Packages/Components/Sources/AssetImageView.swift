@@ -92,7 +92,7 @@ public extension View {
         let overlayPadding: CGFloat = 2
         let overlayOffset = (size / 2) - (overlaySize / 2)
 
-        return self.overlay {
+        return overlay {
             if let badgeImage {
                 badgeImage
                     .resizable()

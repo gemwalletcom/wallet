@@ -7,6 +7,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAl
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
 import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
+import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.toAssetId
@@ -15,16 +16,15 @@ import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -33,56 +33,67 @@ import javax.inject.Inject
 class PriceAlertViewModel @Inject constructor(
     getPriceAlerts: GetPriceAlerts,
     private val priceAlertsStateCoordinator: PriceAlertsStateCoordinator,
+    private val updatePriceAlerts: UpdatePriceAlerts,
     private val assetsRepository: AssetsRepository,
     private val includePriceAlert: IncludePriceAlert,
     private val excludePriceAlert: ExcludePriceAlert,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val forceSync = MutableStateFlow(false)
+    private val refreshState = MutableStateFlow(false)
 
     val assetId = savedStateHandle.getStateFlow<String?>("assetId", null)
         .mapLatest { it?.toAssetId() }
-        .onEach { priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request()) }
+        .onEach { priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(it)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val data = assetId.flatMapLatest { getPriceAlerts.getPriceAlerts(it) }
         .mapLatest { getPriceAlerts.groupByTargetAndAsset(it) }
-
-        .combine(forceSync) { items, _ ->
-            viewModelScope.launch(Dispatchers.IO) {
-                delay(300)
-                forceSync.update { false }
-            }
-            items
-        }
-
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
-    val priceAlertState =  priceAlertsStateCoordinator.priceAlertState
+    val priceAlertState = priceAlertsStateCoordinator.priceAlertState
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val isRefreshing = refreshState.asStateFlow()
+
     init {
-        refresh(false)
+        val initialAssetId = savedStateHandle.get<String?>("assetId")?.toAssetId()
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                if (initialAssetId != null) {
+                    updatePriceAlerts.update(initialAssetId)
+                } else {
+                    updatePriceAlerts.update()
+                }
+            }
+        }
     }
 
-    fun refresh(force: Boolean = true) {
-        forceSync.update { force }
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                refreshState.value = true
+                val assetId = assetId.value
+                runCatching {
+                    if (assetId != null) {
+                        updatePriceAlerts.update(assetId)
+                    } else {
+                        updatePriceAlerts.update()
+                    }
+                }
+            } finally {
+                refreshState.value = false
+            }
+        }
     }
 
     fun isAssetManage(): Boolean = assetId.value != null
 
     fun togglePriceAlerts(enable: Boolean) {
-        val newState = if (enable) PriceAlertsStateEvent.Enable() else PriceAlertsStateEvent.Disable()
-        priceAlertsStateCoordinator.priceAlertState(newState)
-    }
-
-    fun pushGranted() {
-        priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.PushGranted())
-    }
-
-    fun pushRejected() {
-        priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.PushRejected())
+        viewModelScope.launch {
+            val newState = if (enable) PriceAlertsStateEvent.Enable() else PriceAlertsStateEvent.Disable()
+            priceAlertsStateCoordinator.priceAlertState(newState)
+        }
     }
 
     fun excludeAsset(priceAlertId: Int) = viewModelScope.launch(Dispatchers.IO) {
@@ -92,7 +103,7 @@ class PriceAlertViewModel @Inject constructor(
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         includePriceAlert.includePriceAlert(assetId)
 
-        val assetInfo = assetsRepository.getTokenInfo(assetId).firstOrNull() ?: return@launch // TODO:
-        viewModelScope.launch { callback(assetInfo.asset) }
+        val assetInfo = assetsRepository.getTokenInfo(assetId).firstOrNull() ?: return@launch
+        withContext(Dispatchers.Main) { callback(assetInfo.asset) }
     }
 }

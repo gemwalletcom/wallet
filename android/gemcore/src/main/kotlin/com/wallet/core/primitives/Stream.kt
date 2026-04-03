@@ -47,7 +47,7 @@ sealed class StreamEvent {
 	data class Prices(val data: WebSocketPricePayload): StreamEvent()
 	@Serializable
 	@SerialName("balances")
-	data class Balances(val data: List<StreamBalanceUpdate>): StreamEvent()
+	data class Balances(val data: StreamBalanceUpdate): StreamEvent()
 	@Serializable
 	@SerialName("transactions")
 	data class Transactions(val data: StreamTransactionsUpdate): StreamEvent()

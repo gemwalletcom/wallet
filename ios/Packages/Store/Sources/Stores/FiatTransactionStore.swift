@@ -11,7 +11,7 @@ public struct FiatTransactionStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func addTransactions(walletId: WalletId, transactions: [FiatTransactionInfo]) throws {
+    public func addTransactions(walletId: WalletId, transactions: [FiatTransactionData]) throws {
         guard transactions.isNotEmpty else { return }
         try db.write { db in
             for transaction in transactions {

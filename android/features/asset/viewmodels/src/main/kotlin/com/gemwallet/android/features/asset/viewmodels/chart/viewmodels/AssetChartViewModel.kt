@@ -6,22 +6,20 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
-import com.wallet.core.primitives.AssetLink
-import com.wallet.core.primitives.Currency
+import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -34,31 +32,36 @@ class AssetChartViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val getPriceAlerts: GetPriceAlerts,
+    private val sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val assetIdStr = savedStateHandle.getStateFlow<String?>(assetIdArg, null)
+    private val assetId = assetIdStr
+        .mapNotNull { it?.toAssetId() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertsCount = assetIdStr.mapNotNull { it?.toAssetId() }
+    val priceAlertsCount = assetId.filterNotNull()
         .flatMapLatest { getPriceAlerts.getPriceAlerts(it) }
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    private val assetInfo = assetIdStr.flatMapLatest { assetId ->
-            val assetId = assetId?.toAssetId() ?: return@flatMapLatest emptyFlow()
-            assetsRepository.getTokenInfo(assetId)
-                .filterNotNull()
-        }
+    private val assetInfo = assetId.filterNotNull()
+        .flatMapLatest { assetsRepository.getTokenInfo(it).filterNotNull() }
 
-    private val links = assetIdStr.filterNotNull()
-        .flatMapLatest { assetsRepository.getAssetLinks(it.toAssetId() ?: return@flatMapLatest emptyFlow()) }
+    private val links = assetId.filterNotNull()
+        .flatMapLatest { assetsRepository.getAssetLinks(it) }
 
-    private val market = assetIdStr.filterNotNull()
-        .flatMapLatest { assetsRepository.getAssetMarket(it.toAssetId() ?: return@flatMapLatest emptyFlow()) }
+    private val market = assetId.filterNotNull()
+        .flatMapLatest { assetsRepository.getAssetMarket(it) }
 
-    val marketUIModel = combine(assetInfo, links, market) { assetInfo, links, market ->
+    private val currency = sessionRepository.session()
+        .map { it?.currency }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val marketUIModel = combine(assetInfo, links, market, currency.filterNotNull()) { assetInfo, links, market, currency ->
         val asset = assetInfo.asset
-        val currency = assetInfo.price?.currency ?: Currency.USD
         AssetMarketUIModel(
             asset = asset,
             assetTitle = asset.name,
@@ -70,25 +73,4 @@ class AssetChartViewModel @Inject constructor(
     }
     .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val sync = assetIdStr.flatMapLatest { assetId ->
-        flow {
-            emit(true)
-            assetsRepository.syncMarketInfo(assetId?.toAssetId() ?: return@flow, null)
-            emit(false)
-        }
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, true)
-
-    private fun List<AssetLink>.toModel() = mapNotNull {
-        return@mapNotNull when (it.name) {
-            "coingecko" -> AssetMarketUIModel.Link(it.name, it.url, R.string.social_coingecko, R.drawable.coingecko)
-            "twitter" -> AssetMarketUIModel.Link(it.name, it.url, R.string.social_x, R.drawable.twitter)
-            "telegram" -> AssetMarketUIModel.Link(it.name, it.url, R.string.social_telegram, R.drawable.telegram)
-            "github" -> AssetMarketUIModel.Link(it.name, it.url, R.string.social_github, R.drawable.github)
-            else -> null
-        }
-    }
 }
-

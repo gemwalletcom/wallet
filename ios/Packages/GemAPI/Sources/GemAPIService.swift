@@ -11,7 +11,7 @@ public protocol GemAPIConfigService: Sendable {
 public protocol GemAPIFiatService: Sendable {
     func getQuotes(walletId: String, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote]
     func getQuoteUrl(walletId: String, quoteId: String) async throws -> FiatQuoteUrl
-    func getFiatTransactions(walletId: String) async throws -> [FiatTransactionInfo]
+    func getFiatTransactions(walletId: String) async throws -> [FiatTransactionData]
 }
 
 public protocol GemAPIPricesService: Sendable {
@@ -27,8 +27,14 @@ public protocol GemAPIAssetsListService: Sendable {
 
 public protocol GemAPIAssetsService: Sendable {
     func getAsset(assetId: AssetId) async throws -> AssetFull
-    func getAssets(assetIds: [AssetId]) async throws -> [AssetBasic]
+    func getAssets(currency: String?, assetIds: [AssetId]) async throws -> [AssetBasic]
     func getSearchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic]
+}
+
+public extension GemAPIAssetsService {
+    func getAssets(assetIds: [AssetId]) async throws -> [AssetBasic] {
+        try await getAssets(currency: nil, assetIds: assetIds)
+    }
 }
 
 public protocol GemAPINameService: Sendable {
@@ -146,9 +152,9 @@ extension GemAPIService: GemAPIFiatService {
             .mapResponse(as: FiatQuoteUrl.self)
     }
 
-    public func getFiatTransactions(walletId: String) async throws -> [FiatTransactionInfo] {
+    public func getFiatTransactions(walletId: String) async throws -> [FiatTransactionData] {
         try await requestDevice(.getFiatTransactions(walletId: walletId))
-            .mapResponse(as: [FiatTransactionInfo].self)
+            .mapResponse(as: [FiatTransactionData].self)
     }
 }
 
@@ -225,9 +231,9 @@ extension GemAPIService: GemAPIAssetsService {
             .mapResponse(as: AssetFull.self)
     }
 
-    public func getAssets(assetIds: [AssetId]) async throws -> [AssetBasic] {
+    public func getAssets(currency: String?, assetIds: [AssetId]) async throws -> [AssetBasic] {
         try await provider
-            .request(.getAssets(assetIds))
+            .request(.getAssets(assetIds, currency: currency))
             .mapResponse(as: [AssetBasic].self)
     }
 
