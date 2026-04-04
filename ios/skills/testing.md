@@ -6,8 +6,7 @@
 - Default commands:
   - `just test`
   - `just test <TARGET>`
-  - `just test-integration`
-  - `just test-ui`
+  - `just test-integration` or `just test-ui` for the iOS integration suite
 - Run the narrowest relevant target while iterating, then finish with the appropriate broader validation
 
 ## Test Structure

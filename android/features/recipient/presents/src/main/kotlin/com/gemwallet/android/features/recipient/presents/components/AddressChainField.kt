@@ -32,9 +32,9 @@ import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
-import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 
@@ -121,7 +121,7 @@ fun ColumnScope.AddressChainField(
         )
         if (error.isNotEmpty()) {
             Text(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = paddingDefault),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = sceneContentPadding()),
                 text = error,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.labelMedium,
