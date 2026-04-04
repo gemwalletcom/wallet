@@ -162,6 +162,7 @@ class UserConfig(
         DeviceIdMigrated("device_id_migrated"),
         DevelopEnabled("develop_enabled"),
         SubscriptionVersion("subscription_version"),
+        SubscriptionVersionHasChange("subscription_version_has_change"),
         LaunchNumber("launch_number"),
         ;
 

@@ -35,10 +35,10 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
@@ -72,17 +72,20 @@ fun NetworkScene(
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
-            isRefreshing = state.isRefreshing,
+            isRefreshing = false,
             onRefresh = onRefresh,
             state = pullToRefreshState,
+            enabled = !state.isRefreshing,
             indicator = {
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = state.isRefreshing,
-                    state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            }
+                if (pullToRefreshState.distanceFraction > 0f) {
+                    Indicator(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        isRefreshing = false,
+                        state = pullToRefreshState,
+                        containerColor = MaterialTheme.colorScheme.background,
+                    )
+                }
+            },
         ) {
             LazyColumn {
                 item {
@@ -157,17 +160,17 @@ private fun BlockExplorerItem(
     listPosition: ListPosition,
     onSelect: (String) -> Unit,
 ) {
-    ListItem(
+    PropertyItem(
         modifier = Modifier.clickable { onSelect(explorerName) },
         title = {
-            ListItemTitleText(text = explorerName)
+            PropertyTitleText(text = explorerName)
         },
-        listPosition = listPosition,
-        trailing = if (explorerName == current) {
+        data = if (explorerName == current) {
             {
                 SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
             }
-        } else null
+        } else null,
+        listPosition = listPosition,
     )
 }
 

@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.cases.nft.LoadNFTCase
 import com.gemwallet.android.cases.nft.NftError
+import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ui.models.NftItemUIModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +32,7 @@ val collectionIdArg = "collectionId"
 @HiltViewModel
 class NftListViewModels @Inject constructor(
     sessionRepository: SessionRepository,
-    private val loadNft: LoadNFTCase,
+    private val syncNfts: SyncNfts,
     private val getNFT: GetListNftCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -47,7 +47,7 @@ class NftListViewModels @Inject constructor(
         flow {
             if (!state.first) return@flow
             emit(true)
-            runCatching { loadNft.loadNFT(state.second.wallet) }
+            runCatching { syncNfts.syncNfts(state.second.wallet) }
             emit(false)
             loadState.update { false }
         }

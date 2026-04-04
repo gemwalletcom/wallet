@@ -9,9 +9,10 @@ just bootstrap              # first-time setup
 just clean                  # clean DerivedData and build artifacts
 just build                  # build the app
 just build-package Primitives
-just test-all               # run all tests
+just test                   # run unit test plans
 just test AssetsTests       # run a specific test target
-just test-ui                # run UI tests
+just test-integration       # run UI/integration tests
+just test-ui                # run the iOS UI test suite
 just lint                   # run SwiftLint with autofix
 just format                 # run SwiftFormat
 ```

@@ -68,7 +68,7 @@ fun RowScope.PhraseWordItem(
         border = if (isNextToEnter) BorderStroke(space2, MaterialTheme.colorScheme.primary) else null
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = paddingDefault, vertical = space10),
+            modifier = Modifier.padding(horizontal = paddingDefault, vertical = space8),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(

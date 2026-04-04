@@ -4,9 +4,9 @@
 
 - Run tests through Gradle or the Android `justfile`
 - Default commands:
-  - `just test` or `./gradlew test` — all unit tests
+  - `just test` or `./gradlew testGoogleDebugUnitTest` — Google Debug unit tests
+  - `just test-integration` or `./gradlew connectedGoogleDebugAndroidTest` — instrumented tests (requires emulator)
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
-  - `./gradlew connectedGoogleDebugAndroidTest` — instrumented tests (requires emulator)
 - Run the narrowest relevant target while iterating, then finish with broader validation
 
 ## Test Structure

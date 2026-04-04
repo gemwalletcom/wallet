@@ -47,7 +47,7 @@ If you need Android-specific behavior on top of generated types, add adapters, m
 
 Database migration tests require an emulator or device. Run them separately:
 ```bash
-./gradlew connectedGoogleDebugAndroidTest
+just test-integration
 ```
 Do not skip migration tests when changing Room schemas — they catch data loss bugs that unit tests cannot.
 

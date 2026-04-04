@@ -54,7 +54,7 @@ fun OnboardScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = paddingDefault),
+                .padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
         ) {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_create_new_wallet),

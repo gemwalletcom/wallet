@@ -1,8 +1,5 @@
 package com.gemwallet.android.features.create_wallet.views
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -13,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +31,8 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.isSmallScreen
+import com.gemwallet.android.ui.theme.WindowDimension
+import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import kotlin.math.min
 
@@ -44,7 +43,7 @@ private const val verifyGroupCount = 3
 @Composable
 internal fun CheckPhrase(
     words: List<String>,
-    onDone: (String) -> Unit,
+    onDone: () -> Unit,
     onCancel: () -> Unit,
 ) {
     DisableScreenShooting()
@@ -73,7 +72,7 @@ internal fun CheckPhrase(
             result.joinToString() == words.joinToString()
         }
     }
-    val isSmallScreen = isSmallScreen()
+    val isSmallScreen = isCompactDimension(WindowDimension.Height)
 
     val onWordClick: (String) -> Boolean = { word ->
         val index = result.size
@@ -91,17 +90,11 @@ internal fun CheckPhrase(
         onClose = onCancel,
         padding = PaddingValues(horizontal = paddingDefault),
         mainAction = {
-            AnimatedVisibility(
-                visible = isDone || !isSmallScreen,
-                enter = fadeIn(),
-                exit = fadeOut(),
+            MainActionButton(
+                title = stringResource(id = R.string.common_continue),
+                enabled = isDone,
             ) {
-                MainActionButton(
-                    title = stringResource(id = R.string.common_continue),
-                    enabled = isDone,
-                ) {
-                    onDone(result.joinToString(" "))
-                }
+                onDone()
             }
         }
     ) {
@@ -133,12 +126,14 @@ internal fun CheckPhrase(
                     if (isSmallScreen) {
                         val slice = result.size / wordsPerGroup
                         if (slice < verifyGroupCount) {
-                            (random.slice(slice * wordsPerGroup..<slice * wordsPerGroup + wordsPerGroup)).forEach {word ->
-                                WordChip(word.second, result.getOrNull(word.first) != word.second, onWordClick)
-                            }
+                            random
+                                .slice(slice * wordsPerGroup..<slice * wordsPerGroup + wordsPerGroup)
+                                .forEach { word ->
+                                    WordChip(word.second, result.getOrNull(word.first) != word.second, onWordClick)
+                                }
                         }
                     } else {
-                        (random).forEach { word ->
+                        random.forEach { word ->
                             WordChip(word.second, result.getOrNull(word.first) != word.second, onWordClick)
                         }
                     }

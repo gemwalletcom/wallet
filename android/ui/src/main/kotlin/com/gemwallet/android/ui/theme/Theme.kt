@@ -50,14 +50,24 @@ private val LightColorScheme = lightColorScheme(
     scrim = Color(0xffededed),//from #f2f2f2
 )
 
+enum class WindowDimension {
+    Width,
+    Height,
+}
+
 @Composable
-fun isSmallScreen(): Boolean {
+fun isCompactDimension(dimension: WindowDimension): Boolean {
     val density = LocalDensity.current
     val container = LocalWindowInfo.current.containerSize
-    val containerHeight = with(density) {
-        container.height.toDp()
+    return when (dimension) {
+        WindowDimension.Width -> with(density) {
+            container.width.toDp()
+        } <= SceneSizing.contentMaxWidth
+
+        WindowDimension.Height -> with(density) {
+            container.height.toDp()
+        } < SceneSizing.compactHeight
     }
-    return containerHeight < 740.dp
 }
 
 @Composable

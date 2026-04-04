@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AssetsServiceTestKit
 import FiatService
 import Foundation
 import GemAPITestKit
-import AssetsServiceTestKit
 import StoreTestKit
 
 public extension FiatService {

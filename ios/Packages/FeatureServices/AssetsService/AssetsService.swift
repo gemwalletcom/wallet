@@ -11,17 +11,20 @@ import Store
 public final class AssetsService: Sendable {
     public let assetStore: AssetStore
     let balanceStore: BalanceStore
+    let priceStore: PriceStore
     let assetsProvider: any GemAPIAssetsService
     let chainServiceFactory: any ChainServiceFactorable
 
     public init(
         assetStore: AssetStore,
         balanceStore: BalanceStore,
+        priceStore: PriceStore,
         chainServiceFactory: any ChainServiceFactorable,
         assetsProvider: any GemAPIAssetsService = GemAPIService.shared,
     ) {
         self.assetStore = assetStore
         self.balanceStore = balanceStore
+        self.priceStore = priceStore
         self.chainServiceFactory = chainServiceFactory
         self.assetsProvider = assetsProvider
     }
@@ -104,10 +107,24 @@ public final class AssetsService: Sendable {
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: assetIds, value: enabled)
     }
 
-    public func updateAsset(assetId: AssetId) async throws {
+    public func updateAsset(assetId: AssetId, currency: String) async throws {
         let asset = try await getAsset(assetId: assetId)
         try assetStore.add(assets: [asset.basic])
         try assetStore.updateLinks(assetId: assetId, asset.links)
+        if let price = asset.price {
+            try priceStore.updatePrices(
+                prices: [price.mapToAssetPrice(assetId: assetId)],
+                currency: currency,
+            )
+        }
+        if let market = asset.market {
+            let rate = try priceStore.getRate(currency: currency).rate
+            try priceStore.updateMarket(
+                assetId: assetId.identifier,
+                market: market,
+                rate: rate,
+            )
+        }
     }
 
     public func addAssets(assetIds: [AssetId]) async throws {

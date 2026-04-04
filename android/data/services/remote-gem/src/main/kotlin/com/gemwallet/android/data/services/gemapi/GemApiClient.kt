@@ -5,7 +5,6 @@ import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Charts
 import com.wallet.core.primitives.ConfigResponse
-import com.wallet.core.primitives.NameRecord
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -16,9 +15,6 @@ interface GemApiClient {
     @GET("/v1/config")
     suspend fun getConfig(): ConfigResponse
 
-    @GET("/v1/name/resolve/{domain}")
-    suspend fun resolve(@Path("domain") domain: String, @Query("chain") chain: String): NameRecord
-
     @GET("/v1/charts/{asset_id}")
     suspend fun getChart(@Path("asset_id") assetId: String, @Query("period") period: String): Charts
 
@@ -28,7 +24,6 @@ interface GemApiClient {
     @POST("/v1/assets")
     suspend fun getAssets(
         @Body ids: List<AssetId>,
-        @Query("currency") currency: String? = null,
     ): List<AssetBasic>
 
     @GET("/v1/assets/search")

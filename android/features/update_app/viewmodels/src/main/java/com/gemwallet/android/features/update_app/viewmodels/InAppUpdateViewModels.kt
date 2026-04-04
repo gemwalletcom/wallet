@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.config.GetLatestVersion
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.ext.VersionCheck
 import com.gemwallet.android.model.BuildInfo
 import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,7 +48,7 @@ class InAppUpdateViewModels @Inject constructor(
 
     val updateAvailable = userConfig.getAppVersionSkip().combine(getLatestVersion.getLatestVersion()) { skip, version ->
         if (version != skip
-            && buildInfo.versionName != version
+            && VersionCheck.isVersionHigher(new = version, current = buildInfo.versionName)
             && buildInfo.platformStore == PlatformStore.ApkUniversal
             && userConfig.developEnabled()
         ) {
