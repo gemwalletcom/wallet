@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetBasic
+import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
@@ -30,6 +31,19 @@ fun AssetPrice.toRecord(rate: FiatRate): DbPrice {
 }
 
 fun List<AssetPrice>.toRecord(rate: FiatRate) = map { it.toRecord(rate) }
+
+fun AssetFull.toPriceRecord(rate: FiatRate): DbPrice? {
+    val currency = Currency.entries.firstOrNull { it.string == rate.symbol } ?: Currency.USD
+    return price?.let { price ->
+        DbPrice(
+            assetId = asset.id.toIdentifier(),
+            value = price.price * rate.rate,
+            usdValue = price.price,
+            dayChanged = price.priceChangePercentage24h,
+            currency = currency.string,
+        )
+    }
+}
 
 fun AssetBasic.toPriceRecord(rate: FiatRate): DbPrice? {
     val currency = Currency.entries.firstOrNull { it.string == rate.symbol } ?: Currency.USD

@@ -33,6 +33,7 @@ let package = Package(
         .package(name: "Recents", path: "../Recents"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemAPI", path: "../../Packages/GemAPI"),
     ],
     targets: [
         .target(
@@ -86,6 +87,9 @@ let package = Package(
                 .product(name: "PriceServiceTestKit", package: "FeatureServices"),
                 .product(name: "PriceAlertServiceTestKit", package: "FeatureServices"),
                 .product(name: "BannerServiceTestKit", package: "FeatureServices"),
+                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "StoreTestKit", package: "Store"),
+                "Store",
                 "AssetsTestKit",
             ],
         ),

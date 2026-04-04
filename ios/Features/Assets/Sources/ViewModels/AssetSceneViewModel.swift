@@ -475,7 +475,7 @@ extension AssetSceneViewModel {
 
     private func updateAsset() async {
         do {
-            try await assetsService.updateAsset(assetId: assetModel.asset.id)
+            try await assetsService.updateAsset(assetId: assetModel.asset.id, currency: preferences.preferences.currency)
         } catch {
             // TODO: - handle updateAsset error
             debugLog("asset scene: updateAsset error \(error)")

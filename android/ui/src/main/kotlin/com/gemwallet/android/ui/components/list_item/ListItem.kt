@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,9 +20,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.paddingSmall
 
 object ListItemDefaults {
     val plainMinHeight: Dp = 56.dp
@@ -33,27 +36,34 @@ fun ListItem(
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
     minHeight: Dp = ListItemDefaults.defaultMinHeight,
+    contentPadding: Dp = paddingMiddle,
     leading: (@Composable RowScope.() -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
     subtitle: (@Composable () -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
+    val horizontalPadding = adaptivePadding(default = paddingDefault, compact = paddingSmall)
+
     Row(
         modifier = Modifier
-            .listItem(position = listPosition)
+            .listItem(position = listPosition, paddingHorizontal = horizontalPadding)
             .then(
                 modifier
                     .fillMaxWidth()
-                    .padding(start = paddingDefault)
+                    .padding(start = paddingMiddle)
             ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingDefault)
+        horizontalArrangement = Arrangement.spacedBy(paddingMiddle)
     ) {
         leading?.invoke(this)
         Row(
             modifier = Modifier
                 .heightIn(min = minHeight)
-                .padding(top = paddingMiddle, end = paddingDefault, bottom = paddingMiddle)
+                .padding(
+                    top = contentPadding,
+                    end = contentPadding.coerceAtLeast(paddingMiddle),
+                    bottom = contentPadding,
+                )
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -71,7 +81,7 @@ fun ListItem(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Spacer16()
+                    Spacer(modifier = Modifier.width(paddingMiddle))
                     it.invoke(this)
                 }
             }

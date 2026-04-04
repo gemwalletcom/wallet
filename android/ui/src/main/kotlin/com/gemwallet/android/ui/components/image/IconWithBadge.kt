@@ -101,7 +101,7 @@ private fun BadgedBox(
                     .offset(badgeOffset, badgeOffset)
                     .size(badgeSize)
                     .align(Alignment.BottomEnd)
-                    .border(BADGE_BORDER_WIDTH, MaterialTheme.colorScheme.surface, CircleShape),
+                    .border(BADGE_BORDER_WIDTH, MaterialTheme.colorScheme.background, CircleShape),
             ) {
                 badge()
             }

@@ -14,7 +14,7 @@ extension PriceAlert: Identifiable {
             pricePercentChange.map { Self.formatValue($0) },
             priceDirection?.rawValue,
         ]
-        .compactMap { $0 }
+        .compactMap(\.self)
         .joined(separator: "_")
     }
 }
@@ -52,4 +52,3 @@ public extension PriceAlert {
         return str.hasSuffix(".0") ? String(str.dropLast(2)) : str
     }
 }
-

@@ -97,6 +97,7 @@ struct ServicesFactory {
         let assetsService = Self.makeAssetsService(
             assetStore: storeManager.assetStore,
             balanceStore: storeManager.balanceStore,
+            priceStore: storeManager.priceStore,
             chainFactory: chainServiceFactory,
         )
 
@@ -472,11 +473,13 @@ extension ServicesFactory {
     private static func makeAssetsService(
         assetStore: AssetStore,
         balanceStore: BalanceStore,
+        priceStore: PriceStore,
         chainFactory: ChainServiceFactory,
     ) -> AssetsService {
         AssetsService(
             assetStore: assetStore,
             balanceStore: balanceStore,
+            priceStore: priceStore,
             chainServiceFactory: chainFactory,
         )
     }

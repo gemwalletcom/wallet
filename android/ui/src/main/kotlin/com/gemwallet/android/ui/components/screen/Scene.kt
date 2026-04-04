@@ -34,7 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.isSmallScreen
+import com.gemwallet.android.ui.theme.WindowDimension
+import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
@@ -46,7 +47,7 @@ fun Scene(
     closeIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
     mainAction: (@Composable () -> Unit)? = null,
-    mainActionPadding: PaddingValues = if (isSmallScreen()) {
+    mainActionPadding: PaddingValues = if (isCompactDimension(WindowDimension.Height)) {
         PaddingValues(horizontal = paddingDefault)
     } else {
         PaddingValues(start = paddingDefault, top = paddingDefault, end = paddingDefault, bottom = paddingDefault)

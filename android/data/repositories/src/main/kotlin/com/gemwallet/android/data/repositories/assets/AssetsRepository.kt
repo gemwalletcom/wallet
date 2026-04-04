@@ -14,13 +14,14 @@ import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetConfig
-import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
+import com.gemwallet.android.data.service.store.database.entities.toMarketRecord
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.domains.asset.chain
@@ -43,7 +44,6 @@ import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetTag
-import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
@@ -148,6 +148,11 @@ class AssetsRepository @Inject constructor(
         } catch (_: Throwable) {
             null
         } ?: return@withContext
+        val currency = sessionRepository.getCurrentCurrency()
+        val rate = getCurrencyRate(currency).firstOrNull() ?: when (currency) {
+            Currency.USD -> FiatRate(Currency.USD.string, 1.0)
+            else -> null
+        }
         val record = DbAsset(
             id = assetIdIdentifier,
             name = assetFull.asset.name,
@@ -166,11 +171,19 @@ class AssetsRepository @Inject constructor(
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
         assetsDao.update(record)
         runCatching { assetsDao.addLinks(linkRecords) }
+        rate?.let { fiatRate ->
+            val currentPrice = pricesDao.getByAssets(listOf(assetIdIdentifier)).firstOrNull()
+            val priceRecord = assetFull.toPriceRecord(fiatRate)
+            if (priceRecord != null && (currentPrice == null || currentPrice.currency != priceRecord.currency || currentPrice.value == null)) {
+                pricesDao.insert(priceRecord)
+            }
+            assetFull.toMarketRecord(fiatRate.rate)?.let { assetsDao.setMarket(it) }
+        }
     }
 
     suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {
         val rate = getCurrencyRate(currency).firstOrNull()?.rate ?: return@withContext
-        assetsDao.setMarket(market.convert(rate).toRecord(assetId))
+        assetsDao.setMarket(market.toRecord(assetId, rate))
     }
 
     /**
@@ -418,20 +431,6 @@ class AssetsRepository @Inject constructor(
         return assetsDao.getAssetMarket(id.toIdentifier())
             .map { it?.toDTO() }
             .flowOn(Dispatchers.IO)
-    }
-
-    private fun AssetMarket.convert(rate: Double): AssetMarket {
-        return copy(
-            marketCap = marketCap?.times(rate),
-            marketCapFdv = marketCapFdv?.times(rate),
-            totalVolume = totalVolume?.times(rate),
-            allTimeHighValue = allTimeHighValue?.convert(rate),
-            allTimeLowValue = allTimeLowValue?.convert(rate),
-        )
-    }
-
-    private fun ChartValuePercentage.convert(rate: Double): ChartValuePercentage {
-        return copy(value = value * rate.toFloat())
     }
 
     private fun Account.isVisibleByDefault(type: WalletType): Boolean {
