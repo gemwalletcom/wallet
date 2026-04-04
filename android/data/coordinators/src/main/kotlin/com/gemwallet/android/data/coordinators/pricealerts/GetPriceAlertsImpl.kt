@@ -36,17 +36,16 @@ class GetPriceAlertsImpl(
                     .filter { it.priceAlert.shouldDisplay }
                     .groupBy { it.priceAlert.assetId.toIdentifier() }
                 assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { assetInfos ->
-                    assetInfos.mapNotNull { assetInfo ->
-                        val assetPrice = assetInfo.price ?: return@mapNotNull null
+                    assetInfos.flatMap { assetInfo ->
                         index[assetInfo.id().toIdentifier()]?.map { item ->
                             PriceAlertDataAggregateImpl(
                                 id = item.id,
                                 asset = assetInfo.asset,
-                                assetPrice = assetPrice,
+                                assetPrice = assetInfo.price,
                                 priceAlert = item.priceAlert,
                             )
-                        }
-                    }.flatten()
+                        }.orEmpty()
+                    }
                 }
             }
     }
@@ -56,7 +55,7 @@ class GetPriceAlertsImpl(
 class PriceAlertDataAggregateImpl(
     override val id: Int,
     override val asset: Asset,
-    val assetPrice: AssetPriceInfo,
+    val assetPrice: AssetPriceInfo?,
     val priceAlert: PriceAlert
 ) : PriceAlertDataAggregate {
     override val assetId: AssetId = asset.id
@@ -70,12 +69,14 @@ class PriceAlertDataAggregateImpl(
             PriceAlertDirection.Up -> PriceState.Up
             PriceAlertDirection.Down -> PriceState.Down
             else -> if (alertPrice != null) {
-                when {
-                    alertPrice > assetPrice.price.price -> PriceState.Up
-                    else -> PriceState.Down
-                }
+                assetPrice?.price?.price?.let { currentPrice ->
+                    when {
+                        alertPrice > currentPrice -> PriceState.Up
+                        else -> PriceState.Down
+                    }
+                } ?: PriceState.None
             } else {
-                assetPrice.price.priceChangePercentage24h.toPriceState()
+                assetPrice?.price?.priceChangePercentage24h.toPriceState()
             }
         }
     }
@@ -83,10 +84,11 @@ class PriceAlertDataAggregateImpl(
     override val price: String
         get() = priceAlert.price?.let {
             Currency.entries.firstOrNull { it.string == priceAlert.currency }?.format(it) ?: ""
-        } ?: assetPrice.currency.format(assetPrice.price.price)
+        } ?: assetPrice?.let { it.currency.format(it.price.price) }.orEmpty()
 
-    override val percentage: String = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
-        ?: assetPrice.price.priceChangePercentage24h.formatAsPercentage()
+    override val percentage: String
+        get() = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+            ?: assetPrice?.price?.priceChangePercentage24h?.formatAsPercentage().orEmpty()
 
     override val type: PriceAlertType get() {
         val alertPrice = priceAlert.price

@@ -61,6 +61,13 @@ internal fun ImportInput(
     val viewModel: AddressChainViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    fun updateInput(value: TextFieldValue) {
+        onValueChange(value)
+        if (importType.walletType == WalletType.View || importType.walletType == WalletType.PrivateKey) {
+            viewModel.onInput(value.text, importType.chain)
+        }
+    }
+
     DisposableEffect(Unit) {
         viewModel.onResolved(onResolved)
 
@@ -77,12 +84,7 @@ internal fun ImportInput(
         Box(modifier = Modifier.fillMaxWidth()) {
             BasicTextField(
                 modifier = Modifier.fillMaxWidth(),
-                onValueChange = {
-                    onValueChange(it)
-                    if (importType.walletType == WalletType.View || importType.walletType == WalletType.PrivateKey) {
-                        viewModel.onInput(it.text, importType.chain)
-                    }
-                },
+                onValueChange = ::updateInput,
                 value = inputState,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface
@@ -162,10 +164,15 @@ internal fun ImportInput(
                 text = stringResource(id = R.string.common_paste),
             ) {
                 val newValue = clipboardManager.getPlainText() ?: ""
-                onValueChange(
+                val pastedText = if (importType.walletType == WalletType.View || importType.walletType == WalletType.PrivateKey) {
+                    newValue.trim()
+                } else {
+                    "$newValue "
+                }
+                updateInput(
                     TextFieldValue(
-                        text = "$newValue ",
-                        selection = TextRange(newValue.length + 1),
+                        text = pastedText,
+                        selection = TextRange(pastedText.length),
                     )
                 )
             }

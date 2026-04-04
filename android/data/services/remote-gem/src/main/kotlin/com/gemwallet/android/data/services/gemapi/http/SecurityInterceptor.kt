@@ -1,50 +1,36 @@
 package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.math.decodeHex
-import com.gemwallet.android.math.toHexString
 import okhttp3.Interceptor
-import okhttp3.Request
+import okhttp3.Protocol
 import okhttp3.Response
 import okio.Buffer
-import wallet.core.jni.Base64
-import wallet.core.jni.Curve
-import wallet.core.jni.Hash
-import wallet.core.jni.PrivateKey
 
 class SecurityInterceptor(
     private val getDeviceId: GetDeviceId,
 ) : Interceptor {
 
+    private val signer = DeviceRequestSigner(getDeviceId)
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val timestamp = System.currentTimeMillis()
-        val bodyHash = bodyHash(request)
-        val method = request.method
-        val path = request.url.encodedPath
-
-        val message = "v1.${timestamp}.${method}.${path}.${bodyHash}"
-        val signature = Base64.encode(
-            PrivateKey(getDeviceId.getDeviceKey().decodeHex())
-                .sign(message.toByteArray(), Curve.ED25519)
-        )
-
-        return chain.proceed(
-            request.newBuilder()
-                .header("x-device-signature", signature)
-                .header("x-device-timestamp", timestamp.toString())
-                .header("x-device-body-hash", bodyHash)
-                .header("x-device-id", getDeviceId.getDeviceId())
-                .build()
-        )
-    }
-
-    private fun bodyHash(request: Request): String {
-        return request.body?.let {
-            val buffer: Buffer = Buffer()
+        val body = request.body?.let {
+            val buffer = Buffer()
             it.writeTo(buffer)
-            val data = buffer.readUtf8()
-            Hash.sha256(data.toByteArray())
-        }?.toHexString("") ?: ""
+            buffer.readUtf8().toByteArray()
+        }
+        val signature = signer.sign(request.method, request.url.encodedPath, body)
+        return try {
+            val builder = request.newBuilder()
+            signature.toHeaders().forEach { (key, value) -> builder.header(key, value) }
+            chain.proceed(builder.build())
+        } catch (error: Throwable) {
+            Response.Builder()
+                .code(503)
+                .message("HTTP Exception: ${error.message}")
+                .request(request)
+                .protocol(Protocol.HTTP_2)
+                .build()
+        }
     }
 }

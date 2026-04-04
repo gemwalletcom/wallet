@@ -71,6 +71,9 @@ sealed class StreamEvent {
 @Serializable
 sealed class StreamMessage {
 	@Serializable
+	@SerialName("getPrices")
+	data class GetPrices(val data: StreamMessagePrices): StreamMessage()
+	@Serializable
 	@SerialName("subscribePrices")
 	data class SubscribePrices(val data: StreamMessagePrices): StreamMessage()
 	@Serializable

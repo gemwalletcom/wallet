@@ -25,8 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -59,20 +57,16 @@ class ImportWalletService(
 
                 searchTokensCase.search(tokenIds, currency)
                 val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull()
-                assets?.map { it.asset }
-                    ?.map { asset ->
-                    async {
-                        val account = wallet.getAccount(asset.chain)?.address ?: return@async null
-                        Log.d("IMPORT_ASSETS", "Asset: ${asset.id}; Account: $account")
-                        assetsRepository.add(
-                            walletId = wallet.id,
-                            accountAddress = account,
-                            asset = asset,
-                            visible = true
-                        )
-                        asset
-                    }
-                }?.awaitAll()
+                val assetsToImport = assets?.map { it.asset }
+                    ?.mapNotNull { asset ->
+                        val account = wallet.getAccount(asset.chain)?.address ?: return@mapNotNull null
+                        account to asset
+                    } ?: emptyList()
+                assetsRepository.add(
+                    walletId = wallet.id,
+                    assets = assetsToImport,
+                    visible = true,
+                )
                 assetsRepository.sync()
                 syncTransactions.syncTransactions(wallet)
                 syncNfts.syncNfts(wallet)
