@@ -67,6 +67,7 @@ fun NavGraphBuilder.swap(
             select = entry.savedStateHandle.get("select"),
             onConfirm = onConfirm,
             onSelect = onSelect,
+            onSelectConsumed = { entry.savedStateHandle.remove<SwapItemType>("select") },
             onCancel = onCancel,
         )
     }

@@ -24,6 +24,7 @@ fun SwapScreen(
     select: SwapItemType?,
     viewModel: SwapViewModel = hiltViewModel(),
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
+    onSelectConsumed: () -> Unit,
     onConfirm: (ConfirmParams) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -48,6 +49,7 @@ fun SwapScreen(
                 SwapItemType.Receive -> receiveId ?: return@LaunchedEffect
             }
         )
+        onSelectConsumed()
     }
 
     val onSwap: () -> Unit = {
