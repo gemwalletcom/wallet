@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
-import com.gemwallet.android.features.add_asset.viewmodels.AddressChainViewModel
+import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 
