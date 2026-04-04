@@ -39,6 +39,7 @@ import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
@@ -307,9 +308,9 @@ class AssetsRepository @Inject constructor(
     suspend fun resolve(wallet: Wallet, assetsId: List<AssetId>) = withContext(Dispatchers.IO) {
         if (assetsId.isEmpty()) return@withContext
         try {
-            gemApi.getAssets(assetsId).forEach {
-                val asset = it.asset
-                add(wallet.id, wallet.getAccount(asset.chain)?.address ?: return@forEach, asset, true)
+            gemApi.getAssets(assetsId).forEach { assetBasic ->
+                val asset = assetBasic.asset
+                add(wallet.id, wallet.getAccount(asset.chain)?.address ?: return@forEach, assetBasic, true)
             }
         } catch (_: Throwable) {
             return@withContext
@@ -394,6 +395,26 @@ class AssetsRepository @Inject constructor(
         )
         val defaultScore = uniffi.gemstone.assetDefaultRank(asset.chain.string)
         runCatching { assetsDao.insert(asset.toRecord(defaultScore), link, config) }
+        runCatching { assetsDao.setConfig(config.copy(isVisible = visible)) }
+
+        if (visible) {
+            priceClient.addAssetId(asset.id)
+        }
+    }
+
+    suspend fun add(walletId: String, accountAddress: String, assetBasic: AssetBasic, visible: Boolean) {
+        val asset = assetBasic.asset
+        val link = DbAssetWallet(
+            assetId = asset.id.toIdentifier(),
+            walletId = walletId,
+            accountAddress = accountAddress
+        )
+        val config = DbAssetConfig(
+            assetId = asset.id.toIdentifier(),
+            walletId = walletId,
+            isVisible = visible,
+        )
+        runCatching { assetsDao.insert(assetBasic.toRecord(), link, config) }
         runCatching { assetsDao.setConfig(config.copy(isVisible = visible)) }
 
         if (visible) {
