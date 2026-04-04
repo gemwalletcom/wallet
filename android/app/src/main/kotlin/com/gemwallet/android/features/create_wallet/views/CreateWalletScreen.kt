@@ -8,7 +8,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -44,7 +43,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 
 @Composable
 fun CreateWalletScreen(
@@ -132,7 +131,7 @@ fun UI(
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
-        padding = PaddingValues(paddingDefault),
+        padding = sceneContentPaddingValues(),
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),

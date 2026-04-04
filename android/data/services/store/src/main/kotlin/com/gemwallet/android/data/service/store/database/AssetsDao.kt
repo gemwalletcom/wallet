@@ -67,9 +67,6 @@ interface AssetsDao {
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId AND sessionId = 1")
     fun getAssetInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
-    @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId AND sessionId = 1")
-    fun getAssetInfoImmediate(assetId: String, chain: Chain): DbAssetInfo?
-
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId")
     fun getTokenInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 

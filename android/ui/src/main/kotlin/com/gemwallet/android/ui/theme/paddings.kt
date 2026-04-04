@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.theme
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
@@ -49,6 +50,25 @@ object SceneSizing {
 @Composable
 fun adaptivePadding(default: Dp, compact: Dp): Dp {
     return if (isCompactDimension(WindowDimension.Width)) compact else default
+}
+
+fun sceneContentPadding(isCompactWidth: Boolean): Dp {
+    return if (isCompactWidth) paddingMiddle else paddingDefault
+}
+
+@Composable
+fun sceneContentPadding(): Dp {
+    return sceneContentPadding(isCompactDimension(WindowDimension.Width))
+}
+
+@Composable
+fun sceneContentPaddingValues(horizontalOnly: Boolean = false): PaddingValues {
+    val padding = sceneContentPadding()
+    return if (horizontalOnly) {
+        PaddingValues(horizontal = padding)
+    } else {
+        PaddingValues(padding)
+    }
 }
 
 fun Modifier.smallPadding(): Modifier {

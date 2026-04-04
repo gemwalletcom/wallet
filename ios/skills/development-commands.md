@@ -11,8 +11,8 @@ just build                  # build the app
 just build-package Primitives
 just test                   # run unit test plans
 just test AssetsTests       # run a specific test target
-just test-integration       # run UI/integration tests
-just test-ui                # run the iOS UI test suite
+just test-integration       # run iOS integration/UI tests
+just test-ui                # run iOS integration/UI tests
 just lint                   # run SwiftLint with autofix
 just format                 # run SwiftFormat
 ```

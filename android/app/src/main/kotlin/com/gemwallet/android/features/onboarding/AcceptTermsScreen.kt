@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.Config
 import uniffi.gemstone.PublicUrl
 
@@ -89,13 +90,13 @@ fun AcceptTermsScreen(
         LazyColumn (
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = paddingDefault),
+                .padding(horizontal = sceneContentPadding()),
         ) {
             item {
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = paddingDefault),
+                        .padding(horizontal = sceneContentPadding()),
                     text = stringResource(R.string.onboarding_accept_terms_message),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.secondary,

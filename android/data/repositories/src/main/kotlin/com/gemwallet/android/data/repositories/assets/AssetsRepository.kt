@@ -224,10 +224,6 @@ class AssetsRepository @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
-    fun getAssetInfoImmediate(assetId: AssetId): AssetInfo? {
-        return assetsDao.getAssetInfoImmediate(assetId.toIdentifier(), assetId.chain)?.toDTO()
-    }
-
     suspend fun getToken(assetId: AssetId): Flow<Asset?> = withContext(Dispatchers.IO) {
         assetsDao.getTokenInfo(assetId.toIdentifier(), assetId.chain).map { it?.toDTO()?.asset }
     }
