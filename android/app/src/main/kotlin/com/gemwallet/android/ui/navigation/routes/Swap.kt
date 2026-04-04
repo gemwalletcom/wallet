@@ -4,7 +4,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
@@ -60,11 +59,8 @@ fun NavGraphBuilder.swap(
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
     onCancel: () -> Unit,
 ) {
-    composable<SwapRoute> { entry ->
+    composable<SwapRoute> {
         SwapScreen(
-            payId = entry.savedStateHandle.get<String?>("from")?.toAssetId(),
-            receiveId = entry.savedStateHandle.get<String?>("to")?.toAssetId(),
-            select = entry.savedStateHandle.get("select"),
             onConfirm = onConfirm,
             onSelect = onSelect,
             onCancel = onCancel,

@@ -20,9 +20,46 @@ fun mockAsset(
     type = type,
 )
 
+fun mockAssetSolana() = mockAsset(
+    chain = Chain.Solana,
+    name = "Solana",
+    symbol = "SOL",
+    decimals = 9,
+)
+
+fun mockAssetSolanaUSDC() = mockAsset(
+    chain = Chain.Solana,
+    tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    name = "USD Coin",
+    symbol = "USDC",
+    decimals = 6,
+    type = AssetType.SPL,
+)
+
 fun mockAssetEthereum() = mockAsset(
     chain = Chain.Ethereum,
     name = "Ethereum",
     symbol = "ETH",
     decimals = 18,
+)
+
+fun mockAssetMonad() = mockAsset(
+    chain = Chain.Monad,
+    name = "Monad",
+    symbol = "MON",
+    decimals = 18,
+)
+
+fun mockAssetCosmos() = mockAsset(
+    chain = Chain.Cosmos,
+    name = "Cosmos",
+    symbol = "ATOM",
+    decimals = 6,
+)
+
+fun mockAssetTron() = mockAsset(
+    chain = Chain.Tron,
+    name = "Tron",
+    symbol = "TRX",
+    decimals = 6,
 )

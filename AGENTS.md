@@ -38,6 +38,10 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - Prefer existing secure-storage and auth layers over inventing new persistence or authentication paths
 - If a change affects `core/` cryptography or signing behavior, verify both apps after regeneration
 
+## Testing
+
+- When fixing a bug, add or update the smallest meaningful unit test that proves the real behavior with minimal setup and assertions, and avoid testing trivial primitives or implementation details
+
 ## Task Completion
 
 Before finishing a task:

@@ -5,12 +5,11 @@ import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.testkit.mockAssetMonad
 import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
 import io.mockk.every
@@ -33,7 +32,7 @@ class TransactionBalanceServiceTest {
 
     @Test
     fun getBalance_rewards_usesRepositoryRewardsForAmountAndConfirmFlows() = runBlocking {
-        val asset = mockAsset(chain = Chain.Monad, symbol = "MON", decimals = 18)
+        val asset = mockAssetMonad()
         val assetInfo = mockAssetInfo(
             asset = asset,
             balance = AssetBalance.create(asset = asset, available = "2", rewards = "3"),
@@ -64,13 +63,13 @@ class TransactionBalanceServiceTest {
 
     @Test
     fun getBalance_withdraw_usesFreshDelegationBalanceFromRepository() = runBlocking {
-        val asset = mockAsset(chain = Chain.Cosmos)
+        val asset = mockAssetCosmos()
         val assetInfo = mockAssetInfo(
             asset = asset,
             balance = AssetBalance.create(asset = asset, frozen = "0"),
         )
         val delegation = mockDelegation(
-            assetId = AssetId(Chain.Cosmos),
+            assetId = asset.id,
             balance = "10",
             delegationId = "delegation-1",
             validatorId = "validator-1",
@@ -99,13 +98,13 @@ class TransactionBalanceServiceTest {
 
     @Test
     fun getBalance_redelegate_usesDelegationIdForFreshBalanceLookup() = runBlocking {
-        val asset = mockAsset(chain = Chain.Cosmos)
+        val asset = mockAssetCosmos()
         val assetInfo = mockAssetInfo(
             asset = asset,
             balance = AssetBalance.create(asset = asset, frozen = "0"),
         )
         val delegation = mockDelegation(
-            assetId = AssetId(Chain.Cosmos),
+            assetId = asset.id,
             balance = "10",
             delegationId = "delegation-1",
             validatorId = "validator-1",

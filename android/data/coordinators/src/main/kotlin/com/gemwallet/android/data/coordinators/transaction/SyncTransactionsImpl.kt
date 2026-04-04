@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import android.content.Context
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.transactions.SaveTransactions
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.WalletPreferences
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAssociatedAssetIds
@@ -16,7 +16,7 @@ class SyncTransactionsImpl(
     private val context: Context,
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val saveTransactions: SaveTransactions,
-    private val assetsRepository: AssetsRepository,
+    private val assetsCoordinator: PrefetchAssets,
 ) : SyncTransactions {
 
     override suspend fun syncTransactions(wallet: Wallet) {
@@ -46,9 +46,10 @@ class SyncTransactionsImpl(
     private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000
 
     private suspend fun prefetchAssets(wallet: Wallet, transactions: List<Transaction>) {
-        val assetIds = transactions.map { transaction ->
-            transaction.getAssociatedAssetIds().filter { assetsRepository.getAsset(it) == null }.toSet()
-        }.flatten()
-        assetsRepository.resolve(wallet, assetIds)
+        val assetIds = transactions
+            .flatMap { it.getAssociatedAssetIds() }
+            .distinct()
+
+        assetsCoordinator.prefetchAssets(wallet, assetIds)
     }
 }

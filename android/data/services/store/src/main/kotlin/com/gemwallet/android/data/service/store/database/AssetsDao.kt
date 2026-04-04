@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
+import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetConfig
 import com.gemwallet.android.data.service.store.database.entities.DbAssetInfo
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
@@ -42,6 +43,9 @@ interface AssetsDao {
 
     @Update
     fun update(asset: DbAsset)
+
+    @Update(entity = DbAsset::class)
+    suspend fun updateBasicAsset(asset: DbAssetBasicUpdate)
 
     @Query("UPDATE asset SET is_swap_enabled=1 WHERE chain IN (:chains)")
     suspend fun setSwapable(chains: List<Chain>)
@@ -192,6 +196,9 @@ interface AssetsDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     fun linkAssetToWallet(link: DbAssetWallet)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM asset_wallet WHERE wallet_id = :walletId AND asset_id = :assetId)")
+    suspend fun hasAssetWalletLink(walletId: String, assetId: String): Boolean
 
     @Query("SELECT * FROM asset WHERE id = :id")
     fun getAsset(id: String): DbAsset?

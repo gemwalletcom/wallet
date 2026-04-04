@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.buy
 
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
@@ -28,6 +29,7 @@ class BuyRepository @Inject constructor(
     private val gemApi: GemApiClient,
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val assetsRepository: AssetsRepository,
+    private val assetsCoordinator: PrefetchAssets,
     private val fiatTransactionsDao: FiatTransactionsDao,
     private val getFiatTransactions: GetFiatTransactions,
 ) {
@@ -110,9 +112,8 @@ class BuyRepository @Inject constructor(
         val assetIds = transactions
             .map { it.transaction.assetId }
             .distinct()
-            .filter { assetsRepository.getAsset(it) == null }
 
-        assetsRepository.resolve(wallet, assetIds)
+        assetsCoordinator.prefetchAssets(wallet, assetIds)
     }
 
     private enum class ConfigKey(val string: String) {

@@ -9,17 +9,26 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.entities.DbAsset
+import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
+import com.gemwallet.android.data.service.store.database.entities.DbAssetConfig
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
+import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetLink
+import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetMarket
+import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockChartValuePercentage
 import com.gemwallet.android.testkit.mockPrice
+import com.wallet.core.primitives.AssetBasic
+import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -43,7 +52,6 @@ class AssetsRepositoryTest {
     private val assetsPriorityDao = mockk<AssetsPriorityDao>(relaxed = true)
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
-    private val gemApi = mockk<GemApiClient>()
     private val sessionRepository = mockk<SessionRepository>()
     private val balancesService = mockk<BalancesService>(relaxed = true)
     private val getChangedTransactions = mockk<GetChangedTransactions>()
@@ -58,7 +66,6 @@ class AssetsRepositoryTest {
         assetsPriorityDao = assetsPriorityDao,
         balancesDao = balancesDao,
         pricesDao = pricesDao,
-        gemApi = gemApi,
         sessionRepository = sessionRepository,
         balancesService = balancesService,
         getChangedTransactions = getChangedTransactions,
@@ -74,7 +81,7 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun syncAssetMetadata_storesLinksPriceAndMarketFromAssetResponse() = runBlocking {
+    fun updateAssetMetadata_storesLinksPriceAndMarketFromAssetResponse() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
@@ -100,13 +107,12 @@ class AssetsRepositoryTest {
             ),
         )
 
-        coEvery { gemApi.getAsset("bitcoin") } returns assetFull
         coEvery { sessionRepository.getCurrentCurrency() } returns Currency.EUR
         every { pricesDao.getRates(Currency.EUR) } returns flowOf(DbFiatRate(Currency.EUR, 0.5))
         coEvery { pricesDao.getByAssets(listOf("bitcoin")) } returns emptyList()
 
         val subject = createSubject()
-        subject.syncAssetMetadata(asset.id)
+        subject.updateAssetMetadata(assetFull)
 
         val linksSlot = slot<List<DbAssetLink>>()
         val priceSlot = slot<DbPrice>()
@@ -131,5 +137,72 @@ class AssetsRepositoryTest {
         assertEquals(100.0, marketSlot.captured.totalVolume ?: 0.0, 0.0)
         assertEquals(150.0, marketSlot.captured.allTimeHigh ?: 0.0, 0.0)
         assertEquals(25.0, marketSlot.captured.allTimeLow ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun addApiAsset_insertsApiRank() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolana()
+        val assetBasic = AssetBasic(
+            asset = asset,
+            properties = mockAssetProperties(
+                isSwapable = false,
+                isStakeable = true,
+                stakingApr = 4.2,
+            ),
+            score = AssetScore(rank = 321),
+        )
+
+        val subject = createSubject()
+        subject.add(
+            walletId = "wallet-1",
+            accountAddress = "wallet-address",
+            asset = assetBasic,
+            visible = true,
+        )
+
+        val assetSlot = slot<DbAsset>()
+        val updateSlot = slot<DbAssetBasicUpdate>()
+        val linkSlot = slot<DbAssetWallet>()
+        val configSlot = slot<DbAssetConfig>()
+
+        coVerify { assetsDao.insert(capture(assetSlot), capture(linkSlot), capture(configSlot)) }
+        coVerify { assetsDao.updateBasicAsset(capture(updateSlot)) }
+
+        assertEquals(321, assetSlot.captured.rank)
+        assertEquals(false, assetSlot.captured.isSwapEnabled)
+        assertEquals("solana", linkSlot.captured.assetId)
+        assertEquals("wallet-address", linkSlot.captured.accountAddress)
+        assertEquals(true, configSlot.captured.isVisible)
+        assertEquals(321, updateSlot.captured.rank)
+        assertEquals(false, updateSlot.captured.isSwapEnabled)
+        assertEquals(true, updateSlot.captured.isStakeEnabled)
+        assertEquals(4.2, updateSlot.captured.stakingApr ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun addLocalAsset_insertsDefaultTokenRank() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolanaUSDC()
+
+        val subject = createSubject()
+        subject.add(
+            walletId = "wallet-1",
+            accountAddress = "wallet-address",
+            asset = asset,
+            visible = true,
+        )
+
+        val assetSlot = slot<DbAsset>()
+
+        coVerify { assetsDao.insert(capture(assetSlot), any(), any()) }
+        coVerify(exactly = 0) { assetsDao.updateBasicAsset(any()) }
+
+        assertEquals(15, assetSlot.captured.rank)
+        assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
     }
 }

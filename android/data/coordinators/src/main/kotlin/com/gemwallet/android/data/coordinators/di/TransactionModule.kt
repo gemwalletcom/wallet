@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
 import android.content.Context
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
@@ -37,13 +38,13 @@ object TransactionModule {
         @ApplicationContext context: Context,
         gemDeviceApiClient: GemDeviceApiClient,
         saveTransactions: SaveTransactions,
-        assetsRepository: AssetsRepository,
+        assetsCoordinator: PrefetchAssets,
     ): SyncTransactions {
         return SyncTransactionsImpl(
             context = context,
             gemDeviceApiClient = gemDeviceApiClient,
             saveTransactions = saveTransactions,
-            assetsRepository = assetsRepository,
+            assetsCoordinator = assetsCoordinator,
         )
     }
 

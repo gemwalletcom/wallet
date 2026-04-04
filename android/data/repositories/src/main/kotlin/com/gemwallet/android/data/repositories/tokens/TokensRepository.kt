@@ -10,10 +10,9 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecordPriority
 import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.domains.asset.defaultBasic
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetProperties
-import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -65,17 +64,7 @@ class TokensRepository (
     override suspend fun search(assetId: AssetId, currency: Currency): Boolean {
         val tokenId = assetId.tokenId ?: return false
         val asset = tokenService.getTokenData(assetId) ?: return search(tokenId, currency)
-        val record = AssetBasic(asset = asset, score = AssetScore(0), properties = AssetProperties(
-            isEnabled = false,
-            isBuyable = false,
-            isSellable = false,
-            isSwapable = false,
-            isStakeable = false,
-            isEarnable = false,
-            hasImage = true,
-        ))
-        .toRecord()
-        runCatching { assetsDao.insert(record) }
+        runCatching { assetsDao.insert(asset.defaultBasic.toRecord()) }
         return true
     }
 

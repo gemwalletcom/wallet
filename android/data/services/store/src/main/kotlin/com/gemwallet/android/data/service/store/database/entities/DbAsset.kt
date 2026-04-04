@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.RecentType
@@ -36,6 +35,22 @@ data class DbAsset(
     @ColumnInfo("staking_apr") val stakingApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
     @ColumnInfo("updated_at") val updatedAt: Long = 0,
+)
+
+data class DbAssetBasicUpdate(
+    val id: String,
+    val name: String,
+    val symbol: String,
+    val decimals: Int,
+    val type: AssetType,
+    val chain: Chain,
+    @ColumnInfo("is_enabled") val isEnabled: Boolean = true,
+    @ColumnInfo("is_buy_enabled") val isBuyEnabled: Boolean = false,
+    @ColumnInfo("is_sell_enabled") val isSellEnabled: Boolean = false,
+    @ColumnInfo("is_swap_enabled") val isSwapEnabled: Boolean = false,
+    @ColumnInfo("is_stake_enabled") val isStakeEnabled: Boolean = false,
+    @ColumnInfo("staking_apr") val stakingApr: Double? = null,
+    @ColumnInfo("rank") val rank: Int = 0,
 )
 
 @Entity(
@@ -113,18 +128,6 @@ fun DbAsset.toDTO(): Asset? {
     )
 }
 
-fun Asset.toRecord(defaultScore: Int) = DbAsset(
-    id = id.toIdentifier(),
-    chain = chain,
-    name = name,
-    symbol = symbol,
-    decimals = decimals,
-    type = type,
-    isSwapEnabled = chain.isSwapSupport(),
-    isBuyEnabled = defaultScore >= 40,
-    updatedAt = System.currentTimeMillis(),
-)
-
 fun AssetFull.toRecord() = DbAsset(
     id = asset.id.toIdentifier(),
     chain = asset.chain,
@@ -135,7 +138,7 @@ fun AssetFull.toRecord() = DbAsset(
     isBuyEnabled = properties.isBuyable,
     isSellEnabled = properties.isSellable,
     isStakeEnabled = properties.isStakeable,
-    isSwapEnabled = asset.chain.isSwapSupport(),
+    isSwapEnabled = properties.isSwapable,
     stakingApr = properties.stakingApr,
     rank = score.rank,
 )
@@ -150,7 +153,23 @@ fun AssetBasic.toRecord() = DbAsset(
     isBuyEnabled = properties.isBuyable,
     isSellEnabled = properties.isSellable,
     isStakeEnabled = properties.isStakeable,
-    isSwapEnabled = asset.chain.isSwapSupport(),
+    isSwapEnabled = properties.isSwapable,
+    stakingApr = properties.stakingApr,
+    rank = score.rank,
+)
+
+fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(
+    id = asset.id.toIdentifier(),
+    chain = asset.chain,
+    name = asset.name,
+    symbol = asset.symbol,
+    decimals = asset.decimals,
+    type = asset.type,
+    isEnabled = properties.isEnabled,
+    isBuyEnabled = properties.isBuyable,
+    isSellEnabled = properties.isSellable,
+    isSwapEnabled = properties.isSwapable,
+    isStakeEnabled = properties.isStakeable,
     stakingApr = properties.stakingApr,
     rank = score.rank,
 )

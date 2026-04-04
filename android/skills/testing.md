@@ -27,6 +27,8 @@
 
 Reusable test data factories live in `:gemcore`'s `testFixtures` source set (`gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/`). Use these instead of duplicating private `create*()` helpers in each test file. If a local helper starts getting reused or reviewed as shared test data, promote it into `testFixtures`.
 
+Hard rule: do not add new `mock*()` helpers inside feature or data module test files for shared domain types like wallet, account, asset, asset info, or prices. Use the existing `:gemcore` testkit, and if a factory is missing, add it under `gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/` first.
+
 Consumer modules add: `testImplementation(testFixtures(project(":gemcore")))`
 
 ```kotlin
@@ -45,6 +47,8 @@ fun `day period uses 24h change`() {
 ```
 
 Rules: `mockType()` returns a sensible default, expose only fields tests vary, use `copy()` for one-offs, one file per type. If a fixture is used once, inline it.
+
+If the same concrete asset shows up in more than one test, add a named fixture for it in testkit like `mockAssetSolana()` or `mockAssetSolanaUSDC()` instead of repeating `mockAsset(chain = ..., symbol = ..., ...)` at call sites.
 
 ## Test Data
 

@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -82,6 +83,10 @@ class SwapViewModel @Inject constructor(
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
+
+    init {
+        observeSelectionResults()
+    }
 
     val payAsset = savedStateHandle.getStateFlow<String?>("from", null)
         .map { it?.toAssetId() }
@@ -199,19 +204,39 @@ class SwapViewModel @Inject constructor(
     val uiSwapScreenState = swapScreenState
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapState.None)
 
-    fun onSelect(type: SwapItemType, assetId: AssetId) {
+    /**
+     * Observes the "select" key written by SwapSelectScreen's navigation callback.
+     * Processes the selection result (dedup check) and consumes the event so it
+     * doesn't re-trigger when the screen re-enters composition.
+     */
+    private fun observeSelectionResults() {
+        viewModelScope.launch {
+            savedStateHandle.getStateFlow<SwapItemType?>("select", null)
+                .filterNotNull()
+                .collect { type ->
+                    val assetId = when (type) {
+                        SwapItemType.Pay -> savedStateHandle.get<String?>("from")?.toAssetId()
+                        SwapItemType.Receive -> savedStateHandle.get<String?>("to")?.toAssetId()
+                    }
+                    if (assetId != null) {
+                        handleSelection(type, assetId)
+                    }
+                    savedStateHandle["select"] = null as SwapItemType?
+                }
+        }
+    }
+
+    private fun handleSelection(type: SwapItemType, assetId: AssetId) {
         when (type) {
             SwapItemType.Pay -> {
                 if (receiveAsset.value?.id() == assetId) {
                     savedStateHandle["to"] = null
                 }
-                savedStateHandle["from"] = assetId.toIdentifier()
             }
             SwapItemType.Receive -> {
                 if (payAsset.value?.id() == assetId) {
                     savedStateHandle["from"] = null
                 }
-                savedStateHandle["to"] = assetId.toIdentifier()
             }
         }
     }
