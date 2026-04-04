@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.import_wallet.views
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -33,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -49,15 +46,12 @@ import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
-import com.gemwallet.android.features.onboarding.AcceptTermsScreen
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.ui.BuildConfig
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
-import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
@@ -77,12 +71,11 @@ fun ImportScreen(
     DisableScreenShooting()
 
     val viewModel: ImportViewModel = hiltViewModel()
-    val context = LocalContext.current
 
     DisposableEffect(Unit) {
         viewModel.importSelect(importType)
 
-        onDispose {  }
+        onDispose {}
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -100,11 +93,11 @@ fun ImportScreen(
     )
     if (uiState.loading) {
         Dialog(
-            onDismissRequest = {  },
+            onDismissRequest = {},
             DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
         ) {
             Box(
-                contentAlignment= Alignment.Center,
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(100.dp)
                     .background(
@@ -276,7 +269,7 @@ private fun TypeSelection(
 }
 
 @Composable
-fun ErrorMessage(error: ImportError?) {
+private fun ErrorMessage(error: ImportError?) {
     val text = when (error) {
         is ImportError.CreateError -> stringResource(R.string.errors_create_wallet, error.message ?: "")
         is ImportError.InvalidWords -> stringResource(
