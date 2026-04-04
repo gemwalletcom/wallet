@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.smallPadding
@@ -118,7 +119,7 @@ private fun AssetInfo(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.clickable(onClick).smallPadding(),
+        modifier = Modifier.clickable(onClick).padding(horizontal = paddingHalfSmall),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.End),
     ) {
