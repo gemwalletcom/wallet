@@ -67,9 +67,6 @@ interface AssetsDao {
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId AND sessionId = 1")
     fun getAssetInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
-    @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId AND sessionId = 1")
-    fun getAssetInfoImmediate(assetId: String, chain: Chain): DbAssetInfo?
-
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId")
     fun getTokenInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
@@ -86,8 +83,9 @@ interface AssetsDao {
         SELECT DISTINCT asset.id FROM asset
         JOIN asset_config ON asset_config.asset_id = asset.id
         WHERE asset_config.is_visible = 1
+        AND asset_config.wallet_id = :walletId
     """)
-    suspend fun getAssetsPriceUpdate(): List<String>
+    suspend fun getAssetsPriceUpdate(walletId: String): List<String>
 
     @Query("""
         SELECT

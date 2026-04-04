@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +32,8 @@ fun <T> TabsBar(
     tabs: List<T>,
     selected: T,
     onSelect: (T) -> Unit,
+    scrollable: Boolean = false,
+    equalWidth: Boolean = true,
     itemContent: @Composable RowScope.(T) -> Unit
 ) {
     if (tabs.isEmpty()) {
@@ -37,22 +41,37 @@ fun <T> TabsBar(
     }
     val density = LocalDensity.current
     val itemsWidth = remember { mutableStateMapOf<Int, Dp>() }
+    val scrollState = rememberScrollState()
 
     Row(
-        modifier = Modifier.padding(horizontal = paddingDefault),
+        modifier = Modifier
+            .padding(horizontal = paddingDefault)
+            .then(
+                if (scrollable) {
+                    Modifier.horizontalScroll(scrollState)
+                } else {
+                    Modifier
+                }
+            ),
         horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
     ) {
         tabs.forEachIndexed { index, item ->
             ToggleButton(
-                modifier = if (itemsWidth.size == tabs.size) {
+                modifier = if (equalWidth && itemsWidth.size == tabs.size) {
                         Modifier.width(itemsWidth.values.max())
                     } else {
                         Modifier
                     }.semantics { role = Role.RadioButton }
-                    .onGloballyPositioned { coordinates ->
-                        val itemWidthDp: Dp = with(density) { coordinates.size.width.toDp() }
-                        itemsWidth[index] = itemWidthDp
-                    },
+                    .then(
+                        if (equalWidth) {
+                            Modifier.onGloballyPositioned { coordinates ->
+                                val itemWidthDp: Dp = with(density) { coordinates.size.width.toDp() }
+                                itemsWidth[index] = itemWidthDp
+                            }
+                        } else {
+                            Modifier
+                        }
+                    ),
                 checked = item == selected,
                 onCheckedChange = { onSelect(item) },
                 colors = ToggleButtonDefaults.toggleButtonColors()

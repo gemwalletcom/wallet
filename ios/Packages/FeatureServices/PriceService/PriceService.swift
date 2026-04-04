@@ -39,7 +39,7 @@ public struct PriceService: Sendable {
     public func observableAssets(walletId: WalletId) throws -> [AssetId] {
         let priceAssets = try priceStore.enabledPriceAssets(walletId: walletId)
         if priceAssets.isEmpty {
-            return [Chain.bitcoin, Chain.ethereum, Chain.smartChain, Chain.solana].map(\.assetId)
+            return AssetConfiguration.enabledByDefault
         }
         return priceAssets
     }

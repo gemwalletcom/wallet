@@ -56,8 +56,8 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialAssetId)
 
     val assetInfo = assetId
-        .flatMapLatest { assetsRepository.getAssetInfo(it).filterNotNull() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, assetsRepository.getAssetInfoImmediate(initialAssetId))
+        .flatMapLatest { assetsRepository.getAssetInfo(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

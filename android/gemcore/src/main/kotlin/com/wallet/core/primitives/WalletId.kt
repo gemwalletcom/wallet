@@ -4,10 +4,10 @@
 
 package com.wallet.core.primitives
 
+import com.gemwallet.android.serializer.WalletIdSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerialName
 
-@Serializable
+@Serializable(with = WalletIdSerializer::class)
 data class WalletId (
 	val id: String
 )

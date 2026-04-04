@@ -62,7 +62,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
@@ -166,7 +166,8 @@ private fun ImportScene(
                     modifier = Modifier
                         .fillMaxWidth()
                         .listItem(ListPosition.Single)
-                        .padding(paddingDefault).padding(bottom = 0.dp),
+                        .padding(sceneContentPadding())
+                        .padding(bottom = 0.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     TypeSelection(importType) { walletType ->

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -34,6 +33,8 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import kotlin.math.min
 
 private const val wordsPerGroup = 4
@@ -88,7 +89,7 @@ internal fun CheckPhrase(
     Scene(
         title = stringResource(id = R.string.transfer_confirm),
         onClose = onCancel,
-        padding = PaddingValues(horizontal = paddingDefault),
+        padding = sceneContentPaddingValues(horizontalOnly = true),
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),
@@ -103,7 +104,7 @@ internal fun CheckPhrase(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                modifier = Modifier.padding(horizontal = paddingDefault),
+                modifier = Modifier.padding(horizontal = sceneContentPadding()),
                 text = stringResource(id = R.string.secret_phrase_confirm_quick_test_title),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,

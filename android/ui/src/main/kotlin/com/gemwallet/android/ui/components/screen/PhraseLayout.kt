@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.padding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.space10
 
@@ -68,14 +69,14 @@ fun RowScope.PhraseWordItem(
         border = if (isNextToEnter) BorderStroke(space2, MaterialTheme.colorScheme.primary) else null
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = paddingDefault, vertical = space8),
+            modifier = Modifier.padding(horizontal = paddingDefault, vertical = space6),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "${index + 1}.",
                 color = MaterialTheme.colorScheme.secondary,
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(space6))
             Text(
                 text = word,
                 color = MaterialTheme.colorScheme.onSurface,
