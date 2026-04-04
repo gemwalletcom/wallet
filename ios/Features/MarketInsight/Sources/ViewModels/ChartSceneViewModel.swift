@@ -118,5 +118,4 @@ public extension ChartSceneViewModel {
     internal func onSelectInfoSheet(_ type: InfoSheetType) {
         isPresentingInfoSheet = type
     }
-
 }

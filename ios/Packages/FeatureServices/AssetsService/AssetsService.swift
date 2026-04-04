@@ -113,14 +113,7 @@ public final class AssetsService: Sendable {
         try assetStore.updateLinks(assetId: assetId, asset.links)
         if let price = asset.price {
             try priceStore.updatePrices(
-                prices: [
-                    AssetPrice(
-                        assetId: assetId,
-                        price: price.price,
-                        priceChangePercentage24h: price.priceChangePercentage24h,
-                        updatedAt: price.updatedAt,
-                    ),
-                ],
+                prices: [price.mapToAssetPrice(assetId: assetId)],
                 currency: currency,
             )
         }
