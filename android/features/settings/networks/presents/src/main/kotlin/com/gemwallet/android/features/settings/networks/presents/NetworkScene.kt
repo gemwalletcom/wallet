@@ -72,19 +72,16 @@ fun NetworkScene(
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
-            isRefreshing = false,
+            isRefreshing = state.isRefreshing,
             onRefresh = onRefresh,
             state = pullToRefreshState,
-            enabled = !state.isRefreshing,
             indicator = {
-                if (pullToRefreshState.distanceFraction > 0f) {
-                    Indicator(
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        isRefreshing = false,
-                        state = pullToRefreshState,
-                        containerColor = MaterialTheme.colorScheme.background,
-                    )
-                }
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = state.isRefreshing,
+                    state = pullToRefreshState,
+                    containerColor = MaterialTheme.colorScheme.background,
+                )
             },
         ) {
             LazyColumn {
