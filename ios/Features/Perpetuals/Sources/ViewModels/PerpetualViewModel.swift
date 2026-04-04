@@ -11,7 +11,8 @@ import SwiftUI
 
 public struct PerpetualViewModel {
     public let perpetual: Perpetual
-    private let currencyFormatter: CurrencyFormatter
+    private let marketValueFormatter: CurrencyFormatter
+    private let priceFormatter: CurrencyFormatter
     private let percentFormatter = CurrencyFormatter.percent
     private let fundingRateFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -23,7 +24,8 @@ public struct PerpetualViewModel {
 
     public init(perpetual: Perpetual, currencyStyle: CurrencyFormatterType = .abbreviated) {
         self.perpetual = perpetual
-        currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
+        marketValueFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
+        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
     }
 
     public var name: String {
@@ -35,11 +37,11 @@ public struct PerpetualViewModel {
     }
 
     public var volumeField: ListItemField {
-        ListItemField(title: Localized.Markets.dailyVolume, value: currencyFormatter.string(perpetual.volume24h))
+        ListItemField(title: Localized.Markets.dailyVolume, value: marketValueFormatter.string(perpetual.volume24h))
     }
 
     public var openInterestField: ListItemField {
-        ListItemField(title: Localized.Info.OpenInterest.title, value: currencyFormatter.string(perpetual.openInterest))
+        ListItemField(title: Localized.Info.OpenInterest.title, value: marketValueFormatter.string(perpetual.openInterest))
     }
 
     public var fundingRateField: ListItemField {
@@ -52,7 +54,7 @@ public struct PerpetualViewModel {
     }
 
     public var priceText: String {
-        currencyFormatter.string(perpetual.price)
+        priceFormatter.string(perpetual.price)
     }
 
     public var priceChangeText: String {

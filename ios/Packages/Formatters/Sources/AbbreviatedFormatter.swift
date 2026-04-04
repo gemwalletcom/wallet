@@ -2,13 +2,15 @@
 
 import Foundation
 
+public let defaultAbbreviationThreshold: Decimal = 10000.0
+
 struct AbbreviatedFormatter: Sendable {
     private let locale: Locale
     private let threshold: Decimal
 
     init(
         locale: Locale = .current,
-        threshold: Decimal = 100_000,
+        threshold: Decimal = defaultAbbreviationThreshold,
     ) {
         self.locale = locale
         self.threshold = threshold

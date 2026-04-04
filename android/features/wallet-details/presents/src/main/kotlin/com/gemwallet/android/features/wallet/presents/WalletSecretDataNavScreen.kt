@@ -3,7 +3,6 @@ package com.gemwallet.android.features.wallet.presents
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +29,7 @@ import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
@@ -52,7 +52,7 @@ fun WalletSecretDataNavScreen(
 
     Scene(
         title = stringResource(id = R.string.common_secret_phrase),
-        padding = PaddingValues(paddingDefault),
+        padding = sceneContentPaddingValues(),
         backHandle = true,
         onClose = onCancel,
     ) {

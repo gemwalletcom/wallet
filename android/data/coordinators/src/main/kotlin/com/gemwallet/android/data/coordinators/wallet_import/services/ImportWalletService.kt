@@ -2,14 +2,16 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
 import android.util.Log
+import com.gemwallet.android.application.wallet_import.coordinators.GetAvailableAssetIds
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.services.ImportAssets
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.cases.device.SyncSubscription
+import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.identifier
@@ -33,10 +35,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 class ImportWalletService(
     private val sessionRepository: SessionRepository,
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val getAvailableAssetIds: GetAvailableAssetIds,
     private val searchTokensCase: SearchTokensCase,
     private val assetsRepository: AssetsRepository,
     private val syncSubscription: SyncSubscription,
+    private val syncTransactions: SyncTransactions,
+    private val syncNfts: SyncNfts,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler {_, _ -> }),
 ) : ImportAssets, GetImportWalletState {
 
@@ -47,7 +51,7 @@ class ImportWalletService(
             syncSubscription.syncSubscription(listOf(wallet))
             val currency = sessionRepository.getCurrentCurrency()
             try {
-                val availableAssetsId = gemDeviceApiClient.getAssets(walletId = wallet.id, 0)
+                val availableAssetsId = getAvailableAssetIds(wallet.id)
                 val assetIds = availableAssetsId.mapNotNull { it.toAssetId() }
                 val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
 
@@ -64,6 +68,8 @@ class ImportWalletService(
                     visible = true,
                 )
                 assetsRepository.sync()
+                syncTransactions.syncTransactions(wallet)
+                syncNfts.syncNfts(wallet)
             } catch (err: Throwable) {
                 Log.d("IMPORT_ERROR", "Error:", err)
             } finally {

@@ -188,6 +188,16 @@ fun  AssetMarket.toRecord(assetId: AssetId) = DbAssetMarket(
     allTimeLowChangePercentage = allTimeLowValue?.percentage?.toDouble(),
 )
 
+fun AssetMarket.toRecord(assetId: AssetId, rate: Double) = copy(
+    marketCap = marketCap?.times(rate),
+    marketCapFdv = marketCapFdv?.times(rate),
+    totalVolume = totalVolume?.times(rate),
+    allTimeHighValue = allTimeHighValue?.withRate(rate),
+    allTimeLowValue = allTimeLowValue?.withRate(rate),
+).toRecord(assetId)
+
+fun AssetFull.toMarketRecord(rate: Double) = market?.toRecord(asset.id, rate)
+
 fun  DbAssetMarket.toDTO() = AssetMarket(
     marketCap = marketCap,
     marketCapFdv = marketCapFdv,
@@ -211,3 +221,5 @@ fun  DbAssetMarket.toDTO() = AssetMarket(
         )
     },
 )
+
+private fun ChartValuePercentage.withRate(rate: Double) = copy(value = value * rate.toFloat())

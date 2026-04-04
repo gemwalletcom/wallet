@@ -6,20 +6,17 @@ import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SyncState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +37,6 @@ import javax.inject.Inject
 class AssetsViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
-    private val syncTransactions: SyncTransactions,
     private val userConfig: UserConfig,
     private val getImportWalletState: GetImportWalletState,
     getActiveAssetsInfo: GetActiveAssetsInfo,
@@ -109,15 +105,12 @@ class AssetsViewModel @Inject constructor(
     fun onRefresh() {
         session.value?.let { session ->
             refreshingState.update { RefreshingState.OnForce }
-            updateAssetData(session)
+            updateAssetData()
         }
     }
 
-    private fun updateAssetData(session: Session) = viewModelScope.launch(Dispatchers.IO) {
-        val syncAssets = async { assetsRepository.sync() }
-        val syncTxs = async { syncTransactions.syncTransactions(session.wallet) }
-        syncAssets.await()
-        syncTxs.await()
+    private fun updateAssetData() = viewModelScope.launch(Dispatchers.IO) {
+        assetsRepository.sync()
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch {

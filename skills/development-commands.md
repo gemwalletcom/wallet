@@ -17,7 +17,8 @@ just core-upgrade       # update core submodule to latest
 
 ```bash
 just ios build          # build iOS only
-just ios test-all       # run all iOS tests
+just ios test           # run iOS unit tests
+just ios test-ui        # run iOS integration/UI tests
 just android build      # build Android only
 just android test       # run Android tests
 ```

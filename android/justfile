@@ -28,10 +28,10 @@ build-test:
     @./gradlew assembleGoogleDebugAndroidTest
 
 test:
-    @./gradlew connectedGoogleDebugAndroidTest
-
-unit-test:
     @./gradlew testGoogleDebugUnitTest
+
+test-integration:
+    @./gradlew connectedGoogleDebugAndroidTest
 
 lint:
     @./gradlew lint -x :gemstone:lintDebug

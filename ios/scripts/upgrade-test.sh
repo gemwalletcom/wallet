@@ -55,7 +55,7 @@ set -o pipefail && xcodebuild -project Gem.xcodeproj \
 echo "==> Phase 2: Build current version"
 cd "$REPO_ROOT"
 
-just build-for-testing-ui
+just build-for-testing-integration
 
 DERIVED_DATA="build/DerivedData"
 

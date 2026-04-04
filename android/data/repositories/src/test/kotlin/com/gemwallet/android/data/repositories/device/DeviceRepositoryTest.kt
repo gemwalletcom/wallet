@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.device
 
+import com.gemwallet.android.testkit.mockDevice
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -7,10 +8,89 @@ import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletSubscriptionChains
 import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DeviceRepositoryTest {
+
+    @Test
+    fun deviceHasChanges_trueWhenCurrencyChanged() {
+        val remote = mockDevice(
+            id = "device-id",
+            token = "push-token",
+            locale = "en-US",
+        )
+        val local = remote.copy(currency = "EUR")
+
+        assertTrue(deviceHasChanges(remote, local))
+    }
+
+    @Test
+    fun deviceHasChanges_falseWhenDevicesMatch() {
+        val remote = mockDevice(
+            id = "device-id",
+            token = "push-token",
+            locale = "en-US",
+        )
+
+        assertFalse(deviceHasChanges(remote, remote.copy()))
+    }
+
+    @Test
+    fun subscriptionSyncState_invalidate_isIdempotent() {
+        val initial = SubscriptionSyncState(version = 4, hasPendingChanges = false)
+
+        val invalidated = initial.invalidate()
+        val invalidatedAgain = invalidated.invalidate()
+
+        assertEquals(5, invalidated.version)
+        assertTrue(invalidated.hasPendingChanges)
+        assertEquals(invalidated, invalidatedAgain)
+    }
+
+    @Test
+    fun subscriptionSyncState_shouldSync_falseWhenVersionsMatchAndStateClean() {
+        val state = SubscriptionSyncState(version = 4, hasPendingChanges = false)
+
+        assertFalse(state.shouldSync(remoteVersion = 4))
+    }
+
+    @Test
+    fun subscriptionSyncState_shouldSync_trueWhenVersionChanged() {
+        val state = SubscriptionSyncState(version = 4, hasPendingChanges = false)
+
+        assertTrue(state.shouldSync(remoteVersion = 5))
+    }
+
+    @Test
+    fun subscriptionSyncState_shouldSync_trueWhenStateIsDirty() {
+        val state = SubscriptionSyncState(version = 4, hasPendingChanges = true)
+
+        assertTrue(state.shouldSync(remoteVersion = 4))
+    }
+
+    @Test
+    fun subscriptionVersionForDeviceUpdate_preservesRemoteVersionForUnrelatedUpdate() {
+        val version = subscriptionVersionForDeviceUpdate(
+            localVersion = 5,
+            remoteVersion = 9,
+            useLocalVersion = false,
+        )
+
+        assertEquals(9, version)
+    }
+
+    @Test
+    fun subscriptionVersionForDeviceUpdate_usesLocalVersionAfterSubscriptionSync() {
+        val version = subscriptionVersionForDeviceUpdate(
+            localVersion = 5,
+            remoteVersion = 9,
+            useLocalVersion = true,
+        )
+
+        assertEquals(5, version)
+    }
 
     @Test
     fun subscriptionsDiff_emptyDiff_returnsEmpty() {
@@ -215,6 +295,37 @@ class DeviceRepositoryTest {
         assertEquals("solana123", wallet2Add?.subscriptions?.get(0)?.address)
         assertEquals(listOf(Chain.Solana), wallet2Add?.subscriptions?.get(0)?.chains)
 
+        assertTrue(toRemove.isEmpty())
+    }
+
+    @Test
+    fun walletsForSubscriptionSync_addWallet_keepsStoredWalletsInDiff() {
+        val storedWallet = createWallet(
+            id = "wallet1",
+            accounts = listOf(
+                createAccount(Chain.Ethereum, "0xabc"),
+                createAccount(Chain.Bitcoin, "bc1xyz")
+            )
+        )
+        val requestedWallet = createWallet(
+            id = "wallet2",
+            accounts = listOf(
+                createAccount(Chain.Solana, "solana123")
+            )
+        )
+        val remote = listOf(
+            WalletSubscriptionChains("wallet1", listOf(Chain.Ethereum, Chain.Bitcoin))
+        )
+
+        val walletsForSync = walletsForSubscriptionSync(
+            storedWallets = listOf(storedWallet),
+            requestedWallets = listOf(requestedWallet),
+        )
+        val (toAdd, toRemove) = walletsForSync.subscriptionsDiff(remote)
+
+        assertEquals(2, walletsForSync.size)
+        assertEquals(1, toAdd.size)
+        assertEquals("wallet2", toAdd[0].walletId)
         assertTrue(toRemove.isEmpty())
     }
 

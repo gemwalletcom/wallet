@@ -30,6 +30,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.features.nft.viewmodels.NftAssetDetailsUIModel
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
@@ -70,7 +71,7 @@ fun NFTDetailsScene(
                     size = null,
                     transformation = null,
                     modifier = Modifier
-                        .padding(horizontal = paddingDefault)
+                        .padding(horizontal = sceneContentPadding())
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(paddingDefault))

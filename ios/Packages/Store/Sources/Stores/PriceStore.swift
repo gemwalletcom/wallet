@@ -63,17 +63,17 @@ public struct PriceStore: Sendable {
                 .filter(PriceRecord.Columns.assetId == assetId)
                 .updateAll(
                     db,
-                    PriceRecord.Columns.marketCap.set(to: market.marketCap ?? 0 * rate),
-                    PriceRecord.Columns.marketCapFdv.set(to: market.marketCapFdv ?? 0 * rate),
-                    PriceRecord.Columns.totalVolume.set(to: market.totalVolume ?? 0 * rate),
+                    PriceRecord.Columns.marketCap.set(to: market.marketCap.map { $0 * rate }),
+                    PriceRecord.Columns.marketCapFdv.set(to: market.marketCapFdv.map { $0 * rate }),
+                    PriceRecord.Columns.totalVolume.set(to: market.totalVolume.map { $0 * rate }),
                     PriceRecord.Columns.marketCapRank.set(to: market.marketCapRank),
                     PriceRecord.Columns.circulatingSupply.set(to: market.circulatingSupply),
                     PriceRecord.Columns.totalSupply.set(to: market.totalSupply),
                     PriceRecord.Columns.maxSupply.set(to: market.maxSupply),
-                    PriceRecord.Columns.allTimeHigh.set(to: market.allTimeHighValue.map { Double($0.value) }),
+                    PriceRecord.Columns.allTimeHigh.set(to: market.allTimeHighValue.map { Double($0.value) * rate }),
                     PriceRecord.Columns.allTimeHighDate.set(to: market.allTimeHighValue?.date),
                     PriceRecord.Columns.allTimeHighChangePercentage.set(to: market.allTimeHighValue.map { Double($0.percentage) }),
-                    PriceRecord.Columns.allTimeLow.set(to: market.allTimeLowValue.map { Double($0.value) }),
+                    PriceRecord.Columns.allTimeLow.set(to: market.allTimeLowValue.map { Double($0.value) * rate }),
                     PriceRecord.Columns.allTimeLowDate.set(to: market.allTimeLowValue?.date),
                     PriceRecord.Columns.allTimeLowChangePercentage.set(to: market.allTimeLowValue.map { Double($0.percentage) }),
                 )

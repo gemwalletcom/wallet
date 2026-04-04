@@ -307,7 +307,6 @@ let package = Package(
             dependencies: [
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemAPITestKit", package: "GemAPI"),
-                .product(name: "PreferencesTestKit", package: "Preferences"),
                 "AssetsServiceTestKit",
                 "TransactionsService",
             ],
@@ -321,6 +320,8 @@ let package = Package(
                 "AssetsService",
                 "Preferences",
                 "GemAPI",
+                "TransactionsService",
+                "NFTService",
             ],
             path: "DiscoverAssetsService",
             exclude: ["Tests", "TestKit"],
@@ -329,6 +330,11 @@ let package = Package(
             name: "DiscoverAssetsServiceTestKit",
             dependencies: [
                 "DiscoverAssetsService",
+                "AssetsServiceTestKit",
+                "BalanceServiceTestKit",
+                "TransactionsServiceTestKit",
+                "NFTServiceTestKit",
+                .product(name: "GemAPITestKit", package: "GemAPI"),
             ],
             path: "DiscoverAssetsService/TestKit",
         ),
@@ -656,6 +662,19 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "FiatService/TestKit",
+        ),
+        .testTarget(
+            name: "DiscoverAssetsServiceTests",
+            dependencies: [
+                "DiscoverAssetsService",
+                "DiscoverAssetsServiceTestKit",
+                "TransactionsServiceTestKit",
+                "NFTServiceTestKit",
+                .product(name: "GemAPITestKit", package: "GemAPI"),
+                .product(name: "StoreTestKit", package: "Store"),
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "DiscoverAssetsService/Tests",
         ),
         .testTarget(
             name: "PriceAlertServiceTests",

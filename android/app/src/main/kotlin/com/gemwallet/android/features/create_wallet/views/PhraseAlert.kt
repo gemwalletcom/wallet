@@ -39,6 +39,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.Config
 import uniffi.gemstone.PublicUrl
 
@@ -82,13 +83,13 @@ fun PhraseAlertDialog(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .defaultPadding(),
+                .padding(sceneContentPadding()),
             verticalArrangement = Arrangement.spacedBy(paddingDefault),
         ) {
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = paddingDefault),
+                    .padding(horizontal = sceneContentPadding()),
                 text = stringResource(R.string.onboarding_security_create_wallet_intro_title),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,

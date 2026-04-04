@@ -6,7 +6,7 @@ Run the checks that match the area you touched.
 
 | Change Type | Minimum Closing Checks |
 |-------------|------------------------|
-| iOS-only Swift or SwiftUI change | `cd ios && just build`<br>`cd ios && just test <TARGET>` or `cd ios && just test-all`<br>`cd ios && just lint`<br>`cd ios && just format` |
+| iOS-only Swift or SwiftUI change | `cd ios && just build`<br>`cd ios && just test <TARGET>` or `cd ios && just test`<br>`cd ios && just lint`<br>`cd ios && just format` |
 | Android-only Kotlin, Compose, or resource change | `cd android && ./gradlew assembleGoogleDebug` or build the affected module/variant<br>`cd android && ./gradlew test`<br>`cd android && ./gradlew lint`<br>`cd android && ./gradlew detekt`<br>`cd android && ./gradlew ktlintFormat` |
 | Core-only Rust change with no mobile API impact | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> -- -D warnings`<br>`cd core && just format` |
 | Core change that affects mobile bindings or shared models | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> -- -D warnings`<br>`cd core && just format`<br>`just generate`<br>`just ios build`<br>`just android build` |
@@ -20,7 +20,7 @@ Closing a task requires at least one real build or test command for the changed 
 
 ```bash
 cd ios && just build
-cd ios && just test-all
+cd ios && just test
 cd ios && just lint
 cd ios && just format
 ```

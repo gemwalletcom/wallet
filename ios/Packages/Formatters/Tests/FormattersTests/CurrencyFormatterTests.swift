@@ -107,8 +107,9 @@ final class CurrencyFormatterTests {
         #expect(abbreviatedFormatterUS.string(0) == "$0.00")
         #expect(abbreviatedFormatterUS.string(12) == "$12.00")
         #expect(abbreviatedFormatterUS.string(1234) == "$1,234.00")
-        #expect(abbreviatedFormatterUS.string(100_000) == "$100K")
+        #expect(abbreviatedFormatterUS.string(10000) == "$10K")
         #expect(abbreviatedFormatterUS.string(-1234) == "-$1,234.00")
+        #expect(abbreviatedFormatterUS.string(-10000) == "-$10K")
         #expect(abbreviatedFormatterUS.string(-5_600_000) == "-$5.6M")
 
         #expect(abbreviatedFormatterUK.string(123_456) == "£123.46k")
@@ -123,6 +124,7 @@ final class CurrencyFormatterTests {
         #expect(abbreviatedFormatterUS.string(double: 0, symbol: "BTC") == "0.00 BTC")
         #expect(abbreviatedFormatterUS.string(double: 12, symbol: "BTC") == "12.00 BTC")
         #expect(abbreviatedFormatterUS.string(double: 1234, symbol: "BTC") == "1,234.00 BTC")
+        #expect(abbreviatedFormatterUS.string(double: 10000, symbol: "BTC") == "10K BTC")
         #expect(abbreviatedFormatterUS.string(double: 5_000_000, symbol: "BTC") == "5M BTC")
         #expect(abbreviatedFormatterUS.string(double: 7_890_000_000, symbol: "BTC") == "7.89B BTC")
 

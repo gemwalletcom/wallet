@@ -317,6 +317,13 @@
         "identifier" : "DeviceServiceTests",
         "name" : "DeviceServiceTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages\/FeatureServices",
+        "identifier" : "DiscoverAssetsServiceTests",
+        "name" : "DiscoverAssetsServiceTests"
+      }
     }
   ],
   "version" : 1

@@ -34,7 +34,7 @@ Read `ios/AGENTS.md`. Work in `ios/`.
 3. Build and test:
    ```bash
    cd ios && just build
-   cd ios && just test-all
+   cd ios && just test
    cd ios && just lint
    ```
 

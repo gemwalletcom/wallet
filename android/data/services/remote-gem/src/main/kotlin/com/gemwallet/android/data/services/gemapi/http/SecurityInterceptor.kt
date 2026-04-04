@@ -19,16 +19,16 @@ class SecurityInterceptor(
             it.writeTo(buffer)
             buffer.readUtf8().toByteArray()
         }
-        val sig = signer.sign(request.method, request.url.encodedPath, body)
+        val signature = signer.sign(request.method, request.url.encodedPath, body)
         return try {
             val builder = request.newBuilder()
-            sig.toHeaders().forEach { (key, value) -> builder.header(key, value) }
+            signature.toHeaders().forEach { (key, value) -> builder.header(key, value) }
             chain.proceed(builder.build())
-        } catch (err: Throwable) {
+        } catch (error: Throwable) {
             Response.Builder()
                 .code(503)
-                .message("HTTP Exception: ${err.message}")
-                .request(chain.request())
+                .message("HTTP Exception: ${error.message}")
+                .request(request)
                 .protocol(Protocol.HTTP_2)
                 .build()
         }
