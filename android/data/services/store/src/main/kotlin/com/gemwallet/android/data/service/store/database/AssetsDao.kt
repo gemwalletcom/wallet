@@ -83,8 +83,9 @@ interface AssetsDao {
         SELECT DISTINCT asset.id FROM asset
         JOIN asset_config ON asset_config.asset_id = asset.id
         WHERE asset_config.is_visible = 1
+        AND asset_config.wallet_id = :walletId
     """)
-    suspend fun getAssetsPriceUpdate(): List<String>
+    suspend fun getAssetsPriceUpdate(walletId: String): List<String>
 
     @Query("""
         SELECT
