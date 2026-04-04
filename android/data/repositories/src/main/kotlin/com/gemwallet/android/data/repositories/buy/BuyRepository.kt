@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.repositories.buy
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
@@ -26,7 +26,7 @@ import javax.inject.Singleton
 @Singleton
 class BuyRepository @Inject constructor(
     private val configStore: com.gemwallet.android.data.service.store.ConfigStore,
-    private val gemApi: GemApiClient,
+    private val getRemoteConfig: GetRemoteConfig,
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val assetsRepository: AssetsRepository,
     private val assetsCoordinator: PrefetchAssets,
@@ -36,7 +36,7 @@ class BuyRepository @Inject constructor(
 
     suspend fun sync() {
         try {
-            val versions = gemApi.getConfig().versions
+            val versions = getRemoteConfig.getRemoteConfig().versions
             val currentBuyVersion = configStore.getInt(ConfigKey.FiatOnRampAssetsVersion.string)
             val currentSellVersion = configStore.getInt(ConfigKey.FiatOffRampAssetsVersion.string)
             val shouldSyncBuyAssets = currentBuyVersion <= 0 || currentBuyVersion < versions.fiatOnRampAssets

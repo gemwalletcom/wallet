@@ -3,14 +3,13 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.features.asset.viewmodels.assetIdArg
+import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.format
@@ -29,7 +28,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,7 +43,7 @@ import javax.inject.Inject
 class ChartViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val sessionRepository: SessionRepository,
-    private val gemApiClient: GemApiClient,
+    private val getAssetChartData: GetAssetChartData,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val assetIdStr = savedStateHandle.getStateFlow<String?>(assetIdArg, null)
@@ -94,15 +92,7 @@ class ChartViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChartUIModel())
 
     private suspend fun request(assetId: AssetId, period: ChartPeriod, currency: Currency): List<ChartValue> {
-        val chart = gemApiClient.getChart(assetId.toIdentifier(), period.string)
-        chart.market?.let {
-            assetsRepository.updateAssetMarket(assetId, it, currency)
-        }
-
-        val rate = assetsRepository.getCurrencyRate(currency).firstOrNull()?.rate?.toFloat() ?: return emptyList()
-        return chart.prices
-            .map { it.copy(value = it.value * rate) }
-            .sortedBy { it.timestamp }
+        return getAssetChartData.getAssetChartData(assetId, period, currency)
     }
 
     fun setPeriod(period: ChartPeriod) {

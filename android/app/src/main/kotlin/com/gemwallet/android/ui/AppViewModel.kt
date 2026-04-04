@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
+import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.ext.VersionCheck
 import com.gemwallet.android.features.onboarding.OnboardingDest
 import com.gemwallet.android.model.Session
@@ -37,7 +37,7 @@ class AppViewModel @Inject constructor(
     private val getPushEnabled: GetPushEnabled,
     private val switchPushEnabled: SwitchPushEnabled,
     private val walletsRepository: WalletsRepository,
-    private val gemApiClient: GemApiClient,
+    private val getRemoteConfig: GetRemoteConfig,
     getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
@@ -99,7 +99,7 @@ class AppViewModel @Inject constructor(
             return@withContext
         }
         val config = runCatching {
-            gemApiClient.getConfig()
+            getRemoteConfig.getRemoteConfig()
         }.getOrNull() ?: return@withContext
 
         val lastRelease = config.releases

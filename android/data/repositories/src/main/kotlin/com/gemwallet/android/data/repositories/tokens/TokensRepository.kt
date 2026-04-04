@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.tokens
 
+import com.gemwallet.android.application.assets.coordinators.SearchAssets
 import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -9,7 +10,6 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecordPriority
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
@@ -24,7 +24,7 @@ class TokensRepository (
     private val assetsDao: AssetsDao,
     private val pricesDao: PricesDao,
     private val assetsPriorityDao: AssetsPriorityDao,
-    private val gemApiClient: GemApiClient,
+    private val searchAssets: SearchAssets,
     private val tokenService: TokenService,
 ) : SearchTokensCase {
 
@@ -32,14 +32,12 @@ class TokensRepository (
         if (query.isEmpty() && tags.isEmpty()) {
             return@withContext false
         }
-        val tagsQuery = tags.toGemQuery()
         val tokens = try {
-            val chainsQuery = if (chains.isEmpty()) {
-                ""
-            } else {
-                chains.joinToString(",") { it.string }
-            }
-            gemApiClient.search(query, chainsQuery, tagsQuery)
+            searchAssets.search(
+                query = query,
+                chains = chains,
+                tags = tags,
+            )
         } catch (_: Throwable) {
             return@withContext false
         }
@@ -56,7 +54,7 @@ class TokensRepository (
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {
-        val result = gemApiClient.getAssets(assetIds)
+        val result = searchAssets.getAssets(assetIds)
         updateAssets(result, currency)
         return true
     }
