@@ -1,8 +1,8 @@
 package com.gemwallet.android.blockchain.clients.Stellar
 
 import com.gemwallet.android.blockchain.clients.stellar.StellarChainData
-import com.gemwallet.android.blockchain.clients.stellar.StellarSignClient
 import com.gemwallet.android.blockchain.includeLibs
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
@@ -32,7 +32,7 @@ class TestStellarSigner {
         val hdWallet = HDWallet(testPhrase, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.STELLAR)
         val from = hdWallet.getAddressForCoin(CoinType.STELLAR)
-        val signer = StellarSignClient(Chain.Stellar)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
@@ -47,10 +47,11 @@ class TestStellarSigner {
                     isDestinationAddressExist = true,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                Fee(
+                Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Stellar),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

@@ -7,6 +7,7 @@ import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
+import com.gemwallet.android.blockchain.services.SignService
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -30,7 +31,7 @@ class TestNearSigner {
         val hdWallet = HDWallet(testPhrase, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.NEAR)
         val from = hdWallet.getAddressForCoin(CoinType.NEAR)
-        val signer = NearSignClient(Chain.Near)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
@@ -45,10 +46,11 @@ class TestNearSigner {
                     sequence = 134180900000002UL,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                fee = Fee(
+                fee = Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Near),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

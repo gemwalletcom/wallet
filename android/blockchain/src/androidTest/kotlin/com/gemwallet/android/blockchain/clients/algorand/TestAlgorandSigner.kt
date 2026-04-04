@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.clients.algorand
 
 import com.gemwallet.android.blockchain.includeLibs
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
@@ -27,16 +28,18 @@ class TestAlgorandSigner {
 
     @Test
     fun testAlgorandNativeSign() {
-        val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.ALGORAND)
-        val signer = AlgorandSignClient(Chain.Algorand)
+        val hdWallet = HDWallet(testPhrase, "")
+        val privateKey = hdWallet.getKeyForCoin(CoinType.ALGORAND)
+        val from = hdWallet.getAddressForCoin(CoinType.ALGORAND)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
                 params = ConfirmParams.TransferParams.Native(
                     Chain.Algorand.asset(),
-                    Account(Chain.Algorand, "GOZOAE6SH6XGGDRBQLZEDRITKMF5OLVJNACVRQBUEGFLBBR5I64A7QN63E", ""),
+                    Account(Chain.Algorand, from, ""),
                     BigInteger.valueOf(10_000_000),
-                    DestinationAddress("GOZOAE6SH6XGGDRBQLZEDRITKMF5OLVJNACVRQBUEGFLBBR5I64A7QN63E"),
+                    DestinationAddress(from),
                 ),
                 chainData = AlgorandChainData(
                     sequence = 46932581UL,
@@ -44,10 +47,11 @@ class TestAlgorandSigner {
                     chainId = "mainnet-v1.0",
                 ),
                 finalAmount = BigInteger.valueOf(10_000_000),
-                fee = Fee(
+                fee = Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Algorand),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

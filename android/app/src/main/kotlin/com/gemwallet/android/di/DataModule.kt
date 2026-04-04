@@ -1,13 +1,10 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.blockchain.clients.algorand.AlgorandSignClient
 import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
 import com.gemwallet.android.blockchain.clients.cardano.CardanoSignClient
 import com.gemwallet.android.blockchain.clients.cosmos.CosmosSignClient
-import com.gemwallet.android.blockchain.clients.near.NearSignClient
 import com.gemwallet.android.blockchain.clients.polkadot.PolkadotSignClient
 import com.gemwallet.android.blockchain.clients.solana.SolanaSignClient
-import com.gemwallet.android.blockchain.clients.stellar.StellarSignClient
 import com.gemwallet.android.blockchain.clients.sui.SuiSignClient
 import com.gemwallet.android.blockchain.clients.ton.TonSignClient
 import com.gemwallet.android.blockchain.clients.tron.TronSignClient
@@ -68,15 +65,15 @@ object DataModule {
                 ChainType.Tron -> TronSignClient(it)
 
                 ChainType.Xrp -> XrpSignClient(it)
-                ChainType.Near -> NearSignClient(it)
-                ChainType.Algorand -> AlgorandSignClient(it)
-                ChainType.Stellar -> StellarSignClient(it)
                 ChainType.Polkadot -> PolkadotSignClient(it)
                 ChainType.Cardano -> CardanoSignClient(it)
                 ChainType.Ethereum,
+                ChainType.Algorand,
                 ChainType.Aptos,
                 ChainType.Sui,
-                ChainType.HyperCore -> return@mapNotNull null
+                ChainType.HyperCore,
+                ChainType.Near,
+                ChainType.Stellar -> return@mapNotNull null
             }
         } + listOf(SignService()),
     )

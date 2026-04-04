@@ -312,7 +312,10 @@ class SignService : SignClient {
             ChainType.Ethereum,
             ChainType.Aptos,
             ChainType.Sui,
-            ChainType.HyperCore -> true
+            ChainType.HyperCore,
+            ChainType.Algorand,
+            ChainType.Near,
+            ChainType.Stellar -> true
             else -> false
         }
     }
