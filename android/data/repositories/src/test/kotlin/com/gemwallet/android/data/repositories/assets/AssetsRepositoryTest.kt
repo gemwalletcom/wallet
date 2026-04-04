@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.assets
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
@@ -47,7 +48,7 @@ class AssetsRepositoryTest {
     private val balancesService = mockk<BalancesService>(relaxed = true)
     private val getChangedTransactions = mockk<GetChangedTransactions>()
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
-    private val priceClient = mockk<PriceWebSocketClient>(relaxed = true)
+    private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
     private val scope = CoroutineScope(Job())
     private val sessionFlow = MutableStateFlow<com.gemwallet.android.model.Session?>(null)
@@ -62,7 +63,7 @@ class AssetsRepositoryTest {
         balancesService = balancesService,
         getChangedTransactions = getChangedTransactions,
         searchTokensCase = searchTokensCase,
-        priceClient = priceClient,
+        streamSubscriptionService = streamSubscriptionService,
         updateBalances = updateBalances,
         scope = scope,
     )
