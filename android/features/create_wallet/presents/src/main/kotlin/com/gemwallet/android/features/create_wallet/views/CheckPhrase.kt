@@ -101,7 +101,7 @@ internal fun CheckPhrase(
     ) {
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()),
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 modifier = Modifier.padding(horizontal = sceneContentPadding()),

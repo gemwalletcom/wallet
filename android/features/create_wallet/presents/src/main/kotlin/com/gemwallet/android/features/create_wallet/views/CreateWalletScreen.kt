@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -99,11 +99,11 @@ fun CreateWalletScreen(
     }
     if (uiState.loading) {
         Dialog(
-            onDismissRequest = {  },
+            onDismissRequest = {},
             DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
         ) {
             Box(
-                contentAlignment= Alignment.Center,
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(100.dp)
                     .background(
@@ -118,7 +118,7 @@ fun CreateWalletScreen(
 }
 
 @Composable
-fun UI(
+private fun UI(
     generatedNameIndex: Int,
     data: List<String>,
     dataError: String,
