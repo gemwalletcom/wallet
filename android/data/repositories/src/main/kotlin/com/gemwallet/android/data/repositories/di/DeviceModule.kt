@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.device.GetDeviceIdOld
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
@@ -9,10 +10,10 @@ import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.cases.device.SyncSubscription
-import com.gemwallet.android.cases.session.GetCurrentCurrencyCase
 import com.gemwallet.android.data.repositories.device.DeviceRepository
 import com.gemwallet.android.data.repositories.device.GetDeviceIdOldImpl
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.model.BuildInfo
@@ -42,7 +43,8 @@ object DeviceModule {
         getDeviceIdOld: GetDeviceIdOld,
         getDeviceId: GetDeviceId,
         priceAlertRepository: PriceAlertRepository,
-        getCurrentCurrencyCase: GetCurrentCurrencyCase,
+        getCurrentCurrency: GetCurrentCurrency,
+        walletsRepository: WalletsRepository,
     ): DeviceRepository {
         return DeviceRepository(
             context = context,
@@ -54,7 +56,8 @@ object DeviceModule {
             platformStore = buildInfo.platformStore,
             versionName = buildInfo.versionName,
             priceAlertRepository = priceAlertRepository,
-            getCurrentCurrencyCase = getCurrentCurrencyCase,
+            getCurrentCurrency = getCurrentCurrency,
+            walletsRepository = walletsRepository,
         )
     }
 

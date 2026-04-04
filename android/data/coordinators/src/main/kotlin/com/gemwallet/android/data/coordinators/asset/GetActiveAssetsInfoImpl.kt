@@ -5,7 +5,9 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetPriceDataAggregate
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
+import com.gemwallet.android.model.shouldUseCompactFormatter
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,12 +37,14 @@ internal fun AssetInfo.toAssetInfoDataAggregate(
     val assetBalance = balance
     val formattedBalance = if (hideBalance) {
         "*****"
+    } else if (shouldUseCompactFormatter(assetBalance.totalAmount)) {
+        asset.compactFormatter(value = assetBalance.totalAmount)
     } else {
         asset.format(
             humanAmount = assetBalance.totalAmount,
             decimalPlace = 2,
             maxDecimals = 4,
-            dynamicPlace = true
+            dynamicPlace = true,
         )
     }
     val balanceEquivalent = if (hideBalance) {

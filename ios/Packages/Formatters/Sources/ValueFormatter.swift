@@ -21,7 +21,7 @@ public struct ValueFormatter: Sendable {
     public init(
         locale: Locale = .current,
         style: Style,
-        abbreviationThreshold: Decimal = 100_000,
+        abbreviationThreshold: Decimal = defaultAbbreviationThreshold,
     ) {
         self.locale = locale
         self.style = style

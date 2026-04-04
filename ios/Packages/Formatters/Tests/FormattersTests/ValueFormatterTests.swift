@@ -208,12 +208,14 @@ final class ValueFormatterTests {
     func testAbbreviated() {
         let formatter = ValueFormatter(locale: .US, style: .abbreviated)
 
-        #expect(formatter.string(100_000, decimals: 0) == "100K")
+        #expect(formatter.string(9999, decimals: 0) == "9,999.00")
+        #expect(formatter.string(10000, decimals: 0) == "10K")
         #expect(formatter.string(1_500_000, decimals: 0) == "1.5M")
         #expect(formatter.string(2_300_000_000, decimals: 0) == "2.3B")
         #expect(formatter.string(1_200_000_000_000, decimals: 0) == "1.2T")
-        #expect(formatter.string(500_000, decimals: 0, currency: "BTC") == "500K BTC")
+        #expect(formatter.string(10000, decimals: 0, currency: "BTC") == "10K BTC")
         #expect(formatter.string(2_000_000, decimals: 0, currency: "ETH") == "2M ETH")
+        #expect(formatter.string(4_906_154, decimals: 2, currency: "SACHI") == "49.06K SACHI")
     }
 
     @Test

@@ -47,7 +47,7 @@ import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.features.add_asset.viewmodels.AddressChainViewModel
+import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
 

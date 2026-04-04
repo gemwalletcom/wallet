@@ -11,15 +11,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.theme.mainActionHeight
-
-val disabledButtonContainerColor = Color(0xFF6085E9)
-val disabledButtonContentColor = Color.White
 
 @Composable
 fun MainActionButton(
@@ -27,10 +23,7 @@ fun MainActionButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
-    colors: ButtonColors = ButtonDefaults.buttonColors(
-        disabledContainerColor = disabledButtonContainerColor,
-        disabledContentColor = disabledButtonContentColor,
-    ),
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
     onClick: () -> Unit,
 ) {
     MainActionButton(modifier, enabled && !loading, colors, onClick) {
@@ -50,10 +43,7 @@ fun MainActionButton(
 fun MainActionButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    colors: ButtonColors = ButtonDefaults.buttonColors(
-        disabledContainerColor = disabledButtonContainerColor,
-        disabledContentColor = disabledButtonContentColor,
-    ),
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
     onClick: () -> Unit,
     content: @Composable RowScope.() -> Unit
 ) {

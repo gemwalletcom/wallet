@@ -3,8 +3,8 @@ package com.gemwallet.android.data.repositories.nft
 import android.net.http.HttpException
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.cases.nft.LoadNFTCase
 import com.gemwallet.android.cases.nft.NftError
+import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
@@ -30,10 +30,10 @@ import okio.IOException
 class NftRepository(
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val nftDao: NftDao,
-) : LoadNFTCase, GetListNftCase, GetAssetNft {
+) : SyncNfts, GetListNftCase, GetAssetNft {
 
     @Throws(HttpException::class, IOException::class)
-    override suspend fun loadNFT(wallet: Wallet) {
+    override suspend fun syncNfts(wallet: Wallet) {
         val response = gemDeviceApiClient.getNFTs(walletId = wallet.id)
         val collections = response?.map {
             DbNFTCollection(

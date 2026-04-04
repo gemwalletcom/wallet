@@ -62,7 +62,7 @@ public struct CurrencyFormatter: Sendable, Hashable {
     public static let percentSignLess = CurrencyFormatter(type: .percentSignLess, currencyCode: .empty)
 
     public var currencyCode: String
-    public var abbreviationThreshold: Decimal = 100_000
+    public var abbreviationThreshold: Decimal = defaultAbbreviationThreshold
 
     public init(
         type: CurrencyFormatterType = .currency,

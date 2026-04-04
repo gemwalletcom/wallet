@@ -57,7 +57,7 @@ class TokensRepository (
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {
-        val result = gemApiClient.getAssets(assetIds, currency.string)
+        val result = gemApiClient.getAssets(assetIds)
         updateAssets(result, currency)
         return true
     }

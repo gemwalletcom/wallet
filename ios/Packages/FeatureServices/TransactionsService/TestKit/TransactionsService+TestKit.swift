@@ -1,19 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import AssetsService
 import AssetsServiceTestKit
-import Foundation
+import GemAPI
 import GemAPITestKit
+import Store
 import StoreTestKit
 import TransactionsService
 
 public extension TransactionsService {
-    static func mock() -> TransactionsService {
+    static func mock(
+        provider: any GemAPITransactionService = GemAPITransactionServiceMock(),
+        transactionStore: TransactionStore = .mock(),
+        assetsService: AssetsService = .mock(),
+        walletStore: WalletStore = .mock(),
+        addressStore: AddressStore = .mock(),
+    ) -> TransactionsService {
         TransactionsService(
-            provider: GemAPITransactionServiceMock(),
-            transactionStore: .mock(),
-            assetsService: .mock(),
-            walletStore: .mock(),
-            addressStore: .mock(),
+            provider: provider,
+            transactionStore: transactionStore,
+            assetsService: assetsService,
+            walletStore: walletStore,
+            addressStore: addressStore,
         )
     }
 }

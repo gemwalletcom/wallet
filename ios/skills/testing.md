@@ -4,8 +4,9 @@
 
 - Always run tests through the iOS `justfile`
 - Default commands:
-  - `just test-all`
+  - `just test`
   - `just test <TARGET>`
+  - `just test-integration`
   - `just test-ui`
 - Run the narrowest relevant target while iterating, then finish with the appropriate broader validation
 

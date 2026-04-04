@@ -54,7 +54,8 @@ import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.theme.isSmallScreen
+import com.gemwallet.android.ui.theme.WindowDimension
+import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -83,8 +84,9 @@ private fun ReceiveScene(
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
     val shareTitle = stringResource(id = R.string.common_share)
-    val imageSize = if (isSmallScreen()) 220.dp else 300.dp
-    val imagePadding = if (isSmallScreen()) paddingSmall else paddingDefault
+    val isCompactHeight = isCompactDimension(WindowDimension.Height)
+    val imageSize = if (isCompactHeight) 220.dp else 300.dp
+    val imagePadding = if (isCompactHeight) paddingSmall else paddingDefault
 
     val onShare = fun () {
         val type = "text/plain"

@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.repositories.session
 
-import com.gemwallet.android.cases.session.GetCurrentCurrencyCase
+import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.model.Session
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.StateFlow
 
-interface SessionRepository : GetCurrentCurrencyCase {
+interface SessionRepository : GetCurrentCurrency {
 
     fun session(): StateFlow<Session?>
 
