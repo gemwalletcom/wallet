@@ -83,7 +83,7 @@ class PriceAlertDataAggregateImplTest {
     private fun createAggregate(
         id: Int = 1,
         asset: Asset = btcAsset,
-        assetPrice: AssetPriceInfo = createAssetPriceInfo(asset.id),
+        assetPrice: AssetPriceInfo? = createAssetPriceInfo(asset.id),
         priceAlert: PriceAlert = createPriceAlert(asset.id),
     ) = PriceAlertDataAggregateImpl(
         id = id,
@@ -231,6 +231,19 @@ class PriceAlertDataAggregateImplTest {
     }
 
     @Test
+    fun testPriceState_withoutAssetPrice_returnsNone() {
+        val aggregate = createAggregate(
+            assetPrice = null,
+            priceAlert = createPriceAlert(
+                price = null,
+                priceDirection = null,
+            ),
+        )
+
+        assertEquals(PriceState.None, aggregate.priceState)
+    }
+
+    @Test
     fun testPrice_fromPriceAlert() {
         val priceAlert = createPriceAlert(
             price = 50000.0,
@@ -275,6 +288,16 @@ class PriceAlertDataAggregateImplTest {
     }
 
     @Test
+    fun testPrice_withoutAssetPrice_returnsEmpty() {
+        val aggregate = createAggregate(
+            assetPrice = null,
+            priceAlert = createPriceAlert(price = null),
+        )
+
+        assertEquals("", aggregate.price)
+    }
+
+    @Test
     fun testPercentage_fromPriceAlert() {
         val priceAlert = createPriceAlert(
             pricePercentChange = 3.5,
@@ -308,6 +331,16 @@ class PriceAlertDataAggregateImplTest {
         val aggregate = createAggregate(priceAlert = priceAlert)
 
         assertEquals("125.67%", aggregate.percentage)
+    }
+
+    @Test
+    fun testPercentage_withoutAssetPrice_returnsEmpty() {
+        val aggregate = createAggregate(
+            assetPrice = null,
+            priceAlert = createPriceAlert(pricePercentChange = null),
+        )
+
+        assertEquals("", aggregate.percentage)
     }
 
     @Test
