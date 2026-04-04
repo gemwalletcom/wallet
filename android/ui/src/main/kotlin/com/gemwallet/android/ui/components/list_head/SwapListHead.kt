@@ -23,8 +23,8 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.compactIconSize
-import com.gemwallet.android.ui.theme.headerSmallIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.wallet.core.primitives.Currency
 
 @Composable
@@ -88,6 +88,6 @@ private fun SwapItem(assetInfo: AssetInfo, value: String, currency: Currency?) {
                 )
             }
         }
-        HeaderIcon(asset, headerSmallIconSize)
+        HeaderIcon(asset, listItemIconSize)
     }
 }

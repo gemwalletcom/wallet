@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.components.image
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.gemwallet.android.ui.theme.listItemIconSize
@@ -37,12 +36,12 @@ fun IconWithBadge(
     size: Dp = listItemIconSize,
 ) {
     icon ?: return
-    BadgedIcon(
-        icon = icon,
-        placeholder = placeholder,
+    IconWithBadge(
         size = size,
-        badge = supportIcon?.let { url -> { AsyncImage(model = url, contentDescription = "list_item_support_icon") } },
-    )
+        badge = supportIcon?.let { url -> { SupportIconBadge(icon = url, size = size) } },
+    ) {
+        MainIcon(icon = icon, placeholder = placeholder, size = size)
+    }
 }
 
 @Composable
@@ -53,7 +52,9 @@ fun IconWithBadge(
     badge: @Composable () -> Unit,
 ) {
     icon ?: return
-    BadgedIcon(icon = icon, placeholder = placeholder, size = size, badge = badge)
+    IconWithBadge(size = size, badge = badge) {
+        MainIcon(icon = icon, placeholder = placeholder, size = size)
+    }
 }
 
 @Composable
@@ -65,24 +66,36 @@ fun IconWithBadge(
     BadgedBox(size = size, badge = badge, content = content)
 }
 
-private const val BADGE_SIZE_RATIO = 2.6f
-private val BADGE_BORDER_WIDTH = 2.dp
+private const val BADGE_CONTENT_SIZE_RATIO = 2.6f
+private const val BADGE_RING_WIDTH_RATIO = 32f
+private const val BADGE_OFFSET_RATIO = 5f
+
+private fun badgeContentSize(size: Dp): Dp = size / BADGE_CONTENT_SIZE_RATIO
 
 @Composable
-private fun BadgedIcon(
+private fun MainIcon(
     icon: Any,
     placeholder: String?,
     size: Dp,
-    badge: (@Composable () -> Unit)? = null,
 ) {
-    BadgedBox(size = size, badge = badge) {
-        AsyncImage(
-            model = icon,
-            placeholderText = placeholder,
-            contentDescription = "list_item_icon",
-            size = size,
-        )
-    }
+    AsyncImage(
+        model = icon,
+        placeholderText = placeholder,
+        contentDescription = "list_item_icon",
+        size = size,
+    )
+}
+
+@Composable
+private fun SupportIconBadge(
+    icon: Any,
+    size: Dp,
+) {
+    AsyncImage(
+        model = icon,
+        size = badgeContentSize(size),
+        contentDescription = null,
+    )
 }
 
 @Composable
@@ -94,14 +107,17 @@ private fun BadgedBox(
     Box {
         content()
         if (badge != null) {
-            val badgeSize = size / BADGE_SIZE_RATIO + BADGE_BORDER_WIDTH * 2
-            val badgeOffset = badgeSize / 4
+            val badgeContentSize = badgeContentSize(size)
+            val badgeRingWidth = size / BADGE_RING_WIDTH_RATIO
+            val badgeSize = badgeContentSize + badgeRingWidth * 2
+            val badgeOffset = badgeSize / BADGE_OFFSET_RATIO
             Box(
                 modifier = Modifier
                     .offset(badgeOffset, badgeOffset)
                     .size(badgeSize)
                     .align(Alignment.BottomEnd)
-                    .border(BADGE_BORDER_WIDTH, MaterialTheme.colorScheme.background, CircleShape),
+                    .background(MaterialTheme.colorScheme.background, CircleShape),
+                contentAlignment = Alignment.Center,
             ) {
                 badge()
             }
