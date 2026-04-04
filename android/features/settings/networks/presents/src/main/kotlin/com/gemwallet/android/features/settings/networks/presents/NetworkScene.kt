@@ -75,7 +75,7 @@ fun NetworkScene(
             isRefreshing = false,
             onRefresh = onRefresh,
             state = pullToRefreshState,
-            enabled = !state.isRefreshing,
+            enabled = true,
             indicator = {
                 if (pullToRefreshState.distanceFraction > 0f) {
                     Indicator(
