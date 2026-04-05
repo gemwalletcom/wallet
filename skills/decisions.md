@@ -6,9 +6,9 @@ Non-obvious architectural choices. Do not "improve" these without understanding 
 
 Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather than fetched as a prebuilt package. This ensures the mobile apps always link against the exact Core revision in the repo and avoids version drift between Core logic and mobile bindings.
 
-## Docker for Android release builds
+## Nix for Android reproducible builds
 
-Android release artifacts are built inside Docker to guarantee reproducible builds. This lets anyone verify that a published APK matches the source. Do not bypass Docker for release builds even if local Gradle works.
+Android reproducible builds use Nix (`shell.nix`) to pin every build dependency (JDK, Android SDK, NDK) to exact versions. Release builds run natively for speed; Nix is used for cross-machine verification. See `android/reproducible/README.md`.
 
 ## TypeShare + UniFFI for code generation
 
