@@ -30,8 +30,10 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.features.nft.presents.components.NftTitle
 import com.gemwallet.android.features.nft.viewmodels.NftAssetDetailsUIModel
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
@@ -55,7 +57,13 @@ fun NFTDetailsScene(
     }
     val model = assetData!!
     Scene(
-        title = model.assetName,
+        titleContent = {
+            NftTitle(
+                name = model.assetName,
+                status = model.collection.status,
+                iconSize = compactIconSize,
+            )
+        },
         actions = {
             if (assetData?.asset?.chain == Chain.Ethereum) {
                 IconButton( { onRecipient(AssetId(model.asset.chain), model.asset.id) } ) {
