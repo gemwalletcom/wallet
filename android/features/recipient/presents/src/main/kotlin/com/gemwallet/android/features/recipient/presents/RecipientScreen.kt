@@ -20,20 +20,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ui.models.subtitleSymbol
+import com.gemwallet.android.features.recipient.presents.components.RecipientHead
 import com.gemwallet.android.features.recipient.presents.components.destinationView
 import com.gemwallet.android.features.recipient.presents.components.walletsDestination
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.keyboardAsState
-import com.gemwallet.android.ui.components.list_head.CenteredListHead
-import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -48,7 +46,7 @@ fun RecipientScreen(
     confirmAction: ConfirmTransactionAction,
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
-    val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
+    val type by viewModel.type.collectAsStateWithLifecycle()
     val wallets by viewModel.wallets.collectAsStateWithLifecycle()
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     val memoError by viewModel.memoErrorState.collectAsStateWithLifecycle()
@@ -66,8 +64,9 @@ fun RecipientScreen(
         return
     }
 
+    val currentType = type ?: return
     RecipientScreen(
-        assetInfo = assetInfo ?: return,
+        type = currentType,
         hasMemo = viewModel.hasMemo(),
         addressState = viewModel.addressState, // TODO: Change it to textfieldstate
         memoState = viewModel.memoState,
@@ -83,7 +82,7 @@ fun RecipientScreen(
 
 @Composable
 fun RecipientScreen(
-    assetInfo: AssetInfo,
+    type: RecipientType,
     hasMemo: Boolean,
     addressState: MutableState<String>,
     memoState: MutableState<String>,
@@ -122,15 +121,9 @@ fun RecipientScreen(
             modifier = Modifier.padding(bottom = 72.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item {
-                CenteredListHead(
-                    title = assetInfo.asset.name,
-                    subtitle = assetInfo.asset.subtitleSymbol,
-                    leading = { HeaderIcon(assetInfo.asset) },
-                )
-            }
+            item { RecipientHead(type) }
             destinationView(
-                asset = assetInfo,
+                asset = type.assetInfo,
                 hasMemo = hasMemo,
                 addressState = addressState,
                 addressError = addressError,
@@ -139,7 +132,7 @@ fun RecipientScreen(
                 nameRecordState = nameRecordState,
                 onQrScan = onQrScan,
             )
-            walletsDestination(toChain = assetInfo.asset.chain, items = wallets) { wallet, account ->
+            walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
                 onNext(
                     DestinationAddress(
                         address = account.address,

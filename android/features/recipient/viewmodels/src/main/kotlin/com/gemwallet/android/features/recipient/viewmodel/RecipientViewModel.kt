@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.mutableStateIn
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
+import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
@@ -31,9 +32,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -59,18 +61,27 @@ class RecipientViewModel @Inject constructor(
     val addressState = mutableStateOf("")
     val memoState = mutableStateOf("")
     val nameRecordState = mutableStateOf<NameRecord?>(null)
-    val session = sessionRepository.session()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val assetId = savedStateHandle.getStateFlow(assetIdArg, "")
-        .mapNotNull { it.toAssetId() }
-    val nftAssetId = savedStateHandle.getStateFlow(nftAssetIdArg, "")
-    val asset = assetId.flatMapLatest { assetsRepository.getAssetInfo(it) }
-        .flowOn(Dispatchers.IO)
+
+    private val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val nftAsset = nftAssetId.filterNotNull().flatMapLatest { getAssetNft.getAssetNft(it) }
-        .map { it.assets.firstOrNull() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val assetId = savedStateHandle.getStateFlow(assetIdArg, "")
+        .mapNotNull { it.toAssetId() }
+    private val nftAssetId = savedStateHandle.getStateFlow(nftAssetIdArg, "")
+
+    val type: StateFlow<RecipientType?> = combine(
+        assetId.flatMapLatest { assetsRepository.getAssetInfo(it) }.flowOn(Dispatchers.IO),
+        nftAssetId,
+        ::Pair,
+    ).flatMapLatest { (assetInfo, nftId) ->
+        when {
+            assetInfo == null -> flowOf(null)
+            nftId.isEmpty() -> flowOf(RecipientType.Asset(assetInfo))
+            else -> getAssetNft.getAssetNft(nftId).map { data ->
+                data.assets.firstOrNull()?.let { RecipientType.Nft(assetInfo, it) }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val wallets = session.combine(walletsRepository.getAll()) { session, wallets ->
         wallets.filter { it.id != session?.wallet?.id }
@@ -78,41 +89,44 @@ class RecipientViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val addressError = combine(
-        asset,
+        type,
         snapshotFlow { addressState.value },
         snapshotFlow { nameRecordState.value },
-    ) { assetInfo, address, nameRecord ->
-        val nameAddress = nameRecord?.address
-        if (assetInfo == null || (address.isEmpty() && nameAddress.isNullOrEmpty())) return@combine RecipientError.None
-        val destination = DestinationAddress(nameAddress ?: address, nameRecord?.name)
-        val validation = validateDestination(assetInfo.asset.id.chain, destination)
-        validation
+    ) { currentType, address, nameRecord ->
+        val resolvedAddress = nameRecord?.address ?: address
+        when {
+            currentType == null || resolvedAddress.isEmpty() -> RecipientError.None
+            else -> validateDestination(
+                chain = currentType.assetInfo.asset.chain,
+                destination = DestinationAddress(resolvedAddress, nameRecord?.name),
+            )
+        }
     }.mutableStateIn(viewModelScope, RecipientError.None)
 
     val memoErrorState = MutableStateFlow<RecipientError>(RecipientError.None)
 
-    fun hasMemo(): Boolean = asset.value?.asset?.chain?.isMemoSupport() == true
+    fun hasMemo(): Boolean = type.value?.assetInfo?.asset?.chain?.isMemoSupport() == true
 
-    fun onNext(destination: DestinationAddress?, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction)  {
-        val assetId = asset.value?.id() ?: return
-        val destination = destination ?: DestinationAddress(
+    fun onNext(destination: DestinationAddress?, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
+        val currentType = type.value ?: return
+        val resolvedDestination = destination ?: DestinationAddress(
             address = nameRecordState.value?.address ?: addressState.value,
             name = nameRecordState.value?.name,
         )
-        val memo = memoState.value
-        val addressError = validateDestination(assetId.chain, destination)
-        if (addressError != RecipientError.None) {
-            this@RecipientViewModel.addressError.update { addressError }
+        val validation = validateDestination(currentType.assetInfo.asset.chain, resolvedDestination)
+        if (validation != RecipientError.None) {
+            addressError.update { validation }
             return
         }
-        val nftAsset = nftAsset.value
-        when {
-            nftAsset != null -> onNftConfirm(nftAsset, destination, confirmAction)
-            else -> amountAction(AmountParams.buildTransfer(assetId, destination, memo))
+        when (currentType) {
+            is RecipientType.Nft -> onNftConfirm(currentType.nftAsset, resolvedDestination, confirmAction)
+            is RecipientType.Asset -> amountAction(
+                AmountParams.buildTransfer(currentType.assetInfo.id(), resolvedDestination, memoState.value)
+            )
         }
     }
 
-    fun setQrData(type: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
+    fun setQrData(field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
         val paymentWrapper = uniffi.gemstone.paymentDecodeUrl(data)
         val amount = try {
             BigInteger(paymentWrapper.amount ?: throw IllegalArgumentException())
@@ -121,7 +135,7 @@ class RecipientViewModel @Inject constructor(
         }
         val address = paymentWrapper.address
         val memo = paymentWrapper.memo
-        val assetInfo = asset.value ?: return
+        val assetInfo = type.value?.assetInfo ?: return
 
         if (
             address.isNotEmpty()
@@ -133,8 +147,8 @@ class RecipientViewModel @Inject constructor(
             return
         }
 
-        when (type) {
-            QrScanField.None -> {}
+        when (field) {
+            QrScanField.None -> Unit
             QrScanField.Address -> {
                 addressState.value = address.ifEmpty { data }
                 memoState.value = memo?.ifEmpty { memoState.value } ?: memoState.value
@@ -156,11 +170,10 @@ class RecipientViewModel @Inject constructor(
         confirmAction(params)
     }
 
-    private fun validateDestination(chain: Chain, destination: DestinationAddress?): RecipientError {
-        return if (validateAddressOperator(destination?.address ?: "", chain).getOrNull() != true) {
-            RecipientError.IncorrectAddress
-        } else {
+    private fun validateDestination(chain: Chain, destination: DestinationAddress?): RecipientError =
+        if (validateAddressOperator(destination?.address.orEmpty(), chain).getOrNull() == true) {
             RecipientError.None
+        } else {
+            RecipientError.IncorrectAddress
         }
-    }
 }

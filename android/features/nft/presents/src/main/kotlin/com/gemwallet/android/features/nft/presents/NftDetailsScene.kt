@@ -21,7 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.linkType
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.components.image.NftImage
+import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
@@ -66,16 +67,13 @@ fun NFTDetailsScene(
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                AsyncImage(
-                    model.imageUrl,
-                    size = null,
-                    transformation = null,
+                NftImage(
+                    source = model.asset.toImageSource(),
                     modifier = Modifier
                         .padding(horizontal = sceneContentPadding())
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(paddingDefault))
-                    ,
+                        .clip(RoundedCornerShape(paddingDefault)),
                 )
             }
             generalInfo(model)

@@ -27,11 +27,14 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Color(0xFF06BE92),
     background = Color(0xFF24262A),
     surface = Color(0xFF1A191A),
+    surfaceContainerHighest = Color(0xFF2C2C2E),
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
     onBackground = Color(0xFF818181),
     error = Color(0xFFF84E4E),
+    outline = Color(0xFF767A81),
+    outlineVariant = Color(0xFF3A3A3C),
     scrim = Color(0xff34373d), // Header button actions color
 )
 
@@ -41,12 +44,15 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Color(0xFF1B9A6D),
     background = Color(0xFFFFFFFF),
     surface = Color(0xFFF0F0F5),
+    surfaceContainerHighest = Color(0xFFE5E5EA),
 //    onPrimary = Color.White,
 //    onSecondary = Color.White,
 //    onTertiary = Color.White,
     onBackground = Color(0xFF1A191A),
     onSurface = Color(0xFF1C1B1F),
     error = Color(0xFFF84E4E),
+    outline = Color(0xFF767A81),
+    outlineVariant = Color(0xFFD1D1D6),
     scrim = Color(0xffededed),//from #f2f2f2
 )
 
