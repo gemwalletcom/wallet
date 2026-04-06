@@ -1,8 +1,10 @@
 package com.gemwallet.android.features.nft.presents
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -31,6 +33,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.features.nft.viewmodels.NftAssetDetailsUIModel
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
@@ -76,6 +79,7 @@ fun NFTDetailsScene(
                         .clip(RoundedCornerShape(paddingDefault)),
                 )
             }
+            item { Spacer(Modifier.height(paddingSmall)) }
             generalInfo(model)
             nftAttributes(model.attributes)
             nftLinks(model.collection.links) { uriHandler.openUri(it) }
