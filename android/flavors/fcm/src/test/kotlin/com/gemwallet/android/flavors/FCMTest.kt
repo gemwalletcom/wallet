@@ -1,6 +1,7 @@
 package com.gemwallet.android.flavors
 
 import com.gemwallet.android.cases.parseNotificationData
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
@@ -8,10 +9,12 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PushNotificationAsset
 import com.wallet.core.primitives.PushNotificationSwapAsset
 import com.wallet.core.primitives.PushNotificationTransaction
+import com.wallet.core.primitives.PushNotificationWalletAsset
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -127,6 +130,34 @@ class FCMTest {
             ),
             result,
         )
+    }
+
+    @Test
+    fun parseData_withStakeType_returnsStakePayload() {
+        val assetId = AssetId(Chain.Sui)
+        val walletId = WalletId("wallet-1")
+        val jsonData = jsonEncoder.encodeToString(
+            PushNotificationWalletAsset(
+                walletId = walletId,
+                assetId = assetId,
+            )
+        )
+
+        val result = parseNotificationData("stake", jsonData)
+
+        assertEquals(
+            PushNotificationData.Stake(
+                assetId = assetId.toIdentifier(),
+                walletId = walletId,
+            ),
+            result,
+        )
+    }
+
+    @Test
+    fun parseData_withFiatTransactionType_returnsNull() {
+        val result = parseNotificationData("fiatTransaction", """{"assetId":"bitcoin"}""")
+        assertNull(result)
     }
 
     @Test

@@ -32,6 +32,8 @@ enum class PushNotificationTypes(val string: String) {
 	Rewards("rewards"),
 	@SerialName("stake")
 	Stake("stake"),
+	@SerialName("fiatTransaction")
+	FiatTransaction("fiatTransaction"),
 }
 
 @Serializable
@@ -42,12 +44,6 @@ data class PushNotificationPayloadType (
 @Serializable
 data class PushNotificationReward (
 	val walletId: String
-)
-
-@Serializable
-data class PushNotificationStake (
-	val walletId: WalletId,
-	val assetId: AssetId
 )
 
 @Serializable
@@ -64,5 +60,11 @@ data class PushNotificationTransaction (
 	val walletId: String,
 	val assetId: String,
 	val transaction: Transaction
+)
+
+@Serializable
+data class PushNotificationWalletAsset (
+	val walletId: WalletId,
+	val assetId: AssetId
 )
 

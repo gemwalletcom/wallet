@@ -7,12 +7,13 @@ import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.SimulationWarning
 
-fun LazyListScope.simulationWarningsContent(warnings: List<SimulationWarning>) {
+fun LazyListScope.simulationWarningsContent(allWarnings: List<SimulationWarning>) {
+    val warnings = allWarnings.filter(SimulationWarning::isVisible)
     if (warnings.isEmpty()) return
 
     itemsIndexed(warnings) { index, warning ->
         WarningItem(
-            title = stringResource(warning.titleRes()),
+            title = stringResource(requireNotNull(warning.titleRes())),
             message = warning.descriptionText(),
             color = warning.severity.color(),
             position = ListPosition.getPosition(index, warnings.size),

@@ -2,12 +2,15 @@ package com.gemwallet.android.features.asset.viewmodels.chart.models
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.linkType
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.LinkType
+import uniffi.gemstone.linkTypeOrder
 
-fun List<AssetLink>.toModel() = mapNotNull(AssetLink::toModel)
+fun List<AssetLink>.toModel() = sortedByDescending { it.linkType?.order ?: 0 }
+    .mapNotNull(AssetLink::toModel)
 
 private fun AssetLink.toModel(): AssetMarketUIModel.Link? {
     val linkType = linkType ?: return null
@@ -16,6 +19,7 @@ private fun AssetLink.toModel(): AssetMarketUIModel.Link? {
         url = url,
         label = linkType.label,
         icon = linkType.icon,
+        host = if (linkType == LinkType.Website) url.getShortUrl() else null,
     )
 }
 
@@ -56,3 +60,6 @@ private val LinkType.icon: Int
         LinkType.CoinMarketCap -> R.drawable.coinmarketcap
         LinkType.TikTok -> R.drawable.tiktok
     }
+
+private val LinkType.order: Int
+    get() = linkTypeOrder(string)

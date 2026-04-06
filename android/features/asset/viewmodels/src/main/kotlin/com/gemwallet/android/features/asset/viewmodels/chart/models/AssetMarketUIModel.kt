@@ -19,5 +19,6 @@ class AssetMarketUIModel(
         val url: String,
         @StringRes val label: Int,
         @DrawableRes val icon: Int,
+        val host: String? = null,
     )
 }
