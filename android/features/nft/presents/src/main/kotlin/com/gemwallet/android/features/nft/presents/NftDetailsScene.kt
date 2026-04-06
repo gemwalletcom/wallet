@@ -23,6 +23,7 @@ import com.gemwallet.android.ext.linkType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -90,15 +91,27 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsUIModel) {
         PropertyItem(R.string.nft_collection, model.collection.name, listPosition = ListPosition.First)
         PropertyNetworkItem(model.collection.chain, listPosition = ListPosition.Middle)
         model.asset.contractAddress?.let {
-            val text = AddressFormatter(it, chain = model.collection.chain).value()
-            PropertyItem(R.string.asset_contract, text, listPosition = ListPosition.Middle)
+            AddressPropertyItem(
+                title = R.string.asset_contract,
+                displayText = AddressFormatter(it, chain = model.collection.chain).value(),
+                copyValue = it,
+                explorerLink = model.contractExplorerLink,
+                listPosition = ListPosition.Middle,
+            )
         }
-        val tokenIdText = if (model.asset.tokenId.length > 16) {
-            AddressFormatter(model.asset.tokenId, chain = model.collection.chain).value()
+        val tokenId = model.asset.tokenId
+        val tokenIdDisplayText = if (tokenId.length > 16) {
+            AddressFormatter(tokenId, chain = model.collection.chain).value()
         } else {
-            "#${model.asset.tokenId}"
+            "#$tokenId"
         }
-        PropertyItem(R.string.asset_token_id, tokenIdText, listPosition = ListPosition.Last)
+        AddressPropertyItem(
+            title = R.string.asset_token_id,
+            displayText = tokenIdDisplayText,
+            copyValue = tokenId,
+            explorerLink = model.tokenIdExplorerLink,
+            listPosition = ListPosition.Last,
+        )
     }
 }
 

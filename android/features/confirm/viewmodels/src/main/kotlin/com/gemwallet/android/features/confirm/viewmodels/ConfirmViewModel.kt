@@ -8,6 +8,7 @@ import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
+import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -48,6 +49,7 @@ import com.gemwallet.android.features.confirm.models.ConfirmState
 import com.gemwallet.android.features.confirm.models.FeeUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FeePriority
@@ -77,6 +79,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.gemwallet.android.ext.getMinimumAccountBalance
 import com.wallet.core.primitives.SimulationResult
+import uniffi.gemstone.Explorer
 import java.math.BigInteger
 import java.util.Arrays
 import javax.inject.Inject
@@ -97,6 +100,7 @@ class ConfirmViewModel @Inject constructor(
     private val createTransactionsCase: CreateTransaction,
     private val stakeRepository: StakeRepository,
     private val transactionBalanceService: TransactionBalanceService,
+    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -243,9 +247,23 @@ class ConfirmViewModel @Inject constructor(
     val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
         request ?: return@combine emptyList()
         val assetInfo = assetsInfo?.getByAssetId(request.assetId) ?: return@combine emptyList()
+        val chain = assetInfo.asset.id.chain
+        val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain)
+        val chainExplorer = Explorer(chain.string)
         mutableListOf<ConfirmProperty?>().apply {
             add(ConfirmProperty.Source(assetInfo.walletName))
-            add(ConfirmProperty.Destination.map(request, getValidator(request)))
+            val destination = ConfirmProperty.Destination.map(request, getValidator(request))
+            add(
+                if (destination is ConfirmProperty.Destination.Transfer) {
+                    ConfirmProperty.Destination.Transfer(
+                        domain = destination.domain,
+                        address = destination.address,
+                        explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, destination.address)),
+                    )
+                } else {
+                    destination
+                }
+            )
             add(request.memo()?.takeIf {
                 (request is ConfirmParams.TransferParams.Native || request is ConfirmParams.TransferParams.Token)
                         && assetInfo.asset.isMemoSupport()

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -20,32 +21,53 @@ fun PropertyDestination(
 ) {
     model ?: return
 
-    val title = when (model) {
-        is ConfirmProperty.Destination.Provider -> R.string.common_provider
-        is ConfirmProperty.Destination.Stake -> R.string.stake_validator
-        is ConfirmProperty.Destination.Transfer -> R.string.transaction_recipient
-        is ConfirmProperty.Destination.Generic -> R.string.wallet_connect_app
-        is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
-    }
-    PropertyItem(
-        title = {
-            PropertyTitleText(title)
-        },
-        data = {
-            Column(horizontalAlignment = Alignment.End) {
-                Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.displayData()) }
+    when (model) {
+        is ConfirmProperty.Destination.Transfer -> {
+            val domain = model.domain
+            if (domain != null) {
+                PropertyItem(
+                    title = { PropertyTitleText(R.string.transaction_recipient) },
+                    data = {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Row(horizontalArrangement = Arrangement.End) { PropertyDataText(domain) }
+                        }
+                    },
+                    listPosition = listPosition,
+                )
+            } else {
+                AddressPropertyItem(
+                    title = R.string.transaction_recipient,
+                    displayText = AddressFormatter(model.address).value(),
+                    copyValue = model.address,
+                    explorerLink = model.explorerLink,
+                    listPosition = listPosition,
+                )
             }
-        },
-        listPosition = listPosition,
-    )
-}
-
-internal fun ConfirmProperty.Destination.displayData(): String {
-    return when (this) {
-        is ConfirmProperty.Destination.Stake,
-        is ConfirmProperty.Destination.Provider -> data
-        is ConfirmProperty.Destination.Transfer -> domain ?: AddressFormatter(address).value()
-        is ConfirmProperty.Destination.Generic -> appName
-        is ConfirmProperty.Destination.PerpetualOper -> providerName
+        }
+        else -> {
+            val title = when (model) {
+                is ConfirmProperty.Destination.Provider -> R.string.common_provider
+                is ConfirmProperty.Destination.Stake -> R.string.stake_validator
+                is ConfirmProperty.Destination.Generic -> R.string.wallet_connect_app
+                is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
+                is ConfirmProperty.Destination.Transfer -> return
+            }
+            val text = when (model) {
+                is ConfirmProperty.Destination.Provider,
+                is ConfirmProperty.Destination.Stake -> AddressFormatter(model.data).value()
+                is ConfirmProperty.Destination.Generic -> model.appName
+                is ConfirmProperty.Destination.PerpetualOper -> model.providerName
+                is ConfirmProperty.Destination.Transfer -> return
+            }
+            PropertyItem(
+                title = { PropertyTitleText(title) },
+                data = {
+                    Column(horizontalAlignment = Alignment.End) {
+                        Row(horizontalArrangement = Arrangement.End) { PropertyDataText(text) }
+                    }
+                },
+                listPosition = listPosition,
+            )
+        }
     }
 }

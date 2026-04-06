@@ -3,12 +3,14 @@ package com.gemwallet.android.features.asset.viewmodels.chart.models
 import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.wallet.core.primitives.BlockExplorerLink
 
 class MarketInfoUIModel(
     val type: MarketInfoTypeUIModel,
     val value: String,
     val badge: String? = null,
     val info: InfoSheetEntity? = null,
+    val explorerLink: BlockExplorerLink? = null,
 ) {
     enum class MarketInfoTypeUIModel(@param:StringRes val label: Int) {
         MarketCap(R.string.asset_market_cap),
