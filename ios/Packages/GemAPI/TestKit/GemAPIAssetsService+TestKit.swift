@@ -23,7 +23,7 @@ public actor GemAPIAssetsServiceMock: GemAPIAssetsService {
         assetResult!
     }
 
-    public func getAssets(assetIds _: [AssetId]) async throws -> [AssetBasic] {
+    public func getAssets(currency _: String?, assetIds _: [AssetId]) async throws -> [AssetBasic] {
         assetsResult!
     }
 

@@ -44,7 +44,8 @@ fun TransactionDetailsNavScreen(
             onCancel = onCancel,
         )
     }
-    if (isShowFeeDetails) {
-        FeeDetailsDialog(model?.fee) { isShowFeeDetails = false }
-    }
+    FeeDetailsDialog(
+        isVisible = isShowFeeDetails,
+        model = model?.fee,
+    ) { isShowFeeDetails = false }
 }

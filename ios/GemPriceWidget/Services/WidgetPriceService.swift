@@ -9,12 +9,10 @@ import SwiftUI
 import WidgetKit
 
 struct WidgetPriceService {
-    private let pricesService: any GemAPIPricesService
     private let assetsService: any GemAPIAssetsService
     private let preferences = SharedPreferences()
 
     init() {
-        pricesService = GemAPIService()
         assetsService = GemAPIService()
     }
 
@@ -38,14 +36,11 @@ struct WidgetPriceService {
         let currency = preferences.currency
 
         do {
-            let (assets, prices) = try await (
-                assetsService.getAssets(assetIds: coins),
-                pricesService.getPrices(currency: currency, assetIds: coins),
-            )
+            let assets = try await assetsService.getAssets(currency: currency, assetIds: coins)
 
             return await PriceWidgetEntry(
                 date: Date(),
-                coinPrices: coinPrices(assets: assets, prices: prices),
+                coinPrices: coinPrices(assets: assets),
                 currency: currency,
                 widgetFamily: widgetFamily,
             )
@@ -58,17 +53,17 @@ struct WidgetPriceService {
 // MARK: - Private
 
 extension WidgetPriceService {
-    private func coinPrices(assets: [AssetBasic], prices: [AssetPrice]) async -> [CoinPrice] {
+    private func coinPrices(assets: [AssetBasic]) async -> [CoinPrice] {
         await withTaskGroup(of: CoinPrice?.self) { group in
             for asset in assets {
-                guard let assetPrice = prices.first(where: { $0.assetId == asset.asset.id }) else { continue }
+                guard let price = asset.price else { continue }
                 group.addTask {
                     await CoinPrice(
                         assetId: asset.asset.id,
                         name: asset.asset.name,
                         symbol: asset.asset.symbol,
-                        price: assetPrice.price,
-                        priceChangePercentage24h: assetPrice.priceChangePercentage24h,
+                        price: price.price,
+                        priceChangePercentage24h: price.priceChangePercentage24h,
                         image: Self.image(for: asset.asset.id),
                     )
                 }

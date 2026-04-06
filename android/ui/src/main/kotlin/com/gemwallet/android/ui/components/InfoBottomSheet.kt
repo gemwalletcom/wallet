@@ -1,17 +1,17 @@
 package com.gemwallet.android.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,18 +19,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
@@ -39,6 +38,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.Config
 import uniffi.gemstone.DocsUrl
+
+internal val infoSheetIconSize = 120.dp
 
 sealed class InfoSheetEntity(
     val icon: Any,
@@ -230,11 +231,14 @@ fun InfoBottomSheet(
 
     ModalBottomSheet(
         isVisible = item != null,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.background,
         onDismissRequest = onClose,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer16()
@@ -276,29 +280,15 @@ fun InfoBottomSheet(
 @Composable
 private fun InfoSheetIcon(item: InfoSheetEntity) {
     Box(
-        modifier = Modifier.size(120.dp),
-        contentAlignment = Alignment.BottomEnd,
+        modifier = Modifier.size(infoSheetIconSize),
+        contentAlignment = Alignment.Center,
     ) {
-        AsyncImage(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape),
-            model = item.icon,
-            contentDescription = "",
+        IconWithBadge(
+            icon = item.icon,
+            supportIcon = item.badgeIcon,
+            size = infoSheetIconSize,
+            badgeBackgroundColor = MaterialTheme.colorScheme.background,
         )
-        if (item.badgeIcon != null) {
-            AsyncImage(
-                modifier = Modifier
-                    .size(48.dp)
-                    .border(
-                        border = BorderStroke(4.dp, color = MaterialTheme.colorScheme.background),
-                        shape = CircleShape,
-                    )
-                    .clip(CircleShape),
-                model = item.badgeIcon,
-                contentDescription = "",
-            )
-        }
     }
 }
 

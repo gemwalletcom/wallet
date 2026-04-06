@@ -187,23 +187,22 @@ private fun Proposal(
         }
     }
 
-    if (isShowSelectWallets) {
-        ModalBottomSheet(
-            dragHandle = { BottomSheetDefaults.DragHandle() },
-            onDismissRequest = { isShowSelectWallets = false },
-        ) {
-            LazyColumn {
-                itemsIndexed(availableWallets) { index, item ->
-                    WalletItem(
-                        wallet = item,
-                        isCurrent = item.id == selectedWallet?.id,
-                        listPosition = ListPosition.getPosition(index, availableWallets.size),
-                        modifier = Modifier.clickable {
-                            onWalletSelected(item.id)
-                            isShowSelectWallets = false
-                        }
-                    )
-                }
+    ModalBottomSheet(
+        isVisible = isShowSelectWallets,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        onDismissRequest = { isShowSelectWallets = false },
+    ) {
+        LazyColumn {
+            itemsIndexed(availableWallets) { index, item ->
+                WalletItem(
+                    wallet = item,
+                    isCurrent = item.id == selectedWallet?.id,
+                    listPosition = ListPosition.getPosition(index, availableWallets.size),
+                    modifier = Modifier.clickable {
+                        onWalletSelected(item.id)
+                        isShowSelectWallets = false
+                    }
+                )
             }
         }
     }

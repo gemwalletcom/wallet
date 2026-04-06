@@ -24,6 +24,7 @@ public enum EVMChain: String, Codable, CaseIterable, Equatable, Hashable, Sendab
 	case celo
 	case world
 	case sonic
+	case seiEvm = "seievm"
 	case abstract
 	case berachain
 	case ink

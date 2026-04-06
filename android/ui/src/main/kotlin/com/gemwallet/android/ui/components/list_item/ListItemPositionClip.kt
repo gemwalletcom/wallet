@@ -11,19 +11,40 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.adaptivePadding
+import com.gemwallet.android.ui.theme.paddingSmall
 
 private val normalTopPadding = 8.dp
 private val normalBottomPadding = 8.dp
 
-private val bigRound = 16.dp
-private val smallRound = 2.dp
+private val largeCornerRadius = 16.dp
+private val smallCornerRadius = 2.dp
 private val itemPadding = 1.dp
 
-private val firstItemShape = RoundedCornerShape(topStart = bigRound, topEnd = bigRound, bottomStart = smallRound, bottomEnd = smallRound)
-private val lastItemShape = RoundedCornerShape(bottomStart = bigRound, bottomEnd = bigRound, topStart = smallRound, topEnd = smallRound)
+private val firstItemShape = RoundedCornerShape(topStart = largeCornerRadius, topEnd = largeCornerRadius, bottomStart = smallCornerRadius, bottomEnd = smallCornerRadius)
+private val lastItemShape = RoundedCornerShape(bottomStart = largeCornerRadius, bottomEnd = largeCornerRadius, topStart = smallCornerRadius, topEnd = smallCornerRadius)
 
-private val middleItemShape = RoundedCornerShape(smallRound)
-private val singleItemShape = RoundedCornerShape(bigRound)
+private val middleItemShape = RoundedCornerShape(smallCornerRadius)
+private val singleItemShape = RoundedCornerShape(largeCornerRadius)
+
+private fun ListPosition.topPadding(paddingVertical: Dp?) = when (this) {
+    ListPosition.Subhead, ListPosition.First, ListPosition.Single -> paddingVertical ?: normalTopPadding
+    ListPosition.Middle, ListPosition.Last -> paddingVertical ?: itemPadding
+}
+
+private fun ListPosition.bottomPadding(paddingVertical: Dp?) = when (this) {
+    ListPosition.Single -> paddingVertical ?: normalBottomPadding
+    ListPosition.Last -> normalBottomPadding
+    else -> 0.dp
+}
+
+private fun ListPosition.shape() = when (this) {
+    ListPosition.Subhead -> null
+    ListPosition.First -> firstItemShape
+    ListPosition.Middle -> middleItemShape
+    ListPosition.Single -> singleItemShape
+    ListPosition.Last -> lastItemShape
+}
 
 @Composable
 fun Modifier.listItem(
@@ -31,15 +52,12 @@ fun Modifier.listItem(
     background: Color = MaterialTheme.colorScheme.background,
     paddingVertical: Dp? = null,
     paddingHorizontal: Dp? = null,
-): Modifier =
-    padding(horizontal = paddingHorizontal ?: bigRound) then
-    when (position) {
-        ListPosition.Subhead -> this.padding(top = paddingVertical ?: normalTopPadding, bottom = 0.dp)
-        ListPosition.First -> this.padding(top = paddingVertical ?: normalTopPadding).clip(firstItemShape)
-        ListPosition.Middle -> this.padding(top = paddingVertical ?: itemPadding).clip(middleItemShape)
-        ListPosition.Single -> this.padding(top = paddingVertical ?: normalTopPadding, bottom = paddingVertical ?: normalBottomPadding).clip(singleItemShape)
-        ListPosition.Last -> this.padding(top = paddingVertical ?: itemPadding, bottom = normalBottomPadding).clip(lastItemShape)
-    } then when (position) {
-        ListPosition.Subhead -> Modifier
-        else -> Modifier.background(background)
-    }
+): Modifier {
+    val positionedModifier = this
+        .padding(top = position.topPadding(paddingVertical), bottom = position.bottomPadding(paddingVertical))
+        .let { modifier -> position.shape()?.let(modifier::clip) ?: modifier }
+
+    return padding(horizontal = paddingHorizontal ?: adaptivePadding(default = largeCornerRadius, compact = paddingSmall))
+        .then(positionedModifier)
+        .then(if (position == ListPosition.Subhead) Modifier else Modifier.background(background))
+}

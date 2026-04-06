@@ -9,8 +9,7 @@ import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.GetTransaction
-import com.gemwallet.android.cases.transactions.GetTransactionUpdateTime
-import com.gemwallet.android.cases.transactions.PutTransactions
+import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
@@ -55,8 +54,7 @@ class TransactionsRepositoryImpl(
     GetPendingTransactionsCount,
     GetTransaction,
     CreateTransaction,
-    PutTransactions,
-    GetTransactionUpdateTime,
+    SaveTransactions,
     ClearPendingTransactions
 {
 
@@ -67,10 +65,6 @@ class TransactionsRepositoryImpl(
 
     init {
         handlePendingTransactions()
-    }
-
-    override fun getTransactionUpdateTime(walletId: String): Long {
-        return transactionsDao.getUpdateTime(walletId)
     }
 
     override fun getPendingTransactionsCount(): Flow<Int?> {
@@ -90,7 +84,7 @@ class TransactionsRepositoryImpl(
 
     override fun getChangedTransactions(): Flow<List<TransactionExtended>> = changedTransactions
 
-    override suspend fun putTransactions(walletId: String, transactions: List<Transaction>) = withContext(Dispatchers.IO) {
+    override suspend fun saveTransactions(walletId: String, transactions: List<Transaction>) = withContext(Dispatchers.IO) {
         transactionsDao.insert(transactions.toRecord(walletId))
         addSwapMetadata(transactions.filter { it.type == TransactionType.Swap })
     }

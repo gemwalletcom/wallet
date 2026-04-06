@@ -102,7 +102,7 @@ fun AmountScene(
                     assetSymbol = asset.symbol,
                     currency = currency,
                     inputType = amountInputType,
-                    onInputTypeClick = onInputTypeClick,
+                    onInputTypeClick = if (txType.canSwitchAmountInputTypeOnAmountScreen()) onInputTypeClick else null,
                     equivalent = equivalent,
                     readOnly = !amountPrefill.isNullOrEmpty(),
                     error = amountErrorString(error = error),
@@ -145,4 +145,8 @@ fun AmountScene(
             focusRequester.requestFocus()
         } catch (_: Throwable) {}
     }
+}
+
+internal fun TransactionType.canSwitchAmountInputTypeOnAmountScreen(): Boolean {
+    return this == TransactionType.Transfer
 }

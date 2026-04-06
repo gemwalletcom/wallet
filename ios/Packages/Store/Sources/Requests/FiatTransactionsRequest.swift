@@ -11,7 +11,7 @@ public struct FiatTransactionsRequest: DatabaseQueryable {
         self.walletId = walletId
     }
 
-    public func fetch(_ db: Database) throws -> [FiatTransactionInfo] {
+    public func fetch(_ db: Database) throws -> [FiatTransactionAssetData] {
         try FiatTransactionRecord
             .including(required: FiatTransactionRecord.asset)
             .filter(FiatTransactionRecord.Columns.walletId == walletId.id)

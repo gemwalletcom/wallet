@@ -1,8 +1,11 @@
 package com.wallet
 
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.formatSupply
+import com.gemwallet.android.model.shouldUseCompactFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -53,5 +56,22 @@ class TestFormat {
         val btc = Asset(AssetId(Chain.Bitcoin), "Bitcoin", "BTC", 8, AssetType.NATIVE)
         assertEquals("\u221E BTC", btc.formatSupply(0.0))
         assertEquals("21,000,000.00 BTC", btc.formatSupply(21_000_000.0))
+    }
+
+    @Test
+    fun testCurrency_CompactFormatThreshold() {
+        assertEquals(false, shouldUseCompactFormatter(9_999.0))
+        assertEquals(true, shouldUseCompactFormatter(10_000.0))
+        assertEquals(true, shouldUseCompactFormatter(-10_000.0))
+    }
+
+    @Test
+    fun testAsset_CompactFormatBelowThresholdKeepsDefaultFormatting() {
+        val asset = mockAsset()
+
+        assertEquals(
+            "1.00 BTC",
+            asset.compactFormatter(value = 1.0)
+        )
     }
 }

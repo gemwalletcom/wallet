@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -69,7 +69,9 @@ internal fun SwapItem(
         verticalArrangement = Arrangement.spacedBy(space2)
     ) {
         Row(
-            modifier = Modifier.height(listItemIconSize).fillMaxWidth(),
+            modifier = Modifier
+                .heightIn(min = listItemIconSize)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SwapItemInput(calculating, type, state)

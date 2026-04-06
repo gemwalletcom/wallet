@@ -22,14 +22,6 @@ public struct StreamMessagePrices: Codable, Sendable {
 	}
 }
 
-public struct StreamWalletUpdate: Codable, Sendable {
-	public let walletId: WalletId
-
-	public init(walletId: WalletId) {
-		self.walletId = walletId
-	}
-}
-
 public struct StreamNotificationlUpdate: Codable, Sendable {
 	public let walletId: WalletId
 	public let notification: InAppNotification
@@ -58,9 +50,17 @@ public struct StreamTransactionsUpdate: Codable, Sendable {
 	}
 }
 
+public struct StreamWalletUpdate: Codable, Sendable {
+	public let walletId: WalletId
+
+	public init(walletId: WalletId) {
+		self.walletId = walletId
+	}
+}
+
 public enum StreamEvent: Codable, Sendable {
 	case prices(WebSocketPricePayload)
-	case balances([StreamBalanceUpdate])
+	case balances(StreamBalanceUpdate)
 	case transactions(StreamTransactionsUpdate)
 	case priceAlerts(StreamPriceAlertUpdate)
 	case nft(StreamWalletUpdate)
@@ -93,7 +93,7 @@ public enum StreamEvent: Codable, Sendable {
 					return
 				}
 			case .balances:
-				if let content = try? container.decode([StreamBalanceUpdate].self, forKey: .data) {
+				if let content = try? container.decode(StreamBalanceUpdate.self, forKey: .data) {
 					self = .balances(content)
 					return
 				}
@@ -164,6 +164,7 @@ public enum StreamEvent: Codable, Sendable {
 }
 
 public enum StreamMessage: Codable, Sendable {
+	case getPrices(StreamMessagePrices)
 	case subscribePrices(StreamMessagePrices)
 	case unsubscribePrices(StreamMessagePrices)
 	case addPrices(StreamMessagePrices)
@@ -171,7 +172,8 @@ public enum StreamMessage: Codable, Sendable {
 	case unsubscribeRealtimePrices(StreamMessagePrices)
 
 	enum CodingKeys: String, CodingKey, Codable {
-		case subscribePrices,
+		case getPrices,
+			subscribePrices,
 			unsubscribePrices,
 			addPrices,
 			subscribeRealtimePrices,
@@ -186,6 +188,11 @@ public enum StreamMessage: Codable, Sendable {
 		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
 		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
 			switch type {
+			case .getPrices:
+				if let content = try? container.decode(StreamMessagePrices.self, forKey: .data) {
+					self = .getPrices(content)
+					return
+				}
 			case .subscribePrices:
 				if let content = try? container.decode(StreamMessagePrices.self, forKey: .data) {
 					self = .subscribePrices(content)
@@ -219,6 +226,9 @@ public enum StreamMessage: Codable, Sendable {
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
 		switch self {
+		case .getPrices(let content):
+			try container.encode(CodingKeys.getPrices, forKey: .type)
+			try container.encode(content, forKey: .data)
 		case .subscribePrices(let content):
 			try container.encode(CodingKeys.subscribePrices, forKey: .type)
 			try container.encode(content, forKey: .data)

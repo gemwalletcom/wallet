@@ -6,5 +6,4 @@ data class NodeStatus(
     val blockNumber: ULong,
     val inSync: Boolean,
     val latency: ULong,
-    val loading: Boolean = false,
 )

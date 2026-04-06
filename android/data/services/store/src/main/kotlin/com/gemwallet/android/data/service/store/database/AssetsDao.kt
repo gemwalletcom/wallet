@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
+import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetConfig
 import com.gemwallet.android.data.service.store.database.entities.DbAssetInfo
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
@@ -35,28 +36,34 @@ interface AssetsDao {
     suspend fun addLinks(links: List<DbAssetLink>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun setMarket(market: DbAssetMarket)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun setConfig(config: DbAssetConfig)
 
     @Update
     fun update(asset: DbAsset)
 
-    @Query("UPDATE asset SET is_swap_enabled=1 WHERE chain IN (:chains)")
-    suspend fun setSwapable(chains: List<Chain>)
+    @Update(entity = DbAsset::class)
+    suspend fun updateBasicAsset(asset: DbAssetBasicUpdate)
 
-    @Query("UPDATE asset SET is_swap_enabled=0")
-    suspend fun resetSwapable()
+    @Query("SELECT id FROM asset WHERE id IN (:ids) AND is_swap_enabled = 1")
+    suspend fun getSwapAvailableAssetIds(ids: List<String>): List<String>
 
-    @Query("UPDATE asset SET is_buy_enabled=0")
-    suspend fun resetBuyAvailable()
+    @Query("UPDATE asset SET is_swap_enabled = :value WHERE id IN (:ids)")
+    suspend fun setSwapAvailable(ids: List<String>, value: Boolean)
 
-    @Query("UPDATE asset SET is_buy_enabled=1 WHERE id IN (:ids)")
-    suspend fun updateBuyAvailable(ids: List<String>)
+    @Query("SELECT id FROM asset WHERE is_buy_enabled = 1")
+    suspend fun getBuyAvailableAssetIds(): List<String>
 
-    @Query("UPDATE asset SET is_sell_enabled=0")
-    suspend fun resetSellAvailable()
+    @Query("UPDATE asset SET is_buy_enabled = :value WHERE id IN (:ids)")
+    suspend fun setBuyAvailable(ids: List<String>, value: Boolean)
 
-    @Query("UPDATE asset SET is_sell_enabled=1 WHERE id IN (:ids)")
-    suspend fun updateSellAvailable(ids: List<String>)
+    @Query("SELECT id FROM asset WHERE is_sell_enabled = 1")
+    suspend fun getSellAvailableAssetIds(): List<String>
+
+    @Query("UPDATE asset SET is_sell_enabled = :value WHERE id IN (:ids)")
+    suspend fun setSellAvailable(ids: List<String>, value: Boolean)
 
     @Query("SELECT asset.* FROM asset JOIN asset_wallet ON asset.id = asset_wallet.asset_id WHERE wallet_id = :walletId")
     fun getNativeWalletAssets(walletId: String): Flow<List<DbAsset>>
@@ -80,8 +87,9 @@ interface AssetsDao {
         SELECT DISTINCT asset.id FROM asset
         JOIN asset_config ON asset_config.asset_id = asset.id
         WHERE asset_config.is_visible = 1
+        AND asset_config.wallet_id = :walletId
     """)
-    suspend fun getAssetsPriceUpdate(): List<String>
+    suspend fun getAssetsPriceUpdate(walletId: String): List<String>
 
     @Query("""
         SELECT
@@ -188,6 +196,9 @@ interface AssetsDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     fun linkAssetToWallet(link: DbAssetWallet)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM asset_wallet WHERE wallet_id = :walletId AND asset_id = :assetId)")
+    suspend fun hasAssetWalletLink(walletId: String, assetId: String): Boolean
 
     @Query("SELECT * FROM asset WHERE id = :id")
     fun getAsset(id: String): DbAsset?

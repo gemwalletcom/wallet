@@ -22,6 +22,12 @@ test:
     @echo "==> Test Android app"
     @cd android && just test
 
+test-integration:
+    @echo "==> Test iOS app integration"
+    @cd ios && just test-integration
+    @echo "==> Test Android app integration"
+    @cd android && just test-integration
+
 generate: generate-models generate-stone
 
 generate-models:

@@ -100,7 +100,11 @@ fun AmountListHead(
         ) {
             (icon as? Asset)?.let {
                 HeaderIcon(it)
-            } ?: IconWithBadge(icon = icon, size = headerIconSize)
+            } ?: IconWithBadge(
+                icon = icon,
+                size = headerIconSize,
+                badgeBackgroundColor = MaterialTheme.colorScheme.surface,
+            )
 
             icon?.let { Spacer16() }
 
@@ -166,7 +170,11 @@ fun HeaderIcon(
     iconSize: Dp = headerIconSize,
 ) {
     if (asset == null) { return }
-    AssetIcon(asset, size = iconSize)
+    AssetIcon(
+        asset = asset,
+        size = iconSize,
+        badgeBackgroundColor = MaterialTheme.colorScheme.surface,
+    )
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)

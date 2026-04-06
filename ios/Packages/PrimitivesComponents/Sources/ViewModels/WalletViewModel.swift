@@ -32,8 +32,10 @@ public struct WalletViewModel: Sendable {
         case .multicoin:
             return Images.Logo.logo
         case .view, .single, .privateKey:
-            let name = wallet.accounts.first?.chain.rawValue ?? ""
-            return Images.name(name)
+            guard let chain = wallet.accounts.first?.chain else {
+                return Images.Logo.logo
+            }
+            return ChainImage(chain: chain).placeholder
         }
     }
 

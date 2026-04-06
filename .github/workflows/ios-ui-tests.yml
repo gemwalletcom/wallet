@@ -101,8 +101,8 @@ jobs:
 
       - name: Build for Testing
         working-directory: ios
-        run: just build-for-testing-ui
+        run: just build-for-testing-integration
 
       - name: UI Tests
         working-directory: ios
-        run: just test-ui-without-building
+        run: just test-integration-without-building

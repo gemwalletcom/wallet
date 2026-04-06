@@ -6,5 +6,5 @@ import kotlinx.coroutines.flow.Flow
 interface PriceAlertsStateCoordinator {
     val priceAlertState: Flow<PriceAlertsStateEvent?>
 
-    fun priceAlertState(state: PriceAlertsStateEvent)
+    suspend fun priceAlertState(state: PriceAlertsStateEvent)
 }

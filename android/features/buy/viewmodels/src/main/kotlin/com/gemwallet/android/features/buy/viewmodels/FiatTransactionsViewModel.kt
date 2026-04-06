@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.wallet.core.primitives.FiatTransactionInfo
+import com.wallet.core.primitives.FiatTransactionAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,9 +25,10 @@ class FiatTransactionsViewModel @Inject constructor(
     private val buyRepository: BuyRepository,
 ) : ViewModel() {
 
-    private val walletId = sessionRepository.session().map { it?.wallet?.id }
+    private val session = sessionRepository.session()
+    private val walletId = session.map { it?.wallet?.id }
 
-    val transactions: StateFlow<List<FiatTransactionInfo>> = walletId
+    val transactions: StateFlow<List<FiatTransactionAssetData>> = walletId
         .flatMapLatest { id ->
             if (id != null) buyRepository.observeFiatTransactions(id) else flowOf(emptyList())
         }
@@ -39,8 +40,8 @@ class FiatTransactionsViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            val id = walletId.first() ?: return@launch
-            buyRepository.updateFiatTransactions(id)
+            val wallet = session.first()?.wallet ?: return@launch
+            buyRepository.updateFiatTransactions(wallet)
         }
     }
 }

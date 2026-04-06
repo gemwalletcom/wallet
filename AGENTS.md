@@ -38,6 +38,10 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - Prefer existing secure-storage and auth layers over inventing new persistence or authentication paths
 - If a change affects `core/` cryptography or signing behavior, verify both apps after regeneration
 
+## Testing
+
+- When fixing a bug, add or update the smallest meaningful unit test that proves the real behavior with minimal setup and assertions, and avoid testing trivial primitives or implementation details
+
 ## Task Completion
 
 Before finishing a task:
@@ -47,3 +51,5 @@ Before finishing a task:
 4. Review security impact for changes affecting secrets, signing, auth, transactions, or wallet recovery
 5. If `core/` changed, regenerate bindings/models and verify both apps
 6. Remove dead code, keep imports clean, and follow platform patterns
+
+Do not close a task based only on reasoning, `git diff`, or file inspection. Run real verification commands for the changed area. If verification is blocked by unrelated repo state, report the exact command you ran and the blocking failure explicitly.

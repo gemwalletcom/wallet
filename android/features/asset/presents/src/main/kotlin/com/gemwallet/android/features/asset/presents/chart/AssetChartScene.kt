@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
-import com.gemwallet.android.ext.getAddressEllipsisText
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.ui.R
@@ -51,6 +55,7 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.AllTimeUIMod
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MarketInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.AssetChartViewModel
+import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetMarket
@@ -59,15 +64,19 @@ import uniffi.gemstone.Explorer
 import java.text.DateFormat
 import java.util.Date
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssetChartScene(
     onCancel: () -> Unit,
     onPriceAlerts: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
     viewModel: AssetChartViewModel = hiltViewModel(),
+    chartViewModel: ChartViewModel = hiltViewModel(),
 ) {
     val marketUIModelState by viewModel.marketUIModel.collectAsStateWithLifecycle()
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
+    val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
+    val pullToRefreshState = rememberPullToRefreshState()
 
     val marketModel = marketUIModelState
     if (marketModel == null) {
@@ -80,34 +89,73 @@ fun AssetChartScene(
         backHandle = true,
         onClose = onCancel,
     ) {
-        LazyColumn {
-            item { Chart() }
-            item {
-                if (priceAlertsCount > 0) {
-                    PropertyItem(
-                        modifier = Modifier
-                            .clickable { onPriceAlerts(marketModel.asset.id) }
-                            .testTag("assetChart"),
-                        title = { PropertyTitleText(R.string.settings_price_alerts_title) },
-                        data = { PropertyDataText(text = "$priceAlertsCount", badge = { DataBadgeChevron() }) },
-                        listPosition = ListPosition.Single,
-                    )
-                } else {
-                    PropertyItem(
-                        modifier = Modifier
-                            .clickable { onAddPriceAlertTarget(marketModel.asset.id) }
-                            .testTag("assetChart"),
-                        title = { PropertyTitleText(R.string.price_alerts_set_alert_title) },
-                        data = { PropertyDataText(text = "", badge = { DataBadgeChevron() }) },
-                        listPosition = ListPosition.Single,
+        PullToRefreshBox(
+            isRefreshing = isChartRefreshing,
+            onRefresh = {
+                chartViewModel.refresh()
+            },
+            state = pullToRefreshState,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = isChartRefreshing,
+                    state = pullToRefreshState,
+                )
+            },
+        ) {
+            LazyColumn {
+                item { Chart(chartViewModel) }
+                item {
+                    PriceAlertsItem(
+                        assetId = marketModel.asset.id,
+                        priceAlertsCount = priceAlertsCount,
+                        onPriceAlerts = onPriceAlerts,
+                        onAddPriceAlertTarget = onAddPriceAlertTarget,
                     )
                 }
-
+                assetMarket(marketModel.currency, marketModel.asset, marketModel.marketInfo, marketModel.explorerName)
+                links(marketModel.assetLinks)
             }
-            assetMarket(marketModel.currency, marketModel.asset, marketModel.marketInfo, marketModel.explorerName)
-            links(marketModel.assetLinks)
         }
     }
+}
+
+@Composable
+private fun PriceAlertsItem(
+    assetId: AssetId,
+    priceAlertsCount: Int,
+    onPriceAlerts: (AssetId) -> Unit,
+    onAddPriceAlertTarget: (AssetId) -> Unit,
+) {
+    val hasPriceAlerts = priceAlertsCount > 0
+
+    PropertyItem(
+        modifier = Modifier
+            .clickable {
+                if (hasPriceAlerts) {
+                    onPriceAlerts(assetId)
+                } else {
+                    onAddPriceAlertTarget(assetId)
+                }
+            }
+            .testTag("assetChart"),
+        title = {
+            PropertyTitleText(
+                if (hasPriceAlerts) {
+                    R.string.settings_price_alerts_title
+                } else {
+                    R.string.price_alerts_set_alert_title
+                }
+            )
+        },
+        data = {
+            PropertyDataText(
+                text = if (hasPriceAlerts) priceAlertsCount.toString() else "",
+                badge = { DataBadgeChevron() },
+            )
+        },
+        listPosition = ListPosition.Single,
+    )
 }
 
 private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
@@ -224,7 +272,7 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
                     title = { PropertyTitleText(R.string.asset_contract) },
                     data = {
                         PropertyDataText(
-                            text = item.value.getAddressEllipsisText(chain = asset.chain),
+                            text = AddressFormatter(item.value, chain = asset.chain).value(),
                             badge = { DataBadgeChevron() }
                         )
                     },

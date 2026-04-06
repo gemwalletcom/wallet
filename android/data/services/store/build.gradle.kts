@@ -40,6 +40,9 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
+    testFixtures {
+        enable = true
+    }
 
 
     sourceSets {
@@ -63,6 +66,7 @@ android {
 
 dependencies {
     implementation(project(":gemcore"))
+    testFixturesImplementation(project(":gemcore"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

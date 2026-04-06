@@ -9,7 +9,12 @@ import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.min
+
+private const val COMPACT_FORMATTER_THRESHOLD = 10_000.0
+
+fun shouldUseCompactFormatter(value: Double): Boolean = abs(value) >= COMPACT_FORMATTER_THRESHOLD
 
 fun cryptoFormat(
     value: BigDecimal,
@@ -333,10 +338,10 @@ fun com.wallet.core.primitives.Currency.format(
 
 fun com.wallet.core.primitives.Currency.compactFormatter(
     value: Double,
-    locale: Locale = Locale.getDefault()
+    locale: Locale = Locale.getDefault(),
 ): String {
-    if (value <= 100_000.0) {
-        return format(value)
+    if (!shouldUseCompactFormatter(value)) {
+        return format(value = value)
     }
     val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
     formatter.currency = android.icu.util.Currency.getInstance(string)
@@ -346,10 +351,10 @@ fun com.wallet.core.primitives.Currency.compactFormatter(
 
 fun Asset.compactFormatter(
     value: Double,
-    locale: Locale = Locale.getDefault()
+    locale: Locale = Locale.getDefault(),
 ): String {
-    if (value <= 100_000.0) {
-        return format(value)
+    if (!shouldUseCompactFormatter(value)) {
+        return format(humanAmount = value)
     }
     val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
     formatter.maximumFractionDigits = 2

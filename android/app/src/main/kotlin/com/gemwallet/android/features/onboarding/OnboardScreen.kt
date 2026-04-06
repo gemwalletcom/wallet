@@ -26,6 +26,7 @@ import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space24
 
 private const val BrandmarkCornerPercent = 29
@@ -54,7 +55,7 @@ fun OnboardScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
-                .padding(bottom = paddingDefault),
+                .padding(start = sceneContentPadding(), end = sceneContentPadding(), bottom = paddingDefault),
         ) {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_create_new_wallet),

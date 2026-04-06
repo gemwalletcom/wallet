@@ -2,7 +2,6 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.DatabaseView
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -217,7 +216,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             isBuyEnabled = entity.isBuyEnabled,
             isSellEnabled = entity.isSellEnabled,
             isSwapEnabled = entity.isSwapEnabled,
-            isStakeEnabled = asset.chain.isStakeSupported(),
+            isStakeEnabled = entity.isStakeEnabled,
             isPinned = entity.pinned == true,
             rankScore = entity.assetRank,
             isActive = true,

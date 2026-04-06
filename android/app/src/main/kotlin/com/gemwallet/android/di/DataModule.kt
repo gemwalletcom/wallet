@@ -1,7 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.pricealerts.coordinators.SyncPriceAlerts
 import com.gemwallet.android.blockchain.clients.algorand.AlgorandSignClient
 import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
 import com.gemwallet.android.blockchain.clients.cardano.CardanoSignClient
@@ -19,12 +17,9 @@ import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
-import com.gemwallet.android.cases.device.SyncSubscription
-import com.gemwallet.android.cases.transactions.SyncTransactions
+import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.buy.BuyRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.services.SyncService
@@ -97,22 +92,12 @@ object DataModule {
     @Singleton
     @Provides
     fun provideSyncService(
-        sessionRepository: SessionRepository,
-        walletsRepository: WalletsRepository,
         buyRepository: BuyRepository,
-        syncTransactions: SyncTransactions,
-        syncSubscription: SyncSubscription,
-        syncPerpetuals: SyncPerpetuals,
-        syncPriceAlerts: SyncPriceAlerts,
+        syncDeviceInfo: SyncDeviceInfo,
     ): SyncService {
         return SyncService(
-            sessionRepository = sessionRepository,
-            walletsRepository = walletsRepository,
-            syncTransactions = syncTransactions,
             buyRepository = buyRepository,
-            syncSubscription = syncSubscription,
-            syncPerpetuals = syncPerpetuals,
-            syncPriceAlerts = syncPriceAlerts,
+            syncDeviceInfo = syncDeviceInfo,
         )
     }
 }

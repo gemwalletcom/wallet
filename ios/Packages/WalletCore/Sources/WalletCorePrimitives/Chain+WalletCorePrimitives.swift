@@ -28,6 +28,7 @@ public extension Chain {
              .celo,
              .world,
              .sonic,
+             .seiEvm,
              .abstract,
              .berachain,
              .ink,

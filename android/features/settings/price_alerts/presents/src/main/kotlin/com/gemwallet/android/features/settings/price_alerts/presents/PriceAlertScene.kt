@@ -226,7 +226,9 @@ private fun LazyListScope.assets(
                         PriceAlertType.Increase -> Pair(stringResource(R.string.price_alerts_direction_increases_by), item.percentage)
                         PriceAlertType.Decrease -> Pair(stringResource(R.string.price_alerts_direction_decreases_by), item.percentage)
                     }
-                    PriceInfo(price, changes, item.priceState)
+                    if (price.isNotEmpty() || changes.isNotEmpty()) {
+                        PriceInfo(price, changes, item.priceState)
+                    }
                 },
             )
         }

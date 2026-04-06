@@ -97,6 +97,7 @@ struct ServicesFactory {
         let assetsService = Self.makeAssetsService(
             assetStore: storeManager.assetStore,
             balanceStore: storeManager.balanceStore,
+            priceStore: storeManager.priceStore,
             chainFactory: chainServiceFactory,
         )
 
@@ -161,7 +162,7 @@ struct ServicesFactory {
             priceStore: storeManager.priceStore,
             fiatRateStore: storeManager.fiatRateStore,
         )
-        let portfolioService = PortfolioService(apiService: apiService)
+        let portfolioService = PortfolioService(apiService: apiService, assetStore: storeManager.assetStore)
         let perpetualService = Self.makePerpetualService(
             perpetualStore: storeManager.perpetualStore,
             assetStore: storeManager.assetStore,
@@ -184,6 +185,7 @@ struct ServicesFactory {
         )
         let fiatService = FiatService(
             apiService: apiService,
+            assetsService: assetsService,
             store: storeManager.fiatTransactionStore,
         )
         let streamEventService = StreamEventService(
@@ -228,6 +230,8 @@ struct ServicesFactory {
             assetsListService: apiService,
             assetService: assetsService,
             assetsEnabler: assetsEnabler,
+            transactionsService: transactionsService,
+            nftService: nftService,
         )
         let walletSetupService = WalletSetupService(balanceService: balanceService)
 
@@ -469,11 +473,13 @@ extension ServicesFactory {
     private static func makeAssetsService(
         assetStore: AssetStore,
         balanceStore: BalanceStore,
+        priceStore: PriceStore,
         chainFactory: ChainServiceFactory,
     ) -> AssetsService {
         AssetsService(
             assetStore: assetStore,
             balanceStore: balanceStore,
+            priceStore: priceStore,
             chainServiceFactory: chainFactory,
         )
     }

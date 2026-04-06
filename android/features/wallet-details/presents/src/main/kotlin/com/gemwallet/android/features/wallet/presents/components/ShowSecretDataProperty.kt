@@ -16,7 +16,7 @@ import com.wallet.core.primitives.WalletType
 internal fun ShowSecretDataProperty(
     walletId: String,
     walletType: WalletType,
-    onClick: (String) -> Unit,
+    onClick: (String, WalletType) -> Unit,
 ) {
     val secretDataLabel = when (walletType) {
         WalletType.Multicoin,
@@ -25,7 +25,7 @@ internal fun ShowSecretDataProperty(
         WalletType.View -> return
     }
     PropertyItem(
-        modifier = Modifier.clickable { onClick(walletId) },
+        modifier = Modifier.clickable { onClick(walletId, walletType) },
         title = {
             PropertyTitleText(stringResource(R.string.common_show, secretDataLabel))
         },

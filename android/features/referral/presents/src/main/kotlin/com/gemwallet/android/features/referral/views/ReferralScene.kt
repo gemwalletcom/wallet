@@ -44,6 +44,7 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.features.referral.viewmodels.SyncType
 import com.gemwallet.android.features.referral.views.components.referralConfirmCode
 import com.gemwallet.android.features.referral.views.components.referralError
@@ -106,7 +107,7 @@ fun ReferralScene(
                 Row(
                     modifier = Modifier
                         .widthIn(max = 250.dp)
-                        .padding(horizontal = paddingDefault)
+                        .padding(horizontal = sceneContentPadding())
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                         .clickable(onWallet)
@@ -161,7 +162,7 @@ fun ReferralScene(
                 if (rewards == null) {
                     item {
                         Spacer8()
-                        Box(modifier = Modifier.padding(horizontal = paddingDefault)) {
+                        Box(modifier = Modifier.padding(horizontal = sceneContentPadding())) {
                             MainActionButton(
                                 title = stringResource(R.string.rewards_activate_referral_code_title),
                                 colors = ButtonDefaults.buttonColors()

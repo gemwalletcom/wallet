@@ -329,4 +329,29 @@ struct WalletServiceTests {
         #expect(rawPreferences.subscriptionsVersion == 11)
         #expect(rawPreferences.subscriptionsVersionHasChange)
     }
+
+    @Test
+    func setupChainsFailsWithoutSeededAsset() async throws {
+        let db = DB.mockWithChains([.ethereum])
+        let walletStore = WalletStore.mock(db: db)
+        let assetStore = AssetStore.mock(db: db)
+        let service = WalletService.mock(walletStore: walletStore)
+
+        _ = try await service.loadOrCreateWallet(
+            name: "Wallet",
+            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            source: .import,
+        )
+
+        #expect(throws: Error.self) {
+            try service.setup(chains: [.ethereum, .seiEvm])
+        }
+
+        try assetStore.add(assets: [.mock(asset: .mock(id: AssetId(chain: .seiEvm)))])
+
+        try service.setup(chains: [.ethereum, .seiEvm])
+
+        let wallet = try #require(try walletStore.getWallets().first)
+        #expect(wallet.accounts.contains(where: { $0.chain == .seiEvm }))
+    }
 }

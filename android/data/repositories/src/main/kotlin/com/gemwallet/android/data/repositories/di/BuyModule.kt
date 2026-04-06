@@ -1,12 +1,13 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
+import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
+import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
-import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
@@ -22,9 +23,10 @@ object BuyModule {
     @Singleton
     fun provideBuyRepository(
         @ApplicationContext context: Context,
-        gemApiClient: GemApiClient,
+        getRemoteConfig: GetRemoteConfig,
         gemDeviceApiClient: GemDeviceApiClient,
         assetsRepository: AssetsRepository,
+        assetsCoordinator: PrefetchAssets,
         fiatTransactionsDao: FiatTransactionsDao,
         getFiatTransactions: GetFiatTransactions,
     ): BuyRepository =
@@ -35,9 +37,10 @@ object BuyModule {
                     Context.MODE_PRIVATE
                 )
             ),
-            gemApi = gemApiClient,
+            getRemoteConfig = getRemoteConfig,
             gemDeviceApiClient = gemDeviceApiClient,
             assetsRepository = assetsRepository,
+            assetsCoordinator = assetsCoordinator,
             fiatTransactionsDao = fiatTransactionsDao,
             getFiatTransactions = getFiatTransactions,
         )

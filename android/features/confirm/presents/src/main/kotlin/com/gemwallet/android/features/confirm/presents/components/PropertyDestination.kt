@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -26,26 +27,25 @@ fun PropertyDestination(
         is ConfirmProperty.Destination.Generic -> R.string.wallet_connect_app
         is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
     }
-    val recipientName = when (model) {
-        is ConfirmProperty.Destination.Provider,
-        is ConfirmProperty.Destination.Stake -> null
-        is ConfirmProperty.Destination.Transfer -> model.domain
-        is ConfirmProperty.Destination.Generic -> model.appName
-        is ConfirmProperty.Destination.PerpetualOper -> model.providerName
-    }
     PropertyItem(
         title = {
             PropertyTitleText(title)
         },
         data = {
             Column(horizontalAlignment = Alignment.End) {
-                if (recipientName == null) {
-                    Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.data) }
-                } else {
-                    Row(horizontalArrangement = Arrangement.End) { PropertyDataText(recipientName) }
-                }
+                Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.displayData()) }
             }
         },
         listPosition = listPosition,
     )
+}
+
+internal fun ConfirmProperty.Destination.displayData(): String {
+    return when (this) {
+        is ConfirmProperty.Destination.Stake,
+        is ConfirmProperty.Destination.Provider -> data
+        is ConfirmProperty.Destination.Transfer -> domain ?: AddressFormatter(address).value()
+        is ConfirmProperty.Destination.Generic -> appName
+        is ConfirmProperty.Destination.PerpetualOper -> providerName
+    }
 }

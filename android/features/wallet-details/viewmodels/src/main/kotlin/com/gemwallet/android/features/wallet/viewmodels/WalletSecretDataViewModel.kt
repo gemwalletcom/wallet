@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.coordinators.GetWalletSecretData
+import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ class WalletSecretDataViewModel @Inject constructor(
     private val getWalletSecretData: GetWalletSecretData,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+    val walletType = savedStateHandle.getStateFlow("type", WalletType.Multicoin)
 
     val data = savedStateHandle.getStateFlow<String?>("walletId", null).flatMapLatest {
         it ?: return@flatMapLatest flowOf(null)

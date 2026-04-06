@@ -3,6 +3,7 @@
 import Components
 import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
@@ -35,7 +36,7 @@ struct ImportWalletTypeScene: View {
                         NavigationLink(value: ImportWalletType.chain(chain)) {
                             ListItemView(
                                 title: Asset(chain).name,
-                                imageStyle: .asset(assetImage: AssetImage.resourceImage(image: chain.rawValue)),
+                                imageStyle: .asset(assetImage: AssetImage.image(ChainImage(chain: chain).placeholder)),
                             )
                         }
                     }

@@ -28,7 +28,7 @@ struct BannerViewModel {
             guard let asset else {
                 return .none
             }
-            return AssetImage.resourceImage(image: asset.chain.rawValue)
+            return AssetImage.image(ChainImage(chain: asset.chain).placeholder)
         case .enableNotifications:
             return AssetImage.image(Images.System.bell)
         case .accountBlockedMultiSignature:

@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.components.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -12,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 
 @Composable
 fun FatalStateScene(
@@ -23,7 +22,7 @@ fun FatalStateScene(
 ) {
     Scene(
         title = title,
-        padding = PaddingValues(paddingDefault),
+        padding = sceneContentPaddingValues(),
         onClose = onCancel,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {

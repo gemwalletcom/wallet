@@ -16,7 +16,7 @@ final class Chain_WalletCorePrimitiveTests {
             .litecoin
         case .ethereum, .smartChain, .polygon, .arbitrum, .optimism, .base,
              .avalancheC, .opBNB, .fantom, .gnosis, .manta, .blast, .zkSync,
-             .linea, .mantle, .celo, .world, .sonic, .abstract, .berachain,
+             .linea, .mantle, .celo, .world, .sonic, .seiEvm, .abstract, .berachain,
              .ink, .unichain, .hyperliquid, .monad, .hyperCore, .plasma, .xLayer, .stable:
             .ethereum
         case .solana:

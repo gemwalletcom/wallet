@@ -12,11 +12,13 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectLeverageDialog(
+    isVisible: Boolean,
     leverages: List<Int>,
     onDismiss: () -> Unit,
     onSelect: (Int) -> Unit,
 ) {
     ModalBottomSheet(
+        isVisible = isVisible,
         onDismissRequest = onDismiss,
     ) {
         LazyColumn(

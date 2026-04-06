@@ -20,6 +20,12 @@ class ConfigStore(
         store.edit { putString(buildKey(key, postfix), value) }
     }
 
+    fun getLong(key: String, postfix: String = "") = store.getLong(buildKey(key, postfix), 0L)
+
+    fun putLong(key: String, value: Long, postfix: String = "") {
+        store.edit { putLong(buildKey(key, postfix), value) }
+    }
+
     fun putBoolean(key: String, value: Boolean) {
         store.edit { putBoolean(buildKey(key), value) }
     }

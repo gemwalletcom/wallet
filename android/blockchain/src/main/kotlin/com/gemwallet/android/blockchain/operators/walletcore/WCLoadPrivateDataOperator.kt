@@ -11,10 +11,13 @@ class WCLoadPrivateDataOperator(
 ) : LoadPrivateDataOperator {
     override suspend fun invoke(wallet: Wallet, password: String): String {
         val storeKey = StoredKey.load("$keyStoreDir/${wallet.id}")
+            ?: throw IllegalStateException("Failed to load stored key for wallet ${wallet.id}")
 
         return if (wallet.type == WalletType.PrivateKey) {
+            val chain = wallet.accounts.firstOrNull()?.chain
+                ?: throw IllegalStateException("No accounts found for wallet ${wallet.id}")
             val bytes = storeKey.decryptPrivateKey(password.decodeHex())
-            uniffi.gemstone.encodePrivateKey(wallet.accounts.first().chain.string, bytes)
+            uniffi.gemstone.encodePrivateKey(chain.string, bytes)
         } else {
             storeKey.decryptMnemonic(password.decodeHex())
         }

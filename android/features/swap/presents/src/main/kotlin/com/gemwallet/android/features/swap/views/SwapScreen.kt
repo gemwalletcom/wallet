@@ -23,6 +23,7 @@ fun SwapScreen(
     receiveId: AssetId?,
     select: SwapItemType?,
     viewModel: SwapViewModel = hiltViewModel(),
+    onSelectionConsumed: () -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
     onConfirm: (ConfirmParams) -> Unit,
     onCancel: () -> Unit,
@@ -41,13 +42,16 @@ fun SwapScreen(
 
     LaunchedEffect(payId, receiveId, select) {
         select ?: return@LaunchedEffect
-        viewModel.onSelect(
-            select,
-            when (select) {
-                SwapItemType.Pay -> payId ?: return@LaunchedEffect
-                SwapItemType.Receive -> receiveId ?: return@LaunchedEffect
-            }
-        )
+        val assetId = when (select) {
+            SwapItemType.Pay -> payId
+            SwapItemType.Receive -> receiveId
+        } ?: run {
+            onSelectionConsumed()
+            return@LaunchedEffect
+        }
+
+        viewModel.onSelect(select, assetId)
+        onSelectionConsumed()
     }
 
     val onSwap: () -> Unit = {

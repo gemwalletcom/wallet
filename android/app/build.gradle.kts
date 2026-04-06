@@ -28,8 +28,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 36
-        versionCode = 709
-        versionName = "2.0.10"
+        versionCode = 714
+        versionName = "2.0.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -226,6 +226,10 @@ dependencies {
     implementation(project(":features:receive:viewmodels"))
     implementation(project(":features:wallets:presents"))
     implementation(project(":features:wallets:viewmodels"))
+    implementation(project(":features:import_wallet:presents"))
+    implementation(project(":features:import_wallet:viewmodels"))
+    implementation(project(":features:create_wallet:presents"))
+    implementation(project(":features:create_wallet:viewmodels"))
     implementation(project(":features:earn:stake:presents"))
     implementation(project(":features:earn:stake:viewmodels"))
     implementation(project(":features:earn:delegation:presents"))
@@ -245,6 +249,7 @@ dependencies {
     implementation(project(":features:settings:settings:presents"))
     implementation(project(":features:settings:settings:viewmodels"))
     implementation(project(":features:recipient:presents"))
+    implementation(project(":features:recipient:viewmodels"))
     implementation(project(":features:nft:presents"))
     implementation(project(":features:wallet-details:presents"))
     implementation(project(":features:bridge:presents"))

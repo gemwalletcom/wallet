@@ -67,11 +67,10 @@ fun AmountPerpetualNavScreen(
         )
     }
 
-    if (showLeverageSelect) {
-        SelectLeverageDialog(
-            leverages = availableLeverages,
-            onDismiss = { showLeverageSelect = false },
-            onSelect = viewModel::setLeverage
-        )
-    }
+    SelectLeverageDialog(
+        isVisible = showLeverageSelect,
+        leverages = availableLeverages,
+        onDismiss = { showLeverageSelect = false },
+        onSelect = viewModel::setLeverage
+    )
 }

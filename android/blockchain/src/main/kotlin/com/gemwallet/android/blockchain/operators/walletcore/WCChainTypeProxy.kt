@@ -14,6 +14,7 @@ class WCChainTypeProxy : ChainTypeProxy<CoinType> {
         Chain.Ethereum,
         Chain.World,
         Chain.Sonic,
+        Chain.SeiEvm,
         Chain.Abstract,
         Chain.Berachain,
         Chain.Ink,

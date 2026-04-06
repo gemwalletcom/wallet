@@ -5,10 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallet.viewmodels.WalletViewModel
+import com.wallet.core.primitives.WalletType
 
 @Composable
 fun WalletNavScreen(
-    onPhraseShow: (String) -> Unit,
+    onPhraseShow: (String, WalletType) -> Unit,
     onBoard: () -> Unit,
     onCancel: () -> Unit,
     viewModel: WalletViewModel = hiltViewModel(),

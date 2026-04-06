@@ -90,7 +90,9 @@ public final class DeveloperViewModel {
 
     func clearTransactionsTimestamp() {
         performAction {
-            WalletPreferences(walletId: walletId).transactionsTimestamp = 0
+            let preferences = WalletPreferences(walletId: walletId)
+            preferences.transactionsTimestamp = 0
+            preferences.completeInitialLoadTransactions = false
         }
     }
 

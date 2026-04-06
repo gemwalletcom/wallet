@@ -48,7 +48,6 @@ internal fun AssetDetailsScene(
     priceAlertEnabled: Boolean,
     priceAlertsCount: Int,
     syncState: AssetInfoUIState.SyncState,
-    tickerState: Long?,
     onRefresh: () -> Unit,
     onCancel: () -> Unit,
     onTransfer: AssetIdAction,

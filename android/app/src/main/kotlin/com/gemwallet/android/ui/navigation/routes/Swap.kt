@@ -65,6 +65,9 @@ fun NavGraphBuilder.swap(
             payId = entry.savedStateHandle.get<String?>("from")?.toAssetId(),
             receiveId = entry.savedStateHandle.get<String?>("to")?.toAssetId(),
             select = entry.savedStateHandle.get("select"),
+            onSelectionConsumed = {
+                entry.savedStateHandle["select"] = null as SwapItemType?
+            },
             onConfirm = onConfirm,
             onSelect = onSelect,
             onCancel = onCancel,

@@ -42,7 +42,9 @@ public struct OnstartService: Sendable {
         configureURLCache()
         do {
             try excludeDirectoriesFromBackup()
-            try migrations()
+            try migrateAssets()
+            try setupWalletChains()
+            configureDefaultCurrency()
         } catch {
             debugLog("configure error: \(error)")
         }
@@ -57,15 +59,20 @@ public struct OnstartService: Sendable {
 // MARK: - Private
 
 extension OnstartService {
-    private func migrations() throws {
-        try walletService.setup(chains: AssetConfiguration.allChains)
+    private func migrateAssets() throws {
         try ImportAssetsService(
             assetListService: assetListService,
             assetsService: assetsService,
             assetStore: assetStore,
             preferences: preferences,
         ).migrate()
+    }
 
+    private func setupWalletChains() throws {
+        try walletService.setup(chains: AssetConfiguration.allChains)
+    }
+
+    private func configureDefaultCurrency() {
         if !preferences.hasCurrency, let currency = Locale.current.currency {
             preferences.currency = (Currency(rawValue: currency.identifier) ?? .usd).rawValue
         }

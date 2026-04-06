@@ -4,9 +4,9 @@
 
 - Run tests through Gradle or the Android `justfile`
 - Default commands:
-  - `just test` or `./gradlew test` — all unit tests
+  - `just test` or `./gradlew testGoogleDebugUnitTest` — Google Debug unit tests
+  - `just test-integration` or `./gradlew connectedGoogleDebugAndroidTest` — instrumented tests (requires emulator)
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
-  - `./gradlew connectedGoogleDebugAndroidTest` — instrumented tests (requires emulator)
 - Run the narrowest relevant target while iterating, then finish with broader validation
 
 ## Test Structure
@@ -27,6 +27,10 @@
 
 Reusable test data factories live in `:gemcore`'s `testFixtures` source set (`gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/`). Use these instead of duplicating private `create*()` helpers in each test file. If a local helper starts getting reused or reviewed as shared test data, promote it into `testFixtures`.
 
+Hard rules:
+- For shared domain types like wallet, account, asset, asset info, and prices, do not add local `mock*()` helpers inside feature or data module tests. Use the existing shared fixture first.
+- If a shared fixture is missing, add it to the owning module's `src/testFixtures/...` (`:gemcore` for shared domain models) and depend on that fixture from consumer tests. Do not recreate local adapters like `dbAssetInfo(...)`.
+
 Consumer modules add: `testImplementation(testFixtures(project(":gemcore")))`
 
 ```kotlin
@@ -45,6 +49,8 @@ fun `day period uses 24h change`() {
 ```
 
 Rules: `mockType()` returns a sensible default, expose only fields tests vary, use `copy()` for one-offs, one file per type. If a fixture is used once, inline it.
+
+If the same concrete asset shows up in more than one test, add a named fixture for it in testkit like `mockAssetSolana()` or `mockAssetSolanaUSDC()` instead of repeating `mockAsset(chain = ..., symbol = ..., ...)` at call sites.
 
 ## Test Data
 

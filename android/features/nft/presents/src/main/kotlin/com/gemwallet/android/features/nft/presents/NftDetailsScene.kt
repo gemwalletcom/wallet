@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.linkType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -28,11 +30,13 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.features.nft.viewmodels.NftAssetDetailsUIModel
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.LinkType
 import com.wallet.core.primitives.NFTAttribute
 
 @Composable
@@ -67,7 +71,7 @@ fun NFTDetailsScene(
                     size = null,
                     transformation = null,
                     modifier = Modifier
-                        .padding(horizontal = paddingDefault)
+                        .padding(horizontal = sceneContentPadding())
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(paddingDefault))
@@ -86,9 +90,15 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsUIModel) {
         PropertyItem(R.string.nft_collection, model.collection.name, listPosition = ListPosition.First)
         PropertyNetworkItem(model.collection.chain, listPosition = ListPosition.Middle)
         model.asset.contractAddress?.let {
-            PropertyItem(R.string.asset_contract, it, listPosition = ListPosition.Middle)
+            val text = AddressFormatter(it, chain = model.collection.chain).value()
+            PropertyItem(R.string.asset_contract, text, listPosition = ListPosition.Middle)
         }
-        PropertyItem(R.string.asset_token_id, model.asset.tokenId, listPosition = ListPosition.Last)
+        val tokenIdText = if (model.asset.tokenId.length > 16) {
+            AddressFormatter(model.asset.tokenId, chain = model.collection.chain).value()
+        } else {
+            "#${model.asset.tokenId}"
+        }
+        PropertyItem(R.string.asset_token_id, tokenIdText, listPosition = ListPosition.Last)
     }
 }
 
@@ -110,28 +120,23 @@ private fun LazyListScope.nftLinks(links: List<AssetLink>, onLinkClick: (String)
     }
 
     val links = links.sortedWith { l, r ->
-        if (r.name == "website") {
+        if (r.linkType == LinkType.Website) {
             0
         } else {
             r.name.compareTo(l.name)
         }
     }.map {
-        when (it.name) {
-            "coingecko" -> Triple(it.url, R.string.social_coingecko, R.drawable.coingecko)
-            "x", "twitter" -> Triple(it.url, R.string.social_x, R.drawable.twitter)
-            "telegram" -> Triple(it.url, R.string.social_telegram, R.drawable.telegram)
-            "github" -> Triple(it.url, R.string.social_github, R.drawable.github)
-            "instagram" -> Triple(it.url, R.string.social_instagram, R.drawable.instagram)
-            "opensea" -> Triple(it.url, R.string.social_opensea, R.drawable.opensea)
-            "magiceden" -> Triple(it.url, R.string.social_magiceden, R.drawable.magiceden)
-            "coinmarketcap" -> Triple(
-                it.url,
-                R.string.social_coinmarketcap,
-                R.drawable.coinmarketcap
-            )
-
-            "tiktok" -> Triple(it.url, R.string.social_tiktok, R.drawable.tiktok)
-            "discord" -> Triple(it.url, R.string.social_discord, R.drawable.discord)
+        when (it.linkType) {
+            LinkType.Coingecko -> Triple(it.url, R.string.social_coingecko, R.drawable.coingecko)
+            LinkType.X -> Triple(it.url, R.string.social_x, R.drawable.twitter)
+            LinkType.Telegram -> Triple(it.url, R.string.social_telegram, R.drawable.telegram)
+            LinkType.GitHub -> Triple(it.url, R.string.social_github, R.drawable.github)
+            LinkType.Instagram -> Triple(it.url, R.string.social_instagram, R.drawable.instagram)
+            LinkType.OpenSea -> Triple(it.url, R.string.social_opensea, R.drawable.opensea)
+            LinkType.MagicEden -> Triple(it.url, R.string.social_magiceden, R.drawable.magiceden)
+            LinkType.CoinMarketCap -> Triple(it.url, R.string.social_coinmarketcap, R.drawable.coinmarketcap)
+            LinkType.TikTok -> Triple(it.url, R.string.social_tiktok, R.drawable.tiktok)
+            LinkType.Discord -> Triple(it.url, R.string.social_discord, R.drawable.discord)
             else -> Triple(it.url, R.string.social_website, R.drawable.website)
         }
     }
@@ -141,4 +146,3 @@ private fun LazyListScope.nftLinks(links: List<AssetLink>, onLinkClick: (String)
         PropertyItem(title, icon, listPosition = position) { onLinkClick(url) }
     }
 }
-

@@ -114,15 +114,13 @@ _test action target="":
     -jobs {{BUILD_THREADS}} \
     {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
 
-test-all: (_test "test")
-
 test-without-building: (_test "test-without-building")
 
 # Example: just test
 # Example: just test PrimitivesTests
 test TARGET="": (_test "test" TARGET)
 
-_test-ui action:
+_test-integration action:
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme GemUITests \
     -testPlan ui_tests \
@@ -134,11 +132,13 @@ _test-ui action:
     -allowProvisioningDeviceRegistration \
     {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
 
-test-ui: reset-simulator (_test-ui "test")
+test-integration: reset-simulator (_test-integration "test")
 
-build-for-testing-ui: (_test-ui "build-for-testing")
+test-ui: reset-simulator (_test-integration "test")
 
-test-ui-without-building: reset-simulator (_test-ui "test-without-building")
+build-for-testing-integration: (_test-integration "build-for-testing")
+
+test-integration-without-building: reset-simulator (_test-integration "test-without-building")
 
 # Run full upgrade test: build old version, create wallet, build current, verify wallet survives
 test-upgrade COMMIT:

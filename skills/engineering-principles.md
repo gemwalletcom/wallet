@@ -18,4 +18,5 @@ These rules apply across the monorepo unless a platform guide gives a stricter l
 - Check that copied patterns still fit the local context
 - Look for regressions in behavior, not just compile errors
 - Prefer tests that verify real usage paths over coverage-only tests
+- For bug fixes, add or update the smallest meaningful unit test that proves the real behavior with minimal setup and assertions, and avoid testing trivial primitives or implementation details
 - Call out feature-parity gaps when a shared product flow changes on only one platform

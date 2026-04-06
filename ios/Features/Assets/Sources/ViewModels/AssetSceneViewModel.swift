@@ -256,16 +256,19 @@ public extension AssetSceneViewModel {
         Task {
             await updateAsset()
         }
-
-        if assetData.priceAlerts.isNotEmpty {
-            Task {
-                try await priceAlertService.update(assetId: asset.id.identifier)
-            }
-        }
     }
 
     internal func fetch() async {
         await updateWallet()
+        if assetData.priceAlerts.isNotEmpty {
+            Task {
+                do {
+                    try await priceAlertService.update(assetId: asset.id.identifier)
+                } catch {
+                    debugLog("asset scene: price alerts update error \(error)")
+                }
+            }
+        }
     }
 
     internal func onSelectHeader(_ buttonType: HeaderButtonType) {
@@ -472,7 +475,7 @@ extension AssetSceneViewModel {
 
     private func updateAsset() async {
         do {
-            try await assetsService.updateAsset(assetId: assetModel.asset.id)
+            try await assetsService.updateAsset(assetId: assetModel.asset.id, currency: preferences.preferences.currency)
         } catch {
             // TODO: - handle updateAsset error
             debugLog("asset scene: updateAsset error \(error)")

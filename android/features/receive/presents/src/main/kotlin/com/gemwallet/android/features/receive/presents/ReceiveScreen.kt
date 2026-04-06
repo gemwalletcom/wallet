@@ -38,10 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ui.models.subtitleSymbol
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.type
+import com.gemwallet.android.domains.asset.networkFullName
+import com.gemwallet.android.ext.boldMarkdown
+import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.ui.models.subtitleSymbol
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
@@ -51,13 +54,13 @@ import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.theme.isSmallScreen
+import com.gemwallet.android.ui.theme.WindowDimension
+import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
-import com.wallet.core.primitives.AssetSubtype
 
 @Composable
 fun ReceiveScreen(onCancel: () -> Unit) {
@@ -81,8 +84,9 @@ private fun ReceiveScene(
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
     val shareTitle = stringResource(id = R.string.common_share)
-    val imageSize = if (isSmallScreen()) 220.dp else 300.dp
-    val imagePadding = if (isSmallScreen()) paddingSmall else paddingDefault
+    val isCompactHeight = isCompactDimension(WindowDimension.Height)
+    val imageSize = if (isCompactHeight) 220.dp else 300.dp
+    val imagePadding = if (isCompactHeight) paddingSmall else paddingDefault
 
     val onShare = fun () {
         val type = "text/plain"
@@ -181,13 +185,7 @@ private fun ReceiveScene(
                         }
                         Text(
                             modifier = Modifier.width(imageSize),
-                            text = parseMarkdownToAnnotatedString(
-                                stringResource(
-                                    R.string.receive_warning,
-                                    "**${assetInfo.asset.symbol}**",
-                                    "**${ assetInfo.asset.chain.asset().name + if (assetInfo.asset.id.type() == AssetSubtype.TOKEN) " (${assetInfo.asset.type})" else "" }**"
-                                )
-                            ),
+                            text = parseMarkdownToAnnotatedString(warningMessage(assetInfo.asset)),
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.secondary,
                             style = MaterialTheme.typography.bodyLarge,
@@ -200,4 +198,21 @@ private fun ReceiveScene(
             }
         }
     }
+}
+
+@Composable
+private fun warningMessage(asset: Asset): String {
+    val warning = stringResource(
+        R.string.receive_warning,
+        asset.symbol.boldMarkdown(),
+        asset.networkFullName.boldMarkdown(),
+    )
+    val memoWarning = when {
+        asset.chain == Chain.Xrp && asset.chain.isMemoSupport() ->
+            stringResource(R.string.wallet_receive_no_destination_tag_required)
+        asset.chain.isMemoSupport() ->
+            stringResource(R.string.wallet_receive_no_memo_required)
+        else -> null
+    }
+    return listOfNotNull(warning, memoWarning).joinToString(" ")
 }

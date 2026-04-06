@@ -40,7 +40,7 @@ public struct FiatTransaction: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct FiatTransactionInfo: Codable, Equatable, Hashable, Sendable {
+public struct FiatTransactionAssetData: Codable, Equatable, Hashable, Sendable {
 	public let transaction: FiatTransaction
 	public let asset: Asset
 	public let detailsUrl: String?
@@ -48,6 +48,16 @@ public struct FiatTransactionInfo: Codable, Equatable, Hashable, Sendable {
 	public init(transaction: FiatTransaction, asset: Asset, detailsUrl: String?) {
 		self.transaction = transaction
 		self.asset = asset
+		self.detailsUrl = detailsUrl
+	}
+}
+
+public struct FiatTransactionData: Codable, Equatable, Hashable, Sendable {
+	public let transaction: FiatTransaction
+	public let detailsUrl: String?
+
+	public init(transaction: FiatTransaction, detailsUrl: String?) {
+		self.transaction = transaction
 		self.detailsUrl = detailsUrl
 	}
 }

@@ -7,9 +7,11 @@ import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.shouldDisplay
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
@@ -30,18 +32,20 @@ class GetPriceAlertsImpl(
     override fun getPriceAlerts(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
         return priceAlertRepository.getPriceAlerts(assetId)
             .flatMapLatest { items ->
-                val index = items.groupBy { it.priceAlert.assetId.toIdentifier() }
-                assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { items ->
-                    items.mapNotNull { assetInfo ->
-                        index[assetInfo.id().toIdentifier()]?.mapNotNull { item ->
+                val index = items
+                    .filter { it.priceAlert.shouldDisplay }
+                    .groupBy { it.priceAlert.assetId.toIdentifier() }
+                assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { assetInfos ->
+                    assetInfos.flatMap { assetInfo ->
+                        index[assetInfo.id().toIdentifier()]?.map { item ->
                             PriceAlertDataAggregateImpl(
                                 id = item.id,
                                 asset = assetInfo.asset,
-                                assetPrice = assetInfo.price ?: return@mapNotNull null,
+                                assetPrice = assetInfo.price,
                                 priceAlert = item.priceAlert,
                             )
-                        }
-                    }.flatten()
+                        }.orEmpty()
+                    }
                 }
             }
     }
@@ -51,7 +55,7 @@ class GetPriceAlertsImpl(
 class PriceAlertDataAggregateImpl(
     override val id: Int,
     override val asset: Asset,
-    val assetPrice: AssetPriceInfo,
+    val assetPrice: AssetPriceInfo?,
     val priceAlert: PriceAlert
 ) : PriceAlertDataAggregate {
     override val assetId: AssetId = asset.id
@@ -65,18 +69,14 @@ class PriceAlertDataAggregateImpl(
             PriceAlertDirection.Up -> PriceState.Up
             PriceAlertDirection.Down -> PriceState.Down
             else -> if (alertPrice != null) {
-                when {
-                    alertPrice > assetPrice.price.price -> PriceState.Up
-                    else -> PriceState.Down
-                }
-            } else {
-                assetPrice.price.priceChangePercentage24h.let {
-                    if (it > 0) {
-                        PriceState.Up
-                    } else {
-                        PriceState.Up
+                assetPrice?.price?.price?.let { currentPrice ->
+                    when {
+                        alertPrice > currentPrice -> PriceState.Up
+                        else -> PriceState.Down
                     }
-                }
+                } ?: PriceState.None
+            } else {
+                assetPrice?.price?.priceChangePercentage24h.toPriceState()
             }
         }
     }
@@ -84,10 +84,11 @@ class PriceAlertDataAggregateImpl(
     override val price: String
         get() = priceAlert.price?.let {
             Currency.entries.firstOrNull { it.string == priceAlert.currency }?.format(it) ?: ""
-        } ?: assetPrice.currency.format(assetPrice.price.price)
+        } ?: assetPrice?.let { it.currency.format(it.price.price) }.orEmpty()
 
-    override val percentage: String = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
-        ?: assetPrice.price.priceChangePercentage24h.formatAsPercentage()
+    override val percentage: String
+        get() = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
+            ?: assetPrice?.price?.priceChangePercentage24h?.formatAsPercentage().orEmpty()
 
     override val type: PriceAlertType get() {
         val alertPrice = priceAlert.price

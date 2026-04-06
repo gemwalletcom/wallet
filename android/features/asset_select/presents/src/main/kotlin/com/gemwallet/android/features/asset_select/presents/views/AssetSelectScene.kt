@@ -205,7 +205,13 @@ fun AssetSelectScene(
         }
         LazyColumn(state = listState) {
             item {
-                TabsBar(tags, selectedTag, onTagSelect) { item ->
+                TabsBar(
+                    tabs = tags,
+                    selected = selectedTag,
+                    onSelect = onTagSelect,
+                    scrollable = true,
+                    equalWidth = false,
+                ) { item ->
                     val stringId = when (item) {
                         AssetTag.Trending -> R.string.assets_tags_trending
                         AssetTag.TrendingFiatPurchase -> R.string.assets_tags_trending
@@ -217,6 +223,9 @@ fun AssetSelectScene(
                     }
                     Text(
                         stringResource(stringId),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false,
                     )
                 }
             }

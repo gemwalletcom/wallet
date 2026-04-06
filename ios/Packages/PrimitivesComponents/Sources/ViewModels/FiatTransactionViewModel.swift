@@ -10,11 +10,11 @@ import Style
 import SwiftUI
 
 public struct FiatTransactionViewModel: Sendable {
-    private let info: FiatTransactionInfo
+    private let info: FiatTransactionAssetData
     private var transaction: FiatTransaction { info.transaction }
     private let formatter: ValueFormatter
 
-    public init(info: FiatTransactionInfo, formatter: ValueFormatter = .short) {
+    public init(info: FiatTransactionAssetData, formatter: ValueFormatter = .short) {
         self.info = info
         self.formatter = formatter
     }

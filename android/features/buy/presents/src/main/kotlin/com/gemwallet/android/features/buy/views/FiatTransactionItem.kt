@@ -29,13 +29,13 @@ import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
-import com.wallet.core.primitives.FiatTransactionInfo
+import com.wallet.core.primitives.FiatTransactionAssetData
 import com.wallet.core.primitives.FiatTransactionStatus
 import java.math.BigInteger
 
 @Composable
 fun FiatTransactionItem(
-    info: FiatTransactionInfo,
+    info: FiatTransactionAssetData,
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {

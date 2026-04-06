@@ -10,9 +10,9 @@ interface PriceAlertRepository {
 
     suspend fun togglePriceAlerts(enabled: Boolean)
 
-    suspend fun getSamePriceAlert(priceAlert: PriceAlert): PriceAlertInfo?
+    suspend fun hasAssetPriceAlerts(assetId: AssetId): Boolean
 
-    suspend fun getEnablePriceAlerts(): List<PriceAlertInfo>
+    suspend fun getSamePriceAlert(priceAlert: PriceAlert): PriceAlertInfo?
 
     fun getPriceAlerts(assetId: AssetId? = null): Flow<List<PriceAlertInfo>>
 
@@ -20,7 +20,9 @@ interface PriceAlertRepository {
 
     suspend fun addPriceAlert(priceAlert: PriceAlert)
 
-    suspend fun update(items: List<PriceAlert>)
+    suspend fun updatePriceAlerts(alerts: List<PriceAlert>)
+
+    suspend fun updateAssetPriceAlerts(assetId: AssetId, alerts: List<PriceAlert>)
 
     suspend fun getPriceAlert(priceAlertId: Int): PriceAlertInfo?
 

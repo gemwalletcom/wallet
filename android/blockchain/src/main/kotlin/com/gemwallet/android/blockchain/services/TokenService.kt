@@ -1,11 +1,10 @@
 package com.gemwallet.android.blockchain.services
 
+import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.domains.asset.toDTO
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetProperties
-import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -32,21 +31,7 @@ class TokenService(
         }
         .awaitAll()
         .filterNotNull()
-        .map {
-            AssetBasic(
-                asset = it,
-                score = AssetScore(0),
-                properties = AssetProperties(
-                    isEnabled = false,
-                    isBuyable = false,
-                    isSellable = false,
-                    isSwapable = false,
-                    isStakeable = false,
-                    isEarnable = false,
-                    hasImage = true,
-                )
-            )
-        }
+        .map { it.defaultBasic }
     }
 
     suspend fun getTokenData(assetId: AssetId): Asset? {

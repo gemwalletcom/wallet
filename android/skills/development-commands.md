@@ -20,6 +20,7 @@ For local environment prerequisites and GitHub Packages credentials, read `setup
 just build
 just build-test
 just test
+just test-integration
 ./gradlew assembleGoogleDebug
 just release
 ./gradlew clean
@@ -31,6 +32,7 @@ For Docker packaging, reproducible builds, and artifact verification, read `rele
 
 ```bash
 just test
+just test-integration
 ./gradlew test
 ./gradlew :app:testGoogleDebugUnitTest
 ./gradlew assembleGoogleDebugAndroidTest

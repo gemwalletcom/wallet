@@ -71,23 +71,22 @@ fun ReferralNavScreen(
         onClose = onClose,
     )
 
-    if (isShowSelectWallets) {
-        ModalBottomSheet(
-            dragHandle = { BottomSheetDefaults.DragHandle() },
-            onDismissRequest = { isShowSelectWallets = false },
-        ) {
-            LazyColumn {
-                itemsIndexed(availableWallets) { index, item ->
-                    WalletItem(
-                        wallet = item,
-                        isCurrent = item.id == currentWallet?.id,
-                        listPosition = ListPosition.getPosition(index, availableWallets.size),
-                        modifier = Modifier.clickable {
-                            viewModel.setWallet(wallet = item)
-                            isShowSelectWallets = false
-                        }
-                    )
-                }
+    ModalBottomSheet(
+        isVisible = isShowSelectWallets,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+        onDismissRequest = { isShowSelectWallets = false },
+    ) {
+        LazyColumn {
+            itemsIndexed(availableWallets) { index, item ->
+                WalletItem(
+                    wallet = item,
+                    isCurrent = item.id == currentWallet?.id,
+                    listPosition = ListPosition.getPosition(index, availableWallets.size),
+                    modifier = Modifier.clickable {
+                        viewModel.setWallet(wallet = item)
+                        isShowSelectWallets = false
+                    }
+                )
             }
         }
     }

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import Keystore
 import KeystoreTestKit
 import Preferences
@@ -25,6 +24,8 @@ struct CreateWalletModelTests {
 
         #expect(preferences.completeInitialAddressStatus)
         #expect(preferences.completeInitialLoadAssets)
+        #expect(preferences.completeInitialLoadTransactions)
+        #expect(preferences.completeInitialLoadNFTs)
 
         preferences.clear()
     }

@@ -27,7 +27,7 @@ This recompiles the Rust core and produces the framework.
 When Core model changes break tests, regenerate first, then fix test expectations:
 ```bash
 just generate
-just test-all
+just test
 ```
 Do not patch generated files to make tests pass.
 

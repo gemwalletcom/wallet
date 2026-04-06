@@ -47,6 +47,8 @@ enum class EVMChain(val string: String) {
 	World("world"),
 	@SerialName("sonic")
 	Sonic("sonic"),
+	@SerialName("seievm")
+	SeiEvm("seievm"),
 	@SerialName("abstract")
 	Abstract("abstract"),
 	@SerialName("berachain")

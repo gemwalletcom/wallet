@@ -9,20 +9,20 @@ class TestSyncDeviceLocale {
 
     @Test
     fun testZH() {
-        assertEquals("zh-Hans", DeviceRepository.getLocale(Locale("zh")))
-        assertEquals("zh-Hans", DeviceRepository.getLocale(Locale("zh", "CN")))
-        assertEquals("zh-Hans", DeviceRepository.getLocale(Locale("zh", "TW")))
+        assertEquals("zh-Hans", DeviceRepository.getLocale(Locale.forLanguageTag("zh")))
+        assertEquals("zh-Hans", DeviceRepository.getLocale(Locale.forLanguageTag("zh-CN")))
+        assertEquals("zh-Hans", DeviceRepository.getLocale(Locale.forLanguageTag("zh-TW")))
     }
 
     @Test
     fun testPT() {
-        assertEquals("pt", DeviceRepository.getLocale(Locale("pt")))
-        assertEquals("pt-BR", DeviceRepository.getLocale(Locale("pt", "BR")))
+        assertEquals("pt", DeviceRepository.getLocale(Locale.forLanguageTag("pt")))
+        assertEquals("pt-BR", DeviceRepository.getLocale(Locale.forLanguageTag("pt-BR")))
     }
 
     @Test
     fun testEN() {
-        assertEquals("en", DeviceRepository.getLocale(Locale("en")))
-        assertEquals("en", DeviceRepository.getLocale(Locale("en", "US")))
+        assertEquals("en", DeviceRepository.getLocale(Locale.forLanguageTag("en")))
+        assertEquals("en", DeviceRepository.getLocale(Locale.forLanguageTag("en-US")))
     }
 }

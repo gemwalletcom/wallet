@@ -12,12 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ext.getAddressEllipsisText
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -58,6 +59,7 @@ fun WalletItem(
     ListItem(
         modifier = modifier,
         minHeight = ListItemDefaults.defaultMinHeight,
+        trailingContentEndPadding = paddingSmall,
         leading = @Composable {
             IconWithBadge(
                 icon = walletItemIconModel(type = type, walletChain = walletChain),
@@ -77,12 +79,13 @@ fun WalletItem(
             )
         },
         subtitle = {
-            ListItemSupportText(
-                when (type) {
-                    WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
-                    else -> walletAddress?.getAddressEllipsisText(chain = walletChain) ?: ""
-                },
-            )
+            val subtitle = when (type) {
+                WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
+                else -> walletAddress?.let {
+                    AddressFormatter(it, chain = walletChain, style = AddressFormatter.Style.Extra(1)).value()
+                } ?: ""
+            }
+            ListItemSupportText(subtitle)
         },
         listPosition = listPosition,
         trailing = {
@@ -95,17 +98,24 @@ fun WalletItem(
                 }
                 if (onEdit != null) {
                     Spacer8()
-                    IconButton(onClick = { onEdit(id) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = "edit",
-                            tint = MaterialTheme.colorScheme.secondary,
-                        )
-                    }
+                    WalletEditButton(onClick = { onEdit(id) })
                 }
             }
         }
     )
+}
+
+@Composable
+private fun WalletEditButton(
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Outlined.Settings,
+            contentDescription = "edit",
+            tint = MaterialTheme.colorScheme.secondary,
+        )
+    }
 }
 
 private fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {

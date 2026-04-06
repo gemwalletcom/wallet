@@ -97,6 +97,15 @@ public extension ChartSceneViewModel {
                 formatter: formatter,
             )
             chartState = .data(model)
+            if priceData?.priceAlerts.isNotEmpty == true {
+                Task {
+                    do {
+                        try await priceAlertService.update(assetId: assetModel.asset.id.identifier)
+                    } catch {
+                        debugLog("chart scene: price alerts update error \(error)")
+                    }
+                }
+            }
         } catch {
             chartState.setError(error)
         }

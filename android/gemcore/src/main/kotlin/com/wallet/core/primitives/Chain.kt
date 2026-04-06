@@ -63,6 +63,8 @@ enum class Chain(val string: String) {
 	Injective("injective"),
 	@SerialName("sei")
 	Sei("sei"),
+	@SerialName("seievm")
+	SeiEvm("seievm"),
 	@SerialName("manta")
 	Manta("manta"),
 	@SerialName("blast")

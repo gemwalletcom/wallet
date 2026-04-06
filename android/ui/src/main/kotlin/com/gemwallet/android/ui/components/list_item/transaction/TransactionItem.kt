@@ -2,12 +2,10 @@ package com.gemwallet.android.ui.components.list_item.transaction
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -18,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.image.BadgeCircle
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -36,6 +34,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer2
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -90,6 +89,7 @@ private const val BADGE_ICON_SCALE = 0.65f
 
 @Composable
 private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
+    val size = listItemIconSize
     val icon = when (data.direction) {
         TransactionDirection.Incoming -> Icons.Default.ArrowDownward
         else -> Icons.Default.ArrowUpward
@@ -101,9 +101,15 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
     IconWithBadge(
         icon = data.nftImageUrl ?: data.asset.getIconUrl(),
         placeholder = if (data.nftImageUrl != null) "NFT" else data.asset.type.string,
+        size = size,
     ) {
-        Box(Modifier.fillMaxSize().clip(CircleShape).background(color), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.fillMaxSize(BADGE_ICON_SCALE))
+        BadgeCircle(size = size, color = color) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.fillMaxSize(BADGE_ICON_SCALE),
+            )
         }
     }
 }

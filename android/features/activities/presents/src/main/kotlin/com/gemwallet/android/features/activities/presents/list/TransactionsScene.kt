@@ -42,7 +42,6 @@ import com.wallet.core.primitives.Chain
 internal fun TransactionsScene(
     loading: Boolean,
     transactions: List<TransactionDataAggregate>,
-    ticker: Long?,
     chainsFilter: List<Chain>,
     typeFilter: List<TransactionTypeFilter>,
     listState: LazyListState = rememberLazyListState(),

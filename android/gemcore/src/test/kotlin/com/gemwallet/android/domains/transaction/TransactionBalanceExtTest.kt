@@ -1,9 +1,10 @@
 package com.gemwallet.android.domains.transaction
 
 import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.testkit.mockAssetMonad
+import com.gemwallet.android.testkit.mockAssetTron
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Resource
 import org.junit.Assert.assertEquals
@@ -14,7 +15,7 @@ class TransactionBalanceExtTest {
 
     @Test
     fun testAvailableAtomicBalance() {
-        val monadAsset = mockAsset(chain = Chain.Monad, symbol = "MON", decimals = 18)
+        val monadAsset = mockAssetMonad()
         val monadInfo = mockAssetInfo(
             asset = monadAsset,
             balance = AssetBalance.create(
@@ -35,7 +36,7 @@ class TransactionBalanceExtTest {
             ),
         )
 
-        val cosmosAsset = mockAsset(chain = Chain.Cosmos)
+        val cosmosAsset = mockAssetCosmos()
         val cosmosInfo = mockAssetInfo(
             asset = cosmosAsset,
             balance = AssetBalance.create(asset = cosmosAsset, available = "12"),
@@ -60,7 +61,7 @@ class TransactionBalanceExtTest {
             ),
         )
 
-        val tronAsset = mockAsset(chain = Chain.Tron, symbol = "TRX", decimals = 6)
+        val tronAsset = mockAssetTron()
         val tronInfo = mockAssetInfo(
             asset = tronAsset,
             balance = AssetBalance.create(
