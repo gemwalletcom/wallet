@@ -1,9 +1,7 @@
 package com.gemwallet.android.features.asset.presents.chart
 
 import androidx.compose.foundation.clickable
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.foundation.combinedClickable
+import com.gemwallet.android.ext.AddressFormatter
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
@@ -28,12 +25,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
-import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.ChipBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -41,6 +36,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -59,6 +55,7 @@ import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartVie
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetMarket
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.Explorer
 import java.text.DateFormat
@@ -176,12 +173,6 @@ private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
 private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?, explorerName: String) {
     marketInfo ?: return
     val marketItems = listOfNotNull(
-        asset.id.tokenId?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
-                value = it,
-            )
-        },
         marketInfo.marketCap?.let {
             MarketInfoUIModel(
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap,
@@ -226,6 +217,14 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
                 info = InfoSheetEntity.MaxSupply,
             )
         },
+        asset.id.tokenId?.let { tokenId ->
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
+                value = tokenId,
+                explorerLink = Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
+                    ?.let { BlockExplorerLink(name = explorerName, link = it) },
+            )
+        },
     )
 
     val allTime = listOfNotNull(
@@ -257,26 +256,12 @@ private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, i
                 listPosition = position
             )
             MarketInfoUIModel.MarketInfoTypeUIModel.Contract -> {
-                val context = LocalContext.current
-                val clipboardManager = LocalClipboard.current.nativeClipboard
-                val uriHandler = LocalUriHandler.current
-                PropertyItem(
-                    modifier = Modifier.combinedClickable(
-                        onLongClick = {
-                            clipboardManager.setPlainText(context, item.value)
-                        },
-                        onClick = {
-                            uriHandler.open(context, Explorer(asset.chain.string).getTokenUrl(explorerName, item.value) ?: return@combinedClickable)
-                        }
-                    ),
-                    title = { PropertyTitleText(R.string.asset_contract) },
-                    data = {
-                        PropertyDataText(
-                            text = AddressFormatter(item.value, chain = asset.chain).value(),
-                            badge = { DataBadgeChevron() }
-                        )
-                    },
-                    listPosition = position
+                AddressPropertyItem(
+                    title = R.string.asset_contract,
+                    displayText = AddressFormatter(item.value, chain = asset.chain).value(),
+                    copyValue = item.value,
+                    explorerLink = item.explorerLink,
+                    listPosition = position,
                 )
             }
         }

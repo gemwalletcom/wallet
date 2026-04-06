@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material3.Icon
@@ -29,7 +31,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingMiddle
-import com.gemwallet.android.ui.theme.space4
+import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.tinyIconSize
 
@@ -115,7 +117,7 @@ fun PropertyItem(
 ) {
     PropertyItem(
         title = { PropertyTitleText(title, info = info) },
-        data = data?.let{ { PropertyDataText(data, color = dataColor) } },
+        data = data?.let { { PropertyDataText(data, color = dataColor) } },
         listPosition = listPosition,
     )
 }
@@ -157,10 +159,10 @@ fun PropertyTitleText(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(space4)
     ) {
         trailing?.let {
             it()
+            Spacer(modifier = Modifier.width(paddingMiddle))
         }
         Text(
             modifier = Modifier.weight(1f, false),
@@ -170,9 +172,13 @@ fun PropertyTitleText(
             style = MaterialTheme.typography.bodyLarge,
             color = color,
         )
-        badge?.invoke()
+        badge?.let {
+            Spacer(modifier = Modifier.width(paddingMiddle))
+            it()
+        }
         info?.let {
-            InfoButton(it)
+            Spacer(modifier = Modifier.width(space8))
+            InfoButton(entity = it)
         }
     }
 }

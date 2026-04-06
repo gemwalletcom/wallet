@@ -17,12 +17,15 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
+import com.gemwallet.android.domains.asset.chain
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.Explorer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +57,8 @@ class GetTransactionDetailsImpl(
                 val explorerInfo = getCurrentBlockExplorer.getBlockExplorerInfo(data.transaction).let { (url, name) ->
                     TransactionDetailsValue.Explorer(url, name)
                 }
+                val chainExplorer = Explorer(data.asset.chain.string)
+                val explorerName = explorerInfo.name
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
                     val provider = gemSwapper.getProviders().firstOrNull { it.protocolId ==  swapMetadata?.provider }
@@ -64,6 +69,8 @@ class GetTransactionDetailsImpl(
                         currency = session.currency,
                         swapProvider = provider,
                         swapMetadata = swapMetadata,
+                        senderExplorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, data.transaction.from)),
+                        recipientExplorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, data.transaction.to)),
                     )
                 }
             }
@@ -79,6 +86,8 @@ class TransactionDetailsAggregateImpl(
     override val explorer: TransactionDetailsValue.Explorer,
     override val currency: Currency,
     swapProvider: SwapperProviderType? = null,
+    private val senderExplorerLink: BlockExplorerLink? = null,
+    private val recipientExplorerLink: BlockExplorerLink? = null,
 ) : TransactionDetailsAggregate {
 
     override val id: String = data.transaction.id
@@ -186,8 +195,8 @@ class TransactionDetailsAggregateImpl(
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(data.transaction.to)
-            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(data.transaction.from)
+            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(data.transaction.to, recipientExplorerLink)
+            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(data.transaction.from, senderExplorerLink)
         }
     }
 

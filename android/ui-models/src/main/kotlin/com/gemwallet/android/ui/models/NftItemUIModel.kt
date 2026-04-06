@@ -4,6 +4,7 @@ import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTCollection
+import com.wallet.core.primitives.VerificationStatus
 
 data class NftItemUIModel(
     val collection: NFTCollection,
@@ -12,6 +13,7 @@ data class NftItemUIModel(
 ) {
     val imageUrl: String get() = asset?.images?.preview?.url ?: collection.images.preview.url
     val name: String get() = asset?.name ?: collection.name
+    val isVerified: Boolean get() = collection.status == VerificationStatus.Verified
 
     fun onClick(collectionAction: NftCollectionIdAction, assetAction: NftAssetIdAction) {
         if (asset == null) collectionAction(collection.id) else assetAction(asset.id)

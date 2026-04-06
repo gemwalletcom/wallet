@@ -2,6 +2,7 @@ package com.gemwallet.android.features.confirm.models
 
 import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.DelegationValidator
 
 sealed interface ConfirmProperty {
@@ -16,7 +17,7 @@ sealed interface ConfirmProperty {
 
         class Provider(data: String) : Destination(data)
 
-        class Transfer(val domain: String?, val address: String) : Destination(address)
+        class Transfer(val domain: String?, val address: String, val explorerLink: BlockExplorerLink? = null) : Destination(address)
 
         class Generic(val appName: String) : Destination(appName)
 
