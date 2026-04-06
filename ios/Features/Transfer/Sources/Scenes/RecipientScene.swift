@@ -34,7 +34,7 @@ public struct RecipientScene: View {
                         NftPreviewView(
                             assetImage: model.nftAssetImage(for: nftAsset),
                             name: nftAsset.name,
-                            size: .image.semiLarge,
+                            size: .image.large,
                         )
                     }
                 }
