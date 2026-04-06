@@ -7,6 +7,7 @@ import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
 
@@ -27,8 +28,18 @@ fun Asset.isMemoSupport() = chain.isMemoSupport()
 val Asset.subtype: AssetSubtype
     get() = id.type()
 
+internal fun formatNetworkFullName(
+    networkName: String,
+    subtype: AssetSubtype,
+    type: AssetType,
+): String = when (subtype) {
+    AssetSubtype.NATIVE -> networkName
+    AssetSubtype.TOKEN -> "$networkName (${type.string})"
+}
+
 val Asset.networkFullName: String
-    get() = when (id.type()) {
-        AssetSubtype.NATIVE -> chain.asset().name
-        AssetSubtype.TOKEN -> "${chain.asset().name} (${type})"
-    }
+    get() = formatNetworkFullName(
+        networkName = chain.asset().name,
+        subtype = subtype,
+        type = type,
+    )

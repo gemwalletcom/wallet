@@ -5,14 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.asset.subtype
+import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 
 @Composable
@@ -46,10 +45,7 @@ fun PropertyNetworkItem(
 ) {
     PropertyNetworkItem(
         chain = asset.chain,
-        value = when (asset.subtype) {
-            AssetSubtype.NATIVE -> asset.id.chain.asset().name
-            AssetSubtype.TOKEN -> "${asset.id.chain.asset().name} (${asset.type.string})"
-        },
+        value = asset.networkFullName,
         listPosition = listPosition,
         onOpenNetwork = onOpenNetwork
     )

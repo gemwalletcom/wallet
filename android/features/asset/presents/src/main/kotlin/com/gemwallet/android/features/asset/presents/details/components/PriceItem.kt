@@ -15,7 +15,6 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
 
 internal fun LazyListScope.price(
     uiState: AssetInfoUIModel,
@@ -43,11 +42,7 @@ internal fun LazyListScope.price(
                     }
                 )
             },
-            listPosition = if (uiState.tokenType == AssetType.NATIVE && priceAlertsCount == 0) {
-                ListPosition.Single
-            } else {
-                ListPosition.First
-            }
+            listPosition = ListPosition.First
         )
     }
 
@@ -59,11 +54,7 @@ internal fun LazyListScope.price(
                     .testTag("assetChart"),
                 title = { PropertyTitleText(R.string.settings_price_alerts_title) },
                 data = { PropertyDataText(text = "$priceAlertsCount", badge = { DataBadgeChevron() }) },
-                listPosition = if (uiState.tokenType == AssetType.NATIVE) {
-                    ListPosition.Last
-                } else {
-                    ListPosition.Middle
-                }
+                listPosition = ListPosition.Middle
             )
         }
     }
