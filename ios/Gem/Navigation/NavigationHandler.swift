@@ -102,6 +102,8 @@ extension NavigationHandler {
         switch notification {
         case let .asset(assetId):
             try await navigateToAsset(assetId)
+        case let .walletAsset(walletId, assetId):
+            try await navigateToAsset(walletId: walletId, assetId: assetId)
         case let .transaction(walletId, assetId, transaction):
             try await navigateToTransaction(walletId: walletId, assetId: assetId, transaction: transaction)
         case let .priceAlert(assetId):
@@ -137,20 +139,24 @@ extension NavigationHandler {
         navigationState.wallet.append(Scenes.Asset(asset: asset))
     }
 
-    private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
-        guard let _ = try? walletService.getWallet(walletId: walletId) else {
+    private func navigateToAsset(walletId: WalletId, assetId: AssetId) async throws {
+        guard let asset = try await assetForWalletNavigation(walletId: walletId, assetId: assetId) else {
             return
         }
 
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        await selectWalletIfNeeded(walletId)
+        navigationState.wallet.append(Scenes.Asset(asset: asset))
+    }
+
+    private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
+        guard let asset = try await assetForWalletNavigation(walletId: walletId, assetId: assetId) else {
+            return
+        }
+
         try transactionsService.addTransaction(walletId: walletId, transaction: transaction)
         let transaction = try transactionsService.getTransaction(walletId: walletId, transactionId: transaction.id.identifier)
 
-        if walletService.currentWalletId != walletId {
-            walletService.setCurrent(for: walletId)
-            await Task.yield()
-        }
-
+        await selectWalletIfNeeded(walletId)
         switch asset.type {
         case .perpetual:
             navigationState.wallet.setPath([Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)])
@@ -159,6 +165,23 @@ extension NavigationHandler {
         }
 
         navigationState.selectedTab = .wallet
+    }
+
+    private func assetForWalletNavigation(walletId: WalletId, assetId: AssetId) async throws -> Asset? {
+        guard let _ = try? walletService.getWallet(walletId: walletId) else {
+            return nil
+        }
+
+        return try await assetsService.getOrFetchAsset(for: assetId)
+    }
+
+    private func selectWalletIfNeeded(_ walletId: WalletId) async {
+        guard walletService.currentWalletId != walletId else {
+            return
+        }
+
+        walletService.setCurrent(for: walletId)
+        await Task.yield()
     }
 
     private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
@@ -212,7 +235,7 @@ private extension URLAction {
 private extension PushNotification {
     var selectTab: TabItem? {
         switch self {
-        case .transaction, .asset, .priceAlert, .stake: .wallet
+        case .transaction, .asset, .walletAsset, .priceAlert, .stake: .wallet
         case .buyAsset, .swapAsset: nil
         case .support, .rewards: .settings
         case .test, .unknown: nil

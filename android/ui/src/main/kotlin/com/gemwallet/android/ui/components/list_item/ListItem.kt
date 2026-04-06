@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.takeOrElse
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -28,14 +29,13 @@ import com.gemwallet.android.ui.theme.paddingSmall
 object ListItemDefaults {
     val plainMinHeight: Dp = 56.dp
     val defaultMinHeight: Dp = 72.dp
-    val supportingContentMinHeight: Dp = 88.dp
 }
 
 @Composable
 fun ListItem(
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
-    minHeight: Dp = ListItemDefaults.defaultMinHeight,
+    minHeight: Dp = Dp.Unspecified,
     contentPadding: Dp = paddingMiddle,
     trailingContentEndPadding: Dp? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
@@ -46,6 +46,9 @@ fun ListItem(
     val sidePadding = adaptivePadding(default = paddingDefault, compact = paddingSmall)
     val contentSpacing = paddingMiddle
     val trailingEndPadding = trailingContentEndPadding ?: defaultTrailingContentEndPadding(sidePadding)
+    val resolvedMinHeight = minHeight.takeOrElse {
+        if (subtitle != null) ListItemDefaults.defaultMinHeight else ListItemDefaults.plainMinHeight
+    }
 
     Row(
         modifier = Modifier
@@ -61,7 +64,7 @@ fun ListItem(
         leading?.invoke(this)
         Row(
             modifier = Modifier
-                .heightIn(min = minHeight)
+                .heightIn(min = resolvedMinHeight)
                 .padding(
                     top = contentPadding,
                     end = trailingEndPadding,

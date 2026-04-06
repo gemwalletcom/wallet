@@ -16,6 +16,7 @@ import com.gemwallet.android.features.settings.networks.presents.NetworksScreen
 import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertTargetNavScreen
 import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertsNavScreen
 import com.gemwallet.android.features.settings.security.presents.SecurityScene
+import com.gemwallet.android.features.settings.settings.presents.views.NotificationsScene
 import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
 import com.gemwallet.android.features.settings.settings.presents.views.SupportChatScreen
@@ -55,6 +56,9 @@ object SupportRoute
 
 @Serializable
 object PreferencesRoute
+
+@Serializable
+object NotificationsRoute
 
 fun NavController.navigateToSettingsScreen(navOptions: NavOptions? = null) {
     navigate(SettingsRoute, navOptions ?: navOptions { launchSingleTop = true })
@@ -96,6 +100,10 @@ fun NavController.navigateToPreferences(navOptions: NavOptions? = null) {
     navigate(PreferencesRoute, navOptions ?: navOptions { launchSingleTop = true })
 }
 
+fun NavController.navigateToNotifications(navOptions: NavOptions? = null) {
+    navigate(NotificationsRoute, navOptions ?: navOptions { launchSingleTop = true })
+}
+
 fun NavGraphBuilder.settingsScreen(
     onSecurity: () -> Unit,
     onCurrencies: () -> Unit,
@@ -104,6 +112,7 @@ fun NavGraphBuilder.settingsScreen(
     onDevelop: () -> Unit,
     onAboutUs: () -> Unit,
     onNetworks: () -> Unit,
+    onNotifications: () -> Unit,
     onPriceAlerts: () -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onChart: (AssetId) -> Unit,
@@ -125,6 +134,7 @@ fun NavGraphBuilder.settingsScreen(
             onWallets = onWallets,
             onSupport = onSupport,
             onPerpetual = onPerpetual,
+            onNotifications = onNotifications,
             onPriceAlerts = onPriceAlerts,
             onReferral = onReferral,
             onPreferences = onPreferences
@@ -157,6 +167,13 @@ fun NavGraphBuilder.settingsScreen(
 
     composable<AddPriceAlertTargetRoute> {
         PriceAlertTargetNavScreen(onCancel = onCancel)
+    }
+
+    composable<NotificationsRoute> {
+        NotificationsScene(
+            onPriceAlerts = onPriceAlerts,
+            onCancel = onCancel,
+        )
     }
 
     composable<PreferencesRoute> {

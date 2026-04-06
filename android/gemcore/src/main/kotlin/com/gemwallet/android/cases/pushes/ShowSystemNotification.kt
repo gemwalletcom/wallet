@@ -34,6 +34,13 @@ interface ShowSystemNotification {
         title: String?,
         subtitle: String?,
         channelId: String?,
+        data: PushNotificationData.WalletAsset
+    )
+
+    fun showNotification(
+        title: String?,
+        subtitle: String?,
+        channelId: String?,
         data: PushNotificationData.Reward
     )
 }

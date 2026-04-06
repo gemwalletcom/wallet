@@ -78,6 +78,18 @@ class ShowSystemNotification @Inject constructor(@ApplicationContext val applica
         title: String?,
         subtitle: String?,
         channelId: String?,
+        data: PushNotificationData.WalletAsset,
+    ) {
+        val extra = Bundle().apply {
+            putString("walletId", data.walletId.id)
+        }
+        showNotification(title, subtitle, channelId, extra, "${assetRouteUri}/${data.assetId}".toUri())
+    }
+
+    override fun showNotification(
+        title: String?,
+        subtitle: String?,
+        channelId: String?,
         data: PushNotificationData.Reward,
     ) {
         showNotification(title, subtitle, channelId, Bundle.EMPTY, "${referralRouteUriGem}?code=".toUri())

@@ -155,12 +155,6 @@ class FCMTest {
     }
 
     @Test
-    fun parseData_withFiatTransactionType_returnsNull() {
-        val result = parseNotificationData("fiatTransaction", """{"assetId":"bitcoin"}""")
-        assertNull(result)
-    }
-
-    @Test
     fun parseData_withMalformedTransactionJson_returnsNull() {
         val invalidJson = """{"walletId":"wallet-1","assetId":"bitcoin"}"""
         val result = parseNotificationData("transaction", invalidJson)

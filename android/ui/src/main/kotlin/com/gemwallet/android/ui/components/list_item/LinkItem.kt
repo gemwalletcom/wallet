@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.iconSize
 
 @Composable
 fun LinkItem(
@@ -44,9 +47,9 @@ fun LinkItem(
     onClick: () -> Unit,
 ) {
     val minHeight = if (supportingContent == null) {
-        ListItemDefaults.defaultMinHeight
+        ListItemDefaults.plainMinHeight
     } else {
-        ListItemDefaults.supportingContentMinHeight
+        ListItemDefaults.defaultMinHeight
     }
     ListItem(
         modifier = Modifier
@@ -58,14 +61,18 @@ fun LinkItem(
         minHeight = minHeight,
         leading = if (painter != null) {
             {
-                Image(painter = painter, contentDescription = "setting_item")
+                Image(
+                    modifier = Modifier.size(iconSize),
+                    painter = painter,
+                    contentDescription = "setting_item"
+                )
             }
         } else {
             null
         },
         title = { Text(text = title) },
         subtitle = supportingContent,
-        trailing = trailingContent,
+        trailing = trailingContent ?: { DataBadgeChevron() },
         listPosition = listPosition,
     )
 }

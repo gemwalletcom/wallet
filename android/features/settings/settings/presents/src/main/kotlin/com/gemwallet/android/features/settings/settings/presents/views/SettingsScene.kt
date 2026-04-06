@@ -17,7 +17,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -26,23 +25,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
 import com.gemwallet.android.ui.BuildConfig
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.ui.components.list_item.LinkItem
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.open
-import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
-import uniffi.gemstone.Config
-import uniffi.gemstone.SocialUrl
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -52,7 +47,8 @@ fun SettingsScene(
     onDevelop: () -> Unit,
     onWallets: () -> Unit,
     onAboutUs: () -> Unit,
-    onPriceAlerts: () -> Unit,
+    onNotifications: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onPriceAlerts: () -> Unit,
     onSupport: () -> Unit,
     onPreferences: () -> Unit,
     onPerpetual: () -> Unit,
@@ -62,13 +58,13 @@ fun SettingsScene(
     val viewModel: SettingsViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRewardsAvailable by viewModel.isRewardsAvailable.collectAsStateWithLifecycle()
+    val walletsCount by viewModel.walletsCount.collectAsStateWithLifecycle()
     val pushEnabled by viewModel.pushEnabled.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val supportState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isShowDevelopEnable by remember { mutableStateOf(false) }
 
-    val uriHandler = LocalUriHandler.current
     var requestPushGrant by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val notificationsAvailable = viewModel.isNotificationsAvailable()
     Scene(
         title = stringResource(id = R.string.settings_title),
         mainActionPadding = PaddingValues(0.dp),
@@ -83,6 +79,12 @@ fun SettingsScene(
                 title = stringResource(id = R.string.wallets_title),
                 icon = R.drawable.settings_wallets,
                 listPosition = ListPosition.First,
+                trailingContent = {
+                    PropertyDataText(
+                        text = walletsCount.toString(),
+                        badge = { DataBadgeChevron() },
+                    )
+                },
                 onClick = onWallets
             )
             LinkItem(
@@ -91,40 +93,27 @@ fun SettingsScene(
                 listPosition = ListPosition.Last,
                 onClick = onSecurity
             )
-            if (BuildConfig.DEBUG) {
-                LinkItem(
-                    title = stringResource(id = R.string.perpetuals_title),
-                    icon = R.drawable.settings_security,
-                    listPosition = ListPosition.Last,
-                    onClick = onPerpetual
-                )
-            }
-            LinkItem(title = stringResource(id = R.string.settings_preferences_title), icon = R.drawable.settings_preferences, listPosition = ListPosition.Single) {
-                onPreferences()
-            }
-            if (viewModel.isNotificationsAvailable()) {
+            if (notificationsAvailable) {
                 LinkItem(
                     title = stringResource(id = R.string.settings_notifications_title),
                     icon = R.drawable.settings_notifications,
                     listPosition = ListPosition.First,
-                    trailingContent = @Composable {
-                        Switch(
-                            checked = pushEnabled,
-                            onCheckedChange = {
-                                if (it) requestPushGrant = viewModel::notificationEnable else viewModel.notificationEnable()
-                            }
-                        )
-                    },
-                    onClick = {}
+                    onClick = onNotifications,
                 )
                 LinkItem(
-                    title = stringResource(id = R.string.settings_price_alerts_title),
-                    icon = R.drawable.settings_pricealert,
+                    title = stringResource(id = R.string.settings_preferences_title),
+                    icon = R.drawable.settings_preferences,
                     listPosition = ListPosition.Last,
-                    onClick = onPriceAlerts
+                    onClick = onPreferences,
+                )
+            } else {
+                LinkItem(
+                    title = stringResource(id = R.string.settings_preferences_title),
+                    icon = R.drawable.settings_preferences,
+                    listPosition = ListPosition.Single,
+                    onClick = onPreferences,
                 )
             }
-
             if (isRewardsAvailable) {
                 LinkItem(
                     title = stringResource(id = R.string.rewards_title),
@@ -134,25 +123,12 @@ fun SettingsScene(
                     onReferral()
                 }
             }
-            LinkItem(title = stringResource(id = R.string.wallet_connect_title), icon = R.drawable.settings_wc, listPosition = ListPosition.Single) {
+            LinkItem(
+                title = stringResource(id = R.string.wallet_connect_title),
+                icon = R.drawable.settings_wc,
+                listPosition = ListPosition.Single,
+            ) {
                 onBridges()
-            }
-
-            SubheaderItem(R.string.settings_community)
-            LinkItem(title = stringResource(id = R.string.social_x), icon = R.drawable.twitter, listPosition = ListPosition.First) {
-                uriHandler.open(context, Config().getSocialUrl(SocialUrl.X) ?: "")
-            }
-            LinkItem(title = stringResource(id = R.string.social_discord), icon = R.drawable.discord) {
-                uriHandler.open(context, Config().getSocialUrl(SocialUrl.DISCORD) ?: "")
-            }
-            LinkItem(title = stringResource(id = R.string.social_telegram), icon = R.drawable.telegram) {
-                uriHandler.open(context, Config().getSocialUrl(SocialUrl.TELEGRAM) ?: "")
-            }
-            LinkItem(title = stringResource(id = R.string.social_github), icon = R.drawable.github) {
-                uriHandler.open(context, Config().getSocialUrl(SocialUrl.GIT_HUB) ?: "")
-            }
-            LinkItem(title = stringResource(id = R.string.social_youtube), icon = R.drawable.youtube, listPosition = ListPosition.Last,) {
-                uriHandler.open(context, Config().getSocialUrl(SocialUrl.YOU_TUBE) ?: "")
             }
 
             LinkItem(
@@ -173,7 +149,7 @@ fun SettingsScene(
                 LinkItem(
                     title = stringResource(id = R.string.settings_aboutus),
                     icon = R.drawable.settings_about_us,
-                    listPosition = ListPosition.Last,
+                    listPosition = if (uiState.developEnabled) ListPosition.Middle else ListPosition.Last,
                     onClick = onAboutUs,
                     onLongClick = { isShowDevelopEnable = true }
                 )
@@ -191,7 +167,11 @@ fun SettingsScene(
                 }
             }
             if (uiState.developEnabled) {
-                LinkItem(title = stringResource(id = R.string.settings_developer), icon = R.drawable.settings_developer, listPosition = ListPosition.Single,) {
+                LinkItem(
+                    title = stringResource(id = R.string.settings_developer),
+                    icon = R.drawable.settings_developer,
+                    listPosition = ListPosition.Last,
+                ) {
                     onDevelop()
                 }
             }

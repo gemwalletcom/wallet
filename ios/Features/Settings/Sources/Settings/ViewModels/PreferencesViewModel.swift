@@ -49,6 +49,9 @@ public final class PreferencesViewModel {
     var networksTitle: String { Localized.Settings.Networks.title }
     var networksImage: AssetImage { AssetImage.image(Images.Settings.networks) }
 
+    var contactsTitle: String { Localized.Contacts.title }
+    var contactsImage: AssetImage { AssetImage.image(Images.Settings.contacts) }
+
     var isPerpetualEnabled: Bool {
         get { preferences.isPerpetualEnabled }
         set { preferences.isPerpetualEnabled = newValue }

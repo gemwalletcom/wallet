@@ -34,6 +34,12 @@ fun parseNotificationData(rawType: String?, rawData: String?): PushNotificationD
                     assetId = it.assetId
                 )
             }
+            PushNotificationTypes.FiatTransaction -> jsonEncoder.decodeFromString<PushNotificationWalletAsset>(rawData).let {
+                PushNotificationData.WalletAsset(
+                    assetId = it.assetId.toIdentifier(),
+                    walletId = it.walletId,
+                )
+            }
             PushNotificationTypes.SwapAsset -> jsonEncoder.decodeFromString<PushNotificationSwapAsset>(rawData).let {
                 Swap(
                     fromAssetId = it.fromAssetId,
@@ -49,8 +55,6 @@ fun parseNotificationData(rawType: String?, rawData: String?): PushNotificationD
             PushNotificationTypes.Stake -> jsonEncoder.decodeFromString<PushNotificationWalletAsset>(rawData).let {
                 PushNotificationData.Stake(assetId = it.assetId.toIdentifier(), walletId = it.walletId)
             }
-
-            PushNotificationTypes.FiatTransaction -> null
         }
     } catch (_: Throwable) {
         null

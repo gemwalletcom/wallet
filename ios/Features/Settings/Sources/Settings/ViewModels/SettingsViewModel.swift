@@ -49,9 +49,6 @@ public final class SettingsViewModel {
     var notificationsTitle: String { Localized.Settings.Notifications.title }
     var notificationsImage: AssetImage { AssetImage.image(Images.Settings.notifications) }
 
-    var priceAlertsTitle: String { Localized.Settings.PriceAlerts.title }
-    var priceAlertsImage: AssetImage { AssetImage.image(Images.Settings.priceAlerts) }
-
     var preferencesTitle: String { Localized.Settings.Preferences.title }
     var preferencesImage: AssetImage { AssetImage.image(Images.Settings.preferences) }
 
@@ -61,20 +58,6 @@ public final class SettingsViewModel {
     var rewardsTitle: String { Localized.Rewards.title }
     var rewardsImage: AssetImage { AssetImage.image(Images.Settings.gem) }
     var showsRewards: Bool { walletSessionService.hasMulticoinWallet() }
-
-    private let links: [SocialUrl] = [.x, .discord, .telegram, .gitHub, .youTube]
-    var linksViewModel: SocialLinksViewModel {
-        let assetLinks = links.compactMap {
-            if let url = Social.url($0) {
-                return AssetLink(
-                    name: $0.linkType.rawValue,
-                    url: url.absoluteString,
-                )
-            }
-            return .none
-        }
-        return SocialLinksViewModel(assetLinks: assetLinks)
-    }
 
     var aboutUsTitle: String { Localized.Settings.aboutus }
     var aboutUsImage: AssetImage { AssetImage.image(Images.Settings.gem) }
@@ -89,7 +72,4 @@ public final class SettingsViewModel {
 
     var developerModeTitle: String { Localized.Settings.developer }
     var developerModeImage: AssetImage { AssetImage.image(Images.Settings.developer) }
-
-    var contactsTitle: String { Localized.Contacts.title }
-    var contactsImage: AssetImage { AssetImage.image(Images.Settings.contacts) }
 }

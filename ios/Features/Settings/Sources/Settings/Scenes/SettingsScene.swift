@@ -36,7 +36,6 @@ public struct SettingsScene: View {
                     referralSection
                 }
                 walletConnectSection
-                communitySection
                 aboutSection
             }
             .listRowInsets(.assetListRowInsets)
@@ -97,20 +96,6 @@ extension SettingsScene {
                 )
             }
 
-            NavigationLink(value: Scenes.PriceAlerts()) {
-                ListItemView(
-                    title: model.priceAlertsTitle,
-                    imageStyle: .settings(assetImage: model.priceAlertsImage),
-                )
-            }
-
-            NavigationLink(value: Scenes.Contacts()) {
-                ListItemView(
-                    title: model.contactsTitle,
-                    imageStyle: .settings(assetImage: model.contactsImage),
-                )
-            }
-
             NavigationLink(value: Scenes.Preferences()) {
                 ListItemView(
                     title: model.preferencesTitle,
@@ -128,12 +113,6 @@ extension SettingsScene {
                     imageStyle: .settings(assetImage: model.walletConnectImage),
                 )
             }
-        }
-    }
-
-    private var communitySection: some View {
-        Section(Localized.Settings.community) {
-            SocialLinksView(model: model.linksViewModel)
         }
     }
 

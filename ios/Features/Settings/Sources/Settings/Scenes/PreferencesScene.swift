@@ -51,6 +51,13 @@ public struct PreferencesScene: View {
                             imageStyle: .settings(assetImage: model.networksImage),
                         )
                     }
+
+                    NavigationLink(value: Scenes.Contacts()) {
+                        ListItemView(
+                            title: model.contactsTitle,
+                            imageStyle: .settings(assetImage: model.contactsImage),
+                        )
+                    }
                 }
                 Section {
                     ListItemToggleView(

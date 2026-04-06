@@ -154,6 +154,13 @@ class MainViewModel @Inject constructor(
                         setData("${assetRouteUri}/${data.assetId}".toUri())
                     }
 
+                    is PushNotificationData.WalletAsset -> {
+                        onWallet(data.walletId.id)
+                        Intent().apply {
+                            setData("${assetRouteUri}/${data.assetId}".toUri())
+                        }
+                    }
+
                     is PushNotificationData.Transaction -> {
                         onWallet(data.walletId)
                         Intent().apply {
@@ -170,7 +177,6 @@ class MainViewModel @Inject constructor(
                     is PushNotificationData.PushNotificationPayloadType,
                     is PushNotificationData.Swap,
                     null -> intent
-
                     is PushNotificationData.Stake -> {
                         onWallet(data.walletId.id)
                         Intent().apply {

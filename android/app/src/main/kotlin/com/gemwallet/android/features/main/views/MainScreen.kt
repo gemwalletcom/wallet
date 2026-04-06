@@ -56,6 +56,7 @@ import com.gemwallet.android.ui.navigation.routes.navigateToNftAsset
 import com.gemwallet.android.ui.navigation.routes.navigateToNftCollection
 import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToPreferences
+import com.gemwallet.android.ui.navigation.routes.navigateToNotifications
 import com.gemwallet.android.ui.navigation.routes.navigateToPriceAlertsScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToReceiveScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToRecipientInput
@@ -229,6 +230,7 @@ fun MainScreen(
                     onBridges = navController::navigateToBridgesScreen,
                     onDevelop = navController::navigateToDevelopScreen,
                     onWallets = navController::navigateToWalletsScreen,
+                    onNotifications = navController::navigateToNotifications,
                     onPriceAlerts = navController::navigateToPriceAlertsScreen,
                     onSupport = navController::navigateToSupport,
                     onPerpetual = navController::navigateToPerpetualsScreen,

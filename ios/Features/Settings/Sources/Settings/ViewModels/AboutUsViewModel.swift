@@ -2,6 +2,7 @@
 
 import AppService
 import Components
+import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -73,6 +74,22 @@ public final class AboutUsViewModel: Sendable {
     var releaseImage: AssetImage {
         AssetImage.image(Images.Settings.gem)
     }
+
+    private let links: [SocialUrl] = [.x, .discord, .telegram, .gitHub, .youTube]
+    var linksViewModel: SocialLinksViewModel {
+        let assetLinks = links.compactMap {
+            if let url = Social.url($0) {
+                return AssetLink(
+                    name: $0.linkType.rawValue,
+                    url: url.absoluteString,
+                )
+            }
+            return .none
+        }
+        return SocialLinksViewModel(assetLinks: assetLinks)
+    }
+
+    var communityTitle: String { Localized.Settings.community }
 }
 
 extension AboutUsViewModel {

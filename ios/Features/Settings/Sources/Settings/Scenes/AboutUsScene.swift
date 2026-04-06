@@ -27,6 +27,10 @@ public struct AboutUsScene: View {
                 }
             }
 
+            Section(model.communityTitle) {
+                SocialLinksView(model: model.linksViewModel)
+            }
+
             Section {
                 ListItemView(
                     title: model.versionTextTitle,

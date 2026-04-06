@@ -1,14 +1,13 @@
 package com.gemwallet.android.features.settings.currency.presents.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
 
 @Composable
@@ -22,12 +21,11 @@ fun CurrencyItem(
 
     ListItem(
         modifier = Modifier.clickable { onSelect(currency) },
+        minHeight = ListItemDefaults.plainMinHeight,
         title = { ListItemTitleText("${emojiFlags[currency.string] ?: ""}  ${currency.string} - $title") },
         listPosition = listPosition,
         trailing = if (currency == selectedCurrency) {
-            @Composable {
-                SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
-            }
+            @Composable { SelectionCheckmark() }
         } else {
             null
         },
