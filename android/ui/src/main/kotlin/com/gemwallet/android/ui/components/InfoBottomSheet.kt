@@ -32,6 +32,8 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -245,13 +247,17 @@ fun InfoBottomSheet(
             InfoSheetIcon(shownItem)
             Spacer16()
             Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = paddingDefault),
                 text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.title, shownItem.titleArgs)),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
             )
             Text(
-                modifier = Modifier.padding(vertical = 8.dp, horizontal = 32.dp),
+                modifier = Modifier.padding(vertical = paddingSmall, horizontal = paddingDefault),
                 text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.description, shownItem.descriptionArgs)),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
@@ -261,7 +267,7 @@ fun InfoBottomSheet(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp, horizontal = 32.dp),
+                        .padding(vertical = paddingDefault, horizontal = paddingDefault),
                 ) {
                     MainActionButton(
                         title = shownItem.actionLabel ?: stringResource(R.string.common_learn_more),
