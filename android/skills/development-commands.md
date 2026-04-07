@@ -39,8 +39,6 @@ just test-integration
 ./gradlew connectedGoogleDebugAndroidTest
 ./gradlew check
 ./gradlew lint
-./gradlew detekt
-./gradlew ktlintFormat
 ```
 
 ## Command Rules

@@ -42,7 +42,6 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.ListPosition
@@ -73,20 +72,14 @@ fun AssetChartScene(
     viewModel: AssetChartViewModel = hiltViewModel(),
     chartViewModel: ChartViewModel = hiltViewModel(),
 ) {
-    val marketUIModelState by viewModel.marketUIModel.collectAsStateWithLifecycle()
+    val marketModel by viewModel.marketUIModel.collectAsStateWithLifecycle()
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
 
-    val marketModel = marketUIModelState
-    if (marketModel == null) {
-        LoadingScene(stringResource(R.string.common_loading), onCancel)
-        return
-    }
-
     Scene(
-        title = marketModel.assetTitle,
+        title = marketModel?.assetTitle.orEmpty(),
         backHandle = true,
         onClose = onCancel,
         snackbar = snackbar,
@@ -109,14 +102,17 @@ fun AssetChartScene(
                 item { Chart(chartViewModel) }
                 item {
                     PriceAlertsItem(
-                        assetId = marketModel.asset.id,
+                        assetId = viewModel.assetId,
                         priceAlertsCount = priceAlertsCount,
                         onPriceAlerts = onPriceAlerts,
                         onAddPriceAlertTarget = onAddPriceAlertTarget,
                     )
                 }
-                assetMarket(marketModel.currency, marketModel.asset, marketModel.marketInfo, marketModel.explorerName)
-                links(marketModel.assetLinks)
+                marketModel?.let {
+                    assetContract(it.asset, it.explorerName)
+                    assetMarket(it.currency, it.asset, it.marketInfo)
+                    links(it.assetLinks)
+                }
             }
         }
     }
@@ -175,7 +171,12 @@ private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
     }
 }
 
-private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?, explorerName: String) {
+private fun LazyListScope.assetContract(asset: Asset, explorerName: String) {
+    val contract = contractMarketInfo(asset, explorerName) ?: return
+    marketProperties(asset, listOf(contract))
+}
+
+private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?) {
     marketInfo ?: return
     val marketItems = listOfNotNull(
         marketInfo.marketCap?.let {
@@ -196,14 +197,6 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
                 value = currency.compactFormatter(it),
                 info = InfoSheetEntity.FullyDilutedValuation,
-            )
-        },
-        asset.id.tokenId?.let { tokenId ->
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
-                value = tokenId,
-                explorerLink = Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
-                    ?.let { BlockExplorerLink(name = explorerName, link = it) },
             )
         },
     )
@@ -237,12 +230,30 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
         marketInfo.allTimeLowValue?.let { AllTimeUIModel.Low(it.date, it.value.toDouble(), it.percentage.toDouble()) },
     )
 
-    marketProperties(asset, explorerName, marketItems)
-    marketProperties(asset, explorerName, supplyItems)
+    marketProperties(asset, marketItems)
+    marketProperties(asset, supplyItems)
     allTimeProperties(asset, currency, allTime)
 }
 
-private fun LazyListScope.marketProperties(asset: Asset, explorerName: String, items: List<MarketInfoUIModel>) {
+internal fun contractMarketInfo(
+    asset: Asset,
+    explorerName: String,
+    tokenExplorerUrl: (Asset, String, String) -> String? = ::defaultTokenExplorerUrl,
+): MarketInfoUIModel? {
+    val tokenId = asset.id.tokenId ?: return null
+    return MarketInfoUIModel(
+        type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
+        value = tokenId,
+        explorerLink = tokenExplorerUrl(asset, explorerName, tokenId)
+            ?.let { BlockExplorerLink(name = explorerName, link = it) },
+    )
+}
+
+private fun defaultTokenExplorerUrl(asset: Asset, explorerName: String, tokenId: String): String? {
+    return Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
+}
+
+private fun LazyListScope.marketProperties(asset: Asset, items: List<MarketInfoUIModel>) {
     itemsPositioned(items) { position, item ->
         when (item.type) {
             MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
