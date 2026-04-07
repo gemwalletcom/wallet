@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.domains.pricealerts.direction
+import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.format
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
@@ -81,20 +83,10 @@ class PriceAlertTargetViewModel @Inject constructor(
         } catch (_: Throwable) {
             return null
         }
-        val direction = when (type.value) {
-            PriceAlertNotificationType.Price ->
-                if (currentPriceValue.value > inputValue) PriceAlertDirection.Down else PriceAlertDirection.Up
-            PriceAlertNotificationType.PricePercentChange -> this.direction.value
-            PriceAlertNotificationType.Auto -> null
-        }
-        val price = when (type.value) {
-            PriceAlertNotificationType.Price -> inputValue
-            else -> null
-        }
-        val percentage = when (type.value) {
-            PriceAlertNotificationType.PricePercentChange -> inputValue
-            else -> null
-        }
+        val type = type.value
+        val direction = type.direction(currentPriceValue.value, inputValue, direction.value)
+        val price = if (type == PriceAlertNotificationType.Price) inputValue else null
+        val percentage = if (type == PriceAlertNotificationType.PricePercentChange) inputValue else null
         viewModelScope.launch(Dispatchers.IO) {
             includePriceAlert.includePriceAlert(
                 assetId = assetId.value ?: return@launch,
@@ -105,12 +97,7 @@ class PriceAlertTargetViewModel @Inject constructor(
             )
         }
         direction ?: return null
-        val amount = when (type.value) {
-            PriceAlertNotificationType.Price -> currency.value.format(inputValue)
-            PriceAlertNotificationType.PricePercentChange -> "$inputValue%"
-            PriceAlertNotificationType.Auto -> ""
-        }
-        return PriceAlertConfirmResult(type.value, direction, amount)
+        return PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency.value))
     }
 
 }
