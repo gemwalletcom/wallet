@@ -26,7 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.CenteredDescriptionText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -40,12 +39,13 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.Config
-import uniffi.gemstone.PublicUrl
+import uniffi.gemstone.DocsUrl
 
 private val emojiFontSize = 24.sp
 
 @Composable
 fun PhraseAlertDialog(
+    title: String = stringResource(R.string.wallet_new_title),
     onAccept: () -> Unit,
     onCancel: CancelAction,
 ) {
@@ -53,7 +53,7 @@ fun PhraseAlertDialog(
     val uriHandler = LocalUriHandler.current
 
     Scene(
-        title = stringResource(R.string.wallet_new_title),
+        title = title,
         mainAction = {
             MainActionButton(
                 stringResource(R.string.common_continue),
@@ -62,16 +62,7 @@ fun PhraseAlertDialog(
         },
         actions = {
             IconButton(
-                {
-                    uriHandler.open(
-                        context,
-                        Config().getPublicUrl(PublicUrl.TERMS_OF_SERVICE).toUri()
-                            .buildUpon()
-                            .appendQueryParameter("utm_source", "gemwallet_android")
-                            .build()
-                            .toString()
-                    )
-                }
+                { uriHandler.open(context, Config().getDocsUrl(DocsUrl.WhatIsSecretPhrase)) }
             ) {
                 Icon(Icons.Outlined.Info, "")
             }
@@ -145,6 +136,6 @@ private fun InfoBlock(
 @Composable
 fun PreviewPhraseAlertDialog() {
     WalletTheme {
-        PhraseAlertDialog( {} ) {}
+        PhraseAlertDialog(onAccept = {}, onCancel = {})
     }
 }

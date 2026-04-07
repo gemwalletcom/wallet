@@ -31,7 +31,7 @@ fun NavGraphBuilder.createWalletScreen(
 ) {
 
     composable<CreateWalletAlertRoute> {
-        PhraseAlertDialog({ onCreateWallet(true, null) }, onCancel)
+        PhraseAlertDialog(onAccept = { onCreateWallet(true, null) }, onCancel = onCancel)
     }
 
     composable<CreateWalletRoute> {
