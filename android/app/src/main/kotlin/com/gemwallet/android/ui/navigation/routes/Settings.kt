@@ -9,6 +9,8 @@ import androidx.navigation.navOptions
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.components.animation.enterTabScreenTransition
 import com.gemwallet.android.ui.components.animation.exitTabScreenTransition
+import com.gemwallet.android.ui.navigation.clearToastMessage
+import com.gemwallet.android.ui.navigation.getToastMessage
 import com.gemwallet.android.features.settings.aboutus.presents.AboutUsScreen
 import com.gemwallet.android.features.settings.currency.presents.CurrenciesScene
 import com.gemwallet.android.features.settings.develop.presents.DevelopScene
@@ -115,6 +117,7 @@ fun NavGraphBuilder.settingsScreen(
     onNotifications: () -> Unit,
     onPriceAlerts: () -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
+    onPriceAlertTargetComplete: (String) -> Unit,
     onChart: (AssetId) -> Unit,
     onSupport: () -> Unit,
     onPerpetual: () -> Unit,
@@ -161,12 +164,18 @@ fun NavGraphBuilder.settingsScreen(
         NetworksScreen(onCancel = onCancel)
     }
 
-    composable<PriceAlertsRoute> {
-        PriceAlertsNavScreen(onChart = onChart, onAddPriceAlertTarget = onAddPriceAlertTarget, onCancel = onCancel)
+    composable<PriceAlertsRoute> { backStackEntry ->
+        PriceAlertsNavScreen(
+            toastMessage = backStackEntry.getToastMessage(),
+            onToastShown = backStackEntry::clearToastMessage,
+            onChart = onChart,
+            onAddPriceAlertTarget = onAddPriceAlertTarget,
+            onCancel = onCancel,
+        )
     }
 
     composable<AddPriceAlertTargetRoute> {
-        PriceAlertTargetNavScreen(onCancel = onCancel)
+        PriceAlertTargetNavScreen(onCancel = onCancel, onComplete = onPriceAlertTargetComplete)
     }
 
     composable<NotificationsRoute> {
