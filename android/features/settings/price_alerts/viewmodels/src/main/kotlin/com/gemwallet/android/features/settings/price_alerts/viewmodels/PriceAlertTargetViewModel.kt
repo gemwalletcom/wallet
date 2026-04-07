@@ -9,6 +9,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.format
+import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
@@ -74,23 +75,25 @@ class PriceAlertTargetViewModel @Inject constructor(
         _type.update { type }
     }
 
-    fun onConfirm() {
-        val value = try {
+    fun onConfirm(): PriceAlertConfirmResult? {
+        val inputValue = try {
             value.text.toString().toDouble()
         } catch (_: Throwable) {
-            return
+            return null
         }
-        val (price, percentage, direction) = when (type.value) {
-            PriceAlertNotificationType.Price -> Triple(
-                value,
-                null,
-                when (currentPriceValue.value > value) {
-                    true -> PriceAlertDirection.Down
-                    false -> PriceAlertDirection.Up
-                }
-            )
-            PriceAlertNotificationType.PricePercentChange -> Triple(null, value, direction.value)
-            PriceAlertNotificationType.Auto -> Triple(null, null, null)
+        val direction = when (type.value) {
+            PriceAlertNotificationType.Price ->
+                if (currentPriceValue.value > inputValue) PriceAlertDirection.Down else PriceAlertDirection.Up
+            PriceAlertNotificationType.PricePercentChange -> this.direction.value
+            PriceAlertNotificationType.Auto -> null
+        }
+        val price = when (type.value) {
+            PriceAlertNotificationType.Price -> inputValue
+            else -> null
+        }
+        val percentage = when (type.value) {
+            PriceAlertNotificationType.PricePercentChange -> inputValue
+            else -> null
         }
         viewModelScope.launch(Dispatchers.IO) {
             includePriceAlert.includePriceAlert(
@@ -101,6 +104,13 @@ class PriceAlertTargetViewModel @Inject constructor(
                 direction = direction,
             )
         }
+        direction ?: return null
+        val amount = when (type.value) {
+            PriceAlertNotificationType.Price -> currency.value.format(inputValue)
+            PriceAlertNotificationType.PricePercentChange -> "$inputValue%"
+            PriceAlertNotificationType.Auto -> ""
+        }
+        return PriceAlertConfirmResult(type.value, direction, amount)
     }
 
 }

@@ -303,6 +303,9 @@ fun WalletNavGraph(
             onNotifications = navController::navigateToNotifications,
             onPriceAlerts = navController::navigateToPriceAlertsScreen,
             onAddPriceAlertTarget = navController::navigateToAddPriceAlertTargetScreen,
+            onPriceAlertTargetComplete = { message ->
+                navController.popBackWithResult(NavigationResult.TOAST_MESSAGE, message)
+            },
             onSupport = navController::navigateToSupport,
             onPerpetual = navController::navigateToPerpetualsScreen,
             onReferral = navController::navigateToReferralScreen,

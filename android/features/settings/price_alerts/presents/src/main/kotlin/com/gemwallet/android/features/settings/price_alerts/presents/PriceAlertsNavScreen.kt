@@ -1,30 +1,34 @@
 package com.gemwallet.android.features.settings.price_alerts.presents
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertViewModel
 import com.wallet.core.primitives.AssetId
+import kotlinx.coroutines.launch
 
 @Composable
 fun PriceAlertsNavScreen(
+    toastMessage: String? = null,
+    onToastShown: () -> Unit = {},
     onChart: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onCancel: () -> Unit,
     viewModel: PriceAlertViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    val resources = LocalResources.current
+    val resources = LocalContext.current.resources
+    val scope = rememberCoroutineScope()
+    val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
 
     var selectingAsset by remember { mutableStateOf(false) }
 
@@ -38,15 +42,13 @@ fun PriceAlertsNavScreen(
             true -> PriceAlertSelectScreen(
                 onCancel = { selectingAsset = false },
                 onSelect = {
-                    viewModel.includeAsset(it) {
-                        Toast.makeText(
-                            context,
-                            resources.getString(R.string.price_alerts_enabled_for, it.name),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    viewModel.includeAsset(it) { asset ->
+                        val message = resources.getString(R.string.price_alerts_enabled_for, asset.name)
+                        scope.launch {
+                            snackbar.showSnackbar(message)
+                        }
                     }
                     selectingAsset = false
-
                 },
             )
             false -> PriceAlertScene(
@@ -55,6 +57,7 @@ fun PriceAlertsNavScreen(
                 enabled = priceAlertState is PriceAlertsStateEvent.Enable,
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),
+                snackbar = snackbar,
                 onEnablePriceAlerts = viewModel::togglePriceAlerts,
                 onChart = onChart,
                 onExclude = viewModel::excludeAsset,
