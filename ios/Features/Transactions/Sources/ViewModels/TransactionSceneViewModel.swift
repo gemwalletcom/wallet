@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import ExplorerService
 import Foundation
@@ -124,12 +125,13 @@ extension TransactionSceneViewModel {
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
-        NetworkFeeSceneViewModel(
+        let viewModel = NetworkFeeSceneViewModel(
             chain: model.transaction.transaction.assetId.chain,
             priority: .normal,
             currency: Currency(rawValue: preferences.currency) ?? .usd,
-            value: model.infoModel.feeDisplay?.amount.text,
-            fiatValue: model.infoModel.feeDisplay?.fiat?.text,
+            feeAmount: BigInt(model.transaction.transaction.fee),
         )
+        viewModel.update(rates: [], feeAssetPrice: model.transaction.feePrice)
+        return viewModel
     }
 }

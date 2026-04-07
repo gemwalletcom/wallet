@@ -35,7 +35,6 @@ public struct AboutUsScene: View {
                 ListItemView(
                     title: model.versionTextTitle,
                     subtitle: model.versionTextValue,
-                    imageStyle: .settings(assetImage: model.versionTextImage),
                 )
                 .contextMenu(model.contextMenuItems)
 

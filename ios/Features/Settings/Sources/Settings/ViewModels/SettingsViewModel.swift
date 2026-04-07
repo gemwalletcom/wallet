@@ -60,7 +60,7 @@ public final class SettingsViewModel {
     var showsRewards: Bool { walletSessionService.hasMulticoinWallet() }
 
     var aboutUsTitle: String { Localized.Settings.aboutus }
-    var aboutUsImage: AssetImage { AssetImage.image(Images.Settings.gem) }
+    var aboutUsImage: AssetImage { AssetImage.image(Images.Settings.aboutUs) }
 
     var helpCenterTitle: String { Localized.Settings.helpCenter }
     var helpCenterImage: AssetImage { AssetImage.image(Images.Settings.helpCenter) }

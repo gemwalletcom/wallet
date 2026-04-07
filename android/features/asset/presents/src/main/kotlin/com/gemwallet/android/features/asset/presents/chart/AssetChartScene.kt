@@ -44,6 +44,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -67,6 +68,8 @@ fun AssetChartScene(
     onCancel: () -> Unit,
     onPriceAlerts: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
+    toastMessage: String? = null,
+    onToastShown: () -> Unit = {},
     viewModel: AssetChartViewModel = hiltViewModel(),
     chartViewModel: ChartViewModel = hiltViewModel(),
 ) {
@@ -74,6 +77,7 @@ fun AssetChartScene(
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
+    val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
 
     val marketModel = marketUIModelState
     if (marketModel == null) {
@@ -85,6 +89,7 @@ fun AssetChartScene(
         title = marketModel.assetTitle,
         backHandle = true,
         onClose = onCancel,
+        snackbar = snackbar,
     ) {
         PullToRefreshBox(
             isRefreshing = isChartRefreshing,
@@ -193,6 +198,14 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
                 info = InfoSheetEntity.FullyDilutedValuation,
             )
         },
+        asset.id.tokenId?.let { tokenId ->
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
+                value = tokenId,
+                explorerLink = Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
+                    ?.let { BlockExplorerLink(name = explorerName, link = it) },
+            )
+        },
     )
 
     val supplyItems = listOfNotNull(
@@ -215,14 +228,6 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
                 value = asset.formatSupply(it),
                 info = InfoSheetEntity.MaxSupply,
-            )
-        },
-        asset.id.tokenId?.let { tokenId ->
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
-                value = tokenId,
-                explorerLink = Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
-                    ?.let { BlockExplorerLink(name = explorerName, link = it) },
             )
         },
     )

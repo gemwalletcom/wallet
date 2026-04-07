@@ -35,7 +35,7 @@ public struct NetworkFeeScene: View {
 
                                 ListItemView(
                                     title: feeRate.title,
-                                    subtitle: feeRate.valueText,
+                                    subtitle: model.valueForRate(feeRate),
                                     subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
                                     subtitleExtra: model.fiatValueForRate(feeRate),
                                     subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),

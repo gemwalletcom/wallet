@@ -75,7 +75,6 @@ fun AboutUsScreen(
             item {
                 LinkItem(
                     title = stringResource(id = R.string.settings_version),
-                    icon = R.drawable.settings_version,
                     listPosition = ListPosition.Single,
                     trailingContent = {
                         Text(

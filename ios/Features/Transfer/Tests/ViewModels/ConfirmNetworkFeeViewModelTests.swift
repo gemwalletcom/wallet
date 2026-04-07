@@ -17,6 +17,7 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: "0.001 ETH",
             fiatValue: fiatValue,
+            selectable: true,
             infoAction: {},
         )
 
@@ -33,6 +34,7 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: value,
             fiatValue: nil,
+            selectable: true,
             infoAction: {},
         )
 
@@ -48,6 +50,7 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: nil,
             fiatValue: nil,
+            selectable: true,
             infoAction: {},
         )
 
@@ -71,6 +74,7 @@ struct ConfirmNetworkFeeViewModelTests {
             title: Localized.Transfer.networkFee,
             value: value,
             fiatValue: fiatValue,
+            selectable: true,
             infoAction: {},
         )
 

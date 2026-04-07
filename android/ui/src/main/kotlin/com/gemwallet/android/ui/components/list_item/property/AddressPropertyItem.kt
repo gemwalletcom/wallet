@@ -39,12 +39,17 @@ fun AddressPropertyItem(
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = {},
+        onClick = { explorerLink?.let { uriHandler.open(context, it.link) } },
         content = { modifier ->
             PropertyItem(
                 modifier = modifier,
                 title = { PropertyTitleText(title) },
-                data = { PropertyDataText(text = displayText) },
+                data = {
+                    PropertyDataText(
+                        text = displayText,
+                        badge = explorerLink?.let { { DataBadgeChevron() } },
+                    )
+                },
                 listPosition = listPosition,
             )
         },

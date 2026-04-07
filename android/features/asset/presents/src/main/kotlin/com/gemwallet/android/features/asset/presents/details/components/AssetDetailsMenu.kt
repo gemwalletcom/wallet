@@ -86,7 +86,14 @@ fun RowScope.AssetDetailsMenu(
                 },
                 onClick = { uriHandler.open(context, it) },
             )
-
+        }
+        uiState.explorerTokenUrl?.let {
+            DropdownMenuItem(
+                text = {
+                    Text(stringResource(R.string.asset_view_token_on, uiState.explorerName))
+                },
+                onClick = { uriHandler.open(context, it) },
+            )
         }
         DropdownMenuItem(
             text = {

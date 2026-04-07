@@ -6,7 +6,7 @@ import com.wallet.core.primitives.PriceAlertDirection
 
 interface IncludePriceAlert {
 
-    suspend fun includePriceAlert(
+    suspend operator fun invoke(
         assetId: AssetId,
         currency: Currency? = null,
         price: Double? = null,

@@ -9,7 +9,6 @@ import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemSwapQuoteDataType
 import java.math.BigInteger
 
@@ -37,13 +36,12 @@ class SignClientProxy(
 
     suspend fun signTransaction(
         params: SignerParams,
-        feePriority: FeePriority,
         privateKey: ByteArray,
     ): List<ByteArray> {
         val chain = params.input.asset.id.chain
         val client = clients.getClient(chain) ?: throw Exception("Chain isn't support")
         val input = params.input
-        val data = params.data(feePriority)
+        val data = params.data()
         val fee = data.fee
         val chainData = data.chainData
         return when (input) {

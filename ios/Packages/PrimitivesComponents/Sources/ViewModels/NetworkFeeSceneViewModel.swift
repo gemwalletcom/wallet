@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Localization
 import Primitives
 import SwiftUI
@@ -14,25 +15,30 @@ public final class NetworkFeeSceneViewModel {
     private var feeAssetPrice: Price?
 
     public var priority: FeePriority
-    public var value: String?
-    public var fiatValue: String?
+    public var feeAmount: BigInt?
 
     public init(
         chain: Chain,
         priority: FeePriority,
         currency: Currency,
-        value: String? = nil,
-        fiatValue: String? = nil,
+        feeAmount: BigInt? = nil,
     ) {
         self.chain = chain
         self.priority = priority
         self.currency = currency
-        self.value = value
-        self.fiatValue = fiatValue
+        self.feeAmount = feeAmount
     }
 
     public var title: String { Localized.Transfer.networkFee }
     public var infoIcon: String { Localized.FeeRates.info }
+
+    public var value: String? {
+        feeAmount.map { display(for: $0).amount.text }
+    }
+
+    public var fiatValue: String? {
+        feeAmount.flatMap { display(for: $0).fiat?.text }
+    }
 
     public var feeRatesViewModels: [FeeRateViewModel] {
         rates.map {
@@ -53,16 +59,29 @@ public final class NetworkFeeSceneViewModel {
         rates.count > 1
     }
 
+    public func valueForRate(_ rate: FeeRateViewModel) -> String {
+        switch chain.feeUnitType {
+        case .native: fiatText(for: rate.feeRate) ?? ""
+        case .gwei, .satVb: rate.valueText
+        }
+    }
+
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
-        guard chain.feeUnitType == .native, let price = feeAssetPrice else { return nil }
-        let display = AmountDisplay.numeric(
-            asset: chain.asset,
-            price: price,
-            value: rate.feeRate.gasPriceType.totalFee,
-            currency: currency.rawValue,
-            formatter: .medium,
-        )
-        return display.fiat?.text
+        switch chain.feeUnitType {
+        case .native: nil
+        case .gwei, .satVb: fiatText(for: rate.feeRate)
+        }
+    }
+
+    private func fiatText(for rate: FeeRate) -> String? {
+        feeAmount(for: rate).flatMap { display(for: $0).fiat?.text }
+    }
+
+    func feeAmount(for rate: FeeRate) -> BigInt? {
+        guard let feeAmount, let selectedRate = rates.first(where: { $0.priority == priority }) else { return nil }
+        let selectedTotal = selectedRate.gasPriceType.totalFee
+        guard selectedTotal != .zero else { return nil }
+        return feeAmount * rate.gasPriceType.totalFee / selectedTotal
     }
 }
 
@@ -74,13 +93,25 @@ public extension NetworkFeeSceneViewModel {
         self.feeAssetPrice = feeAssetPrice
     }
 
-    func update(value: String?, fiatValue: String?) {
-        self.value = value
-        self.fiatValue = fiatValue
+    func update(feeAmount: BigInt?) {
+        self.feeAmount = feeAmount
     }
 
     func reset() {
-        value = nil
-        fiatValue = nil
+        feeAmount = nil
+    }
+}
+
+// MARK: - Private
+
+private extension NetworkFeeSceneViewModel {
+    func display(for amount: BigInt) -> AmountDisplay {
+        AmountDisplay.numeric(
+            asset: chain.asset,
+            price: feeAssetPrice,
+            value: amount,
+            currency: currency.rawValue,
+            formatter: .auto,
+        )
     }
 }

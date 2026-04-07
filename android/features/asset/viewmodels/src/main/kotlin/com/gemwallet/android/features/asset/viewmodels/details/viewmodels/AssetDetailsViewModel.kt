@@ -120,7 +120,7 @@ class AssetDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val priceAlertsCount = assetId.filterNotNull()
-        .flatMapLatest { getPriceAlerts.getPriceAlerts(it) }
+        .flatMapLatest { getPriceAlerts(it) }
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
@@ -238,6 +238,9 @@ class AssetDetailsViewModel @Inject constructor(
                 explorerName = explorerName, //  TODO: Out to separate state and model
                 explorerAddressUrl = assetInfo.owner?.address?.let {//  TODO: Out to separate state
                     Explorer(asset.chain.string).getAddressUrl(explorerName,  it)
+                },
+                explorerTokenUrl = asset.id.tokenId?.let {
+                    Explorer(asset.chain.string).getTokenUrl(explorerName, it)
                 },
                 accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                     walletType = assetInfo.walletType,

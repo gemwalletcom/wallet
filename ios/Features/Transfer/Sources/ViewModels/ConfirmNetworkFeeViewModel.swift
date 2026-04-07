@@ -8,6 +8,7 @@ struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
     private let title: String
     private let value: String?
     private let fiatValue: String?
+    private let selectable: Bool
     private let infoAction: VoidAction
 
     init(
@@ -15,12 +16,14 @@ struct ConfirmNetworkFeeViewModel: ItemModelProvidable {
         title: String,
         value: String?,
         fiatValue: String?,
+        selectable: Bool,
         infoAction: VoidAction,
     ) {
         self.state = state
         self.title = title
         self.value = value
         self.fiatValue = fiatValue
+        self.selectable = selectable
         self.infoAction = infoAction
     }
 }
@@ -37,7 +40,7 @@ extension ConfirmNetworkFeeViewModel {
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
-            selectable: !state.isError,
+            selectable: selectable && !state.isError,
         )
     }
 }

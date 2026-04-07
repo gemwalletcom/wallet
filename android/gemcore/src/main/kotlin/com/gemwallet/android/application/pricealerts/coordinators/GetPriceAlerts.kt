@@ -5,7 +5,7 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.Flow
 
 interface GetPriceAlerts {
-    fun getPriceAlerts(assetId: AssetId? = null): Flow<List<PriceAlertDataAggregate>>
+    operator fun invoke(assetId: AssetId? = null): Flow<List<PriceAlertDataAggregate>>
 
     fun groupByTargetAndAsset(items: List<PriceAlertDataAggregate>): Map<AssetId?, List<PriceAlertDataAggregate>> {
         val result = mutableMapOf<AssetId?, List<PriceAlertDataAggregate>>()

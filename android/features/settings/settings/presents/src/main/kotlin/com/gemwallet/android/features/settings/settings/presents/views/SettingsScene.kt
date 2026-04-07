@@ -114,15 +114,6 @@ fun SettingsScene(
                     onClick = onPreferences,
                 )
             }
-            if (isRewardsAvailable) {
-                LinkItem(
-                    title = stringResource(id = R.string.rewards_title),
-                    icon = R.drawable.settings_wallets,
-                    listPosition = ListPosition.Single
-                ) {
-                    onReferral()
-                }
-            }
             LinkItem(
                 title = stringResource(id = R.string.wallet_connect_title),
                 icon = R.drawable.settings_wc,
@@ -143,6 +134,15 @@ fun SettingsScene(
                     }
                 } else {
                     onSupport()
+                }
+            }
+            if (isRewardsAvailable) {
+                LinkItem(
+                    title = stringResource(id = R.string.rewards_title),
+                    icon = R.drawable.settings_wallets,
+                    listPosition = ListPosition.Middle
+                ) {
+                    onReferral()
                 }
             }
             Box(modifier = Modifier.fillMaxWidth()) {
