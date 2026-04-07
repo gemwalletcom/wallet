@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,11 +30,13 @@ import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.paddingLarge
+import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -41,7 +44,7 @@ import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.Config
 import uniffi.gemstone.DocsUrl
 
-internal val infoSheetIconSize = 120.dp
+internal val infoSheetIconSize = 88.dp
 
 sealed class InfoSheetEntity(
     val icon: Any,
@@ -243,7 +246,7 @@ fun InfoBottomSheet(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer16()
+            Spacer(modifier = Modifier.size(paddingLarge))
             InfoSheetIcon(shownItem)
             Spacer16()
             Text(
@@ -256,18 +259,21 @@ fun InfoBottomSheet(
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center,
             )
+            Spacer8()
             Text(
-                modifier = Modifier.padding(vertical = paddingSmall, horizontal = paddingDefault),
+                modifier = Modifier.padding(horizontal = paddingDefault),
                 text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.description, shownItem.descriptionArgs)),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
             )
+            Spacer16()
             if (shownItem.action != null || shownItem.infoUrl != null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = paddingDefault, horizontal = paddingDefault),
+                        .padding(horizontal = paddingDefault)
+                        .padding(bottom = paddingDefault),
                 ) {
                     MainActionButton(
                         title = shownItem.actionLabel ?: stringResource(R.string.common_learn_more),
@@ -285,15 +291,23 @@ fun InfoBottomSheet(
 
 @Composable
 private fun InfoSheetIcon(item: InfoSheetEntity) {
-    Box(
-        modifier = Modifier.size(infoSheetIconSize),
-        contentAlignment = Alignment.Center,
-    ) {
-        IconWithBadge(
-            icon = item.icon,
-            supportIcon = item.badgeIcon,
+    if (item.badgeIcon != null) {
+        Box(
+            modifier = Modifier.size(infoSheetIconSize),
+            contentAlignment = Alignment.Center,
+        ) {
+            IconWithBadge(
+                icon = item.icon,
+                supportIcon = item.badgeIcon,
+                size = infoSheetIconSize,
+                badgeBackgroundColor = MaterialTheme.colorScheme.background,
+            )
+        }
+    } else {
+        AsyncImage(
+            model = item.icon,
             size = infoSheetIconSize,
-            badgeBackgroundColor = MaterialTheme.colorScheme.background,
+            transformation = null,
         )
     }
 }
