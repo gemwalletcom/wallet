@@ -45,7 +45,7 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
 import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.launch
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 
 @Composable
@@ -86,7 +86,7 @@ fun ConnectionsScene(
             IconButton(onClick = { scannerShowed  = true }) {
                 Icon(imageVector = Icons.Default.QrCodeScanner, contentDescription = "scan_qr")
             }
-            IconButton(onClick = { uriHandler.open(context, Config().getDocsUrl(DocsUrl.WalletConnect)) }) {
+            IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.WalletConnect)) }) {
                 Icon(imageVector = Icons.Outlined.Info, contentDescription = "WC_INFO")
             }
         },

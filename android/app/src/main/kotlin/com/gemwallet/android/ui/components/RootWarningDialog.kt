@@ -16,7 +16,7 @@ import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer8
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 import java.io.File
 
@@ -34,7 +34,7 @@ fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {
                 Spacer8()
                 Text(
                     modifier = Modifier.clickable {
-                        uriHandler.open(context, Config().getDocsUrl(DocsUrl.RootedDevice))
+                        uriHandler.open(context, AppUrl.docs(DocsUrl.RootedDevice))
                     },
                     text = stringResource(R.string.common_learn_more),
                     color = MaterialTheme.colorScheme.primary

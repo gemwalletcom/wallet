@@ -15,7 +15,7 @@ final class AcceptTermsViewModel {
     }
 
     var termsAndServicesURL: URL {
-        PublicConstants.url(.termsOfService)
+        AppUrl.page(.termsOfService)
     }
 
     let title: String = Localized.Onboarding.AcceptTerms.title

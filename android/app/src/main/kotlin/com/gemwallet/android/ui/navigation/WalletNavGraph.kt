@@ -71,6 +71,7 @@ import com.gemwallet.android.ui.navigation.routes.navigateToNftCollection
 import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToPhraseScreen
+import com.gemwallet.android.ui.navigation.routes.navigateToSecurityReminderScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToNotifications
 import com.gemwallet.android.ui.navigation.routes.navigateToPreferences
 import com.gemwallet.android.ui.navigation.routes.navigateToPriceAlertsScreen
@@ -259,7 +260,8 @@ fun WalletNavGraph(
                     }
                 }
             },
-            onPhraseShow = navController::navigateToPhraseScreen
+            onSecurityReminder = navController::navigateToSecurityReminderScreen,
+            onPhraseShow = navController::navigateToPhraseScreen,
         )
 
         stake(
