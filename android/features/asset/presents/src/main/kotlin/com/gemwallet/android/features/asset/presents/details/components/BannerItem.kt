@@ -11,7 +11,7 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.banner.views.BannersScene
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 
 @Composable
@@ -28,7 +28,7 @@ internal fun BannerItem(
             when (it.event) {
                 BannerEvent.Stake -> onStake(assetInfo.asset.id)
                 BannerEvent.AccountBlockedMultiSignature ->
-                    uriHandler.open(context, Config().getDocsUrl(DocsUrl.TronMultiSignature))
+                    uriHandler.open(context, AppUrl.docs(DocsUrl.TronMultiSignature))
 
                 BannerEvent.ActivateAsset -> {
                     val params = ConfirmParams.Builder(

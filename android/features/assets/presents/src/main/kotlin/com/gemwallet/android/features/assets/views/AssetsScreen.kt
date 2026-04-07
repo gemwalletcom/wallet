@@ -50,7 +50,7 @@ import com.gemwallet.android.features.banner.views.BannersScene
 import com.gemwallet.android.features.banner.views.WelcomeBanner
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -133,7 +133,7 @@ fun AssetsScreen(
                         onClick = { banner ->
                             when (banner.event) {
                                 BannerEvent.AccountBlockedMultiSignature ->
-                                    uriHandler.open(context, Config().getDocsUrl(DocsUrl.TronMultiSignature))
+                                    uriHandler.open(context, AppUrl.docs(DocsUrl.TronMultiSignature))
                                 else -> {}
                             }
                         },

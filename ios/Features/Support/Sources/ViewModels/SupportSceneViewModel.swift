@@ -27,7 +27,7 @@ public final class SupportSceneViewModel: Sendable {
     }
 
     var title: String { Localized.Settings.support }
-    var helpCenterURL: URL { Docs.url(.start) }
+    var helpCenterURL: URL { AppUrl.docs(.start) }
 
     var chatwootModel: ChatwootWebViewModel {
         ChatwootWebViewModel(

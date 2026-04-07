@@ -143,9 +143,9 @@ struct BannerViewModel {
         case .accountActivation:
             asset?.chain.accountActivationFeeUrl
         case .accountBlockedMultiSignature:
-            Docs.url(.tronMultiSignature)
+            AppUrl.docs(.tronMultiSignature)
         case .suspiciousAsset:
-            Docs.url(.tokenVerification)
+            AppUrl.docs(.tokenVerification)
         }
     }
 

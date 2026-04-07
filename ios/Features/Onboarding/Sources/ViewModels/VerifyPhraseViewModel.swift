@@ -38,7 +38,7 @@ final class VerifyPhraseViewModel {
     }
 
     var docsUrl: URL {
-        Docs.url(.howToSecureSecretPhrase)
+        AppUrl.docs(.howToSecureSecretPhrase)
     }
 
     var rows: [[WordIndex]] {

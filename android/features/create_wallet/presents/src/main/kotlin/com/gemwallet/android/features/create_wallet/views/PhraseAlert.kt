@@ -38,7 +38,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 
 private val emojiFontSize = 24.sp
@@ -62,7 +62,7 @@ fun PhraseAlertDialog(
         },
         actions = {
             IconButton(
-                { uriHandler.open(context, Config().getDocsUrl(DocsUrl.WhatIsSecretPhrase)) }
+                { uriHandler.open(context, AppUrl.docs(DocsUrl.WhatIsSecretPhrase)) }
             ) {
                 Icon(Icons.Outlined.Info, "")
             }

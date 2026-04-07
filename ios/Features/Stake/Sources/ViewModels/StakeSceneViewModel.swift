@@ -52,7 +52,7 @@ public final class StakeSceneViewModel {
     }
 
     public var stakeInfoUrl: URL {
-        Docs.url(.staking(chain.map()))
+        AppUrl.docs(.staking(chain.map()))
     }
 
     var title: String { Localized.Transfer.Stake.title }

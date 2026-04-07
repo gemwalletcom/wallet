@@ -28,13 +28,13 @@ public final class AboutUsViewModel: Sendable {
     var title: String { Localized.Settings.aboutus }
 
     var termsOfServiceTitle: String { Localized.Settings.termsOfServices }
-    var termsOfServiceURL: URL { PublicConstants.url(.termsOfService) }
+    var termsOfServiceURL: URL { AppUrl.page(.termsOfService) }
 
     var privacyPolicyTitle: String { Localized.Settings.privacyPolicy }
-    var privacyPolicyURL: URL { PublicConstants.url(.privacyPolicy) }
+    var privacyPolicyURL: URL { AppUrl.page(.privacyPolicy) }
 
     var websiteTitle: String { Localized.Settings.website }
-    var websiteURL: URL { PublicConstants.url(.website) }
+    var websiteURL: URL { AppUrl.page(.website) }
 
     var versionTextTitle: String { Localized.Settings.version }
     var versionTextValue: String {
@@ -76,7 +76,7 @@ public final class AboutUsViewModel: Sendable {
     private let links: [SocialUrl] = [.x, .discord, .telegram, .gitHub, .youTube]
     var linksViewModel: SocialLinksViewModel {
         let assetLinks = links.compactMap {
-            if let url = Social.url($0) {
+            if let url = AppUrl.social($0) {
                 return AssetLink(
                     name: $0.linkType.rawValue,
                     url: url.absoluteString,
@@ -100,6 +100,6 @@ extension AboutUsViewModel {
     }
 
     func onUpdate() {
-        UIApplication.shared.open(PublicConstants.url(.appStore))
+        UIApplication.shared.open(AppUrl.page(.appStore))
     }
 }

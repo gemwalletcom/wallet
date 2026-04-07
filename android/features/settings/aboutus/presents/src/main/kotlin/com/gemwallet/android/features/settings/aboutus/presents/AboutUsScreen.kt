@@ -16,7 +16,7 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.PublicUrl
 import uniffi.gemstone.SocialUrl
 
@@ -38,19 +38,19 @@ fun AboutUsScreen(
                     title = stringResource(id = R.string.settings_terms_of_services),
                     listPosition = ListPosition.First,
                 ) {
-                    uriHandler.open(context, Config().getPublicUrl(PublicUrl.TERMS_OF_SERVICE))
+                    uriHandler.open(context, AppUrl.page(PublicUrl.TERMS_OF_SERVICE))
                 }
                 LinkItem(
                     title = stringResource(id = R.string.settings_privacy_policy),
                     listPosition = ListPosition.Middle,
                 ) {
-                    uriHandler.open(context, Config().getPublicUrl(PublicUrl.PRIVACY_POLICY))
+                    uriHandler.open(context, AppUrl.page(PublicUrl.PRIVACY_POLICY))
                 }
                 LinkItem(
                     title = stringResource(id = R.string.settings_website),
                     listPosition = ListPosition.Last,
                 ) {
-                    uriHandler.open(context, Config().getPublicUrl(PublicUrl.WEBSITE))
+                    uriHandler.open(context, AppUrl.page(PublicUrl.WEBSITE))
                 }
             }
             item {
@@ -68,7 +68,7 @@ fun AboutUsScreen(
                         icon = iconRes,
                         listPosition = ListPosition.getPosition(index, socials.size),
                     ) {
-                        uriHandler.open(context, Config().getSocialUrl(social) ?: "")
+                        uriHandler.open(context, AppUrl.social(social) ?: "")
                     }
                 }
             }

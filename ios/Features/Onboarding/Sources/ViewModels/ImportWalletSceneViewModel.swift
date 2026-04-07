@@ -86,7 +86,7 @@ final class ImportWalletSceneViewModel {
     }
 
     var docsUrl: URL {
-        Docs.url(.howToSecureSecretPhrase)
+        AppUrl.docs(.howToSecureSecretPhrase)
     }
 
     var shouldProtectInput: Bool {

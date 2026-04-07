@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 
 internal fun LazyListScope.status(asset: Asset, rank: Int) {
@@ -34,7 +34,7 @@ internal fun LazyListScope.status(asset: Asset, rank: Int) {
             modifier = Modifier.clickable {
                 uriHandler.open(
                     context,
-                    Config().getDocsUrl(DocsUrl.TokenVerification)
+                    AppUrl.docs(DocsUrl.TokenVerification)
                 )
             },
             title = {

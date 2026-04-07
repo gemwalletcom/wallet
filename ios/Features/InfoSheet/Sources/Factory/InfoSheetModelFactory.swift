@@ -19,7 +19,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.NetworkFee.title,
                 description: Localized.Info.NetworkFee.description(chain.asset.name.boldMarkdown(), chain.asset.feeAsset.symbol.boldMarkdown()),
                 image: .image(Images.Info.networkFee),
-                button: .url(Docs.url(.networkFees)),
+                button: .url(AppUrl.docs(.networkFees)),
             )
         case let .insufficientBalance(asset, image):
             return InfoSheetModel(
@@ -51,49 +51,49 @@ public enum InfoSheetModelFactory {
                 title: model.title,
                 description: model.description,
                 image: .assetImage(AssetImage(imageURL: imageURL, placeholder: placeholder, chainPlaceholder: model.stateImage)),
-                button: .url(Docs.url(.transactionStatus)),
+                button: .url(AppUrl.docs(.transactionStatus)),
             )
         case .watchWallet:
             return InfoSheetModel(
                 title: Localized.Info.WatchWallet.title,
                 description: Localized.Info.WatchWallet.description,
                 image: .image(Images.Wallets.watch),
-                button: .url(Docs.url(.whatIsWatchWallet)),
+                button: .url(AppUrl.docs(.whatIsWatchWallet)),
             )
         case let .stakeLockTime(placeholder):
             return InfoSheetModel(
                 title: Localized.Stake.lockTime,
                 description: Localized.Info.LockTime.description,
                 image: placeholder.map { .image($0) },
-                button: .url(Docs.url(.stakingLockTime)),
+                button: .url(AppUrl.docs(.stakingLockTime)),
             )
         case let .stakeApr(placeholder):
             return InfoSheetModel(
                 title: Localized.Stake.apr(""),
                 description: Localized.Info.Stake.Apr.description,
                 image: placeholder.map { .image($0) },
-                button: .url(Docs.url(.stakingApr)),
+                button: .url(AppUrl.docs(.stakingApr)),
             )
         case .priceImpact:
             return InfoSheetModel(
                 title: Localized.Swap.priceImpact,
                 description: Localized.Info.PriceImpact.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.priceImpact)),
+                button: .url(AppUrl.docs(.priceImpact)),
             )
         case .slippage:
             return InfoSheetModel(
                 title: Localized.Swap.slippage,
                 description: Localized.Info.Slippage.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.slippage)),
+                button: .url(AppUrl.docs(.slippage)),
             )
         case .noQuote:
             return InfoSheetModel(
                 title: Localized.Errors.Swap.noQuoteAvailable,
                 description: Localized.Info.NoQuote.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.noQuotes)),
+                button: .url(AppUrl.docs(.noQuotes)),
             )
         case let .assetStatus(scoreType):
             let model = AssetScoreTypeViewModel(scoreType: scoreType)
@@ -110,7 +110,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.AccountMinimumBalance.title,
                 description: Localized.Transfer.minimumAccountBalance(amount.boldMarkdown()),
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.accountMinimalBalance)),
+                button: .url(AppUrl.docs(.accountMinimalBalance)),
             )
         case let .stakeMinimumAmount(asset, required, action):
             let formatter = ValueFormatter(style: .full)
@@ -126,7 +126,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.Stake.Reserved.title,
                 description: Localized.Info.Stake.Reserved.description,
                 image: .assetImage(image),
-                button: .url(Docs.url(.networkFees)),
+                button: .url(AppUrl.docs(.networkFees)),
             )
         case .pendingUnconfirmedBalance:
             return InfoSheetModel(
@@ -139,35 +139,35 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.FundingRate.title,
                 description: Localized.Info.FundingRate.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.perpetualsFundingRate)),
+                button: .url(AppUrl.docs(.perpetualsFundingRate)),
             )
         case .fundingPayments:
             return InfoSheetModel(
                 title: Localized.Info.FundingPayments.title,
                 description: Localized.Info.FundingPayments.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.perpetualsFundingPayments)),
+                button: .url(AppUrl.docs(.perpetualsFundingPayments)),
             )
         case .liquidationPrice:
             return InfoSheetModel(
                 title: Localized.Info.LiquidationPrice.title,
                 description: Localized.Info.LiquidationPrice.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.perpetualsLiquidationPrice)),
+                button: .url(AppUrl.docs(.perpetualsLiquidationPrice)),
             )
         case .openInterest:
             return InfoSheetModel(
                 title: Localized.Info.OpenInterest.title,
                 description: Localized.Info.OpenInterest.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.perpetualsOpenInterest)),
+                button: .url(AppUrl.docs(.perpetualsOpenInterest)),
             )
         case .autoclose:
             return InfoSheetModel(
                 title: Localized.Perpetual.autoClose,
                 description: Localized.Info.Perpetual.AutoClose.description,
                 image: .image(Images.Logo.logo),
-                button: .url(Docs.url(.perpetualsAutoclose)),
+                button: .url(AppUrl.docs(.perpetualsAutoclose)),
             )
         case .maliciousTransaction:
             return InfoSheetModel(
@@ -186,7 +186,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Errors.transferError,
                 description: Localized.Errors.dustThreshold(chain.asset.name.boldMarkdown()),
                 image: .assetImage(image),
-                button: .url(Docs.url(.dust)),
+                button: .url(AppUrl.docs(.dust)),
             )
         case .fullyDilutedValuation:
             return InfoSheetModel(
