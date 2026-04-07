@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,6 +47,10 @@ class PriceAlertViewModel @Inject constructor(
         .mapLatest { it?.toAssetId() }
         .onEach { priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(it)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val assetInfo = assetId.flatMapLatest { id ->
+        if (id != null) assetsRepository.getTokenInfo(id) else flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val data = assetId.flatMapLatest { getPriceAlerts.getPriceAlerts(it) }
         .mapLatest { getPriceAlerts.groupByTargetAndAsset(it) }
@@ -93,6 +98,16 @@ class PriceAlertViewModel @Inject constructor(
         viewModelScope.launch {
             val newState = if (enable) PriceAlertsStateEvent.Enable() else PriceAlertsStateEvent.Disable()
             priceAlertsStateCoordinator.priceAlertState(newState)
+        }
+    }
+
+    fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        val assetId = assetId.value ?: return@launch
+        if (enabled) {
+            includePriceAlert.includePriceAlert(assetId)
+        } else {
+            val autoAlert = data.value[null]?.firstOrNull()
+            autoAlert?.let { excludePriceAlert.excludePriceAlert(it.id) }
         }
     }
 

@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -39,8 +40,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
+import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ActionIcon
@@ -53,6 +58,7 @@ import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
@@ -62,12 +68,13 @@ import com.wallet.core.primitives.AssetId
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PriceAlertScene(
-    assetId: AssetId? = null,
+    assetInfo: AssetInfo? = null,
     data: Map<AssetId?, List<PriceAlertDataAggregate>>,
     enabled: Boolean,
     syncState: Boolean,
     isAssetView: Boolean,
     onEnablePriceAlerts: (Boolean) -> Unit,
+    onToggleAutoAlert: (Boolean) -> Unit,
     onAdd: () -> Unit,
     onAddTarget: (AssetId) -> Unit,
     onExclude: (Int) -> Unit,
@@ -80,6 +87,7 @@ fun PriceAlertScene(
     Scene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
+            val assetId = assetInfo?.id()
             IconButton(onClick = if (assetId == null) onAdd else {
                 { onAddTarget(assetId) }
             }) {
@@ -103,7 +111,18 @@ fun PriceAlertScene(
             }
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (!isAssetView) {
+                if (isAssetView) {
+                    autoAlertToggle(assetInfo, data, onToggleAutoAlert)
+                    val manualData = data.filterKeys { it != null }
+                    emptyAlertingAssets(data.values.flatten().isEmpty())
+                    assets(
+                        reveable = reveable,
+                        data = manualData,
+                        isAssetView = isAssetView,
+                        onChart = onChart,
+                        onExclude = onExclude,
+                    )
+                } else {
                     item {
                         SwitchProperty(
                             text = stringResource(R.string.settings_enable_value, ""),
@@ -114,19 +133,60 @@ fun PriceAlertScene(
                             modifier = Modifier.padding(horizontal = paddingLarge),
                             text = stringResource(R.string.price_alerts_get_notified_explain_message),
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary,
                         )
                     }
+                    emptyAlertingAssets(data.values.flatten().isEmpty())
+                    assets(
+                        reveable = reveable,
+                        data = data,
+                        isAssetView = isAssetView,
+                        onChart = onChart,
+                        onExclude = onExclude,
+                    )
                 }
-                emptyAlertingAssets(data.values.flatten().isEmpty())
-                assets(
-                    reveable = reveable,
-                    data = data,
-                    isAssetView = isAssetView,
-                    onChart = onChart,
-                    onExclude = onExclude,
-                )
             }
         }
+    }
+}
+
+private fun LazyListScope.autoAlertToggle(
+    assetInfo: AssetInfo?,
+    data: Map<AssetId?, List<PriceAlertDataAggregate>>,
+    onToggleAutoAlert: (Boolean) -> Unit,
+) {
+    item {
+        val autoAlerts = data[null] ?: emptyList()
+        val isAutoAlertEnabled = autoAlerts.isNotEmpty()
+        val asset = assetInfo?.asset ?: return@item
+        val priceInfo = assetInfo.price
+
+        ListItem(
+            listPosition = ListPosition.Single,
+            leading = { AssetIcon(asset) },
+            title = { ListItemTitleText(asset.name, { Badge(text = asset.symbol.uppercase()) }) },
+            subtitle = if (priceInfo != null) {
+                {
+                    PriceInfo(
+                        priceInfo.currency.format(priceInfo.price.price),
+                        priceInfo.price.priceChangePercentage24h.formatAsPercentage(),
+                        priceInfo.price.priceChangePercentage24h.toPriceState(),
+                    )
+                }
+            } else null,
+            trailing = {
+                Switch(
+                    checked = isAutoAlertEnabled,
+                    onCheckedChange = onToggleAutoAlert,
+                )
+            },
+        )
+        Text(
+            modifier = Modifier.padding(horizontal = paddingLarge),
+            text = stringResource(R.string.price_alerts_auto_footer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
     }
 }
 
