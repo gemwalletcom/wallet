@@ -32,9 +32,6 @@ public struct SettingsScene: View {
             Group {
                 walletsSection
                 deviceSection
-                if model.showsRewards {
-                    referralSection
-                }
                 walletConnectSection
                 aboutSection
             }
@@ -71,17 +68,6 @@ extension SettingsScene {
                 ListItemView(
                     title: model.securityTitle,
                     imageStyle: .settings(assetImage: model.securityImage),
-                )
-            }
-        }
-    }
-
-    private var referralSection: some View {
-        Section {
-            NavigationLink(value: Scenes.Referral()) {
-                ListItemView(
-                    title: model.rewardsTitle,
-                    imageStyle: .settings(assetImage: model.rewardsImage),
                 )
             }
         }
@@ -125,6 +111,15 @@ extension SettingsScene {
                 ),
                 action: onOpenSupport,
             )
+
+            if model.showsRewards {
+                NavigationLink(value: Scenes.Referral()) {
+                    ListItemView(
+                        title: model.rewardsTitle,
+                        imageStyle: .settings(assetImage: model.rewardsImage),
+                    )
+                }
+            }
 
             NavigationLink(value: Scenes.AboutUs()) {
                 ListItemView(

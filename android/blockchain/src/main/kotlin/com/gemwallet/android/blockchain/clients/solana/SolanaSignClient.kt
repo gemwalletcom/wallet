@@ -7,9 +7,9 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.serializer.jsonEncoder
 import com.google.protobuf.ByteString
-import com.wallet.core.blockchain.solana.SolanaAccountMeta
-import com.wallet.core.blockchain.solana.SolanaInstruction
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.SolanaAccountMeta
+import com.wallet.core.primitives.SolanaInstruction
 import com.wallet.core.primitives.SolanaTokenProgramId
 import wallet.core.java.AnySigner
 import wallet.core.jni.Base58

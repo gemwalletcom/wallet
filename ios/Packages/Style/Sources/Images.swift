@@ -117,6 +117,7 @@ public enum Images {
         public static let developer = Image(.settingsDeveloper)
         public static let security = Image(.settingsSecurity)
         public static let gem = Image(.settingsGem)
+        public static let aboutUs = Image(.settingsAboutUs)
         public static let support = Image(.settingsSupport)
         public static let helpCenter = Image(.settingsHelpCenter)
         public static let version = Image(.settingsVersion)
@@ -288,6 +289,7 @@ public enum Images {
             (Images.Settings.developer, "Developer"),
             (Images.Settings.security, "Security"),
             (Images.Settings.gem, "Gem"),
+            (Images.Settings.aboutUs, "About Us"),
             (Images.Settings.support, "Support"),
             (Images.Settings.helpCenter, "Help Center"),
             (Images.Settings.version, "Version"),

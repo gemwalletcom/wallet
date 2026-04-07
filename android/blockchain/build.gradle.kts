@@ -62,6 +62,8 @@ dependencies {
 
     // Tests
     testImplementation(libs.junit)
+    testImplementation(libs.mockk.android)
+    testImplementation(testFixtures(project(":gemcore")))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

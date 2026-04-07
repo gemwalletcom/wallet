@@ -43,8 +43,6 @@ public final class AboutUsViewModel: Sendable {
         return "\(version) (\(number))"
     }
 
-    var versionTextImage: AssetImage { AssetImage.image(Images.Settings.version) }
-
     var contextDevTitle: String {
         if preferences.isDeveloperEnabled {
             Localized.Settings.disableValue(Localized.Settings.developer)
