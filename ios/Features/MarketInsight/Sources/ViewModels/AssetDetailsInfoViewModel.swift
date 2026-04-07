@@ -27,7 +27,7 @@ struct AssetDetailsInfoViewModel {
 
     var marketValues: [MarketValueViewModel] {
         guard let market else { return [contractViewModel].withValues() }
-        return [contractViewModel, market.marketCap, market.tradingVolume, market.fdv].withValues()
+        return [market.marketCap, market.tradingVolume, market.fdv, contractViewModel].withValues()
     }
 
     var supplyValues: [MarketValueViewModel] {
