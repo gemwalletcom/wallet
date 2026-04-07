@@ -120,7 +120,7 @@ class AssetDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val priceAlertsCount = assetId.filterNotNull()
-        .flatMapLatest { getPriceAlerts.getPriceAlerts(it) }
+        .flatMapLatest { getPriceAlerts(it) }
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 

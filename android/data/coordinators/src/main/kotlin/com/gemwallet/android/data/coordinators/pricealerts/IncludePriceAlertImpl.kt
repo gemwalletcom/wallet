@@ -20,7 +20,7 @@ class IncludePriceAlertImpl(
     private val syncDeviceInfo: SyncDeviceInfo,
 ) : IncludePriceAlert {
 
-    override suspend fun includePriceAlert(
+    override suspend fun invoke(
         assetId: AssetId,
         currency: Currency?,
         price: Double?,

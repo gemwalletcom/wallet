@@ -16,9 +16,9 @@ class ExcludePriceAlertImpl(
     private val sessionRepository: SessionRepository,
     private val priceAlertRepository: PriceAlertRepository,
 ) : ExcludePriceAlert {
-    override suspend fun excludePriceAlert(priceAlertId: Int) {
+    override suspend fun invoke(priceAlertId: Int) {
         priceAlertRepository.getPriceAlert(priceAlertId)?.priceAlert?.let { priceAlert ->
-            excludePriceAlert(
+            invoke(
                 priceAlert.assetId,
                 Currency.entries.firstOrNull { it.string == priceAlert.currency },
                 priceAlert.price,
@@ -28,7 +28,7 @@ class ExcludePriceAlertImpl(
         }
     }
 
-    override suspend fun excludePriceAlert(
+    override suspend fun invoke(
         assetId: AssetId,
         currency: Currency?,
         price: Double?,

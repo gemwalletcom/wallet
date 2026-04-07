@@ -93,7 +93,7 @@ class PriceAlertTargetViewModel @Inject constructor(
             PriceAlertNotificationType.Auto -> Triple(null, null, null)
         }
         viewModelScope.launch(Dispatchers.IO) {
-            includePriceAlert.includePriceAlert(
+            includePriceAlert(
                 assetId = assetId.value ?: return@launch,
                 currency = currency.value,
                 price = price,

@@ -29,7 +29,7 @@ class GetPriceAlertsImpl(
     private val priceAlertRepository: PriceAlertRepository,
     private val assetsRepository: AssetsRepository,
 ) : GetPriceAlerts {
-    override fun getPriceAlerts(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
+    override fun invoke(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
         return priceAlertRepository.getPriceAlerts(assetId)
             .flatMapLatest { items ->
                 val index = items
