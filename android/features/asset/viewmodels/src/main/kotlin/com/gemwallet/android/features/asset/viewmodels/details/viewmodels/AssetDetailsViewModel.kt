@@ -239,6 +239,9 @@ class AssetDetailsViewModel @Inject constructor(
                 explorerAddressUrl = assetInfo.owner?.address?.let {//  TODO: Out to separate state
                     Explorer(asset.chain.string).getAddressUrl(explorerName,  it)
                 },
+                explorerTokenUrl = asset.id.tokenId?.let {
+                    Explorer(asset.chain.string).getTokenUrl(explorerName, it)
+                },
                 accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                     walletType = assetInfo.walletType,
                     totalBalance = balances.totalFormatted(),

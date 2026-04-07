@@ -167,7 +167,9 @@ extension ChartView {
 
     private func labelX(_ x: CGFloat, geoWidth: CGFloat) -> CGFloat {
         let half = Metrics.labelWidth / 2
-        return x < half ? x - half / 2 : min(x - half, geoWidth - Metrics.labelWidth)
+        let minLeading: CGFloat = Spacing.small
+        let maxLeading = max(minLeading, geoWidth - Metrics.labelWidth - Spacing.small)
+        return min(maxLeading, max(minLeading, x - half))
     }
 }
 

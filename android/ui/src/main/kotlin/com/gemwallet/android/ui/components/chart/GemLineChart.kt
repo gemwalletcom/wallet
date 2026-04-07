@@ -59,7 +59,8 @@ private object Metrics {
     val dashLength = 4.dp
     val labelWidth = 88.dp
     val verticalPadding = 24.dp
-    val horizontalPadding = 16.dp
+    val horizontalPadding = 0.dp
+    val labelEdgePadding = 8.dp
     val boundLabelOffsetBelow = 6.dp
     val boundLabelOffsetAbove = 18.dp
     val selectionGlowExtra = 6.dp
@@ -105,6 +106,7 @@ fun GemLineChart(
     val selectionDotRadiusPx = with(density) { Metrics.selectionDotRadius.toPx() }
     val dashLengthPx = with(density) { Metrics.dashLength.toPx() }
     val labelWidthPx = with(density) { Metrics.labelWidth.toPx() }
+    val labelEdgePaddingPx = with(density) { Metrics.labelEdgePadding.toPx() }
     val verticalPaddingPx = with(density) { Metrics.verticalPadding.toPx() }
     val labelOffsetBelowPx = with(density) { Metrics.boundLabelOffsetBelow.toPx() }
     val labelOffsetAbovePx = with(density) { Metrics.boundLabelOffsetAbove.toPx() }
@@ -201,10 +203,10 @@ fun GemLineChart(
                 drawPath(curvePath, lineColor, style = Stroke(lineWidthPx, cap = StrokeCap.Round, join = StrokeJoin.Round))
 
                 if (minLabel != null && minIndex in points.indices) {
-                    drawBoundLabel(textMeasurer, minLabel, labelStyle, curveScreenX(minIndex, points.size), plotBottom + labelOffsetBelowPx, canvasWidth, labelWidthPx)
+                    drawBoundLabel(textMeasurer, minLabel, labelStyle, curveScreenX(minIndex, points.size), plotBottom + labelOffsetBelowPx, canvasWidth, labelWidthPx, labelEdgePaddingPx)
                 }
                 if (maxLabel != null && maxIndex in points.indices) {
-                    drawBoundLabel(textMeasurer, maxLabel, labelStyle, curveScreenX(maxIndex, points.size), plotTop - labelOffsetAbovePx, canvasWidth, labelWidthPx)
+                    drawBoundLabel(textMeasurer, maxLabel, labelStyle, curveScreenX(maxIndex, points.size), plotTop - labelOffsetAbovePx, canvasWidth, labelWidthPx, labelEdgePaddingPx)
                 }
 
                 if (selectedIndex != null && selectedIndex in points.indices) {
@@ -313,10 +315,12 @@ private fun DrawScope.drawBoundLabel(
     anchorY: Float,
     canvasWidth: Float,
     labelWidth: Float,
+    edgePadding: Float,
 ) {
     val measured = measurer.measure(text, style)
     val halfLabel = labelWidth / 2
-    val labelX = (if (anchorX < halfLabel) anchorX - halfLabel / 2 else min(anchorX - halfLabel, canvasWidth - labelWidth)).coerceAtLeast(0f)
+    val maxLeading = (canvasWidth - labelWidth - edgePadding).coerceAtLeast(edgePadding)
+    val labelX = (anchorX - halfLabel).coerceIn(edgePadding, maxLeading)
     val textX = labelX + (labelWidth - measured.size.width) / 2
     val clampedY = anchorY.coerceIn(0f, size.height - measured.size.height.toFloat())
     drawText(measured, topLeft = Offset(textX, clampedY))

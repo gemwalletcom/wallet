@@ -28,8 +28,9 @@ import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemGasPriceType
-import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemGatewayInterface
 import uniffi.gemstone.GemGatewayEstimateFee
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadInput
@@ -38,60 +39,55 @@ import uniffi.gemstone.GemTransactionPreloadInput
 import uniffi.gemstone.SwapperException.NotSupportedChain
 
 class SignerPreloaderProxy(
-    private val gateway: GemGateway,
+    private val gateway: GemGatewayInterface,
 ) {
 
-    suspend fun preload(params: ConfirmParams): SignerParams = withContext(Dispatchers.IO) {
+    suspend fun preload(params: ConfirmParams, feePriority: FeePriority): SignerParams = withContext(Dispatchers.IO) {
         val assetId = params.assetId
         val chain = assetId.chain
         val feeAssetId = AssetId(chain)
         val gemChain = assetId.chain.string
         val destination = params.destination()?.address ?: throw java.lang.IllegalArgumentException()
 
-        try {
-            val inputType = params.toDto()
-            val metadata = gateway.getTransactionPreload(
-                chain = gemChain,
-                input = GemTransactionPreloadInput(
-                    inputType = inputType,
-                    senderAddress = params.from.address,
-                    destinationAddress = destination
-                )
+        val inputType = params.toDto()
+        val metadata = gateway.getTransactionPreload(
+            chain = gemChain,
+            input = GemTransactionPreloadInput(
+                inputType = inputType,
+                senderAddress = params.from.address,
+                destinationAddress = destination
             )
-            val feeRates = gateway.getFeeRates(
-                chain = gemChain,
-                input = inputType
-            )
+        )
+        val feeRates = gateway.getFeeRates(
+            chain = gemChain,
+            input = inputType
+        )
+        val validFeeRates = feeRates.filter { it.priority.toFeePriority() != null }
+        val selectedRate = validFeeRates.select(feePriority)
+        val selectedPriority = requireNotNull(selectedRate.priority.toFeePriority())
 
-            val transactionData = feeRates.map { feeRate ->
-                val priority = FeePriority.entries.firstOrNull { it.string == feeRate.priority } ?: return@map null
+        val result = gateway.getTransactionLoad(
+            chain = gemChain,
+            input = GemTransactionLoadInput(
+                inputType = inputType,
+                senderAddress = params.from.address,
+                destinationAddress = destination,
+                value = params.amount.toString(),
+                gasPrice = selectedRate.gasPriceType,
+                memo = params.memo(),
+                isMaxValue = params.useMaxAmount,
+                metadata = metadata,
+            ),
+            provider = getEstimateFee(chain)
+        )
+        val fee = chain.toFeeType().convertFee(feeAssetId, selectedPriority, result.fee)
+        val chainData = result.metadata.toChainData()
 
-                val result = gateway.getTransactionLoad(
-                    chain = gemChain,
-                    input = GemTransactionLoadInput(
-                        inputType = inputType,
-                        senderAddress = params.from.address,
-                        destinationAddress = destination,
-                        value = params.amount.toString(),
-                        gasPrice = feeRate.gasPriceType,
-                        memo = params.memo(),
-                        isMaxValue = params.useMaxAmount,
-                        metadata = metadata,
-                    ),
-                    provider = getEstimateFee(chain)
-                )
-                val fee = chain.toFeeType().convertFee(feeAssetId, priority, result.fee)
-                val chainData = result.metadata.toChainData()
-                SignerParams.Data(chainData = chainData, fee = fee)
-            }.filterNotNull()
-
-            SignerParams(
-                input = params,
-                data = transactionData,
-            )
-        } catch (err: Throwable) {
-            throw err
-        }
+        SignerParams(
+            input = params,
+            selectedData = SignerParams.Data(chainData = chainData, fee = fee),
+            feeRates = validFeeRates,
+        )
     }
 
 
@@ -127,6 +123,14 @@ class SignerPreloaderProxy(
         ): String? = null
 
     }
+}
+
+private fun String.toFeePriority(): FeePriority? = FeePriority.entries.firstOrNull { it.string == this }
+
+private fun List<GemFeeRate>.select(priority: FeePriority): GemFeeRate {
+    return firstOrNull { it.priority.toFeePriority() == priority }
+        ?: firstOrNull()
+        ?: throw IllegalStateException("Fee rates not found")
 }
 
 private sealed interface FeeType {

@@ -24,6 +24,29 @@ clean:
 build:
     @./gradlew assembleGoogleDebug
 
+run: build
+    #!/usr/bin/env bash
+    set -euo pipefail
+    DEVICE=$(adb devices | awk '$2=="device" {print $1; exit}')
+    if [ -z "$DEVICE" ]; then
+        echo "No connected device found"
+        exit 1
+    fi
+    APK=$(find app/build/outputs/apk/google/debug -name '*.apk' | head -1)
+    echo "==> Installing on $DEVICE..."
+    adb -s "$DEVICE" install -r "$APK"
+    echo "==> Launching app..."
+    adb -s "$DEVICE" shell am start -n com.gemwallet.android/com.gemwallet.android.MainActivity
+    echo "==> Streaming logs (Ctrl+C to stop)..."
+    sleep 1
+    PID=$(adb -s "$DEVICE" shell pidof com.gemwallet.android)
+    if [ -z "$PID" ]; then
+        echo "App not running, showing unfiltered logcat"
+        adb -s "$DEVICE" logcat
+    else
+        adb -s "$DEVICE" logcat --pid="$PID"
+    fi
+
 build-test:
     @./gradlew assembleGoogleDebugAndroidTest
 

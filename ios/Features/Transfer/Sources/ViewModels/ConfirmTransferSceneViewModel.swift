@@ -220,6 +220,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 title: feeModel.title,
                 value: feeModel.value,
                 fiatValue: feeModel.fiatValue,
+                selectable: feeModel.showFeeRates,
                 infoAction: onSelectNetworkFeeInfo,
             )
         case .error:
@@ -436,10 +437,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private func updateState(with model: TransactionInputViewModel) {
-        feeModel.update(
-            value: model.networkFeeText,
-            fiatValue: model.networkFeeFiatText,
-        )
+        feeModel.update(feeAmount: model.networkFeeAmount)
         state = .data(model)
     }
 

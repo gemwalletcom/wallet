@@ -1,63 +1,81 @@
 package com.gemwallet.android.features.confirm.models
 
-import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.feeUnitType
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignMode
 import com.gemwallet.android.model.format
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
+import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.GemGasPriceType
+import java.math.BigInteger
 
 data class FeeRateUIModel(
-    val fee: Fee,
-    val feeAssetInfo: AssetInfo? = null,
+    val feeRate: GemFeeRate,
+    val feeAsset: AssetInfo,
+    val feeUnitType: FeeUnitType?,
+    val selectedRate: GemFeeRate? = null,
+    val selectedFeeAmount: BigInteger? = null,
 ) {
+    val priority: FeePriority = FeePriority.entries.first { it.string == feeRate.priority }
 
-    val price: String get() {
-        val asset = fee.feeAssetId.chain.asset()
-        val feeUnitType = asset.chain.feeUnitType()
-        val decimals = when (feeUnitType) {
-            FeeUnitType.SatVb -> 0
-            FeeUnitType.Gwei -> 9
-            FeeUnitType.Native -> asset.decimals
-            null -> 0
+    val price: String
+        get() = if (feeUnitType == FeeUnitType.Native) {
+            fiatText() ?: ""
+        } else {
+            gasPriceText()
         }
-        val symbol = when (feeUnitType) {
-            FeeUnitType.SatVb, FeeUnitType.Gwei -> feeUnitType.string
-            FeeUnitType.Native -> asset.symbol
-            null -> ""
+
+    val fiatValue: String
+        get() = if (feeUnitType == FeeUnitType.Native) "" else (fiatText() ?: "")
+
+    val emoji: String
+        get() = when (priority) {
+            FeePriority.Slow -> "\uD83D\uDC22"
+            FeePriority.Normal -> "\uD83D\uDC8E"
+            FeePriority.Fast -> "\uD83D\uDE80"
         }
-        val value = when (asset.chain) {
-            Chain.Solana -> fee.amount
-            else -> when (fee) {
-                is Fee.Eip1559 -> fee.maxGasPrice
-                is Fee.Plain -> fee.amount
-                is Fee.Regular -> fee.maxGasPrice
-                is Fee.Solana -> fee.maxGasPrice
+
+    private val feeAmount: BigInteger?
+        get() {
+            if (selectedFeeAmount != null && selectedRate != null) {
+                val selectedTotal = selectedRate.gasPriceType.totalFee()
+                if (selectedTotal == BigInteger.ZERO) return null
+                return selectedFeeAmount.multiply(feeRate.gasPriceType.totalFee()).divide(selectedTotal)
             }
+            return null
         }
-        val formattedValue = Crypto(value).format(decimals, symbol, 8, -1, SignMode.NoSign, true)
-        return formattedValue
+
+    private fun fiatText(): String? {
+        val priceInfo = feeAsset.price ?: return null
+        val amount = feeAmount ?: return null
+        val fiat = Crypto(amount).convert(feeAsset.asset.decimals, priceInfo.price.price)
+        return priceInfo.currency.format(fiat.atomicValue, dynamicPlace = true)
     }
 
-    val fiatValue: String get() {
-        val assetInfo = feeAssetInfo ?: return ""
-        val priceInfo = assetInfo.price ?: return ""
-        val currency = priceInfo.currency
-        val feeAmount = Crypto(fee.amount)
-        val fiat = feeAmount.convert(assetInfo.asset.decimals, priceInfo.price.price)
-        return currency.format(fiat.atomicValue, dynamicPlace = true)
-    }
-
-    val priority = fee.priority
-
-    val emoji: String get() = when (priority) {
-        FeePriority.Slow -> "\uD83D\uDC22"
-        FeePriority.Normal -> "\uD83D\uDC8E"
-        FeePriority.Fast -> "\uD83D\uDE80"
+    private fun gasPriceText(): String {
+        val unit = feeUnitType ?: return ""
+        val decimals = unit.gasPriceDecimals ?: return ""
+        val symbol = unit.gasPriceSymbol ?: return ""
+        return Crypto(feeRate.gasPriceType.totalFee()).format(decimals, symbol, 2, -1, SignMode.NoSign, true)
     }
 }
+
+internal fun GemGasPriceType.totalFee(): BigInteger = when (this) {
+    is GemGasPriceType.Regular -> gasPrice.toBigInteger()
+    is GemGasPriceType.Eip1559 -> gasPrice.toBigInteger() + priorityFee.toBigInteger()
+    is GemGasPriceType.Solana -> gasPrice.toBigInteger() + priorityFee.toBigInteger()
+}
+
+internal val FeeUnitType.gasPriceDecimals: Int?
+    get() = when (this) {
+        FeeUnitType.SatVb -> 0
+        FeeUnitType.Gwei -> 9
+        FeeUnitType.Native -> null
+    }
+
+internal val FeeUnitType.gasPriceSymbol: String?
+    get() = when (this) {
+        FeeUnitType.SatVb, FeeUnitType.Gwei -> string
+        FeeUnitType.Native -> null
+    }

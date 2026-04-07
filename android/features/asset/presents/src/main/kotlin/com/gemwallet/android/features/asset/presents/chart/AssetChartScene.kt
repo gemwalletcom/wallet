@@ -193,6 +193,14 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
                 info = InfoSheetEntity.FullyDilutedValuation,
             )
         },
+        asset.id.tokenId?.let { tokenId ->
+            MarketInfoUIModel(
+                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
+                value = tokenId,
+                explorerLink = Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
+                    ?.let { BlockExplorerLink(name = explorerName, link = it) },
+            )
+        },
     )
 
     val supplyItems = listOfNotNull(
@@ -215,14 +223,6 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
                 type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
                 value = asset.formatSupply(it),
                 info = InfoSheetEntity.MaxSupply,
-            )
-        },
-        asset.id.tokenId?.let { tokenId ->
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.Contract,
-                value = tokenId,
-                explorerLink = Explorer(asset.chain.string).getTokenUrl(explorerName, tokenId)
-                    ?.let { BlockExplorerLink(name = explorerName, link = it) },
             )
         },
     )

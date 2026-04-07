@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Style
 import SwiftUI
 
 public struct ChartListView<Model: ChartListViewable, Content: View>: View {
@@ -22,7 +21,7 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
                     periods: model.periods,
                 )
             }
-            .cleanListRow()
+            .fullWidthSection()
             content()
         }
         .listSectionSpacing(.compact)

@@ -85,6 +85,30 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
+    func feeAmountScalesProportionallyToSelectedRate() {
+        let model = NetworkFeeSceneViewModel(chain: .ethereum, priority: .normal, currency: .usd)
+        let rates = [
+            FeeRate(priority: .slow, gasPriceType: .eip1559(gasPrice: 1, priorityFee: 0)),
+            FeeRate(priority: .normal, gasPriceType: .eip1559(gasPrice: 2, priorityFee: 0)),
+            FeeRate(priority: .fast, gasPriceType: .eip1559(gasPrice: 4, priorityFee: 0)),
+        ]
+        model.update(rates: rates, feeAssetPrice: nil)
+        model.update(feeAmount: BigInt(1000))
+
+        #expect(model.feeAmount(for: rates[0]) == BigInt(500))
+        #expect(model.feeAmount(for: rates[1]) == BigInt(1000))
+        #expect(model.feeAmount(for: rates[2]) == BigInt(2000))
+    }
+
+    @Test
+    func feeAmountReturnsNilWithoutLoadedFee() {
+        let model = NetworkFeeSceneViewModel(chain: .ethereum, priority: .normal, currency: .usd)
+        let rate = FeeRate(priority: .normal, gasPriceType: .eip1559(gasPrice: 1, priorityFee: 0))
+
+        #expect(model.feeAmount(for: rate) == nil)
+    }
+
+    @Test
     func prioritySelection() {
         let model = NetworkFeeSceneViewModel(chain: .solana, priority: .normal, currency: .usd)
         let rates = [
