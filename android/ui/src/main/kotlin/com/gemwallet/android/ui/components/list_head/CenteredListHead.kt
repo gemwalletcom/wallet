@@ -50,10 +50,9 @@ fun CenteredListHead(
             subtitleText == null -> CenteredListHeadTitle(title)
             subtitleLayout == CenteredListHeadSubtitleLayout.Horizontal -> Row(
                 horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-                verticalAlignment = Alignment.Bottom,
             ) {
-                CenteredListHeadTitle(title)
-                CenteredListHeadSubtitle(subtitleText)
+                CenteredListHeadTitle(title, modifier = Modifier.alignByBaseline())
+                CenteredListHeadSubtitle(subtitleText, modifier = Modifier.alignByBaseline())
             }
             else -> {
                 CenteredListHeadTitle(title)
@@ -96,9 +95,10 @@ fun CenteredListHead(
 }
 
 @Composable
-private fun CenteredListHeadTitle(title: String) {
+private fun CenteredListHeadTitle(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
+        modifier = modifier,
         style = MaterialTheme.typography.titleMedium,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -107,9 +107,10 @@ private fun CenteredListHeadTitle(title: String) {
 }
 
 @Composable
-private fun CenteredListHeadSubtitle(subtitle: String) {
+private fun CenteredListHeadSubtitle(subtitle: String, modifier: Modifier = Modifier) {
     Text(
         text = subtitle,
+        modifier = modifier,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.secondary,
         maxLines = 1,
