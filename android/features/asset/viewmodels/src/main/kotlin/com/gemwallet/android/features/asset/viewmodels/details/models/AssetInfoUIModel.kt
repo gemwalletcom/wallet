@@ -22,6 +22,7 @@ class AssetInfoUIModel(
     val isSwapEnabled: Boolean = false,
     val explorerName: String = "",
     val explorerAddressUrl: String? = null,
+    val explorerTokenUrl: String? = null,
     val updated: Long = System.currentTimeMillis(),
 ) {
 
