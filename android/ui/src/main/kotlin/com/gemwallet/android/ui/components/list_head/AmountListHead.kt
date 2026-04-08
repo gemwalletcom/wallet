@@ -58,7 +58,10 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
+import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.isHidden
+import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -78,13 +81,10 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
 
-private const val BALANCE_MASK = "✱✱✱✱✱✱"
-
 @Composable
 fun AmountListHead(
     amount: String,
-    hidden: Boolean = false,
-    onHideBalances: (() -> Unit)? = null,
+    hideToggle: HideToggle? = null,
     equivalent: String? = null,
     icon: Any? = null,
     changedValue: String? = null,
@@ -92,6 +92,7 @@ fun AmountListHead(
     changeState: PriceState = PriceState.None,
     actions: (@Composable () -> Unit)? = null,
 ) {
+    val hidden = hideToggle.isHidden
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,15 +118,9 @@ fun AmountListHead(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
             ) {
-                val mask: (String) -> String = { if (hidden) BALANCE_MASK else it }
-
                 DisplayText(
-                    text = mask(amount),
-                    hidden = hidden,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(paddingDefault))
-                        .clickable(onHideBalances != null, onClick = { onHideBalances?.invoke() })
+                    text = amount,
+                    hideToggle = hideToggle,
                 )
                 if (!equivalent.isNullOrEmpty()) {
                     Text(
@@ -144,7 +139,7 @@ fun AmountListHead(
                         horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
                         Text(
-                            text = mask(value),
+                            text = hideToggle.mask(value),
                             color = highlightColor,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.W400,
