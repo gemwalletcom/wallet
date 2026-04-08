@@ -14,3 +14,8 @@ sealed interface SwapState {
 }
 
 fun SwapState.Error.Companion.create(err: Throwable) = SwapState.Error(SwapError.toError(err))
+
+internal val SwapState.isSwapDataLoading: Boolean
+    get() = this == SwapState.Swapping ||
+        this == SwapState.CheckAllowance ||
+        this == SwapState.Approving

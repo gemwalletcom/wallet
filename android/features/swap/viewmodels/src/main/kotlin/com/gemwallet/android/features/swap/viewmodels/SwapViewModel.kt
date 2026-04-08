@@ -27,6 +27,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 import com.gemwallet.android.features.swap.viewmodels.models.create
 import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.getQuote
+import com.gemwallet.android.features.swap.viewmodels.models.isSwapDataLoading
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestParams
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.features.swap.viewmodels.models.validate
@@ -120,7 +121,7 @@ class SwapViewModel @Inject constructor(
         refreshRequests = refreshRequests,
         refreshEnabled = refreshEnabled,
         onError = { err ->
-            swapScreenState.update { SwapState.Error.create(err) }
+            updateQuoteState { SwapState.Error.create(err) }
         },
     )
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -146,7 +147,7 @@ class SwapViewModel @Inject constructor(
             quotes?.getQuote(provider)?.let { QuoteState(it, quotes.pay, quotes.receive) }
         }
         .onEach { state -> setReceive(state?.formattedToAmount ?: "") }
-        .onEach { state -> state?.let { s -> swapScreenState.update { s.validate() } } }
+        .onEach { state -> state?.let { s -> updateQuoteState { s.validate() } } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val currentProvider = quote.mapLatest { it?.quote?.data?.provider?.id }
@@ -238,11 +239,14 @@ class SwapViewModel @Inject constructor(
         swapScreenState.update { SwapState.Swapping }
 
         try {
-            val params = swap() ?: return@launch
-            swapScreenState.update { SwapState.Ready }
+            val params = swap() ?: run {
+                swapScreenState.update { SwapState.Ready }
+                return@launch
+            }
             withContext(Dispatchers.Main) {
                 onConfirm(params)
             }
+            swapScreenState.update { SwapState.Ready }
         } catch (err: SwapError) {
             swapScreenState.update { SwapState.Error(err) }
         } catch (err: Throwable) {
@@ -288,6 +292,16 @@ class SwapViewModel @Inject constructor(
         val session = sessionRepository.session().firstOrNull() ?: return@launch
         val account = session.wallet.getAccount(id.chain) ?: return@launch
         assetsRepository.switchVisibility(session.wallet.id, account, id, true)
+    }
+
+    private inline fun updateQuoteState(nextState: () -> SwapState) {
+        swapScreenState.update { current ->
+            if (current.isSwapDataLoading) {
+                current
+            } else {
+                nextState()
+            }
+        }
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {
