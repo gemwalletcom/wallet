@@ -795,6 +795,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C30952D5299C39D80004C0F9 /* Build configuration list for PBXNativeTarget "Gem" */;
 			buildPhases = (
+				D8GEMST0NE2025040800001 /* Build Gemstone */,
 				C30952AC299C39D70004C0F9 /* Sources */,
 				C30952AD299C39D70004C0F9 /* Frameworks */,
 				C30952AE299C39D70004C0F9 /* Resources */,
@@ -1122,6 +1123,24 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D8GEMST0NE2025040800001 /* Build Gemstone */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Build Gemstone";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "\"$SRCROOT/scripts/build-gemstone.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		C30952AC299C39D70004C0F9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -1372,7 +1391,7 @@
 				EAGER_LINKING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1451,7 +1470,7 @@
 				EAGER_LINKING = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

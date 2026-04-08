@@ -71,6 +71,18 @@ build: (_build "build" FAST_BUILD_FLAGS)
 # Example: just build-for-testing
 build-for-testing: (_build "build-for-testing")
 
+archive:
+    @set -o pipefail && xcodebuild -project Gem.xcodeproj \
+    -scheme Gem \
+    -destination "generic/platform=iOS" \
+    -derivedDataPath {{DERIVED_DATA}} \
+    -clonedSourcePackagesDirPath {{SPM_CACHE}} \
+    -parallelizeTargets \
+    -jobs {{BUILD_THREADS}} \
+    -showBuildTimingSummary \
+    -archivePath {{DERIVED_DATA}}/Gem.xcarchive \
+    archive CODE_SIGNING_ALLOWED=NO | xcbeautify {{XCBEAUTIFY_ARGS}}
+
 clean:
     @rm -rf {{DERIVED_DATA}}
     @echo "Build cache cleaned"

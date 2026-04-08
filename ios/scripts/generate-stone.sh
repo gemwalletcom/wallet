@@ -28,3 +28,6 @@ generate() {
 }
 
 generate
+
+HASH_FILE="${CURRENT_DIR}/../build/.gemstone-cache/sources-${BUILD_MODE:-debug}.hash"
+"${CURRENT_DIR}/gemstone-hash.sh" "${STONE_DIR}/.." "$HASH_FILE"
