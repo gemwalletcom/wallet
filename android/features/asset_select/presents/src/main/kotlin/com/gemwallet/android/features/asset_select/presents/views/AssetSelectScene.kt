@@ -266,7 +266,6 @@ private fun LazyListScope.assets(
     itemsPositioned(items, key = { index, item -> "${item.asset.id.toIdentifier()}-${group.name}" }) { position, item ->
         AssetListItem(
             modifier = Modifier
-                .heightIn(74.dp)
                 .clickable { onSelect?.invoke(item.asset.id) },
             listPosition = position,
             asset = item,

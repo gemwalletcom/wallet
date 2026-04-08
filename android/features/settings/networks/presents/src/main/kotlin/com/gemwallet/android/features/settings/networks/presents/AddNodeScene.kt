@@ -76,7 +76,6 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
     ) {
         val asset = chain.asset()
         AssetListItem(
-            modifier = Modifier.height(74.dp),
             asset = asset,
             listPosition = ListPosition.Single,
         )

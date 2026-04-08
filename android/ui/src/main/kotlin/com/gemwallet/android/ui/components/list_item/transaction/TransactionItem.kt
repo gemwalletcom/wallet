@@ -32,10 +32,10 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator10
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Spacer2
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -53,7 +53,8 @@ fun TransactionItem(
 ) {
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
-        minHeight = ListItemDefaults.defaultMinHeight,
+        minHeight = ListItemDefaults.iconMinHeight,
+        titleSubtitleSpacing = space0,
         leading = { TransactionIcon(data) },
         title = {
             ListItemTitleText(
@@ -70,7 +71,6 @@ fun TransactionItem(
                     color = data.getValueColor(),
                 )
                 data.equivalentValue?.let {
-                    Spacer2()
                     ListItemSupportText(it)
                 }
             }
