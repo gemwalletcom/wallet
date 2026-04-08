@@ -26,6 +26,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.model.compactFormatter
+import com.gemwallet.android.model.format
 import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -179,51 +180,11 @@ private fun LazyListScope.assetContract(asset: Asset, explorerName: String) {
 
 private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?) {
     marketInfo ?: return
-    val marketItems = listOfNotNull(
-        marketInfo.marketCap?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap,
-                value = currency.compactFormatter(it),
-                badge = marketInfo.marketCapRank?.takeIf { rank -> rank > 0 }?.let { "#$it" },
-            )
-        },
-        marketInfo.totalVolume?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
-                value = currency.compactFormatter(it),
-            )
-        },
-        marketInfo.marketCapFdv?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
-                value = currency.compactFormatter(it),
-                info = InfoSheetEntity.FullyDilutedValuation,
-            )
-        },
-    )
-
-    val supplyItems = listOfNotNull(
-        marketInfo.circulatingSupply?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
-                value = asset.compactFormatter(it),
-                info = InfoSheetEntity.CirculatingSupply,
-            )
-        },
-        marketInfo.totalSupply?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
-                value = asset.compactFormatter(it),
-                info = InfoSheetEntity.TotalSupply,
-            )
-        },
-        marketInfo.maxSupply?.let {
-            MarketInfoUIModel(
-                type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
-                value = asset.formatSupply(it),
-                info = InfoSheetEntity.MaxSupply,
-            )
-        },
+    val marketItems = buildMarketItems(marketInfo) { currency.compactFormatter(it) }
+    val supplyItems = buildSupplyItems(
+        marketInfo = marketInfo,
+        compactSupplyFormatter = { asset.compactFormatter(it) },
+        maxSupplyFormatter = { asset.formatSupply(it) },
     )
 
     val allTime = listOfNotNull(
@@ -235,6 +196,60 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
     marketProperties(asset, supplyItems)
     allTimeProperties(asset, currency, allTime)
 }
+
+internal fun buildMarketItems(
+    marketInfo: AssetMarket,
+    compactCurrencyFormatter: (Double) -> String,
+): List<MarketInfoUIModel> = listOfNotNull(
+    marketInfo.marketCap?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap,
+            value = compactCurrencyFormatter(it),
+            badge = marketInfo.marketCapRank?.takeIf { rank -> rank in 1..1000 }?.let { "#$it" },
+        )
+    },
+    marketInfo.totalVolume?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
+            value = compactCurrencyFormatter(it),
+        )
+    },
+    marketInfo.marketCapFdv?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
+            value = compactCurrencyFormatter(it),
+            info = InfoSheetEntity.FullyDilutedValuation,
+        )
+    },
+)
+
+internal fun buildSupplyItems(
+    marketInfo: AssetMarket,
+    compactSupplyFormatter: (Double) -> String,
+    maxSupplyFormatter: (Double) -> String,
+): List<MarketInfoUIModel> = listOfNotNull(
+    marketInfo.circulatingSupply?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.CirculatingSupply,
+            value = compactSupplyFormatter(it),
+            info = InfoSheetEntity.CirculatingSupply,
+        )
+    },
+    marketInfo.totalSupply?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.TotalSupply,
+            value = compactSupplyFormatter(it),
+            info = InfoSheetEntity.TotalSupply,
+        )
+    },
+    marketInfo.maxSupply?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.MaxSupply,
+            value = maxSupplyFormatter(it),
+            info = InfoSheetEntity.MaxSupply,
+        )
+    },
+)
 
 internal fun contractMarketInfo(
     asset: Asset,
@@ -300,7 +315,7 @@ private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, it
             trailing = {
                 val rowScope = this
                 Column(horizontalAlignment = Alignment.End) {
-                    with(rowScope) { PropertyDataText(currency.compactFormatter(item.value)) }
+                    with(rowScope) { PropertyDataText(currency.format(item.value, dynamicPlace = true)) }
                     ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toPriceState().color())
                 }
             },
