@@ -49,7 +49,6 @@ android {
 
 dependencies {
     api(project(":ui-models"))
-    implementation(project(":data:repositories"))
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.ktx)

@@ -38,7 +38,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.features.nft.presents.components.NftTitle
-import com.gemwallet.android.features.nft.viewmodels.NftAssetDetailsUIModel
+import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
@@ -96,7 +96,7 @@ fun NFTDetailsScene(
     }
 }
 
-private fun LazyListScope.generalInfo(model: NftAssetDetailsUIModel) {
+private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
     item {
         PropertyItem(R.string.nft_collection, model.collection.name, listPosition = ListPosition.First)
         PropertyNetworkItem(model.collection.chain, listPosition = ListPosition.Middle)
