@@ -28,7 +28,7 @@ class NftDetailsViewModel @Inject constructor(
 
     val nftAsset = assetId
         .filterNotNull()
-        .flatMapLatest { getNftAssetDetails.getNftAssetDetails(it) }
+        .flatMapLatest { getNftAssetDetails(it) }
         .catch { }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

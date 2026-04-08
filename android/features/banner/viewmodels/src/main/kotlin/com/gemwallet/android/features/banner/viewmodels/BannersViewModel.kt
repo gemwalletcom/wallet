@@ -27,7 +27,7 @@ class BannersViewModel @Inject constructor(
 
     fun init(asset: Asset?, isGlobal: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
-            val banners = getActiveBanners.getActiveBanners(asset, isGlobal)
+            val banners = getActiveBanners(asset, isGlobal)
             this@BannersViewModel.banners.update { banners }
         }
     }
@@ -40,7 +40,7 @@ class BannersViewModel @Inject constructor(
     }
 
     fun onCancel(banner: Banner) = viewModelScope.launch {
-        cancelBanner.cancelBanner(banner)
+        cancelBanner(banner)
         init(banner.asset, banner.wallet == null)
     }
 }

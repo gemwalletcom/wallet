@@ -4,5 +4,5 @@ import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import kotlinx.coroutines.flow.Flow
 
 interface GetNftAssetDetails {
-    fun getNftAssetDetails(assetId: String): Flow<NftAssetDetailsData?>
+    operator fun invoke(assetId: String): Flow<NftAssetDetailsData?>
 }

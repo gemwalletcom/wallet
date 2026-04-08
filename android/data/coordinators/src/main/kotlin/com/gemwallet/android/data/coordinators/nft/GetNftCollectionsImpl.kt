@@ -9,7 +9,7 @@ class GetNftCollectionsImpl(
     private val getListNftCase: GetListNftCase,
 ) : GetNftCollections {
 
-    override fun getNftCollections(collectionId: String?): Flow<List<NFTData>> {
+    override fun invoke(collectionId: String?): Flow<List<NFTData>> {
         return getListNftCase.getListNft(collectionId)
     }
 }

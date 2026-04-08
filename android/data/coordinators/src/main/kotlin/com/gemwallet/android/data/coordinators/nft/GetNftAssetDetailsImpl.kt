@@ -22,7 +22,7 @@ class GetNftAssetDetailsImpl(
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
 ) : GetNftAssetDetails {
 
-    override fun getNftAssetDetails(assetId: String): Flow<NftAssetDetailsData?> {
+    override fun invoke(assetId: String): Flow<NftAssetDetailsData?> {
         return sessionRepository.session().filterNotNull()
             .flatMapLatest { session ->
                 getAssetNft.getAssetNft(assetId)

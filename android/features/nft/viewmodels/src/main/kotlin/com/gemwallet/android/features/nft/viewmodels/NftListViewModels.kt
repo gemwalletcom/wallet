@@ -40,7 +40,7 @@ class NftListViewModels @Inject constructor(
             flow {
                 if (!shouldLoad) return@flow
                 emit(true)
-                runCatching { syncNftCollections.sync() }
+                runCatching { syncNftCollections() }
                 emit(false)
                 loadState.update { false }
             }
@@ -55,7 +55,7 @@ class NftListViewModels @Inject constructor(
     val collections = collectionId
         .onEach { loadState.emit(it == null) }
         .flatMapLatest { collectionId ->
-            getNftCollections.getNftCollections(collectionId).map { nftData ->
+            getNftCollections(collectionId).map { nftData ->
                 nftData.filter { it.assets.isNotEmpty() }.map { nftData ->
                     val isSingleAsset = nftData.assets.size == 1
                     if (collectionId != null || isSingleAsset) {

@@ -8,7 +8,7 @@ class CancelBannerImpl(
     private val cancelBannerCase: CancelBannerCase,
 ) : CancelBanner {
 
-    override suspend fun cancelBanner(banner: Banner) {
+    override suspend fun invoke(banner: Banner) {
         cancelBannerCase.cancelBanner(banner)
     }
 }

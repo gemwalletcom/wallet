@@ -12,7 +12,7 @@ class GetActiveBannersImpl(
     private val getBannersCase: GetBannersCase,
 ) : GetActiveBanners {
 
-    override suspend fun getActiveBanners(asset: Asset?, isGlobal: Boolean): List<Banner> {
+    override suspend fun invoke(asset: Asset?, isGlobal: Boolean): List<Banner> {
         val wallet = if (isGlobal) {
             null
         } else {

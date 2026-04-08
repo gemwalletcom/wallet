@@ -10,7 +10,7 @@ class SyncNftCollectionsImpl(
     private val syncNfts: SyncNfts,
 ) : SyncNftCollections {
 
-    override suspend fun sync() {
+    override suspend fun invoke() {
         val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return
         syncNfts.syncNfts(wallet)
     }

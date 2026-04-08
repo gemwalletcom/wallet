@@ -20,7 +20,7 @@ class GetReceiveAssetInfoImpl(
     private val assetsRepository: AssetsRepository,
 ) : GetReceiveAssetInfo {
 
-    override fun getReceiveAssetInfo(assetId: AssetId): Flow<AssetInfo?> {
+    override fun invoke(assetId: AssetId): Flow<AssetInfo?> {
         return sessionRepository.session()
             .filterNotNull()
             .onEach { session ->

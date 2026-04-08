@@ -30,12 +30,12 @@ class ReceiveViewModel @Inject constructor(
 
     val asset = assetId
         .filterNotNull()
-        .flatMapLatest { getReceiveAssetInfo.getReceiveAssetInfo(it) }
+        .flatMapLatest { getReceiveAssetInfo(it) }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun setVisible() = viewModelScope.launch {
         val assetId = asset.value?.asset?.id ?: return@launch
-        setAssetVisible.setAssetVisible(assetId)
+        setAssetVisible(assetId)
     }
 }
