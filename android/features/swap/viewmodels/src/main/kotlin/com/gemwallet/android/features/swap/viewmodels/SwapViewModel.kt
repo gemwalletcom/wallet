@@ -45,7 +45,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -101,7 +100,6 @@ class SwapViewModel @Inject constructor(
                 it.formatFiat(equivalentValue)
             } ?: ""
         }
-        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val quoteRequestParams = combine(payValueFlow, payAsset, receiveAsset) { value, fromAsset, toAsset ->
@@ -142,7 +140,6 @@ class SwapViewModel @Inject constructor(
                 )
             }
         }
-        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val quote = combine(quotes, selectedProvider) { quotes, provider ->
@@ -150,7 +147,6 @@ class SwapViewModel @Inject constructor(
         }
         .onEach { state -> setReceive(state?.formattedToAmount ?: "") }
         .onEach { state -> state?.let { s -> swapScreenState.update { s.validate() } } }
-        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val currentProvider = quote.mapLatest { it?.quote?.data?.provider?.id }
@@ -162,7 +158,6 @@ class SwapViewModel @Inject constructor(
                 ?.currency?.format(quote.receiveEquivalent, dynamicPlace = true)
                 ?: ""
         }
-        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val swapDetails = combine(quote, providers, swapScreenState) { quote, providers, state ->
@@ -193,7 +188,6 @@ class SwapViewModel @Inject constructor(
                 )
             )
         }
-        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val uiSwapScreenState = swapScreenState

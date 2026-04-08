@@ -258,6 +258,7 @@ class AssetsRepositoryTest {
         )
         val enabledAsset = mockAssetSolana()
         val hiddenAsset = mockAssetSolanaUSDC()
+        val disabledAsset = mockAssetMonad()
         val foreignWalletAsset = mockAssetMonad()
 
         every {
@@ -270,6 +271,7 @@ class AssetsRepositoryTest {
             listOf(
                 mockDbAssetInfo(asset = enabledAsset, walletId = "wallet-1", visible = true, sessionId = 1),
                 mockDbAssetInfo(asset = hiddenAsset, walletId = "wallet-1", visible = false, sessionId = 1),
+                mockDbAssetInfo(asset = disabledAsset, walletId = "wallet-1", visible = true, sessionId = 1, assetRank = 0),
                 mockDbAssetInfo(asset = foreignWalletAsset, walletId = "wallet-2", visible = true, sessionId = null),
             )
         )

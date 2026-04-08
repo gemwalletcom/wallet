@@ -274,6 +274,7 @@ class AssetsRepository @Inject constructor(
                 assets.filter { asset ->
                     asset.walletId == wallet.id &&
                         asset.metadata?.isEnabled == true &&
+                        asset.metadata?.isBalanceEnabled == true &&
                         !Chain.exclude().contains(asset.asset.id.chain)
                 }
                     .distinctBy { it.asset.id.toIdentifier() }
@@ -311,7 +312,7 @@ class AssetsRepository @Inject constructor(
         if (assetInfo?.walletId != walletId) {
             linkAssetToWallet(walletId, owner.address, assetId, visibility)
         }
-        if (assetInfo?.metadata?.isEnabled != visibility) {
+        if (assetInfo?.metadata?.isBalanceEnabled != visibility) {
             setVisibility(walletId, assetId, visibility)
         }
         if (visibility) {

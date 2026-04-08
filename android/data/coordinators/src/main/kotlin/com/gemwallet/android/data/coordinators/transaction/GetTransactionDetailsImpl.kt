@@ -12,6 +12,7 @@ import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getSwapMetadata
+import com.gemwallet.android.ext.getWalletConnectOutputAction
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -25,6 +26,7 @@ import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.TransferDataOutputAction
 import uniffi.gemstone.Explorer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -176,21 +178,33 @@ class TransactionDetailsAggregateImpl(
     override val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
     override val destination: TransactionDetailsValue.Destination? = when (data.transaction.type) {
-        TransactionType.TokenApproval,
-        TransactionType.StakeDelegate,
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
         TransactionType.StakeRedelegate,
         TransactionType.AssetActivation,
-        TransactionType.SmartContractCall,
         TransactionType.PerpetualOpenPosition,
         TransactionType.PerpetualClosePosition,
         TransactionType.StakeFreeze,
         TransactionType.StakeUnfreeze,
         TransactionType.PerpetualModifyPosition,
-        TransactionType.EarnWithdraw,
-        TransactionType.EarnDeposit,
         TransactionType.StakeWithdraw -> null
+        TransactionType.TokenApproval -> destinationAddress { address, explorerLink ->
+            TransactionDetailsValue.Destination.Contract(address, explorerLink)
+        }
+        TransactionType.StakeDelegate -> destinationAddress { address, explorerLink ->
+            TransactionDetailsValue.Destination.Validator(address, explorerLink)
+        }
+        TransactionType.SmartContractCall -> destinationAddress { address, explorerLink ->
+            when (data.transaction.getWalletConnectOutputAction()) {
+                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(address, explorerLink)
+                TransferDataOutputAction.Sign,
+                null -> TransactionDetailsValue.Destination.Contract(address, explorerLink)
+            }
+        }
+        TransactionType.EarnWithdraw,
+        TransactionType.EarnDeposit -> destinationAddress { address, explorerLink ->
+            TransactionDetailsValue.Destination.ProviderAddress(address, explorerLink)
+        }
         TransactionType.Swap -> this@TransactionDetailsAggregateImpl.swapProvider?.let { TransactionDetailsValue.Destination.Provider(it) }
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
@@ -214,4 +228,24 @@ class TransactionDetailsAggregateImpl(
             ValueGroup(listOf(fee)),
             ValueGroup(listOf(explorer))
         )
+
+    private val participantAddress: String
+        get() = when (data.transaction.direction) {
+            TransactionDirection.Incoming -> data.transaction.from
+            TransactionDirection.Outgoing,
+            TransactionDirection.SelfTransfer -> data.transaction.to
+        }
+
+    private val participantExplorerLink: BlockExplorerLink?
+        get() = when (participantAddress) {
+            data.transaction.from -> senderExplorerLink
+            data.transaction.to -> recipientExplorerLink
+            else -> null
+        }
+
+    private inline fun destinationAddress(
+        build: (address: String, explorerLink: BlockExplorerLink?) -> TransactionDetailsValue.Destination,
+    ): TransactionDetailsValue.Destination? = participantAddress
+        .takeIf { it.isNotEmpty() }
+        ?.let { build(it, participantExplorerLink) }
 }

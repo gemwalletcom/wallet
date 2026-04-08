@@ -361,5 +361,7 @@ fun Asset.compactFormatter(
     return "${formatter.format(value)} $symbol"
 }
 
-fun Asset.formatSupply(value: Double): String =
-    if (value == 0.0) "\u221E $symbol" else format(humanAmount = value, decimalPlace = 2, maxDecimals = 2)
+fun Asset.formatSupply(
+    value: Double,
+    locale: Locale = Locale.getDefault(),
+): String = if (value == 0.0) "\u221E $symbol" else compactFormatter(value = value, locale = locale)

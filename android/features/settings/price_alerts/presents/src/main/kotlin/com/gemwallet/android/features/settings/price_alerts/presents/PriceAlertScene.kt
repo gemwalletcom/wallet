@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -41,25 +40,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toPriceState
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
-import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ActionIcon
-import com.gemwallet.android.ui.components.list_item.Badge
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
@@ -161,28 +150,12 @@ private fun LazyListScope.autoAlertToggle(
     item {
         val autoAlerts = data[null] ?: emptyList()
         val isAutoAlertEnabled = autoAlerts.isNotEmpty()
-        val asset = assetInfo?.asset ?: return@item
-        val priceInfo = assetInfo.price
+        val currentAssetInfo = assetInfo ?: return@item
 
-        ListItem(
-            listPosition = ListPosition.Single,
-            leading = { AssetIcon(asset) },
-            title = { ListItemTitleText(asset.name, { Badge(text = asset.symbol.uppercase()) }) },
-            subtitle = if (priceInfo != null) {
-                {
-                    PriceInfo(
-                        priceInfo.currency.format(priceInfo.price.price),
-                        priceInfo.price.priceChangePercentage24h.formatAsPercentage(),
-                        priceInfo.price.priceChangePercentage24h.toPriceState(),
-                    )
-                }
-            } else null,
-            trailing = {
-                Switch(
-                    checked = isAutoAlertEnabled,
-                    onCheckedChange = onToggleAutoAlert,
-                )
-            },
+        PriceAlertAutoAssetItem(
+            assetInfo = currentAssetInfo,
+            enabled = isAutoAlertEnabled,
+            onCheckedChange = onToggleAutoAlert,
         )
         Text(
             modifier = Modifier.padding(horizontal = paddingLarge),
@@ -272,27 +245,14 @@ private fun LazyListScope.assets(
             onCollapsed = { reveable.value = null },
             listPosition = position,
         ) { position ->
-            ListItem(
+            PriceAlertAssetItem(
                 modifier = (onChart?.let { Modifier
                     .clickable(onClick = { onChart(item.assetId) }) } ?: Modifier)
                     .onSizeChanged {
                         minActionWidth = with(density) { it.height.toDp() }
                     },
+                item = item,
                 listPosition = position,
-                leading = @Composable { AssetIcon(item.asset) },
-                title = @Composable { ListItemTitleText(item.title, { Badge(text = item.titleBadge) }) },
-                subtitle = {
-                    val (price, changes) = when (item.type) {
-                        PriceAlertType.Auto -> Pair(item.price, item.percentage)
-                        PriceAlertType.Over -> Pair(stringResource(R.string.price_alerts_direction_over), item.price)
-                        PriceAlertType.Under -> Pair(stringResource(R.string.price_alerts_direction_under), item.price)
-                        PriceAlertType.Increase -> Pair(stringResource(R.string.price_alerts_direction_increases_by), item.percentage)
-                        PriceAlertType.Decrease -> Pair(stringResource(R.string.price_alerts_direction_decreases_by), item.percentage)
-                    }
-                    if (price.isNotEmpty() || changes.isNotEmpty()) {
-                        PriceInfo(price, changes, item.priceState)
-                    }
-                },
             )
         }
     }

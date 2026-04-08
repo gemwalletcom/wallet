@@ -77,6 +77,7 @@ open class AssetInfoUIModel(
                 && other.assetInfo.price == assetInfo.price
                 && other.assetInfo.balance == assetInfo.balance
                 && other.metadata?.isEnabled == assetInfo.metadata?.isEnabled
+                && other.metadata?.isBalanceEnabled == assetInfo.metadata?.isBalanceEnabled
                 && other.metadata?.isSwapEnabled == assetInfo.metadata?.isSwapEnabled
                 && other.metadata?.isBuyEnabled == assetInfo.metadata?.isBuyEnabled
                 && other.metadata?.isStakeEnabled == assetInfo.metadata?.isStakeEnabled
