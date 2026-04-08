@@ -73,13 +73,14 @@ fun AssetChartScene(
     chartViewModel: ChartViewModel = hiltViewModel(),
 ) {
     val marketModel by viewModel.marketUIModel.collectAsStateWithLifecycle()
+    val title by viewModel.title.collectAsStateWithLifecycle()
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val isChartRefreshing by chartViewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullToRefreshState = rememberPullToRefreshState()
     val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
 
     Scene(
-        title = marketModel?.assetTitle.orEmpty(),
+        title = title,
         backHandle = true,
         onClose = onCancel,
         snackbar = snackbar,

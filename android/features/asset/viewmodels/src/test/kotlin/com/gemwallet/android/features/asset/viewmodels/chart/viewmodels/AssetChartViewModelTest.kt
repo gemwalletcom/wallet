@@ -7,11 +7,9 @@ import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
-import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
@@ -39,13 +37,13 @@ class AssetChartViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetSolanaUSDC()
     private val viewModels = mutableListOf<ViewModel>()
-    private val assetInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
+    private val assetFlow = MutableStateFlow(asset)
     private val linksFlow = MutableStateFlow<List<AssetLink>>(emptyList())
     private val marketFlow = MutableStateFlow<AssetMarket?>(null)
     private val currencyFlow = MutableStateFlow(Currency.USD)
 
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true) {
-        every { getTokenInfo(asset.id) } returns assetInfoFlow
+        every { asset(asset.id) } returns assetFlow
         every { getAssetLinks(asset.id) } returns linksFlow
         every { getAssetMarket(asset.id) } returns marketFlow
     }
@@ -71,7 +69,7 @@ class AssetChartViewModelTest {
     }
 
     @Test
-    fun `local asset info bootstraps ui without waiting for market or links`() = runTest(testDispatcher) {
+    fun `local asset bootstraps ui without waiting for market or links`() = runTest(testDispatcher) {
         val viewModel = AssetChartViewModel(
             assetsRepository = assetsRepository,
             getCurrentBlockExplorer = getCurrentBlockExplorer,
@@ -87,6 +85,21 @@ class AssetChartViewModelTest {
         assertEquals(Currency.USD, uiModel.currency)
         assertNull(uiModel.marketInfo)
         assertEquals("Solscan", uiModel.explorerName)
+    }
+
+    @Test
+    fun `local asset bootstraps title`() = runTest(testDispatcher) {
+        val viewModel = AssetChartViewModel(
+            assetsRepository = assetsRepository,
+            getCurrentBlockExplorer = getCurrentBlockExplorer,
+            getPriceAlerts = getPriceAlerts,
+            sessionRepository = sessionRepository,
+            assetId = asset.id,
+        ).also(viewModels::add)
+
+        val title = viewModel.title.first { it.isNotBlank() }
+
+        assertEquals(asset.name, title)
     }
 
     @Test

@@ -38,22 +38,27 @@ class AssetChartViewModel internal constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    private val assetInfo = assetsRepository.getTokenInfo(assetId)
+    private val asset = assetsRepository.asset(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val links = assetsRepository.getAssetLinks(assetId)
     private val market = assetsRepository.getAssetMarket(assetId)
 
+    val title = asset
+        .map { it?.name.orEmpty() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
     val marketUIModel = combine(
-        assetInfo,
+        asset,
         links,
         market,
         sessionRepository.getCurrency().distinctUntilChanged(),
-    ) { assetInfo, links, market, currency ->
-        assetInfo?.asset?.let { asset ->
+    ) { asset, links, market, currency ->
+        asset?.let {
             AssetMarketUIModel(
-                asset = asset,
-                assetTitle = asset.name,
+                asset = it,
+                assetTitle = it.name,
                 assetLinks = links.toModel(),
                 currency = currency,
                 marketInfo = market,
