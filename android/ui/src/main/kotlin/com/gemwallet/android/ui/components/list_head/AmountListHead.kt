@@ -70,6 +70,7 @@ import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.alpha90
@@ -77,9 +78,12 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
 
+private const val BALANCE_MASK = "✱✱✱✱✱✱"
+
 @Composable
 fun AmountListHead(
     amount: String,
+    hidden: Boolean = false,
     onHideBalances: (() -> Unit)? = null,
     equivalent: String? = null,
     icon: Any? = null,
@@ -113,8 +117,11 @@ fun AmountListHead(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
             ) {
+                val mask: (String) -> String = { if (hidden) BALANCE_MASK else it }
+
                 DisplayText(
-                    text = amount,
+                    text = mask(amount),
+                    hidden = hidden,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(paddingDefault))
@@ -130,25 +137,26 @@ fun AmountListHead(
                         fontWeight = FontWeight.W400,
                     )
                 }
-                if (changedValue != null) {
+                changedValue?.let { value ->
                     val highlightColor = changeState.color()
                     Row(
-                        modifier = Modifier,
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
                         Text(
-                            text = changedValue,
+                            text = mask(value),
                             color = highlightColor,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.W400,
                         )
-                        Text(
-                            text = changedPercentages?.let { "($it)" } ?: "",
-                            color = highlightColor,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W400,
-                        )
+                        if (!hidden && !changedPercentages.isNullOrBlank()) {
+                            Text(
+                                text = "($changedPercentages)",
+                                color = highlightColor,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W400,
+                            )
+                        }
                     }
                 }
             }

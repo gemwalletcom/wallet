@@ -57,8 +57,8 @@ class GetWalletSummaryImpl(
                     currency = session.currency,
                     totalValue = totalValue,
                     totalChangedValue = totalChangedValue,
-                    hideBalances = hideBalances,
                 ),
+                isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,
             )
         }
@@ -73,14 +73,7 @@ internal fun buildWalletSummaryDisplayState(
     currency: Currency,
     totalValue: BigDecimal,
     totalChangedValue: BigDecimal,
-    hideBalances: Boolean,
 ): WalletSummaryDisplayState {
-    if (hideBalances) {
-        return WalletSummaryDisplayState(
-            totalValue = "✱✱✱✱✱✱",
-            changedValue = null,
-        )
-    }
     if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
         return WalletSummaryDisplayState(
             totalValue = currency.format(BigDecimal.ZERO, dynamicPlace = true),
@@ -130,6 +123,7 @@ internal data class WalletSummaryDisplayState(
 internal class WalletSummaryAggregateImpl(
     wallet: Wallet,
     displayState: WalletSummaryDisplayState,
+    override val isBalanceHidden: Boolean,
     override val isOperationsAvailable: Boolean,
 ) : WalletSummaryAggregate {
     private val walletAccount = wallet.accounts.firstOrNull()

@@ -20,6 +20,7 @@ internal fun AssetsHead(
 
     AmountListHead(
         amount = walletSummary.walletTotalValue,
+        hidden = walletSummary.isBalanceHidden,
         changedValue = walletSummary.changedValue?.valueFormatted,
         changedPercentages = walletSummary.changedValue?.changePercentageFormatted,
         changeState = walletSummary.changedValue?.state ?: PriceState.None,

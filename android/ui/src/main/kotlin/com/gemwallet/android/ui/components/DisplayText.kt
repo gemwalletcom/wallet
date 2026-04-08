@@ -12,13 +12,14 @@ import androidx.compose.ui.unit.sp
 fun DisplayText(
     text: String,
     modifier: Modifier = Modifier,
+    hidden: Boolean = false,
 ) {
     Text(
         modifier = modifier,
         text = text,
         overflow = TextOverflow.MiddleEllipsis,
         maxLines = 1,
-        style = if ("✱✱✱✱✱✱" == text) {
+        style = if (hidden) {
             MaterialTheme.typography.headlineSmall.copy(lineHeight = 44.0.sp)
         } else {
             MaterialTheme.typography.displaySmall.copy(lineHeight = 44.0.sp)
