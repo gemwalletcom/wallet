@@ -60,7 +60,6 @@ class GetWalletSummaryImplTest {
             currency = Currency.USD,
             totalValue = BigDecimal.ZERO,
             totalChangedValue = BigDecimal.ZERO,
-            hideBalances = false,
         )
 
         assertEquals("\$0.00", state.totalValue)
