@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
+import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.open
@@ -99,6 +100,12 @@ fun AssetsScreen(
             }
         ) {
             val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
+            val assetActions = remember(viewModel) {
+                AssetContextActions(
+                    onTogglePin = viewModel::togglePin,
+                    onHide = viewModel::hideAsset,
+                )
+            }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -169,16 +176,14 @@ fun AssetsScreen(
                     longPressState = longPressedAsset,
                     group = AssetsGroupType.Pined,
                     onAssetClick = onAssetClick,
-                    onAssetHide = viewModel::hideAsset,
-                    onTogglePin = viewModel::togglePin,
+                    actions = assetActions,
                 )
                 assets(
                     items = unpinnedAssets,
                     longPressState = longPressedAsset,
                     group = AssetsGroupType.None,
                     onAssetClick = onAssetClick,
-                    onAssetHide = viewModel::hideAsset,
-                    onTogglePin = viewModel::togglePin,
+                    actions = assetActions,
                 )
                 item { AssetsListFooter(onManage) }
             }
