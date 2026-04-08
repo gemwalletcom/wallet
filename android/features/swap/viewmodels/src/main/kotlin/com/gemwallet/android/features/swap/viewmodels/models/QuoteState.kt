@@ -16,15 +16,16 @@ data class QuoteState(
 internal val QuoteState.formattedToAmount: String
     get() = receive.asset.format(Crypto(quote.toValue), 8, showSymbol = false)
 
-internal fun QuoteState.validate(): SwapState {
-    val availableBalance = pay.balance.balance.available.toBigInteger()
-    val fromValue = quote.fromValue
-    return if (availableBalance < fromValue.toBigInteger()) {
-        SwapState.Error(SwapError.InsufficientBalance(pay.asset.symbol))
-    } else {
-        SwapState.Ready
+internal val QuoteState.validationError: SwapError?
+    get() {
+        val availableBalance = pay.balance.balance.available.toBigInteger()
+        val fromValue = quote.fromValue
+        return if (availableBalance < fromValue.toBigInteger()) {
+            SwapError.InsufficientBalance(pay.asset.symbol)
+        } else {
+            null
+        }
     }
-}
 
 internal val QuoteState.receiveEquivalent: BigDecimal
     get() = receive.calculateFiat(quote.toValue)

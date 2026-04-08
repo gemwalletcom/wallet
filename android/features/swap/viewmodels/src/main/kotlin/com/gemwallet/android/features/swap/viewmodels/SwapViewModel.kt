@@ -2,6 +2,7 @@ package com.gemwallet.android.features.swap.viewmodels
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -15,23 +16,28 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.math.parseNumberOrNull
-import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
-import com.gemwallet.android.model.toModel
 import com.gemwallet.android.features.swap.viewmodels.cases.QuoteRequester
+import com.gemwallet.android.features.swap.viewmodels.models.QuoteUiState
+import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestKey
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteState
+import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestParams
+import com.gemwallet.android.features.swap.viewmodels.models.QuotesState
+import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
-import com.gemwallet.android.features.swap.viewmodels.models.SwapState
+import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
+import com.gemwallet.android.features.swap.viewmodels.models.TransferDataUiState
+import com.gemwallet.android.features.swap.viewmodels.models.TransferQuoteSnapshot
 import com.gemwallet.android.features.swap.viewmodels.models.create
+import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.getQuote
-import com.gemwallet.android.features.swap.viewmodels.models.isSwapDataLoading
-import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestParams
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
-import com.gemwallet.android.features.swap.viewmodels.models.validate
 import com.gemwallet.android.features.swap.viewmodels.models.matches
+import com.gemwallet.android.features.swap.viewmodels.models.toError
+import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.model.format
+import com.gemwallet.android.model.toModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
@@ -51,6 +57,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.SwapperProvider
@@ -68,7 +75,9 @@ class SwapViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val swapScreenState = MutableStateFlow<SwapState>(SwapState.None)
+    private val quoteUiState = MutableStateFlow<QuoteUiState>(QuoteUiState.NoInput)
+    private val transferDataUiState = MutableStateFlow<TransferDataUiState>(TransferDataUiState.Idle)
+    private val transferQuoteSnapshot = MutableStateFlow<TransferQuoteSnapshot?>(null)
 
     val payValue: TextFieldState = TextFieldState()
     val receiveValue: TextFieldState = TextFieldState()
@@ -82,6 +91,10 @@ class SwapViewModel @Inject constructor(
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
+    private val pauseQuoteRefreshUntilNextStart = MutableStateFlow(false)
+    private val quoteRefreshEnabled = combine(refreshEnabled, transferDataUiState, pauseQuoteRefreshUntilNextStart) { isEnabled, transferState, isPaused ->
+            isEnabled && !isPaused && transferState !is TransferDataUiState.Loading
+        }
 
     val payAsset = savedStateHandle.getStateFlow<String?>("from", null)
         .map { it?.toAssetId() }
@@ -106,32 +119,48 @@ class SwapViewModel @Inject constructor(
     private val quoteRequestParams = combine(payValueFlow, payAsset, receiveAsset) { value, fromAsset, toAsset ->
             QuoteRequestParams.create(value, fromAsset, toAsset)
         }
-        .onEach { params ->
-            if (params == null) {
-                selectedProvider.update { null }
-                swapScreenState.update { SwapState.None }
-            } else {
-                swapScreenState.update { SwapState.GetQuote }
-            }
-        }
+        .onEach(::onQuoteRequestParamsChanged)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val quoteResults = quoteRequester.requestQuotes(
         requestParams = quoteRequestParams,
         refreshRequests = refreshRequests,
-        refreshEnabled = refreshEnabled,
-        onError = { err ->
-            updateQuoteState { SwapState.Error.create(err) }
-        },
+        refreshEnabled = quoteRefreshEnabled,
+        onFetchStarted = ::onQuoteFetchStarted,
     )
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val quotes = combine(quoteRequestParams, quoteResults) { params, results ->
+    private val matchedQuoteResults = combine(quoteRequestParams, quoteResults) { params, results ->
             results?.takeIf { it.matches(params) }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val providers = quotes.mapLatest { quotes ->
+    private val liveQuotes = matchedQuoteResults
+        .mapLatest { results ->
+            results?.takeIf { it.err == null && it.items.isNotEmpty() }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val activeTransferSnapshot = combine(transferQuoteSnapshot, transferDataUiState) { frozen, transferState ->
+            when (transferState) {
+                TransferDataUiState.Idle -> null
+                is TransferDataUiState.Error,
+                is TransferDataUiState.Loading -> frozen
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val displayedQuotes = combine(liveQuotes, activeTransferSnapshot) { live, frozen ->
+            frozen?.quotes ?: live
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val displayedProvider = combine(selectedProvider, activeTransferSnapshot) { provider, frozen ->
+            frozen?.selectedProvider ?: provider
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val providers = displayedQuotes.mapLatest { quotes ->
             val quoteState = quotes ?: return@mapLatest emptyList()
             quoteState.items.map { item ->
                 SwapProviderUIModelFactory.create(
@@ -143,14 +172,10 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val quote = combine(quotes, selectedProvider) { quotes, provider ->
+    val quote = combine(displayedQuotes, displayedProvider) { quotes, provider ->
             quotes?.getQuote(provider)?.let { QuoteState(it, quotes.pay, quotes.receive) }
         }
         .onEach { state -> setReceive(state?.formattedToAmount ?: "") }
-        .onEach { state -> state?.let { s -> updateQuoteState { s.validate() } } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val currentProvider = quote.mapLatest { it?.quote?.data?.provider?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val toEquivalentFormatted = quote.mapLatest { quote ->
@@ -161,8 +186,8 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val swapDetails = combine(quote, providers, swapScreenState) { quote, providers, state ->
-            if (quote == null || state == SwapState.GetQuote) {
+    val swapDetails = combine(quote, providers) { quote, providers ->
+            if (quote == null) {
                 return@combine null
             }
 
@@ -191,10 +216,23 @@ class SwapViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiSwapScreenState = swapScreenState
-        .stateIn(viewModelScope, SharingStarted.Eagerly, SwapState.None)
+    val uiState = combine(quoteUiState, transferDataUiState, quote) { quoteState, transferState, displayedQuote ->
+            createSwapUiState(
+                quoteState = quoteState,
+                transferState = transferState,
+                displayedQuote = displayedQuote,
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
+
+    init {
+        matchedQuoteResults
+            .onEach(::onQuoteResults)
+            .launchIn(viewModelScope)
+    }
 
     fun onSelect(type: SwapItemType, assetId: AssetId) {
+        clearTransferQuoteState()
         when (type) {
             SwapItemType.Pay -> {
                 if (receiveAsset.value?.id() == assetId) {
@@ -212,51 +250,109 @@ class SwapViewModel @Inject constructor(
     }
 
     fun switchSwap() = viewModelScope.launch {
+        clearTransferQuoteState()
         val payAssetId = payAsset.value?.id()?.toIdentifier()
         val receiveAssetId = receiveAsset.value?.id()?.toIdentifier()
         savedStateHandle["from"] = receiveAssetId
         savedStateHandle["to"] = payAssetId
         payValue.clearText()
-        swapScreenState.update { SwapState.None }
     }
 
     fun setProvider(provider: SwapperProvider) {
+        clearTransferQuoteState()
         this.selectedProvider.update { provider }
     }
 
     fun refresh() {
-        swapScreenState.update { SwapState.GetQuote }
+        val params = quoteRequestParams.value ?: return
+        clearTransferQuoteState()
+        quoteUiState.value = QuoteUiState.Loading(params.key)
         refreshRequests.tryEmit(Unit)
     }
 
+    fun onPrimaryAction(
+        onConfirm: (ConfirmParams) -> Unit,
+        onShowPriceImpactWarning: () -> Unit,
+    ) {
+        when (val action = uiState.value.action) {
+            SwapActionState.Ready -> {
+                if (swapDetails.value?.shouldShowPriceImpactWarning == true) {
+                    onShowPriceImpactWarning()
+                } else {
+                    swap(onConfirm)
+                }
+            }
+            is SwapActionState.TransferError -> swap(onConfirm)
+            is SwapActionState.QuoteError -> {
+                val error = action.error
+                if (error is SwapError.InputAmountTooSmall) {
+                    applyMinimumAmount(error)
+                } else {
+                    refresh()
+                }
+            }
+            SwapActionState.None,
+            SwapActionState.QuoteLoading,
+            SwapActionState.TransferLoading -> Unit
+        }
+    }
+
     fun setRefreshEnabled(isEnabled: Boolean) {
+        if (isEnabled && !refreshEnabled.value && pauseQuoteRefreshUntilNextStart.value) {
+            pauseQuoteRefreshUntilNextStart.value = false
+        }
         refreshEnabled.value = isEnabled
     }
 
     fun swap(onConfirm: (ConfirmParams) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
-        if (swapScreenState.value == SwapState.Swapping) return@launch
+        if (transferDataUiState.value is TransferDataUiState.Loading) return@launch
 
-        swapScreenState.update { SwapState.Swapping }
+        val snapshot = currentQuoteSnapshot() ?: return@launch
+        transferQuoteSnapshot.value = snapshot
+        transferDataUiState.value = TransferDataUiState.Loading(
+            quoteKey = snapshot.requestKey,
+            providerId = snapshot.providerId,
+        )
 
         try {
-            val params = swap() ?: run {
-                swapScreenState.update { SwapState.Ready }
+            val params = swap(snapshot) ?: run {
+                if (transferDataUiState.value.matches(snapshot)) {
+                    clearTransferQuoteState()
+                }
+                return@launch
+            }
+            if (!transferDataUiState.value.matches(snapshot)) {
                 return@launch
             }
             withContext(Dispatchers.Main) {
                 onConfirm(params)
             }
-            swapScreenState.update { SwapState.Ready }
+            if (transferDataUiState.value.matches(snapshot)) {
+                pauseQuoteRefreshUntilNextStart.value = true
+                clearTransferQuoteState(resumeQuoteRefresh = false)
+            }
         } catch (err: SwapError) {
-            swapScreenState.update { SwapState.Error(err) }
+            if (transferDataUiState.value.matches(snapshot)) {
+                transferDataUiState.value = TransferDataUiState.Error(
+                    quoteKey = snapshot.requestKey,
+                    providerId = snapshot.providerId,
+                    error = err,
+                )
+            }
         } catch (err: Throwable) {
-            swapScreenState.update { SwapState.Error(SwapError.Unknown(err.message ?: "")) }
+            if (transferDataUiState.value.matches(snapshot)) {
+                transferDataUiState.value = TransferDataUiState.Error(
+                    quoteKey = snapshot.requestKey,
+                    providerId = snapshot.providerId,
+                    error = SwapError.Unknown(err.message ?: ""),
+                )
+            }
         }
     }
 
-    private suspend fun swap(): ConfirmParams? {
-        val fromAmount = payValue.text.toString().parseNumberOrNull() ?: throw SwapError.IncorrectInput
-        val quote = quote.value ?: throw SwapError.NoQuote
+    private suspend fun swap(snapshot: TransferQuoteSnapshot): ConfirmParams? {
+        val quote = snapshot.quote
+        val fromAmount = BigInteger(quote.quote.fromValue)
         val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return null
 
         val swapData = try {
@@ -269,7 +365,7 @@ class SwapViewModel @Inject constructor(
             from = quote.pay.owner!!,
             fromAsset = quote.pay.asset,
             toAsset = quote.receive.asset,
-            fromAmount = Crypto(fromAmount, quote.pay.asset.decimals).atomicValue,
+            fromAmount = fromAmount,
             toAmount = BigInteger(quote.quote.toValue),
             swapData = swapData.data,
             providerId = quote.quote.data.provider.id,
@@ -280,7 +376,7 @@ class SwapViewModel @Inject constructor(
             value = swapData.value,
             approval = swapData.approval?.toModel(),
             gasLimit = swapData.gasLimit?.toBigIntegerOrNull(),
-            useMaxAmount = quote.quote.request.options.useMaxAmount/* BigInteger(quote.pay.balance.balance.available) == Crypto(fromAmount, quote.pay.asset.decimals).atomicValue*/,
+            useMaxAmount = quote.quote.request.options.useMaxAmount,
             etaInSeconds = quote.quote.etaInSeconds,
             slippageBps = quote.quote.data.slippageBps,
             memo = swapData.memo,
@@ -294,17 +390,65 @@ class SwapViewModel @Inject constructor(
         assetsRepository.switchVisibility(session.wallet.id, account, id, true)
     }
 
-    private inline fun updateQuoteState(nextState: () -> SwapState) {
-        swapScreenState.update { current ->
-            if (current.isSwapDataLoading) {
-                current
-            } else {
-                nextState()
-            }
+    private fun onQuoteRequestParamsChanged(params: QuoteRequestParams?) {
+        if (params == null) {
+            selectedProvider.update { null }
+            clearTransferQuoteState()
+            quoteUiState.value = QuoteUiState.NoInput
+            return
+        }
+
+        clearTransferQuoteState()
+        quoteUiState.value = QuoteUiState.Loading(params.key)
+    }
+
+    private fun onQuoteFetchStarted(requestKey: QuoteRequestKey) {
+        if (transferDataUiState.value is TransferDataUiState.Loading || pauseQuoteRefreshUntilNextStart.value) {
+            return
+        }
+        quoteUiState.value = QuoteUiState.Loading(requestKey)
+    }
+
+    private fun onQuoteResults(results: QuotesState?) {
+        if (results == null || transferDataUiState.value is TransferDataUiState.Loading || pauseQuoteRefreshUntilNextStart.value) {
+            return
+        }
+
+        quoteUiState.value = when {
+            results.err != null -> QuoteUiState.Error(results.requestKey, SwapError.toError(results.err))
+            results.items.isEmpty() -> QuoteUiState.Error(results.requestKey, SwapError.NoQuote)
+            else -> QuoteUiState.Ready(results)
         }
     }
 
+    private fun currentQuoteSnapshot(): TransferQuoteSnapshot? {
+        transferQuoteSnapshot.value
+            ?.takeIf { transferDataUiState.value != TransferDataUiState.Idle }
+            ?.let { return it }
+
+        val quotes = (quoteUiState.value as? QuoteUiState.Ready)?.quotes ?: return null
+        return TransferQuoteSnapshot.create(
+            quotes = quotes,
+            selectedProvider = selectedProvider.value,
+        )
+    }
+
+    private fun clearTransferQuoteState(resumeQuoteRefresh: Boolean = true) {
+        if (resumeQuoteRefresh) {
+            pauseQuoteRefreshUntilNextStart.value = false
+        }
+        transferDataUiState.value = TransferDataUiState.Idle
+        transferQuoteSnapshot.value = null
+    }
+
+    private fun applyMinimumAmount(error: SwapError.InputAmountTooSmall) {
+        val asset = payAsset.value?.asset ?: return
+        payValue.clearText()
+        payValue.setTextAndPlaceCursorAtEnd(error.getValue(asset).toString())
+    }
+
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {
-        receiveValue.edit { replace(0, length, amount) }
+        receiveValue.clearText()
+        receiveValue.setTextAndPlaceCursorAtEnd(amount)
     }
 }

@@ -88,6 +88,7 @@ public final class SwapSceneViewModel {
             toAssetPrice: AssetPriceValue(asset: toAsset.asset, price: toAsset.price),
             selectedQuote: selectedQuote,
             preferences: preferences,
+            isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },
@@ -103,16 +104,24 @@ public final class SwapSceneViewModel {
         )
     }
 
-    var isSwitchAssetButtonDisabled: Bool {
-        swapState.isLoading
-    }
-
     var shouldShowAdditionalInfo: Bool {
         swapState.quotes.isLoading == false
     }
 
-    var isLoading: Bool {
+    var isQuoteLoading: Bool {
         swapState.quotes.isLoading
+    }
+
+    var isTransferDataLoading: Bool {
+        swapState.swapTransferData.isLoading
+    }
+
+    var isQuoteInteractionEnabled: Bool {
+        !isTransferDataLoading
+    }
+
+    var isReceiveFieldLoading: Bool {
+        isQuoteLoading
     }
 
     var assetIds: [AssetId] {
@@ -130,9 +139,24 @@ public final class SwapSceneViewModel {
         }
     }
 
+    private var payTokenInteraction: SwapTokenInteraction {
+        .pay(isEnabled: isQuoteInteractionEnabled)
+    }
+
+    private var receiveTokenInteraction: SwapTokenInteraction {
+        .receive(isEnabled: isQuoteInteractionEnabled)
+    }
+
     func swapTokenModel(type: SelectAssetSwapType) -> SwapTokenViewModel {
+        let interaction = switch type {
+        case .pay: payTokenInteraction
+        case .receive: receiveTokenInteraction
+        }
         guard let assetData: AssetData = type == .pay ? fromAsset : toAsset else {
-            return SwapTokenViewModel(type: .placeholder(currencyCode: preferences.currency))
+            return SwapTokenViewModel(
+                type: .placeholder(currencyCode: preferences.currency),
+                interaction: interaction,
+            )
         }
         return SwapTokenViewModel(
             type: .selected(
@@ -143,6 +167,7 @@ public final class SwapSceneViewModel {
                     currencyFormatterType: .currency,
                 ),
             ),
+            interaction: interaction,
         )
     }
 }
@@ -151,7 +176,7 @@ public final class SwapSceneViewModel {
 
 extension SwapSceneViewModel {
     func fetch() async {
-        guard let currentInput else { return }
+        guard !isTransferDataLoading, let currentInput else { return }
         await performFetch(input: currentInput)
     }
 
@@ -161,7 +186,7 @@ extension SwapSceneViewModel {
     }
 
     func onChangeSwapQuoute(_ _: SwapperQuote?, _ newQuote: SwapperQuote?) {
-        guard let newQuote, let toAsset else { return }
+        guard !isTransferDataLoading, let newQuote, let toAsset else { return }
         applyQuote(newQuote, asset: toAsset.asset)
     }
 
@@ -169,12 +194,14 @@ extension SwapSceneViewModel {
         if let input = fetchTrigger?.input, input == currentInput {
             return
         }
+        resetTransferDataState()
         setFetchTrigger(isImmediate: false)
     }
 
     func onChangeFromAsset(old: AssetData?, new: AssetData?) {
         guard old?.asset.id != new?.asset.id else { return }
 
+        resetTransferDataState()
         resetValues()
         selectedSwapQuote = nil
         updateValidators(for: new)
@@ -184,6 +211,7 @@ extension SwapSceneViewModel {
     func onChangeToAsset(old: AssetData?, new: AssetData?) {
         guard old?.asset.id != new?.asset.id else { return }
 
+        resetTransferDataState()
         resetToValue()
         selectedSwapQuote = nil
         setFetchTrigger(isImmediate: true)
@@ -195,6 +223,7 @@ extension SwapSceneViewModel {
 
     func onSelectPercent(_ percent: Int) {
         guard let fromAsset else { return }
+        resetTransferDataState()
         applyPercentToFromValue(percent: percent, assetData: fromAsset)
         setFetchTrigger(isImmediate: true)
     }
@@ -226,6 +255,7 @@ extension SwapSceneViewModel {
     }
 
     func onFinishSwapProviderSelection(_ quote: SwapperQuote) {
+        resetTransferDataState()
         selectedSwapQuote = quote
     }
 
@@ -288,6 +318,7 @@ extension SwapSceneViewModel {
 
     private func applyMinAmount(_ amount: String, asset: Asset) {
         guard let value = BigInt(amount) else { return }
+        resetTransferDataState()
         amountInputModel.text = formatter.format(value: value, decimals: asset.decimals.asInt)
         setFetchTrigger(isImmediate: true)
     }
@@ -296,11 +327,12 @@ extension SwapSceneViewModel {
         guard let input = currentInput else {
             resetToValue()
             swapState.quotes = .noData
-            swapState.swapTransferData = .noData
+            resetTransferDataState()
             selectedSwapQuote = nil
             fetchTrigger = nil
             return
         }
+        guard !isTransferDataLoading else { return }
         fetchTrigger = SwapFetchTrigger(input: input, isImmediate: isImmediate)
 
         Task {
@@ -310,6 +342,7 @@ extension SwapSceneViewModel {
     }
 
     private func swap() {
+        guard !isTransferDataLoading else { return }
         guard let fromAsset, let toAsset, let quote = selectedSwapQuote else {
             return
         }
@@ -335,8 +368,8 @@ extension SwapSceneViewModel {
     }
 
     private func performFetch(input: SwapQuoteInput) async {
+        guard !isTransferDataLoading else { return }
         do {
-            swapState.swapTransferData = .noData
             swapState.quotes = .loading
             resetToValue()
             let swapQuotes = try await swapQuotesProvider.fetchQuotes(
@@ -347,7 +380,7 @@ extension SwapSceneViewModel {
                 useMaxAmount: input.useMaxAmount,
             )
 
-            guard currentInput == input else { return }
+            guard !isTransferDataLoading, currentInput == input else { return }
             swapState.quotes = .data(swapQuotes)
             selectedSwapQuote = swapQuotes.first(where: { $0 == selectedSwapQuote }) ?? swapQuotes.first
             if let selectedSwapQuote, let asset = toAsset?.asset {
@@ -355,7 +388,7 @@ extension SwapSceneViewModel {
             }
         } catch {
             if !error.isCancelled, !Task.isCancelled {
-                guard currentInput == input else { return }
+                guard !isTransferDataLoading, currentInput == input else { return }
                 swapState.quotes = .error(error)
                 selectedSwapQuote = nil
                 amountInputModel.update(error: nil)
@@ -379,6 +412,10 @@ extension SwapSceneViewModel {
                 ],
             )],
         )
+    }
+
+    private func resetTransferDataState() {
+        swapState.swapTransferData = .noData
     }
 
     private func onSelectActionButton() {

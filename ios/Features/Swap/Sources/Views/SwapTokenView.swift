@@ -9,7 +9,6 @@ struct SwapTokenView: View {
     let model: SwapTokenViewModel
     @Binding var text: String
     var showLoading: Bool = false
-    var disabledTextField: Bool = false
     var onBalanceAction: () -> Void
     var onSelectAssetAction: () -> Void
 
@@ -36,7 +35,7 @@ struct SwapTokenView: View {
                 .keyboardType(.decimalPad)
                 .foregroundStyle(Colors.black)
                 .font(.app.title1)
-                .disabled(disabledTextField)
+                .disabled(!model.interaction.isAmountEditable)
                 .multilineTextAlignment(.leading)
         }
     }
@@ -63,6 +62,7 @@ struct SwapTokenView: View {
             }
             .frame(height: .image.asset)
         }
+        .disabled(!model.interaction.isAssetSelectable)
     }
 
     @ViewBuilder
@@ -74,6 +74,7 @@ struct SwapTokenView: View {
                     .font(.app.callout)
                     .foregroundStyle(Colors.secondaryText)
             }
+            .disabled(!model.interaction.isBalanceActionEnabled)
         }
     }
 }

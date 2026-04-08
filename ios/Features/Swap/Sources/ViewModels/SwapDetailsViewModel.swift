@@ -30,6 +30,7 @@ public final class SwapDetailsViewModel {
     private var selectedQuote: SwapQuote
     private var rateDirection: AssetRateFormatter.Direction = .direct
     private let priceViewModel: PriceViewModel
+    private let isProviderSelectionEnabled: Bool
     private let swapProviderSelectAction: ((SwapperQuote) -> Void)?
 
     var isPresentingInfoSheet: InfoSheetType?
@@ -41,6 +42,7 @@ public final class SwapDetailsViewModel {
         toAssetPrice: AssetPriceValue,
         selectedQuote: SwapQuote,
         preferences: Preferences = .standard,
+        isProviderSelectionEnabled: Bool = true,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state ?? .data([])
@@ -49,6 +51,7 @@ public final class SwapDetailsViewModel {
         providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
         self.selectedQuote = selectedQuote
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: preferences.currency)
+        self.isProviderSelectionEnabled = isProviderSelectionEnabled
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 
@@ -66,7 +69,7 @@ public final class SwapDetailsViewModel {
         )
     }
 
-    var allowSelectProvider: Bool { state.value.or([]).count > 1 }
+    var allowSelectProvider: Bool { isProviderSelectionEnabled && state.value.or([]).count > 1 }
     var swapProvidersViewModel: SwapProvidersViewModel {
         SwapProvidersViewModel(state: state.map { .plain(swapProviderItems($0)) })
     }

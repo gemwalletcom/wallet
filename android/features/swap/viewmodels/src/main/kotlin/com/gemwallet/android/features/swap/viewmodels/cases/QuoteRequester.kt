@@ -2,6 +2,7 @@ package com.gemwallet.android.features.swap.viewmodels.cases
 
 import com.gemwallet.android.cases.swap.GetSwapQuotes
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestKey
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestParams
 import com.gemwallet.android.features.swap.viewmodels.models.QuotesState
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,7 @@ class QuoteRequester @Inject constructor(
         requestParams: Flow<QuoteRequestParams?>,
         refreshRequests: Flow<Unit>,
         refreshEnabled: Flow<Boolean>,
-        onError: (Throwable) -> Unit,
+        onFetchStarted: (QuoteRequestKey) -> Unit,
         refreshIntervalMillis: Long = QUOTE_REFRESH_INTERVAL_MS,
     ): Flow<QuotesState?> {
         return requestParams.flatMapLatest { params ->
@@ -47,10 +48,10 @@ class QuoteRequester @Inject constructor(
                     .transformLatest {
                         while (currentCoroutineContext().isActive) {
                             delay(500)
+                            onFetchStarted(params.key)
                             val data = fetchQuotes(params)
                             emit(data)
                             if (data.err != null) {
-                                onError(data.err)
                                 break
                             }
                             delay(refreshIntervalMillis)

@@ -48,8 +48,8 @@ struct SwapButtonViewModel: StateButtonViewable {
 
     var buttonAction: SwapButtonAction {
         if let useMinAmount { return useMinAmount }
-        if canRetryQuotes { return .retryQuotes }
         if canRetrySwap { return .retrySwap }
+        if canRetryQuotes { return .retryQuotes }
         if !isAmountValid, let fromAsset { return .insufficientBalance(asset: fromAsset.asset) }
         return .swap
     }

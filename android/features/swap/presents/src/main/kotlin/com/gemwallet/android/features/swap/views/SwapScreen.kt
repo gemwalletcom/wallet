@@ -11,7 +11,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
-import com.gemwallet.android.features.swap.viewmodels.models.SwapState
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
@@ -32,7 +31,7 @@ fun SwapScreen(
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
     val fromEquivalent by viewModel.payEquivalentFormatted.collectAsStateWithLifecycle()
     val toEquivalent by viewModel.toEquivalentFormatted.collectAsStateWithLifecycle()
-    val swapState by viewModel.uiSwapScreenState.collectAsStateWithLifecycle()
+    val swapState by viewModel.uiState.collectAsStateWithLifecycle()
     val swapDetails by viewModel.swapDetails.collectAsStateWithLifecycle()
 
     var isShowPriceImpactAlert by remember { mutableStateOf(false) }
@@ -54,12 +53,11 @@ fun SwapScreen(
         onSelectionConsumed()
     }
 
-    val onSwap: () -> Unit = {
-        when (swapState) {
-            SwapState.Ready -> viewModel.swap(onConfirm)
-            is SwapState.Error -> viewModel.refresh()
-            else -> {}
-        }
+    val onPrimaryAction: () -> Unit = {
+        viewModel.onPrimaryAction(
+            onConfirm = onConfirm,
+            onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
+        )
     }
 
     SwapScene(
@@ -69,7 +67,6 @@ fun SwapScreen(
         swapDetails = swapDetails,
         payEquivalent = fromEquivalent,
         receiveEquivalent = toEquivalent,
-        onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
         onSelectAsset = { type ->
             onSelect(type, pay?.id(), receive?.id())
         },
@@ -78,7 +75,7 @@ fun SwapScreen(
         receiveValue = viewModel.receiveValue,
         onCancel = onCancel,
         onDetails = { isShowDetails = true },
-        onSwap = onSwap,
+        onPrimaryAction = onPrimaryAction,
     )
 
     PriceImpactWarningDialog(
@@ -86,17 +83,15 @@ fun SwapScreen(
         priceImpact = swapDetails?.priceImpact,
         asset = pay?.asset,
         onDismiss = { isShowPriceImpactAlert = false },
-        onContinue = onSwap,
+        onContinue = { viewModel.swap(onConfirm) },
     )
 
     SwapDetailsBottomSheet(
         isVisible = isShowDetails,
-        isLoading = swapState == SwapState.GetQuote,
+        isLoading = swapState.isQuoteLoading && swapDetails == null,
         model = swapDetails,
         onDismiss = { isShowDetails = false },
         skipPartiallyExpanded = true,
-        onProviderSelect = { provider ->
-            viewModel.setProvider(provider)
-        },
+        onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
     )
 }

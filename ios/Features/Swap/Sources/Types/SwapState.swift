@@ -22,10 +22,10 @@ public struct SwapState: Sendable {
     }
 
     public var error: (any Error)? {
-        if case let .error(error) = quotes {
+        if case let .error(error) = swapTransferData {
             return error
         }
-        if case let .error(error) = swapTransferData {
+        if case let .error(error) = quotes {
             return error
         }
         return nil

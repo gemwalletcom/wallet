@@ -10,46 +10,51 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.theme.mainActionHeight
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
-import com.gemwallet.android.features.swap.viewmodels.models.SwapState
+import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 
 @Composable
 internal fun SwapAction(
-    swapState: SwapState,
+    swapState: SwapUiState,
     onSwap: () -> Unit,
 ) {
+    val action = swapState.action
     Button(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(mainActionHeight),
         onClick = onSwap,
-        enabled = (swapState == SwapState.Ready || (swapState is SwapState.Error && swapState.error !is SwapError.InsufficientBalance))
+        enabled = when (action) {
+            SwapActionState.Ready,
+            is SwapActionState.TransferError -> true
+            is SwapActionState.QuoteError -> action.error !is SwapError.InsufficientBalance
+            SwapActionState.None,
+            SwapActionState.QuoteLoading,
+            SwapActionState.TransferLoading -> false
+        }
     ) {
-        when (swapState) {
-            SwapState.None,
-            SwapState.Ready -> Text(
+        when (action) {
+            SwapActionState.None,
+            SwapActionState.Ready -> Text(
                 text = stringResource(R.string.wallet_swap),
                 style = MaterialTheme.typography.bodyLarge,
-                fontSize = 18.sp,
             )
-            SwapState.Swapping,
-            SwapState.GetQuote,
-            SwapState.CheckAllowance,
-            SwapState.Approving -> CircularProgressIndicator20(color = Color.White)
-
-            is SwapState.Error -> Text(
+            SwapActionState.QuoteLoading,
+            SwapActionState.TransferLoading -> CircularProgressIndicator20(color = Color.White)
+            is SwapActionState.QuoteError,
+            is SwapActionState.TransferError -> Text(
                 modifier = Modifier.padding(paddingHalfSmall),
-                text = when(swapState.error) {
-                    is SwapError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, (swapState.error as SwapError.InsufficientBalance).symbol)
+                text = when (val error = swapState.error) {
+                    is SwapError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, error.symbol)
                     is SwapError.InputAmountTooSmall -> stringResource(R.string.stake_minimum_amount)
                     else -> stringResource(R.string.common_try_again)
                 },
-                fontSize = 18.sp,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
     }

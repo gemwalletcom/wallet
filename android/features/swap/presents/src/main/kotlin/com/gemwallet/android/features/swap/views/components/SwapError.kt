@@ -22,24 +22,23 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
-import com.gemwallet.android.features.swap.viewmodels.models.SwapState
+import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 
 @Composable
-internal fun SwapError(state: SwapState, pay: AssetInfo?) {
-    val state = state as? SwapState.Error ?: return
+internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
+    val error = state.error ?: return
 
-    val errorText = when (state.error) {
-        SwapError.None -> ""
+    val errorText = when (error) {
+        SwapError.None,
+        is SwapError.InsufficientBalance -> return
         SwapError.IncorrectInput -> stringResource(
             R.string.common_required_field,
             stringResource(R.string.swap_you_pay)
         )
         SwapError.NotSupportedAsset -> stringResource(R.string.errors_swap_not_supported_asset)
         SwapError.NotSupportedChain -> stringResource(R.string.errors_swap_not_supported_chain)
-        is SwapError.Unknown -> "${stringResource(R.string.errors_unknown_try_again)}: ${(state.error as SwapError.Unknown).message}"
-        SwapError.None,
-        is SwapError.InsufficientBalance -> return
-        is SwapError.InputAmountTooSmall -> "${stringResource(R.string.errors_swap_amount_too_small)} ${pay?.asset?.let { (state.error as SwapError.InputAmountTooSmall).getFormattedValue(it) } ?: ""}"
+        is SwapError.Unknown -> "${stringResource(R.string.errors_unknown_try_again)}: ${error.data}"
+        is SwapError.InputAmountTooSmall -> "${stringResource(R.string.errors_swap_amount_too_small)} ${pay?.asset?.let { error.getFormattedValue(it) } ?: ""}"
         SwapError.NoAvailableProvider,
         SwapError.NoQuote,
         SwapError.TransactionError -> stringResource(R.string.errors_swap_no_quote_available)

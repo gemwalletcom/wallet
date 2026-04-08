@@ -12,12 +12,39 @@ enum SwapTokenViewType {
     case placeholder(currencyCode: String)
 }
 
+struct SwapTokenInteraction {
+    let isAmountEditable: Bool
+    let isAssetSelectable: Bool
+    let isBalanceActionEnabled: Bool
+
+    static func pay(isEnabled: Bool) -> SwapTokenInteraction {
+        SwapTokenInteraction(
+            isAmountEditable: isEnabled,
+            isAssetSelectable: isEnabled,
+            isBalanceActionEnabled: isEnabled,
+        )
+    }
+
+    static func receive(isEnabled: Bool) -> SwapTokenInteraction {
+        SwapTokenInteraction(
+            isAmountEditable: false,
+            isAssetSelectable: isEnabled,
+            isBalanceActionEnabled: false,
+        )
+    }
+}
+
 struct SwapTokenViewModel {
     private let type: SwapTokenViewType
     private let formatter = ValueFormatter(style: .medium)
+    let interaction: SwapTokenInteraction
 
-    init(type: SwapTokenViewType) {
+    init(
+        type: SwapTokenViewType,
+        interaction: SwapTokenInteraction,
+    ) {
         self.type = type
+        self.interaction = interaction
     }
 
     var availableBalanceText: String? {
