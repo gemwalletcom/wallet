@@ -122,7 +122,7 @@ class TransactionDataAggregateImpl(
                 TransactionDirection.Incoming -> "+${getFormattedValue()}"
             }
         }
-        TransactionType.TokenApproval,
+        TransactionType.TokenApproval -> data.asset.symbol
         TransactionType.TransferNFT,
         TransactionType.AssetActivation,
         TransactionType.SmartContractCall,

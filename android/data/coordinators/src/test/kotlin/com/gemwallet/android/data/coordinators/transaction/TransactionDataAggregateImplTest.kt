@@ -332,7 +332,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = usdtAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.value)
+        assertEquals("USDT", aggregate.value)
         assertNull(aggregate.equivalentValue)
     }
 
