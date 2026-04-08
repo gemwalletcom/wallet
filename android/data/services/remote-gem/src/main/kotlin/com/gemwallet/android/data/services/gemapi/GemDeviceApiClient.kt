@@ -70,10 +70,10 @@ interface GemDeviceApiClient {
     suspend fun getPriceAlerts(@Query("asset_id") assetId: String? = null): List<PriceAlert>
 
     @POST("/v2/devices/price_alerts")
-    suspend fun includePriceAlert(@Body alerts: List<PriceAlert>): String
+    suspend fun includePriceAlert(@Body alerts: List<PriceAlert>): Int
 
     @HTTP(method = "DELETE", path = "/v2/devices/price_alerts", hasBody = true)
-    suspend fun excludePriceAlert(@Body assets: List<PriceAlert>): String
+    suspend fun excludePriceAlert(@Body assets: List<PriceAlert>): Int
 
     // Rewards
     @GET("/v2/devices/rewards")
