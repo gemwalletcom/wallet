@@ -8,6 +8,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -18,6 +19,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
@@ -47,6 +49,13 @@ fun AssetsManageScreen(
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
     val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
+
+    val contextActions = remember(viewModel, manageable) {
+        if (manageable) AssetContextActions.Empty else AssetContextActions(
+            onTogglePin = viewModel::onTogglePin,
+            onAddToWallet = { id -> viewModel.onChangeVisibility(id, true) },
+        )
+    }
 
     AssetSelectScene(
         title = {
@@ -111,6 +120,7 @@ fun AssetsManageScreen(
                 getBalanceInfo(asset)()
             }
         },
+        contextActions = contextActions,
     )
 }
 
