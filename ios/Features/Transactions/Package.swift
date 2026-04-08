@@ -25,11 +25,13 @@ let package = Package(
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
         .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
+        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
             name: "Transactions",
             dependencies: [
+                .product(name: "BigInt", package: "BigInt"),
                 "Primitives",
                 "Localization",
                 "Store",

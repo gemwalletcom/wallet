@@ -159,7 +159,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var rewardsUrl: URL {
-        RewardsUrlConfig.url(.rewards)
+        AppUrl.rewards(.rewards)
     }
 
     var createCodeViewModel: CreateRewardsCodeViewModel {

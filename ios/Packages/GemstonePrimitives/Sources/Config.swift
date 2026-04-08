@@ -12,8 +12,6 @@ import struct Gemstone.SwapConfig
 import typealias Gemstone.WalletConnectConfig
 import Primitives
 
-private let utmSource = "gemwallet_ios"
-
 public extension Config {
     static let shared = Config()
 
@@ -26,34 +24,29 @@ public enum GemstoneConfig {
     public static let shared = Config()
 }
 
-public enum Docs {
-    public static func url(_ item: DocsUrl) -> URL {
+public enum AppUrl {
+    private static let utmSource = "gemwallet_ios"
+
+    public static func docs(_ item: DocsUrl) -> URL {
         URL(string: Config.shared.getDocsUrl(item: item))!
             .withUTM(source: utmSource)
     }
-}
 
-public enum RewardsUrlConfig {
-    public static func url(_ item: RewardsUrl) -> URL {
+    public static func page(_ item: PublicUrl) -> URL {
+        URL(string: Config.shared.getPublicUrl(item: item))!
+            .withUTM(source: utmSource)
+    }
+
+    public static func rewards(_ item: RewardsUrl) -> URL {
         let locale = Locale.current.identifier
         return URL(string: Config.shared.getRewardsUrl(item: item, locale: locale))!
             .withUTM(source: utmSource)
     }
-}
 
-public enum PublicConstants {
-    public static func url(_ item: PublicUrl) -> URL {
-        URL(string: Config.shared.getPublicUrl(item: item))!
-            .withUTM(source: utmSource)
-    }
-}
-
-public enum Social {
-    public static func url(_ item: SocialUrl) -> URL? {
-        if let socialUrl = Config.shared.getSocialUrl(item: item), let url = URL(string: socialUrl) {
-            return url
-        }
-        return .none
+    public static func social(_ item: SocialUrl) -> URL? {
+        guard let socialUrl = Config.shared.getSocialUrl(item: item),
+              let url = URL(string: socialUrl) else { return nil }
+        return url
     }
 }
 

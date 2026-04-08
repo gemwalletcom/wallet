@@ -26,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
@@ -41,7 +40,7 @@ import com.kevinnzou.web.WebViewState
 import com.kevinnzou.web.rememberWebViewNavigator
 import com.kevinnzou.web.rememberWebViewState
 import com.kevinnzou.web.rememberWebViewStateWithHTMLData
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 import java.io.ByteArrayInputStream
 
@@ -56,11 +55,7 @@ fun SupportChatScreen(
     val isReady = remember { mutableStateOf(false) }
     var selectedType by remember { mutableStateOf(SupportType.Chat) }
 
-    val helpCenterUrl = Config().getDocsUrl(DocsUrl.Start).toUri()
-        .buildUpon()
-        .appendQueryParameter("utm_source", "gemwallet_android")
-        .build()
-        .toString()
+    val helpCenterUrl = AppUrl.docs(DocsUrl.Start)
 
     val chatState = rememberWebViewStateWithHTMLData(data = html, baseUrl = viewModel.baseUrl)
     val helpCenterState = rememberWebViewState(helpCenterUrl)

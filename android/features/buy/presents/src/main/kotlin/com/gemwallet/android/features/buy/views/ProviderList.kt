@@ -67,10 +67,14 @@ private fun FiatProviderListItemView(
         leading = {
             if (isSelected) {
                 IconWithBadge(
-                    icon = provider.provider.getFiatProviderIcon(),
                     size = listItemIconSize,
                     badge = { SelectionCheckmark() },
-                )
+                ) {
+                    AsyncImage(
+                        model = provider.provider.getFiatProviderIcon(),
+                        size = listItemIconSize,
+                    )
+                }
             } else {
                 AsyncImage(
                     model = provider.provider.getFiatProviderIcon(),

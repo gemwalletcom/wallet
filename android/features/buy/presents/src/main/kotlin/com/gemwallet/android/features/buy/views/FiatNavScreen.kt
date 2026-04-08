@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.buy.views
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -9,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
@@ -19,7 +22,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
 import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
@@ -72,17 +77,21 @@ fun FiatNavScreen(
 
 @Composable
 fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(paddingSmall))
+            .clickable { onLotClick(fiatSuggestion) }
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            .heightIn(min = iconSize)
+            .padding(horizontal = space6),
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
-            modifier = Modifier
-                .clip(RoundedCornerShape(paddingSmall))
-                .clickable { onLotClick(fiatSuggestion) }
-                .background(MaterialTheme.colorScheme.background)
-                .padding(paddingSmall)
-            ,
             text = fiatSuggestion.text,
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.W500),
         )
+    }
 }
 
 @Composable

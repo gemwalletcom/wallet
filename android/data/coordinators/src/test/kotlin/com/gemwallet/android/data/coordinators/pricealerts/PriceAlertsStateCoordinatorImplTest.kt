@@ -130,7 +130,7 @@ class PriceAlertsStateCoordinatorImplTest {
     ) : IncludePriceAlert {
         var calls = 0
 
-        override suspend fun includePriceAlert(
+        override suspend fun invoke(
             assetId: AssetId,
             currency: Currency?,
             price: Double?,
@@ -156,9 +156,9 @@ class PriceAlertsStateCoordinatorImplTest {
     ) : ExcludePriceAlert {
         var calls = 0
 
-        override suspend fun excludePriceAlert(priceAlertId: Int) = Unit
+        override suspend fun invoke(priceAlertId: Int) = Unit
 
-        override suspend fun excludePriceAlert(
+        override suspend fun invoke(
             assetId: AssetId,
             currency: Currency?,
             price: Double?,

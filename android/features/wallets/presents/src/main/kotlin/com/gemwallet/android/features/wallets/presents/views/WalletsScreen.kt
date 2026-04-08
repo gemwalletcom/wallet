@@ -26,14 +26,16 @@ fun WalletsScreen(
     onCancel: () -> Unit,
 ) {
     val viewModel: WalletsViewModel = hiltViewModel()
-    val pinnedWallets by viewModel.pinned.collectAsStateWithLifecycle()
-    val unpinnedWallets by viewModel.unpinned.collectAsStateWithLifecycle()
+    val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val walletSections = remember(wallets) {
+        wallets.toWalletSections()
+    }
 
     var deleteWalletId by remember { mutableStateOf("") }
 
     WalletsScene(
-        pinnedWallets = pinnedWallets,
-        unpinnedWallets = unpinnedWallets,
+        pinnedWallets = walletSections.pinnedWallets,
+        unpinnedWallets = walletSections.unpinnedWallets,
         onCreate = onCreateWallet,
         onImport = onImportWallet,
         onEdit = onEditWallet,
@@ -50,7 +52,7 @@ fun WalletsScreen(
 
     if (deleteWalletId.isNotEmpty()) {
         ConfirmWalletDeleteDialog(
-            walletName = (unpinnedWallets + pinnedWallets).firstOrNull{ it.id == deleteWalletId}?.name ?: "",
+            walletName = walletSections.allWallets.firstOrNull { it.id == deleteWalletId }?.name ?: "",
             onConfirm = {
                 val walletId = deleteWalletId
                 deleteWalletId = ""
@@ -60,6 +62,22 @@ fun WalletsScreen(
             deleteWalletId = ""
         }
     }
+}
+
+internal data class WalletSections(
+    val pinnedWallets: List<WalletDataAggregate>,
+    val unpinnedWallets: List<WalletDataAggregate>,
+) {
+    val allWallets: List<WalletDataAggregate>
+        get() = pinnedWallets + unpinnedWallets
+}
+
+internal fun List<WalletDataAggregate>.toWalletSections(): WalletSections {
+    val (pinnedWallets, unpinnedWallets) = partition { it.isPinned }
+    return WalletSections(
+        pinnedWallets = pinnedWallets,
+        unpinnedWallets = unpinnedWallets,
+    )
 }
 
 @Preview

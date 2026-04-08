@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -306,7 +305,6 @@ private fun AssetSelectRow(
         longPressed = longPressedAsset,
         actions = contextActions,
         onClick = { onSelect?.invoke(item.asset.id) },
-        modifier = Modifier.heightIn(min = 74.dp),
     ) { rowModifier ->
         AssetListItem(
             modifier = rowModifier,

@@ -9,8 +9,8 @@ import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.SyncState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletSource
@@ -18,13 +18,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -45,6 +46,11 @@ class AssetsViewModel @Inject constructor(
 
     private val session = sessionRepository.session()
 
+    private data class AssetGroups(
+        val pinned: List<AssetInfoDataAggregate> = emptyList(),
+        val unpinned: List<AssetInfoDataAggregate> = emptyList(),
+    )
+
     val importInProgress = session
         .filterNotNull()
         .flatMapLatest { session ->
@@ -52,7 +58,7 @@ class AssetsViewModel @Inject constructor(
                 .getImportState(session.wallet.id)
                 .mapLatest { it == ImportWalletState.Importing }
         }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val refreshingState = MutableStateFlow<RefreshingState>(RefreshingState.OnOpen)
     val screenState = refreshingState.map { refreshingState ->
@@ -74,33 +80,45 @@ class AssetsViewModel @Inject constructor(
     private val isHideBalances = userConfig.isHideBalances()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val assetsState: Flow<List<AssetInfo>> = assetsRepository.getAssetsInfo()
+    private val assetGroups = getActiveAssetsInfo.getAssetsInfo(isHideBalances)
+        .map { items ->
+            val (pinned, unpinned) = items.partition { it.pinned }
+            AssetGroups(
+                pinned = pinned,
+                unpinned = unpinned,
+            )
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AssetGroups())
+
+    private val isWalletEmpty = assetGroups
+        .map { groups ->
+            groups.pinned.all { it.isZeroBalance }
+                && groups.unpinned.all { it.isZeroBalance }
+        }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val pinnedAssets = assetGroups
+        .map { it.pinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val assets = getActiveAssetsInfo.getAssetsInfo(isHideBalances)
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    val pinnedAssets = assets
-        .map { items -> items.filter { asset -> asset.pinned } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val unpinnedAssets = assets
-        .map { it.filter { asset -> !asset.pinned } }
+    val unpinnedAssets = assetGroups
+        .map { it.unpinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val showWelcomeBanner = combine( // Move to wallet summary
-        sessionRepository.session().filterNotNull(),
-        assetsState,
-        session.filterNotNull()
-            .flatMapLatest { userConfig.isWelcomeBannerHidden(it.wallet.id) }
-    ) { session, assets, userConfig ->
-        val empty = assets.fold(0.0) { acc, asset -> acc + asset.balance.totalAmount } == 0.0
-        val created = session.wallet.source == WalletSource.Create
-        empty && created && !userConfig
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val showWelcomeBanner = session
+        .filterNotNull()
+        .flatMapLatest { session ->
+            combine(isWalletEmpty, userConfig.isWelcomeBannerHidden(session.wallet.id)) { isWalletEmpty, isWelcomeBannerHidden ->
+                val created = session.wallet.source == WalletSource.Create
+                isWalletEmpty && created && !isWelcomeBannerHidden
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onRefresh() {
         session.value?.let { session ->

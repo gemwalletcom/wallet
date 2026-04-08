@@ -27,6 +27,7 @@ let package = Package(
         .package(name: "Style", path: "../Style"),
         .package(name: "Validators", path: "../Validators"),
         .package(name: "Formatters", path: "../Formatters"),
+        .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
     targets: [
         .target(
@@ -39,6 +40,7 @@ let package = Package(
                 "Style",
                 "Validators",
                 "Formatters",
+                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),

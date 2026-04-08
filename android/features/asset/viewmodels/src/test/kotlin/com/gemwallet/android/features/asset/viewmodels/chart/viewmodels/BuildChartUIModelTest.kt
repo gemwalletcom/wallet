@@ -84,7 +84,7 @@ class BuildChartUIModelTest {
             currency = Currency.USD,
         )
         assertNotNull(model.currentPoint)
-        assertEquals("0.00%", model.currentPoint!!.percentage)
+        assertEquals("+0.00%", model.currentPoint!!.percentage)
     }
 
     @Test

@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
+import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -43,7 +44,11 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.WindowDimension
+import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
@@ -72,6 +77,11 @@ fun BuyScene(
 ) {
     asset ?: return
     val isShowProviders = remember { mutableStateOf(false) }
+    val isCompactWidth = isCompactDimension(WindowDimension.Width)
+    val assetRowSuggestions = visibleSuggestedAmountsInAssetRow(
+        suggestedAmounts = suggestedAmounts,
+        isCompactWidth = isCompactWidth,
+    )
 
     Scene(
         titleContent = {
@@ -125,26 +135,18 @@ fun BuyScene(
             onNext = { },
         )
         Spacer16()
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(paddingSmall)
-        ) {
-            suggestedAmounts.forEach { suggestion ->
-                when (suggestion) {
-                    FiatSuggestion.RandomAmount -> RandomGradientButton(
-                        onClick = { onLotSelect(FiatSuggestion.RandomAmount) }
-                    )
-                    is FiatSuggestion.SuggestionAmount -> {
-                        LotButton(suggestion, onLotSelect)
-                    }
-                }
-            }
-        }
         AssetListItem(
             asset = asset,
             listPosition = ListPosition.Single,
             support = { ListItemSupportText(asset.cryptoFormatted) },
-            trailing = {},
+            trailing = assetRowSuggestions.takeIf { it.isNotEmpty() }?.let { suggestions ->
+                {
+                    FiatSuggestionRow(
+                        suggestedAmounts = suggestions,
+                        onLotSelect = onLotSelect,
+                    )
+                }
+            },
         )
 
         when (state) {
@@ -183,10 +185,12 @@ fun BuyScene(
                         PropertyDataText(
                             selectedProvider.provider.name,
                             badge = {
-                                DataBadgeChevron(
-                                    icon = selectedProvider.provider.getFiatProviderIcon(),
-                                    isShowChevron = providers.size > 1
-                                )
+                                DataBadgeChevron(isShowChevron = providers.size > 1) {
+                                    AsyncImage(
+                                        model = selectedProvider.provider.getFiatProviderIcon(),
+                                        size = smallIconSize,
+                                    )
+                                }
                             }
                         )
                     },
@@ -206,5 +210,41 @@ fun BuyScene(
         providers = providers,
         selectedProvider = selectedProvider,
         onProviderSelect = onProviderSelect,
+    )
+}
+
+@Composable
+private fun FiatSuggestionRow(
+    suggestedAmounts: List<FiatSuggestion>,
+    onLotSelect: (FiatSuggestion) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingSmall)
+    ) {
+        suggestedAmounts.forEach { suggestion ->
+            when (suggestion) {
+                FiatSuggestion.RandomAmount -> RandomGradientButton(
+                    size = iconSize,
+                    borderWidth = 2f,
+                    onClick = { onLotSelect(FiatSuggestion.RandomAmount) }
+                )
+                is FiatSuggestion.SuggestionAmount -> LotButton(suggestion, onLotSelect)
+            }
+        }
+    }
+}
+
+internal fun visibleSuggestedAmountsInAssetRow(
+    suggestedAmounts: List<FiatSuggestion>,
+    isCompactWidth: Boolean,
+): List<FiatSuggestion> {
+    if (!isCompactWidth) {
+        return suggestedAmounts
+    }
+
+    return listOfNotNull(
+        suggestedAmounts.firstOrNull { it is FiatSuggestion.SuggestionAmount }
+            ?: suggestedAmounts.firstOrNull()
     )
 }

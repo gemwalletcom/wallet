@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -58,7 +59,8 @@ fun WalletItem(
 ) {
     ListItem(
         modifier = modifier,
-        minHeight = ListItemDefaults.defaultMinHeight,
+        minHeight = ListItemDefaults.iconMinHeight,
+        titleSubtitleSpacing = space0,
         trailingContentEndPadding = paddingSmall,
         leading = @Composable {
             IconWithBadge(

@@ -70,6 +70,6 @@ public struct AssetScoreTypeViewModel {
     }
 
     public var docsUrl: URL {
-        Docs.url(.tokenVerification)
+        AppUrl.docs(.tokenVerification)
     }
 }

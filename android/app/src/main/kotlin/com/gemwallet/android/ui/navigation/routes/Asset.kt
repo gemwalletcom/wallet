@@ -8,6 +8,8 @@ import androidx.navigation.navDeepLink
 import androidx.navigation.navOptions
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.ui.navigation.clearToastMessage
+import com.gemwallet.android.ui.navigation.getToastMessage
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
@@ -77,10 +79,12 @@ fun NavGraphBuilder.assetChartScreen(
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onCancel: () -> Unit,
 ) {
-    composable< AssetChartRoute> {
+    composable<AssetChartRoute> { backStackEntry ->
         AssetChartScene(
             onPriceAlerts = onPriceAlerts,
             onAddPriceAlertTarget = onAddPriceAlertTarget,
+            toastMessage = backStackEntry.getToastMessage(),
+            onToastShown = backStackEntry::clearToastMessage,
             onCancel = onCancel,
         )
     }

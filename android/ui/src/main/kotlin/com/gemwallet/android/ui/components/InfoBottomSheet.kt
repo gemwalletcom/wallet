@@ -38,7 +38,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
-import uniffi.gemstone.Config
+import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
 
 internal val infoSheetIconSize = 120.dp
@@ -58,7 +58,7 @@ sealed class InfoSheetEntity(
         icon = R.drawable.ic_network_fee,
         title = R.string.transfer_network_fee,
         description = R.string.info_network_fee_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.NetworkFees) },
+        infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
         descriptionArgs = listOf("**$networkTitle**", "**$networkSymbol**"),
     )
 
@@ -66,7 +66,7 @@ sealed class InfoSheetEntity(
         icon = chain.asset().getIconUrl(),
         title = R.string.info_insufficient_network_fee_balance_title,
         description = R.string.info_insufficient_network_fee_balance_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.NetworkFees) },
+        infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
         action = action,
         actionLabel = actionLabel,
         titleArgs = listOf(chain.asset().symbol),
@@ -77,7 +77,7 @@ sealed class InfoSheetEntity(
         icon = asset.getIconUrl(),
         title = R.string.info_account_minimum_balance_title,
         description = R.string.transfer_minimum_account_balance,
-        infoUrl = { Config().getDocsUrl(DocsUrl.AccountMinimalBalance) },
+        infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
         titleArgs = listOf(asset.symbol),
         descriptionArgs = listOf("**$value**"),
     )
@@ -92,31 +92,15 @@ sealed class InfoSheetEntity(
         icon = icon,
         title = R.string.stake_lock_time,
         description = R.string.info_lock_time_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.StakingLockTime) },
+        infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
     )
 
     class TransactionInfo(icon: Any, state: TransactionState) : InfoSheetEntity(
         icon = icon,
-        badgeIcon = when (state) {
-            TransactionState.Pending -> R.drawable.transaction_state_pending
-            TransactionState.Confirmed -> R.drawable.transaction_state_success
-            TransactionState.Failed, TransactionState.Reverted -> R.drawable.transaction_state_error
-            TransactionState.InTransit -> R.drawable.transaction_state_pending
-        },
-        title = when (state) {
-            TransactionState.Pending -> R.string.transaction_status_pending
-            TransactionState.Confirmed -> R.string.transaction_status_confirmed
-            TransactionState.Failed -> R.string.transaction_status_failed
-            TransactionState.Reverted -> R.string.transaction_status_reverted
-            TransactionState.InTransit -> R.string.transaction_status_pending
-        },
-        description = when (state) {
-            TransactionState.Pending -> R.string.info_transaction_pending_description
-            TransactionState.Confirmed -> R.string.info_transaction_success_description
-            TransactionState.Failed, TransactionState.Reverted -> R.string.info_transaction_error_description
-            TransactionState.InTransit -> R.string.info_transaction_error_description
-        },
-        infoUrl = { Config().getDocsUrl(DocsUrl.TransactionStatus) },
+        badgeIcon = state.statusBadgeIconRes(),
+        title = state.statusLabelRes(),
+        description = state.statusInfoDescriptionRes(),
+        infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
     )
 
     object WatchWalletInfo : InfoSheetEntity(
@@ -124,70 +108,70 @@ sealed class InfoSheetEntity(
         badgeIcon = R.drawable.watch_badge,
         title = R.string.info_watch_wallet_title,
         description = R.string.info_watch_wallet_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.WhatIsWatchWallet) },
+        infoUrl = { AppUrl.docs(DocsUrl.WhatIsWatchWallet) },
     )
 
     object PriceImpactInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.swap_price_impact,
         description = R.string.info_price_impact_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.PriceImpact) },
+        infoUrl = { AppUrl.docs(DocsUrl.PriceImpact) },
     )
 
     object Slippage : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.swap_slippage,
         description = R.string.info_slippage_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.Slippage) },
+        infoUrl = { AppUrl.docs(DocsUrl.Slippage) },
     )
 
     object AssetStatusSuspiciousInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.asset_verification_suspicious,
         description = R.string.info_asset_status_suspicious_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.TokenVerification) },
+        infoUrl = { AppUrl.docs(DocsUrl.TokenVerification) },
     )
 
     object AssetStatusUnverifiedInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.asset_verification_unverified,
         description = R.string.info_asset_status_unverified_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.TokenVerification) },
+        infoUrl = { AppUrl.docs(DocsUrl.TokenVerification) },
     )
 
     object OpenInterestInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_open_interest_title,
         description = R.string.info_open_interest_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.PerpetualsOpenInterest) },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsOpenInterest) },
     )
 
     object AutoCloseInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.perpetual_auto_close,
         description = R.string.info_perpetual_auto_close_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.PerpetualsAutoclose) },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsAutoclose) },
     )
 
     object LiquidationPriceInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_liquidation_price_title,
         description = R.string.info_liquidation_price_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.PerpetualsLiquidationPrice) },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsLiquidationPrice) },
     )
 
     object FundingPayments : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_funding_payments_title,
         description = R.string.info_funding_payments_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.PerpetualsFundingPayments) },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingPayments) },
     )
 
     object FundingInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_funding_rate_title,
         description = R.string.info_funding_rate_description,
-        infoUrl = { Config().getDocsUrl(DocsUrl.PerpetualsFundingRate) },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingRate) },
     )
 
     object FullyDilutedValuation : InfoSheetEntity(

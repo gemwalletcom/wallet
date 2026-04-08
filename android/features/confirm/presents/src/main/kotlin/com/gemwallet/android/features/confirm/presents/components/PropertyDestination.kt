@@ -29,7 +29,7 @@ fun PropertyDestination(
                     title = { PropertyTitleText(R.string.transaction_recipient) },
                     data = {
                         Column(horizontalAlignment = Alignment.End) {
-                            Row(horizontalArrangement = Arrangement.End) { PropertyDataText(domain) }
+                            Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.displayData()) }
                         }
                     },
                     listPosition = listPosition,
@@ -52,22 +52,23 @@ fun PropertyDestination(
                 is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
                 is ConfirmProperty.Destination.Transfer -> return
             }
-            val text = when (model) {
-                is ConfirmProperty.Destination.Provider,
-                is ConfirmProperty.Destination.Stake -> AddressFormatter(model.data).value()
-                is ConfirmProperty.Destination.Generic -> model.appName
-                is ConfirmProperty.Destination.PerpetualOper -> model.providerName
-                is ConfirmProperty.Destination.Transfer -> return
-            }
             PropertyItem(
                 title = { PropertyTitleText(title) },
                 data = {
                     Column(horizontalAlignment = Alignment.End) {
-                        Row(horizontalArrangement = Arrangement.End) { PropertyDataText(text) }
+                        Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.displayData()) }
                     }
                 },
                 listPosition = listPosition,
             )
         }
     }
+}
+
+internal fun ConfirmProperty.Destination.displayData(): String = when (this) {
+    is ConfirmProperty.Destination.Provider,
+    is ConfirmProperty.Destination.Stake -> data
+    is ConfirmProperty.Destination.Transfer -> domain ?: address
+    is ConfirmProperty.Destination.Generic -> appName
+    is ConfirmProperty.Destination.PerpetualOper -> providerName
 }

@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.net.toUri
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.screen.Scene
@@ -47,7 +47,6 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import uniffi.gemstone.Config
 import uniffi.gemstone.PublicUrl
 
 @Composable
@@ -73,14 +72,7 @@ fun AcceptTermsScreen(
         actions = {
             IconButton(
                 {
-                    uriHandler.open(
-                        context,
-                        Config().getPublicUrl(PublicUrl.TERMS_OF_SERVICE).toUri()
-                            .buildUpon()
-                            .appendQueryParameter("utm_source", "gemwallet_android")
-                            .build()
-                            .toString()
-                    )
+                    uriHandler.open(context, AppUrl.page(PublicUrl.TERMS_OF_SERVICE))
                 }
             ) {
                 Icon(Icons.Outlined.Info, "")

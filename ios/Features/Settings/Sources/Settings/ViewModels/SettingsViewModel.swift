@@ -64,11 +64,11 @@ public final class SettingsViewModel {
 
     var helpCenterTitle: String { Localized.Settings.helpCenter }
     var helpCenterImage: AssetImage { AssetImage.image(Images.Settings.helpCenter) }
-    var helpCenterURL: URL { Docs.url(.start) }
+    var helpCenterURL: URL { AppUrl.docs(.start) }
 
     var supportTitle: String { Localized.Settings.support }
     var supportImage: AssetImage { AssetImage.image(Images.Settings.support) }
-    var supportURL: URL { PublicConstants.url(.support) }
+    var supportURL: URL { AppUrl.page(.support) }
 
     var developerModeTitle: String { Localized.Settings.developer }
     var developerModeImage: AssetImage { AssetImage.image(Images.Settings.developer) }

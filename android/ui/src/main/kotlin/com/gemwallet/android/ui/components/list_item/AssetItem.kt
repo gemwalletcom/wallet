@@ -28,11 +28,11 @@ import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PriceUIModel
-import com.gemwallet.android.ui.theme.Spacer2
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 
@@ -52,7 +52,9 @@ fun AssetListItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
+        minHeight = ListItemDefaults.iconMinHeight,
         contentPadding = assetListItemContentPadding(),
+        titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset.asset) },
         title = @Composable { ListItemTitleText(asset.title) },
         subtitle = asset.price?.let {
@@ -81,7 +83,9 @@ fun AssetListItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
+        minHeight = ListItemDefaults.iconMinHeight,
         contentPadding = assetListItemContentPadding(),
+        titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset.asset) },
         title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
         subtitle = support,
@@ -103,7 +107,9 @@ fun AssetListItem(
     ListItem(
         modifier = modifier,
         listPosition = listPosition,
+        minHeight = ListItemDefaults.iconMinHeight,
         contentPadding = assetListItemContentPadding(),
+        titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset) },
         title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
         subtitle = if (support.isNullOrEmpty()) null else {
@@ -234,10 +240,8 @@ private fun BalanceInfo(
             color = color,
         )
         if (equivalent.isNotEmpty()) {
-            Spacer2()
             Text(
-                modifier = Modifier
-                    .padding(top = 0.dp, bottom = 2.dp),
+                modifier = Modifier,
                 text = equivalent,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

@@ -13,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -24,7 +26,10 @@ class GetActiveAssetsInfoImpl(
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> =
-        assetsInfo.map { items -> items.map { it.toAssetInfoDataAggregate(hideBalance) } }
+        assetsInfo
+            .map { items -> items.map { it.toAssetInfoDataAggregate(hideBalance) } }
+            .distinctUntilChanged()
+            .flowOn(Dispatchers.Default)
 }
 
 internal fun AssetInfo.toAssetInfoDataAggregate(

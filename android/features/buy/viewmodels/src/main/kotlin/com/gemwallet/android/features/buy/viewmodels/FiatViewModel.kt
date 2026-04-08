@@ -15,12 +15,12 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.model.Fiat
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
+import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuoteType
@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -46,6 +47,12 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import kotlin.random.Random
+
+private data class QuoteRefreshTrigger(
+    val type: FiatQuoteType,
+    val amount: String,
+    val ticker: Long,
+)
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -128,18 +135,27 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {
-        combine(assetInfoUIModel, type, amount, ticker) { assetInfo, currentType, amount, _ ->
-            QuoteFetchParams(assetInfo, currentType, amount)
+        combine(assetInfoUIModel.filterNotNull(), type, amount, ticker) { assetInfo, currentType, amount, tick ->
+            QuoteFetchParams(
+                assetInfo = assetInfo,
+                type = currentType,
+                amount = amount,
+                refreshTrigger = QuoteRefreshTrigger(
+                    type = currentType,
+                    amount = amount,
+                    ticker = tick,
+                ),
+            )
         }
+        .distinctUntilChanged { old, new -> old.refreshTrigger == new.refreshTrigger }
         .mapLatest { params ->
-            val (assetInfo, currentType, amount) = params
+            val (assetInfo, currentType, amount, _) = params
             val operation = when (currentType) {
                 FiatQuoteType.Buy -> buyOperation
                 FiatQuoteType.Sell -> sellOperation
             }
             val validator = AmountValidator(operation.minFiatAmount)
 
-            assetInfo ?: return@mapLatest
             if (!validator.validate(amount)) {
                 operation.updateState(FiatSceneState.Error(validator.error))
                 operation.clearQuotes()
@@ -243,9 +259,10 @@ class FiatViewModel @Inject constructor(
     }
 
     private data class QuoteFetchParams(
-        val assetInfo: AssetInfoUIModel?,
+        val assetInfo: AssetInfoUIModel,
         val type: FiatQuoteType,
         val amount: String,
+        val refreshTrigger: QuoteRefreshTrigger,
     )
 
     companion object {

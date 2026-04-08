@@ -59,11 +59,11 @@ public final class AddAssetSceneViewModel {
     }
 
     var tokenVerificationUrl: URL {
-        Docs.url(.tokenVerification)
+        AppUrl.docs(.tokenVerification)
     }
 
     var customTokenUrl: URL {
-        Docs.url(.addCustomToken)
+        AppUrl.docs(.addCustomToken)
     }
 }
 

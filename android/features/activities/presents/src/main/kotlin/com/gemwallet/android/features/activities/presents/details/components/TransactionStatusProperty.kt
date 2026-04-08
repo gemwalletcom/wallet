@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.activities.presents.details.components
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.getIconUrl
@@ -11,39 +10,29 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.components.showsStatusProgress
+import com.gemwallet.android.ui.components.statusColor
+import com.gemwallet.android.ui.components.statusLabelRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.TransactionState
 
 @Composable
 fun TransactionStatusProperty(asset: Asset, property: TransactionDetailsValue.Status, position: ListPosition) {
+    val color = property.data.statusColor()
+
     PropertyItem(
         title = {
             PropertyTitleText(R.string.transaction_status, info = InfoSheetEntity.TransactionInfo(icon = asset.getIconUrl(), state = property.data))
         },
         data = {
             PropertyDataText(
-                text = when (property.data) {
-                    TransactionState.Pending -> stringResource(id = R.string.transaction_status_pending)
-                    TransactionState.InTransit -> stringResource(id = R.string.transaction_status_pending)
-                    TransactionState.Confirmed -> stringResource(id = R.string.transaction_status_confirmed)
-                    TransactionState.Failed -> stringResource(id = R.string.transaction_status_failed)
-                    TransactionState.Reverted -> stringResource(id = R.string.transaction_status_reverted)
-                },
-                color = when (property.data) {
-                    TransactionState.Pending -> pendingColor
-                    TransactionState.InTransit -> pendingColor
-                    TransactionState.Confirmed -> MaterialTheme.colorScheme.tertiary
-                    TransactionState.Failed,
-                    TransactionState.Reverted -> MaterialTheme.colorScheme.error
-                },
+                text = stringResource(id = property.data.statusLabelRes()),
+                color = color,
                 badge = {
                     Spacer8()
-                    when (property.data) {
-                        TransactionState.Pending -> CircularProgressIndicator16(color = pendingColor)
-                        else -> null
+                    if (property.data.showsStatusProgress()) {
+                        CircularProgressIndicator16(color = color)
                     }
                 },
             )

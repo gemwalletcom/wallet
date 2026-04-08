@@ -41,7 +41,7 @@ open class PriceAlertSelectSearch(
     getPriceAlerts: GetPriceAlerts,
 ) : SelectSearch {
 
-    val addedPriceAlerts = getPriceAlerts.getPriceAlerts().map { items -> items.map { it.assetId } }
+    val addedPriceAlerts = getPriceAlerts().map { items -> items.map { it.assetId } }
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return combine(filters, addedPriceAlerts) { filters, alerts -> Pair(filters,alerts) }

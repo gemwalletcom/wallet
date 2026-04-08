@@ -6,8 +6,6 @@ import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
 import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
 import com.gemwallet.android.application.wallet.coordinators.ToggleWalletPin
-import com.gemwallet.android.application.wallet.coordinators.pinned
-import com.gemwallet.android.application.wallet.coordinators.unpinned
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,11 +22,6 @@ class WalletsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val wallets = getAllWallets.getAllWallets()
-
-    val pinned = wallets.pinned()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val unpinned = wallets.unpinned()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun selectWallet(walletId: String) = viewModelScope.launch(Dispatchers.IO) {

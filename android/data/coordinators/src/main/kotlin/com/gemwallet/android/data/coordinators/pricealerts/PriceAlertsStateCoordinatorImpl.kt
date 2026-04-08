@@ -58,7 +58,7 @@ class PriceAlertsStateCoordinatorImpl(
                 syncDeviceInfo.syncDeviceInfo()
             }
         } else {
-            includePriceAlert.includePriceAlert(assetId)
+            includePriceAlert(assetId)
         }
     }
 
@@ -67,7 +67,7 @@ class PriceAlertsStateCoordinatorImpl(
             priceAlertRepository.togglePriceAlerts(false)
             syncDeviceInfo.syncDeviceInfo()
         } else {
-            excludePriceAlert.excludePriceAlert(assetId)
+            excludePriceAlert(assetId)
         }
     }
 

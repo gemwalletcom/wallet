@@ -31,6 +31,6 @@ public struct ReleaseAlertService: Sendable {
 
     @MainActor
     public func openAppStore() {
-        UIApplication.shared.open(PublicConstants.url(.appStore))
+        UIApplication.shared.open(AppUrl.page(.appStore))
     }
 }

@@ -68,6 +68,9 @@ interface AssetsDao {
     @Query("SELECT asset.* FROM asset JOIN asset_wallet ON asset.id = asset_wallet.asset_id WHERE wallet_id = :walletId")
     fun getNativeWalletAssets(walletId: String): Flow<List<DbAsset>>
 
+    @Query("SELECT * FROM asset WHERE id = :id")
+    fun getAsset(id: String): Flow<DbAsset?>
+
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId AND sessionId = 1")
     fun getAssetInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
@@ -199,9 +202,6 @@ interface AssetsDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM asset_wallet WHERE wallet_id = :walletId AND asset_id = :assetId)")
     suspend fun hasAssetWalletLink(walletId: String, assetId: String): Boolean
-
-    @Query("SELECT * FROM asset WHERE id = :id")
-    fun getAsset(id: String): DbAsset?
 
     @Query("SELECT * FROM asset_links WHERE asset_id = :assetId")
     fun getAssetLinks(assetId: String): Flow<List<DbAssetLink>>

@@ -16,5 +16,5 @@ public protocol SecretPhraseViewableModel {
 }
 
 public extension SecretPhraseViewableModel {
-    var docsUrl: URL { Docs.url(.howToSecureSecretPhrase) }
+    var docsUrl: URL { AppUrl.docs(.howToSecureSecretPhrase) }
 }

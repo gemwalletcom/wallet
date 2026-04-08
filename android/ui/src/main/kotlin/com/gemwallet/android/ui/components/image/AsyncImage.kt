@@ -30,7 +30,7 @@ fun AsyncImage(
     model: Any?,
     size: Dp? = iconSize,
     modifier: Modifier = Modifier,
-    contentDescription: String? = "",
+    contentDescription: String? = null,
     placeholderText: String? = null,
     errorImageVector: ImageVector? = null,
     transformation: Transformation? = DefaultCircleCropTransformation

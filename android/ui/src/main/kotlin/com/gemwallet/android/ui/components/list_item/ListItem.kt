@@ -22,13 +22,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.takeOrElse
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space2
 
 object ListItemDefaults {
     val plainMinHeight: Dp = 56.dp
     val defaultMinHeight: Dp = 72.dp
+    val iconMinHeight: Dp = listItemIconSize + paddingMiddle * 2
 }
 
 @Composable
@@ -37,6 +40,7 @@ fun ListItem(
     listPosition: ListPosition,
     minHeight: Dp = Dp.Unspecified,
     contentPadding: Dp = paddingMiddle,
+    titleSubtitleSpacing: Dp = space2,
     trailingContentEndPadding: Dp? = null,
     leading: (@Composable RowScope.() -> Unit)? = null,
     title: (@Composable () -> Unit)? = null,
@@ -55,6 +59,7 @@ fun ListItem(
             .listItem(position = listPosition, paddingHorizontal = sidePadding)
             .then(
                 modifier
+                    .heightIn(min = resolvedMinHeight)
                     .fillMaxWidth()
                     .padding(start = contentSpacing)
             ),
@@ -64,7 +69,6 @@ fun ListItem(
         leading?.invoke(this)
         Row(
             modifier = Modifier
-                .heightIn(min = resolvedMinHeight)
                 .padding(
                     top = contentPadding,
                     end = trailingEndPadding,
@@ -76,7 +80,7 @@ fun ListItem(
             Column(
                 modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+                verticalArrangement = Arrangement.spacedBy(titleSubtitleSpacing, Alignment.CenterVertically),
             ) {
                 title?.invoke()
                 subtitle?.invoke()

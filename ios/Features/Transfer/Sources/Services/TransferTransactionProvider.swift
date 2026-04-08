@@ -111,10 +111,16 @@ extension TransferTransactionProvider {
 
     private func getFeeRates(type: TransferDataType, priority: FeePriority) async throws -> (rates: [FeeRate], selected: FeeRate) {
         let rates = try await feeRatesProvider.rates(for: type)
-        guard let selected = rates.first(where: { $0.priority == priority }) else {
-            throw ChainCoreError.feeRateMissed
-        }
+        let selected = try selectFeeRate(from: rates, requestedPriority: priority)
 
         return (rates, selected)
     }
+}
+
+func selectFeeRate(from rates: [FeeRate], requestedPriority: FeePriority) throws -> FeeRate {
+    guard let selected = rates.first(where: { $0.priority == requestedPriority }) ?? rates.first else {
+        throw ChainCoreError.feeRateMissed
+    }
+
+    return selected
 }

@@ -20,7 +20,7 @@ struct DeepLinkViewModelTests {
 
 extension DeepLinkViewModel {
     static func mock(_ url: SocialUrl) -> DeepLinkViewModel? {
-        guard let socialUrl = Social.url(url) else { return nil }
+        guard let socialUrl = AppUrl.social(url) else { return nil }
         return DeepLinkViewModel(
             AssetLink(
                 name: url.linkType.rawValue,

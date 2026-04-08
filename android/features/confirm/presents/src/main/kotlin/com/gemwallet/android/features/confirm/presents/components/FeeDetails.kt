@@ -18,8 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ext.feeUnitType
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Fee
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -39,18 +40,22 @@ import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.features.confirm.models.FeeRateUIModel
 import com.gemwallet.android.features.confirm.models.FeeUIModel
 import com.wallet.core.primitives.FeePriority
+import uniffi.gemstone.GemFeeRate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeeDetails(
     isVisible: Boolean,
     currentFee: FeeUIModel.FeeInfo?,
-    fee: List<Fee>,
+    feeRates: List<GemFeeRate>,
     feeAssetInfo: AssetInfo?,
     onSelect: (FeePriority) -> Unit,
     onCancel: () -> Unit,
 ) {
     currentFee ?: return
+    feeAssetInfo ?: return
+    val selectedRate = feeRates.firstOrNull { it.priority == currentFee.priority.string }
+    val feeUnitType = feeAssetInfo.asset.chain.feeUnitType()
     val sheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
         isVisible = isVisible,
@@ -59,16 +64,23 @@ fun FeeDetails(
     ) {
         LazyColumn {
 
-            if (fee.size > 1) {
+            if (feeRates.size > 1) {
                 item {
                     SubheaderItem(R.string.transfer_network_fee)
                 }
-                itemsPositioned(fee) { position, item ->
+                itemsPositioned(feeRates) { position, item ->
+                    val feeRate = FeeRateUIModel(
+                        feeRate = item,
+                        feeAsset = feeAssetInfo,
+                        feeUnitType = feeUnitType,
+                        selectedRate = selectedRate,
+                        selectedFeeAmount = currentFee.amount,
+                    )
                     FeePriorityView(
-                        FeeRateUIModel(item, feeAssetInfo),
-                        item.priority == currentFee.priority,
+                        feeRate,
+                        feeRate.priority == currentFee.priority,
                         position,
-                    ) { onSelect(item.priority) }
+                    ) { onSelect(feeRate.priority) }
                 }
                 item {
                     Text(
@@ -111,9 +123,8 @@ private fun FeePriorityView(fee: FeeRateUIModel, isSelected: Boolean, position: 
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(fee.price)
-                val fiat = fee.fiatValue
-                if (fiat.isNotEmpty()) {
-                    ListItemSupportText(fiat)
+                fee.fiatValue.takeIf { it.isNotEmpty() }?.let { fiatValue ->
+                    ListItemSupportText(fiatValue)
                 }
             }
         },

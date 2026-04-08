@@ -194,6 +194,12 @@ class AssetsRepository @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
+    fun asset(assetId: AssetId): Flow<Asset?> {
+        return assetsDao.getAsset(assetId.toIdentifier())
+            .map { it?.toDTO() }
+            .flowOn(Dispatchers.IO)
+    }
+
     suspend fun getToken(assetId: AssetId): Flow<Asset?> = withContext(Dispatchers.IO) {
         assetsDao.getTokenInfo(assetId.toIdentifier(), assetId.chain).map { it?.toDTO()?.asset }
     }

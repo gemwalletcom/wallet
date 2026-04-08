@@ -31,6 +31,7 @@ import com.gemwallet.android.features.confirm.models.ConfirmProperty
 import com.gemwallet.android.features.confirm.models.ConfirmState
 import com.gemwallet.android.features.confirm.models.FeeUIModel
 import com.gemwallet.android.features.confirm.presents.components.ConfirmErrorInfo
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
 import com.gemwallet.android.features.confirm.presents.components.PropertyDestination
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
@@ -86,7 +87,7 @@ fun ConfirmScreen(
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val allFee by viewModel.allFee.collectAsStateWithLifecycle()
+    val feeRates by viewModel.feeRates.collectAsStateWithLifecycle()
     val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
     val walletConnectReview by viewModel.walletConnectReview.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
@@ -199,9 +200,14 @@ fun ConfirmScreen(
             )
             item {
                 feeModel?.let {
+                    val feeAsset = feeAssetInfo?.asset
+                    val feeInfo = InfoSheetEntity.NetworkFeeInfo(
+                        feeAsset?.name.orEmpty(),
+                        feeAsset?.symbol.orEmpty(),
+                    )
                     when (it) {
                         FeeUIModel.Calculating -> PropertyItem(
-                            title = { PropertyTitleText(R.string.transfer_network_fee) },
+                            title = { PropertyTitleText(R.string.transfer_network_fee, info = feeInfo) },
                             data = { Row(horizontalArrangement = Arrangement.End) { CircularProgressIndicator14() } },
                             listPosition = ListPosition.Single,
                         )
@@ -215,7 +221,7 @@ fun ConfirmScreen(
                         ) { showSelectTxSpeed = true }
 
                         FeeUIModel.Error -> PropertyItem(
-                            title = { PropertyTitleText(R.string.transfer_network_fee) },
+                            title = { PropertyTitleText(R.string.transfer_network_fee, info = feeInfo) },
                             data = { PropertyDataText("~") },
                             listPosition = ListPosition.Single,
                         )
@@ -230,7 +236,7 @@ fun ConfirmScreen(
         FeeDetails(
             isVisible = showSelectTxSpeed,
             currentFee = feeModel as? FeeUIModel.FeeInfo,
-            fee = allFee,
+            feeRates = feeRates,
             feeAssetInfo = feeAssetInfo,
             onSelect = {
                 showSelectTxSpeed = false

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,7 +48,11 @@ class PriceAlertViewModel @Inject constructor(
         .onEach { priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(it)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val data = assetId.flatMapLatest { getPriceAlerts.getPriceAlerts(it) }
+    val assetInfo = assetId.flatMapLatest { id ->
+        if (id != null) assetsRepository.getTokenInfo(id) else flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val data = assetId.flatMapLatest { getPriceAlerts(it) }
         .mapLatest { getPriceAlerts.groupByTargetAndAsset(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
@@ -96,12 +101,22 @@ class PriceAlertViewModel @Inject constructor(
         }
     }
 
+    fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        val assetId = assetId.value ?: return@launch
+        if (enabled) {
+            includePriceAlert(assetId)
+        } else {
+            val autoAlert = data.value[null]?.firstOrNull()
+            autoAlert?.let { excludePriceAlert(it.id) }
+        }
+    }
+
     fun excludeAsset(priceAlertId: Int) = viewModelScope.launch(Dispatchers.IO) {
-        excludePriceAlert.excludePriceAlert(priceAlertId)
+        excludePriceAlert(priceAlertId)
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
-        includePriceAlert.includePriceAlert(assetId)
+        includePriceAlert(assetId)
 
         val assetInfo = assetsRepository.getTokenInfo(assetId).firstOrNull() ?: return@launch
         withContext(Dispatchers.Main) { callback(assetInfo.asset) }

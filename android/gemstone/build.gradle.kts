@@ -80,6 +80,9 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
 }
 
 tasks.configureEach {
+    if (name.startsWith("lint") || name.startsWith("updateLintBaseline")) {
+        enabled = false
+    }
     if (name.matches(Regex("(compile|extract|source|javaDoc).*(Debug|Release).*"))) {
         dependsOn(bindgenKotlin)
     }

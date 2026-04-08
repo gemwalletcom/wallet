@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
@@ -31,6 +33,7 @@ import com.gemwallet.android.features.swap.views.components.SwapError
 import com.gemwallet.android.features.swap.views.components.SwapItem
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.space0
 
 @Composable
 internal fun SwapScene(
@@ -102,7 +105,7 @@ internal fun SwapScene(
                 }
             }
             item {
-                SwapSectionHeader(R.string.swap_you_receive)
+                SwapSectionHeader(R.string.swap_you_receive, topPadding = space0)
             }
             item {
                 SwapItem(
@@ -132,10 +135,10 @@ internal fun SwapScene(
 }
 
 @Composable
-private fun SwapSectionHeader(resId: Int) {
+private fun SwapSectionHeader(resId: Int, topPadding: Dp? = null) {
     Text(
         modifier = Modifier
-            .sectionHeaderItem(),
+            .sectionHeaderItem(paddingVertical = topPadding),
         text = stringResource(resId),
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.secondary,

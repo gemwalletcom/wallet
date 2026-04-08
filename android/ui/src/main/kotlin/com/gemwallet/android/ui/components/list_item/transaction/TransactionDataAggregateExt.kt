@@ -7,7 +7,9 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.theme.pendingColor
+import com.gemwallet.android.ui.components.showsStatusBadge
+import com.gemwallet.android.ui.components.statusColor
+import com.gemwallet.android.ui.components.statusLabelRes
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
@@ -23,22 +25,11 @@ fun TransactionDetailsAggregate.getTitle(): String {
 }
 
 @Composable
-fun TransactionDataAggregate.getBadgeText(): String = when (state) {
-    TransactionState.Pending -> stringResource(id = R.string.transaction_status_pending)
-    TransactionState.Confirmed -> ""
-    TransactionState.Failed -> stringResource(id = R.string.transaction_status_failed)
-    TransactionState.Reverted -> stringResource(id = R.string.transaction_status_reverted)
-    TransactionState.InTransit -> stringResource(id = R.string.transaction_status_pending)
-}
+fun TransactionDataAggregate.getBadgeText(): String =
+    if (state.showsStatusBadge()) stringResource(id = state.statusLabelRes()) else ""
 
 @Composable
-fun TransactionDataAggregate.getBadgeColor(): Color = when (state) {
-    TransactionState.Pending -> pendingColor
-    TransactionState.Confirmed -> MaterialTheme.colorScheme.tertiary
-    TransactionState.Reverted,
-    TransactionState.Failed -> MaterialTheme.colorScheme.error
-    TransactionState.InTransit -> pendingColor
-}
+fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 
 @Composable
 fun TransactionDataAggregate.formatAddress(): String? = when (type) {

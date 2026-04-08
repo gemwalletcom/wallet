@@ -17,11 +17,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun RandomGradientButton(
     modifier: Modifier = Modifier,
+    size: Dp,
     cornerRadius: Float = 12f,
     borderWidth: Float = 3f,
     onClick: () -> Unit,
@@ -39,7 +41,7 @@ fun RandomGradientButton(
 
     Box(
         modifier = modifier
-            .size(38.dp)
+            .size(size)
             .clip(RoundedCornerShape(cornerRadius.dp))
             .background(MaterialTheme.colorScheme.background)
             .border(

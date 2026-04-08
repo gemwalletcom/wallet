@@ -327,7 +327,7 @@ fun com.wallet.core.primitives.Currency.format(
     decimalPlace: Int = 2,
     maxDecimals: Int = -1,
     dynamicPlace: Boolean = false,
-): String = format(BigDecimal.valueOf(value.toDouble()), decimalPlace, maxDecimals, dynamicPlace)
+): String = format(value.toString().toBigDecimal(), decimalPlace, maxDecimals, dynamicPlace)
 
 fun com.wallet.core.primitives.Currency.format(
     value: BigDecimal,
@@ -362,4 +362,4 @@ fun Asset.compactFormatter(
 }
 
 fun Asset.formatSupply(value: Double): String =
-    if (value == 0.0) "\u221E $symbol" else compactFormatter(value)
+    if (value == 0.0) "\u221E $symbol" else format(humanAmount = value, decimalPlace = 2, maxDecimals = 2)
