@@ -95,13 +95,13 @@ open class BaseAssetSelectViewModel(
     }
     .map { items ->
         val wallet = session.value?.wallet
-        items.map { info ->
-            val populated = if (info.owner == null && wallet != null) {
-                info.copy(owner = wallet.getAccount(info.asset.id.chain))
+        items.map { item ->
+            val info = if (item.owner == null && wallet != null) {
+                item.copy(owner = wallet.getAccount(item.asset.id.chain))
             } else {
-                info
+                item
             }
-            AssetInfoUIModel(populated)
+            AssetInfoUIModel(info)
         }
     }
 //    .onEach { searchState.update { SearchState.Idle } }
