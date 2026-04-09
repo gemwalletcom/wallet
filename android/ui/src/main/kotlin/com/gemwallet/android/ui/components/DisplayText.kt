@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.theme.paddingDefault
 
-private const val BALANCE_MASK = "✱✱✱✱✱✱"
+private const val BALANCE_MASK = "✱✱✱✱✱"
 
 data class HideToggle(
     val hidden: Boolean,
@@ -41,28 +40,27 @@ fun DisplayText(
     val clickModifier = hideToggle?.let { toggle ->
         val haptic = LocalHapticFeedback.current
         Modifier
-            .clip(RoundedCornerShape(paddingDefault))
+            .clip(CircleShape)
             .clickable {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 toggle.onToggle()
             }
     } ?: Modifier
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(clickModifier),
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             modifier = if (hidden) {
                 Modifier
+                    .then(clickModifier)
                     .background(
                         color = MaterialTheme.colorScheme.background,
                         shape = CircleShape,
                     )
                     .padding(horizontal = paddingDefault)
             } else {
-                Modifier
+                Modifier.then(clickModifier)
             },
             text = hideToggle.mask(text),
             overflow = TextOverflow.MiddleEllipsis,
