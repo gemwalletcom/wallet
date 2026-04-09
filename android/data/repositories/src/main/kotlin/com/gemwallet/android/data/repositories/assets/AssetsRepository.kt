@@ -29,7 +29,7 @@ import com.gemwallet.android.domains.asset.calculateAvailabilityChanges
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.exclude
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.swapSupport
 import com.gemwallet.android.ext.toIdentifier
@@ -152,13 +152,12 @@ class AssetsRepository @Inject constructor(
      *  */
     suspend fun createAssets(wallet: Wallet) {
         val assetIds = mutableListOf<AssetId>()
-        wallet.accounts.filter { !Chain.exclude().contains(it.chain) }
-            .forEach { account ->
-                val asset = account.chain.asset()
-                val isVisible = account.isVisibleByDefault(wallet.type)
-                insertLocalAsset(wallet.id, account.address, asset, isVisible)
-                if (isVisible) assetIds.add(asset.id)
-            }
+        wallet.accounts.forEach { account ->
+            val asset = account.chain.asset()
+            val isVisible = account.isVisibleByDefault(wallet.type)
+            insertLocalAsset(wallet.id, account.address, asset, isVisible)
+            if (isVisible) assetIds.add(asset.id)
+        }
         if (assetIds.isNotEmpty()) {
             streamSubscriptionService.addAssetIds(assetIds)
         }
@@ -252,8 +251,7 @@ class AssetsRepository @Inject constructor(
         }
         .toAssetInfoModel()
         .map { assets ->
-            assets.filter { !Chain.exclude().contains(it.asset.id.chain) }
-                .distinctBy { it.asset.id.toIdentifier() }
+            assets.distinctBy { it.asset.id.toIdentifier() }
         }
     }
 
@@ -274,8 +272,7 @@ class AssetsRepository @Inject constructor(
                 assets.filter { asset ->
                     asset.walletId == wallet.id &&
                         asset.metadata?.isEnabled == true &&
-                        asset.metadata?.isBalanceEnabled == true &&
-                        !Chain.exclude().contains(asset.asset.id.chain)
+                        asset.metadata?.isBalanceEnabled == true
                 }
                     .distinctBy { it.asset.id.toIdentifier() }
             }
@@ -287,19 +284,18 @@ class AssetsRepository @Inject constructor(
     fun invalidateDefault(wallet: Wallet) = scope.launch(Dispatchers.IO) {
         val assets = getNativeAssets(wallet).associateBy( { it.id.toIdentifier() }, { it })
 
-        wallet.accounts.filter { !Chain.exclude().contains(it.chain) }
-            .map { account ->
-                val asset = account.chain.asset()
-                async {
-                    if (assets[account.chain.string] == null) {
-                        add(wallet.id, account.address, asset, false)
-                        val balances = updateBalances.updateBalances(wallet.id, account, emptyList()).firstOrNull()
-                        if ((balances?.totalAmount ?: 0.0) > 0.0) {
-                            setVisibility(wallet.id, asset.id, true)
-                        }
+        wallet.accounts.map { account ->
+            val asset = account.chain.asset()
+            async {
+                if (assets[account.chain.string] == null) {
+                    add(wallet.id, account.address, asset, false)
+                    val balances = updateBalances.updateBalances(wallet.id, account, emptyList()).firstOrNull()
+                    if ((balances?.totalAmount ?: 0.0) > 0.0) {
+                        setVisibility(wallet.id, asset.id, true)
                     }
                 }
-            }.awaitAll()
+            }
+        }.awaitAll()
     }
 
     suspend fun switchVisibility(
@@ -384,12 +380,21 @@ class AssetsRepository @Inject constructor(
         }
     }
 
+    suspend fun updateNativeAssetRanks() = withContext(Dispatchers.IO) {
+        for (chain in Chain.available()) {
+            val assetBasic = chain.asset().defaultBasic
+            runCatching { assetsDao.updateAssetRank(assetBasic.asset.id.toIdentifier(), assetBasic.score.rank) }
+        }
+    }
+
     private suspend fun insertLocalAsset(walletId: String, accountAddress: String, asset: Asset, visible: Boolean) {
+        val assetBasic = asset.defaultBasic
+        val assetId = asset.id
         insertAssetRecord(
             walletId = walletId,
             accountAddress = accountAddress,
-            assetId = asset.id,
-            record = asset.defaultBasic.toRecord(),
+            assetId = assetId,
+            record = assetBasic.toRecord(),
             visible = visible,
         )
     }

@@ -47,6 +47,9 @@ interface AssetsDao {
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAsset(asset: DbAssetBasicUpdate)
 
+    @Query("UPDATE asset SET rank = :rank WHERE id = :assetId AND rank = 0")
+    suspend fun updateAssetRank(assetId: String, rank: Int)
+
     @Query("SELECT id FROM asset WHERE id IN (:ids) AND is_swap_enabled = 1")
     suspend fun getSwapAvailableAssetIds(ids: List<String>): List<String>
 

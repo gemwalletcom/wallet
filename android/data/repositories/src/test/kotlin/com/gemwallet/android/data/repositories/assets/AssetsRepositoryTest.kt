@@ -19,11 +19,16 @@ import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.domains.asset.defaultBasic
+import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.available
+import com.gemwallet.android.ext.isStakeSupported
+import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMonad
 import com.gemwallet.android.testkit.mockAssetProperties
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -38,7 +43,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -50,6 +57,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.assetDefaultRank
 
 class AssetsRepositoryTest {
 
@@ -83,6 +91,7 @@ class AssetsRepositoryTest {
     @After
     fun tearDown() {
         scope.cancel()
+        unmockkAll()
     }
 
     @Test
@@ -238,12 +247,35 @@ class AssetsRepositoryTest {
         )
 
         val assetSlot = slot<DbAsset>()
-
         coVerify { assetsDao.insert(capture(assetSlot), any(), any()) }
+        coVerify(exactly = 0) { assetsDao.updateAssetRank(any(), any()) }
         coVerify(exactly = 0) { assetsDao.updateBasicAsset(any()) }
 
         assertEquals(15, assetSlot.captured.rank)
         assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
+    }
+
+    @Test
+    fun updateNativeAssetRanks_repairsLegacyNativeRanks() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        mockkStatic("com.gemwallet.android.ext.ChainKt")
+        mockkStatic("uniffi.gemstone.GemstoneKt")
+        every { Chain.available() } returns setOf(Chain.Solana, Chain.Ethereum)
+        every { Chain.Solana.asset() } returns mockAssetSolana()
+        every { Chain.Ethereum.asset() } returns mockAssetEthereum()
+        every { Chain.Solana.isSwapSupport() } returns true
+        every { Chain.Solana.isStakeSupported() } returns true
+        every { Chain.Ethereum.isSwapSupport() } returns true
+        every { Chain.Ethereum.isStakeSupported() } returns false
+        every { assetDefaultRank(Chain.Solana.string) } returns 99
+        every { assetDefaultRank(Chain.Ethereum.string) } returns 77
+
+        val subject = createSubject()
+        subject.updateNativeAssetRanks()
+
+        coVerify { assetsDao.updateAssetRank("solana", 99) }
+        coVerify { assetsDao.updateAssetRank("ethereum", 77) }
     }
 
     @Test
