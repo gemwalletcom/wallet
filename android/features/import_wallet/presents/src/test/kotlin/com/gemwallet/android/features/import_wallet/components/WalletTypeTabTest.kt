@@ -7,12 +7,8 @@ import org.junit.Test
 class WalletTypeTabTest {
 
     @Test
-    fun privateKeyImport_usesPrivateKeyTabIndex() {
-        assertEquals(1, importTypeTabIndex(WalletType.PrivateKey))
-    }
-
-    @Test
-    fun viewImport_usesAddressTabIndex() {
-        assertEquals(2, importTypeTabIndex(WalletType.View))
+    fun nullChain_returnsPhaseAndAddress() {
+        val tabs = importWalletTabs(null)
+        assertEquals(listOf(WalletType.Single, WalletType.View), tabs)
     }
 }

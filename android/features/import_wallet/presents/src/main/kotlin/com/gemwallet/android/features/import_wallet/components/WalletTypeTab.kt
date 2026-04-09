@@ -15,16 +15,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.alpha10
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 
-internal val importWalletTabs = listOf(
-    WalletType.Single,
-    WalletType.PrivateKey,
-    WalletType.View,
-)
+internal fun importWalletTabs(chain: Chain?): List<WalletType> {
+    if (chain != null && uniffi.gemstone.supportsPrivateKeyImport(chain.string)) {
+        return listOf(WalletType.Single, WalletType.PrivateKey, WalletType.View)
+    }
+    return listOf(WalletType.Single, WalletType.View)
+}
 
-internal fun importTypeTabIndex(walletType: WalletType): Int {
-    return importWalletTabs.indexOf(walletType).takeIf { it >= 0 } ?: 0
+internal fun importTypeTabIndex(walletType: WalletType, chain: Chain?): Int {
+    return importWalletTabs(chain).indexOf(walletType).takeIf { it >= 0 } ?: 0
 }
 
 @Composable
