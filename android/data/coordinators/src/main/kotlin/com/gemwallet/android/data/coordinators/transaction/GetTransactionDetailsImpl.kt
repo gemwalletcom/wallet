@@ -47,6 +47,7 @@ class GetTransactionDetailsImpl(
     private val assetsRepository: AssetsRepository,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val gemSwapper: GemSwapper,
+    private val createExplorer: (String) -> Explorer = ::Explorer,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: String): Flow<TransactionDetailsAggregate?> {
@@ -59,8 +60,8 @@ class GetTransactionDetailsImpl(
                 val explorerInfo = getCurrentBlockExplorer.getBlockExplorerInfo(data.transaction).let { (url, name) ->
                     TransactionDetailsValue.Explorer(url, name)
                 }
-                val chainExplorer = Explorer(data.asset.chain.string)
-                val explorerName = explorerInfo.name
+                val chainExplorer = createExplorer(data.asset.chain.string)
+                val addressExplorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(data.asset.chain)
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
                     val provider = gemSwapper.getProviders().firstOrNull { it.protocolId ==  swapMetadata?.provider }
@@ -71,8 +72,8 @@ class GetTransactionDetailsImpl(
                         currency = session.currency,
                         swapProvider = provider,
                         swapMetadata = swapMetadata,
-                        senderExplorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, data.transaction.from)),
-                        recipientExplorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, data.transaction.to)),
+                        senderExplorerLink = BlockExplorerLink(addressExplorerName, chainExplorer.getAddressUrl(addressExplorerName, data.transaction.from)),
+                        recipientExplorerLink = BlockExplorerLink(addressExplorerName, chainExplorer.getAddressUrl(addressExplorerName, data.transaction.to)),
                     )
                 }
             }
