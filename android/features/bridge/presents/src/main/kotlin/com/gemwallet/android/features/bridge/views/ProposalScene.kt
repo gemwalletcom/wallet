@@ -193,6 +193,7 @@ private fun Proposal(
         onDismissRequest = { isShowSelectWallets = false },
     ) {
         LazyColumn {
+            item { SubheaderItem(R.string.wallets_title) }
             itemsIndexed(availableWallets) { index, item ->
                 WalletItem(
                     wallet = item,

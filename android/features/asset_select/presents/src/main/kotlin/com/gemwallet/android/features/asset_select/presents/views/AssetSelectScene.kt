@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -28,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +47,8 @@ import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.list_item.AssetContextActions
+import com.gemwallet.android.ui.components.list_item.AssetContextMenuRow
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -56,6 +58,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.AssetsGroupType
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -96,6 +99,7 @@ fun AssetSelectScene(
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     onAddAsset: (() -> Unit)? = null,
+    contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     AssetSelectScene(
         title = {
@@ -129,6 +133,7 @@ fun AssetSelectScene(
         itemTrailing = itemTrailing,
         actions = actions,
         onAddAsset = onAddAsset,
+        contextActions = contextActions,
     )
 }
 
@@ -159,12 +164,14 @@ fun AssetSelectScene(
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     onAddAsset: (() -> Unit)? = null,
+    contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     var isReturnToTop by remember { mutableStateOf(false) }
 
     var showSelectNetworks by remember { mutableStateOf(false) }
+    val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
 
     LaunchedEffect(true) {
         coroutineScope.launch {
@@ -230,9 +237,9 @@ fun AssetSelectScene(
                 }
             }
             recent(recent, onSelect)
-            assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing)
-            assets(pinned, AssetsGroupType.Pined, onSelect, support, titleBadge, itemTrailing)
-            assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing)
+            assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            assets(pinned, AssetsGroupType.Pined, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             loading(state)
             notFound(state = state, onAddAsset = onAddAsset, isAddAvailable = isAddAvailable)
         }
@@ -258,15 +265,49 @@ private fun LazyListScope.assets(
     support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
     titleBadge: (AssetItemUIModel) -> String?,
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
+    longPressedAsset: MutableState<AssetId?>,
+    contextActions: AssetContextActions,
 ) {
     if (items.isEmpty()) return
 
     item { PinnedAssetsHeaderItem(group) }
 
     itemsPositioned(items, key = { index, item -> "${item.asset.id.toIdentifier()}-${group.name}" }) { position, item ->
+        AssetSelectRow(
+            position = position,
+            item = item,
+            support = support,
+            titleBadge = titleBadge,
+            itemTrailing = itemTrailing,
+            longPressedAsset = longPressedAsset,
+            onSelect = onSelect,
+            contextActions = contextActions,
+        )
+    }
+}
+
+@Composable
+private fun AssetSelectRow(
+    position: ListPosition,
+    item: AssetItemUIModel,
+    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetItemUIModel) -> String?,
+    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
+    longPressedAsset: MutableState<AssetId?>,
+    onSelect: ((AssetId) -> Unit)?,
+    contextActions: AssetContextActions,
+) {
+    AssetContextMenuRow(
+        assetId = item.asset.id,
+        address = item.owner,
+        isPinned = item.metadata?.isPinned == true,
+        isEnabled = item.metadata?.isEnabled == true,
+        longPressed = longPressedAsset,
+        actions = contextActions,
+        onClick = { onSelect?.invoke(item.asset.id) },
+    ) { rowModifier ->
         AssetListItem(
-            modifier = Modifier
-                .clickable { onSelect?.invoke(item.asset.id) },
+            modifier = rowModifier,
             listPosition = position,
             asset = item,
             support = support?.invoke(item),

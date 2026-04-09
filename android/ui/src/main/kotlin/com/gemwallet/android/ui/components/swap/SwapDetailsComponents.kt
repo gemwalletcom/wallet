@@ -58,17 +58,19 @@ fun SwapDetailsSummaryItem(
     model: SwapDetailsUIModel,
     onClick: () -> Unit,
 ) {
+    val badgeText = model.summaryPriceImpactBadgeText
+
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
         title = { PropertyTitleText(R.string.common_details) },
         data = {
             PropertyDataText(
                 text = model.rate.forward,
-                badge = {
-                    DataBadgeChevron {
-                        model.summaryPriceImpactText?.let {
+                badge = if (badgeText != null) {
+                    {
+                        DataBadgeChevron {
                             Text(
-                                text = "($it)",
+                                text = badgeText,
                                 color = model.priceImpact.getColor(),
                                 maxLines = 1,
                                 overflow = TextOverflow.Clip,
@@ -76,6 +78,8 @@ fun SwapDetailsSummaryItem(
                             )
                         }
                     }
+                } else {
+                    { DataBadgeChevron() }
                 },
             )
         },

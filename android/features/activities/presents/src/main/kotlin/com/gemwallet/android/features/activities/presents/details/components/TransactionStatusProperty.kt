@@ -20,6 +20,7 @@ import com.wallet.core.primitives.Asset
 @Composable
 fun TransactionStatusProperty(asset: Asset, property: TransactionDetailsValue.Status, position: ListPosition) {
     val color = property.data.statusColor()
+    val showsStatusProgress = property.data.showsStatusProgress()
 
     PropertyItem(
         title = {
@@ -29,11 +30,13 @@ fun TransactionStatusProperty(asset: Asset, property: TransactionDetailsValue.St
             PropertyDataText(
                 text = stringResource(id = property.data.statusLabelRes()),
                 color = color,
-                badge = {
-                    Spacer8()
-                    if (property.data.showsStatusProgress()) {
+                badge = if (showsStatusProgress) {
+                    {
+                        Spacer8()
                         CircularProgressIndicator16(color = color)
                     }
+                } else {
+                    null
                 },
             )
         },

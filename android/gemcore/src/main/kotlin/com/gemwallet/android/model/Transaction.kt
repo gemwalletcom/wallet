@@ -4,6 +4,7 @@ import com.gemwallet.android.serializer.DateSerializer
 import com.gemwallet.android.serializer.JsonAsStringSerializer
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
@@ -11,7 +12,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Transaction (
-    val id: String,
+    val id: TransactionId,
     val assetId: AssetId,
     val from: String,
     val to: String,

@@ -23,11 +23,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.referral.values.ReferralError
+import com.gemwallet.android.features.referral.viewmodels.ReferralViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.referral.viewmodels.ReferralViewModel
 
 @Composable
 fun ReferralNavScreen(
@@ -77,6 +78,9 @@ fun ReferralNavScreen(
         onDismissRequest = { isShowSelectWallets = false },
     ) {
         LazyColumn {
+            item {
+                SubheaderItem(R.string.wallets_title)
+            }
             itemsIndexed(availableWallets) { index, item ->
                 WalletItem(
                     wallet = item,

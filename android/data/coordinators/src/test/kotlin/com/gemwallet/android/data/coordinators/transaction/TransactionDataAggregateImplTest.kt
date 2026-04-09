@@ -9,6 +9,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -96,7 +97,7 @@ class TransactionDataAggregateImplTest {
         value: String = "100000000",
         metadata: String? = null,
     ) = Transaction(
-        id = id,
+        id = TransactionId(assetId.chain, id),
         assetId = assetId,
         from = from,
         to = to,
@@ -143,7 +144,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("test-id-123", aggregate.id)
+        assertEquals("bitcoin_test-id-123", aggregate.id)
         assertEquals(btcAsset, aggregate.asset)
         assertEquals(TransactionType.Transfer, aggregate.type)
         assertEquals(TransactionDirection.Incoming, aggregate.direction)
@@ -332,7 +333,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = usdtAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.value)
+        assertEquals("USDT", aggregate.value)
         assertNull(aggregate.equivalentValue)
     }
 

@@ -50,7 +50,7 @@ class SyncAssetInfoImpl(
                 walletId = walletId,
                 accountAddress = accountAddress,
                 assetId = asset.asset.id,
-                visible = asset.metadata?.isEnabled ?: true,
+                visible = asset.metadata?.isBalanceEnabled ?: true,
             )
         }
 

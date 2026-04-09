@@ -4,6 +4,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import java.time.Instant
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -22,6 +24,11 @@ object DateSerializer {
     }
 
     override fun serialize(encoder: Encoder, value: Long) {
-        encoder.encodeString(value.toString())
+        val isoTimestamp = ZonedDateTime.ofInstant(
+            Instant.ofEpochMilli(value),
+            ZoneOffset.UTC
+        )
+            .format(DateTimeFormatter.ISO_ZONED_DATE_TIME)
+        encoder.encodeString(isoTimestamp)
     }
 }

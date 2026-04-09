@@ -47,6 +47,9 @@ interface AssetsDao {
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAsset(asset: DbAssetBasicUpdate)
 
+    @Query("UPDATE asset SET rank = :rank WHERE id = :assetId AND rank = 0")
+    suspend fun updateAssetRank(assetId: String, rank: Int)
+
     @Query("SELECT id FROM asset WHERE id IN (:ids) AND is_swap_enabled = 1")
     suspend fun getSwapAvailableAssetIds(ids: List<String>): List<String>
 
@@ -77,7 +80,7 @@ interface AssetsDao {
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId")
     fun getTokenInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
-    @Query("SELECT DISTINCT * FROM asset_info WHERE sessionId = 1 AND visible != 0 ORDER BY balanceFiatTotalAmount DESC")
+    @Query("SELECT DISTINCT * FROM asset_info WHERE sessionId = 1 AND visible != 0 AND assetRank > 0 ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfo(): Flow<List<DbAssetInfo>>
 
     @Query("SELECT * FROM asset_info WHERE id IN (:ids) AND sessionId=1 ORDER BY balanceFiatTotalAmount DESC")
@@ -102,6 +105,7 @@ interface AssetsDao {
             id NOT IN (:exclude)
             AND (chain IN (SELECT chain FROM accounts JOIN session ON accounts.wallet_id = session.wallet_id AND session.id = 1))
             AND (walletId = (SELECT wallet_id FROM session WHERE session.id = 1) OR walletId IS NULL)
+            AND assetRank > 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE)
             GROUP BY id
@@ -120,6 +124,7 @@ interface AssetsDao {
             id NOT IN (:exclude)
             AND (chain IN (SELECT chain FROM accounts JOIN session ON accounts.wallet_id = session.wallet_id AND session.id = 1))
             AND (walletId = (SELECT wallet_id FROM session WHERE session.id = 1) OR walletId IS NULL)
+            AND assetRank > 0
             AND `query` = :query
             GROUP BY id
             ORDER BY balanceFiatTotalAmount DESC, priority DESC, assetRank DESC
@@ -131,6 +136,8 @@ interface AssetsDao {
             *,
             MAX(address)
         FROM asset_info WHERE
+            assetRank > 0
+            AND
             (symbol LIKE '%' || :query || '%' OR name LIKE '%' || :query || '%' COLLATE NOCASE)
             GROUP BY id
             ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
@@ -146,6 +153,8 @@ interface AssetsDao {
         FROM asset_info
         JOIN assets_priority ON id IN (assets_priority.asset_id)
         WHERE
+            assetRank > 0
+            AND
             `query` = :query
             GROUP BY id
             ORDER BY balanceFiatTotalAmount DESC, priority DESC, assetRank DESC
@@ -159,6 +168,7 @@ interface AssetsDao {
             MAX(address)
         FROM asset_info WHERE
             (chain IN (:byChains) OR id IN (:byAssets) )
+            AND assetRank > 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE)
             GROUP BY id
@@ -174,6 +184,7 @@ interface AssetsDao {
         JOIN assets_priority ON id IN (assets_priority.asset_id)
         WHERE
             (chain IN (:byChains) OR id IN (:byAssets) )
+            AND assetRank > 0
             AND `query` = :query
             GROUP BY id
             ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
@@ -187,6 +198,8 @@ interface AssetsDao {
         FROM asset_info
         JOIN recent_assets ON id = recent_assets.asset_id AND (recent_assets.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1))
         WHERE
+            assetRank > 0
+            AND
             recent_assets.type IN (:type)
             GROUP BY id
             ORDER BY recent_assets.addedAt DESC

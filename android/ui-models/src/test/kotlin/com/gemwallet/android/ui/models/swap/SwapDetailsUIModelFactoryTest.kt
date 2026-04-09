@@ -33,6 +33,7 @@ class SwapDetailsUIModelFactoryTest {
 
         assertEquals("-1.00%", result!!.priceImpact!!.displayText)
         assertNull(result.summaryPriceImpactText)
+        assertNull(result.summaryPriceImpactBadgeText)
         assertEquals("1.00%", result.slippageText)
         assertNull(result.estimatedTime)
     }
@@ -54,6 +55,7 @@ class SwapDetailsUIModelFactoryTest {
         )
 
         assertEquals("-5.00%", result!!.summaryPriceImpactText)
+        assertEquals("(-5.00%)", result.summaryPriceImpactBadgeText)
         assertFalse(result.shouldShowPriceImpactWarning)
         assertTrue(result.isProviderSelectable)
         assertEquals("≈ 3 min", result.estimatedTime)

@@ -14,10 +14,16 @@ import com.gemwallet.android.ui.models.ListPosition
 fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listPosition: ListPosition) {
     when (property) {
         is TransactionDetailsValue.Destination.Recipient,
-        is TransactionDetailsValue.Destination.Sender -> AddressPropertyItem(
+        is TransactionDetailsValue.Destination.Sender,
+        is TransactionDetailsValue.Destination.Contract,
+        is TransactionDetailsValue.Destination.Validator,
+        is TransactionDetailsValue.Destination.ProviderAddress -> AddressPropertyItem(
             title = when (property) {
                 is TransactionDetailsValue.Destination.Recipient -> R.string.transaction_recipient
                 is TransactionDetailsValue.Destination.Sender -> R.string.transaction_sender
+                is TransactionDetailsValue.Destination.Contract -> R.string.asset_contract
+                is TransactionDetailsValue.Destination.Validator -> R.string.stake_validator
+                is TransactionDetailsValue.Destination.ProviderAddress -> R.string.common_provider
                 else -> return
             },
             displayText = AddressFormatter(property.data).value(),

@@ -48,7 +48,9 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetInfo = assetId.filterNotNull().flatMapLatest { assetsRepository.getAssetInfo(it) }
     val currency = assetInfo.map { it?.price?.currency ?: Currency.USD }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
-    val currentPrice = assetInfo.map { assetInfo -> assetInfo?.price?.let { it.currency.format(it.price.price) } ?: "" }
+    val currentPrice = assetInfo.map { assetInfo ->
+        assetInfo?.price?.let { it.currency.format(it.price.price, dynamicPlace = true) } ?: ""
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
     val currentPriceValue = assetInfo.map { it?.price?.price?.price ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)

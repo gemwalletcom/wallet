@@ -25,6 +25,7 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -114,7 +115,7 @@ class TransactionsRepositoryImpl(
         blockNumber: String,
     ): Transaction = withContext(Dispatchers.IO) {
         val transaction = Transaction(
-            id = "${assetId.chain.string}_$hash",
+            id = TransactionId(assetId.chain, hash),
             assetId = assetId,
             feeAssetId = fee.feeAssetId,
             from = owner.address,
@@ -143,7 +144,7 @@ class TransactionsRepositoryImpl(
                 jsonEncoder.decodeFromString<TransactionSwapMetadata>(metadata)
             } ?: return@mapNotNull null
             DbTxSwapMetadata(
-                txId = it.id,
+                txId = it.id.identifier,
                 fromAssetId = txMetadata.fromAsset.toIdentifier(),
                 toAssetId = txMetadata.toAsset.toIdentifier(),
                 fromAmount = txMetadata.fromValue,

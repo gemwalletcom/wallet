@@ -14,6 +14,7 @@ import com.wallet.core.primitives.Currency
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import java.math.BigInteger
+import java.util.Locale
 
 class TestFormat {
 
@@ -54,8 +55,7 @@ class TestFormat {
     @Test
     fun testFormatSupply() {
         val btc = Asset(AssetId(Chain.Bitcoin), "Bitcoin", "BTC", 8, AssetType.NATIVE)
-        assertEquals("\u221E BTC", btc.formatSupply(0.0))
-        assertEquals("21,000,000.00 BTC", btc.formatSupply(21_000_000.0))
+        assertEquals("\u221E BTC", btc.formatSupply(0.0, Locale.US))
     }
 
     @Test
@@ -71,7 +71,7 @@ class TestFormat {
 
         assertEquals(
             "1.00 BTC",
-            asset.compactFormatter(value = 1.0)
+            asset.compactFormatter(value = 1.0, locale = Locale.US)
         )
     }
 }

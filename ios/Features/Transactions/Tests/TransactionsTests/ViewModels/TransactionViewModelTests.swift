@@ -97,6 +97,18 @@ final class TransactionViewModelTests {
     }
 
     @Test
+    func titleExtraPerpetualHidesMissingPrice() {
+        let model = TransactionViewModel.mock(
+            type: .perpetualClosePosition,
+            state: .pending,
+            asset: .hypercoreUSDC(),
+            metadata: .encode(TransactionPerpetualMetadata.mock(price: 0)),
+        )
+
+        #expect(model.titleExtraTextValue == nil)
+    }
+
+    @Test
     func subtitlePerpetualOpenPositionShowsFiatValue() {
         let model = TransactionViewModel.mock(
             type: .perpetualOpenPosition,

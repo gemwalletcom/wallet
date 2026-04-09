@@ -113,7 +113,6 @@ class FiatViewModel @Inject constructor(
                 get() = assetInfo.balance.balanceAmount.available
         }
     }
-    .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val suggestedAmounts = type.mapLatest {
