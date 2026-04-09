@@ -172,7 +172,7 @@ class TransactionsRepositoryImpl(
         val assetId = tx.assetId.toAssetId() ?: return@launch
         val chainConfig = Config().getChainConfig(assetId.chain.string)
         val delay = chainConfig.blockTime.toLong()
-        val timeout = chainConfig.transactionTimeout.toLong() * 1000L
+        val timeout = chainConfig.transactionTimeout.toLong()
 
         while (true) {
             transactionCheckDelay(delay, iteration)

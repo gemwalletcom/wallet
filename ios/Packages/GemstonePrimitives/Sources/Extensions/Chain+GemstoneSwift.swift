@@ -74,12 +74,8 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).blockTime
     }
 
-    var transactionTimeoutMilliSeconds: UInt32 {
-        ChainConfig.config(chain: self).transactionTimeout
-    }
-
     var transactionTimeoutSeconds: UInt32 {
-        transactionTimeoutMilliSeconds / 1000
+        ChainConfig.config(chain: self).transactionTimeout / 1000
     }
 
     var defaultAssets: [Asset] {
