@@ -520,7 +520,7 @@
 "rewards.nickname" = "Nama panggilan";
 "notifications.inapp.rewards.invite.subtitle" = "Jemput rakan-rakan dan dapatkan ganjaran bersama-sama";
 "nodes.import_node.warning_message" = "Nod tersuai boleh berniat jahat dan mungkin mendedahkan data transaksi anda atau memberikan maklumat palsu.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Penilaian Dicairkan Sepenuhnya";
 "info.fully_diluted_valuation.description" = "Nilai pasaran teori jika semua syiling berada dalam edaran. Dikira sebagai harga didarab dengan penawaran maksimum.";
 "info.circulating_supply.description" = "Bilangan syiling yang kini tersedia dan didagangkan di pasaran.\"";
 "info.total_supply.description" = "Jumlah syiling yang wujud, termasuk syiling yang dikunci atau ditempah.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Kebenaran";
 "wallet_connect.permissions.view_balance" = "Lihat keseimbangan dan aktiviti anda";
 "wallet_connect.permissions.approval_requests" = "Hantar permintaan kelulusan";
-"wallet_connect.permissions.move_funds" = "Pindahkan dana tanpa kebenaran";
+"wallet.import.already_imported_title" = "Dompet Telah Diimport";
+"wallet.import.already_imported_message" = "Telah ditambah sebagai \"%s\"";
+"wallet.import.switch_to_wallet" = "Tukar ke %s";
+"wallet.import.import_another" = "Import Satu Lagi";

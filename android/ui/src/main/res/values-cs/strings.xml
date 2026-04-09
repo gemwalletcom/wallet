@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Přezdívka</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Pozvěte přátele a společně sbírejte odměny</string>
   <string name="nodes.import_node.warning_message">Vlastní uzly mohou být škodlivé a mohou zveřejnit vaše transakční data nebo poskytovat nepravdivé informace.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Plně zředěné ocenění</string>
   <string name="info.fully_diluted_valuation.description">Teoretická tržní hodnota, pokud by všechny mince byly v oběhu. Vypočítá se jako cena vynásobená maximální nabídkou.</string>
   <string name="info.circulating_supply.description">Počet mincí aktuálně dostupných a obchodovaných na trhu.</string>
   <string name="info.total_supply.description">Celkový počet existujících mincí, včetně uzamčených nebo rezervovaných mincí.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Oprávnění</string>
   <string name="wallet_connect.permissions.view_balance">Zobrazení zůstatku a aktivity</string>
   <string name="wallet_connect.permissions.approval_requests">Odeslat žádosti o schválení</string>
+  <string name="wallet.import.already_imported_title">Peněženka již importována</string>
+  <string name="wallet.import.already_imported_message">Již přidáno jako „%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Přepnout na %s</string>
+  <string name="wallet.import.import_another">Importovat další</string>
 </resources>

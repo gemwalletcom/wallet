@@ -541,9 +541,9 @@
   <string name="rewards.nickname">ডাকনাম</string>
   <string name="notifications.inapp.rewards.invite.subtitle">বন্ধুদের আমন্ত্রণ জানান এবং একসাথে পুরস্কার জিতুন</string>
   <string name="nodes.import_node.warning_message">কাস্টম নোডগুলি ক্ষতিকারক হতে পারে এবং আপনার লেনদেনের ডেটা প্রকাশ করতে পারে বা মিথ্যা তথ্য প্রদান করতে পারে।</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">সম্পূর্ণরূপে লঘুকৃত মূল্যায়ন</string>
   <string name="info.fully_diluted_valuation.description">যদি সমস্ত মুদ্রা প্রচলিত থাকে, তাহলে তাত্ত্বিক বাজার মূল্য। সর্বোচ্চ সরবরাহ দ্বারা গুণিত মূল্য হিসাবে গণনা করা হয়।</string>
-  <string name="info.circulating_supply.description">বর্তমানে বাজারে উপলব্ধ এবং লেনদেন হওয়া কয়েনের সংখ্যা।\"</string>
+  <string name="info.circulating_supply.description">বর্তমানে বাজারে উপলব্ধ এবং লেনদেন হওয়া কয়েনের সংখ্যা।</string>
   <string name="info.total_supply.description">লক করা বা সংরক্ষিত কয়েন সহ বিদ্যমান মোট কয়েনের সংখ্যা।</string>
   <string name="info.max_supply.title">সর্বোচ্চ সরবরাহ</string>
   <string name="info.max_supply.description">সর্বোচ্চ সংখ্যক কয়েন বিদ্যমান থাকবে।</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">অনুমতি</string>
   <string name="wallet_connect.permissions.view_balance">আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন</string>
   <string name="wallet_connect.permissions.approval_requests">অনুমোদনের অনুরোধ পাঠান</string>
+  <string name="wallet.import.already_imported_title">ওয়ালেট ইতিমধ্যে আমদানি করা হয়েছে</string>
+  <string name="wallet.import.already_imported_message">ইতিমধ্যে \" হিসাবে যোগ করা হয়েছে\"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">পরিবর্তন করুন %s</string>
+  <string name="wallet.import.import_another">অন্য একটি আমদানি করুন</string>
 </resources>

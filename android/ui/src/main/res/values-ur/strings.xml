@@ -541,7 +541,7 @@
   <string name="rewards.nickname">عرفی نام</string>
   <string name="notifications.inapp.rewards.invite.subtitle">دوستوں کو مدعو کریں اور مل کر انعامات کمائیں۔</string>
   <string name="nodes.import_node.warning_message">حسب ضرورت نوڈس بدنیتی پر مبنی ہو سکتے ہیں اور آپ کے لین دین کے ڈیٹا کو بے نقاب کر سکتے ہیں یا غلط معلومات فراہم کر سکتے ہیں۔</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">مکمل طور پر کمزور تشخیص</string>
   <string name="info.fully_diluted_valuation.description">نظریاتی مارکیٹ کی قیمت اگر تمام سکے گردش میں تھے۔ قیمت کو زیادہ سے زیادہ سپلائی سے ضرب کے حساب سے شمار کیا جاتا ہے۔</string>
   <string name="info.circulating_supply.description">سککوں کی تعداد جو فی الحال دستیاب ہے اور مارکیٹ میں تجارت کر رہے ہیں۔\"</string>
   <string name="info.total_supply.description">موجود سکوں کی کل تعداد، بشمول مقفل یا محفوظ سکے</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">اجازتیں</string>
   <string name="wallet_connect.permissions.view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
   <string name="wallet_connect.permissions.approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
+  <string name="wallet.import.already_imported_title">والیٹ پہلے سے درآمد شدہ</string>
+  <string name="wallet.import.already_imported_message">پہلے ہی شامل کیا گیا بطور \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">پر سوئچ کریں۔ %s</string>
+  <string name="wallet.import.import_another">دوسرا درآمد کریں۔</string>
 </resources>

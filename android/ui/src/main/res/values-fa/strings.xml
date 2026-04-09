@@ -541,7 +541,7 @@
   <string name="rewards.nickname">نام مستعار</string>
   <string name="notifications.inapp.rewards.invite.subtitle">دوستان را دعوت کنید و با هم پاداش کسب کنید</string>
   <string name="nodes.import_node.warning_message">گره‌های سفارشی می‌توانند مخرب باشند و ممکن است داده‌های تراکنش شما را افشا کنند یا اطلاعات نادرست ارائه دهند.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">ارزش‌گذاری کاملاً رقیق‌شده</string>
   <string name="info.fully_diluted_valuation.description">ارزش بازار فرضی در صورتی که همه کوین‌ها در گردش باشند. این ارزش از حاصل ضرب قیمت در حداکثر عرضه محاسبه می‌شود.</string>
   <string name="info.circulating_supply.description">تعداد کوین‌های موجود و قابل معامله در بازار.</string>
   <string name="info.total_supply.description">تعداد کل سکه‌های موجود، شامل سکه‌های قفل‌شده یا رزرو شده.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">مجوزها</string>
   <string name="wallet_connect.permissions.view_balance">مشاهده موجودی و فعالیت خود</string>
   <string name="wallet_connect.permissions.approval_requests">ارسال درخواست‌های تأیید</string>
+  <string name="wallet.import.already_imported_title">کیف پول از قبل وارد شده است</string>
+  <string name="wallet.import.already_imported_message">قبلاً به عنوان \" اضافه شده است%s«</string>
+  <string name="wallet.import.switch_to_wallet">تغییر به %s</string>
+  <string name="wallet.import.import_another">یکی دیگر را وارد کنید</string>
 </resources>

@@ -541,7 +541,7 @@
   <string name="rewards.nickname">كنية</string>
   <string name="notifications.inapp.rewards.invite.subtitle">ادعُ أصدقاءك واربحوا المكافآت معًا</string>
   <string name="nodes.import_node.warning_message">قد تكون العقد المخصصة ضارة وقد تكشف بيانات معاملاتك أو تقدم معلومات خاطئة.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">التقييم المخفف بالكامل</string>
   <string name="info.fully_diluted_valuation.description">القيمة السوقية النظرية في حال تداول جميع العملات. تُحسب بضرب السعر في الحد الأقصى للعرض.</string>
   <string name="info.circulating_supply.description">عدد العملات المتاحة حاليًا والمتداولة في السوق.</string>
   <string name="info.total_supply.description">إجمالي عدد العملات المعدنية الموجودة، بما في ذلك العملات المعدنية المقفلة أو المحجوزة.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">الأذونات</string>
   <string name="wallet_connect.permissions.view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect.permissions.approval_requests">إرسال طلبات الموافقة</string>
+  <string name="wallet.import.already_imported_title">المحفظة مستوردة بالفعل</string>
+  <string name="wallet.import.already_imported_message">تمت إضافته بالفعل باسم \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">انتقل إلى %s</string>
+  <string name="wallet.import.import_another">استيراد آخر</string>
 </resources>

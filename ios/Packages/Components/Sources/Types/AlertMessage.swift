@@ -25,13 +25,13 @@ public struct AlertAction: Sendable {
     public let title: String
     public let role: ButtonRole?
     public let isDefaultAction: Bool
-    public let action: @Sendable () -> Void
+    public let action: @MainActor @Sendable () -> Void
 
     public init(
         title: String,
         role: ButtonRole? = nil,
         isDefaultAction: Bool = false,
-        action: @escaping @Sendable () -> Void = {},
+        action: @escaping @MainActor @Sendable () -> Void = {},
     ) {
         self.title = title
         self.role = role

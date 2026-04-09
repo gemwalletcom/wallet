@@ -520,7 +520,7 @@
 "rewards.nickname" = "Poreclă";
 "notifications.inapp.rewards.invite.subtitle" = "Invită-ți prietenii și câștigă recompense împreună";
 "nodes.import_node.warning_message" = "Nodurile personalizate pot fi rău intenționate și pot expune datele tranzacțiilor sau pot furniza informații false.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Evaluare complet diluată";
 "info.fully_diluted_valuation.description" = "Valoarea teoretică de piață ar rezulta în cazul în care toate monedele ar fi în circulație. Calculată ca preț înmulțit cu oferta maximă.";
 "info.circulating_supply.description" = "Numărul de monede disponibile în prezent și tranzacționate pe piață.";
 "info.total_supply.description" = "Numărul total de monede existente, inclusiv monedele blocate sau rezervate.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Permisiuni";
 "wallet_connect.permissions.view_balance" = "Vizualizați soldul și activitatea dvs.";
 "wallet_connect.permissions.approval_requests" = "Trimiteți cereri de aprobare";
-"wallet_connect.permissions.move_funds" = "Mută ​​fonduri fără permisiune";
+"wallet.import.already_imported_title" = "Portofel deja importat";
+"wallet.import.already_imported_message" = "Deja adăugat ca „%s\"";
+"wallet.import.switch_to_wallet" = "Comutare la %s";
+"wallet.import.import_another" = "Importați altul";

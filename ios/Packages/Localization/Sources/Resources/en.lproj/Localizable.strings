@@ -522,7 +522,7 @@
 "nodes.import_node.warning_message" = "Custom nodes can be malicious and may expose your transaction data or provide false information.";
 "info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
 "info.fully_diluted_valuation.description" = "The theoretical market value if all coins were in circulation. Calculated as price multiplied by max supply.";
-"info.circulating_supply.description" = "The number of coins currently available and trading in the market.\"";
+"info.circulating_supply.description" = "The number of coins currently available and trading in the market.";
 "info.total_supply.description" = "The total number of coins that exist, including locked or reserved coins.";
 "info.max_supply.title" = "Max Supply";
 "info.max_supply.description" = "The maximum number of coins that will ever exist.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Permissions";
 "wallet_connect.permissions.view_balance" = "View your balance and activity";
 "wallet_connect.permissions.approval_requests" = "Send approval requests";
-"wallet_connect.permissions.move_funds" = "Move funds without permission";
+"wallet.import.already_imported_title" = "Wallet Already Imported";
+"wallet.import.already_imported_message" = "Already added as \"%s\"";
+"wallet.import.switch_to_wallet" = "Switch to %s";
+"wallet.import.import_another" = "Import Another";

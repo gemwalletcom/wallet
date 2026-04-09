@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
+import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ImportType
@@ -55,23 +56,32 @@ class ImportViewModel @Inject constructor(
         generatedName: String,
         data: String,
         nameRecord: NameRecord?,
-        onImported: (walletId: String) -> Unit
+        onImported: (WalletImportResult) -> Unit
     ) = viewModelScope.launch(Dispatchers.IO) {
         state.update { it.copy(loading = true) }
 
         try {
-            val wallet = importWalletService.importWallet(
+            val result = importWalletService.importWallet(
                 importType = state.value.importType,
                 walletName = generatedName,
                 data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
             )
             state.update { it.copy(dataError = null, loading = false) }
             withContext(Dispatchers.Main) {
-                onImported(wallet.id)
+                when (result) {
+                    is WalletImportResult.New -> onImported(result)
+                    is WalletImportResult.Existing -> state.update {
+                        it.copy(existingWalletResult = result, loading = false)
+                    }
+                }
             }
         } catch (err: Throwable) {
             state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
         }
+    }
+
+    fun dismissExistingWallet() {
+        state.update { it.copy(existingWalletResult = null) }
     }
 }
 
@@ -84,6 +94,7 @@ data class ImportViewModelState(
     val data: String = "",
     val nameRecord: NameRecord? = null,
     val dataError: ImportError? = null,
+    val existingWalletResult: WalletImportResult.Existing? = null,
 ) {
     fun toUIState(): ImportUIState {
         return ImportUIState(
@@ -94,6 +105,7 @@ data class ImportViewModelState(
             importType = importType,
             nameRecord = nameRecord,
             dataError = dataError,
+            existingWalletResult = existingWalletResult,
         )
     }
 }
@@ -106,4 +118,5 @@ data class ImportUIState(
     val chainName: String = "",
     val nameRecord: NameRecord? = null,
     val dataError: ImportError? = null,
+    val existingWalletResult: WalletImportResult.Existing? = null,
 )

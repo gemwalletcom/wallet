@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Прізвисько</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Запрошуйте друзів та отримуйте винагороди разом</string>
   <string name="nodes.import_node.warning_message">Користувацькі вузли можуть бути шкідливими та розкривати дані ваших транзакцій або надавати неправдиву інформацію.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Повністю розбавлена оцінка</string>
   <string name="info.fully_diluted_valuation.description">Теоретична ринкова вартість, якби всі монети були в обігу. Розраховується як ціна, помножена на максимальну пропозицію.</string>
   <string name="info.circulating_supply.description">Кількість монет, що наразі доступні та торгуються на ринку.</string>
   <string name="info.total_supply.description">Загальна кількість існуючих монет, включаючи заблоковані або зарезервовані монети.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Дозволи</string>
   <string name="wallet_connect.permissions.view_balance">Перегляд вашого балансу та активності</string>
   <string name="wallet_connect.permissions.approval_requests">Надсилати запити на схвалення</string>
+  <string name="wallet.import.already_imported_title">Гаманець уже імпортовано</string>
+  <string name="wallet.import.already_imported_message">Вже додано як \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Перейти до %s</string>
+  <string name="wallet.import.import_another">Імпортувати ще</string>
 </resources>

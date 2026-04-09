@@ -520,9 +520,9 @@
 "rewards.nickname" = "Nama panggilan";
 "notifications.inapp.rewards.invite.subtitle" = "Ajak teman dan dapatkan hadiah bersama.";
 "nodes.import_node.warning_message" = "Node kustom dapat bersifat berbahaya dan dapat membocorkan data transaksi Anda atau memberikan informasi palsu.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Valuasi Terdilusi Penuh";
 "info.fully_diluted_valuation.description" = "Nilai pasar teoretis jika semua koin beredar. Dihitung sebagai harga dikalikan dengan pasokan maksimum.";
-"info.circulating_supply.description" = "Jumlah koin yang saat ini tersedia dan diperdagangkan di pasar.\"";
+"info.circulating_supply.description" = "Jumlah koin yang saat ini tersedia dan diperdagangkan di pasar.";
 "info.total_supply.description" = "Jumlah total koin yang ada, termasuk koin yang terkunci atau dicadangkan.";
 "info.max_supply.title" = "Pasokan Maksimum";
 "info.max_supply.description" = "Jumlah maksimum koin yang akan pernah ada.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Izin";
 "wallet_connect.permissions.view_balance" = "Lihat saldo dan aktivitas Anda";
 "wallet_connect.permissions.approval_requests" = "Kirim permintaan persetujuan";
-"wallet_connect.permissions.move_funds" = "Memindahkan dana tanpa izin";
+"wallet.import.already_imported_title" = "Dompet Sudah Diimpor";
+"wallet.import.already_imported_message" = "Sudah ditambahkan sebagai \"%s\"";
+"wallet.import.switch_to_wallet" = "Beralih ke %s";
+"wallet.import.import_another" = "Impor Lainnya";

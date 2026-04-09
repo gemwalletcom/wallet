@@ -541,9 +541,9 @@
   <string name="rewards.nickname">Palayaw</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Mag-imbita ng mga kaibigan at kumita ng mga gantimpala nang sama-sama</string>
   <string name="nodes.import_node.warning_message">Ang mga custom node ay maaaring maging malisyoso at maaaring maglantad ng iyong data ng transaksyon o magbigay ng maling impormasyon.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Ganap na Diluted na Pagtatasa</string>
   <string name="info.fully_diluted_valuation.description">Ang teoretikal na halaga sa pamilihan kung lahat ng barya ay nasa sirkulasyon. Kinakalkula bilang presyo na pinarami sa pinakamataas na suplay.</string>
-  <string name="info.circulating_supply.description">Ang bilang ng mga barya na kasalukuyang magagamit at ipinagbibili sa merkado.\"</string>
+  <string name="info.circulating_supply.description">Ang bilang ng mga barya na kasalukuyang magagamit at ipinagbibili sa merkado.</string>
   <string name="info.total_supply.description">Ang kabuuang bilang ng mga barya na umiiral, kabilang ang mga naka-lock o nakareserbang barya.</string>
   <string name="info.max_supply.title">Pinakamataas na Suplay</string>
   <string name="info.max_supply.description">Ang pinakamataas na bilang ng mga barya na iiral kailanman.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Mga Pahintulot</string>
   <string name="wallet_connect.permissions.view_balance">Tingnan ang iyong balanse at aktibidad</string>
   <string name="wallet_connect.permissions.approval_requests">Magpadala ng mga kahilingan sa pag-apruba</string>
+  <string name="wallet.import.already_imported_title">Na-import na ang Wallet</string>
+  <string name="wallet.import.already_imported_message">Naidagdag na bilang \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Lumipat sa %s</string>
+  <string name="wallet.import.import_another">Mag-import ng Isa Pa</string>
 </resources>

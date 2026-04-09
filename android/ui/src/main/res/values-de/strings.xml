@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Spitzname</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Lade Freunde ein und verdient gemeinsam Prämien.</string>
   <string name="nodes.import_node.warning_message">Benutzerdefinierte Knoten können bösartig sein und Ihre Transaktionsdaten offenlegen oder falsche Informationen liefern.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Vollständig verwässerte Bewertung</string>
   <string name="info.fully_diluted_valuation.description">Der theoretische Marktwert, wenn alle Münzen im Umlauf wären. Berechnet als Preis multipliziert mit der maximalen Gesamtmenge.</string>
   <string name="info.circulating_supply.description">Die Anzahl der aktuell verfügbaren und auf dem Markt gehandelten Coins.</string>
   <string name="info.total_supply.description">Die Gesamtzahl der existierenden Münzen, einschließlich gesperrter oder reservierter Münzen.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Berechtigungen</string>
   <string name="wallet_connect.permissions.view_balance">Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein.</string>
   <string name="wallet_connect.permissions.approval_requests">Genehmigungsanfragen senden</string>
+  <string name="wallet.import.already_imported_title">Wallet bereits importiert</string>
+  <string name="wallet.import.already_imported_message">Bereits hinzugefügt als \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Wechseln zu %s</string>
+  <string name="wallet.import.import_another">Importieren Sie einen anderen</string>
 </resources>

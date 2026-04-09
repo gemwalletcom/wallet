@@ -23,6 +23,7 @@ import com.gemwallet.android.features.asset_select.presents.navigation.navigateT
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletRulesScreen
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletScreen
+import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.navigateToImportWalletScreen
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
@@ -364,11 +365,17 @@ fun WalletNavGraph(
 
         importWalletScreen(
             onCancel = onCancel,
-            onImported = { walletId ->
-                navController.navigateToSetupWalletScreen(
-                    walletId,
-                    navOptions { popUpTo(OnboardingDest.route) }
-                )
+            onImported = { result ->
+                when (result) {
+                    is WalletImportResult.New -> navController.navigateToSetupWalletScreen(
+                        result.wallet.id,
+                        navOptions { popUpTo(OnboardingDest.route) }
+                    )
+                    is WalletImportResult.Existing -> {
+                        navController.navigateToRoot()
+                        currentTab.value = assetsRoute
+                    }
+                }
             },
             onSelectType = navController::navigateToImportWalletScreen,
         )

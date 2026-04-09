@@ -3,6 +3,7 @@
 import Primitives
 import PrimitivesComponents
 import SwiftUI
+import WalletService
 
 public struct ImportWalletNavigationStack: View {
     @State private var model: ImportWalletViewModel
@@ -23,7 +24,7 @@ public struct ImportWalletNavigationStack: View {
                             walletService: model.walletService,
                             nameService: model.nameService,
                             type: type,
-                            onComplete: onImportComplete,
+                            onComplete: { @MainActor result in onImportResult(result) },
                         ),
                     )
                 }
@@ -81,9 +82,15 @@ extension ImportWalletNavigationStack {
         }
     }
 
-    func onImportComplete(wallet: Wallet) {
-        navigate(to: .walletProfile(wallet: wallet))
+    func onImportResult(_ result: WalletImportResult) {
+        switch result {
+        case .new(let wallet):
+            navigate(to: .walletProfile(wallet: wallet))
+        case .existing:
+            model.onComplete?()
+        }
     }
+
 
     func onSetupWalletComplete(_: Wallet) {
         model.onComplete?()

@@ -541,7 +541,7 @@
   <string name="rewards.nickname">昵称</string>
   <string name="notifications.inapp.rewards.invite.subtitle">邀请好友，一起赢取奖励</string>
   <string name="nodes.import_node.warning_message">自定义节点可能存在恶意，可能会泄露您的交易数据或提供虚假信息。</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">完全稀释估值</string>
   <string name="info.fully_diluted_valuation.description">如果所有硬币都在流通，其理论市场价值为：价格乘以最大供应量。</string>
   <string name="info.circulating_supply.description">目前市场上可供交易的加密货币数量。</string>
   <string name="info.total_supply.description">现存硬币总数，包括已锁定或已预留的硬币。</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">权限</string>
   <string name="wallet_connect.permissions.view_balance">查看您的余额和活动</string>
   <string name="wallet_connect.permissions.approval_requests">发送审批请求</string>
+  <string name="wallet.import.already_imported_title">钱包已导入</string>
+  <string name="wallet.import.already_imported_message">已添加为“%s“</string>
+  <string name="wallet.import.switch_to_wallet">切换到 %s</string>
+  <string name="wallet.import.import_another">导入另一个</string>
 </resources>

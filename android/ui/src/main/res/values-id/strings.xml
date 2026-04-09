@@ -541,9 +541,9 @@
   <string name="rewards.nickname">Nama panggilan</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Ajak teman dan dapatkan hadiah bersama.</string>
   <string name="nodes.import_node.warning_message">Node kustom dapat bersifat berbahaya dan dapat membocorkan data transaksi Anda atau memberikan informasi palsu.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Valuasi Terdilusi Penuh</string>
   <string name="info.fully_diluted_valuation.description">Nilai pasar teoretis jika semua koin beredar. Dihitung sebagai harga dikalikan dengan pasokan maksimum.</string>
-  <string name="info.circulating_supply.description">Jumlah koin yang saat ini tersedia dan diperdagangkan di pasar.\"</string>
+  <string name="info.circulating_supply.description">Jumlah koin yang saat ini tersedia dan diperdagangkan di pasar.</string>
   <string name="info.total_supply.description">Jumlah total koin yang ada, termasuk koin yang terkunci atau dicadangkan.</string>
   <string name="info.max_supply.title">Pasokan Maksimum</string>
   <string name="info.max_supply.description">Jumlah maksimum koin yang akan pernah ada.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Izin</string>
   <string name="wallet_connect.permissions.view_balance">Lihat saldo dan aktivitas Anda</string>
   <string name="wallet_connect.permissions.approval_requests">Kirim permintaan persetujuan</string>
+  <string name="wallet.import.already_imported_title">Dompet Sudah Diimpor</string>
+  <string name="wallet.import.already_imported_message">Sudah ditambahkan sebagai \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Beralih ke %s</string>
+  <string name="wallet.import.import_another">Impor Lainnya</string>
 </resources>

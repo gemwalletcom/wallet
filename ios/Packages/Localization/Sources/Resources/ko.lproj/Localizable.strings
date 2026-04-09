@@ -520,7 +520,7 @@
 "rewards.nickname" = "별명";
 "notifications.inapp.rewards.invite.subtitle" = "친구를 초대하고 함께 보상을 받으세요";
 "nodes.import_node.warning_message" = "사용자 지정 노드는 악의적일 수 있으며 거래 데이터를 노출하거나 허위 정보를 제공할 수 있습니다.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "완전 희석 평가";
 "info.fully_diluted_valuation.description" = "모든 동전이 유통될 경우의 이론적인 시장 가치. 가격에 최대 공급량을 곱하여 계산합니다.";
 "info.circulating_supply.description" = "현재 시장에서 거래되고 있는 코인의 총 수량입니다.";
 "info.total_supply.description" = "잠겨 있거나 예약된 코인을 포함하여 존재하는 전체 코인 수입니다.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "권한";
 "wallet_connect.permissions.view_balance" = "잔액과 활동 내역을 확인하세요";
 "wallet_connect.permissions.approval_requests" = "승인 요청 보내기";
-"wallet_connect.permissions.move_funds" = "허가 없이 자금을 이체하세요";
+"wallet.import.already_imported_title" = "지갑이 이미 가져왔습니다";
+"wallet.import.already_imported_message" = "이미 \"로 추가되었습니다.%s\"";
+"wallet.import.switch_to_wallet" = "전환하기 %s";
+"wallet.import.import_another" = "다른 것을 가져오기";

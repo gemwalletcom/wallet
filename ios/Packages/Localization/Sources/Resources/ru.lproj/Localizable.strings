@@ -520,7 +520,7 @@
 "rewards.nickname" = "Никнейм";
 "notifications.inapp.rewards.invite.subtitle" = "Приглашайте друзей и зарабатывайте награды вместе.";
 "nodes.import_node.warning_message" = "Пользовательские узлы могут быть вредоносными и способны раскрыть данные ваших транзакций или предоставить ложную информацию.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Полностью разводненная оценка";
 "info.fully_diluted_valuation.description" = "Теоретическая рыночная стоимость, если бы все монеты находились в обращении. Рассчитывается как цена, умноженная на максимальное предложение.";
 "info.circulating_supply.description" = "Количество монет, доступных и торгующихся в настоящее время на рынке.";
 "info.total_supply.description" = "Общее количество существующих монет, включая заблокированные или зарезервированные монеты.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Разрешения";
 "wallet_connect.permissions.view_balance" = "Просматривать баланс и активность";
 "wallet_connect.permissions.approval_requests" = "Отправлять запросы на подтверждение";
-"wallet_connect.permissions.move_funds" = "Перевод средств без разрешения";
+"wallet.import.already_imported_title" = "Кошелек уже импортирован";
+"wallet.import.already_imported_message" = "Уже добавлено как \"%s\"";
+"wallet.import.switch_to_wallet" = "Переключиться на %s";
+"wallet.import.import_another" = "Импортировать другой";

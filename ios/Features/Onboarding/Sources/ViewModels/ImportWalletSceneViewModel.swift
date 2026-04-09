@@ -28,13 +28,13 @@ final class ImportWalletSceneViewModel {
     var isPresentingScanner = false
     var isPresentingAlertMessage: AlertMessage?
 
-    private let onComplete: ((Wallet) -> Void)?
+    private let onComplete: (@MainActor @Sendable (WalletImportResult) -> Void)?
 
     init(
         walletService: WalletService,
         nameService: any NameServiceable,
         type: ImportWalletType,
-        onComplete: ((Wallet) -> Void)?,
+        onComplete: (@MainActor @Sendable (WalletImportResult) -> Void)?,
     ) {
         self.walletService = walletService
         self.type = type
@@ -201,11 +201,40 @@ extension ImportWalletSceneViewModel {
     }
 
     private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let wallet = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
-        walletService.acceptTerms()
-        try await walletService.setCurrent(wallet: wallet)
+        let result = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
         buttonState = .normal
-        onComplete?(wallet)
+
+        switch result {
+        case .new:
+            completeImport(result)
+        case .existing:
+            presentExistingWalletAlert(result: result)
+        }
+    }
+
+    private func completeImport(_ result: WalletImportResult) {
+        walletService.acceptTerms()
+        Task {
+            try await walletService.setCurrent(wallet: result.wallet)
+            onComplete?(result)
+        }
+    }
+
+    private func presentExistingWalletAlert(result: WalletImportResult) {
+        let wallet = result.wallet
+
+        isPresentingAlertMessage = AlertMessage(
+            title: Localized.Wallet.Import.alreadyImportedTitle,
+            message: Localized.Wallet.Import.alreadyImportedMessage(wallet.name),
+            actions: [
+                AlertAction(title: Localized.Wallet.Import.switchToWallet(wallet.name), isDefaultAction: true) { [weak self] in
+                    self?.completeImport(result)
+                },
+                AlertAction(title: Localized.Wallet.Import.importAnother, role: .cancel) { [weak self] in
+                    self?.input = ""
+                },
+            ],
+        )
     }
 
     private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {

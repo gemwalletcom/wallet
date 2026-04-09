@@ -520,9 +520,9 @@
 "rewards.nickname" = "ডাকনাম";
 "notifications.inapp.rewards.invite.subtitle" = "বন্ধুদের আমন্ত্রণ জানান এবং একসাথে পুরস্কার জিতুন";
 "nodes.import_node.warning_message" = "কাস্টম নোডগুলি ক্ষতিকারক হতে পারে এবং আপনার লেনদেনের ডেটা প্রকাশ করতে পারে বা মিথ্যা তথ্য প্রদান করতে পারে।";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "সম্পূর্ণরূপে লঘুকৃত মূল্যায়ন";
 "info.fully_diluted_valuation.description" = "যদি সমস্ত মুদ্রা প্রচলিত থাকে, তাহলে তাত্ত্বিক বাজার মূল্য। সর্বোচ্চ সরবরাহ দ্বারা গুণিত মূল্য হিসাবে গণনা করা হয়।";
-"info.circulating_supply.description" = "বর্তমানে বাজারে উপলব্ধ এবং লেনদেন হওয়া কয়েনের সংখ্যা।\"";
+"info.circulating_supply.description" = "বর্তমানে বাজারে উপলব্ধ এবং লেনদেন হওয়া কয়েনের সংখ্যা।";
 "info.total_supply.description" = "লক করা বা সংরক্ষিত কয়েন সহ বিদ্যমান মোট কয়েনের সংখ্যা।";
 "info.max_supply.title" = "সর্বোচ্চ সরবরাহ";
 "info.max_supply.description" = "সর্বোচ্চ সংখ্যক কয়েন বিদ্যমান থাকবে।";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "অনুমতি";
 "wallet_connect.permissions.view_balance" = "আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন";
 "wallet_connect.permissions.approval_requests" = "অনুমোদনের অনুরোধ পাঠান";
-"wallet_connect.permissions.move_funds" = "অনুমতি ছাড়া তহবিল স্থানান্তর করুন";
+"wallet.import.already_imported_title" = "ওয়ালেট ইতিমধ্যে আমদানি করা হয়েছে";
+"wallet.import.already_imported_message" = "ইতিমধ্যে \" হিসাবে যোগ করা হয়েছে\"%s\"";
+"wallet.import.switch_to_wallet" = "পরিবর্তন করুন %s";
+"wallet.import.import_another" = "অন্য একটি আমদানি করুন";

@@ -520,7 +520,7 @@
 "rewards.nickname" = "نام مستعار";
 "notifications.inapp.rewards.invite.subtitle" = "دوستان را دعوت کنید و با هم پاداش کسب کنید";
 "nodes.import_node.warning_message" = "گره‌های سفارشی می‌توانند مخرب باشند و ممکن است داده‌های تراکنش شما را افشا کنند یا اطلاعات نادرست ارائه دهند.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "ارزش‌گذاری کاملاً رقیق‌شده";
 "info.fully_diluted_valuation.description" = "ارزش بازار فرضی در صورتی که همه کوین‌ها در گردش باشند. این ارزش از حاصل ضرب قیمت در حداکثر عرضه محاسبه می‌شود.";
 "info.circulating_supply.description" = "تعداد کوین‌های موجود و قابل معامله در بازار.";
 "info.total_supply.description" = "تعداد کل سکه‌های موجود، شامل سکه‌های قفل‌شده یا رزرو شده.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "مجوزها";
 "wallet_connect.permissions.view_balance" = "مشاهده موجودی و فعالیت خود";
 "wallet_connect.permissions.approval_requests" = "ارسال درخواست‌های تأیید";
-"wallet_connect.permissions.move_funds" = "جابجایی وجه بدون اجازه";
+"wallet.import.already_imported_title" = "کیف پول از قبل وارد شده است";
+"wallet.import.already_imported_message" = "قبلاً به عنوان \" اضافه شده است%s«";
+"wallet.import.switch_to_wallet" = "تغییر به %s";
+"wallet.import.import_another" = "یکی دیگر را وارد کنید";

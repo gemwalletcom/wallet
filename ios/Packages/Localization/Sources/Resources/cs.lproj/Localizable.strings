@@ -520,7 +520,7 @@
 "rewards.nickname" = "Přezdívka";
 "notifications.inapp.rewards.invite.subtitle" = "Pozvěte přátele a společně sbírejte odměny";
 "nodes.import_node.warning_message" = "Vlastní uzly mohou být škodlivé a mohou zveřejnit vaše transakční data nebo poskytovat nepravdivé informace.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Plně zředěné ocenění";
 "info.fully_diluted_valuation.description" = "Teoretická tržní hodnota, pokud by všechny mince byly v oběhu. Vypočítá se jako cena vynásobená maximální nabídkou.";
 "info.circulating_supply.description" = "Počet mincí aktuálně dostupných a obchodovaných na trhu.";
 "info.total_supply.description" = "Celkový počet existujících mincí, včetně uzamčených nebo rezervovaných mincí.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Oprávnění";
 "wallet_connect.permissions.view_balance" = "Zobrazení zůstatku a aktivity";
 "wallet_connect.permissions.approval_requests" = "Odeslat žádosti o schválení";
-"wallet_connect.permissions.move_funds" = "Převod finančních prostředků bez povolení";
+"wallet.import.already_imported_title" = "Peněženka již importována";
+"wallet.import.already_imported_message" = "Již přidáno jako „%s\"";
+"wallet.import.switch_to_wallet" = "Přepnout na %s";
+"wallet.import.import_another" = "Importovat další";

@@ -520,7 +520,7 @@
 "rewards.nickname" = "ニックネーム";
 "notifications.inapp.rewards.invite.subtitle" = "友達を招待して一緒に報酬を獲得しましょう";
 "nodes.import_node.warning_message" = "カスタム ノードは悪意のあるものである可能性があり、トランザクション データが公開されたり、誤った情報が提供されたりする可能性があります。";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "完全希薄化後評価額";
 "info.fully_diluted_valuation.description" = "すべてのコインが流通している場合の理論上の市場価値。価格に最大供給量を掛けて計算されます。";
 "info.circulating_supply.description" = "現在市場で入手可能で取引されているコインの数。";
 "info.total_supply.description" = "ロックされたコインや予約されたコインを含む、存在するコインの合計数。";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "権限";
 "wallet_connect.permissions.view_balance" = "残高とアクティビティを確認する";
 "wallet_connect.permissions.approval_requests" = "承認依頼を送信する";
-"wallet_connect.permissions.move_funds" = "許可なく資金を移動させる";
+"wallet.import.already_imported_title" = "ウォレットは既にインポート済みです";
+"wallet.import.already_imported_message" = "既に追加済み%s「";
+"wallet.import.switch_to_wallet" = "切り替えて %s";
+"wallet.import.import_another" = "別のものをインポートする";

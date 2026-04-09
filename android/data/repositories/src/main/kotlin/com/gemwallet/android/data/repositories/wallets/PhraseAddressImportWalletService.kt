@@ -13,6 +13,7 @@ import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
+import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.math.toHexString
@@ -44,7 +45,7 @@ class PhraseAddressImportWalletService(
         importType: ImportType,
         walletName: String,
         data: String
-    ): Wallet {
+    ): WalletImportResult {
         val wallet = try {
             when (importType.walletType) {
                 WalletType.Multicoin -> handlePhrase(importType, walletName, data, WalletSource.Import)
@@ -53,7 +54,7 @@ class PhraseAddressImportWalletService(
                 WalletType.PrivateKey -> handlePrivateKey(importType.chain!!, walletName, data)
             }
         } catch (err: ImportError.DuplicatedWallet) {
-            return err.wallet
+            return WalletImportResult.Existing(err.wallet)
         } // Other exception handle on call
 
         setupWallet(wallet)
@@ -64,7 +65,7 @@ class PhraseAddressImportWalletService(
         } catch (_: Throwable) {
             // TODO: Improve error handle
         }
-        return wallet
+        return WalletImportResult.New(wallet)
     }
 
     override suspend fun createWallet(walletName: String, data: String): Wallet {
@@ -108,10 +109,9 @@ class PhraseAddressImportWalletService(
             throw ImportError.InvalidAddress
         }
         return try {
-            val wallet = walletsRepository.addWatch(walletName, data, chain)
-            wallet
+            walletsRepository.addWatch(walletName, data, chain)
         } catch (err: ImportError.DuplicatedWallet) {
-            err.wallet
+            throw err
         } catch (err: Exception) {
             throw ImportError.CreateError(err.message ?: "Unknown error")
         }
@@ -129,11 +129,7 @@ class PhraseAddressImportWalletService(
             throw ImportError.InvalidationPrivateKey
         }
 
-        val wallet = try {
-            walletsRepository.addControlled(walletName, key, WalletType.PrivateKey, chain, source = WalletSource.Import)
-        } catch (err: ImportError.DuplicatedWallet) {
-            return err.wallet
-        }
+        val wallet = walletsRepository.addControlled(walletName, key, WalletType.PrivateKey, chain, source = WalletSource.Import)
 
         val password = passwordStore.createPassword(wallet.id)
         val storeResult = storePhraseOperator(wallet, key, password)

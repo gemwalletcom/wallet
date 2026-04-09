@@ -520,9 +520,9 @@
 "rewards.nickname" = "Apelido";
 "notifications.inapp.rewards.invite.subtitle" = "Convide amigos e ganhem recompensas juntos.";
 "nodes.import_node.warning_message" = "Nós personalizados podem ser maliciosos e expor seus dados de transação ou fornecer informações falsas.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Avaliação totalmente diluída";
 "info.fully_diluted_valuation.description" = "O valor de mercado teórico se todas as moedas estivessem em circulação. Calculado como o preço multiplicado pela oferta máxima.";
-"info.circulating_supply.description" = "O número de moedas atualmente disponíveis e negociadas no mercado.\"";
+"info.circulating_supply.description" = "O número de moedas atualmente disponíveis e negociadas no mercado.";
 "info.total_supply.description" = "O número total de moedas existentes, incluindo moedas bloqueadas ou reservadas.";
 "info.max_supply.title" = "Suprimento máximo";
 "info.max_supply.description" = "O número máximo de moedas que jamais existirão.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Permissões";
 "wallet_connect.permissions.view_balance" = "Veja seu saldo e atividade";
 "wallet_connect.permissions.approval_requests" = "Enviar solicitações de aprovação";
-"wallet_connect.permissions.move_funds" = "Movimentar fundos sem autorização";
+"wallet.import.already_imported_title" = "Carteira já importada";
+"wallet.import.already_imported_message" = "Já adicionado como \"%s\"";
+"wallet.import.switch_to_wallet" = "Mudar para %s";
+"wallet.import.import_another" = "Importar outro";
