@@ -20,8 +20,8 @@ on:
       - ".github/workflows/ios-ui-tests.yml"
 
 concurrency:
-  group: ios-ui-tests-${{ github.ref }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   ui_test:
