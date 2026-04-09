@@ -1,12 +1,12 @@
 package com.gemwallet.android.blockchain.clients.solana
 
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
-import com.gemwallet.android.model.GasFee
+import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -29,7 +29,7 @@ class TestSolanaSigner {
         }
     }
 
-    val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.SOLANA).data()
+    val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.SOLANA).data()
 
     @Test
     fun testSolana_native_transfer() {
@@ -62,13 +62,15 @@ class TestSolanaSigner {
                 params,
                 chainData,
                 BigInteger.ZERO,
-                GasFee(
+                Fee.Solana(
                     amount = BigInteger("105005000"),
                     minerFee = BigInteger("1050000000"),
                     maxGasPrice = BigInteger("5000"),
+                    unitFee = BigInteger("5000"),
                     limit = BigInteger("100000"),
                     feeAssetId = AssetId(Chain.Solana),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )
@@ -124,13 +126,15 @@ class TestSolanaSigner {
                 params,
                 chainData,
                 BigInteger.ZERO,
-                GasFee(
+                Fee.Solana(
                     amount = BigInteger("105005000"),
                     minerFee = BigInteger("1050000000"),
                     maxGasPrice = BigInteger("5000"),
+                    unitFee = BigInteger("5000"),
                     limit = BigInteger("100000"),
                     feeAssetId = AssetId(Chain.Solana),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )
@@ -187,13 +191,15 @@ class TestSolanaSigner {
                 params,
                 chainData,
                 BigInteger.ZERO,
-                GasFee(
+                Fee.Solana(
                     amount = BigInteger("105005000"),
                     minerFee = BigInteger("1050000000"),
                     maxGasPrice = BigInteger("5000"),
+                    unitFee = BigInteger("5000"),
                     limit = BigInteger("100000"),
                     feeAssetId = AssetId(Chain.Solana),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )

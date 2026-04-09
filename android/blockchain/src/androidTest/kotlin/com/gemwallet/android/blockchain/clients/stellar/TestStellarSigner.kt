@@ -3,12 +3,12 @@ package com.gemwallet.android.blockchain.clients.Stellar
 import com.gemwallet.android.blockchain.clients.stellar.StellarChainData
 import com.gemwallet.android.blockchain.clients.stellar.StellarSignClient
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -29,7 +29,7 @@ class TestStellarSigner {
 
     @Test
     fun testStellarNativeSign() {
-        val hdWallet = HDWallet(testPhrase, "")
+        val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.STELLAR)
         val from = hdWallet.getAddressForCoin(CoinType.STELLAR)
         val signer = StellarSignClient(Chain.Stellar)
@@ -47,10 +47,11 @@ class TestStellarSigner {
                     isDestinationAddressExist = true,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                Fee(
+                Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Stellar),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

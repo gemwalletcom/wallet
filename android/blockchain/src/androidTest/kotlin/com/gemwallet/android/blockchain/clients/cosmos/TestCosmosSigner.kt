@@ -1,12 +1,12 @@
 package com.gemwallet.android.blockchain.clients.cosmos
 
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
-import com.gemwallet.android.model.GasFee
+import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -15,6 +15,7 @@ import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.StakeProviderType
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -31,7 +32,7 @@ class TestCosmosSigner {
 
     val osmoAccount = Account(Chain.Osmosis, "osmo1kglemumu8mn658j6g4z9jzn3zef2qdyyvklwa3", "")
     val signer = CosmosSignClient(Chain.Osmosis)
-    val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.OSMOSIS).data()!!
+    val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.OSMOSIS).data()!!
 
     @Test
     fun testSignNativeTransfer() {
@@ -48,12 +49,13 @@ class TestCosmosSigner {
                 transfer,
                 chainData,
                 finalAmount,
-                fee = GasFee(
+                fee = Fee.Regular(
                     feeAssetId = AssetId(Chain.Osmosis),
                     maxGasPrice = BigInteger.valueOf(10000L),
                     limit = BigInteger.valueOf(200000L),
                     amount = BigInteger.valueOf(10000L),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )
@@ -79,7 +81,7 @@ class TestCosmosSigner {
     @Test
     fun testSignStake() {
         val transfer = ConfirmParams.Builder(Chain.Osmosis.asset(), osmoAccount, BigInteger.TEN)
-            .delegate(DelegationValidator(Chain.Osmosis, id = "osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm", name = "", isActive = true, commission = 1.0, apr = 9.0))
+            .delegate(DelegationValidator(Chain.Osmosis, id = "osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm", name = "", isActive = true, commission = 1.0, apr = 9.0, providerType = StakeProviderType.Stake))
         val chainData = CosmosChainData(
             chainId = "osmosis-1",
             accountNumber = 2913388UL,
@@ -91,12 +93,13 @@ class TestCosmosSigner {
                 transfer,
                 chainData,
                 finalAmount,
-                fee = GasFee(
+                fee = Fee.Regular(
                     feeAssetId = AssetId(Chain.Osmosis),
                     maxGasPrice = BigInteger.valueOf(10000L),
                     limit = BigInteger.valueOf(200000L),
                     amount = BigInteger.valueOf(10000L),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )
@@ -141,7 +144,8 @@ class TestCosmosSigner {
                         name = "",
                         isActive = true,
                         commission = 0.05,
-                        apr = 5.11
+                        apr = 5.11,
+                        providerType = StakeProviderType.Stake,
                     )
                 )
             )
@@ -156,12 +160,13 @@ class TestCosmosSigner {
                 transfer,
                 chainData,
                 finalAmount,
-                fee = GasFee(
+                fee = Fee.Regular(
                     feeAssetId = AssetId(Chain.Osmosis),
                     maxGasPrice = BigInteger.valueOf(10000L),
                     limit = BigInteger.valueOf(200000L),
                     amount = BigInteger.valueOf(10000L),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )
@@ -190,7 +195,7 @@ class TestCosmosSigner {
     fun testSignRedelegate() {
         val transfer = ConfirmParams.Builder(Chain.Osmosis.asset(), osmoAccount, BigInteger.TEN)
             .redelegate(
-                dstValidator = DelegationValidator(Chain.Osmosis, id = "osmovaloper1z0sh4s80u99l6y9d3vfy582p8jejeeu6tcucs2", name = "", isActive = true, commission = 1.0, apr = 9.0),
+                dstValidator = DelegationValidator(Chain.Osmosis, id = "osmovaloper1z0sh4s80u99l6y9d3vfy582p8jejeeu6tcucs2", name = "", isActive = true, commission = 1.0, apr = 9.0, providerType = StakeProviderType.Stake),
                 delegation = Delegation(
                     base = DelegationBase(
                         assetId = AssetId(Chain.Osmosis),
@@ -208,7 +213,8 @@ class TestCosmosSigner {
                         name = "",
                         isActive = true,
                         commission = 0.05,
-                        apr = 5.11
+                        apr = 5.11,
+                        providerType = StakeProviderType.Stake,
                     )
                 )
             )
@@ -223,12 +229,13 @@ class TestCosmosSigner {
                 transfer,
                 chainData,
                 finalAmount,
-                fee = GasFee(
+                fee = Fee.Regular(
                     feeAssetId = AssetId(Chain.Osmosis),
                     maxGasPrice = BigInteger.valueOf(10000L),
                     limit = BigInteger.valueOf(200000L),
                     amount = BigInteger.valueOf(10000L),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )
@@ -259,8 +266,8 @@ class TestCosmosSigner {
         val transfer = ConfirmParams.Builder(Chain.Osmosis.asset(), osmoAccount, BigInteger.TEN)
             .rewards(
                 listOf(
-                    DelegationValidator(Chain.Osmosis, id = "osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm", name = "", isActive = true, commission = 1.0, apr = 9.0),
-                    DelegationValidator(Chain.Osmosis, id = "osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm", name = "", isActive = true, commission = 1.0, apr = 9.0),
+                    DelegationValidator(Chain.Osmosis, id = "osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm", name = "", isActive = true, commission = 1.0, apr = 9.0, providerType = StakeProviderType.Stake),
+                    DelegationValidator(Chain.Osmosis, id = "osmovaloper1pxphtfhqnx9ny27d53z4052e3r76e7qq495ehm", name = "", isActive = true, commission = 1.0, apr = 9.0, providerType = StakeProviderType.Stake),
                 ),
             )
         val chainData = CosmosChainData(
@@ -274,12 +281,13 @@ class TestCosmosSigner {
                 transfer,
                 chainData,
                 finalAmount,
-                fee = GasFee(
+                fee = Fee.Regular(
                     feeAssetId = AssetId(Chain.Osmosis),
                     maxGasPrice = BigInteger.valueOf(10000L),
                     limit = BigInteger.valueOf(200000L),
                     amount = BigInteger.valueOf(10000L),
                     priority = FeePriority.Normal,
+                    options = emptyMap(),
                 ),
                 privateKey
             )

@@ -53,10 +53,23 @@ fun fiatFormat(
     maxDecimals: Int = -1,
     dynamicPlace: Boolean,
 ): String {
+    val format = NumberFormat.getCurrencyInstance().apply {
+        currency = Currency.getInstance(symbol)
+    }
+    val absoluteValue = value.abs()
+
+    if (dynamicPlace) {
+        if (value.signum() == 0 || absoluteValue >= BigDecimal("0.99") || value < BigDecimal("0.0000000001")) {
+            return format.format(value)
+        }
+
+        format.maximumFractionDigits = 8
+        format.minimumFractionDigits = 0
+        return format.format(value.round(MathContext(4)).stripTrailingZeros())
+    }
+
     val (value, place) = cutFraction(value, decimalPlace, maxDecimals, dynamicPlace)
-    val format = NumberFormat.getCurrencyInstance()
     format.maximumFractionDigits = place
-    format.currency = Currency.getInstance(symbol)
     return format.format(value)
 }
 

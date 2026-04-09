@@ -2,12 +2,12 @@ package com.gemwallet.android.blockchain.clients.bitcoin
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
-import com.gemwallet.android.model.GasFee
+import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -38,7 +38,7 @@ class TestBitcoinSigner {
 
     @Test
     fun testBitcoinNativeSign() {
-        val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.DOGECOIN)
+        val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.DOGECOIN)
         val signer = BitcoinSignClient(Chain.Doge)
 
         val sign = runBlocking {
@@ -60,11 +60,13 @@ class TestBitcoinSigner {
                     ),
                 ),
                 finalAmount = BigInteger.valueOf(10_000_000_000),
-                fee = GasFee(
-                    AssetId(Chain.Doge),
+                fee = Fee.Regular(
+                    feeAssetId = AssetId(Chain.Doge),
                     priority = FeePriority.Normal,
+                    amount = BigInteger.valueOf(2_700L),
                     maxGasPrice = BigInteger.valueOf(150L),
-                    limit = BigInteger.valueOf(18L)
+                    limit = BigInteger.valueOf(18L),
+                    options = emptyMap(),
                 ),
                 privateKey.data()
             )
@@ -75,7 +77,7 @@ class TestBitcoinSigner {
 
     @Test
     fun testBitcoinSwapSign() {
-        val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.DOGECOIN)
+        val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.DOGECOIN)
         val signer = BitcoinSignClient(Chain.Doge)
 
         val params = ConfirmParams.TransferParams.Native(
@@ -96,11 +98,13 @@ class TestBitcoinSigner {
             ),
         )
         val finalAmount = BigInteger.valueOf(10_000_000_000)
-        val fee = GasFee(
-            AssetId(Chain.Doge),
+        val fee = Fee.Regular(
+            feeAssetId = AssetId(Chain.Doge),
             priority = FeePriority.Normal,
+            amount = BigInteger.valueOf(2_700L),
             maxGasPrice = BigInteger.valueOf(150L),
-            limit = BigInteger.valueOf(18L)
+            limit = BigInteger.valueOf(18L),
+            options = emptyMap(),
         )
         val input = signer.getSigningInput(
             params = params,

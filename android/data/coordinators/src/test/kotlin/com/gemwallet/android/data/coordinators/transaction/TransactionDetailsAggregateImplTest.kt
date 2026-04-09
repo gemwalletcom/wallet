@@ -321,7 +321,25 @@ class TransactionDetailsAggregateImplTest {
         val fee = aggregate.fee
         Assert.assertEquals(btcAsset, fee.asset)
         Assert.assertEquals("0.00001 BTC", fee.value)
-        Assert.assertEquals("\$0.50", fee.equivalent)
+        Assert.assertEquals("\$0.5", fee.equivalent)
+    }
+
+    @Test
+    fun testFee_withSmallPrice_usesShortFiatFormatting() {
+        val transaction = createTransaction(
+            fee = "1000",
+        )
+        val feePrice = Price(
+            price = 4.2795161,
+            priceChangePercentage24h = 0.0,
+            updatedAt = System.currentTimeMillis(),
+        )
+        val extended = createTransactionExtended(transaction, asset = btcAsset, feePrice = feePrice)
+        val aggregate = createAggregate(extended)
+
+        val fee = aggregate.fee
+        Assert.assertEquals("0.00001 BTC", fee.value)
+        Assert.assertEquals("\$0.0000428", fee.equivalent)
     }
 
     @Test

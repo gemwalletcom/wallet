@@ -1,11 +1,11 @@
 package com.gemwallet.android.blockchain.clients.polkadot
 
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -26,7 +26,7 @@ class TestPolkadotSigner {
 
     @Test
     fun testPolkadotNativeSign() {
-        val hdWallet = HDWallet(testPhrase, "")
+        val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.POLKADOT)
         val from = hdWallet.getAddressForCoin(CoinType.POLKADOT)
         val signer = PolkadotSignClient(Chain.Polkadot)
@@ -49,10 +49,11 @@ class TestPolkadotSigner {
                     period = 64,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                fee = Fee(
+                fee = Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Polkadot),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

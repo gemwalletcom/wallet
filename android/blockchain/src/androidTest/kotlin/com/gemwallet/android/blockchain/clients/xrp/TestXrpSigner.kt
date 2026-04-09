@@ -1,11 +1,11 @@
 package com.gemwallet.android.blockchain.clients.xrp
 
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -26,7 +26,7 @@ class TestXrpSigner {
 
     @Test
     fun testXrpNativeSign() {
-        val hdWallet = HDWallet(testPhrase, "")
+        val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.XRP)
         val from = hdWallet.getAddressForCoin(CoinType.XRP)
         val signer = XrpSignClient(Chain.Xrp)
@@ -40,14 +40,15 @@ class TestXrpSigner {
                     DestinationAddress(from),
                 ),
                 chainData = XrpChainData(
-                    sequence = 1,
-                    blockNumber = 1,
+                    sequence = 1UL,
+                    blockNumber = 1UL,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                fee = Fee(
+                fee = Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Xrp),
                     amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

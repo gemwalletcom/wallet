@@ -19,12 +19,17 @@ public struct PerpetualStore: Sendable {
                     .filter(PerpetualRecord.Columns.id == perpetual.id)
                     .updateAll(
                         db,
+                        PerpetualRecord.Columns.name.set(to: perpetual.name),
+                        PerpetualRecord.Columns.provider.set(to: perpetual.provider.rawValue),
+                        PerpetualRecord.Columns.assetId.set(to: perpetual.assetId.identifier),
+                        PerpetualRecord.Columns.identifier.set(to: perpetual.identifier),
                         PerpetualRecord.Columns.price.set(to: perpetual.price),
                         PerpetualRecord.Columns.pricePercentChange24h.set(to: perpetual.pricePercentChange24h),
                         PerpetualRecord.Columns.openInterest.set(to: perpetual.openInterest),
                         PerpetualRecord.Columns.volume24h.set(to: perpetual.volume24h),
                         PerpetualRecord.Columns.funding.set(to: perpetual.funding),
                         PerpetualRecord.Columns.maxLeverage.set(to: perpetual.maxLeverage),
+                        PerpetualRecord.Columns.isIsolatedOnly.set(to: perpetual.isIsolatedOnly),
                     )
             }
         }
