@@ -5,11 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.assetType
+import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
+import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
+import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
+import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
 import com.gemwallet.android.ext.filter
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetError
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
@@ -22,13 +22,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,20 +35,20 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAssetViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
+    private val searchCustomToken: SearchCustomToken,
+    private val observeToken: ObserveToken,
+    private val addCustomToken: AddCustomToken,
+    getAvailableTokenChains: GetAvailableTokenChains,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AddAssetUIState())
-//    var input by mutableStateOf("")
 
     val chainFilter = TextFieldState()
 
-    val availableChains = sessionRepository.session().mapLatest { session ->
-        session?.wallet?.accounts?.map { it.chain }?.filter { it.assetType() != null }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val availableChains = getAvailableTokenChains()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
         availableChains?.filter(query.toString().lowercase()) ?: emptyList()
@@ -84,7 +82,7 @@ class AddAssetViewModel @Inject constructor(
 
             emit(TokenSearchState.Loading)
 
-            val success = assetsRepository.searchToken(AssetId(chain, address), sessionRepository.getCurrentCurrency())
+            val success = searchCustomToken(AssetId(chain, address))
 
             emit(
                 if (success) {
@@ -106,7 +104,7 @@ class AddAssetViewModel @Inject constructor(
         if (address.isEmpty()) {
             return@flatMapLatest flowOf(null)
         }
-        assetsRepository.getToken(AssetId(chain, address))
+        observeToken(AssetId(chain, address))
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -144,13 +142,7 @@ class AddAssetViewModel @Inject constructor(
     fun addAsset(onFinish: () -> Unit) = viewModelScope.launch {
         onFinish()
         async(Dispatchers.IO) {
-            val session = sessionRepository.session().firstOrNull() ?: return@async
-            assetsRepository.switchVisibility(
-                walletId = session.wallet.id,
-                owner = session.wallet.getAccount(selectedChain.value) ?: return@async,
-                assetId = token.value?.id ?: return@async,
-                visibility = true,
-            )
+            addCustomToken(selectedChain.value, token.value?.id ?: return@async)
         }.await()
     }
 
