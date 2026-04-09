@@ -1,26 +1,25 @@
 package com.gemwallet.android.features.assets.viewmodels
 
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
+import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
+import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.values.ImportWalletState
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.assets.coordinators.HideAsset
+import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
+import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.model.Session
-import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletSource
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -37,15 +36,6 @@ import org.junit.Test
 class AssetsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val wallet = mockWallet(
-        id = "wallet-id",
-        accounts = listOf(mockAccount(Chain.Solana)),
-        source = WalletSource.Create,
-    )
-    private val sessionFlow = MutableStateFlow<Session?>(Session(wallet, Currency.USD))
-    private val hideBalancesFlow = MutableStateFlow(false)
-    private val welcomeBannerHiddenFlow = MutableStateFlow(false)
-    private val importStateFlow = MutableStateFlow(ImportWalletState.Complete)
     private val activeAssetsFlow = MutableStateFlow(
         listOf(
             assetAggregate(chain = Chain.Solana, symbol = "SOL", pinned = true),
@@ -53,22 +43,27 @@ class AssetsViewModelTest {
         )
     )
 
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns sessionFlow
-    }
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val userConfig = mockk<UserConfig>(relaxed = true) {
-        every { isHideBalances() } returns hideBalancesFlow
-        every { isWelcomeBannerHidden(wallet.id) } returns welcomeBannerHiddenFlow
-    }
-    private val getImportWalletState = mockk<GetImportWalletState>(relaxed = true) {
-        every { getImportState(wallet.id) } returns importStateFlow
+    private val syncAssets = mockk<SyncAssets>(relaxed = true)
+    private val hideAsset = mockk<HideAsset>(relaxed = true)
+    private val toggleAssetPin = mockk<ToggleAssetPin>(relaxed = true)
+    private val toggleHideBalances = mockk<ToggleHideBalances>(relaxed = true)
+    private val hideWelcomeBanner = mockk<HideWelcomeBanner>(relaxed = true)
+    private val getImportInProgress = object : GetImportInProgress {
+        override fun invoke(): Flow<Boolean> = flowOf(false)
     }
     private val getActiveAssetsInfo = object : GetActiveAssetsInfo {
         override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> = activeAssetsFlow
     }
     private val getWalletSummary = mockk<GetWalletSummary>(relaxed = true) {
         every { getWalletSummary() } returns flowOf(null)
+    }
+    private val getHideBalancesState = object : GetHideBalancesState {
+        override fun invoke(): Flow<Boolean> = flowOf(false)
+    }
+    private val getShowWelcomeBanner = object : GetShowWelcomeBanner {
+        override fun invoke(isWalletEmpty: Flow<Boolean>): Flow<Boolean> {
+            return isWalletEmpty.combine(flowOf(true)) { isEmpty, _ -> isEmpty }
+        }
     }
 
     @Before
@@ -102,12 +97,16 @@ class AssetsViewModelTest {
     }
 
     private fun createViewModel() = AssetsViewModel(
-        sessionRepository = sessionRepository,
-        assetsRepository = assetsRepository,
-        userConfig = userConfig,
-        getImportWalletState = getImportWalletState,
+        syncAssets = syncAssets,
+        hideAsset = hideAsset,
+        toggleAssetPin = toggleAssetPin,
+        toggleHideBalances = toggleHideBalances,
+        hideWelcomeBanner = hideWelcomeBanner,
+        getImportInProgress = getImportInProgress,
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,
+        getHideBalancesState = getHideBalancesState,
+        getShowWelcomeBanner = getShowWelcomeBanner,
     )
 
     private fun assetAggregate(
