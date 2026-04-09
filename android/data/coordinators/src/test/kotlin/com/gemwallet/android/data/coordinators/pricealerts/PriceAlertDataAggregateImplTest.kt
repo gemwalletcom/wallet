@@ -270,6 +270,21 @@ class PriceAlertDataAggregateImplTest {
     }
 
     @Test
+    fun testPrice_fromAssetPrice_whenSmallValue_usesDynamicFormatting() {
+        val assetPrice = createAssetPriceInfo(
+            price = 0.0000111,
+            currency = Currency.USD,
+        )
+        val priceAlert = createPriceAlert(price = null)
+        val aggregate = createAggregate(
+            assetPrice = assetPrice,
+            priceAlert = priceAlert,
+        )
+
+        assertEquals("$0.0000111", aggregate.price)
+    }
+
+    @Test
     fun testPrice_withEuroCurrency() {
         val assetPrice = createAssetPriceInfo(
             price = 42000.0,
@@ -285,6 +300,17 @@ class PriceAlertDataAggregateImplTest {
         )
 
         assertEquals("€42,000.00", aggregate.price)
+    }
+
+    @Test
+    fun testPrice_fromPriceAlert_whenSmallValue_usesDynamicFormatting() {
+        val priceAlert = createPriceAlert(
+            price = 0.006333,
+            currency = "USD",
+        )
+        val aggregate = createAggregate(priceAlert = priceAlert)
+
+        assertEquals("$0.006333", aggregate.price)
     }
 
     @Test

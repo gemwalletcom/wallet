@@ -9,6 +9,7 @@ interface WalletSummaryAggregate {
     val walletIcon: Any?
     val walletTotalValue: String
     val changedValue: EquivalentValue?
+    val isBalanceHidden: Boolean
     val isOperationsAvailable: Boolean
     val isSwapAvailable: Boolean
 }

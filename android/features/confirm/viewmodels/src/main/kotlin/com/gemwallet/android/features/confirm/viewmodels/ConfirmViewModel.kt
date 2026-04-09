@@ -231,11 +231,9 @@ class ConfirmViewModel @Inject constructor(
             currency = currency,
         )
     }
-    .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val detailElements = combine(request, assetsInfo, ::buildDetailElements)
-    .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
@@ -266,7 +264,6 @@ class ConfirmViewModel @Inject constructor(
             add(ConfirmProperty.Network(assetInfo.chain.asset()))
         }.filterNotNull()
     }
-    .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val feeValue = combine(preloadData, feeAssetInfo) { signerParams, feeAssetInfo ->
@@ -277,7 +274,6 @@ class ConfirmViewModel @Inject constructor(
         val feeAmount = Crypto(amount)
         feeAssetInfo.asset.format(feeAmount, 8, dynamicPlace = true)
     }
-    .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val feeUIModel = combine(preloadData, feeAssetInfo, state) { signerParams, feeAssetInfo, state ->
@@ -319,7 +315,6 @@ class ConfirmViewModel @Inject constructor(
         }
         result
     }
-    .flowOn(Dispatchers.Default)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeRates = preloadData.map { it?.feeRates.orEmpty() }

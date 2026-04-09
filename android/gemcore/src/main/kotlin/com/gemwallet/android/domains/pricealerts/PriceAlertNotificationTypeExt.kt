@@ -17,7 +17,7 @@ fun PriceAlertNotificationType.direction(
 }
 
 fun PriceAlertNotificationType.formatAmount(inputValue: Double, currency: Currency): String = when (this) {
-    PriceAlertNotificationType.Price -> currency.format(inputValue)
+    PriceAlertNotificationType.Price -> currency.format(inputValue, dynamicPlace = true)
     PriceAlertNotificationType.PricePercentChange -> "$inputValue%"
     PriceAlertNotificationType.Auto -> ""
 }

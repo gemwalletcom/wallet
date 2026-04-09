@@ -208,7 +208,10 @@ public struct TransactionViewModel: Sendable {
                  .perpetualModifyPosition,
                  .perpetualOpenPosition,
                  .perpetualClosePosition:
-                guard let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self) else {
+                guard
+                    let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self),
+                    metadata.price > 0
+                else {
                     return .none
                 }
                 let price = AmountDisplay.currency(value: metadata.price, currencyCode: Currency.usd.rawValue, showSign: false).text

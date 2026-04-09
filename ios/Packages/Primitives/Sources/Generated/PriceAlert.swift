@@ -40,7 +40,7 @@ public struct PriceAlertData: Codable, Equatable, Hashable, Sendable {
 }
 
 public enum PriceAlertNotificationType: String, Codable, Equatable, Hashable, Sendable {
-	case auto = "Auto"
-	case price = "Price"
-	case pricePercentChange = "PricePercentChange"
+	case auto
+	case price
+	case pricePercentChange
 }

@@ -34,11 +34,11 @@ data class PriceAlertData (
 
 @Serializable
 enum class PriceAlertNotificationType(val string: String) {
-	@SerialName("Auto")
-	Auto("Auto"),
-	@SerialName("Price")
-	Price("Price"),
-	@SerialName("PricePercentChange")
-	PricePercentChange("PricePercentChange"),
+	@SerialName("auto")
+	Auto("auto"),
+	@SerialName("price")
+	Price("price"),
+	@SerialName("pricePercentChange")
+	PricePercentChange("pricePercentChange"),
 }
 

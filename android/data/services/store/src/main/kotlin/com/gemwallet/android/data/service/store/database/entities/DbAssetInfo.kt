@@ -212,7 +212,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             )
         } else null,
         metadata = AssetMetaData(
-            isEnabled = entity.visible == true,
+            isEnabled = entity.assetRank > 0,
             isBuyEnabled = entity.isBuyEnabled,
             isSellEnabled = entity.isSellEnabled,
             isSwapEnabled = entity.isSwapEnabled,
@@ -220,7 +220,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             isPinned = entity.pinned == true,
             rankScore = entity.assetRank,
             isActive = true,
-            isBalanceEnabled = true,// TODO: Add to db
+            isBalanceEnabled = entity.visible == true,
             isEarnEnabled = false,
             stakingApr = entity.stakingApr,
             earnApr = null,

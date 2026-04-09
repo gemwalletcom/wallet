@@ -90,23 +90,26 @@ class TonSignClient(
     ): List<ByteArray> {
         val data = params.swapData
         val chainData = (chainData as TonChainData)
-        val message = TheOpenNetwork.Transfer.newBuilder().apply {
-            this.dest = params.destination().address
-            this.amount = ByteString.copyFrom(params.fromAmount.toByteArray())
-            this.comment = params.memo() ?: ""
-            this.mode = defaultMode
-            this.bounceable = true
-            this.customPayload = data
-        }.build()
         return sign(
             sequence = chainData.sequence.toInt(),
             expireAt = chainData.expireAt,
-            message = message,
+            message = swapTransfer(params, data),
             privateKey = privateKey
         )
     }
 
     override fun supported(chain: Chain): Boolean = this.chain == chain
+
+    internal fun swapTransfer(params: ConfirmParams.SwapParams, data: String = params.swapData): TheOpenNetwork.Transfer {
+        return TheOpenNetwork.Transfer.newBuilder().apply {
+            this.dest = params.toAddress
+            this.amount = ByteString.copyFrom(BigInteger(params.value).toByteArray())
+            this.comment = params.memo() ?: ""
+            this.mode = defaultMode
+            this.bounceable = true
+            this.customPayload = data
+        }.build()
+    }
 
     private fun sign(
         sequence: Int,

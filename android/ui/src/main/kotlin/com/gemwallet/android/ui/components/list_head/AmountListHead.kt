@@ -58,21 +58,29 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
+import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.isHidden
+import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.actionIconSize
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.alpha90
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.space10
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
@@ -80,7 +88,7 @@ import kotlin.math.floor
 @Composable
 fun AmountListHead(
     amount: String,
-    onHideBalances: (() -> Unit)? = null,
+    hideToggle: HideToggle? = null,
     equivalent: String? = null,
     icon: Any? = null,
     changedValue: String? = null,
@@ -88,6 +96,7 @@ fun AmountListHead(
     changeState: PriceState = PriceState.None,
     actions: (@Composable () -> Unit)? = null,
 ) {
+    val hidden = hideToggle.isHidden
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -115,10 +124,7 @@ fun AmountListHead(
             ) {
                 DisplayText(
                     text = amount,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(paddingDefault))
-                        .clickable(onHideBalances != null, onClick = { onHideBalances?.invoke() })
+                    hideToggle = hideToggle,
                 )
                 if (!equivalent.isNullOrEmpty()) {
                     Text(
@@ -130,30 +136,31 @@ fun AmountListHead(
                         fontWeight = FontWeight.W400,
                     )
                 }
-                if (changedValue != null) {
+                changedValue?.let { value ->
                     val highlightColor = changeState.color()
                     Row(
-                        modifier = Modifier,
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
                         Text(
-                            text = changedValue,
+                            text = hideToggle.mask(value),
                             color = highlightColor,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.W400,
                         )
-                        Text(
-                            text = changedPercentages?.let { "($it)" } ?: "",
-                            color = highlightColor,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W400,
-                        )
+                        if (!hidden && !changedPercentages.isNullOrBlank()) {
+                            Text(
+                                text = "($changedPercentages)",
+                                color = highlightColor,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.W400,
+                            )
+                        }
                     }
                 }
             }
             if (actions != null) {
-                Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(space10))
                 Box(
                     modifier = Modifier.width(IntrinsicSize.Min)
                 ) {
@@ -203,7 +210,7 @@ fun AssetHeadActions(
                 title = stringResource(id = R.string.wallet_send),
                 imageVector = Icons.AutoMirrored.Default.Send,
                 enabled = transferEnabled && operationsEnabled,
-                contentDescription = "send",
+                contentDescription = stringResource(id = R.string.wallet_send),
                 fontSize = actionFontSize,
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
@@ -217,7 +224,7 @@ fun AssetHeadActions(
                 title = stringResource(id = R.string.wallet_receive),
                 imageVector = Icons.Default.QrCode2,
                 enabled = operationsEnabled,
-                contentDescription = "receive",
+                contentDescription = stringResource(id = R.string.wallet_receive),
                 fontSize = actionFontSize,
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
@@ -232,7 +239,7 @@ fun AssetHeadActions(
                 title = stringResource(id = R.string.wallet_buy),
                 imageVector = Icons.Default.AttachMoney,
                 enabled = operationsEnabled,
-                contentDescription = "buy",
+                contentDescription = stringResource(id = R.string.wallet_buy),
                 fontSize = actionFontSize,
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
@@ -246,7 +253,7 @@ fun AssetHeadActions(
                 title = stringResource(id = R.string.wallet_swap),
                 imageVector = Icons.Default.Autorenew,
                 enabled = operationsEnabled,
-                contentDescription = "swap",
+                contentDescription = stringResource(id = R.string.wallet_swap),
                 fontSize = actionFontSize,
                 onNextFontSize = {
                     if (actionFontSize > it) actionFontSize = it
@@ -260,9 +267,12 @@ fun AssetHeadActions(
 @Composable
 private fun AssetWatchOnly() {
     var showInfoSheet by remember { mutableStateOf<InfoSheetEntity?>(null) }
+    val openWatchWalletInfo = { showInfoSheet = InfoSheetEntity.WatchWalletInfo }
     Button(
-        modifier = Modifier.widthIn(min = 350.dp),
-        onClick = { showInfoSheet = InfoSheetEntity.WatchWalletInfo },
+        modifier = Modifier
+            .widthIn(min = SceneSizing.contentMaxWidth)
+            .testTag("watchWalletBanner"),
+        onClick = openWatchWalletInfo,
         enabled = true,
         colors = ButtonDefaults
             .buttonColors(
@@ -275,7 +285,7 @@ private fun AssetWatchOnly() {
         ) {
             Icon(
                 imageVector = Icons.Default.Visibility,
-                contentDescription = "",
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
             )
             Spacer8()
@@ -286,12 +296,14 @@ private fun AssetWatchOnly() {
             )
             Spacer8()
             IconButton(
-                modifier = Modifier.size(24.dp),
-                onClick = {  }
+                modifier = Modifier
+                    .size(smallIconSize)
+                    .testTag("watchWalletInfo"),
+                onClick = openWatchWalletInfo,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Info,
-                    contentDescription = "",
+                    contentDescription = stringResource(R.string.common_learn_more),
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
                 )
             }
@@ -323,7 +335,7 @@ fun AmountHeadAction(
     ) {
         Icon(
             modifier = Modifier
-                .requiredSize(54.dp)
+                .requiredSize(actionIconSize)
                 .background(
                     color = MaterialTheme.colorScheme.primary.copy(
                         alpha = if (enabled) 1f else alpha50,

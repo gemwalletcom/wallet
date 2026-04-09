@@ -12,6 +12,7 @@ import com.wallet.core.primitives.PushNotificationTransaction
 import com.wallet.core.primitives.PushNotificationWalletAsset
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
@@ -53,7 +54,7 @@ class FCMTest {
 
     @Test
     fun parseData_withValidTransactionData_returnsTransactionPayload() {
-        val transactionId = "abc123"
+        val transactionId = TransactionId(Chain.Bitcoin, "abc123")
         val jsonData = jsonEncoder.encodeToString(
             PushNotificationTransaction(
                 walletId = "wallet-1",

@@ -7,6 +7,7 @@ import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Price
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
@@ -123,7 +124,7 @@ data class DbTransactionExtended(
 fun DbTransactionExtended.toDTO(): TransactionExtended? {
     return TransactionExtended(
         transaction = Transaction(
-            id = this.id,
+            id = TransactionId.from(this.id) ?: return null,
             assetId = this.assetId.toAssetId() ?: return null,
             from = this.owner,
             to = this.recipient,

@@ -1,12 +1,11 @@
 package com.gemwallet.android.features.swap.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.foundation.text.input.clearText
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
@@ -15,19 +14,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
-import com.gemwallet.android.features.swap.viewmodels.models.SwapState
+import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 import com.gemwallet.android.features.swap.views.components.SwapAction
 import com.gemwallet.android.features.swap.views.components.SwapError
 import com.gemwallet.android.features.swap.views.components.SwapItem
@@ -37,39 +34,26 @@ import com.gemwallet.android.ui.theme.space0
 
 @Composable
 internal fun SwapScene(
-    swapState: SwapState,
+    swapState: SwapUiState,
     pay: AssetInfo?,
     receive: AssetInfo?,
     payEquivalent: String,
     receiveEquivalent: String,
     swapDetails: SwapDetailsUIModel?,
-    onShowPriceImpactWarning: () -> Unit,
     onSelectAsset: (SwapItemType) -> Unit,
     payValue: TextFieldState,
     receiveValue: TextFieldState,
     switchSwap: () -> Unit,
     onDetails: () -> Unit,
     onCancel: () -> Unit,
-    onSwap: () -> Unit,
+    onPrimaryAction: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Scene(
         title = stringResource(id = R.string.wallet_swap),
         mainAction = {
-            SwapAction(swapState) {
-                when {
-                    swapState is SwapState.Error && swapState.error is SwapError.InputAmountTooSmall -> {
-                        val value = pay?.asset?.let {
-                            (swapState.error as SwapError.InputAmountTooSmall).getValue(it)
-                        } ?: return@SwapAction
-                        payValue.clearText()
-                        payValue.setTextAndPlaceCursorAtEnd(value.toString())
-                    }
-                    swapDetails?.shouldShowPriceImpactWarning == true -> onShowPriceImpactWarning()
-                    else -> onSwap()
-                }
-            }
+            SwapAction(swapState, onPrimaryAction)
         },
         onClose = onCancel,
     ) {
@@ -79,10 +63,10 @@ internal fun SwapScene(
             }
             item {
                 SwapItem(
-                    type = SwapItemType.Pay,
                     item = pay,
                     equivalent = payEquivalent,
                     state = payValue,
+                    interaction = swapState.payItemInteraction,
                     onAssetSelect = {
                         keyboardController?.hide()
                         onSelectAsset(SwapItemType.Pay)
@@ -94,7 +78,11 @@ internal fun SwapScene(
                     Box(
                         modifier = Modifier
                             .size(iconSize)
-                            .clickable(onClick = switchSwap),
+                            .clip(MaterialTheme.shapes.medium)
+                            .clickable(
+                                enabled = swapState.isQuoteInteractionEnabled,
+                                onClick = switchSwap,
+                            ),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -109,11 +97,11 @@ internal fun SwapScene(
             }
             item {
                 SwapItem(
-                    type = SwapItemType.Receive,
                     item = receive,
                     equivalent = receiveEquivalent,
                     state = receiveValue,
-                    calculating = swapState == SwapState.GetQuote,
+                    calculating = swapState.isReceiveLoading,
+                    interaction = swapState.receiveItemInteraction,
                     onAssetSelect = {
                         keyboardController?.hide()
                         onSelectAsset(SwapItemType.Receive)

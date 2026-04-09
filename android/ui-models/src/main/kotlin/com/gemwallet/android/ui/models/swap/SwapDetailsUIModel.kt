@@ -42,6 +42,9 @@ data class SwapDetailsUIModel(
             null -> null
         }
 
+    val summaryPriceImpactBadgeText: String?
+        get() = summaryPriceImpactText?.let { "($it)" }
+
     val shouldShowPriceImpactWarning: Boolean
         get() = priceImpact?.isHigh == true
 }

@@ -35,19 +35,18 @@ class QuoteRequesterTest {
     private val refreshEnabled = MutableStateFlow(true)
 
     @Test
-    fun `canceled in flight quote request does not trigger error callback`() = runBlocking {
+    fun `canceled in flight quote request does not emit an error result`() = runBlocking {
         val fakeQuotes = StubGetSwapQuotes(delayOnFirst = 5_000)
         val requester = QuoteRequester(fakeQuotes)
         val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<QuotesState?>()
-        val errors = mutableListOf<Throwable>()
 
         val job = launch {
             requester.requestQuotes(
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = { errors += it },
+                onFetchStarted = {},
             ).collect { results += it }
         }
 
@@ -56,7 +55,6 @@ class QuoteRequesterTest {
         delay(700)
         job.cancelAndJoin()
 
-        assertTrue(errors.isEmpty())
         assertEquals(1, results.filterNotNull().size)
     }
 
@@ -66,14 +64,13 @@ class QuoteRequesterTest {
         val requester = QuoteRequester(fakeQuotes)
         val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<QuotesState?>()
-        val errors = mutableListOf<Throwable>()
 
         val job = launch {
             requester.requestQuotes(
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = { errors += it },
+                onFetchStarted = {},
             ).collect { results += it }
         }
 
@@ -82,7 +79,6 @@ class QuoteRequesterTest {
         delay(300)
         job.cancelAndJoin()
 
-        assertTrue(errors.isEmpty())
         assertEquals(listOf(null), results)
     }
 
@@ -119,7 +115,7 @@ class QuoteRequesterTest {
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = {},
+                onFetchStarted = {},
                 refreshIntervalMillis = 100,
             ).collect()
         }
@@ -137,16 +133,16 @@ class QuoteRequesterTest {
         val fakeQuotes = StubGetSwapQuotes(shouldFail = true)
         val requester = QuoteRequester(fakeQuotes)
         val requestParams = MutableStateFlow<QuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
-        val errors = mutableListOf<Throwable>()
+        val results = mutableListOf<QuotesState?>()
 
         val job = launch {
             requester.requestQuotes(
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = { errors += it },
+                onFetchStarted = {},
                 refreshIntervalMillis = 100,
-            ).collect()
+            ).collect { results += it }
         }
 
         awaitCondition { fakeQuotes.requestCount >= 1 }
@@ -154,7 +150,8 @@ class QuoteRequesterTest {
         job.cancelAndJoin()
 
         assertEquals(1, fakeQuotes.requestCount)
-        assertEquals(1, errors.size)
+        assertEquals(1, results.filterNotNull().size)
+        assertTrue(results.filterNotNull().single().err != null)
     }
 
     @Test
@@ -168,7 +165,7 @@ class QuoteRequesterTest {
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = {},
+                onFetchStarted = {},
                 refreshIntervalMillis = 100,
             ).collect()
         }
@@ -197,7 +194,7 @@ class QuoteRequesterTest {
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = {},
+                onFetchStarted = {},
             ).collect { results += it }
         }
 
@@ -220,7 +217,7 @@ class QuoteRequesterTest {
                 requestParams = requestParams,
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
-                onError = {},
+                onFetchStarted = {},
             ).collect { results += it }
         }
 

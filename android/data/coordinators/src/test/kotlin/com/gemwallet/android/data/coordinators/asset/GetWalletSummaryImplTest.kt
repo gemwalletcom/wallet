@@ -1,7 +1,12 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
@@ -60,10 +65,27 @@ class GetWalletSummaryImplTest {
             currency = Currency.USD,
             totalValue = BigDecimal.ZERO,
             totalChangedValue = BigDecimal.ZERO,
-            hideBalances = false,
         )
 
         assertEquals("\$0.00", state.totalValue)
         assertEquals(null, state.changedValue)
+    }
+
+    @Test
+    fun walletSummaryAggregate_forBaseWallet_usesBaseChainIcon() {
+        val summary = WalletSummaryAggregateImpl(
+            wallet = mockWallet(
+                type = WalletType.Single,
+                accounts = listOf(mockAccount(chain = Chain.Base)),
+            ),
+            displayState = WalletSummaryDisplayState(
+                totalValue = "\$0.00",
+                changedValue = null,
+            ),
+            isBalanceHidden = false,
+            isOperationsAvailable = true,
+        )
+
+        assertEquals(Chain.Base.getIconUrl(), summary.walletIcon)
     }
 }

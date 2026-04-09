@@ -6,11 +6,11 @@ import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Wallet
@@ -57,8 +57,8 @@ class GetWalletSummaryImpl(
                     currency = session.currency,
                     totalValue = totalValue,
                     totalChangedValue = totalChangedValue,
-                    hideBalances = hideBalances,
                 ),
+                isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,
             )
         }
@@ -73,14 +73,7 @@ internal fun buildWalletSummaryDisplayState(
     currency: Currency,
     totalValue: BigDecimal,
     totalChangedValue: BigDecimal,
-    hideBalances: Boolean,
 ): WalletSummaryDisplayState {
-    if (hideBalances) {
-        return WalletSummaryDisplayState(
-            totalValue = "✱✱✱✱✱✱",
-            changedValue = null,
-        )
-    }
     if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
         return WalletSummaryDisplayState(
             totalValue = currency.format(BigDecimal.ZERO, dynamicPlace = true),
@@ -130,6 +123,7 @@ internal data class WalletSummaryDisplayState(
 internal class WalletSummaryAggregateImpl(
     wallet: Wallet,
     displayState: WalletSummaryDisplayState,
+    override val isBalanceHidden: Boolean,
     override val isOperationsAvailable: Boolean,
 ) : WalletSummaryAggregate {
     private val walletAccount = wallet.accounts.firstOrNull()
@@ -142,7 +136,7 @@ internal class WalletSummaryAggregateImpl(
         WalletType.Multicoin -> null
         WalletType.Single,
         WalletType.PrivateKey,
-        WalletType.View -> walletAccount?.chain?.asset()
+        WalletType.View -> walletAccount?.chain?.getIconUrl()
     }
 
     override val walletTotalValue: String = displayState.totalValue

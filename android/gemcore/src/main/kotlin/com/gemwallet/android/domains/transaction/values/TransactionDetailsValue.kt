@@ -40,6 +40,9 @@ sealed interface TransactionDetailsValue {
     sealed class Destination(val data: String, open val explorerLink: BlockExplorerLink? = null) : TransactionDetailsValue {
         class Sender(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
         class Recipient(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
+        class Contract(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
+        class Validator(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
+        class ProviderAddress(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
         class Provider(name: String) : Destination(name)
     }
 

@@ -15,6 +15,7 @@ import com.wallet.core.primitives.Price
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.SwapProvider
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -62,7 +63,7 @@ class TransactionDetailsAggregateImplTest {
         metadata: String? = null,
         memo: String? = null,
     ) = Transaction(
-        id = id,
+        id = TransactionId(assetId.chain, id),
         assetId = assetId,
         from = from,
         to = to,
@@ -126,7 +127,7 @@ class TransactionDetailsAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = btcAsset)
         val aggregate = createAggregate(extended)
 
-        Assert.assertEquals("test-id-123", aggregate.id)
+        Assert.assertEquals("bitcoin_test-id-123", aggregate.id)
         Assert.assertEquals(btcAsset, aggregate.asset)
         Assert.assertEquals(Currency.USD, aggregate.currency)
         Assert.assertEquals("Explorer", aggregate.explorer.name)
@@ -508,22 +509,97 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testDestination_stakeDelegate() {
-        val transaction = createTransaction(type = TransactionType.StakeDelegate)
+        val transaction = createTransaction(
+            type = TransactionType.StakeDelegate,
+            to = "validator-address",
+        )
         val extended = createTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         val destination = aggregate.destination
-        Assert.assertNull(destination)
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Validator)
+        val validator = destination as TransactionDetailsValue.Destination.Validator
+        Assert.assertEquals("validator-address", validator.data)
     }
 
     @Test
     fun testDestination_tokenApproval() {
-        val transaction = createTransaction(type = TransactionType.TokenApproval)
+        val transaction = createTransaction(
+            type = TransactionType.TokenApproval,
+            to = "contract-address",
+        )
         val extended = createTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
         val destination = aggregate.destination
-        Assert.assertNull(destination)
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Contract)
+        val contract = destination as TransactionDetailsValue.Destination.Contract
+        Assert.assertEquals("contract-address", contract.data)
+    }
+
+    @Test
+    fun testDestination_earnDeposit() {
+        val transaction = createTransaction(
+            type = TransactionType.EarnDeposit,
+            to = "provider-address",
+        )
+        val extended = createTransactionExtended(transaction)
+        val aggregate = createAggregate(extended)
+
+        val destination = aggregate.destination
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.ProviderAddress)
+        val provider = destination as TransactionDetailsValue.Destination.ProviderAddress
+        Assert.assertEquals("provider-address", provider.data)
+    }
+
+    @Test
+    fun testDestination_earnWithdraw() {
+        val transaction = createTransaction(
+            type = TransactionType.EarnWithdraw,
+            direction = TransactionDirection.Incoming,
+            from = "provider-address",
+        )
+        val extended = createTransactionExtended(transaction)
+        val aggregate = createAggregate(extended)
+
+        val destination = aggregate.destination
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.ProviderAddress)
+        val provider = destination as TransactionDetailsValue.Destination.ProviderAddress
+        Assert.assertEquals("provider-address", provider.data)
+    }
+
+    @Test
+    fun testDestination_smartContractCallSendable() {
+        val metadata = """{"outputAction":"send"}"""
+        val transaction = createTransaction(
+            type = TransactionType.SmartContractCall,
+            to = "recipient-address",
+            metadata = metadata,
+        )
+        val extended = createTransactionExtended(transaction)
+        val aggregate = createAggregate(extended)
+
+        val destination = aggregate.destination
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Recipient)
+        val recipient = destination as TransactionDetailsValue.Destination.Recipient
+        Assert.assertEquals("recipient-address", recipient.data)
+    }
+
+    @Test
+    fun testDestination_smartContractCallSignable() {
+        val metadata = """{"outputAction":"sign"}"""
+        val transaction = createTransaction(
+            type = TransactionType.SmartContractCall,
+            to = "contract-address",
+            metadata = metadata,
+        )
+        val extended = createTransactionExtended(transaction)
+        val aggregate = createAggregate(extended)
+
+        val destination = aggregate.destination
+        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Contract)
+        val contract = destination as TransactionDetailsValue.Destination.Contract
+        Assert.assertEquals("contract-address", contract.data)
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.gemwallet.android.ext.hash
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
@@ -34,7 +35,7 @@ data class DbTransaction(
 
 fun Transaction.toRecord(walletId: String): DbTransaction {
     return DbTransaction(
-        id = this.id,
+        id = this.id.identifier,
         walletId = walletId,
         hash = this.hash,
         assetId = this.assetId.toIdentifier(),
@@ -58,7 +59,7 @@ fun Transaction.toRecord(walletId: String): DbTransaction {
 
 fun DbTransaction.toDTO(): Transaction {
     return Transaction(
-        id = this.id,
+        id = TransactionId.from(this.id) ?: throw IllegalArgumentException(),
         assetId = this.assetId.toAssetId() ?: throw IllegalArgumentException(),
         from = this.owner,
         to = this.recipient,

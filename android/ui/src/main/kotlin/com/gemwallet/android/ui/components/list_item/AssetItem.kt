@@ -98,9 +98,9 @@ fun AssetListItem(
 @Composable
 fun AssetListItem(
     asset: Asset,
+    support: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
-    support: String? = null,
     badge: String? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
@@ -112,9 +112,7 @@ fun AssetListItem(
         titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset) },
         title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
-        subtitle = if (support.isNullOrEmpty()) null else {
-            { ListItemSupportText(support) }
-        },
+        subtitle = support,
         trailing = if (trailing == null) null else {
             { trailing.invoke() }
         }
@@ -152,6 +150,19 @@ fun PriceInfo(
         isHighlightPercentage,
         internalPadding,
     )
+}
+
+fun assetPriceSupport(price: PriceUIModel): (@Composable () -> Unit)? {
+    if (price.fiatFormatted.isEmpty()) {
+        return null
+    }
+    return {
+        PriceInfo(
+            price = price,
+            style = MaterialTheme.typography.bodyMedium,
+            internalPadding = paddingHalfSmall,
+        )
+    }
 }
 
 @Composable

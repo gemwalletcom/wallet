@@ -4,11 +4,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -19,9 +19,10 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.PriceInfo
+import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
@@ -49,6 +50,13 @@ fun AssetsManageScreen(
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
     val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
+    val contextActions = remember(viewModel, manageable) {
+        if (manageable) AssetContextActions.Empty else AssetContextActions(
+            onTogglePin = viewModel::onTogglePin,
+            onAddToWallet = { id -> viewModel.onChangeVisibility(id, true) },
+        )
+    }
+
     AssetSelectScene(
         title = {
             if (manageable) {
@@ -72,17 +80,7 @@ fun AssetsManageScreen(
                     { ListItemSupportText(it.asset.id.chain.asset().name) }
                 }
             } else {
-                if (it.price.fiatFormatted.isEmpty()) {
-                    null
-                } else {
-                    @Composable {
-                        PriceInfo(
-                            price = it.price,
-                            style = MaterialTheme.typography.bodyMedium,
-                            internalPadding = 4.dp
-                        )
-                    }
-                }
+                assetPriceSupport(it.price)
             }
         },
         query = viewModel.queryState,
@@ -115,13 +113,14 @@ fun AssetsManageScreen(
         itemTrailing = { asset ->
             if (manageable) {
                 Switch(
-                    checked = asset.metadata?.isEnabled == true,
+                    checked = asset.metadata?.isBalanceEnabled == true,
                     onCheckedChange = { viewModel.onChangeVisibility(asset.asset.id, it) }
                 )
             } else {
                 getBalanceInfo(asset)()
             }
         },
+        contextActions = contextActions,
     )
 }
 

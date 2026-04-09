@@ -1,12 +1,10 @@
 package com.gemwallet.android.features.settings.price_alerts.presents
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.PriceInfo
+import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScreen
 import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertsSelectViewModel
@@ -21,19 +19,7 @@ fun PriceAlertSelectScreen(
     AssetSelectScreen(
         title = stringResource(id = R.string.assets_select_asset),
         titleBadge = ::getAssetBadge,
-        itemSupport = {
-            if (it.price.fiatFormatted.isEmpty()) {
-                null
-            } else {
-                @Composable {
-                    PriceInfo(
-                        price = it.price,
-                        style = MaterialTheme.typography.bodyMedium,
-                        internalPadding = 4.dp
-                    )
-                }
-            }
-        },
+        itemSupport = { assetPriceSupport(it.price) },
         onCancel = onCancel,
         onSelect = onSelect,
         viewModel = viewModel,

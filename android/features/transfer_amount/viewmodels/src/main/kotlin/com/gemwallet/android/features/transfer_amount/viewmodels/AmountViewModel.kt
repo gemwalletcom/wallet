@@ -242,9 +242,9 @@ class AmountViewModel @Inject constructor(
             TransactionType.StakeDelegate -> if (assetInfo.stakeChain?.freezed() == true) {
                 Crypto(baseBalance)
             } else {
-                Crypto(baseBalance - reserveForFee)
+                Crypto(maxAmountAfterReserve(baseBalance, reserveForFee))
             }
-            TransactionType.StakeFreeze -> Crypto(baseBalance - reserveForFee)
+            TransactionType.StakeFreeze -> Crypto(maxAmountAfterReserve(baseBalance, reserveForFee))
             else -> Crypto(baseBalance)
         }
 
@@ -413,6 +413,11 @@ class AmountViewModel @Inject constructor(
             )
             else -> BigInteger.ZERO
         }
+    }
+
+    companion object {
+        fun maxAmountAfterReserve(balance: BigInteger, reserve: BigInteger): BigInteger =
+            maxOf(balance - reserve, BigInteger.ZERO)
     }
 
     private fun getReserveForFee(txType: TransactionType, chain: Chain) = when (txType) {

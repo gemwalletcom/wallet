@@ -14,11 +14,9 @@ import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -66,7 +64,6 @@ class AssetChartViewModel internal constructor(
             )
         }
     }
-        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @Inject

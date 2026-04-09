@@ -93,7 +93,17 @@ open class BaseAssetSelectViewModel(
                     && (!balanceFilter || it.balance.totalAmount > 0.0)
         }
     }
-    .map { items -> items.map { AssetInfoUIModel(it) } }
+    .map { items ->
+        val wallet = session.value?.wallet
+        items.map { item ->
+            val info = if (item.owner == null && wallet != null) {
+                item.copy(owner = wallet.getAccount(item.asset.id.chain))
+            } else {
+                item
+            }
+            AssetInfoUIModel(info)
+        }
+    }
 //    .onEach { searchState.update { SearchState.Idle } }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>())
@@ -160,6 +170,13 @@ open class BaseAssetSelectViewModel(
         val session = session.value ?: return@launch
         val account = session.wallet.getAccount(assetId.chain) ?: return@launch
         assetsRepository.switchVisibility(session.wallet.id, account, assetId, visible)
+    }
+
+    fun onTogglePin(assetId: AssetId) = viewModelScope.launch {
+        val session = session.value ?: return@launch
+        val account = session.wallet.getAccount(assetId.chain) ?: return@launch
+        assetsRepository.switchVisibility(session.wallet.id, account, assetId, true)
+        assetsRepository.togglePin(session.wallet.id, assetId)
     }
 
     fun onChainFilter(chain: Chain) {

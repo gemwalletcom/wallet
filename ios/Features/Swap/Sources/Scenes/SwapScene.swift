@@ -98,7 +98,7 @@ extension SwapScene {
             )
             .padding(.top, .small)
             .frame(maxWidth: .infinity)
-            .disabled(model.isSwitchAssetButtonDisabled)
+            .disabled(model.isTransferDataLoading)
             .textCase(nil)
             .listRowSeparator(.hidden)
             .listRowInsets(.horizontalMediumInsets)
@@ -110,8 +110,7 @@ extension SwapScene {
             SwapTokenView(
                 model: model.swapTokenModel(type: .receive(chains: [], assetIds: [])),
                 text: $model.toValue,
-                showLoading: model.isLoading,
-                disabledTextField: true,
+                showLoading: model.isReceiveFieldLoading,
                 onBalanceAction: {},
                 onSelectAssetAction: model.onSelectAssetReceive,
             )

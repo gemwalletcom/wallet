@@ -14,6 +14,8 @@ import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamPriceAlertUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -58,7 +60,14 @@ class StreamEventHandlerTest {
         every { buyRepository.get() } returns buyRepo
         coEvery { walletsRepository.getWallet("w1") } returns flowOf(wallet)
 
-        handler.handle(StreamEvent.Transactions(StreamTransactionsUpdate(walletId = WalletId("w1"), transactions = listOf("tx1"))))
+        handler.handle(
+            StreamEvent.Transactions(
+                StreamTransactionsUpdate(
+                    walletId = WalletId("w1"),
+                    transactions = listOf(TransactionId(Chain.Bitcoin, "tx1")),
+                )
+            )
+        )
         coVerify { sync.syncTransactions(wallet) }
 
         handler.handle(StreamEvent.PriceAlerts(StreamPriceAlertUpdate(assets = emptyList())))

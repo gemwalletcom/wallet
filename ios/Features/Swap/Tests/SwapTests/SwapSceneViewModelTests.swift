@@ -56,6 +56,56 @@ struct SwapSceneViewModelTests {
         model.swapState.quotes = .data([])
         model.swapState.swapTransferData = .error(TestError())
         #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retrySwap)
+
+        model.swapState.quotes = .error(TestError())
+        model.swapState.swapTransferData = .error(TestError())
+        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retrySwap)
+    }
+
+    @Test
+    func loadingFlagsSeparateQuoteAndTransferDataStates() async {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .loading
+        #expect(model.isQuoteLoading)
+        #expect(model.isTransferDataLoading == false)
+        #expect(model.isQuoteInteractionEnabled)
+        #expect(model.isReceiveFieldLoading)
+
+        model.swapState.quotes = .data([.mock()])
+        model.swapState.swapTransferData = .loading
+        #expect(model.isQuoteLoading == false)
+        #expect(model.isTransferDataLoading)
+        #expect(model.isQuoteInteractionEnabled == false)
+        #expect(model.isReceiveFieldLoading == false)
+    }
+
+    @Test
+    func fetchDoesNotRunWhileTransferDataLoading() async throws {
+        let model = await model()
+        let previousToValue = model.toValue
+        let previousQuote = model.selectedSwapQuote
+
+        model.swapState.swapTransferData = .loading
+        await model.fetch()
+
+        #expect(model.swapState.quotes.isLoading == false)
+        #expect(model.toValue == previousToValue)
+        #expect(model.selectedSwapQuote == previousQuote)
+    }
+
+    @Test
+    func quoteChangingActionsClearTransferStateAndDisableProviderSelection() async throws {
+        let model = await model()
+
+        model.swapState.quotes = .data([.mock(), .mock(toValue: "260000000000")])
+        model.swapState.swapTransferData = .error(TestError())
+
+        model.onFinishSwapProviderSelection(.mock())
+        #expect(model.swapState.swapTransferData.isNoData)
+
+        model.swapState.swapTransferData = .loading
+        #expect(model.swapDetailsViewModel?.allowSelectProvider == false)
     }
 
     @Test

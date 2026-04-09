@@ -28,6 +28,9 @@ class CheckAccountsService @Inject constructor(
     private val syncSubscription: SyncSubscription,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
+        // TODO: Remove after legacy native assets with stale rank = 0 have been repaired.
+        assetsRepository.updateNativeAssetRanks()
+
         val wallets = walletsRepository.getAll().firstOrNull() ?: emptyList()
 
         wallets.forEach { wallet ->

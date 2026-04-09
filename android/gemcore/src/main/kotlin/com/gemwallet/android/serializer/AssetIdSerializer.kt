@@ -3,8 +3,10 @@ package com.gemwallet.android.serializer
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializer
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
@@ -15,9 +17,10 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.IOException
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = AssetId::class)
-object AssetIdSerializer {
+object AssetIdSerializer : KSerializer<AssetId> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(AssetId::class.simpleName!!, PrimitiveKind.STRING)
+
     override fun serialize(encoder: Encoder, value: AssetId) = when (encoder) {
         is JsonEncoder -> encoder.encodeJsonElement(JsonPrimitive(value.toIdentifier()))
         else -> encoder.encodeString(value.toString())

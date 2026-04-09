@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -29,7 +28,6 @@ class GetActiveAssetsInfoImpl(
         assetsInfo
             .map { items -> items.map { it.toAssetInfoDataAggregate(hideBalance) } }
             .distinctUntilChanged()
-            .flowOn(Dispatchers.Default)
 }
 
 internal fun AssetInfo.toAssetInfoDataAggregate(

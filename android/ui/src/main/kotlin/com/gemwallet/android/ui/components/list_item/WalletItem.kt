@@ -65,20 +65,11 @@ fun WalletItem(
         leading = @Composable {
             IconWithBadge(
                 icon = walletItemIconModel(type = type, walletChain = walletChain),
-                supportIcon = if (type == WalletType.View) {
-                    "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
-                } else null,
+                supportIcon = type.supportIcon(),
             )
         },
         title = {
-            ListItemTitleText(
-                text = name,
-                titleBadge = if (type == WalletType.View) {
-                    { Badge(stringResource(id = R.string.wallets_watch).uppercase()) }
-                } else {
-                    null
-                }
-            )
+            ListItemTitleText(text = name)
         },
         subtitle = {
             val subtitle = when (type) {

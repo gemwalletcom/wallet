@@ -91,6 +91,18 @@ struct SwapButtonViewModelTests {
         let viewModel = SwapButtonViewModel.mock(swapState: swapState)
         #expect(viewModel.buttonAction == SwapButtonAction.retrySwap)
     }
+
+    @Test
+    func retrySwapWinsWhenBothStatesAreRetryable() {
+        let swapState = SwapState(
+            quotes: .error(MockRetryableError()),
+            swapTransferData: .error(MockRetryableError()),
+        )
+        let viewModel = SwapButtonViewModel.mock(swapState: swapState)
+
+        #expect(viewModel.buttonAction == SwapButtonAction.retrySwap)
+        #expect(viewModel.title == Localized.Common.tryAgain)
+    }
 }
 
 extension SwapButtonViewModel {
