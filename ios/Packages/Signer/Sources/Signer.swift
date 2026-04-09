@@ -81,7 +81,7 @@ public struct Signer: Sendable {
         case .tron: TronSigner()
         case .bitcoin: BitcoinSigner()
         case .xrp: XrpSigner()
-        case .near: NearSigner()
+        case .near: ChainSigner(chain: chain)
         case .stellar: StellarSigner()
         case .algorand: AlgorandSigner()
         case .polkadot: PolkadotSigner()

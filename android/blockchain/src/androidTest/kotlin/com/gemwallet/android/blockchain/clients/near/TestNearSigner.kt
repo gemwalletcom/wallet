@@ -2,6 +2,7 @@ package com.gemwallet.android.blockchain.clients.near
 
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.testPhrase
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
@@ -30,7 +31,7 @@ class TestNearSigner {
         val hdWallet = HDWallet(testPhrase, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.NEAR)
         val from = hdWallet.getAddressForCoin(CoinType.NEAR)
-        val signer = NearSignClient(Chain.Near)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
