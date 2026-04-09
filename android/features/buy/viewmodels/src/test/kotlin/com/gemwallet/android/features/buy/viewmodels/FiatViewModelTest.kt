@@ -1,25 +1,28 @@
 package com.gemwallet.android.features.buy.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.buy.BuyRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.fiat.coordinators.AddBuyRecent
+import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.FiatQuote
 import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -36,18 +39,14 @@ class FiatViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset()
     private val wallet = mockWallet(id = "wallet-id")
-    private val sessionFlow = MutableStateFlow<Session?>(Session(wallet, Currency.USD))
     private val assetInfoFlow = MutableStateFlow<AssetInfo?>(assetInfo(price = 100.0))
 
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns sessionFlow
+    private val getBuyAssetInfo = object : GetBuyAssetInfo {
+        override fun invoke(assetId: AssetId): Flow<AssetInfo?> = assetInfoFlow
     }
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true) {
-        every { getTokenInfo(asset.id) } returns assetInfoFlow
-    }
-    private val buyRepository = mockk<BuyRepository>(relaxed = true) {
+    private val getBuyQuotes = mockk<GetBuyQuotes>(relaxed = true) {
         coEvery {
-            getQuotes(
+            invoke(
                 walletId = wallet.id,
                 asset = asset,
                 type = any(),
@@ -56,6 +55,8 @@ class FiatViewModelTest {
             )
         } returns listOf(mockFiatQuote())
     }
+    private val getBuyQuoteUrl = mockk<GetBuyQuoteUrl>(relaxed = true)
+    private val addBuyRecent = mockk<AddBuyRecent>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -77,7 +78,7 @@ class FiatViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            buyRepository.getQuotes(
+            getBuyQuotes(
                 walletId = wallet.id,
                 asset = asset,
                 type = FiatQuoteType.Buy,
@@ -98,7 +99,7 @@ class FiatViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) {
-            buyRepository.getQuotes(
+            getBuyQuotes(
                 walletId = wallet.id,
                 asset = asset,
                 type = FiatQuoteType.Buy,
@@ -109,9 +110,10 @@ class FiatViewModelTest {
     }
 
     private fun createViewModel() = FiatViewModel(
-        sessionRepository = sessionRepository,
-        assetsRepository = assetsRepository,
-        buyRepository = buyRepository,
+        getBuyQuotes = getBuyQuotes,
+        getBuyQuoteUrl = getBuyQuoteUrl,
+        addBuyRecent = addBuyRecent,
+        getBuyAssetInfo = getBuyAssetInfo,
         savedStateHandle = SavedStateHandle(
             mapOf("assetId" to asset.id.toIdentifier())
         ),

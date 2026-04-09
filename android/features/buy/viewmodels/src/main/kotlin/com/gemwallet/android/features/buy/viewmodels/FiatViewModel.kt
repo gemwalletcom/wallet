@@ -5,16 +5,14 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.buy.BuyRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.application.fiat.coordinators.AddBuyRecent
+import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.model.Fiat
-import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
@@ -57,9 +55,10 @@ private data class QuoteRefreshTrigger(
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class FiatViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
-    private val buyRepository: BuyRepository,
+    private val getBuyQuotes: GetBuyQuotes,
+    private val getBuyQuoteUrl: GetBuyQuoteUrl,
+    private val addBuyRecent: AddBuyRecent,
+    getBuyAssetInfo: GetBuyAssetInfo,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -68,7 +67,6 @@ class FiatViewModel @Inject constructor(
 
     val type = MutableStateFlow(FiatQuoteType.Buy)
     val assetId = savedStateHandle.getStateFlow("assetId", "").mapNotNull { it.toAssetId() }
-    val session = sessionRepository.session()
 
     val buyOperation = FiatOperationState(
         defaultAmount = DEFAULT_BUY_AMOUNT,
@@ -91,29 +89,17 @@ class FiatViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DEFAULT_BUY_AMOUNT)
 
-    val assetInfoUIModel = combine(session, assetId) { session, assetId ->
-        Pair(session, assetId)
-    }
-    .flatMapLatest { data ->
-        val (session, assetId) = data
-        assetsRepository.getTokenInfo(assetId)
-            .mapNotNull { it }
-            .map { assetInfo ->
-                if (assetInfo.owner == null) {
-                    assetInfo.copy(owner = session?.wallet?.getAccount(assetInfo.asset.chain))
-                } else {
-                    assetInfo
-                }
+    val assetInfoUIModel = assetId
+        .flatMapLatest { getBuyAssetInfo(it) }
+        .flowOn(Dispatchers.IO)
+        .mapNotNull { it }
+        .map {
+            object : AssetInfoUIModel(it, false, 2, 4) {
+                override val cryptoAmount: Double
+                    get() = assetInfo.balance.balanceAmount.available
             }
-    }
-    .flowOn(Dispatchers.IO)
-    .map {
-        object : AssetInfoUIModel(it, false, 2, 4) {
-            override val cryptoAmount: Double
-                get() = assetInfo.balance.balanceAmount.available
         }
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val suggestedAmounts = type.mapLatest {
         listOf(
@@ -172,7 +158,7 @@ class FiatViewModel @Inject constructor(
                 return@mapLatest
             }
             try {
-                val quotes = buyRepository.getQuotes(
+                val quotes = getBuyQuotes(
                     walletId = assetInfo.assetInfo.walletId ?: return@mapLatest,
                     asset = assetInfo.asset,
                     type = currentType,
@@ -243,7 +229,7 @@ class FiatViewModel @Inject constructor(
     fun getUrl(callback: (String?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             addRecent()
-            val url = buyRepository.getQuoteUrl(
+            val url = getBuyQuoteUrl(
                 quoteId = currentSelectedQuote.value?.id ?: return@launch,
                 walletId = assetInfoUIModel.value?.assetInfo?.walletId ?: return@launch,
             )
@@ -254,7 +240,7 @@ class FiatViewModel @Inject constructor(
     private fun addRecent() = viewModelScope.launch(Dispatchers.IO) {
         val assetInfo = assetInfoUIModel.value?.assetInfo ?: return@launch
         val walletId = assetInfo.walletId ?: return@launch
-        assetsRepository.addRecentActivity(assetInfo.id(), walletId, RecentType.Buy)
+        addBuyRecent(assetInfo.id(), walletId)
     }
 
     private data class QuoteFetchParams(
