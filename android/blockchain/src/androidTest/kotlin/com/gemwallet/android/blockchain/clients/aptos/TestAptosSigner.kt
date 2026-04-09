@@ -2,12 +2,13 @@ package com.gemwallet.android.blockchain.clients.aptos
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
-import com.gemwallet.android.model.GasFee
+import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -33,8 +34,8 @@ class TestAptosSigner {
 
     @Test
     fun testAptosNativeSign() {
-        val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.APTOS)
-        val signer = AptosSignClient(Chain.Aptos)
+        val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.APTOS)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
@@ -48,11 +49,13 @@ class TestAptosSigner {
                     8UL,
                 ),
                 finalAmount = BigInteger.valueOf(10_000_000_000),
-                GasFee(
-                    AssetId(Chain.Aptos),
+                Fee.Regular(
+                    feeAssetId = AssetId(Chain.Aptos),
                     priority = FeePriority.Normal,
+                    amount = BigInteger.valueOf(2_700L),
                     maxGasPrice = BigInteger.valueOf(150L),
-                    limit = BigInteger.valueOf(18L)
+                    limit = BigInteger.valueOf(18L),
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )
@@ -79,8 +82,8 @@ class TestAptosSigner {
 
     @Test
     fun testAptos_token_sign() {
-        val privateKey = HDWallet(testPhrase, "").getKeyForCoin(CoinType.APTOS)
-        val signer = AptosSignClient(Chain.Aptos)
+        val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.APTOS)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signTokenTransfer(
@@ -93,11 +96,13 @@ class TestAptosSigner {
                 chainData = AptosChainData(
                     8UL,
                 ),
-                fee = GasFee(
-                    AssetId(Chain.Aptos),
+                fee = Fee.Regular(
+                    feeAssetId = AssetId(Chain.Aptos),
                     priority = FeePriority.Normal,
+                    amount = BigInteger.valueOf(2_700L),
                     maxGasPrice = BigInteger.valueOf(150L),
-                    limit = BigInteger.valueOf(18L)
+                    limit = BigInteger.valueOf(18L),
+                    options = emptyMap(),
                 ),
                 finalAmount = BigInteger.valueOf(10_000_000_000),
                 privateKey = privateKey.data(),

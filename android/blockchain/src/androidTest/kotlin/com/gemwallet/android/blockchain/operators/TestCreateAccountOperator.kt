@@ -2,7 +2,8 @@ package com.gemwallet.android.blockchain.operators
 
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.operators.walletcore.WCCreateAccountOperator
-import com.gemwallet.android.blockchain.testPhrase
+import com.gemwallet.android.testkit.LOCAL_KEYSTORE_TEST_PHRASE
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 import junit.framework.TestCase.assertEquals
@@ -10,9 +11,6 @@ import org.junit.Test
 
 class TestCreateAccountOperator {
     companion object {
-        private const val iosLocalKeystorePhrase =
-            "shoot island position soft burden budget tooth cruel issue economy destroy above"
-
         init {
             includeLibs()
         }
@@ -21,7 +19,7 @@ class TestCreateAccountOperator {
     @Test
     fun testCreate_account_solana() {
         val operator = WCCreateAccountOperator()
-        val result = operator(walletType = WalletType.Multicoin, data = testPhrase, Chain.Solana)
+        val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.Solana)
         assertEquals("4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S", result.address)
         assertEquals("m/44'/501'/0'", result.derivationPath)
         assertEquals("", result.extendedPublicKey)
@@ -30,7 +28,7 @@ class TestCreateAccountOperator {
     @Test
     fun testCreate_account_bitcoincache() {
         val operator = WCCreateAccountOperator()
-        val result = operator(walletType = WalletType.Multicoin, data = testPhrase, Chain.BitcoinCash)
+        val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.BitcoinCash)
         assertEquals("qq29xrkkd68alnrca375qlfyhwdqdkevsvmgkq9cmw", result.address)
         assertEquals("m/44'/145'/0'/0/0", result.derivationPath)
         assertEquals("xpub6Cd3LU6iyrbbhxPRYZpE5hGUdmrQVpQ79i9RYNLrs2iVrtYkKRv6swMWeTpPfomebgisrRGPrFvt1qaFiZLLuQdSFRVBWdbKD4HWnMrFsjR", result.extendedPublicKey)
@@ -40,7 +38,7 @@ class TestCreateAccountOperator {
     @Test
     fun testCreate_account_evm() {
         val operator = WCCreateAccountOperator()
-        val result = operator(walletType = WalletType.Multicoin, data = testPhrase, Chain.Ethereum)
+        val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.Ethereum)
         assertEquals("0x9b1DB81180c31B1b428572Be105E209b5A6222b7", result.address)
         assertEquals("m/44'/60'/0'/0/0", result.derivationPath)
         assertEquals("", result.extendedPublicKey)
@@ -53,7 +51,7 @@ class TestCreateAccountOperator {
         Chain.entries.forEach { chain ->
             val account = operator(
                 walletType = WalletType.Multicoin,
-                data = iosLocalKeystorePhrase,
+                data = LOCAL_KEYSTORE_TEST_PHRASE,
                 chain = chain,
             )
 
