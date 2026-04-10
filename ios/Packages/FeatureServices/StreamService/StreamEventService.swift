@@ -99,7 +99,7 @@ extension StreamEventService {
 
     private func handlePerpetualUpdate(_ update: StreamWalletUpdate) async throws {
         guard let wallet = try walletStore.getWallet(id: update.walletId), let account = wallet.hyperliquidAccount else { return }
-        try await perpetualService.fetchPositions(walletId: update.walletId, address: account.address)
+        try await perpetualService.getPositions(walletId: update.walletId, address: account.address)
     }
 
     private func handleFiatTransactionUpdate(_ update: StreamWalletUpdate) async throws {

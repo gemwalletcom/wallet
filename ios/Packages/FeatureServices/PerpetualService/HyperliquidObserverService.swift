@@ -62,7 +62,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public func update(for wallet: Wallet) async {
         guard let address = wallet.hyperliquidAccount?.address else { return }
         do {
-            try await perpetualService.fetchPositions(walletId: wallet.walletId, address: address)
+            try await perpetualService.getPositions(walletId: wallet.walletId, address: address)
         } catch {
             debugLog("HyperliquidObserver: update failed: \(error)")
         }

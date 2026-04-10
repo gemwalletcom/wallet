@@ -455,14 +455,21 @@ struct Migrations {
             try? FiatTransactionRecord.create(db: db)
         }
 
-        migrator.registerMigration("Add isIsolatedOnly to \(PerpetualRecord.databaseTableName)") { db in
-            try? db.alter(table: PerpetualRecord.databaseTableName) {
-                $0.add(column: PerpetualRecord.Columns.isIsolatedOnly.name, .boolean)
-                    .notNull()
-                    .defaults(to: false)
-            }
-        }
+        migrator.registerMigration("Recreate \(PerpetualRecord.databaseTableName)") { db in
+            try? db.execute(sql: "DELETE FROM \(SearchRecord.databaseTableName) WHERE \(SearchRecord.Columns.perpetualId.name) IS NOT NULL")
 
+            if try db.tableExists(PerpetualPositionRecord.databaseTableName) {
+                try db.drop(table: PerpetualPositionRecord.databaseTableName)
+            }
+
+            if try db.tableExists(PerpetualRecord.databaseTableName) {
+                try db.drop(table: PerpetualRecord.databaseTableName)
+            }
+
+            try PerpetualRecord.create(db: db)
+            try PerpetualPositionRecord.create(db: db)
+        }
+        
         try migrator.migrate(dbQueue)
     }
 }

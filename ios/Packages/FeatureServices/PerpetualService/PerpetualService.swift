@@ -64,7 +64,7 @@ public struct PerpetualService: PerpetualServiceable {
         try store.setPinned(for: [perpetualId], value: isPinned)
     }
 
-    public func fetchPositions(walletId: WalletId, address: String) async throws {
+    public func getPositions(walletId: WalletId, address: String) async throws {
         let summary = try await provider.getPositions(address: address)
         let existingPositionIds = try Set(store.getPositions(walletId: walletId, provider: .hypercore).map(\.id))
         let newPositionIds = Set(summary.positions.map(\.id))
