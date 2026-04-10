@@ -9,12 +9,14 @@ import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
 import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
 import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
 import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
+import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.ext.filter
-import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetError
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.Explorer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -39,6 +42,7 @@ class AddAssetViewModel @Inject constructor(
     private val observeToken: ObserveToken,
     private val addCustomToken: AddCustomToken,
     getAvailableTokenChains: GetAvailableTokenChains,
+    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -81,16 +85,7 @@ class AddAssetViewModel @Inject constructor(
             }
 
             emit(TokenSearchState.Loading)
-
-            val success = searchCustomToken(AssetId(chain, address))
-
-            emit(
-                if (success) {
-                    TokenSearchState.Idle
-                } else {
-                    TokenSearchState.Error(AddAssetError.TokenNotFound)
-                }
-            )
+            emit(searchToken(searchCustomToken, observeToken, chain, address))
         }
     }
     .flowOn(Dispatchers.IO)
@@ -107,6 +102,14 @@ class AddAssetViewModel @Inject constructor(
         observeToken(AssetId(chain, address))
     }
     .flowOn(Dispatchers.IO)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val explorerLink = token.combine(selectedChain) { token, chain ->
+        val tokenId = token?.id?.tokenId ?: return@combine null
+        val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain)
+        val url = Explorer(chain.string).getTokenUrl(explorerName, tokenId) ?: return@combine null
+        BlockExplorerLink(name = explorerName, link = url)
+    }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onQrScan() {
@@ -159,5 +162,21 @@ class AddAssetViewModel @Inject constructor(
                 },
             )
         }
+    }
+}
+
+suspend fun searchToken(
+    searchCustomToken: SearchCustomToken,
+    observeToken: ObserveToken,
+    chain: Chain,
+    address: String,
+): TokenSearchState {
+    val assetId = AssetId(chain, address)
+    return try {
+        searchCustomToken(assetId)
+        val found = observeToken(assetId).firstOrNull() != null
+        if (found) TokenSearchState.Idle else TokenSearchState.Error
+    } catch (_: Exception) {
+        TokenSearchState.Error
     }
 }
