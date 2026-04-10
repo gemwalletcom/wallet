@@ -9,6 +9,6 @@ import kotlinx.coroutines.flow.Flow
 class GetRecentAssetsImpl(
     private val assetsRepository: AssetsRepository,
 ) : GetRecentAssets {
-    override fun getRecentActivities(types: List<RecentType>): Flow<List<AssetInfo>> =
+    override fun invoke(types: List<RecentType>): Flow<List<AssetInfo>> =
         assetsRepository.getRecentActivities(types)
 }

@@ -55,8 +55,8 @@ class SendSelectSearchTest {
         val result = search.items(filters).first()
 
         assertEquals(walletAssetResults, result)
-        verify(exactly = 1) { getSelectAssetsInfo.getAssetsInfo() }
-        verify(exactly = 0) { searchSelectAssets.search(any(), any()) }
+        verify(exactly = 1) { getSelectAssetsInfo.invoke() }
+        verify(exactly = 0) { searchSelectAssets.invoke(any(), any()) }
     }
 
     @Test
@@ -77,14 +77,14 @@ class SendSelectSearchTest {
         val result = search.items(filters).first()
 
         assertEquals(searchResults, result)
-        verify(exactly = 1) { searchSelectAssets.search("", listOf(AssetTag.Stablecoins)) }
+        verify(exactly = 1) { searchSelectAssets.invoke("", listOf(AssetTag.Stablecoins)) }
     }
 
-    private fun searchCoordinator() = mockk<SearchSelectAssets>(relaxed = true) {
-        every { search(any(), any()) } returns flowOf(searchResults)
+    private fun searchCoordinator() = mockk<SearchSelectAssets> {
+        every { this@mockk(any(), any()) } returns flowOf(searchResults)
     }
 
-    private fun assetsInfoCoordinator() = mockk<GetSelectAssetsInfo>(relaxed = true) {
-        every { getAssetsInfo() } returns flowOf(walletAssetResults)
+    private fun assetsInfoCoordinator() = mockk<GetSelectAssetsInfo> {
+        every { this@mockk() } returns flowOf(walletAssetResults)
     }
 }

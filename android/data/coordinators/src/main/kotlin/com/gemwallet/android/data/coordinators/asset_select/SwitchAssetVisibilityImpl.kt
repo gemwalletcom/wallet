@@ -8,6 +8,6 @@ import com.wallet.core.primitives.AssetId
 class SwitchAssetVisibilityImpl(
     private val assetsRepository: AssetsRepository,
 ) : SwitchAssetVisibility {
-    override suspend fun switchVisibility(walletId: String, account: Account, assetId: AssetId, visible: Boolean) =
+    override suspend fun invoke(walletId: String, account: Account, assetId: AssetId, visible: Boolean) =
         assetsRepository.switchVisibility(walletId, account, assetId, visible)
 }

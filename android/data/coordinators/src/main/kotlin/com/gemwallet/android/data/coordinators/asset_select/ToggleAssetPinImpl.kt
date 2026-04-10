@@ -7,7 +7,7 @@ import com.wallet.core.primitives.AssetId
 class ToggleAssetPinImpl(
     private val assetsRepository: AssetsRepository,
 ) : ToggleAssetPin {
-    override suspend fun togglePin(walletId: String, assetId: AssetId) {
+    override suspend fun invoke(walletId: String, assetId: AssetId) {
         assetsRepository.togglePin(walletId, assetId)
     }
 }

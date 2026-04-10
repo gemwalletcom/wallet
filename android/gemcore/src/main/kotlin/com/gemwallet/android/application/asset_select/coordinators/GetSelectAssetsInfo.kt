@@ -4,5 +4,5 @@ import com.gemwallet.android.model.AssetInfo
 import kotlinx.coroutines.flow.Flow
 
 interface GetSelectAssetsInfo {
-    fun getAssetsInfo(): Flow<List<AssetInfo>>
+    operator fun invoke(): Flow<List<AssetInfo>>
 }

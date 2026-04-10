@@ -9,6 +9,6 @@ import kotlinx.coroutines.flow.Flow
 class SearchSelectAssetsImpl(
     private val assetsRepository: AssetsRepository,
 ) : SearchSelectAssets {
-    override fun search(query: String, tags: List<AssetTag>): Flow<List<AssetInfo>> =
+    override fun invoke(query: String, tags: List<AssetTag>): Flow<List<AssetInfo>> =
         assetsRepository.search(query, tags, false)
 }

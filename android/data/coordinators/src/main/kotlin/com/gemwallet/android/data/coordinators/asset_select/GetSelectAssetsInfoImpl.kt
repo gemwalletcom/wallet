@@ -8,5 +8,5 @@ import kotlinx.coroutines.flow.Flow
 class GetSelectAssetsInfoImpl(
     private val assetsRepository: AssetsRepository,
 ) : GetSelectAssetsInfo {
-    override fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsRepository.getAssetsInfo()
+    override fun invoke(): Flow<List<AssetInfo>> = assetsRepository.getAssetsInfo()
 }

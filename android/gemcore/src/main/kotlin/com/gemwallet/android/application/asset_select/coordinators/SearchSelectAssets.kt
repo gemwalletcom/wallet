@@ -5,5 +5,5 @@ import com.wallet.core.primitives.AssetTag
 import kotlinx.coroutines.flow.Flow
 
 interface SearchSelectAssets {
-    fun search(query: String, tags: List<AssetTag>): Flow<List<AssetInfo>>
+    operator fun invoke(query: String, tags: List<AssetTag>): Flow<List<AssetInfo>>
 }

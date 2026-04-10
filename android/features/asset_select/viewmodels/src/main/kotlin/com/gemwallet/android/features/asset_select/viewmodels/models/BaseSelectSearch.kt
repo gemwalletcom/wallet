@@ -15,7 +15,7 @@ open class BaseSelectSearch(
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters.flatMapLatest { filters ->
-            searchSelectAssets.search(filters?.query ?: "", filters?.tag?.let { listOf(it) } ?: emptyList())
+            searchSelectAssets(filters?.query ?: "", filters?.tag?.let { listOf(it) } ?: emptyList())
         }.map { items -> items.distinctBy { it.asset.id.toIdentifier() } }
     }
 }

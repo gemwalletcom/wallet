@@ -4,5 +4,5 @@ import com.gemwallet.android.model.Session
 import kotlinx.coroutines.flow.StateFlow
 
 interface GetSession {
-    fun getSession(): StateFlow<Session?>
+    operator fun invoke(): StateFlow<Session?>
 }

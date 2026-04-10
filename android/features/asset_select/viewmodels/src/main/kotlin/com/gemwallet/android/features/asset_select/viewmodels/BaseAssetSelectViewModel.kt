@@ -56,7 +56,7 @@ open class BaseAssetSelectViewModel(
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
 
-    private val session = getSession.getSession()
+    private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val searchState = MutableStateFlow(SearchState.Init)
@@ -145,7 +145,7 @@ open class BaseAssetSelectViewModel(
         val balanceFilter = filters.hasBalance
         val hasChainFilter = chainFilter.isNotEmpty()
 
-        getRecentAssets.getRecentActivities(RecentType.entries).map { items ->
+        getRecentAssets(RecentType.entries).map { items ->
             items.filter {
                 (!hasChainFilter || chainFilter.contains(it.id().chain))
                         && (!balanceFilter || it.balance.totalAmount > 0.0)
@@ -166,21 +166,21 @@ open class BaseAssetSelectViewModel(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    val isAddAssetAvailable = getSession.getSession().map { session ->
+    val isAddAssetAvailable = getSession().map { session ->
         session?.wallet?.accounts?.any { it.chain.assetType() != null } == true
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {
         val session = session.value ?: return@launch
         val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        switchAssetVisibility.switchVisibility(session.wallet.id, account, assetId, visible)
+        switchAssetVisibility(session.wallet.id, account, assetId, visible)
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch {
         val session = session.value ?: return@launch
         val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        switchAssetVisibility.switchVisibility(session.wallet.id, account, assetId, true)
-        toggleAssetPin.togglePin(session.wallet.id, assetId)
+        switchAssetVisibility(session.wallet.id, account, assetId, true)
+        toggleAssetPin(session.wallet.id, assetId)
     }
 
     fun onChainFilter(chain: Chain) {

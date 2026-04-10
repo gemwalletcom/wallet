@@ -56,9 +56,9 @@ class SendSelectSearch(
             .map { filters -> filters?.query.orEmpty() to filters?.tag }
             .flatMapLatest { (query, tag) ->
                 val source = if (query.isEmpty() && tag == null) {
-                    getSelectAssetsInfo.getAssetsInfo()
+                    getSelectAssetsInfo()
                 } else {
-                    searchSelectAssets.search(query, tag?.let(::listOf) ?: emptyList())
+                    searchSelectAssets(query, tag?.let(::listOf) ?: emptyList())
                 }
 
                 source.map { items ->
