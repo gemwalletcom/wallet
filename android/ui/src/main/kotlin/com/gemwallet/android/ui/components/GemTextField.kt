@@ -1,9 +1,11 @@
 package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
@@ -40,12 +43,8 @@ fun GemTextField(
             .padding(paddingDefault),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Row (
+        Row(
+            modifier = Modifier.heightIn(min = 36.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BasicTextField(
@@ -60,6 +59,29 @@ fun GemTextField(
                 keyboardActions = keyboardActions,
                 keyboardOptions = keyboardOptions,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    if (value.isNotEmpty() && label.isNotEmpty()) {
+                        Column {
+                            Text(
+                                text = label,
+                                color = MaterialTheme.colorScheme.secondary,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            innerTextField()
+                        }
+                    } else {
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            if (label.isNotEmpty()) {
+                                Text(
+                                    text = label,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                }
             )
             trailing?.invoke()
         }

@@ -27,6 +27,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
+import com.gemwallet.android.features.recipient.presents.components.AddressChainField
 import com.wallet.core.primitives.Asset
 
 @Composable
