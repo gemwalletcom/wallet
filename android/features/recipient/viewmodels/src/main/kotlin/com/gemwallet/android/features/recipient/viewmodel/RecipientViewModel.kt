@@ -62,7 +62,7 @@ class RecipientViewModel @Inject constructor(
     val memoState = mutableStateOf("")
     val nameRecordState = mutableStateOf<NameRecord?>(null)
 
-    private val session = getSession.getSession()
+    private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetId = savedStateHandle.getStateFlow(assetIdArg, "")
@@ -70,7 +70,7 @@ class RecipientViewModel @Inject constructor(
     private val nftAssetId: StateFlow<String?> = savedStateHandle.getStateFlow(nftAssetIdArg, null)
 
     val type: StateFlow<RecipientType?> = combine(
-        assetId.flatMapLatest { getRecipientAssetInfo.getAssetInfo(it) }.flowOn(Dispatchers.IO),
+        assetId.flatMapLatest { getRecipientAssetInfo(it) }.flowOn(Dispatchers.IO),
         nftAssetId,
         ::Pair,
     ).flatMapLatest { (assetInfo, nftId) ->
@@ -83,7 +83,7 @@ class RecipientViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val wallets = session.combine(getWallets.getAll()) { session, wallets ->
+    val wallets = session.combine(getWallets()) { session, wallets ->
         wallets.filter { it.id != session?.wallet?.id }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

@@ -5,5 +5,5 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.Flow
 
 interface GetRecipientAssetInfo {
-    fun getAssetInfo(assetId: AssetId): Flow<AssetInfo?>
+    operator fun invoke(assetId: AssetId): Flow<AssetInfo?>
 }

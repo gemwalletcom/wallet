@@ -9,5 +9,5 @@ import kotlinx.coroutines.flow.Flow
 class GetRecipientAssetInfoImpl(
     private val assetsRepository: AssetsRepository,
 ) : GetRecipientAssetInfo {
-    override fun getAssetInfo(assetId: AssetId): Flow<AssetInfo?> = assetsRepository.getAssetInfo(assetId)
+    override fun invoke(assetId: AssetId): Flow<AssetInfo?> = assetsRepository.getAssetInfo(assetId)
 }

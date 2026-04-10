@@ -4,5 +4,5 @@ import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.Flow
 
 interface GetWallets {
-    fun getAll(): Flow<List<Wallet>>
+    operator fun invoke(): Flow<List<Wallet>>
 }

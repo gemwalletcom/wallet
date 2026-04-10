@@ -8,5 +8,5 @@ import kotlinx.coroutines.flow.StateFlow
 class GetSessionImpl(
     private val sessionRepository: SessionRepository,
 ) : GetSession {
-    override fun getSession(): StateFlow<Session?> = sessionRepository.session()
+    override fun invoke(): StateFlow<Session?> = sessionRepository.session()
 }

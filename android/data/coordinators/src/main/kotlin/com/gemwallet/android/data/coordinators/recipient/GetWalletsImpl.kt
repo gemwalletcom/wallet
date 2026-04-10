@@ -8,5 +8,5 @@ import kotlinx.coroutines.flow.Flow
 class GetWalletsImpl(
     private val walletsRepository: WalletsRepository,
 ) : GetWallets {
-    override fun getAll(): Flow<List<Wallet>> = walletsRepository.getAll()
+    override fun invoke(): Flow<List<Wallet>> = walletsRepository.getAll()
 }
