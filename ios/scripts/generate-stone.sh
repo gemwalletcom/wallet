@@ -7,10 +7,10 @@ set -euo pipefail
 
 export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-IOS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+CURRENT_DIR=$(dirname "$(realpath "$0")")
+IOS_DIR="$CURRENT_DIR/.."
 PROJ_PATH="$IOS_DIR/Gem.xcodeproj/project.pbxproj"
-CORE_DIR="$(cd "$IOS_DIR/../core" && pwd)"
+CORE_DIR="$IOS_DIR/../core"
 STONE_DIR="$CORE_DIR/gemstone"
 PACKAGES_DIR="$IOS_DIR/Packages/Gemstone"
 XCFRAMEWORK="$PACKAGES_DIR/Sources/GemstoneFFI.xcframework"
@@ -24,7 +24,8 @@ compute_hash() {
     {
         git -C "$CORE_DIR" rev-parse HEAD
         git -C "$CORE_DIR" diff
-        git -C "$CORE_DIR" ls-files --others --exclude-standard
+        git -C "$CORE_DIR" ls-files --others --exclude-standard -z | \
+            (cd "$CORE_DIR" && xargs -0 stat -f '%m %z %N' 2>/dev/null)
     } | shasum -a 256 | cut -d' ' -f1
 }
 
