@@ -3,10 +3,13 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
+import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.swap.GetSwapSupported
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
@@ -41,16 +44,21 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapSelectViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
+    getRecentAssets: GetRecentAssets,
+    switchAssetVisibility: SwitchAssetVisibility,
+    toggleAssetPin: ToggleAssetPin,
     assetsRepository: AssetsRepository,
     searchTokensCase: SearchTokensCase,
     getSwapSupported: GetSwapSupported,
     val savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
-    sessionRepository = sessionRepository,
-    assetsRepository = assetsRepository,
+    getSession = getSession,
+    getRecentAssets = getRecentAssets,
+    switchAssetVisibility = switchAssetVisibility,
+    toggleAssetPin = toggleAssetPin,
     searchTokensCase = searchTokensCase,
-    search = SwapSelectSearch(assetsRepository, getSwapSupported)
+    search = SwapSelectSearch(assetsRepository, getSwapSupported),
 ) {
 
     val payAssetId = savedStateHandle.getStateFlow<String?>("payAssetId", null)
