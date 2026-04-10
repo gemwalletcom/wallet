@@ -47,6 +47,7 @@ class GetTransactionDetailsImpl(
     private val assetsRepository: AssetsRepository,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val gemSwapper: GemSwapper,
+    private val createExplorer: (String) -> Explorer = ::Explorer,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: String): Flow<TransactionDetailsAggregate?> {
@@ -59,8 +60,8 @@ class GetTransactionDetailsImpl(
                 val explorerInfo = getCurrentBlockExplorer.getBlockExplorerInfo(data.transaction).let { (url, name) ->
                     TransactionDetailsValue.Explorer(url, name)
                 }
-                val chainExplorer = Explorer(data.asset.chain.string)
-                val explorerName = explorerInfo.name
+                val chainExplorer = createExplorer(data.asset.chain.string)
+                val addressExplorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(data.asset.chain)
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
                     val provider = gemSwapper.getProviders().firstOrNull { it.protocolId ==  swapMetadata?.provider }
@@ -71,8 +72,8 @@ class GetTransactionDetailsImpl(
                         currency = session.currency,
                         swapProvider = provider,
                         swapMetadata = swapMetadata,
-                        senderExplorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, data.transaction.from)),
-                        recipientExplorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, data.transaction.to)),
+                        senderExplorerLink = BlockExplorerLink(addressExplorerName, chainExplorer.getAddressUrl(addressExplorerName, data.transaction.from)),
+                        recipientExplorerLink = BlockExplorerLink(addressExplorerName, chainExplorer.getAddressUrl(addressExplorerName, data.transaction.to)),
                     )
                 }
             }
@@ -127,7 +128,7 @@ class TransactionDetailsAggregateImpl(
                 else -> {
                     val value = Crypto(data.transaction.value.toBigInteger())
                     val fiat = data.price?.price?.let {
-                        currency.format(value.convert(asset.decimals, it).atomicValue)
+                        currency.format(value.convert(asset.decimals, it).atomicValue, dynamicPlace = true)
                     } ?: ""
 
                     val (amount, equivalent) = when (data.transaction.type) {
@@ -160,7 +161,7 @@ class TransactionDetailsAggregateImpl(
             val fee = Crypto(data.transaction.fee.toBigInteger())
             val feeCrypto = data.feeAsset.format(fee)
             val feeFiat = data.feePrice?.price?.let {
-                currency.format(fee.convert(data.feeAsset.decimals, it).atomicValue, decimalPlace = 4)
+                currency.format(fee.convert(data.feeAsset.decimals, it).atomicValue, dynamicPlace = true)
             } ?: ""
             return TransactionDetailsValue.Fee(data.feeAsset, feeCrypto, feeFiat)
         }

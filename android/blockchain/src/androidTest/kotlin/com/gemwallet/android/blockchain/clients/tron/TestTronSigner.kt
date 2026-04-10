@@ -1,12 +1,12 @@
 package com.gemwallet.android.blockchain.clients.tron
 
 import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.testPhrase
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
+import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -14,9 +14,12 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.StakeProviderType
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import uniffi.gemstone.TronStakeData
+import uniffi.gemstone.TronVote
 import wallet.core.jni.CoinType
 import wallet.core.jni.HDWallet
 import java.math.BigInteger
@@ -30,7 +33,7 @@ class TestTronSigner {
 
     @Test
     fun testTronNativeSign() {
-        val hdWallet = HDWallet(testPhrase, "")
+        val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.TRON)
         val from = hdWallet.getAddressForCoin(CoinType.TRON)
         val signer = TronSignClient(Chain.Tron)
@@ -50,13 +53,14 @@ class TestTronSigner {
                     witnessAddress = "41456798cb4ab28109d8cc643cd7da7bd6069ceae9",
                     parentHash = "00000000042481fa52ef745a31aa66fc2acf8d156b6116bc5b3ede2aebbb894c",
                     blockTimestamp = 1739156280000UL,
-                    votes = emptyMap(),
+                    stakeData = TronStakeData.Votes(emptyList()),
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                fee = Fee(
+                fee = Fee.Plain(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Tron),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )
@@ -83,7 +87,7 @@ class TestTronSigner {
 
     @Test
     fun testTronTokenSign() {
-        val hdWallet = HDWallet(testPhrase, "")
+        val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.TRON)
         val from = hdWallet.getAddressForCoin(CoinType.TRON)
         val signer = TronSignClient(Chain.Tron)
@@ -103,13 +107,16 @@ class TestTronSigner {
                     witnessAddress = "41456798cb4ab28109d8cc643cd7da7bd6069ceae9",
                     parentHash = "00000000042481fa52ef745a31aa66fc2acf8d156b6116bc5b3ede2aebbb894c",
                     blockTimestamp = 1739156280000UL,
-                    votes = emptyMap(),
+                    stakeData = TronStakeData.Votes(emptyList()),
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                fee = Fee(
+                fee = Fee.Regular(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Tron),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    maxGasPrice = BigInteger.ZERO,
+                    limit = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )
@@ -140,7 +147,7 @@ class TestTronSigner {
 
     @Test
     fun testDelegateSign() {
-        val hdWallet = HDWallet(testPhrase, "")
+        val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.TRON)
         val from = hdWallet.getAddressForCoin(CoinType.TRON)
         val signer = TronSignClient(Chain.Tron)
@@ -158,6 +165,7 @@ class TestTronSigner {
                         isActive = true,
                         commission = 0.0,
                         apr = 0.9,
+                        providerType = StakeProviderType.Stake,
                     ),
                 ),
                 chainData = TronChainData(
@@ -167,16 +175,21 @@ class TestTronSigner {
                     witnessAddress = "41456798cb4ab28109d8cc643cd7da7bd6069ceae9",
                     parentHash = "00000000042481fa52ef745a31aa66fc2acf8d156b6116bc5b3ede2aebbb894c",
                     blockTimestamp = 1739156280000UL,
-                    votes = mapOf(
-                        "TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH" to 1UL,
-                        "TCEo1hMAdaJrQmvnGTCcGT2LqrGU4N7Jqf" to 1UL,
+                    stakeData = TronStakeData.Votes(
+                        listOf(
+                            TronVote("TLyqzVGLV1srkB7dToTAEqgDSfPtXRJZYH", 1UL),
+                            TronVote("TCEo1hMAdaJrQmvnGTCcGT2LqrGU4N7Jqf", 1UL),
+                        )
                     ),
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
-                fee = Fee(
+                fee = Fee.Regular(
                     priority = FeePriority.Normal,
                     feeAssetId = AssetId(Chain.Tron),
-                    amount = BigInteger.TEN
+                    amount = BigInteger.TEN,
+                    maxGasPrice = BigInteger.ZERO,
+                    limit = BigInteger.TEN,
+                    options = emptyMap(),
                 ),
                 privateKey.data(),
             )

@@ -107,12 +107,15 @@ class NodesRepository(
     }
 
     override fun getCurrentBlockExplorer(chain: Chain): String {
-        return configStore.getString(
+        val explorerName = configStore.getString(
             ConfigKey.CurrentExplorer.string,
             chain.string
-        ).ifEmpty {
-            getBlockExplorers(chain).firstOrNull() ?: ""
-        }
+        )
+        val explorers = getBlockExplorers(chain)
+
+        return explorers.firstOrNull { it == explorerName }
+            ?: explorers.firstOrNull()
+            ?: ""
     }
 
     override fun getBlockExplorerInfo(transaction: Transaction): Pair<String, String> {

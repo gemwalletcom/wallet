@@ -29,4 +29,51 @@ struct PerpetualRequestTests {
             #expect(notFound == .empty)
         }
     }
+
+    @Test
+    func fetchAfterUpdatingExistingPerpetualIdentityFields() throws {
+        let oldAssetId = AssetId(chain: .ethereum)
+        let newAssetId = AssetId(chain: .hyperCore, tokenId: "perpetual::ETH")
+        let db = DB.mockAssets(
+            assets: [
+                .mock(asset: .mock(id: oldAssetId, name: "Ethereum", symbol: "ETH", decimals: 18, type: .native)),
+                .mock(asset: .mock(id: newAssetId, name: "ETH", symbol: "ETH", decimals: 8, type: .perpetual)),
+            ],
+        )
+        let store = PerpetualStore(db: db)
+
+        let existing = Perpetual.mock(
+            id: "hypercore_ETH",
+            name: "ETH",
+            assetId: oldAssetId,
+            isIsolatedOnly: false,
+        )
+        let updated = Perpetual.mock(
+            id: existing.id,
+            name: "ETH-PERP",
+            assetId: newAssetId,
+            price: 3000.0,
+            maxLeverage: 75,
+            isIsolatedOnly: true,
+        )
+
+        try store.upsertPerpetuals([existing])
+        try store.setPinned(for: [existing.id], value: true)
+        try store.upsertPerpetuals([updated])
+
+        try db.dbQueue.read { db in
+            let result = try PerpetualRequest(assetId: newAssetId).fetch(db)
+            let stale = try PerpetualRequest(assetId: oldAssetId).fetch(db)
+
+            #expect(result.perpetual.id == updated.id)
+            #expect(result.perpetual.assetId == newAssetId)
+            #expect(result.perpetual.name == "ETH-PERP")
+            #expect(result.perpetual.price == 3000.0)
+            #expect(result.perpetual.maxLeverage == 75)
+            #expect(result.perpetual.isIsolatedOnly == true)
+            #expect(result.asset.id == newAssetId)
+            #expect(result.metadata.isPinned == true)
+            #expect(stale == .empty)
+        }
+    }
 }

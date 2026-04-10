@@ -112,7 +112,7 @@ extension PerpetualsSceneViewModel {
     }
 
     func updateMarkets() async {
-        guard preferences.perpetualMarketsUpdatedAt.isOutdated(byMinutes: 1) else { return }
+        guard preferences.perpetualMarketsUpdatedAt.isOutdated(byHours: 1) else { return }
 
         do {
             try await perpetualService.updateMarkets()

@@ -11,7 +11,7 @@ public struct Signer: Sendable {
 
     public init(
         wallet: Primitives.Wallet,
-        keystore: any Keystore,
+        keystore: any Keystore
     ) {
         self.wallet = wallet
         self.keystore = keystore
@@ -40,7 +40,7 @@ public struct Signer: Sendable {
                         input: input,
                         fromAsset: fromAsset,
                         swapData: swapData,
-                        privateKey: privateKey,
+                        privateKey: privateKey
                     )
             }
             return try signer.signSwap(input: input, privateKey: privateKey)
@@ -75,13 +75,12 @@ public struct Signer: Sendable {
     func signer(for chain: Chain) -> Signable {
         switch chain.type {
         case .solana: SolanaSigner()
-        case .ethereum, .sui, .hyperCore, .aptos: ChainSigner(chain: chain)
+        case .ethereum, .sui, .hyperCore, .aptos, .near: ChainSigner(chain: chain)
         case .cosmos: CosmosSigner()
         case .ton: TonSigner()
         case .tron: TronSigner()
         case .bitcoin: BitcoinSigner()
         case .xrp: XrpSigner()
-        case .near: NearSigner()
         case .stellar: StellarSigner()
         case .algorand: AlgorandSigner()
         case .polkadot: PolkadotSigner()

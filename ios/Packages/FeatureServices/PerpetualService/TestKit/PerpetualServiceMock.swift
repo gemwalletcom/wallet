@@ -10,8 +10,6 @@ public struct PerpetualServiceMock: PerpetualServiceable {
 
     public func updateMarkets() async throws {}
 
-    public func updateMarket(symbol _: String) async throws {}
-
     public func candlesticks(symbol _: String, period _: ChartPeriod) async throws -> [ChartCandleStick] {
         []
     }
@@ -21,6 +19,8 @@ public struct PerpetualServiceMock: PerpetualServiceable {
     }
 
     public func setPinned(_: Bool, perpetualId _: String) throws {}
+
+    public func getPositions(walletId _: WalletId, address _: String) async throws {}
 }
 
 // MARK: - HyperliquidPerpetualServiceable
@@ -36,5 +36,4 @@ extension PerpetualServiceMock: HyperliquidPerpetualServiceable {
 
     public func updatePrices(_: [String: Double]) throws {}
 
-    public func fetchPositions(walletId _: WalletId, address _: String) async throws {}
 }

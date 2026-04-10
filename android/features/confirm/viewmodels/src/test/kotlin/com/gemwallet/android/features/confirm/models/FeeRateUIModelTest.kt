@@ -33,7 +33,7 @@ class FeeRateUIModelTest {
         )
 
         assertEquals(FeePriority.Fast, model.priority)
-        assertEquals("$0.50", model.fiatValue)
+        assertEquals("$0.5", model.fiatValue)
     }
 
     @Test

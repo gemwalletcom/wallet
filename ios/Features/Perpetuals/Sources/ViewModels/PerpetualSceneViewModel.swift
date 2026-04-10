@@ -131,8 +131,7 @@ public final class PerpetualSceneViewModel {
 public extension PerpetualSceneViewModel {
     func fetch() {
         Task { await observerService.update(for: wallet) }
-        Task { try await perpetualService.updateMarket(symbol: perpetual.coin) }
-        Task { await fetchTransactions() }
+        Task { await updateTransactions() }
         Task { await updateCandlesticks() }
     }
 
@@ -153,8 +152,7 @@ public extension PerpetualSceneViewModel {
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
         switch newPhase {
         case .active:
-            Task { try? await perpetualService.updateMarket(symbol: perpetual.coin) }
-            Task { await fetchTransactions() }
+            Task { await updateTransactions() }
             Task { await updateCandlesticks() }
         case .inactive, .background: break
         @unknown default: break
@@ -367,7 +365,7 @@ private extension PerpetualSceneViewModel {
         onPerpetualRecipientData?(recipientData)
     }
 
-    func fetchTransactions() async {
+    func updateTransactions() async {
         do {
             try await transactionsService.updateForAsset(wallet: wallet, assetId: asset.id)
         } catch {
