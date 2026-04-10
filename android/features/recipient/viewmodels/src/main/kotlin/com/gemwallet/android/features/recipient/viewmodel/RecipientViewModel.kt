@@ -5,11 +5,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.recipient.coordinators.GetRecipientAssetInfo
+import com.gemwallet.android.application.recipient.coordinators.GetWallets
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
@@ -50,9 +50,9 @@ const val nftAssetIdArg = "nftAssetId"
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
-    private val walletsRepository: WalletsRepository,
-    private val assetsRepository: AssetsRepository,
+    private val getSession: GetSession,
+    private val getWallets: GetWallets,
+    private val getRecipientAssetInfo: GetRecipientAssetInfo,
     private val getAssetNft: GetAssetNft,
     private val validateAddressOperator: ValidateAddressOperator,
     savedStateHandle: SavedStateHandle
@@ -62,7 +62,7 @@ class RecipientViewModel @Inject constructor(
     val memoState = mutableStateOf("")
     val nameRecordState = mutableStateOf<NameRecord?>(null)
 
-    private val session = sessionRepository.session()
+    private val session = getSession.getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetId = savedStateHandle.getStateFlow(assetIdArg, "")
@@ -70,7 +70,7 @@ class RecipientViewModel @Inject constructor(
     private val nftAssetId: StateFlow<String?> = savedStateHandle.getStateFlow(nftAssetIdArg, null)
 
     val type: StateFlow<RecipientType?> = combine(
-        assetId.flatMapLatest { assetsRepository.getAssetInfo(it) }.flowOn(Dispatchers.IO),
+        assetId.flatMapLatest { getRecipientAssetInfo.getAssetInfo(it) }.flowOn(Dispatchers.IO),
         nftAssetId,
         ::Pair,
     ).flatMapLatest { (assetInfo, nftId) ->
@@ -83,7 +83,7 @@ class RecipientViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val wallets = session.combine(walletsRepository.getAll()) { session, wallets ->
+    val wallets = session.combine(getWallets.getAll()) { session, wallets ->
         wallets.filter { it.id != session?.wallet?.id }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
