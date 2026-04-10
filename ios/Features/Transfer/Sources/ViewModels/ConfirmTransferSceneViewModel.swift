@@ -75,6 +75,7 @@ public final class ConfirmTransferSceneViewModel {
 
         feeModel = NetworkFeeSceneViewModel(
             chain: data.chain,
+            feeAsset: data.type.asset.feeAsset,
             priority: confirmService.defaultPriority(for: data.type),
             currency: Currency(rawValue: Preferences.standard.currency) ?? .usd,
         )

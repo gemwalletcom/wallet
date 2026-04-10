@@ -9,6 +9,7 @@ import SwiftUI
 @MainActor
 public final class NetworkFeeSceneViewModel {
     private let chain: Chain
+    private let feeAsset: Asset
     private let currency: Currency
 
     private var rates: [FeeRate] = []
@@ -19,11 +20,13 @@ public final class NetworkFeeSceneViewModel {
 
     public init(
         chain: Chain,
+        feeAsset: Asset,
         priority: FeePriority,
         currency: Currency,
         feeAmount: BigInt? = nil,
     ) {
         self.chain = chain
+        self.feeAsset = feeAsset
         self.priority = priority
         self.currency = currency
         self.feeAmount = feeAmount
@@ -45,8 +48,8 @@ public final class NetworkFeeSceneViewModel {
             FeeRateViewModel(
                 feeRate: $0,
                 unitType: chain.feeUnitType,
-                decimals: chain.asset.decimals.asInt,
-                symbol: chain.asset.symbol,
+                decimals: feeAsset.decimals.asInt,
+                symbol: feeAsset.symbol,
             )
         }.sorted()
     }
@@ -68,10 +71,6 @@ public final class NetworkFeeSceneViewModel {
         case .native: display(for: rate.feeRate.gasPriceType.totalFee).fiat?.text
         case .gwei, .satVb: nil
         }
-    }
-
-    private func fiatText(for rate: FeeRate) -> String? {
-        feeAmount(for: rate).flatMap { display(for: $0).fiat?.text }
     }
 
     func feeAmount(for rate: FeeRate) -> BigInt? {
@@ -104,7 +103,7 @@ public extension NetworkFeeSceneViewModel {
 private extension NetworkFeeSceneViewModel {
     func display(for amount: BigInt) -> AmountDisplay {
         AmountDisplay.numeric(
-            asset: chain.asset,
+            asset: feeAsset,
             price: feeAssetPrice,
             value: amount,
             currency: currency.rawValue,
