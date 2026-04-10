@@ -1137,7 +1137,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "\"$SRCROOT/scripts/build-gemstone.sh\"\n";
+			shellScript = "\"$SRCROOT/scripts/generate-stone.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

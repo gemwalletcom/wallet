@@ -1,33 +1,59 @@
 #!/usr/bin/env bash
+#
+# Build the Gemstone XCFramework, skipping when Rust sources are unchanged.
+# Usage: generate-stone.sh [release]
 
-set -e
+set -euo pipefail
 
-CURRENT_DIR=$(dirname `realpath $0`)
-PROJ_PATH=${CURRENT_DIR}/../Gem.xcodeproj/project.pbxproj
-STONE_DIR=${CURRENT_DIR}/../../core/gemstone
-PACKAGES_DIR=${CURRENT_DIR}/../Packages/Gemstone
-BUILD_MODE=$1
+export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+IOS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJ_PATH="$IOS_DIR/Gem.xcodeproj/project.pbxproj"
+CORE_DIR="$(cd "$IOS_DIR/../core" && pwd)"
+STONE_DIR="$CORE_DIR/gemstone"
+PACKAGES_DIR="$IOS_DIR/Packages/Gemstone"
+XCFRAMEWORK="$PACKAGES_DIR/Sources/GemstoneFFI.xcframework"
+
+BUILD_MODE="${1:-${BUILD_MODE:-}}"
+if [ -z "$BUILD_MODE" ] && [ "${CONFIGURATION:-Debug}" = "Release" ]; then
+    BUILD_MODE="release"
+fi
+
+compute_hash() {
+    {
+        git -C "$CORE_DIR" rev-parse HEAD
+        git -C "$CORE_DIR" diff
+        git -C "$CORE_DIR" ls-files --others --exclude-standard
+    } | shasum -a 256 | cut -d' ' -f1
+}
+
+CACHE_DIR="$IOS_DIR/build/.gemstone-cache"
+mkdir -p "$CACHE_DIR"
+HASH_FILE="$CACHE_DIR/sources-${BUILD_MODE:-debug}.hash"
+
+current_hash=$(compute_hash)
+
+if [ -f "$HASH_FILE" ] && [ -d "$XCFRAMEWORK" ]; then
+    cached_hash=$(cat "$HASH_FILE")
+    if [ "$current_hash" = "$cached_hash" ]; then
+        echo "note: Gemstone sources unchanged (${BUILD_MODE:-debug}) — skipping rebuild"
+        exit 0
+    fi
+fi
 
 read_deployment_target() {
     echo -n $(/usr/libexec/PlistBuddy -c "Print" "$PROJ_PATH" | grep IPHONEOS_DEPLOYMENT_TARGET | awk -F ' = ' '{print $2}' | uniq)
 }
 
-generate() {
-    if [ -z $BUILD_MODE ]; then
-        echo "Build Gemstone debug"
-    else
-        echo "Build Gemstone $BUILD_MODE"
-    fi
+echo "note: Gemstone sources changed — rebuilding XCFramework (${BUILD_MODE:-debug})..."
 
-    pushd ${STONE_DIR} > /dev/null
-    BUILD_MODE=$BUILD_MODE IPHONEOS_DEPLOYMENT_TARGET=$(read_deployment_target) just build-ios
-    rm -rf ${PACKAGES_DIR}
-    cp -Rf target/spm ${PACKAGES_DIR}
+pushd "$STONE_DIR" > /dev/null
+BUILD_MODE=$BUILD_MODE IPHONEOS_DEPLOYMENT_TARGET=$(read_deployment_target) just build-ios
+rm -rf "$PACKAGES_DIR"
+cp -Rf target/spm "$PACKAGES_DIR"
+popd > /dev/null
 
-    popd > /dev/null
-}
+echo "$current_hash" > "$HASH_FILE"
 
-generate
-
-HASH_FILE="${CURRENT_DIR}/../build/.gemstone-cache/sources-${BUILD_MODE:-debug}.hash"
-"${CURRENT_DIR}/gemstone-hash.sh" "${STONE_DIR}/.." "$HASH_FILE"
+echo "note: Gemstone XCFramework rebuilt successfully (${BUILD_MODE:-debug})"
