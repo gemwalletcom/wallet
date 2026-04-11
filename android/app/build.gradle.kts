@@ -315,6 +315,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     // Tests
+    testImplementation(testFixtures(project(":gemcore")))
+    testImplementation(libs.mockk.android)
     testImplementation(libs.junit)
     testImplementation(libs.androidx.junit)
     testImplementation(libs.androidx.junit.runner)

@@ -319,4 +319,23 @@ class AssetsRepositoryTest {
 
         assertEquals(listOf(enabledAsset.id), result.map { it.asset.id })
     }
+
+    @Test
+    fun getAssetsInfo_dedupesDuplicateAssetIdsFromStore() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolana()
+        every { assetsDao.getAssetsInfo() } returns flowOf(
+            listOf(
+                mockDbAssetInfo(asset = asset, address = "first-address"),
+                mockDbAssetInfo(asset = asset, address = "duplicate-address"),
+            )
+        )
+
+        val subject = createSubject()
+        val result = subject.getAssetsInfo().first()
+
+        assertEquals(listOf(asset.id), result.map { it.asset.id })
+    }
 }

@@ -195,10 +195,12 @@ class AssetsRepository @Inject constructor(
 
     fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo()
         .toAssetInfoModel()
+        .map { items -> items.distinctBy { it.id() } }
 
     fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = assetsDao
         .getAssetsInfo(assetsId.map { it.toIdentifier() })
         .toAssetInfoModel()
+        .map { items -> items.distinctBy { it.id() } }
         .flowOn(Dispatchers.IO)
 
 
