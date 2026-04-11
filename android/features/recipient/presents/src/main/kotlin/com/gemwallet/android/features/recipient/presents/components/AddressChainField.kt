@@ -9,12 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -126,45 +123,6 @@ fun ColumnScope.AddressChainField(
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.labelMedium,
             )
-        }
-    }
-}
-
-@Composable
-fun TransferTextFieldActions(
-    value: String,
-    paste: (() -> Unit)? = null,
-    qrScanner: (() -> Unit)? = null,
-    onClean: () -> Unit
-) {
-    if (value.isNotEmpty()) {
-        IconButton(onClick = onClean) {
-            Icon(
-                imageVector = Icons.Default.Clear,
-                contentDescription = "clear",
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        return
-    }
-    Row {
-        if (paste != null) {
-            IconButton(onClick = paste) {
-                Icon(
-                    imageVector = Icons.Default.ContentPaste,
-                    contentDescription = "paste",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-        if (qrScanner != null) {
-            IconButton(onClick = qrScanner) {
-                Icon(
-                    imageVector = Icons.Default.QrCodeScanner,
-                    contentDescription = "scan_address",
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
         }
     }
 }

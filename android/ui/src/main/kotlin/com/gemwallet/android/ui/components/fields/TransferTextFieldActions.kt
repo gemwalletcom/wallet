@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.fields
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentPaste
@@ -9,6 +10,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+private val IconButtonSize = 36.dp
 
 @Composable
 fun TransferTextFieldActions(
@@ -18,7 +23,7 @@ fun TransferTextFieldActions(
     onClean: () -> Unit
 ) {
     if (value.isNotEmpty()) {
-        IconButton(onClick = onClean) {
+        IconButton(modifier = Modifier.size(IconButtonSize), onClick = onClean) {
             Icon(
                 imageVector = Icons.Default.Clear,
                 contentDescription = "clear",
@@ -29,7 +34,7 @@ fun TransferTextFieldActions(
     }
     Row {
         if (paste != null) {
-            IconButton(onClick = paste) {
+            IconButton(modifier = Modifier.size(IconButtonSize), onClick = paste) {
                 Icon(
                     imageVector = Icons.Default.ContentPaste,
                     contentDescription = "paste",
@@ -38,7 +43,7 @@ fun TransferTextFieldActions(
             }
         }
         if (qrScanner != null) {
-            IconButton(onClick = qrScanner) {
+            IconButton(modifier = Modifier.size(IconButtonSize), onClick = qrScanner) {
                 Icon(
                     imageVector = Icons.Default.QrCodeScanner,
                     contentDescription = "scan_address",

@@ -1,9 +1,12 @@
 package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,10 +17,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space10
+
+private const val FloatingLabelScale = 0.8f
 
 @Composable
 fun GemTextField(
@@ -33,6 +42,8 @@ fun GemTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     listPosition: ListPosition = ListPosition.Single,
 ) {
+    val hasFloatingLabel = value.isNotEmpty() && label.isNotEmpty()
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -40,12 +51,8 @@ fun GemTextField(
             .padding(paddingDefault),
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = label,
-            color = MaterialTheme.colorScheme.secondary,
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Row (
+        Row(
+            modifier = Modifier.heightIn(min = 36.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BasicTextField(
@@ -60,6 +67,32 @@ fun GemTextField(
                 keyboardActions = keyboardActions,
                 keyboardOptions = keyboardOptions,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        if (label.isNotEmpty()) {
+                            Text(
+                                modifier = Modifier
+                                    .graphicsLayer {
+                                        scaleX = if (hasFloatingLabel) FloatingLabelScale else 1f
+                                        scaleY = if (hasFloatingLabel) FloatingLabelScale else 1f
+                                        transformOrigin = TransformOrigin(0f, 0f)
+                                    }
+                                    .offset(y = if (hasFloatingLabel) -space10 else 0.dp),
+                                text = label,
+                                color = MaterialTheme.colorScheme.secondary,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                        Box(
+                            modifier = Modifier.offset(y = if (hasFloatingLabel) space10 else 0.dp),
+                        ) {
+                            innerTextField()
+                        }
+                    }
+                }
             )
             trailing?.invoke()
         }
