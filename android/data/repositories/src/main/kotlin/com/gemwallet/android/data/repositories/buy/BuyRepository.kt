@@ -2,12 +2,15 @@ package com.gemwallet.android.data.repositories.buy
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
+import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatQuote
@@ -28,6 +31,8 @@ class BuyRepository @Inject constructor(
     private val configStore: com.gemwallet.android.data.service.store.ConfigStore,
     private val getRemoteConfig: GetRemoteConfig,
     private val gemDeviceApiClient: GemDeviceApiClient,
+    private val getBuyableFiatAssets: GetBuyableFiatAssets,
+    private val getSellableFiatAssets: GetSellableFiatAssets,
     private val assetsRepository: AssetsRepository,
     private val assetsCoordinator: PrefetchAssets,
     private val fiatTransactionsDao: FiatTransactionsDao,
@@ -46,13 +51,21 @@ class BuyRepository @Inject constructor(
                 return
             }
 
+            val buyAssets = if (shouldSyncBuyAssets) getBuyableFiatAssets.getBuyableFiatAssets() else null
+            val sellAssets = if (shouldSyncSellAssets) getSellableFiatAssets.getSellableFiatAssets() else null
+            assetsCoordinator.prefetchAssets(
+                (buyAssets?.assetIds.orEmpty() + sellAssets?.assetIds.orEmpty())
+                    .mapNotNull(String::toAssetId)
+                    .distinct()
+            )
+
             if (shouldSyncBuyAssets) {
-                val availableToBuyIds = gemDeviceApiClient.getBuyableFiatAssets()
+                val availableToBuyIds = requireNotNull(buyAssets)
                 assetsRepository.updateBuyAvailable(availableToBuyIds.assetIds)
                 configStore.putInt(ConfigKey.FiatOnRampAssetsVersion.string, availableToBuyIds.version.toInt())
             }
             if (shouldSyncSellAssets) {
-                val availableToSellIds = gemDeviceApiClient.getSellableFiatAssets()
+                val availableToSellIds = requireNotNull(sellAssets)
                 assetsRepository.updateSellAvailable(availableToSellIds.assetIds)
                 configStore.putInt(ConfigKey.FiatOffRampAssetsVersion.string, availableToSellIds.version.toInt())
             }

@@ -287,9 +287,7 @@ class AssetsRepository @Inject constructor(
             .toAssetInfoModel()
             .map { assets ->
                 assets.filter { asset ->
-                    asset.walletId == wallet.id &&
-                        asset.metadata?.isEnabled == true &&
-                        asset.metadata?.isBalanceEnabled == true
+                    asset.metadata?.isEnabled == true
                 }
                     .distinctBy { it.asset.id.toIdentifier() }
             }

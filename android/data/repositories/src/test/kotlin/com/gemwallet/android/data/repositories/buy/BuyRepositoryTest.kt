@@ -2,13 +2,17 @@ package com.gemwallet.android.data.repositories.buy
 
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
+import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ConfigResponse
 import com.wallet.core.primitives.ConfigVersions
 import com.wallet.core.primitives.FiatAssets
@@ -31,6 +35,8 @@ class BuyRepositoryTest {
     private val configStore = mockk<ConfigStore>(relaxed = true)
     private val getRemoteConfig = mockk<GetRemoteConfig>()
     private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
+    private val getBuyableFiatAssets = mockk<GetBuyableFiatAssets>()
+    private val getSellableFiatAssets = mockk<GetSellableFiatAssets>()
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
     private val assetsCoordinator = mockk<PrefetchAssets>(relaxed = true)
     private val fiatTransactionsDao = mockk<FiatTransactionsDao>(relaxed = true)
@@ -40,6 +46,8 @@ class BuyRepositoryTest {
         configStore = configStore,
         getRemoteConfig = getRemoteConfig,
         gemDeviceApiClient = gemDeviceApiClient,
+        getBuyableFiatAssets = getBuyableFiatAssets,
+        getSellableFiatAssets = getSellableFiatAssets,
         assetsRepository = assetsRepository,
         assetsCoordinator = assetsCoordinator,
         fiatTransactionsDao = fiatTransactionsDao,
@@ -54,12 +62,20 @@ class BuyRepositoryTest {
         )
         every { configStore.getInt("fiat-on-ramp-assets-version", "") } returns 1
         every { configStore.getInt("fiat-off-ramp-assets-version", "") } returns 2
-        coEvery { gemDeviceApiClient.getBuyableFiatAssets() } returns FiatAssets(5u, listOf("bitcoin"))
-        coEvery { gemDeviceApiClient.getSellableFiatAssets() } returns FiatAssets(7u, listOf("ethereum"))
+        coEvery { getBuyableFiatAssets.getBuyableFiatAssets() } returns FiatAssets(5u, listOf("bitcoin"))
+        coEvery { getSellableFiatAssets.getSellableFiatAssets() } returns FiatAssets(7u, listOf("ethereum"))
 
         subject.sync()
 
         coVerify { getRemoteConfig.getRemoteConfig() }
+        coVerify {
+            assetsCoordinator.prefetchAssets(
+                listOf(
+                    AssetId(Chain.Bitcoin),
+                    AssetId(Chain.Ethereum),
+                )
+            )
+        }
         coVerify { assetsRepository.updateBuyAvailable(listOf("bitcoin")) }
         coVerify { assetsRepository.updateSellAvailable(listOf("ethereum")) }
         verify { configStore.putInt("fiat-on-ramp-assets-version", 5, "") }
@@ -77,8 +93,9 @@ class BuyRepositoryTest {
 
         subject.sync()
 
-        coVerify(exactly = 0) { gemDeviceApiClient.getBuyableFiatAssets() }
-        coVerify(exactly = 0) { gemDeviceApiClient.getSellableFiatAssets() }
+        coVerify(exactly = 0) { getBuyableFiatAssets.getBuyableFiatAssets() }
+        coVerify(exactly = 0) { getSellableFiatAssets.getSellableFiatAssets() }
+        coVerify(exactly = 0) { assetsCoordinator.prefetchAssets(any()) }
         coVerify(exactly = 0) { assetsRepository.updateBuyAvailable(any()) }
         coVerify(exactly = 0) { assetsRepository.updateSellAvailable(any()) }
     }

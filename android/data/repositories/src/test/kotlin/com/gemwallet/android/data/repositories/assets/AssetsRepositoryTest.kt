@@ -26,18 +26,18 @@ import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetLink
-import com.gemwallet.android.testkit.mockAssetMonad
-import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetMarket
+import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockChartValuePercentage
 import com.gemwallet.android.testkit.mockPrice
 import com.wallet.core.primitives.AssetBasic
-import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetScore
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -279,7 +279,7 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun swapSearch_returnsOnlyCurrentWalletEnabledAssets() = runBlocking {
+    fun swapSearch_includesEnabledHiddenAndUnlinkedAssets() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         every { assetsPriorityDao.hasPriorities("") } returns flowOf(0)
@@ -290,8 +290,18 @@ class AssetsRepositoryTest {
         )
         val enabledAsset = mockAssetSolana()
         val hiddenAsset = mockAssetSolanaUSDC()
-        val disabledAsset = mockAssetMonad()
-        val foreignWalletAsset = mockAssetMonad()
+        val unlinkedAsset = mockAssetSolanaUSDC().copy(
+            id = AssetId(Chain.Solana, "jto"),
+            name = "Jito",
+            symbol = "JTO",
+            decimals = 9,
+        )
+        val disabledAsset = mockAssetSolanaUSDC().copy(
+            id = AssetId(Chain.Solana, "bonk"),
+            name = "Bonk",
+            symbol = "BONK",
+            decimals = 5,
+        )
 
         every {
             assetsDao.swapSearch(
@@ -303,8 +313,22 @@ class AssetsRepositoryTest {
             listOf(
                 mockDbAssetInfo(asset = enabledAsset, walletId = "wallet-1", visible = true, sessionId = 1),
                 mockDbAssetInfo(asset = hiddenAsset, walletId = "wallet-1", visible = false, sessionId = 1),
-                mockDbAssetInfo(asset = disabledAsset, walletId = "wallet-1", visible = true, sessionId = 1, assetRank = 0),
-                mockDbAssetInfo(asset = foreignWalletAsset, walletId = "wallet-2", visible = true, sessionId = null),
+                mockDbAssetInfo(
+                    asset = unlinkedAsset,
+                    walletId = null,
+                    visible = false,
+                    sessionId = null,
+                    walletName = null,
+                    walletType = null,
+                    address = null,
+                ),
+                mockDbAssetInfo(
+                    asset = disabledAsset,
+                    walletId = "wallet-1",
+                    visible = true,
+                    sessionId = 1,
+                    assetRank = 0,
+                ),
             )
         )
 
@@ -317,7 +341,7 @@ class AssetsRepositoryTest {
             tags = emptyList(),
         ).first()
 
-        assertEquals(listOf(enabledAsset.id), result.map { it.asset.id })
+        assertEquals(listOf(enabledAsset.id, hiddenAsset.id, unlinkedAsset.id), result.map { it.asset.id })
     }
 
     @Test

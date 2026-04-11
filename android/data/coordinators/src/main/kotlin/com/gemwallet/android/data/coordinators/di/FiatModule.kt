@@ -2,18 +2,22 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.fiat.coordinators.AddBuyRecent
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
 import com.gemwallet.android.application.fiat.coordinators.ObserveBuyTransactions
 import com.gemwallet.android.application.fiat.coordinators.RefreshBuyTransactions
+import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.data.coordinators.fiat.AddBuyRecentImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
+import com.gemwallet.android.data.coordinators.fiat.GetBuyableFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
 import com.gemwallet.android.data.coordinators.fiat.GetFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveBuyTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.RefreshBuyTransactionsImpl
+import com.gemwallet.android.data.coordinators.fiat.GetSellableFiatAssetsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
@@ -27,6 +31,26 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object FiatModule {
+    @Provides
+    @Singleton
+    fun provideGetBuyableFiatAssets(
+        gemDeviceApiClient: GemDeviceApiClient,
+    ): GetBuyableFiatAssets {
+        return GetBuyableFiatAssetsImpl(
+            gemDeviceApiClient = gemDeviceApiClient,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetSellableFiatAssets(
+        gemDeviceApiClient: GemDeviceApiClient,
+    ): GetSellableFiatAssets {
+        return GetSellableFiatAssetsImpl(
+            gemDeviceApiClient = gemDeviceApiClient,
+        )
+    }
+
     @Provides
     @Singleton
     fun provideGetFiatTransactions(

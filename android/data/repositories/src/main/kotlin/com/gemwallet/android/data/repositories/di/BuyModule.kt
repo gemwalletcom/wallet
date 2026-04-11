@@ -3,7 +3,9 @@ package com.gemwallet.android.data.repositories.di
 import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
+import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -25,6 +27,8 @@ object BuyModule {
         @ApplicationContext context: Context,
         getRemoteConfig: GetRemoteConfig,
         gemDeviceApiClient: GemDeviceApiClient,
+        getBuyableFiatAssets: GetBuyableFiatAssets,
+        getSellableFiatAssets: GetSellableFiatAssets,
         assetsRepository: AssetsRepository,
         assetsCoordinator: PrefetchAssets,
         fiatTransactionsDao: FiatTransactionsDao,
@@ -39,6 +43,8 @@ object BuyModule {
             ),
             getRemoteConfig = getRemoteConfig,
             gemDeviceApiClient = gemDeviceApiClient,
+            getBuyableFiatAssets = getBuyableFiatAssets,
+            getSellableFiatAssets = getSellableFiatAssets,
             assetsRepository = assetsRepository,
             assetsCoordinator = assetsCoordinator,
             fiatTransactionsDao = fiatTransactionsDao,
