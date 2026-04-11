@@ -158,8 +158,6 @@ class UserConfig(
 
     enum class Keys(val string: String) {
         Auth("auth"),
-        DeviceId("device-uuid"),
-        DeviceIdMigrated("device_id_migrated"),
         DevelopEnabled("develop_enabled"),
         SubscriptionVersion("subscription_version"),
         SubscriptionVersionHasChange("subscription_version_has_change"),

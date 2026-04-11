@@ -17,6 +17,7 @@
 - Use JUnit 4 with standard assertions
 - Keep test names short and descriptive
 - One behavior per test, small number of assertions
+- Keep setup minimal: prefer shared testkit defaults and override only the inputs that the assertion actually depends on
 
 ### Instrumented Tests (`src/androidTest/kotlin/`)
 
@@ -30,6 +31,8 @@ Reusable test data factories live in `:gemcore`'s `testFixtures` source set (`ge
 Hard rules:
 - For shared domain types like wallet, account, asset, asset info, and prices, do not add local `mock*()` helpers inside feature or data module tests. Use the existing shared fixture first.
 - If a shared fixture is missing, add it to the owning module's `src/testFixtures/...` (`:gemcore` for shared domain models) and depend on that fixture from consumer tests. Do not recreate local adapters like `dbAssetInfo(...)`.
+- Do not turn a mock helper into a second constructor by passing every field inline. If a test needs a concrete reusable asset or metadata shape, add a named fixture like `mockAssetHyperCoreHype()` or `mockAssetMetaData(isSwapEnabled = true)` and override only the one or two fields that matter.
+- Prefer the simplest test that proves the behavior. Avoid extra fixtures, extra mocks, and extra assertions that do not move the behavior under test.
 
 Consumer modules add: `testImplementation(testFixtures(project(":gemcore")))`
 
@@ -48,7 +51,7 @@ fun `day period uses 24h change`() {
 }
 ```
 
-Rules: `mockType()` returns a sensible default, expose only fields tests vary, use `copy()` for one-offs, one file per type. If a fixture is used once, inline it.
+Rules: `mockType()` returns a sensible default, expose only fields tests vary, use `copy()` for one-offs, one file per type. If a fixture is used once, inline it. Avoid call sites that pass every property into `mockAsset(...)` or construct `AssetMetaData(...)` inline when the same shape can live in shared testkit.
 
 If the same concrete asset shows up in more than one test, add a named fixture for it in testkit like `mockAssetSolana()` or `mockAssetSolanaUSDC()` instead of repeating `mockAsset(chain = ..., symbol = ..., ...)` at call sites.
 

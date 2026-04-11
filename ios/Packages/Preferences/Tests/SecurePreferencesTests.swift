@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import PreferencesTestKit
 import Primitives
 import Testing
@@ -51,10 +52,6 @@ struct SecurePreferencesTests {
             try preferences.delete(key: .deviceId)
         }
 
-        #expect(throws: Error.self) {
-            try preferences.getDeviceId()
-        }
-
         #expect(throws: Never.self) {
             let deviceId = try preferences.get(key: .deviceId)
             #expect(deviceId == nil)
@@ -62,10 +59,28 @@ struct SecurePreferencesTests {
     }
 
     @Test
-    func getDeviceIdUsesInstanceStorage() {
+    func getDeviceIdCreatesAndPersistsCurrentDeviceId() {
         #expect(throws: Never.self) {
+            let deviceId = try preferences.getDeviceId()
+            let publicKey = try preferences.getData(key: .devicePublicKey)
+
+            #expect(deviceId.count == 64)
+            #expect(try preferences.get(key: .deviceId) == deviceId)
+            #expect(publicKey?.hex == deviceId)
+        }
+    }
+
+    @Test
+    func getDeviceIdPrefersCurrentPublicKey() {
+        #expect(throws: Never.self) {
+            let privateKey = Data(repeating: 0x04, count: 32)
+            let publicKey = Data([0x01, 0x02, 0x03])
             try preferences.set(value: mockDeviceId, key: .deviceId)
-            #expect(try preferences.getDeviceId() == mockDeviceId)
+            try preferences.set(value: privateKey, key: .devicePrivateKey)
+            try preferences.set(value: publicKey, key: .devicePublicKey)
+
+            #expect(try preferences.getDeviceId() == publicKey.hex)
+            #expect(try preferences.get(key: .deviceId) == publicKey.hex)
         }
     }
 

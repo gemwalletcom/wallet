@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
-import Gemstone
+import struct Gemstone.GemPerpetualBalance
+import struct Gemstone.GemPerpetualMarketData
+import struct Gemstone.GemPerpetualPosition
 import PerpetualService
 import Primitives
 
@@ -34,6 +35,7 @@ extension PerpetualServiceMock: HyperliquidPerpetualServiceable {
 
     public func diffPositions(deleteIds _: [String], positions _: [GemPerpetualPosition], walletId _: WalletId) throws {}
 
-    public func updatePrices(_: [String: Double]) throws {}
+    public func updateMarket(_: GemPerpetualMarketData) throws {}
 
+    public func updatePrices(_: [String: Double]) throws {}
 }

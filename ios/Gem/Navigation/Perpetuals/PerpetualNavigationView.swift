@@ -17,7 +17,7 @@ public struct PerpetualNavigationView: View {
         wallet: Wallet,
         perpetualService: any PerpetualServiceable,
         transactionsService: TransactionsService,
-        observerService: any PerpetualObservable<HyperliquidSubscription>,
+        observerService: any PerpetualObservable,
         isPresentingSheet: Binding<WalletSheetType?>,
     ) {
         _isPresentingSheet = isPresentingSheet

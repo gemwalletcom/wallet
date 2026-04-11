@@ -4,9 +4,11 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
+import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.RecentType
@@ -41,8 +43,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 open class BaseAssetSelectViewModel(
-    sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
+    getSession: GetSession,
+    private val getRecentAssets: GetRecentAssets,
+    private val switchAssetVisibility: SwitchAssetVisibility,
+    private val toggleAssetPin: ToggleAssetPin,
     private val searchTokensCase: SearchTokensCase,
     val search: SelectSearch,
 ) : ViewModel() {
@@ -52,7 +56,7 @@ open class BaseAssetSelectViewModel(
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
 
-    private val session = sessionRepository.session()
+    private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val searchState = MutableStateFlow(SearchState.Init)
@@ -141,7 +145,7 @@ open class BaseAssetSelectViewModel(
         val balanceFilter = filters.hasBalance
         val hasChainFilter = chainFilter.isNotEmpty()
 
-        assetsRepository.getRecentActivities(RecentType.entries).map { items ->
+        getRecentAssets(RecentType.entries).map { items ->
             items.filter {
                 (!hasChainFilter || chainFilter.contains(it.id().chain))
                         && (!balanceFilter || it.balance.totalAmount > 0.0)
@@ -162,21 +166,21 @@ open class BaseAssetSelectViewModel(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    val isAddAssetAvailable = sessionRepository.session().map { session ->
+    val isAddAssetAvailable = getSession().map { session ->
         session?.wallet?.accounts?.any { it.chain.assetType() != null } == true
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {
         val session = session.value ?: return@launch
         val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        assetsRepository.switchVisibility(session.wallet.id, account, assetId, visible)
+        switchAssetVisibility(session.wallet.id, account, assetId, visible)
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch {
         val session = session.value ?: return@launch
         val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        assetsRepository.switchVisibility(session.wallet.id, account, assetId, true)
-        assetsRepository.togglePin(session.wallet.id, assetId)
+        switchAssetVisibility(session.wallet.id, account, assetId, true)
+        toggleAssetPin(session.wallet.id, assetId)
     }
 
     fun onChainFilter(chain: Chain) {

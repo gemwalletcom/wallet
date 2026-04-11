@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAsset
@@ -38,8 +39,9 @@ class SendSelectSearchTest {
 
     @Test
     fun `empty query uses current wallet assets`() = runTest {
-        val assetsRepository = repository()
-        val search = SendSelectSearch(assetsRepository)
+        val searchSelectAssets = searchCoordinator()
+        val getSelectAssetsInfo = assetsInfoCoordinator()
+        val search = SendSelectSearch(searchSelectAssets, getSelectAssetsInfo)
         val filters = MutableStateFlow(
             SelectAssetFilters(
                 session = null,
@@ -53,14 +55,15 @@ class SendSelectSearchTest {
         val result = search.items(filters).first()
 
         assertEquals(walletAssetResults, result)
-        verify(exactly = 1) { assetsRepository.getAssetsInfo() }
-        verify(exactly = 0) { assetsRepository.search(any(), any(), false) }
+        verify(exactly = 1) { getSelectAssetsInfo.invoke() }
+        verify(exactly = 0) { searchSelectAssets.invoke(any(), any()) }
     }
 
     @Test
     fun `selected tag keeps using repository search`() = runTest {
-        val assetsRepository = repository()
-        val search = SendSelectSearch(assetsRepository)
+        val searchSelectAssets = searchCoordinator()
+        val getSelectAssetsInfo = assetsInfoCoordinator()
+        val search = SendSelectSearch(searchSelectAssets, getSelectAssetsInfo)
         val filters = MutableStateFlow(
             SelectAssetFilters(
                 session = null,
@@ -74,11 +77,14 @@ class SendSelectSearchTest {
         val result = search.items(filters).first()
 
         assertEquals(searchResults, result)
-        verify(exactly = 1) { assetsRepository.search("", listOf(AssetTag.Stablecoins), false) }
+        verify(exactly = 1) { searchSelectAssets.invoke("", listOf(AssetTag.Stablecoins)) }
     }
 
-    private fun repository() = mockk<AssetsRepository>(relaxed = true) {
-        every { getAssetsInfo() } returns flowOf(walletAssetResults)
-        every { search(any(), any(), false) } returns flowOf(searchResults)
+    private fun searchCoordinator() = mockk<SearchSelectAssets> {
+        every { this@mockk(any(), any()) } returns flowOf(searchResults)
+    }
+
+    private fun assetsInfoCoordinator() = mockk<GetSelectAssetsInfo> {
+        every { this@mockk() } returns flowOf(walletAssetResults)
     }
 }

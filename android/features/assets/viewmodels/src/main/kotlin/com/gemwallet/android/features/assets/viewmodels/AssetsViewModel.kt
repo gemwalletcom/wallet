@@ -3,30 +3,28 @@ package com.gemwallet.android.features.assets.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
+import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
+import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
+import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.values.ImportWalletState
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.assets.coordinators.HideAsset
+import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
+import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.SyncState
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.WalletSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,28 +33,24 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AssetsViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
-    private val assetsRepository: AssetsRepository,
-    private val userConfig: UserConfig,
-    private val getImportWalletState: GetImportWalletState,
+    private val syncAssets: SyncAssets,
+    private val hideAsset: HideAsset,
+    private val toggleAssetPin: ToggleAssetPin,
+    private val toggleHideBalances: ToggleHideBalances,
+    private val hideWelcomeBanner: HideWelcomeBanner,
+    getImportInProgress: GetImportInProgress,
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,
+    getHideBalancesState: GetHideBalancesState,
+    getShowWelcomeBanner: GetShowWelcomeBanner,
 ) : ViewModel() {
-
-    private val session = sessionRepository.session()
 
     private data class AssetGroups(
         val pinned: List<AssetInfoDataAggregate> = emptyList(),
         val unpinned: List<AssetInfoDataAggregate> = emptyList(),
     )
 
-    val importInProgress = session
-        .filterNotNull()
-        .flatMapLatest { session ->
-            getImportWalletState
-                .getImportState(session.wallet.id)
-                .mapLatest { it == ImportWalletState.Importing }
-        }
+    val importInProgress = getImportInProgress()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val refreshingState = MutableStateFlow<RefreshingState>(RefreshingState.OnOpen)
@@ -76,7 +70,7 @@ class AssetsViewModel @Inject constructor(
         .map { it == SyncState.InSync }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    private val isHideBalances = userConfig.isHideBalances()
+    private val isHideBalances = getHideBalancesState()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val assetGroups = getActiveAssetsInfo.getAssetsInfo(isHideBalances)
@@ -108,44 +102,32 @@ class AssetsViewModel @Inject constructor(
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val showWelcomeBanner = session
-        .filterNotNull()
-        .flatMapLatest { session ->
-            combine(isWalletEmpty, userConfig.isWelcomeBannerHidden(session.wallet.id)) { isWalletEmpty, isWelcomeBannerHidden ->
-                val created = session.wallet.source == WalletSource.Create
-                isWalletEmpty && created && !isWelcomeBannerHidden
-            }
-        }
+    val showWelcomeBanner = getShowWelcomeBanner(isWalletEmpty)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onRefresh() {
-        session.value?.let { session ->
-            refreshingState.update { RefreshingState.OnForce }
-            updateAssetData()
-        }
+        refreshingState.update { RefreshingState.OnForce }
+        updateAssetData()
     }
 
     private fun updateAssetData() = viewModelScope.launch(Dispatchers.IO) {
-        assetsRepository.sync()
+        syncAssets()
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch {
-        val session = session.value ?: return@launch
-        val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        assetsRepository.switchVisibility(session.wallet.id, account, assetId, false)
+        hideAsset.invoke(assetId)
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch {
-        val session = session.value ?: return@launch
-        assetsRepository.togglePin(session.wallet.id, assetId)
+        toggleAssetPin(assetId)
     }
 
     fun hideBalances() = viewModelScope.launch {
-        userConfig.hideBalances()
+        toggleHideBalances()
     }
 
     fun onHideWelcomeBanner() = viewModelScope.launch {
-        userConfig.hideWelcomeBanner(session.value?.wallet?.id ?: return@launch)
+        hideWelcomeBanner()
     }
 
     enum class RefreshingState {

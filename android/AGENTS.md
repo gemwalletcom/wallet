@@ -29,5 +29,6 @@ Before finishing an Android task:
 3. Run the relevant lint and formatting tasks when Kotlin or resources changed
 4. Clean imports and avoid unnecessary comments
 5. If `core/` changed, regenerate shared artifacts and verify Android still builds
+6. In tests, prefer shared `:gemcore` fixtures with sensible defaults over inline full-field mock construction
 
 Do not finish an Android task without running at least one real Gradle verification command for the touched codepath. `git diff --check`, code inspection, or reasoning are not enough. If Gradle is blocked by unrelated repo failures, report the exact command and the blocking error instead of claiming the change was verified.

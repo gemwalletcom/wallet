@@ -15,7 +15,7 @@ public actor AppLifecycleService: Sendable {
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: StreamSubscriptionService
-    private let hyperliquidObserverService: any PerpetualObservable<HyperliquidSubscription>
+    private let hyperliquidObserverService: any PerpetualObservable
 
     private var currentWallet: Wallet?
 
@@ -25,7 +25,7 @@ public actor AppLifecycleService: Sendable {
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
         streamSubscriptionService: StreamSubscriptionService,
-        hyperliquidObserverService: any PerpetualObservable<HyperliquidSubscription>,
+        hyperliquidObserverService: any PerpetualObservable,
     ) {
         self.preferences = preferences
         self.connectionsService = connectionsService

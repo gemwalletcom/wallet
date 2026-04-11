@@ -104,6 +104,29 @@ public struct PerpetualStore: Sendable {
         }
     }
 
+    @discardableResult
+    public func updateMarket(
+        coin: String,
+        price: Double,
+        pricePercentChange24h: Double,
+        openInterest: Double,
+        volume24h: Double,
+        funding: Double,
+    ) throws -> Int {
+        try db.write { db in
+            try PerpetualRecord
+                .filter(PerpetualRecord.Columns.name == coin)
+                .updateAll(
+                    db,
+                    PerpetualRecord.Columns.price.set(to: price),
+                    PerpetualRecord.Columns.pricePercentChange24h.set(to: pricePercentChange24h),
+                    PerpetualRecord.Columns.openInterest.set(to: openInterest),
+                    PerpetualRecord.Columns.volume24h.set(to: volume24h),
+                    PerpetualRecord.Columns.funding.set(to: funding),
+                )
+        }
+    }
+
     public func clear() throws {
         try db.write { db in
             try PerpetualPositionRecord.deleteAll(db)

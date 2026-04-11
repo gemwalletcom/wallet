@@ -3,6 +3,7 @@
 import Formatters
 import Foundation
 import struct Gemstone.GemPerpetualBalance
+import struct Gemstone.GemPerpetualMarketData
 import struct Gemstone.GemPerpetualPosition
 import Preferences
 import Primitives
@@ -46,10 +47,6 @@ public struct PerpetualService: PerpetualServiceable {
             priceChangePercentage24h: 0,
             updatedAt: .now,
         ), currency: Currency.usd.rawValue)
-    }
-
-    public func updateMarket(symbol _: String) async throws {
-        try await updateMarkets()
     }
 
     public func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {
@@ -144,6 +141,17 @@ extension PerpetualService: HyperliquidPerpetualServiceable {
 
     public func diffPositions(deleteIds: [String], positions: [GemPerpetualPosition], walletId: WalletId) throws {
         try store.diffPositions(deleteIds: deleteIds, positions: positions.map { try $0.map() }, walletId: walletId)
+    }
+
+    public func updateMarket(_ market: GemPerpetualMarketData) throws {
+        try store.updateMarket(
+            coin: market.coin,
+            price: market.price,
+            pricePercentChange24h: market.pricePercentChange24h,
+            openInterest: market.openInterest,
+            volume24h: market.volume24h,
+            funding: market.funding,
+        )
     }
 
     public func updatePrices(_ prices: [String: Double]) throws {

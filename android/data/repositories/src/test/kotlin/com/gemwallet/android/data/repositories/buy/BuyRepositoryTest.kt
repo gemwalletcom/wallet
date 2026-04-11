@@ -7,9 +7,16 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ConfigResponse
 import com.wallet.core.primitives.ConfigVersions
 import com.wallet.core.primitives.FiatAssets
+import com.wallet.core.primitives.FiatProviderName
+import com.wallet.core.primitives.FiatQuoteType
+import com.wallet.core.primitives.FiatTransaction
+import com.wallet.core.primitives.FiatTransactionData
+import com.wallet.core.primitives.FiatTransactionStatus
 import com.wallet.core.primitives.SwapConfig
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -74,6 +81,32 @@ class BuyRepositoryTest {
         coVerify(exactly = 0) { gemDeviceApiClient.getSellableFiatAssets() }
         coVerify(exactly = 0) { assetsRepository.updateBuyAvailable(any()) }
         coVerify(exactly = 0) { assetsRepository.updateSellAvailable(any()) }
+    }
+
+    @Test
+    fun updateFiatTransactions_prefetchesDistinctAssetIds() = runTest {
+        val wallet = mockWallet(id = "wallet-1")
+        val ethereum = mockAssetEthereum()
+        val transaction = FiatTransactionData(
+            transaction = FiatTransaction(
+                id = "tx-1",
+                assetId = ethereum.id,
+                transactionType = FiatQuoteType.Buy,
+                provider = FiatProviderName.MoonPay,
+                status = FiatTransactionStatus.Pending,
+                fiatAmount = 100.0,
+                fiatCurrency = "USD",
+                value = "1000000000000000000",
+                createdAt = 1,
+            ),
+        )
+
+        coEvery { getFiatTransactions.getFiatTransactions(wallet.id) } returns listOf(transaction, transaction)
+
+        subject.updateFiatTransactions(wallet)
+
+        coVerify { assetsCoordinator.prefetchAssets(listOf(ethereum.id)) }
+        verify { fiatTransactionsDao.insert(any()) }
     }
 
     private fun remoteConfig(

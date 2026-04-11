@@ -2,8 +2,8 @@
 
 import BigInt
 import Primitives
-import PrimitivesTestKit
 @testable import PrimitivesComponents
+import PrimitivesTestKit
 
 public extension NetworkFeeSceneViewModel {
     static func mock(

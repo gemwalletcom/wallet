@@ -101,19 +101,19 @@ class BuyRepository @Inject constructor(
     suspend fun updateFiatTransactions(wallet: Wallet) {
         try {
             val transactions = getFiatTransactions.getFiatTransactions(wallet.id)
-            prefetchAssets(wallet, transactions)
+            prefetchAssets(transactions)
             fiatTransactionsDao.insert(transactions.toRecord(wallet.id))
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
         }
     }
 
-    private suspend fun prefetchAssets(wallet: Wallet, transactions: List<FiatTransactionData>) {
+    private suspend fun prefetchAssets(transactions: List<FiatTransactionData>) {
         val assetIds = transactions
             .map { it.transaction.assetId }
             .distinct()
 
-        assetsCoordinator.prefetchAssets(wallet, assetIds)
+        assetsCoordinator.prefetchAssets(assetIds)
     }
 
     private enum class ConfigKey(val string: String) {

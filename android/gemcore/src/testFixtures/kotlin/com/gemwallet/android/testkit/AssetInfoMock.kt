@@ -4,6 +4,7 @@ import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.WalletType
 
 fun mockAssetInfo(
@@ -13,6 +14,7 @@ fun mockAssetInfo(
     walletId: String? = "wallet-id",
     walletType: WalletType = WalletType.View,
     walletName: String = "Wallet",
+    metadata: AssetMetaData? = null,
 ) = AssetInfo(
     owner = owner,
     asset = asset,
@@ -20,4 +22,5 @@ fun mockAssetInfo(
     walletId = walletId,
     walletType = walletType,
     walletName = walletName,
+    metadata = metadata,
 )

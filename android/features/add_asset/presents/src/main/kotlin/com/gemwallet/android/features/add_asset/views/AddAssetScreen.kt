@@ -27,6 +27,7 @@ fun AddAssetScree(
     val network by viewModel.selectedChain.collectAsStateWithLifecycle()
     val token by viewModel.token.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
+    val explorerLink by viewModel.explorerLink.collectAsStateWithLifecycle()
 
     BackHandler(uiState.scene != AddAssetUIState.Scene.Form) {
         viewModel.cancelSelectChain()
@@ -63,6 +64,7 @@ fun AddAssetScree(
                     addressState = viewModel.addressState,
                     network = network.asset(),
                     token = token,
+                    explorerLink = explorerLink,
                     onCancel = onCancel,
                     onScan = viewModel::onQrScan,
                     onAddAsset = { viewModel.addAsset(onFinish) },

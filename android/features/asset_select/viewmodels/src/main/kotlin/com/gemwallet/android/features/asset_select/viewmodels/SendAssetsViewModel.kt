@@ -1,8 +1,12 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
+import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
+import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.RecentType
@@ -18,15 +22,21 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-open class SendSelectViewModel@Inject constructor(
-    sessionRepository: SessionRepository,
-    assetsRepository: AssetsRepository,
+open class SendSelectViewModel @Inject constructor(
+    getSession: GetSession,
+    searchSelectAssets: SearchSelectAssets,
+    getSelectAssetsInfo: GetSelectAssetsInfo,
+    getRecentAssets: GetRecentAssets,
+    switchAssetVisibility: SwitchAssetVisibility,
+    toggleAssetPin: ToggleAssetPin,
     searchTokensCase: SearchTokensCase,
 ) : BaseAssetSelectViewModel(
-    sessionRepository,
-    assetsRepository,
+    getSession,
+    getRecentAssets,
+    switchAssetVisibility,
+    toggleAssetPin,
     searchTokensCase,
-    SendSelectSearch(assetsRepository)
+    SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
 ) {
     override fun getRecentType(): RecentType? = RecentType.Send
 
@@ -38,16 +48,17 @@ open class SendSelectViewModel@Inject constructor(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendSelectSearch(
-    private val assetsRepository: AssetsRepository,
-) : BaseSelectSearch(assetsRepository) {
+    private val searchSelectAssets: SearchSelectAssets,
+    private val getSelectAssetsInfo: GetSelectAssetsInfo,
+) : BaseSelectSearch(searchSelectAssets) {
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters
             .map { filters -> filters?.query.orEmpty() to filters?.tag }
             .flatMapLatest { (query, tag) ->
                 val source = if (query.isEmpty() && tag == null) {
-                    assetsRepository.getAssetsInfo()
+                    getSelectAssetsInfo()
                 } else {
-                    assetsRepository.search(query, tag?.let(::listOf) ?: emptyList(), false)
+                    searchSelectAssets(query, tag?.let(::listOf) ?: emptyList())
                 }
 
                 source.map { items ->

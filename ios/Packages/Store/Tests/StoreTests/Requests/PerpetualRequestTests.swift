@@ -76,4 +76,36 @@ struct PerpetualRequestTests {
             #expect(stale == .empty)
         }
     }
+
+    @Test
+    func updatesMarketData() throws {
+        let db = DB.mockAssets()
+        let store = PerpetualStore(db: db)
+        let eth = AssetId(chain: .ethereum)
+        let perpetual = Perpetual.mock(
+            id: "hypercore_ETH",
+            name: "ETH",
+            assetId: eth,
+        )
+
+        try store.upsertPerpetuals([perpetual])
+        try store.updateMarket(
+            coin: "ETH",
+            price: 2236.45,
+            pricePercentChange24h: 5.12,
+            openInterest: 1_538_967.4595,
+            volume24h: 1_169_046.29406,
+            funding: 0.00125,
+        )
+
+        try db.dbQueue.read { db in
+            let result = try PerpetualRequest(assetId: eth).fetch(db)
+
+            #expect(result.perpetual.price == 2236.45)
+            #expect(result.perpetual.pricePercentChange24h == 5.12)
+            #expect(result.perpetual.openInterest == 1_538_967.4595)
+            #expect(result.perpetual.volume24h == 1_169_046.29406)
+            #expect(result.perpetual.funding == 0.00125)
+        }
+    }
 }

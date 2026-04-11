@@ -153,6 +153,24 @@ public struct PerpetualData: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
+public struct PerpetualMarketData: Codable, Equatable, Hashable, Sendable {
+	public let coin: String
+	public let price: Double
+	public let pricePercentChange24h: Double
+	public let openInterest: Double
+	public let volume24h: Double
+	public let funding: Double
+
+	public init(coin: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double) {
+		self.coin = coin
+		self.price = price
+		self.pricePercentChange24h = pricePercentChange24h
+		self.openInterest = openInterest
+		self.volume24h = volume24h
+		self.funding = funding
+	}
+}
+
 public enum PerpetualModifyPositionType: Codable, Equatable, Hashable, Sendable {
 	case tpsl(TPSLOrderData)
 	case cancel([CancelOrderData])

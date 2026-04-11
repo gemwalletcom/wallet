@@ -1,8 +1,11 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
+import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
+import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
+import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -14,21 +17,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BuySelectViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
-    assetsRepository: AssetsRepository,
+    getSession: GetSession,
+    searchSelectAssets: SearchSelectAssets,
+    getRecentAssets: GetRecentAssets,
+    switchAssetVisibility: SwitchAssetVisibility,
+    toggleAssetPin: ToggleAssetPin,
     searchTokensCase: SearchTokensCase,
 ) : BaseAssetSelectViewModel(
-    sessionRepository,
-    assetsRepository,
+    getSession,
+    getRecentAssets,
+    switchAssetVisibility,
+    toggleAssetPin,
     searchTokensCase,
-    BuySelectSearch(assetsRepository)
+    BuySelectSearch(searchSelectAssets),
 ) {
     override fun getRecentType(): RecentType = RecentType.Buy
 }
 
 class BuySelectSearch(
-    assetsRepository: AssetsRepository,
-) : BaseSelectSearch(assetsRepository) {
+    searchSelectAssets: SearchSelectAssets,
+) : BaseSelectSearch(searchSelectAssets) {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return super.items(filters).map { items -> filter(items) }

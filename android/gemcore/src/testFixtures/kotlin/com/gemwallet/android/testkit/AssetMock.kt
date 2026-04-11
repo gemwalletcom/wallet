@@ -63,3 +63,30 @@ fun mockAssetTron() = mockAsset(
     symbol = "TRX",
     decimals = 6,
 )
+
+fun mockAssetHyperCoreHype() = mockAsset(
+    chain = Chain.HyperCore,
+    tokenId = "HYPE::0x0d01dc56dcaaca66ad901c959b4011ec::150",
+    name = "Hyperliquid",
+    symbol = "HYPE",
+    decimals = 8,
+    type = AssetType.TOKEN,
+)
+
+fun mockAssetHyperCoreUSDC() = mockAsset(
+    chain = Chain.HyperCore,
+    tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0",
+    name = "USDC",
+    symbol = "USDC",
+    decimals = 8,
+    type = AssetType.TOKEN,
+)
+
+fun mockAssetHyperCoreUBTC() = mockAsset(
+    chain = Chain.HyperCore,
+    tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197",
+    name = "Bitcoin",
+    symbol = "UBTC",
+    decimals = 10,
+    type = AssetType.TOKEN,
+)
