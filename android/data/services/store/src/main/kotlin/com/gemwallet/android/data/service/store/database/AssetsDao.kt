@@ -77,6 +77,9 @@ interface AssetsDao {
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
     suspend fun getAssetIds(ids: List<String>): List<String>
 
+    @Query("SELECT asset_id FROM asset_wallet WHERE wallet_id = :walletId AND asset_id IN (:assetIds)")
+    suspend fun getWalletAssetIds(walletId: String, assetIds: List<String>): List<String>
+
     @Query("SELECT * FROM asset_info WHERE chain = :chain AND id = :assetId AND sessionId = 1")
     fun getAssetInfo(assetId: String, chain: Chain): Flow<DbAssetInfo?>
 
@@ -215,9 +218,6 @@ interface AssetsDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     fun linkAssetToWallet(link: DbAssetWallet)
-
-    @Query("SELECT EXISTS(SELECT 1 FROM asset_wallet WHERE wallet_id = :walletId AND asset_id = :assetId)")
-    suspend fun hasAssetWalletLink(walletId: String, assetId: String): Boolean
 
     @Query("SELECT * FROM asset_links WHERE asset_id = :assetId")
     fun getAssetLinks(assetId: String): Flow<List<DbAssetLink>>

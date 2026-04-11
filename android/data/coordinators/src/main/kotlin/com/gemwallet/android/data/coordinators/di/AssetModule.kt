@@ -6,6 +6,7 @@ import com.gemwallet.android.application.assets.coordinators.GetHideBalancesStat
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
+import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
@@ -22,6 +23,7 @@ import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
+import com.gemwallet.android.data.coordinators.asset.EnsureWalletAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
@@ -88,6 +90,14 @@ object AssetModule {
         assetsRepository: AssetsRepository,
     ): PrefetchAssets = PrefetchAssetsImpl(
         gemApiClient = gemApiClient,
+        assetsRepository = assetsRepository,
+    )
+
+    @Provides
+    @Singleton
+    fun provideEnsureWalletAssets(
+        assetsRepository: AssetsRepository,
+    ): EnsureWalletAssets = EnsureWalletAssetsImpl(
         assetsRepository = assetsRepository,
     )
 

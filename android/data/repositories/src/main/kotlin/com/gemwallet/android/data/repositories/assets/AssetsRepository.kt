@@ -176,13 +176,21 @@ class AssetsRepository @Inject constructor(
     }
 
     suspend fun hasAssets(assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
+        if (assetIds.isEmpty()) {
+            return@withContext emptySet()
+        }
         assetsDao.getAssetIds(assetIds.map { it.toIdentifier() })
             .mapNotNull { it.toAssetId() }
             .toSet()
     }
 
-    suspend fun hasAsset(walletId: String, assetId: AssetId): Boolean = withContext(Dispatchers.IO) {
-        assetsDao.hasAssetWalletLink(walletId, assetId.toIdentifier())
+    suspend fun hasWalletAssets(walletId: String, assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
+        if (assetIds.isEmpty()) {
+            return@withContext emptySet()
+        }
+        assetsDao.getWalletAssetIds(walletId, assetIds.map { it.toIdentifier() })
+            .mapNotNull { it.toAssetId() }
+            .toSet()
     }
 
     fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo()
