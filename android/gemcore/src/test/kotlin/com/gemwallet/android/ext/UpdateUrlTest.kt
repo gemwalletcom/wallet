@@ -8,7 +8,7 @@ class UpdateUrlTest {
     @Test
     fun `universal flavor uses versioned apk url`() {
         assertEquals(
-            "https://apk.gemwallet.com/gem_wallet_universal_v2.29.apk",
+            "https://apk.gemwallet.com/gem_wallet_universal_2.29.apk",
             updateUrl(
                 flavor = "universal",
                 version = "2.29",
