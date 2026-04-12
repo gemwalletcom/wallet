@@ -31,7 +31,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -70,7 +69,7 @@ import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.drop
 
 @Composable
 fun AssetSelectScene(
@@ -167,23 +166,20 @@ fun AssetSelectScene(
     contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
     var isReturnToTop by remember { mutableStateOf(false) }
 
     var showSelectNetworks by remember { mutableStateOf(false) }
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
 
-    LaunchedEffect(true) {
-        coroutineScope.launch {
-            snapshotFlow { query.text.toString() }.collect {
-                isReturnToTop = it.isEmpty()
-            }
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { query.text.toString() }
+            .drop(1)
+            .collect { isReturnToTop = it.isEmpty() }
     }
 
     LaunchedEffect(pinned, unpinned) {
         if (isReturnToTop) {
-            coroutineScope.launch {
+            if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
                 listState.animateScrollToItem(0)
             }
             isReturnToTop = false
@@ -210,7 +206,10 @@ fun AssetSelectScene(
         if (searchable) {
             SearchBar(query = query)
         }
-        LazyColumn(state = listState) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            state = listState,
+        ) {
             item {
                 TabsBar(
                     tabs = tags,
