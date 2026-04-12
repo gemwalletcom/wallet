@@ -543,7 +543,7 @@
   <string name="nodes.import_node.warning_message">Custom nodes can be malicious and may expose your transaction data or provide false information.</string>
   <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
   <string name="info.fully_diluted_valuation.description">The theoretical market value if all coins were in circulation. Calculated as price multiplied by max supply.</string>
-  <string name="info.circulating_supply.description">The number of coins currently available and trading in the market.\"</string>
+  <string name="info.circulating_supply.description">The number of coins currently available and trading in the market.</string>
   <string name="info.total_supply.description">The total number of coins that exist, including locked or reserved coins.</string>
   <string name="info.max_supply.title">Max Supply</string>
   <string name="info.max_supply.description">The maximum number of coins that will ever exist.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Permissions</string>
   <string name="wallet_connect.permissions.view_balance">View your balance and activity</string>
   <string name="wallet_connect.permissions.approval_requests">Send approval requests</string>
+  <string name="wallet.import.already_imported_title">Wallet Already Imported</string>
+  <string name="wallet.import.already_imported_message">Already added as \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Switch to %s</string>
+  <string name="wallet.import.import_another">Import Another</string>
 </resources>

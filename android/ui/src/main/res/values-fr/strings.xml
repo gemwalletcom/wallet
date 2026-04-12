@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Surnom</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Invitez vos amis et gagnez des récompenses ensemble.</string>
   <string name="nodes.import_node.warning_message">Les nœuds personnalisés peuvent être malveillants et exposer vos données de transaction ou fournir de fausses informations.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Évaluation entièrement diluée</string>
   <string name="info.fully_diluted_valuation.description">Valeur marchande théorique si toutes les pièces étaient en circulation. Calculée en multipliant le prix par l\'offre maximale.</string>
   <string name="info.circulating_supply.description">Le nombre de pièces actuellement disponibles et échangées sur le marché.</string>
   <string name="info.total_supply.description">Le nombre total de pièces existantes, y compris les pièces bloquées ou réservées.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Autorisations</string>
   <string name="wallet_connect.permissions.view_balance">Consultez votre solde et votre activité</string>
   <string name="wallet_connect.permissions.approval_requests">Envoyer les demandes d\'approbation</string>
+  <string name="wallet.import.already_imported_title">Portefeuille déjà importé</string>
+  <string name="wallet.import.already_imported_message">Déjà ajouté comme \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Passer à %s</string>
+  <string name="wallet.import.import_another">Importer un autre</string>
 </resources>

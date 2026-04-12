@@ -520,7 +520,7 @@
 "rewards.nickname" = "Biệt danh";
 "notifications.inapp.rewards.invite.subtitle" = "Mời bạn bè và cùng nhau nhận phần thưởng.";
 "nodes.import_node.warning_message" = "Các node tùy chỉnh có thể chứa mã độc và có thể làm lộ dữ liệu giao dịch của bạn hoặc cung cấp thông tin sai lệch.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Định giá sau khi pha loãng hoàn toàn";
 "info.fully_diluted_valuation.description" = "Giá trị thị trường lý thuyết nếu tất cả các đồng tiền đều được lưu thông. Được tính bằng giá nhân với nguồn cung tối đa.";
 "info.circulating_supply.description" = "Số lượng tiền điện tử hiện có và đang được giao dịch trên thị trường.";
 "info.total_supply.description" = "Tổng số lượng tiền xu hiện có, bao gồm cả tiền xu bị khóa hoặc được giữ lại.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Quyền hạn";
 "wallet_connect.permissions.view_balance" = "Xem số dư và hoạt động của bạn";
 "wallet_connect.permissions.approval_requests" = "Gửi yêu cầu phê duyệt";
-"wallet_connect.permissions.move_funds" = "Chuyển tiền mà không được phép";
+"wallet.import.already_imported_title" = "Ví đã được nhập";
+"wallet.import.already_imported_message" = "Đã được thêm vào dưới dạng \"%s\"";
+"wallet.import.switch_to_wallet" = "Chuyển sang %s";
+"wallet.import.import_another" = "Nhập khẩu một cái khác";

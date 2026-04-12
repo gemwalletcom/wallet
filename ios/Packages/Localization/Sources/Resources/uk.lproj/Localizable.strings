@@ -520,7 +520,7 @@
 "rewards.nickname" = "Прізвисько";
 "notifications.inapp.rewards.invite.subtitle" = "Запрошуйте друзів та отримуйте винагороди разом";
 "nodes.import_node.warning_message" = "Користувацькі вузли можуть бути шкідливими та розкривати дані ваших транзакцій або надавати неправдиву інформацію.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Повністю розбавлена оцінка";
 "info.fully_diluted_valuation.description" = "Теоретична ринкова вартість, якби всі монети були в обігу. Розраховується як ціна, помножена на максимальну пропозицію.";
 "info.circulating_supply.description" = "Кількість монет, що наразі доступні та торгуються на ринку.";
 "info.total_supply.description" = "Загальна кількість існуючих монет, включаючи заблоковані або зарезервовані монети.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Дозволи";
 "wallet_connect.permissions.view_balance" = "Перегляд вашого балансу та активності";
 "wallet_connect.permissions.approval_requests" = "Надсилати запити на схвалення";
-"wallet_connect.permissions.move_funds" = "Переміщення коштів без дозволу";
+"wallet.import.already_imported_title" = "Гаманець уже імпортовано";
+"wallet.import.already_imported_message" = "Вже додано як \"%s\"";
+"wallet.import.switch_to_wallet" = "Перейти до %s";
+"wallet.import.import_another" = "Імпортувати ще";

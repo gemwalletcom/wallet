@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Kælenavn</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Inviter venner og optjen belønninger sammen</string>
   <string name="nodes.import_node.warning_message">Brugerdefinerede noder kan være skadelige og kan eksponere dine transaktionsdata eller give falske oplysninger.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Fuldt udvandet værdiansættelse</string>
   <string name="info.fully_diluted_valuation.description">Den teoretiske markedsværdi, hvis alle mønter var i omløb. Beregnet som prisen ganget med det maksimale udbud.</string>
   <string name="info.circulating_supply.description">Antallet af tilgængelige og handlede mønter på markedet i øjeblikket.</string>
   <string name="info.total_supply.description">Det samlede antal mønter, der findes, inklusive låste eller reserverede mønter.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Tilladelser</string>
   <string name="wallet_connect.permissions.view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect.permissions.approval_requests">Send godkendelsesanmodninger</string>
+  <string name="wallet.import.already_imported_title">Tegnebogen er allerede importeret</string>
+  <string name="wallet.import.already_imported_message">Allerede tilføjet som \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Skift til %s</string>
+  <string name="wallet.import.import_another">Importer en anden</string>
 </resources>

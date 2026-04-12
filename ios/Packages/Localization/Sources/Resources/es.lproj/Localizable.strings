@@ -520,9 +520,9 @@
 "rewards.nickname" = "Apodo";
 "notifications.inapp.rewards.invite.subtitle" = "Invita a tus amigos y gana recompensas juntos";
 "nodes.import_node.warning_message" = "Los nodos personalizados pueden ser maliciosos y pueden exponer sus datos de transacciones o proporcionar información falsa.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Valoración totalmente diluida";
 "info.fully_diluted_valuation.description" = "El valor teórico de mercado si todas las monedas estuvieran en circulación. Se calcula multiplicando el precio por la oferta máxima.";
-"info.circulating_supply.description" = "La cantidad de monedas actualmente disponibles y comercializadas en el mercado.\"";
+"info.circulating_supply.description" = "La cantidad de monedas actualmente disponibles y comercializadas en el mercado.";
 "info.total_supply.description" = "El número total de monedas que existen, incluidas las monedas bloqueadas o reservadas.";
 "info.max_supply.title" = "Suministro máximo";
 "info.max_supply.description" = "El número máximo de monedas que jamás existirán.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Permisos";
 "wallet_connect.permissions.view_balance" = "Consulta tu saldo y actividad.";
 "wallet_connect.permissions.approval_requests" = "Enviar solicitudes de aprobación";
-"wallet_connect.permissions.move_funds" = "Transferir fondos sin autorización";
+"wallet.import.already_imported_title" = "Cartera ya importada";
+"wallet.import.already_imported_message" = "Ya añadido como \"%s\"";
+"wallet.import.switch_to_wallet" = "Cambiar a %s";
+"wallet.import.import_another" = "Importar otro";

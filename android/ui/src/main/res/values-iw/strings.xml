@@ -541,7 +541,7 @@
   <string name="rewards.nickname">כינוי</string>
   <string name="notifications.inapp.rewards.invite.subtitle">הזמינו חברים וצברו יחד פרסים</string>
   <string name="nodes.import_node.warning_message">צמתים מותאמים אישית עלולים להיות זדוניים ולחשוף את נתוני העסקאות שלך או לספק מידע כוזב.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">הערכה מדוללת לחלוטין</string>
   <string name="info.fully_diluted_valuation.description">שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.</string>
   <string name="info.circulating_supply.description">מספר המטבעות הזמינים ונסחרים כעת בשוק.</string>
   <string name="info.total_supply.description">המספר הכולל של מטבעות שקיימים, כולל מטבעות נעולים או שמורים.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">הרשאות</string>
   <string name="wallet_connect.permissions.view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect.permissions.approval_requests">שלח בקשות אישור</string>
+  <string name="wallet.import.already_imported_title">הארנק כבר יובא</string>
+  <string name="wallet.import.already_imported_message">כבר נוסף בתור \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">עבור אל %s</string>
+  <string name="wallet.import.import_another">ייבוא ​​אחר</string>
 </resources>

@@ -520,7 +520,7 @@
 "rewards.nickname" = "كنية";
 "notifications.inapp.rewards.invite.subtitle" = "ادعُ أصدقاءك واربحوا المكافآت معًا";
 "nodes.import_node.warning_message" = "قد تكون العقد المخصصة ضارة وقد تكشف بيانات معاملاتك أو تقدم معلومات خاطئة.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "التقييم المخفف بالكامل";
 "info.fully_diluted_valuation.description" = "القيمة السوقية النظرية في حال تداول جميع العملات. تُحسب بضرب السعر في الحد الأقصى للعرض.";
 "info.circulating_supply.description" = "عدد العملات المتاحة حاليًا والمتداولة في السوق.";
 "info.total_supply.description" = "إجمالي عدد العملات المعدنية الموجودة، بما في ذلك العملات المعدنية المقفلة أو المحجوزة.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "الأذونات";
 "wallet_connect.permissions.view_balance" = "اطلع على رصيدك ونشاطك";
 "wallet_connect.permissions.approval_requests" = "إرسال طلبات الموافقة";
-"wallet_connect.permissions.move_funds" = "تحويل الأموال بدون إذن";
+"wallet.import.already_imported_title" = "المحفظة مستوردة بالفعل";
+"wallet.import.already_imported_message" = "تمت إضافته بالفعل باسم \"%s\"";
+"wallet.import.switch_to_wallet" = "انتقل إلى %s";
+"wallet.import.import_another" = "استيراد آخر";

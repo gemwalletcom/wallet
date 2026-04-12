@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Никнейм</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Приглашайте друзей и зарабатывайте награды вместе.</string>
   <string name="nodes.import_node.warning_message">Пользовательские узлы могут быть вредоносными и способны раскрыть данные ваших транзакций или предоставить ложную информацию.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Полностью разводненная оценка</string>
   <string name="info.fully_diluted_valuation.description">Теоретическая рыночная стоимость, если бы все монеты находились в обращении. Рассчитывается как цена, умноженная на максимальное предложение.</string>
   <string name="info.circulating_supply.description">Количество монет, доступных и торгующихся в настоящее время на рынке.</string>
   <string name="info.total_supply.description">Общее количество существующих монет, включая заблокированные или зарезервированные монеты.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Разрешения</string>
   <string name="wallet_connect.permissions.view_balance">Просматривать баланс и активность</string>
   <string name="wallet_connect.permissions.approval_requests">Отправлять запросы на подтверждение</string>
+  <string name="wallet.import.already_imported_title">Кошелек уже импортирован</string>
+  <string name="wallet.import.already_imported_message">Уже добавлено как \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Переключиться на %s</string>
+  <string name="wallet.import.import_another">Импортировать другой</string>
 </resources>

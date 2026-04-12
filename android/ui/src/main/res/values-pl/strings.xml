@@ -541,7 +541,7 @@
   <string name="rewards.nickname">Przydomek</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Zaproś znajomych i zdobywajcie nagrody razem</string>
   <string name="nodes.import_node.warning_message">Węzły niestandardowe mogą mieć charakter złośliwy i ujawniać dane transakcji lub podawać fałszywe informacje.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Wycena całkowicie rozwodniona</string>
   <string name="info.fully_diluted_valuation.description">Teoretyczna wartość rynkowa, gdyby wszystkie monety były w obiegu. Obliczona jako iloczyn ceny i maksymalnej podaży.</string>
   <string name="info.circulating_supply.description">Liczba monet aktualnie dostępnych i będących w obrocie na rynku.</string>
   <string name="info.total_supply.description">Łączna liczba istniejących monet, łącznie z monetami zablokowanymi lub zarezerwowanymi.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Uprawnienia</string>
   <string name="wallet_connect.permissions.view_balance">Wyświetl swoje saldo i aktywność</string>
   <string name="wallet_connect.permissions.approval_requests">Wyślij prośby o zatwierdzenie</string>
+  <string name="wallet.import.already_imported_title">Portfel już zaimportowany</string>
+  <string name="wallet.import.already_imported_message">Już dodano jako „%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Przełącz na %s</string>
+  <string name="wallet.import.import_another">Importuj inny</string>
 </resources>

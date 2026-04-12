@@ -520,9 +520,9 @@
 "rewards.nickname" = "Jina la utani";
 "notifications.inapp.rewards.invite.subtitle" = "Alika marafiki na upate zawadi pamoja";
 "nodes.import_node.warning_message" = "Nodi maalum zinaweza kuwa na nia mbaya na zinaweza kufichua data ya muamala wako au kutoa taarifa za uongo.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Thamani Iliyopunguzwa Kikamilifu";
 "info.fully_diluted_valuation.description" = "Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.";
-"info.circulating_supply.description" = "Idadi ya sarafu zinazopatikana sasa na zinazouzwa sokoni.\"";
+"info.circulating_supply.description" = "Idadi ya sarafu zinazopatikana sasa na zinazouzwa sokoni.";
 "info.total_supply.description" = "Jumla ya sarafu zilizopo, ikijumuisha sarafu zilizofungwa au zilizohifadhiwa.";
 "info.max_supply.title" = "Ugavi wa Juu Zaidi";
 "info.max_supply.description" = "Idadi ya juu zaidi ya sarafu zitakazokuwepo.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Ruhusa";
 "wallet_connect.permissions.view_balance" = "Tazama salio na shughuli zako";
 "wallet_connect.permissions.approval_requests" = "Tuma maombi ya idhini";
-"wallet_connect.permissions.move_funds" = "Hamisha fedha bila ruhusa";
+"wallet.import.already_imported_title" = "Pochi Tayari Imeingizwa";
+"wallet.import.already_imported_message" = "Tayari imeongezwa kama \"%s\"";
+"wallet.import.switch_to_wallet" = "Badilisha hadi %s";
+"wallet.import.import_another" = "Ingiza Nyingine";

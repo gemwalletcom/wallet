@@ -520,7 +520,7 @@
 "rewards.nickname" = "暱稱";
 "notifications.inapp.rewards.invite.subtitle" = "邀請好友，一起贏取獎勵";
 "nodes.import_node.warning_message" = "自訂節點可能存在惡意，可能會洩露您的交易資料或提供虛假資訊。";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "完全稀釋估值";
 "info.fully_diluted_valuation.description" = "如果所有硬幣都在流通，其理論市場價值為：價格乘以最大供應量。";
 "info.circulating_supply.description" = "目前市場上可供交易的加密貨幣數量。";
 "info.total_supply.description" = "現存硬幣總數，包括已鎖定或已預留的硬幣。";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "權限";
 "wallet_connect.permissions.view_balance" = "查看您的餘額和活動";
 "wallet_connect.permissions.approval_requests" = "發送審批請求";
-"wallet_connect.permissions.move_funds" = "未經許可轉移資金";
+"wallet.import.already_imported_title" = "錢包已導入";
+"wallet.import.already_imported_message" = "已新增為“%s“";
+"wallet.import.switch_to_wallet" = "切換到 %s";
+"wallet.import.import_another" = "導入另一個";

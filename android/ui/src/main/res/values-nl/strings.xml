@@ -541,9 +541,9 @@
   <string name="rewards.nickname">Bijnaam</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Nodig vrienden uit en verdien samen beloningen.</string>
   <string name="nodes.import_node.warning_message">Aangepaste nodes kunnen kwaadaardig zijn en uw transactiegegevens blootleggen of valse informatie verstrekken.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Volledig verwaterde waardering</string>
   <string name="info.fully_diluted_valuation.description">De theoretische marktwaarde als alle munten in omloop zouden zijn. Berekend als de prijs vermenigvuldigd met het maximale aanbod.</string>
-  <string name="info.circulating_supply.description">Het aantal munten dat momenteel beschikbaar is en verhandeld wordt op de markt.\"</string>
+  <string name="info.circulating_supply.description">Het aantal munten dat momenteel beschikbaar is en verhandeld wordt op de markt.</string>
   <string name="info.total_supply.description">Het totale aantal munten dat bestaat, inclusief vergrendelde of gereserveerde munten.</string>
   <string name="info.max_supply.title">Max Supply</string>
   <string name="info.max_supply.description">Het maximale aantal munten dat ooit zal bestaan.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Toestemmingen</string>
   <string name="wallet_connect.permissions.view_balance">Bekijk je saldo en activiteit</string>
   <string name="wallet_connect.permissions.approval_requests">Verzoeken om goedkeuring verzenden</string>
+  <string name="wallet.import.already_imported_title">Portemonnee reeds geïmporteerd</string>
+  <string name="wallet.import.already_imported_message">Reeds toegevoegd als \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Schakel over naar %s</string>
+  <string name="wallet.import.import_another">Importeer nog een</string>
 </resources>

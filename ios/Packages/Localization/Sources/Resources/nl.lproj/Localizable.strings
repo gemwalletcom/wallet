@@ -520,9 +520,9 @@
 "rewards.nickname" = "Bijnaam";
 "notifications.inapp.rewards.invite.subtitle" = "Nodig vrienden uit en verdien samen beloningen.";
 "nodes.import_node.warning_message" = "Aangepaste nodes kunnen kwaadaardig zijn en uw transactiegegevens blootleggen of valse informatie verstrekken.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Volledig verwaterde waardering";
 "info.fully_diluted_valuation.description" = "De theoretische marktwaarde als alle munten in omloop zouden zijn. Berekend als de prijs vermenigvuldigd met het maximale aanbod.";
-"info.circulating_supply.description" = "Het aantal munten dat momenteel beschikbaar is en verhandeld wordt op de markt.\"";
+"info.circulating_supply.description" = "Het aantal munten dat momenteel beschikbaar is en verhandeld wordt op de markt.";
 "info.total_supply.description" = "Het totale aantal munten dat bestaat, inclusief vergrendelde of gereserveerde munten.";
 "info.max_supply.title" = "Max Supply";
 "info.max_supply.description" = "Het maximale aantal munten dat ooit zal bestaan.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Toestemmingen";
 "wallet_connect.permissions.view_balance" = "Bekijk je saldo en activiteit";
 "wallet_connect.permissions.approval_requests" = "Verzoeken om goedkeuring verzenden";
-"wallet_connect.permissions.move_funds" = "Geld overmaken zonder toestemming";
+"wallet.import.already_imported_title" = "Portemonnee reeds geïmporteerd";
+"wallet.import.already_imported_message" = "Reeds toegevoegd als \"%s\"";
+"wallet.import.switch_to_wallet" = "Schakel over naar %s";
+"wallet.import.import_another" = "Importeer nog een";

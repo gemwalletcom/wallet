@@ -541,9 +541,9 @@
   <string name="rewards.nickname">Takma ad</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Arkadaşlarınızı davet edin ve birlikte ödüller kazanın.</string>
   <string name="nodes.import_node.warning_message">Özel düğümler kötü amaçlı olabilir ve işlem verilerinizi ifşa edebilir veya yanlış bilgi sağlayabilir.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Tamamen Seyreltilmiş Değerleme</string>
   <string name="info.fully_diluted_valuation.description">Tüm madeni paraların dolaşımda olması durumunda teorik piyasa değeri. Fiyatın maksimum arzla çarpılmasıyla hesaplanır.</string>
-  <string name="info.circulating_supply.description">Piyasada şu anda mevcut olan ve işlem gören kripto para birimi sayısı.\"</string>
+  <string name="info.circulating_supply.description">Piyasada şu anda mevcut olan ve işlem gören kripto para birimi sayısı.</string>
   <string name="info.total_supply.description">Kilitli veya rezerve edilmiş paralar da dahil olmak üzere mevcut toplam para sayısı.</string>
   <string name="info.max_supply.title">Maksimum Tedarik</string>
   <string name="info.max_supply.description">Var olabilecek maksimum madeni para sayısı.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">İzinler</string>
   <string name="wallet_connect.permissions.view_balance">Bakiyenizi ve işlemlerinizi görüntüleyin.</string>
   <string name="wallet_connect.permissions.approval_requests">Onay isteklerini gönderin</string>
+  <string name="wallet.import.already_imported_title">Cüzdan Zaten İçe Aktarıldı</string>
+  <string name="wallet.import.already_imported_message">Zaten \" olarak eklendi\"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Şuna geçin %s</string>
+  <string name="wallet.import.import_another">Başka bir şeyi içe aktar</string>
 </resources>

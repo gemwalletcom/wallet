@@ -520,7 +520,7 @@
 "rewards.nickname" = "Kælenavn";
 "notifications.inapp.rewards.invite.subtitle" = "Inviter venner og optjen belønninger sammen";
 "nodes.import_node.warning_message" = "Brugerdefinerede noder kan være skadelige og kan eksponere dine transaktionsdata eller give falske oplysninger.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "Fuldt udvandet værdiansættelse";
 "info.fully_diluted_valuation.description" = "Den teoretiske markedsværdi, hvis alle mønter var i omløb. Beregnet som prisen ganget med det maksimale udbud.";
 "info.circulating_supply.description" = "Antallet af tilgængelige og handlede mønter på markedet i øjeblikket.";
 "info.total_supply.description" = "Det samlede antal mønter, der findes, inklusive låste eller reserverede mønter.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "Tilladelser";
 "wallet_connect.permissions.view_balance" = "Se din saldo og aktivitet";
 "wallet_connect.permissions.approval_requests" = "Send godkendelsesanmodninger";
-"wallet_connect.permissions.move_funds" = "Flytte penge uden tilladelse";
+"wallet.import.already_imported_title" = "Tegnebogen er allerede importeret";
+"wallet.import.already_imported_message" = "Allerede tilføjet som \"%s\"";
+"wallet.import.switch_to_wallet" = "Skift til %s";
+"wallet.import.import_another" = "Importer en anden";

@@ -520,7 +520,7 @@
 "rewards.nickname" = "כינוי";
 "notifications.inapp.rewards.invite.subtitle" = "הזמינו חברים וצברו יחד פרסים";
 "nodes.import_node.warning_message" = "צמתים מותאמים אישית עלולים להיות זדוניים ולחשוף את נתוני העסקאות שלך או לספק מידע כוזב.";
-"info.fully_diluted_valuation.title" = "Fully Diluted Valuation";
+"info.fully_diluted_valuation.title" = "הערכה מדוללת לחלוטין";
 "info.fully_diluted_valuation.description" = "שווי השוק התיאורטי אם כל המטבעות היו במחזור. מחושב כמחיר כפול היצע מקסימלי.";
 "info.circulating_supply.description" = "מספר המטבעות הזמינים ונסחרים כעת בשוק.";
 "info.total_supply.description" = "המספר הכולל של מטבעות שקיימים, כולל מטבעות נעולים או שמורים.";
@@ -562,4 +562,7 @@
 "wallet_connect.permissions.title" = "הרשאות";
 "wallet_connect.permissions.view_balance" = "צפה ביתרה ובפעילות שלך";
 "wallet_connect.permissions.approval_requests" = "שלח בקשות אישור";
-"wallet_connect.permissions.move_funds" = "העברת כספים ללא אישור";
+"wallet.import.already_imported_title" = "הארנק כבר יובא";
+"wallet.import.already_imported_message" = "כבר נוסף בתור \"%s\"";
+"wallet.import.switch_to_wallet" = "עבור אל %s";
+"wallet.import.import_another" = "ייבוא ​​אחר";

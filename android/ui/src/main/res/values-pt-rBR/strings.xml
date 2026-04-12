@@ -541,9 +541,9 @@
   <string name="rewards.nickname">Apelido</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Convide amigos e ganhem recompensas juntos.</string>
   <string name="nodes.import_node.warning_message">Nós personalizados podem ser maliciosos e expor seus dados de transação ou fornecer informações falsas.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Avaliação totalmente diluída</string>
   <string name="info.fully_diluted_valuation.description">O valor de mercado teórico se todas as moedas estivessem em circulação. Calculado como o preço multiplicado pela oferta máxima.</string>
-  <string name="info.circulating_supply.description">O número de moedas atualmente disponíveis e negociadas no mercado.\"</string>
+  <string name="info.circulating_supply.description">O número de moedas atualmente disponíveis e negociadas no mercado.</string>
   <string name="info.total_supply.description">O número total de moedas existentes, incluindo moedas bloqueadas ou reservadas.</string>
   <string name="info.max_supply.title">Suprimento máximo</string>
   <string name="info.max_supply.description">O número máximo de moedas que jamais existirão.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Permissões</string>
   <string name="wallet_connect.permissions.view_balance">Veja seu saldo e atividade</string>
   <string name="wallet_connect.permissions.approval_requests">Enviar solicitações de aprovação</string>
+  <string name="wallet.import.already_imported_title">Carteira já importada</string>
+  <string name="wallet.import.already_imported_message">Já adicionado como \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Mudar para %s</string>
+  <string name="wallet.import.import_another">Importar outro</string>
 </resources>

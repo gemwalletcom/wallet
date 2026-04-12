@@ -541,9 +541,9 @@
   <string name="rewards.nickname">Jina la utani</string>
   <string name="notifications.inapp.rewards.invite.subtitle">Alika marafiki na upate zawadi pamoja</string>
   <string name="nodes.import_node.warning_message">Nodi maalum zinaweza kuwa na nia mbaya na zinaweza kufichua data ya muamala wako au kutoa taarifa za uongo.</string>
-  <string name="info.fully_diluted_valuation.title">Fully Diluted Valuation</string>
+  <string name="info.fully_diluted_valuation.title">Thamani Iliyopunguzwa Kikamilifu</string>
   <string name="info.fully_diluted_valuation.description">Thamani ya kinadharia ya soko ikiwa sarafu zote zilikuwa zikitumika. Imehesabiwa kama bei ikizidishwa na usambazaji wa juu zaidi.</string>
-  <string name="info.circulating_supply.description">Idadi ya sarafu zinazopatikana sasa na zinazouzwa sokoni.\"</string>
+  <string name="info.circulating_supply.description">Idadi ya sarafu zinazopatikana sasa na zinazouzwa sokoni.</string>
   <string name="info.total_supply.description">Jumla ya sarafu zilizopo, ikijumuisha sarafu zilizofungwa au zilizohifadhiwa.</string>
   <string name="info.max_supply.title">Ugavi wa Juu Zaidi</string>
   <string name="info.max_supply.description">Idadi ya juu zaidi ya sarafu zitakazokuwepo.</string>
@@ -583,4 +583,8 @@
   <string name="wallet_connect.permissions.title">Ruhusa</string>
   <string name="wallet_connect.permissions.view_balance">Tazama salio na shughuli zako</string>
   <string name="wallet_connect.permissions.approval_requests">Tuma maombi ya idhini</string>
+  <string name="wallet.import.already_imported_title">Pochi Tayari Imeingizwa</string>
+  <string name="wallet.import.already_imported_message">Tayari imeongezwa kama \"%s\"</string>
+  <string name="wallet.import.switch_to_wallet">Badilisha hadi %s</string>
+  <string name="wallet.import.import_another">Ingiza Nyingine</string>
 </resources>
