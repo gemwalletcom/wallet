@@ -39,7 +39,11 @@ fun NotificationsScene(
                         Switch(
                             checked = pushEnabled,
                             onCheckedChange = {
-                                if (it) requestPushGrant = viewModel::notificationEnable else viewModel.notificationEnable()
+                                if (it) {
+                                    requestPushGrant = viewModel::enableNotifications
+                                } else {
+                                    viewModel.disableNotifications()
+                                }
                             }
                         )
                     },
