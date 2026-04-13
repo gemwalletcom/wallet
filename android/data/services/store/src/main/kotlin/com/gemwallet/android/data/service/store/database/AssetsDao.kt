@@ -206,36 +206,33 @@ interface AssetsDao {
             AND recent_assets.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1)
         WHERE
             recent_assets.type IN (:type)
-            AND (
-                NOT :hasFilters
-                OR (
-                    ('Buyable'    NOT IN (:filters) OR asset.is_buy_enabled = 1)
-                    AND ('Swappable'  NOT IN (:filters) OR asset.is_swap_enabled = 1)
-                    AND ('HasBalance' NOT IN (:filters) OR EXISTS (
-                        SELECT 1 FROM balances
-                        WHERE balances.asset_id = asset.id
-                            AND balances.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1)
-                            AND balances.total_amount > 0
-                    ))
-                )
-            )
+            AND (NOT :buyable OR asset.is_buy_enabled = 1)
+            AND (NOT :swappable OR asset.is_swap_enabled = 1)
+            AND (NOT :hasBalance OR EXISTS (
+                SELECT 1 FROM balances
+                WHERE balances.asset_id = asset.id
+                    AND balances.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1)
+                    AND balances.total_amount > 0
+            ))
         GROUP BY asset.id
         ORDER BY MAX(recent_assets.addedAt) DESC, asset.id ASC
         LIMIT 10
         """)
-    fun getRecentByTypeQuery(
+    fun getRecentAssetsQuery(
         type: List<RecentType>,
-        filters: List<AssetFilter>,
-        hasFilters: Boolean,
+        buyable: Boolean,
+        swappable: Boolean,
+        hasBalance: Boolean,
     ): Flow<List<DbAsset>>
 
-    fun getRecentByType(
+    fun getRecentAssets(
         type: List<RecentType>,
         filters: Set<AssetFilter> = emptySet(),
-    ): Flow<List<DbAsset>> = getRecentByTypeQuery(
+    ): Flow<List<DbAsset>> = getRecentAssetsQuery(
         type = type,
-        filters = filters.toList().ifEmpty { listOf(AssetFilter.Buyable) },
-        hasFilters = filters.isNotEmpty(),
+        buyable = AssetFilter.Buyable in filters,
+        swappable = AssetFilter.Swappable in filters,
+        hasBalance = AssetFilter.HasBalance in filters,
     )
 
     @Query("SELECT * FROM asset_config WHERE wallet_id=:walletId AND asset_id=:assetId")

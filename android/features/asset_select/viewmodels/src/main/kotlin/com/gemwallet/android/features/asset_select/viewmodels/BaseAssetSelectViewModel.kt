@@ -9,6 +9,7 @@ import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVi
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.assetType
@@ -145,7 +146,7 @@ open class BaseAssetSelectViewModel(
             if (query.isNotEmpty() || !showRecents) {
                 flow<List<Asset>> { emit(emptyList()) }
             } else {
-                getRecentAssets(RecentType.entries, assetFilters())
+                getRecentAssets(RecentAssetsRequest(filters = assetFilters()))
             }
         }
     .map { it.toImmutableList() }

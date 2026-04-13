@@ -37,7 +37,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.AssetPriceInfo
-import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Account
@@ -576,10 +576,8 @@ class AssetsRepository @Inject constructor(
         )
     }
 
-    override fun getRecentActivities(
-        type: List<RecentType>,
-        filters: Set<AssetFilter>,
-    ): Flow<List<Asset>> {
-        return assetsDao.getRecentByType(type, filters).map { items -> items.mapNotNull { it.toDTO() } }
+    override fun getRecentAssets(request: RecentAssetsRequest): Flow<List<Asset>> {
+        return assetsDao.getRecentAssets(request.types, request.filters)
+            .map { items -> items.mapNotNull { it.toDTO() } }
     }
 }

@@ -2,7 +2,6 @@ package com.gemwallet.android.features.buy.viewmodels
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.coordinators.AddBuyRecent
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
@@ -58,7 +57,6 @@ class FiatViewModelTest {
         } returns listOf(mockFiatQuote())
     }
     private val getBuyQuoteUrl = mockk<GetBuyQuoteUrl>(relaxed = true)
-    private val addBuyRecent = mockk<AddBuyRecent>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -123,7 +121,6 @@ class FiatViewModelTest {
     private fun createViewModel() = FiatViewModel(
         getBuyQuotes = getBuyQuotes,
         getBuyQuoteUrl = getBuyQuoteUrl,
-        addBuyRecent = addBuyRecent,
         getBuyAssetInfo = getBuyAssetInfo,
         savedStateHandle = SavedStateHandle(
             mapOf("assetId" to asset.id.toIdentifier())
