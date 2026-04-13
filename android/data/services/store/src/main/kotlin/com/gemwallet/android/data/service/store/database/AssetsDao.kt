@@ -13,6 +13,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
+import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentType
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.flow.Flow
@@ -198,20 +199,44 @@ interface AssetsDao {
     fun swapSearchWithPriority(query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
-        SELECT
-            *,
-            MAX(address)
-        FROM asset_info
-        JOIN recent_assets ON id = recent_assets.asset_id AND (recent_assets.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1))
+        SELECT asset.*
+        FROM asset
+        JOIN recent_assets
+            ON asset.id = recent_assets.asset_id
+            AND recent_assets.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1)
         WHERE
-            assetRank > 0
-            AND
             recent_assets.type IN (:type)
-            GROUP BY id
-            ORDER BY recent_assets.addedAt DESC
-            LIMIT 10
+            AND (
+                NOT :hasFilters
+                OR (
+                    ('Buyable'    NOT IN (:filters) OR asset.is_buy_enabled = 1)
+                    AND ('Swappable'  NOT IN (:filters) OR asset.is_swap_enabled = 1)
+                    AND ('HasBalance' NOT IN (:filters) OR EXISTS (
+                        SELECT 1 FROM balances
+                        WHERE balances.asset_id = asset.id
+                            AND balances.wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1)
+                            AND balances.total_amount > 0
+                    ))
+                )
+            )
+        GROUP BY asset.id
+        ORDER BY MAX(recent_assets.addedAt) DESC, asset.id ASC
+        LIMIT 10
         """)
-    fun getRecentByType(type: List<RecentType>): Flow<List<DbAssetInfo>>
+    fun getRecentByTypeQuery(
+        type: List<RecentType>,
+        filters: List<AssetFilter>,
+        hasFilters: Boolean,
+    ): Flow<List<DbAsset>>
+
+    fun getRecentByType(
+        type: List<RecentType>,
+        filters: Set<AssetFilter> = emptySet(),
+    ): Flow<List<DbAsset>> = getRecentByTypeQuery(
+        type = type,
+        filters = filters.toList().ifEmpty { listOf(AssetFilter.Buyable) },
+        hasFilters = filters.isNotEmpty(),
+    )
 
     @Query("SELECT * FROM asset_config WHERE wallet_id=:walletId AND asset_id=:assetId")
     suspend fun getConfig(walletId: String, assetId: String): DbAssetConfig?
