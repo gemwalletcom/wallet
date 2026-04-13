@@ -55,7 +55,7 @@ class BuildConfirmPropertiesImpl(
     private suspend fun getValidator(params: ConfirmParams): DelegationValidator? {
         val validatorId = when (params) {
             is ConfirmParams.Stake.DelegateParams -> params.validator.id
-            is ConfirmParams.Stake.RedelegateParams -> params.dstValidator.id
+            is ConfirmParams.Stake.RedelegateParams -> params.destinationValidator.id
             is ConfirmParams.Stake.UndelegateParams -> params.delegation.base.validatorId
             is ConfirmParams.Stake.WithdrawParams -> params.delegation.base.validatorId
             is ConfirmParams.Activate,
@@ -72,7 +72,6 @@ class BuildConfirmPropertiesImpl(
     }
 
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
-        val str = assetId.toIdentifier()
-        return firstOrNull { it.id().toIdentifier() == str }
+        return firstOrNull { it.id().toIdentifier() == assetId.toIdentifier() }
     }
 }

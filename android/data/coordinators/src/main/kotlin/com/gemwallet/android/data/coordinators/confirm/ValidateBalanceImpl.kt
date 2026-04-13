@@ -43,9 +43,9 @@ class ValidateBalanceImpl : ValidateBalance {
             TransactionType.EarnWithdraw,
             TransactionType.StakeUnfreeze,
             TransactionType.TransferNFT -> amount
-            TransactionType.SmartContractCall -> TODO()
-            TransactionType.PerpetualOpenPosition -> TODO()
-            TransactionType.PerpetualClosePosition -> TODO()
+            TransactionType.SmartContractCall,
+            TransactionType.PerpetualOpenPosition,
+            TransactionType.PerpetualClosePosition,
             TransactionType.PerpetualModifyPosition -> TODO()
         }
 

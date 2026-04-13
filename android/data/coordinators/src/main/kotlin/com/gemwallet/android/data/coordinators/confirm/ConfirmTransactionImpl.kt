@@ -65,7 +65,7 @@ class ConfirmTransactionImpl(
             }
         }
 
-        val finishRoute = resolveFinishRoute(signerParams.input)
+        val finishRoute = getFinishRoute(signerParams.input)
         return ConfirmTransaction.Result(txHash = lastHash, finishRoute = finishRoute)
     }
 
@@ -156,13 +156,13 @@ class ConfirmTransactionImpl(
         else -> null
     }
 
-    private fun resolveFinishRoute(input: ConfirmParams): String = when (input) {
+    private fun getFinishRoute(input: ConfirmParams): String = when (input) {
         is ConfirmParams.Stake -> "stake"
         is ConfirmParams.SwapParams,
         is ConfirmParams.TokenApprovalParams -> "swap"
-        is ConfirmParams.TransferParams -> "asset"
-        is ConfirmParams.Activate -> "asset"
-        is ConfirmParams.NftParams -> "asset"
+        is ConfirmParams.TransferParams,
+        is ConfirmParams.Activate,
+        is ConfirmParams.NftParams,
         is ConfirmParams.PerpetualParams -> "asset"
     }
 }

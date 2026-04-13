@@ -124,7 +124,7 @@ class TransactionBalanceServiceTest {
             asset = asset,
             from = requireNotNull(assetInfo.owner),
         ).redelegate(
-            dstValidator = mockDelegationValidator(chain = asset.id.chain, id = "validator-2"),
+            destinationValidator = mockDelegationValidator(chain = asset.id.chain, id = "validator-2"),
             delegation = delegation,
         )
 
