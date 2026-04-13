@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">Quyền hạn</string>
   <string name="wallet_connect.permissions.view_balance">Xem số dư và hoạt động của bạn</string>
   <string name="wallet_connect.permissions.approval_requests">Gửi yêu cầu phê duyệt</string>
-  <string name="wallet.import.already_imported_title">Ví đã được nhập</string>
-  <string name="wallet.import.already_imported_message">Đã được thêm vào dưới dạng \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Chuyển sang %s</string>
-  <string name="wallet.import.import_another">Nhập khẩu một cái khác</string>
+  <string name="wallet.import.already_imported_message">Ví này đã được nhập khẩu.</string>
 </resources>

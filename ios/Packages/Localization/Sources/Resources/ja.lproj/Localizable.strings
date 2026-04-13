@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "権限";
 "wallet_connect.permissions.view_balance" = "残高とアクティビティを確認する";
 "wallet_connect.permissions.approval_requests" = "承認依頼を送信する";
-"wallet.import.already_imported_title" = "ウォレットは既にインポート済みです";
-"wallet.import.already_imported_message" = "既に追加済み%s「";
-"wallet.import.switch_to_wallet" = "切り替えて %s";
-"wallet.import.import_another" = "別のものをインポートする";
+"wallet.import.already_imported_message" = "このウォレットは既にインポート済みです";

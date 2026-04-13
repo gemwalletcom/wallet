@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Kebenaran";
 "wallet_connect.permissions.view_balance" = "Lihat keseimbangan dan aktiviti anda";
 "wallet_connect.permissions.approval_requests" = "Hantar permintaan kelulusan";
-"wallet.import.already_imported_title" = "Dompet Telah Diimport";
-"wallet.import.already_imported_message" = "Telah ditambah sebagai \"%s\"";
-"wallet.import.switch_to_wallet" = "Tukar ke %s";
-"wallet.import.import_another" = "Import Satu Lagi";
+"wallet.import.already_imported_message" = "Dompet ini telah diimport";

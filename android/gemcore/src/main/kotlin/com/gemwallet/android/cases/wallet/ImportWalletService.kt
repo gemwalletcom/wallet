@@ -8,7 +8,7 @@ interface ImportWalletService {
         importType: ImportType,
         walletName: String,
         data: String,
-    ): Wallet
+    ): WalletImportResult
 
     suspend fun createWallet(
         walletName: String,

@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "权限";
 "wallet_connect.permissions.view_balance" = "查看您的余额和活动";
 "wallet_connect.permissions.approval_requests" = "发送审批请求";
-"wallet.import.already_imported_title" = "钱包已导入";
-"wallet.import.already_imported_message" = "已添加为“%s“";
-"wallet.import.switch_to_wallet" = "切换到 %s";
-"wallet.import.import_another" = "导入另一个";
+"wallet.import.already_imported_message" = "这个钱包已经进口了。";

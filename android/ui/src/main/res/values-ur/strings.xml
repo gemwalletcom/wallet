@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">اجازتیں</string>
   <string name="wallet_connect.permissions.view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
   <string name="wallet_connect.permissions.approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
-  <string name="wallet.import.already_imported_title">والیٹ پہلے سے درآمد شدہ</string>
-  <string name="wallet.import.already_imported_message">پہلے ہی شامل کیا گیا بطور \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">پر سوئچ کریں۔ %s</string>
-  <string name="wallet.import.import_another">دوسرا درآمد کریں۔</string>
+  <string name="wallet.import.already_imported_message">یہ پرس پہلے ہی درآمد کیا جا چکا ہے۔</string>
 </resources>

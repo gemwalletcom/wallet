@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "مجوزها";
 "wallet_connect.permissions.view_balance" = "مشاهده موجودی و فعالیت خود";
 "wallet_connect.permissions.approval_requests" = "ارسال درخواست‌های تأیید";
-"wallet.import.already_imported_title" = "کیف پول از قبل وارد شده است";
-"wallet.import.already_imported_message" = "قبلاً به عنوان \" اضافه شده است%s«";
-"wallet.import.switch_to_wallet" = "تغییر به %s";
-"wallet.import.import_another" = "یکی دیگر را وارد کنید";
+"wallet.import.already_imported_message" = "این کیف پول قبلاً وارد شده است";

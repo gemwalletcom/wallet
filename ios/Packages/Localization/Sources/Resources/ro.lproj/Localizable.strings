@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Permisiuni";
 "wallet_connect.permissions.view_balance" = "Vizualizați soldul și activitatea dvs.";
 "wallet_connect.permissions.approval_requests" = "Trimiteți cereri de aprobare";
-"wallet.import.already_imported_title" = "Portofel deja importat";
-"wallet.import.already_imported_message" = "Deja adăugat ca „%s\"";
-"wallet.import.switch_to_wallet" = "Comutare la %s";
-"wallet.import.import_another" = "Importați altul";
+"wallet.import.already_imported_message" = "Acest portofel a fost deja importat";

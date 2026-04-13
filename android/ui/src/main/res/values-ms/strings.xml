@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">Kebenaran</string>
   <string name="wallet_connect.permissions.view_balance">Lihat keseimbangan dan aktiviti anda</string>
   <string name="wallet_connect.permissions.approval_requests">Hantar permintaan kelulusan</string>
-  <string name="wallet.import.already_imported_title">Dompet Telah Diimport</string>
-  <string name="wallet.import.already_imported_message">Telah ditambah sebagai \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Tukar ke %s</string>
-  <string name="wallet.import.import_another">Import Satu Lagi</string>
+  <string name="wallet.import.already_imported_message">Dompet ini telah diimport</string>
 </resources>

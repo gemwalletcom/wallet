@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">Berechtigungen</string>
   <string name="wallet_connect.permissions.view_balance">Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein.</string>
   <string name="wallet_connect.permissions.approval_requests">Genehmigungsanfragen senden</string>
-  <string name="wallet.import.already_imported_title">Wallet bereits importiert</string>
-  <string name="wallet.import.already_imported_message">Bereits hinzugefügt als \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Wechseln zu %s</string>
-  <string name="wallet.import.import_another">Importieren Sie einen anderen</string>
+  <string name="wallet.import.already_imported_message">Diese Geldbörse wurde bereits importiert</string>
 </resources>

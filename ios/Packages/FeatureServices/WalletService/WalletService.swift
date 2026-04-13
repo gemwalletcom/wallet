@@ -72,9 +72,9 @@ public struct WalletService: Sendable {
         return wallet
     }
 
-    public func loadOrCreateWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> Wallet {
+    public func loadOrCreateWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
         if let existing = try existingWallet(type: type) {
-            return existing
+            return .existing(existing)
         }
         let wallet = try await keystore.importWallet(
             name: name,
@@ -84,7 +84,7 @@ public struct WalletService: Sendable {
         )
         try walletStore.addWallet(wallet)
         preferences.invalidateSubscriptions()
-        return wallet
+        return .new(wallet)
     }
 
     private func existingWallet(type: KeystoreImportType) throws -> Wallet? {

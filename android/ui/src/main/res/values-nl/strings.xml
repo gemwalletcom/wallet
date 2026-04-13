@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">Toestemmingen</string>
   <string name="wallet_connect.permissions.view_balance">Bekijk je saldo en activiteit</string>
   <string name="wallet_connect.permissions.approval_requests">Verzoeken om goedkeuring verzenden</string>
-  <string name="wallet.import.already_imported_title">Portemonnee reeds geïmporteerd</string>
-  <string name="wallet.import.already_imported_message">Reeds toegevoegd als \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Schakel over naar %s</string>
-  <string name="wallet.import.import_another">Importeer nog een</string>
+  <string name="wallet.import.already_imported_message">Deze portemonnee is al geïmporteerd.</string>
 </resources>
