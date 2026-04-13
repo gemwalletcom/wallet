@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">הרשאות</string>
   <string name="wallet_connect.permissions.view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect.permissions.approval_requests">שלח בקשות אישור</string>
-  <string name="wallet.import.already_imported_title">הארנק כבר יובא</string>
-  <string name="wallet.import.already_imported_message">כבר נוסף בתור \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">עבור אל %s</string>
-  <string name="wallet.import.import_another">ייבוא ​​אחר</string>
+  <string name="wallet.import.already_imported_message">ארנק זה כבר יובא</string>
 </resources>

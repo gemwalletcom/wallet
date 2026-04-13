@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "הרשאות";
 "wallet_connect.permissions.view_balance" = "צפה ביתרה ובפעילות שלך";
 "wallet_connect.permissions.approval_requests" = "שלח בקשות אישור";
-"wallet.import.already_imported_title" = "הארנק כבר יובא";
-"wallet.import.already_imported_message" = "כבר נוסף בתור \"%s\"";
-"wallet.import.switch_to_wallet" = "עבור אל %s";
-"wallet.import.import_another" = "ייבוא ​​אחר";
+"wallet.import.already_imported_message" = "ארנק זה כבר יובא";

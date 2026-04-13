@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">Дозволи</string>
   <string name="wallet_connect.permissions.view_balance">Перегляд вашого балансу та активності</string>
   <string name="wallet_connect.permissions.approval_requests">Надсилати запити на схвалення</string>
-  <string name="wallet.import.already_imported_title">Гаманець уже імпортовано</string>
-  <string name="wallet.import.already_imported_message">Вже додано як \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Перейти до %s</string>
-  <string name="wallet.import.import_another">Імпортувати ще</string>
+  <string name="wallet.import.already_imported_message">Цей гаманець вже імпортовано</string>
 </resources>

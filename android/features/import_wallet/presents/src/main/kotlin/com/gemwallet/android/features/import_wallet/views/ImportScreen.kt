@@ -37,12 +37,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.blockchain.operators.walletcore.WCFindPhraseWord
 import com.gemwallet.android.cases.wallet.ImportError
+import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
 import com.gemwallet.android.features.import_wallet.components.importTypeTabIndex
@@ -52,6 +51,8 @@ import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -63,6 +64,8 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 internal sealed interface ImportSceneTitle {
     data class Resource(val resId: Int) : ImportSceneTitle
@@ -82,7 +85,7 @@ internal fun importSceneTitle(importType: ImportType, chainName: String): Import
 @Composable
 fun ImportScreen(
     importType: ImportType,
-    onImported: (walletId: String) -> Unit,
+    onImported: (WalletImportResult) -> Unit,
     onCancel: () -> Unit
 ) {
     DisableScreenShooting()
@@ -95,8 +98,10 @@ fun ImportScreen(
         onDispose {}
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val inputState = remember { mutableStateOf(TextFieldValue()) }
 
     ImportScene(
+        inputState = inputState,
         importType = uiState.importType,
         generatedNameIndex = uiState.generatedNameIndex,
         chainName = uiState.chainName,
@@ -126,12 +131,29 @@ fun ImportScreen(
             }
         }
     }
+    uiState.existingWalletResult?.let { result ->
+        InfoBottomSheet(
+            item = InfoSheetEntity.ExistingWalletImported(
+                walletName = result.wallet.name,
+                actionLabel = stringResource(R.string.common_continue),
+                action = {
+                    viewModel.dismissExistingWallet()
+                    onImported(result)
+                },
+            ),
+            onClose = {
+                viewModel.dismissExistingWallet()
+                inputState.value = TextFieldValue()
+            },
+        )
+    }
 
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ImportScene(
+    inputState: MutableState<TextFieldValue>,
     importType: ImportType,
     generatedNameIndex: Int,
     chainName: String,
@@ -141,9 +163,6 @@ private fun ImportScene(
     onTypeChange: (WalletType) -> Unit,
     onCancel: () -> Unit
 ) {
-    val inputState = remember {
-        mutableStateOf(TextFieldValue())
-    }
     val title = when (val sceneTitle = importSceneTitle(importType, chainName)) {
         is ImportSceneTitle.Resource -> stringResource(sceneTitle.resId)
         is ImportSceneTitle.Text -> sceneTitle.value
@@ -330,6 +349,7 @@ fun PreviewImportAddress() {
     WalletTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             ImportScene(
+                inputState = remember { mutableStateOf(TextFieldValue()) },
                 importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
                 generatedNameIndex = 1,
                 chainName = "Ethereum",

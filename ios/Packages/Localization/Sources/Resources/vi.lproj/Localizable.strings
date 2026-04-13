@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Quyền hạn";
 "wallet_connect.permissions.view_balance" = "Xem số dư và hoạt động của bạn";
 "wallet_connect.permissions.approval_requests" = "Gửi yêu cầu phê duyệt";
-"wallet.import.already_imported_title" = "Ví đã được nhập";
-"wallet.import.already_imported_message" = "Đã được thêm vào dưới dạng \"%s\"";
-"wallet.import.switch_to_wallet" = "Chuyển sang %s";
-"wallet.import.import_another" = "Nhập khẩu một cái khác";
+"wallet.import.already_imported_message" = "Ví này đã được nhập khẩu.";

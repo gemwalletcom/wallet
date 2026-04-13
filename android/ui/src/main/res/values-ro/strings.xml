@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">Permisiuni</string>
   <string name="wallet_connect.permissions.view_balance">Vizualizați soldul și activitatea dvs.</string>
   <string name="wallet_connect.permissions.approval_requests">Trimiteți cereri de aprobare</string>
-  <string name="wallet.import.already_imported_title">Portofel deja importat</string>
-  <string name="wallet.import.already_imported_message">Deja adăugat ca „%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Comutare la %s</string>
-  <string name="wallet.import.import_another">Importați altul</string>
+  <string name="wallet.import.already_imported_message">Acest portofel a fost deja importat</string>
 </resources>

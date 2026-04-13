@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Uprawnienia";
 "wallet_connect.permissions.view_balance" = "Wyświetl swoje saldo i aktywność";
 "wallet_connect.permissions.approval_requests" = "Wyślij prośby o zatwierdzenie";
-"wallet.import.already_imported_title" = "Portfel już zaimportowany";
-"wallet.import.already_imported_message" = "Już dodano jako „%s\"";
-"wallet.import.switch_to_wallet" = "Przełącz na %s";
-"wallet.import.import_another" = "Importuj inny";
+"wallet.import.already_imported_message" = "Ten portfel został już zaimportowany";

@@ -27,14 +27,15 @@ final class ImportWalletSceneViewModel {
 
     var isPresentingScanner = false
     var isPresentingAlertMessage: AlertMessage?
+    var isPresentingExistingWalletName: String?
 
-    private let onComplete: ((Wallet) -> Void)?
+    private let onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?
 
     init(
         walletService: WalletService,
         nameService: any NameServiceable,
         type: ImportWalletType,
-        onComplete: ((Wallet) -> Void)?,
+        onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
         self.walletService = walletService
         self.type = type
@@ -153,6 +154,11 @@ extension ImportWalletSceneViewModel {
             CopyTypeViewModel.clearClipboard()
         }
     }
+
+    func onSelectExistingWalletContinue() {
+        walletService.acceptTerms()
+        onComplete?(.existing)
+    }
 }
 
 // MARK: - Private
@@ -201,11 +207,18 @@ extension ImportWalletSceneViewModel {
     }
 
     private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let wallet = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
-        walletService.acceptTerms()
-        try await walletService.setCurrent(wallet: wallet)
-        buttonState = .normal
-        onComplete?(wallet)
+        let result = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
+
+        switch result {
+        case let .new(wallet):
+            walletService.acceptTerms()
+            try await walletService.setCurrent(wallet: wallet)
+            buttonState = .normal
+            onComplete?(.new(wallet))
+        case let .existing(wallet):
+            buttonState = .normal
+            isPresentingExistingWalletName = wallet.name
+        }
     }
 
     private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {

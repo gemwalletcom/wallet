@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">مجوزها</string>
   <string name="wallet_connect.permissions.view_balance">مشاهده موجودی و فعالیت خود</string>
   <string name="wallet_connect.permissions.approval_requests">ارسال درخواست‌های تأیید</string>
-  <string name="wallet.import.already_imported_title">کیف پول از قبل وارد شده است</string>
-  <string name="wallet.import.already_imported_message">قبلاً به عنوان \" اضافه شده است%s«</string>
-  <string name="wallet.import.switch_to_wallet">تغییر به %s</string>
-  <string name="wallet.import.import_another">یکی دیگر را وارد کنید</string>
+  <string name="wallet.import.already_imported_message">این کیف پول قبلاً وارد شده است</string>
 </resources>
