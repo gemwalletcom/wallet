@@ -5,6 +5,7 @@ import Primitives
 import SwiftUI
 
 public struct CurrencyScene: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var model: CurrencySceneViewModel
 
     public init(model: CurrencySceneViewModel) {
@@ -25,12 +26,27 @@ public struct CurrencyScene: View {
                         value: $0.value.currency,
                         selection: model.currency,
                     ) {
-                        try? model.setCurrency($0)
+                        onSelectCurrency($0)
                     }
                 }
             }
         }
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
+    }
+}
+
+// MARK: - Actions
+
+extension CurrencyScene {
+    private func onSelectCurrency(_ currency: Currency) {
+        guard currency != model.currency else { return }
+
+        do {
+            try model.setCurrency(currency)
+            dismiss()
+        } catch {
+            return
+        }
     }
 }

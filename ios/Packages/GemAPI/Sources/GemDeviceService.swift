@@ -36,11 +36,6 @@ extension GemDeviceService: GemAPIDeviceService {
             .mapResponse(as: Bool.self)
     }
 
-    public func migrateDevice(request: MigrateDeviceIdRequest) async throws -> Device {
-        try await self.request(.migrateDevice(request: request))
-            .mapResponse(as: Device.self)
-    }
-
     public func getNodeAuthToken() async throws -> DeviceToken {
         try await request(.getDeviceToken)
             .mapResponse(as: DeviceToken.self)

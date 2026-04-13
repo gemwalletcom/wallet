@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
-import com.gemwallet.android.cases.device.GetDeviceIdOld
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.RequestPushToken
@@ -26,7 +25,6 @@ import com.gemwallet.android.ext.os
 import com.wallet.core.primitives.AddressChains
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Device
-import com.wallet.core.primitives.MigrateDeviceIdRequest
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Wallet
@@ -50,7 +48,6 @@ class DeviceRepository(
     private val requestPushToken: RequestPushToken,
     private val platformStore: PlatformStore,
     private val versionName: String,
-    private val getDeviceIdOld: GetDeviceIdOld,
     private val getDeviceId: GetDeviceId,
     private val priceAlertRepository: PriceAlertRepository,
     private val getCurrentCurrency: GetCurrentCurrency,
@@ -63,22 +60,6 @@ class DeviceRepository(
     SyncSubscription
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
-
-    private suspend fun migrate() {
-        try {
-            if (getDeviceIdOld.isMigrated()) return
-
-            if (getDeviceIdOld.getDeviceId().isEmpty()) return
-
-            gemDeviceApiClient.migrateDevice(
-                MigrateDeviceIdRequest(
-                    oldDeviceId = getDeviceIdOld.getDeviceId(),
-                    publicKey = getDeviceId.getDeviceId()
-                )
-            )
-            getDeviceIdOld.migrated()
-        } catch (_: Throwable) { }
-    }
 
     override suspend fun syncDeviceInfo() {
         synchronizeDevice(
@@ -127,8 +108,6 @@ class DeviceRepository(
         pushTokenOverride: String? = null,
     ) {
         try {
-            migrate()
-
             if (shouldInvalidateSubscriptions) {
                 invalidateSubscriptions()
             }
@@ -340,7 +319,6 @@ class DeviceRepository(
     private fun Device.hasChanges(other: Device): Boolean = deviceHasChanges(this, other)
 
     internal enum class ConfigKey(val string: String) {
-        DeviceId("device-uuid"),
         PushToken("push_token"),
         ;
     }

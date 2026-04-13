@@ -39,6 +39,7 @@ public struct ChartScene: View {
 
             if let priceDataModel = model.priceDataModel {
                 marketSection(priceDataModel.marketValues)
+                marketSection(priceDataModel.contractValues)
                 marketSection(priceDataModel.supplyValues)
                 marketSection(priceDataModel.allTimeValues)
 
@@ -57,18 +58,22 @@ public struct ChartScene: View {
     }
 
     private func marketSection(_ items: [MarketValueViewModel]) -> some View {
-        Section {
-            ForEach(items, id: \.title) { item in
-                switch item.action {
-                case let .explorer(explorerContext):
-                    SafariNavigationLink(url: explorerContext.explorerLink.url) {
-                        ListItemView(title: item.title, subtitle: item.subtitle)
+        Group {
+            if !items.isEmpty {
+                Section {
+                    ForEach(items, id: \.title) { item in
+                        switch item.action {
+                        case let .explorer(explorerContext):
+                            SafariNavigationLink(url: explorerContext.explorerLink.url) {
+                                ListItemView(title: item.title, subtitle: item.subtitle)
+                            }
+                            .explorerContext(explorerContext)
+                        case let .info(type):
+                            marketItemView(item, infoAction: { model.onSelectInfoSheet(type) })
+                        case .none:
+                            marketItemView(item)
+                        }
                     }
-                    .explorerContext(explorerContext)
-                case let .info(type):
-                    marketItemView(item, infoAction: { model.onSelectInfoSheet(type) })
-                case .none:
-                    marketItemView(item)
                 }
             }
         }

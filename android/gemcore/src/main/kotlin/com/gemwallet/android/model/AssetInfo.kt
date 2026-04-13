@@ -3,6 +3,7 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetMetaData
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 
 data class AssetInfo(
@@ -19,6 +20,8 @@ data class AssetInfo(
     val position: Int = 0,
 ) {
     fun id() = asset.id
+
+    fun walletIdOrNull(): WalletId? = walletId?.let(::WalletId)
 
     override fun equals(other: Any?): Boolean {
         return (other as? AssetInfo)?.let { info ->

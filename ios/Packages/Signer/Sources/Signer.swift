@@ -11,7 +11,7 @@ public struct Signer: Sendable {
 
     public init(
         wallet: Primitives.Wallet,
-        keystore: any Keystore
+        keystore: any Keystore,
     ) {
         self.wallet = wallet
         self.keystore = keystore
@@ -40,7 +40,7 @@ public struct Signer: Sendable {
                         input: input,
                         fromAsset: fromAsset,
                         swapData: swapData,
-                        privateKey: privateKey
+                        privateKey: privateKey,
                     )
             }
             return try signer.signSwap(input: input, privateKey: privateKey)

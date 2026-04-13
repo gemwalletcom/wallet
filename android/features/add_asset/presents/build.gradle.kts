@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":features:add_asset:viewmodels"))
     implementation(project(":features:recipient:viewmodels"))
+    implementation(project(":features:recipient:presents"))
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

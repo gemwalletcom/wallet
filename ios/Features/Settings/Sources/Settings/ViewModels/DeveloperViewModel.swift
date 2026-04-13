@@ -51,7 +51,7 @@ public final class DeveloperViewModel {
     }
 
     var deviceId: String {
-        (try? SecurePreferences().get(key: .deviceId)) ?? .empty
+        (try? SecurePreferences.standard.getDeviceId()) ?? .empty
     }
 
     var deviceToken: String {

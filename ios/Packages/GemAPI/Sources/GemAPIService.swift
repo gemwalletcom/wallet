@@ -54,7 +54,6 @@ public protocol GemAPIDeviceService: Sendable {
     func addDevice(device: Device) async throws -> Device
     func updateDevice(device: Device) async throws -> Device
     func isDeviceRegistered() async throws -> Bool
-    func migrateDevice(request: MigrateDeviceIdRequest) async throws -> Device
     func getNodeAuthToken() async throws -> DeviceToken
 }
 

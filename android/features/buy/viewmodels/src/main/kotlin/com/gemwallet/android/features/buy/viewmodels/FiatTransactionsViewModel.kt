@@ -2,8 +2,8 @@ package com.gemwallet.android.features.buy.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.coordinators.ObserveBuyTransactions
-import com.gemwallet.android.application.fiat.coordinators.RefreshBuyTransactions
+import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
+import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.wallet.core.primitives.FiatTransactionAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -15,11 +15,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FiatTransactionsViewModel @Inject constructor(
-    observeBuyTransactions: ObserveBuyTransactions,
-    private val refreshBuyTransactions: RefreshBuyTransactions,
+    observeFiatTransactions: ObserveFiatTransactions,
+    private val syncFiatTransactions: SyncFiatTransactions,
 ) : ViewModel() {
 
-    val transactions: StateFlow<List<FiatTransactionAssetData>> = observeBuyTransactions()
+    val transactions: StateFlow<List<FiatTransactionAssetData>> = observeFiatTransactions()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
@@ -28,7 +28,7 @@ class FiatTransactionsViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            refreshBuyTransactions()
+            syncFiatTransactions()
         }
     }
 }

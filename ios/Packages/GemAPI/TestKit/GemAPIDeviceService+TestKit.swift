@@ -15,7 +15,6 @@ public actor GemAPIDeviceServiceMock: GemAPIDeviceService {
     public private(set) var getDeviceCalls = 0
     public private(set) var addDeviceCalls = 0
     public private(set) var updateDeviceCalls = 0
-    public private(set) var migrateDeviceCalls = 0
     public private(set) var getNodeAuthTokenCalls = 0
 
     public init(
@@ -50,11 +49,6 @@ public actor GemAPIDeviceServiceMock: GemAPIDeviceService {
     public func isDeviceRegistered() async throws -> Bool {
         isDeviceRegisteredCalls += 1
         return isDeviceRegisteredResult
-    }
-
-    public func migrateDevice(request _: MigrateDeviceIdRequest) async throws -> Device {
-        migrateDeviceCalls += 1
-        return Device.mock()
     }
 
     public func getNodeAuthToken() async throws -> DeviceToken {

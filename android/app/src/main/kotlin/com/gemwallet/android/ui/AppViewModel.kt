@@ -163,10 +163,18 @@ class AppViewModel @Inject constructor(
     }
 
     private suspend fun getStartDestination(): String = withContext(Dispatchers.IO) {
-        if (sessionRepository.session().firstOrNull() != null) {
+        if (sessionRepository.getCurrentWallet() != null) {
             walletRootRoute
         } else {
-            OnboardingDest.route
+            val wallet = walletsRepository.getAll().firstOrNull()
+                ?.sortedWith(compareBy({ it.index }, { it.id }))
+                ?.firstOrNull()
+            if (wallet != null) {
+                sessionRepository.setWallet(wallet)
+                walletRootRoute
+            } else {
+                OnboardingDest.route
+            }
         }
     }
 

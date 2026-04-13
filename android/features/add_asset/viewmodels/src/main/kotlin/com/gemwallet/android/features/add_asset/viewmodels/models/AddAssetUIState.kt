@@ -13,5 +13,5 @@ class AddAssetUIState(
 sealed interface TokenSearchState {
     object Idle : TokenSearchState
     object Loading : TokenSearchState
-    class Error(val message: AddAssetError) : TokenSearchState
+    data object Error : TokenSearchState
 }

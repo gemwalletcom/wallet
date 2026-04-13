@@ -96,6 +96,16 @@ data class PerpetualData (
 )
 
 @Serializable
+data class PerpetualMarketData (
+	val coin: String,
+	val price: Double,
+	val pricePercentChange24h: Double,
+	val openInterest: Double,
+	val volume24h: Double,
+	val funding: Double
+)
+
+@Serializable
 sealed class PerpetualModifyPositionType {
 	@Serializable
 	@SerialName("Tpsl")

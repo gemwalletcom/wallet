@@ -26,7 +26,7 @@ extension PerpetualsSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         perpetualService: PerpetualServiceable = PerpetualService.mock(),
-        observerService: any PerpetualObservable<HyperliquidSubscription> = PerpetualObserverMock(),
+        observerService: any PerpetualObservable = PerpetualObserverMock(),
         activityService: ActivityService = .mock(),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(

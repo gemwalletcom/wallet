@@ -58,6 +58,8 @@ class FakeSessionRepository(
         currencyFlow.value = currency
     }
 
+    override suspend fun getCurrentWallet(): Wallet? = sessionFlow.value?.wallet
+
     override suspend fun reset() {
         sessionFlow.value = null
     }

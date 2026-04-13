@@ -13,5 +13,6 @@ final class VersionCheckTests {
         #expect(!VersionCheck.isVersionHigher(new: "1", current: "2"))
         #expect(VersionCheck.isVersionHigher(new: "0.1", current: "0.0.1"))
         #expect(!VersionCheck.isVersionHigher(new: "2.1.3", current: "2.1.3.4"))
+        #expect(VersionCheck.isVersionHigher(new: "2.27", current: "2.0.27"))
     }
 }

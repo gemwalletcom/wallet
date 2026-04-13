@@ -40,7 +40,7 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Testing
 
-- When fixing a bug, add or update the smallest meaningful unit test that proves the real behavior with minimal setup and assertions, and avoid testing trivial primitives or implementation details
+- When fixing a high-impact bug, add or update the smallest meaningful test only if it materially reduces regression risk; keep it compact, avoid trivial/framework/formatting-only coverage, and skip purely visual UI polish unless coverage is explicitly requested or already cheap to extend
 
 ## Task Completion
 

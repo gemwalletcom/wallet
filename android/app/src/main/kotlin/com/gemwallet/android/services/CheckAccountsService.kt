@@ -5,10 +5,8 @@ import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.available
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +22,6 @@ class CheckAccountsService @Inject constructor(
     private val loadPrivateDataOperator: LoadPrivateDataOperator,
     private val passwordStore: PasswordStore,
     private val createAccountOperator: CreateAccountOperator,
-    private val sessionRepository: SessionRepository,
     private val syncSubscription: SyncSubscription,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
@@ -44,7 +41,8 @@ class CheckAccountsService @Inject constructor(
             }
 
             val availableChains = nativeAssets.map { it.id.chain }.toSet()
-            val newChains = getChainsToAdd(availableChains, wallet.accounts)
+            val accountChains = wallet.accounts.map { it.chain }.toSet()
+            val newChains = Chain.available().filterNot(accountChains::contains)
 
             if (newChains.isNotEmpty()) {
                 val data = loadPrivateDataOperator(wallet, passwordStore.getPassword(wallet.id))
@@ -56,19 +54,12 @@ class CheckAccountsService @Inject constructor(
                     assetsRepository.invalidateDefault(newWallet)
                 }
                 syncSubscription.syncSubscription(walletsRepository.getAll().firstOrNull() ?: emptyList())
+                return@forEach
             }
-        }
-    }
 
-    private fun getChainsToAdd(available: Set<Chain>, accounts: List<Account>): List<Chain> {
-        val allChains = Chain.available().toSet()
-        val accountChains = accounts.map { it.chain }
-        val toAdd = mutableListOf<Chain>()
-        for (i in allChains) {
-            if (!available.contains(i) || !accountChains.contains(i)) {
-                toAdd.add(i)
+            if (availableChains != accountChains) {
+                assetsRepository.invalidateDefault(wallet)
             }
         }
-        return toAdd
     }
 }

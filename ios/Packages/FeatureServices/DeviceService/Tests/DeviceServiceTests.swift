@@ -20,7 +20,8 @@ struct DeviceServiceTests {
         preferences.subscriptionsVersionHasChange = false
 
         let securePreferences = SecurePreferences.mock()
-        try securePreferences.set(value: String(repeating: "a", count: 64), key: .deviceId)
+        let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
+        try securePreferences.set(value: keyPair.publicKey.hex, key: .deviceId)
 
         let deviceProvider = GemAPIDeviceServiceMock(
             isDeviceRegistered: false,
@@ -71,7 +72,7 @@ struct DeviceServiceTests {
     }
 
     @Test
-    func prepareForWalletRequestSynchronizesLegacyDeviceId() async throws {
+    func prepareForWalletRequestReplacesLegacyDeviceIdAndRegistersDevice() async throws {
         let preferences = Preferences.mock()
         preferences.isDeviceRegistered = true
         preferences.subscriptionsVersionHasChange = false
@@ -92,8 +93,36 @@ struct DeviceServiceTests {
 
         try await service.prepareForWalletRequest()
 
-        #expect(await deviceProvider.migrateDeviceCalls == 1)
         #expect(await deviceProvider.addDeviceCalls == 1)
+        let publicKey = try securePreferences.getData(key: .devicePublicKey)
+        #expect(try securePreferences.get(key: .deviceId) == publicKey?.hex)
+    }
+
+    @Test
+    func prepareForWalletRequestRegistersWhenMirroredDeviceIdIsMissing() async throws {
+        let preferences = Preferences.mock()
+        preferences.isDeviceRegistered = true
+        preferences.subscriptionsVersionHasChange = false
+
+        let securePreferences = SecurePreferences.mock()
+        _ = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
+
+        let deviceProvider = GemAPIDeviceServiceMock(
+            isDeviceRegistered: false,
+            getDeviceResult: nil,
+        )
+        let service = makeService(
+            preferences: preferences,
+            deviceProvider: deviceProvider,
+            subscriptionProvider: GemAPISubscriptionServiceMock(),
+            securePreferences: securePreferences,
+        )
+
+        try await service.prepareForWalletRequest()
+
+        #expect(await deviceProvider.addDeviceCalls == 1)
+        let publicKey = try securePreferences.getData(key: .devicePublicKey)
+        #expect(try securePreferences.get(key: .deviceId) == publicKey?.hex)
     }
 
     @Test
@@ -132,7 +161,8 @@ struct DeviceServiceTests {
         preferences.subscriptionsVersionHasChange = true
 
         let securePreferences = SecurePreferences.mock()
-        try securePreferences.set(value: String(repeating: "a", count: 64), key: .deviceId)
+        let keyPair = try DeviceService.getOrCreateKeyPair(securePreferences: securePreferences)
+        try securePreferences.set(value: keyPair.publicKey.hex, key: .deviceId)
 
         let deviceProvider = GemAPIDeviceServiceMock(
             delay: .milliseconds(150),

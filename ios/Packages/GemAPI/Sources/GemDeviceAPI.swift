@@ -9,7 +9,6 @@ public enum GemDeviceAPI: TargetType {
     case addDevice(device: Device)
     case updateDevice(device: Device)
     case isDeviceRegistered
-    case migrateDevice(request: MigrateDeviceIdRequest)
 
     case getSubscriptions
     case addSubscriptions(subscriptions: [WalletSubscription])
@@ -79,7 +78,6 @@ public enum GemDeviceAPI: TargetType {
              .addPriceAlerts,
              .scanTransaction,
              .reportNft,
-             .migrateDevice,
              .createDeviceReferral,
              .useDeviceReferralCode,
              .redeemDeviceRewards,
@@ -103,8 +101,6 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices"
         case .isDeviceRegistered:
             return "/v2/devices/is_registered"
-        case .migrateDevice:
-            return "/v2/devices/migrate"
         case .getSubscriptions,
              .addSubscriptions,
              .deleteSubscriptions:
@@ -221,8 +217,6 @@ public enum GemDeviceAPI: TargetType {
         case let .addDevice(device),
              let .updateDevice(device):
             return .encodable(device)
-        case let .migrateDevice(request):
-            return .encodable(request)
         case let .addSubscriptions(subscriptions):
             return .encodable(subscriptions)
         case let .deleteSubscriptions(subscriptions):

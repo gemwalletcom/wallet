@@ -72,13 +72,13 @@ class AssetChartSceneTest {
         assertEquals(
             listOf(
                 MarketInfoUIModel.MarketInfoTypeUIModel.MarketCap,
-                MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
                 MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
+                MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
             ),
             items.map { it.type }
         )
         assertEquals(
-            listOf("compact:1.0", "compact:2.0", "compact:3.0"),
+            listOf("compact:1.0", "compact:3.0", "compact:2.0"),
             items.map { it.value }
         )
         assertNull(items.first().badge)

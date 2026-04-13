@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -39,6 +40,11 @@ class SessionRepositoryImpl(
     .stateIn(scope, SharingStarted.Eagerly, null)
 
     override fun session(): StateFlow<Session?> = session
+
+    override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
+        val walletId = sessionDao.getSession()?.walletId ?: return@withContext null
+        walletsRepository.getWallet(walletId).firstOrNull()
+    }
 
     override suspend fun setWallet(wallet: Wallet) {
         val oldSession = runBlocking(Dispatchers.IO) { sessionDao.getSession() }

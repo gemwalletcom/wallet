@@ -18,6 +18,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.gemwallet.android.BuildConfig
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletRulesScreen
+import com.gemwallet.android.ext.updateUrl
 import com.gemwallet.android.features.import_wallet.navigation.navigateToImportWalletScreen
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
@@ -99,7 +100,14 @@ private fun ShowUpdateDialog(
         confirmButton = {
             TextButton(onClick = {
                 onCancel()
-                uriHandler.open(context, BuildConfig.UPDATE_URL)
+                uriHandler.open(
+                    context,
+                    updateUrl(
+                        flavor = BuildConfig.FLAVOR,
+                        version = version,
+                        fallbackUrl = BuildConfig.UPDATE_URL,
+                    )
+                )
             }) {
                 Text(text = stringResource(id = R.string.update_app_action))
             }

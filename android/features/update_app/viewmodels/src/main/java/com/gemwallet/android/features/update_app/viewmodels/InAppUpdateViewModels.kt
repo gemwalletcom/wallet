@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.config.GetLatestVersion
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.ext.universalApkDownloadUrl
 import com.gemwallet.android.ext.VersionCheck
 import com.gemwallet.android.model.BuildInfo
 import com.wallet.core.primitives.PlatformStore
@@ -92,7 +93,7 @@ class InAppUpdateViewModels @Inject constructor(
 
     private fun download() {
         val version = updateAvailable.value ?: throw IllegalArgumentException()
-        val url = "https://apk.gemwallet.com/gem_wallet_universal_v${version}.apk"
+        val url = universalApkDownloadUrl(version)
         val destinationFile = getApkFile()
         val client = OkHttpClient()
         val request = Request.Builder().url(url).build()

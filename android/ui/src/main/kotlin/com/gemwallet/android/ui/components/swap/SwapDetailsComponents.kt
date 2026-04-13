@@ -14,7 +14,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -99,14 +98,13 @@ fun SwapDetailsBottomSheet(
     showProviderSectionHeader: Boolean = false,
     onProviderSelect: ((SwapperProvider) -> Unit)? = null,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
     if (model == null) return
 
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
         modifier = modifier,
-        sheetState = sheetState,
+        skipPartiallyExpanded = skipPartiallyExpanded,
         dragHandle = { DialogBar(onDismissRequest = onDismiss, showDismissAction = false) },
     ) {
         if (isLoading) {

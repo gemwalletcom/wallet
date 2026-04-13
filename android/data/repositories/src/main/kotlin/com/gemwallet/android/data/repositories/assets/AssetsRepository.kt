@@ -32,6 +32,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.swapSupport
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -174,16 +175,32 @@ class AssetsRepository @Inject constructor(
         getAssetInfo(assetId).firstOrNull()?.asset
     }
 
-    suspend fun hasAsset(walletId: String, assetId: AssetId): Boolean = withContext(Dispatchers.IO) {
-        assetsDao.hasAssetWalletLink(walletId, assetId.toIdentifier())
+    suspend fun hasAssets(assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
+        if (assetIds.isEmpty()) {
+            return@withContext emptySet()
+        }
+        assetsDao.getAssetIds(assetIds.map { it.toIdentifier() })
+            .mapNotNull { it.toAssetId() }
+            .toSet()
+    }
+
+    suspend fun hasWalletAssets(walletId: String, assetIds: List<AssetId>): Set<AssetId> = withContext(Dispatchers.IO) {
+        if (assetIds.isEmpty()) {
+            return@withContext emptySet()
+        }
+        assetsDao.getWalletAssetIds(walletId, assetIds.map { it.toIdentifier() })
+            .mapNotNull { it.toAssetId() }
+            .toSet()
     }
 
     fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo()
         .toAssetInfoModel()
+        .map { items -> items.distinctBy { it.id() } }
 
     fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = assetsDao
         .getAssetsInfo(assetsId.map { it.toIdentifier() })
         .toAssetInfoModel()
+        .map { items -> items.distinctBy { it.id() } }
         .flowOn(Dispatchers.IO)
 
 
@@ -270,9 +287,7 @@ class AssetsRepository @Inject constructor(
             .toAssetInfoModel()
             .map { assets ->
                 assets.filter { asset ->
-                    asset.walletId == wallet.id &&
-                        asset.metadata?.isEnabled == true &&
-                        asset.metadata?.isBalanceEnabled == true
+                    asset.metadata?.isEnabled == true
                 }
                     .distinctBy { it.asset.id.toIdentifier() }
             }
@@ -348,6 +363,13 @@ class AssetsRepository @Inject constructor(
         if (visible) {
             streamSubscriptionService.addAssetIds(listOf(asset.asset.id))
         }
+    }
+
+    suspend fun add(assets: List<AssetBasic>) = withContext(Dispatchers.IO) {
+        if (assets.isEmpty()) {
+            return@withContext
+        }
+        runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
     }
 
     suspend fun linkAssetToWallet(

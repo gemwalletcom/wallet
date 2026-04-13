@@ -32,25 +32,12 @@ public struct DeviceService: DeviceServiceable {
 
     @discardableResult
     private static func getOrCreateDeviceId(securePreferences: SecurePreferences) throws -> String {
-        if let deviceId = try securePreferences.get(key: .deviceId) {
-            return deviceId
-        }
-        let keyPair = try getOrCreateKeyPair(securePreferences: securePreferences)
-        let newDeviceId = keyPair.publicKey.hex
-        return try securePreferences.set(value: newDeviceId, key: .deviceId)
+        try securePreferences.getDeviceId()
     }
 
     @discardableResult
     public static func getOrCreateKeyPair(securePreferences: SecurePreferences) throws -> (privateKey: Data, publicKey: Data) {
-        if let privateKey = try securePreferences.getData(key: .devicePrivateKey),
-           let publicKey = try securePreferences.getData(key: .devicePublicKey)
-        {
-            return (privateKey, publicKey)
-        }
-        let keyPair = DeviceKeyPair()
-        let publicKey = try securePreferences.set(value: keyPair.publicKey, key: .devicePublicKey)
-        let privateKey = try securePreferences.set(value: keyPair.privateKey, key: .devicePrivateKey)
-        return (privateKey, publicKey)
+        try securePreferences.getOrCreateDeviceKeyPair()
     }
 
     public func update() async throws {
@@ -60,21 +47,9 @@ public struct DeviceService: DeviceServiceable {
 
     public func prepareForWalletRequest() async throws {
         try await syncCoordinator.waitForSyncIfNeeded()
+        _ = try getOrCreateDeviceId()
         guard !isReadyForWalletRequest else { return }
         try await synchronizeDevice()
-    }
-
-    private func migrateDeviceIfNeeded() async throws {
-        let deviceId = try getOrCreateDeviceId()
-        guard deviceId.count < 64 else { return }
-
-        let keyPair = try getOrCreateKeyPair()
-        let publicKey = keyPair.publicKey.hex
-
-        let request = MigrateDeviceIdRequest(oldDeviceId: deviceId, publicKey: publicKey)
-        _ = try await deviceProvider.migrateDevice(request: request)
-
-        try securePreferences.set(value: publicKey, key: .deviceId)
     }
 
     private func updateDevice() async throws {
@@ -130,30 +105,21 @@ public struct DeviceService: DeviceServiceable {
     }
 
     private func getOrCreateDeviceId() throws -> String {
-        try Self.getOrCreateDeviceId(securePreferences: securePreferences)
-    }
-
-    @discardableResult
-    private func getOrCreateKeyPair() throws -> (privateKey: Data, publicKey: Data) {
-        try Self.getOrCreateKeyPair(securePreferences: securePreferences)
+        let storedDeviceId = try securePreferences.get(key: .deviceId)
+        let deviceId = try Self.getOrCreateDeviceId(securePreferences: securePreferences)
+        if storedDeviceId != deviceId {
+            preferences.isDeviceRegistered = false
+        }
+        return deviceId
     }
 
     private var isReadyForWalletRequest: Bool {
         preferences.isDeviceRegistered
             && !preferences.subscriptionsVersionHasChange
-            && hasMigratedDeviceId
-    }
-
-    private var hasMigratedDeviceId: Bool {
-        guard let deviceId = try? securePreferences.get(key: .deviceId) else {
-            return false
-        }
-        return deviceId.count >= 64
     }
 
     private func synchronizeDevice() async throws {
         try await syncCoordinator.coordinate {
-            try await migrateDeviceIfNeeded()
             try await updateDevice()
         }
     }

@@ -199,9 +199,6 @@ struct SettingsNavigationStack: View {
                 WalletsNavigationStack()
             }
         }
-        .onChange(of: currencyModel.selectedCurrencyValue) { _, _ in
-            navigationState.settings.removeLast()
-        }
     }
 }
 

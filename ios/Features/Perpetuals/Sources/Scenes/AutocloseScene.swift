@@ -56,11 +56,19 @@ public struct AutocloseScene: View {
                 button: StateButton(
                     text: Localized.Transfer.confirm,
                     type: model.confirmButtonType,
-                    action: model.onSelectConfirm,
+                    action: onSelectConfirm,
                 ),
             )
         }
         .navigationTitle(model.title)
         .onChange(of: focusedField, model.onChangeFocusField)
+        .onDisappear {
+            focusedField = nil
+        }
+    }
+
+    private func onSelectConfirm() {
+        focusedField = nil
+        model.onSelectConfirm()
     }
 }

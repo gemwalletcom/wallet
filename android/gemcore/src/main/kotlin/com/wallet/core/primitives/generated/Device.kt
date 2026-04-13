@@ -23,9 +23,3 @@ data class Device (
 	val subscriptionsVersion: Int
 )
 
-@Serializable
-data class MigrateDeviceIdRequest (
-	val oldDeviceId: String,
-	val publicKey: String
-)
-

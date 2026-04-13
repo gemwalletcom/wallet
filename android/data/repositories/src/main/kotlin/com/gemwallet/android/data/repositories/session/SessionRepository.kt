@@ -10,6 +10,8 @@ interface SessionRepository : GetCurrentCurrency {
 
     fun session(): StateFlow<Session?>
 
+    suspend fun getCurrentWallet(): Wallet?
+
     suspend fun setWallet(wallet: Wallet)
 
     suspend fun setCurrency(currency: Currency)

@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.AddressStatusService
@@ -11,7 +12,6 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
-import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamEventHandler
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
@@ -91,7 +91,7 @@ object AssetsModule {
         syncTransactions: dagger.Lazy<SyncTransactions>,
         syncNfts: SyncNfts,
         updatePriceAlerts: UpdatePriceAlerts,
-        buyRepository: dagger.Lazy<BuyRepository>,
+        syncFiatTransactions: dagger.Lazy<SyncFiatTransactions>,
         walletsRepository: WalletsRepository,
         assetsDao: AssetsDao,
         updateBalances: UpdateBalances,
@@ -101,7 +101,7 @@ object AssetsModule {
         syncTransactions = syncTransactions,
         syncNfts = syncNfts,
         updatePriceAlerts = updatePriceAlerts,
-        buyRepository = buyRepository,
+        syncFiatTransactions = syncFiatTransactions,
         walletsRepository = walletsRepository,
         assetsDao = assetsDao,
         updateBalances = updateBalances,

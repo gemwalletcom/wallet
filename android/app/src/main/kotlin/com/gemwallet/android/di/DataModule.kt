@@ -1,5 +1,6 @@
 package com.gemwallet.android.di
 
+import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.blockchain.clients.algorand.AlgorandSignClient
 import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
 import com.gemwallet.android.blockchain.clients.cardano.CardanoSignClient
@@ -18,7 +19,6 @@ import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.buy.BuyRepository
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.services.SyncService
@@ -91,11 +91,11 @@ object DataModule {
     @Singleton
     @Provides
     fun provideSyncService(
-        buyRepository: BuyRepository,
+        syncFiatAssets: SyncFiatAssets,
         syncDeviceInfo: SyncDeviceInfo,
     ): SyncService {
         return SyncService(
-            buyRepository = buyRepository,
+            syncFiatAssets = syncFiatAssets,
             syncDeviceInfo = syncDeviceInfo,
         )
     }

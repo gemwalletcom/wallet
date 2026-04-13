@@ -97,7 +97,7 @@ Keep action methods grouped in an extension marked with `// MARK: - Actions`:
 public extension PerpetualSceneViewModel {
     func fetch() {
         Task { await observerService.update(for: wallet) }
-        Task { try await perpetualService.updateMarket(symbol: perpetual.coin) }
+        Task { await updateCandlesticks() }
     }
 }
 ```

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import enum Gemstone.GemPerpetualSubscription
 @testable import PerpetualService
 import Primitives
 
@@ -21,6 +21,6 @@ public actor PerpetualObserverMock: PerpetualObservable {
 
     public func update(for _: Wallet) async {}
 
-    public func subscribe(_: HyperliquidSubscription) async throws {}
-    public func unsubscribe(_: HyperliquidSubscription) async throws {}
+    public func subscribe(_: GemPerpetualSubscription) async throws {}
+    public func unsubscribe(_: GemPerpetualSubscription) async throws {}
 }

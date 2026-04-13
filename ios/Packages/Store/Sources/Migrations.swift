@@ -469,7 +469,7 @@ struct Migrations {
             try PerpetualRecord.create(db: db)
             try PerpetualPositionRecord.create(db: db)
         }
-        
+
         try migrator.migrate(dbQueue)
     }
 }

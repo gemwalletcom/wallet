@@ -15,7 +15,7 @@ import SwiftUI
 @Observable
 @MainActor
 final class PerpetualsSceneViewModel {
-    private let observerService: any PerpetualObservable<HyperliquidSubscription>
+    private let observerService: any PerpetualObservable
     let perpetualService: PerpetualServiceable
     let activityService: ActivityService
 
@@ -44,7 +44,7 @@ final class PerpetualsSceneViewModel {
     init(
         wallet: Wallet,
         perpetualService: PerpetualServiceable,
-        observerService: any PerpetualObservable<HyperliquidSubscription>,
+        observerService: any PerpetualObservable,
         activityService: ActivityService,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
@@ -97,17 +97,17 @@ extension PerpetualsSceneViewModel {
 
     func onAppear() async {
         do {
-            try await observerService.subscribe(.allMids)
+            try await observerService.subscribe(.marketPrices)
         } catch {
-            debugLog("AllMids subscribe failed: \(error)")
+            debugLog("Market prices subscribe failed: \(error)")
         }
     }
 
     func onDisappear() async {
         do {
-            try await observerService.unsubscribe(.allMids)
+            try await observerService.unsubscribe(.marketPrices)
         } catch {
-            debugLog("AllMids unsubscribe failed: \(error)")
+            debugLog("Market prices unsubscribe failed: \(error)")
         }
     }
 

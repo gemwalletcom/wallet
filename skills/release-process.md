@@ -12,12 +12,13 @@ The repo follows a GitFlow-like release model:
 
 ## Versioning
 
-- Use semantic versioning: Major.Minor.Patch
+- App marketing versions use `Major.Release` on iOS and Android, for example `2.27`
+- Internal build numbers remain separate and must keep increasing on every release
 - Bump versions with:
   ```bash
   just bump patch
-  just bump minor
   just bump major
+  just bump 2.30
   ```
 
 ## Commits

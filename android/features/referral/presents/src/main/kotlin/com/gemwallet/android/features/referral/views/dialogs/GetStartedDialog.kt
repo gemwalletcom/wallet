@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.referral.views.dialogs
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -25,6 +26,7 @@ import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.filters.FormDialog
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer8
+import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
 internal fun GetStartedDialog(
@@ -86,7 +88,9 @@ internal fun GetStartedDialog(
         )
         Spacer8()
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingDefault),
             text = stringResource(R.string.rewards_create_referral_code_info),
             color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium,

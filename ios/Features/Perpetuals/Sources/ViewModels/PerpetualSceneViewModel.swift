@@ -5,6 +5,7 @@ import Components
 import ExplorerService
 import Formatters
 import Foundation
+import enum Gemstone.GemPerpetualSubscription
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -20,7 +21,7 @@ import TransactionsService
 @MainActor
 public final class PerpetualSceneViewModel {
     private let perpetualService: PerpetualServiceable
-    private let observerService: any PerpetualObservable<HyperliquidSubscription>
+    private let observerService: any PerpetualObservable
     private let transactionsService: TransactionsService
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
@@ -57,7 +58,7 @@ public final class PerpetualSceneViewModel {
         asset: Asset,
         perpetualService: PerpetualServiceable,
         transactionsService: TransactionsService,
-        observerService: any PerpetualObservable<HyperliquidSubscription>,
+        observerService: any PerpetualObservable,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
     ) {
@@ -123,7 +124,10 @@ public final class PerpetualSceneViewModel {
         }
     }
 
-    private var currentChartSubscription: ChartSubscription { ChartSubscription(coin: perpetual.coin, period: currentPeriod) }
+    private var currentChartInterval: String { currentPeriod.hyperliquidInterval }
+    private var currentCandleSubscription: GemPerpetualSubscription {
+        .candle(symbol: perpetual.coin, interval: currentChartInterval)
+    }
 }
 
 // MARK: - Actions
@@ -137,7 +141,8 @@ public extension PerpetualSceneViewModel {
 
     func onAppear() async {
         fetch()
-        await subscribeCandles(currentChartSubscription)
+        await subscribeCandles(currentCandleSubscription)
+        await subscribeMarket(perpetual.coin)
         observeTask = Task {
             await observeCandles()
         }
@@ -146,7 +151,8 @@ public extension PerpetualSceneViewModel {
     func onDisappear() async {
         observeTask?.cancel()
         observeTask = nil
-        await unsubscribeCandles(currentChartSubscription)
+        await unsubscribeCandles(currentCandleSubscription)
+        await unsubscribeMarket(perpetual.coin)
     }
 
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
@@ -161,9 +167,9 @@ public extension PerpetualSceneViewModel {
 
     func onPeriodChange(_ oldPeriod: ChartPeriod, _ newPeriod: ChartPeriod) {
         Task {
-            await unsubscribeCandles(ChartSubscription(coin: perpetual.coin, period: oldPeriod))
+            await unsubscribeCandles(.candle(symbol: perpetual.coin, interval: oldPeriod.hyperliquidInterval))
             await updateCandlesticks()
-            await subscribeCandles(ChartSubscription(coin: perpetual.coin, period: newPeriod))
+            await subscribeCandles(.candle(symbol: perpetual.coin, interval: newPeriod.hyperliquidInterval))
         }
     }
 
@@ -297,19 +303,35 @@ private extension PerpetualSceneViewModel {
         }
     }
 
-    func subscribeCandles(_ subscription: ChartSubscription) async {
+    func subscribeCandles(_ subscription: GemPerpetualSubscription) async {
         do {
-            try await observerService.subscribe(.candle(subscription))
+            try await observerService.subscribe(subscription)
         } catch {
             debugLog("Chart subscription failed: \(error)")
         }
     }
 
-    func unsubscribeCandles(_ subscription: ChartSubscription) async {
+    func unsubscribeCandles(_ subscription: GemPerpetualSubscription) async {
         do {
-            try await observerService.unsubscribe(.candle(subscription))
+            try await observerService.unsubscribe(subscription)
         } catch {
             debugLog("Chart unsubscribe failed: \(error)")
+        }
+    }
+
+    func subscribeMarket(_ coin: String) async {
+        do {
+            try await observerService.subscribe(.marketData(symbol: coin))
+        } catch {
+            debugLog("Market data subscription failed: \(error)")
+        }
+    }
+
+    func unsubscribeMarket(_ coin: String) async {
+        do {
+            try await observerService.unsubscribe(.marketData(symbol: coin))
+        } catch {
+            debugLog("Market data unsubscribe failed: \(error)")
         }
     }
 
@@ -321,8 +343,8 @@ private extension PerpetualSceneViewModel {
     }
 
     func handleChartUpdate(_ update: ChartCandleUpdate) {
-        guard update.coin == currentChartSubscription.coin,
-              update.interval == currentChartSubscription.interval,
+        guard update.coin == perpetual.coin,
+              update.interval == currentChartInterval,
               case var .data(candlesticks) = state,
               let lastCandle = candlesticks.last
         else {
@@ -380,5 +402,18 @@ public extension RecipientData {
             recipient: Recipient(name: "Hyperliquid", address: "", memo: .none),
             amount: .none,
         )
+    }
+}
+
+private extension ChartPeriod {
+    var hyperliquidInterval: String {
+        switch self {
+        case .hour: "1m"
+        case .day: "30m"
+        case .week: "4h"
+        case .month: "12h"
+        case .year: "1w"
+        case .all: "1M"
+        }
     }
 }

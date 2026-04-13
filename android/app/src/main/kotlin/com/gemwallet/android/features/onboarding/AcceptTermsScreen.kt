@@ -2,6 +2,7 @@ package com.gemwallet.android.features.onboarding
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
@@ -38,10 +38,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -133,15 +135,21 @@ private fun LazyListScope.termItem(
             shape = RoundedCornerShape(paddingDefault),
         ) {
             Row(modifier = Modifier.defaultPadding(), verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = if (isUnderstand) Icons.Default.CheckCircleOutline else Icons.Outlined.Circle,
-                    contentDescription = "Accept term",
-                    tint = if (isUnderstand) {
-                        MaterialTheme.colorScheme.primary
+                Box(
+                    modifier = Modifier.size(compactIconSize),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isUnderstand) {
+                        SelectionCheckmark(size = compactIconSize)
                     } else {
-                        MaterialTheme.colorScheme.secondary
+                        Icon(
+                            modifier = Modifier.size(compactIconSize),
+                            imageVector = Icons.Outlined.Circle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                        )
                     }
-                )
+                }
                 Spacer16()
                 Column(modifier = Modifier.weight(1f)) {
                     Text(

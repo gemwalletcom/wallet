@@ -8,7 +8,7 @@ TARGET="${1:-patch}"
 
 cd "$ROOT_DIR"
 
-current_ios_version=$(grep -oE "MARKETING_VERSION = [0-9]+\.[0-9]+\.[0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+current_ios_version=$(grep -oE "MARKETING_VERSION = [0-9]+\.[0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+")
 current_android_version=$(grep 'versionName = "' "$ANDROID_FILE" | sed 's/.*versionName = "//' | sed 's/".*//')
 
 if [[ -z "$current_ios_version" || -z "$current_android_version" ]]; then
@@ -25,34 +25,26 @@ current_version="$current_ios_version"
 
 resolve_version() {
   local input="$1"
-  if [[ "$input" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [[ "$input" =~ ^[0-9]+\.[0-9]+$ ]]; then
     echo "$input"
     return
   fi
 
-  local major minor patch
-  IFS="." read -r major minor patch <<< "$current_version"
+  local major release
+  IFS="." read -r major release <<< "$current_version"
 
   case "$input" in
     major)
-      major=$((major + 1))
-      minor=0
-      patch=0
-      ;;
-    minor)
-      minor=$((minor + 1))
-      patch=0
+      echo "$((major + 1)).0"
       ;;
     patch)
-      patch=$((patch + 1))
+      echo "${major}.$((release + 1))"
       ;;
     *)
-      echo "❌ Invalid bump target: $input. Use patch, minor, major, or an explicit X.Y.Z version." >&2
+      echo "❌ Invalid bump target: $input. Use patch, major, or an explicit X.Y version." >&2
       exit 1
       ;;
   esac
-
-  echo "${major}.${minor}.${patch}"
 }
 
 new_version="$(resolve_version "$TARGET")"

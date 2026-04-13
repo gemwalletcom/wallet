@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.di
 import android.content.Context
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
-import com.gemwallet.android.cases.device.GetDeviceIdOld
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.GetPushToken
 import com.gemwallet.android.cases.device.SetPushToken
@@ -11,7 +10,6 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.device.DeviceRepository
-import com.gemwallet.android.data.repositories.device.GetDeviceIdOldImpl
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.ConfigStore
@@ -31,16 +29,10 @@ object DeviceModule {
 
     @Provides
     @Singleton
-    fun provideDeviceOldId(@ApplicationContext context: Context): GetDeviceIdOld
-        = GetDeviceIdOldImpl(ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)))
-
-    @Provides
-    @Singleton
     fun provideDeviceRepository(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
         gemDeviceApiClient: GemDeviceApiClient,
-        getDeviceIdOld: GetDeviceIdOld,
         getDeviceId: GetDeviceId,
         priceAlertRepository: PriceAlertRepository,
         getCurrentCurrency: GetCurrentCurrency,
@@ -49,7 +41,6 @@ object DeviceModule {
         return DeviceRepository(
             context = context,
             gemDeviceApiClient = gemDeviceApiClient,
-            getDeviceIdOld = getDeviceIdOld,
             getDeviceId = getDeviceId,
             configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
             requestPushToken = buildInfo.requestPushToken,

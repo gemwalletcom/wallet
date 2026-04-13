@@ -2,13 +2,10 @@ package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.services.gemapi.GemApiClient
-import com.wallet.core.primitives.AssetBasic
-import com.wallet.core.primitives.Chain
-import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.AssetBasic
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -26,60 +23,30 @@ class PrefetchAssetsImplTest {
     )
 
     @Test
-    fun prefetchAssets_loadsOnlyMissingWalletAssets() = runTest {
+    fun prefetchAssets_loadsOnlyMissingAssets() = runTest {
         val bitcoin = mockAsset()
         val ethereum = mockAssetEthereum()
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = listOf(
-                mockAccount(chain = Chain.Bitcoin, address = "bc1-address"),
-                mockAccount(chain = Chain.Ethereum, address = "0x-address"),
-            ),
-        )
         val ethereumBasic = mockAssetBasic(asset = ethereum, rank = 42)
+        val assetIds = listOf(bitcoin.id, ethereum.id)
 
-        coEvery { assetsRepository.hasAsset(wallet.id, bitcoin.id) } returns true
-        coEvery { assetsRepository.hasAsset(wallet.id, ethereum.id) } returns false
+        coEvery { assetsRepository.hasAssets(assetIds) } returns setOf(bitcoin.id)
         coEvery { gemApiClient.getAssets(listOf(ethereum.id)) } returns listOf(ethereumBasic)
 
-        subject.prefetchAssets(wallet, listOf(bitcoin.id, ethereum.id, ethereum.id))
+        subject.prefetchAssets(listOf(bitcoin.id, ethereum.id, ethereum.id))
 
         coVerify { gemApiClient.getAssets(listOf(ethereum.id)) }
-        coVerify(exactly = 0) {
-            assetsRepository.add(
-                walletId = wallet.id,
-                accountAddress = any(),
-                asset = match<AssetBasic> { it.asset.id == bitcoin.id },
-                visible = true,
-            )
-        }
-        coVerify {
-            assetsRepository.add(
-                walletId = wallet.id,
-                accountAddress = "0x-address",
-                asset = ethereumBasic,
-                visible = true,
-            )
-        }
-        coVerify { assetsRepository.updateBalances(ethereum.id) }
+        coVerify { assetsRepository.add(listOf(ethereumBasic)) }
     }
 
     @Test
     fun prefetchAssets_skipsLoadWhenAllAssetsAlreadyExist() = runTest {
         val bitcoin = mockAsset()
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = listOf(
-                mockAccount(chain = Chain.Bitcoin, address = "bc1-address"),
-            ),
-        )
 
-        coEvery { assetsRepository.hasAsset(wallet.id, bitcoin.id) } returns true
+        coEvery { assetsRepository.hasAssets(listOf(bitcoin.id)) } returns setOf(bitcoin.id)
 
-        subject.prefetchAssets(wallet, listOf(bitcoin.id))
+        subject.prefetchAssets(listOf(bitcoin.id))
 
         coVerify(exactly = 0) { gemApiClient.getAssets(any()) }
-        coVerify(exactly = 0) { assetsRepository.add(any(), any(), any<AssetBasic>(), any()) }
-        coVerify(exactly = 0) { assetsRepository.updateBalances(any()) }
+        coVerify(exactly = 0) { assetsRepository.add(any<List<AssetBasic>>()) }
     }
 }

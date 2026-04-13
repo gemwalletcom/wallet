@@ -8,7 +8,6 @@ import com.wallet.core.primitives.FiatAssets
 import com.wallet.core.primitives.FiatQuoteUrl
 import com.wallet.core.primitives.FiatQuotes
 import com.wallet.core.primitives.FiatTransactionData
-import com.wallet.core.primitives.MigrateDeviceIdRequest
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.PriceAlert
@@ -46,9 +45,6 @@ interface GemDeviceApiClient {
     @POST("/v2/devices")
     suspend fun registerDevice(@Body request: Device): Device?
 
-    @POST("/v2/devices/migrate")
-    suspend fun migrateDevice(@Body request: MigrateDeviceIdRequest): Device?
-
     @PUT("/v2/devices")
     suspend fun updateDevice(@Body request: Device): Device?
 
@@ -84,9 +80,6 @@ interface GemDeviceApiClient {
 
     @GET("/v2/devices/rewards/redemptions/{code}")
     suspend fun getRedemptionOption(@Path("code") code: String): RewardRedemptionOption
-
-//    @GET("/v1/devices/{device_id}/rewards/leaderboard")
-//    suspend fun getRewardsLeaderboard(@Path("device_id") deviceId: String): ReferralLeaderboard
 
     @POST("/v2/devices/rewards/referrals/create")
     suspend fun createReferral(@Header(WALLET_ID_HEADER)  walletId: String, @Body body: AuthenticatedRequest<ReferralCode>): Rewards?

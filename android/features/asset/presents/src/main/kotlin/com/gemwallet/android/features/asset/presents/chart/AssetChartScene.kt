@@ -3,7 +3,6 @@ package com.gemwallet.android.features.asset.presents.chart
 import androidx.compose.foundation.clickable
 import com.gemwallet.android.ext.AddressFormatter
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
@@ -111,8 +109,10 @@ fun AssetChartScene(
                     )
                 }
                 marketModel?.let {
-                    assetContract(it.asset, it.explorerName)
                     assetMarket(it.currency, it.asset, it.marketInfo)
+                    assetContract(it.asset, it.explorerName)
+                    assetSupply(it.asset, it.marketInfo)
+                    assetAllTime(it.currency, it.asset, it.marketInfo)
                     links(it.assetLinks)
                 }
             }
@@ -181,19 +181,28 @@ private fun LazyListScope.assetContract(asset: Asset, explorerName: String) {
 private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?) {
     marketInfo ?: return
     val marketItems = buildMarketItems(marketInfo) { currency.compactFormatter(it) }
+
+    marketProperties(asset, marketItems)
+}
+
+private fun LazyListScope.assetSupply(asset: Asset, marketInfo: AssetMarket?) {
+    marketInfo ?: return
     val supplyItems = buildSupplyItems(
         marketInfo = marketInfo,
         compactSupplyFormatter = { asset.compactFormatter(it) },
         maxSupplyFormatter = { asset.formatSupply(it) },
     )
 
+    marketProperties(asset, supplyItems)
+}
+
+private fun LazyListScope.assetAllTime(currency: Currency, asset: Asset, marketInfo: AssetMarket?) {
+    marketInfo ?: return
     val allTime = listOfNotNull(
         marketInfo.allTimeHighValue?.let { AllTimeUIModel.High(it.date, it.value.toDouble(), it.percentage.toDouble()) },
         marketInfo.allTimeLowValue?.let { AllTimeUIModel.Low(it.date, it.value.toDouble(), it.percentage.toDouble()) },
     )
 
-    marketProperties(asset, marketItems)
-    marketProperties(asset, supplyItems)
     allTimeProperties(asset, currency, allTime)
 }
 
@@ -208,17 +217,17 @@ internal fun buildMarketItems(
             badge = marketInfo.marketCapRank?.takeIf { rank -> rank in 1..1000 }?.let { "#$it" },
         )
     },
-    marketInfo.totalVolume?.let {
-        MarketInfoUIModel(
-            type = MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
-            value = compactCurrencyFormatter(it),
-        )
-    },
     marketInfo.marketCapFdv?.let {
         MarketInfoUIModel(
             type = MarketInfoUIModel.MarketInfoTypeUIModel.FDV,
             value = compactCurrencyFormatter(it),
             info = InfoSheetEntity.FullyDilutedValuation,
+        )
+    },
+    marketInfo.totalVolume?.let {
+        MarketInfoUIModel(
+            type = MarketInfoUIModel.MarketInfoTypeUIModel.TradingVolume,
+            value = compactCurrencyFormatter(it),
         )
     },
 )
