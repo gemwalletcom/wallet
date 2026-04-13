@@ -169,10 +169,8 @@ generate-swiftgen:
     @echo "==> SwiftGen assets and Localizable.strings"
     @swiftgen config run --quiet
 
-export BUILD_MODE := env_var_or_default("BUILD_MODE","")
-
-generate-stone:
-    @./scripts/generate-stone.sh $BUILD_MODE
+generate-stone BUILD_MODE="":
+    @./scripts/generate-stone.sh {{BUILD_MODE}}
 
 bump TARGET="patch":
     @cd .. && just bump {{TARGET}}
