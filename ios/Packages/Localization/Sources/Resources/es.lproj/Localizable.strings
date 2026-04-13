@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Permisos";
 "wallet_connect.permissions.view_balance" = "Consulta tu saldo y actividad.";
 "wallet_connect.permissions.approval_requests" = "Enviar solicitudes de aprobación";
-"wallet.import.already_imported_title" = "Cartera ya importada";
-"wallet.import.already_imported_message" = "Ya añadido como \"%s\"";
-"wallet.import.switch_to_wallet" = "Cambiar a %s";
-"wallet.import.import_another" = "Importar otro";
+"wallet.import.already_imported_message" = "Esta cartera ya ha sido importada.";

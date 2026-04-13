@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Toestemmingen";
 "wallet_connect.permissions.view_balance" = "Bekijk je saldo en activiteit";
 "wallet_connect.permissions.approval_requests" = "Verzoeken om goedkeuring verzenden";
-"wallet.import.already_imported_title" = "Portemonnee reeds geïmporteerd";
-"wallet.import.already_imported_message" = "Reeds toegevoegd als \"%s\"";
-"wallet.import.switch_to_wallet" = "Schakel over naar %s";
-"wallet.import.import_another" = "Importeer nog een";
+"wallet.import.already_imported_message" = "Deze portemonnee is al geïmporteerd.";

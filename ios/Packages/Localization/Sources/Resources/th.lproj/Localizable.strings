@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "สิทธิ์การเข้าถึง";
 "wallet_connect.permissions.view_balance" = "ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ";
 "wallet_connect.permissions.approval_requests" = "ส่งคำขออนุมัติ";
-"wallet.import.already_imported_title" = "กระเป๋าสตางค์ที่นำเข้าแล้ว";
-"wallet.import.already_imported_message" = "เพิ่มแล้วในชื่อ \"%s\"";
-"wallet.import.switch_to_wallet" = "เปลี่ยนไปใช้ %s";
-"wallet.import.import_another" = "นำเข้าอีกรายการ";
+"wallet.import.already_imported_message" = "กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว";

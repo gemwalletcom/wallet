@@ -562,7 +562,4 @@
 "wallet_connect.permissions.title" = "Izini";
 "wallet_connect.permissions.view_balance" = "Duba ma'aunin ku da ayyukan ku";
 "wallet_connect.permissions.approval_requests" = "Aika buƙatun amincewa";
-"wallet.import.already_imported_title" = "An riga an shigo da walat";
-"wallet.import.already_imported_message" = "An riga an ƙara shi azaman \"%s\"";
-"wallet.import.switch_to_wallet" = "Canja zuwa %s";
-"wallet.import.import_another" = "Shigo da Wani";
+"wallet.import.already_imported_message" = "An riga an shigo da wannan walat ɗin";

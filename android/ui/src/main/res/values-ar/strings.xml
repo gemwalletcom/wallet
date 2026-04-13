@@ -583,8 +583,5 @@
   <string name="wallet_connect.permissions.title">الأذونات</string>
   <string name="wallet_connect.permissions.view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect.permissions.approval_requests">إرسال طلبات الموافقة</string>
-  <string name="wallet.import.already_imported_title">المحفظة مستوردة بالفعل</string>
-  <string name="wallet.import.already_imported_message">تمت إضافته بالفعل باسم \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">انتقل إلى %s</string>
-  <string name="wallet.import.import_another">استيراد آخر</string>
+  <string name="wallet.import.already_imported_message">تم استيراد هذه المحفظة بالفعل</string>
 </resources>

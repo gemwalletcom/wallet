@@ -27,14 +27,15 @@ final class ImportWalletSceneViewModel {
 
     var isPresentingScanner = false
     var isPresentingAlertMessage: AlertMessage?
+    var isPresentingExistingWalletName: String?
 
-    private let onComplete: (@MainActor @Sendable (WalletImportResult) -> Void)?
+    private let onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?
 
     init(
         walletService: WalletService,
         nameService: any NameServiceable,
         type: ImportWalletType,
-        onComplete: (@MainActor @Sendable (WalletImportResult) -> Void)?,
+        onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
         self.walletService = walletService
         self.type = type
@@ -153,6 +154,11 @@ extension ImportWalletSceneViewModel {
             CopyTypeViewModel.clearClipboard()
         }
     }
+
+    func onSelectExistingWalletContinue() {
+        walletService.acceptTerms()
+        onComplete?(.existing)
+    }
 }
 
 // MARK: - Private
@@ -202,39 +208,17 @@ extension ImportWalletSceneViewModel {
 
     private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
         let result = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
-        buttonState = .normal
 
         switch result {
-        case .new:
-            completeImport(result)
-        case .existing:
-            presentExistingWalletAlert(result: result)
+        case let .new(wallet):
+            walletService.acceptTerms()
+            try await walletService.setCurrent(wallet: wallet)
+            buttonState = .normal
+            onComplete?(.new(wallet))
+        case let .existing(wallet):
+            buttonState = .normal
+            isPresentingExistingWalletName = wallet.name
         }
-    }
-
-    private func completeImport(_ result: WalletImportResult) {
-        walletService.acceptTerms()
-        Task {
-            try await walletService.setCurrent(wallet: result.wallet)
-            onComplete?(result)
-        }
-    }
-
-    private func presentExistingWalletAlert(result: WalletImportResult) {
-        let wallet = result.wallet
-
-        isPresentingAlertMessage = AlertMessage(
-            title: Localized.Wallet.Import.alreadyImportedTitle,
-            message: Localized.Wallet.Import.alreadyImportedMessage(wallet.name),
-            actions: [
-                AlertAction(title: Localized.Wallet.Import.switchToWallet(wallet.name), isDefaultAction: true) { [weak self] in
-                    self?.completeImport(result)
-                },
-                AlertAction(title: Localized.Wallet.Import.importAnother, role: .cancel) { [weak self] in
-                    self?.input = ""
-                },
-            ],
-        )
     }
 
     private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {

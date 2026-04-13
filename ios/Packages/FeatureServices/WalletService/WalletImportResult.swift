@@ -8,8 +8,8 @@ public enum WalletImportResult: Sendable {
 
     public var wallet: Wallet {
         switch self {
-        case .new(let wallet), .existing(let wallet):
-            return wallet
+        case let .new(wallet), let .existing(wallet):
+            wallet
         }
     }
 }

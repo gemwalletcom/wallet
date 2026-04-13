@@ -37,10 +37,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.blockchain.operators.walletcore.WCFindPhraseWord
@@ -55,6 +51,8 @@ import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -65,8 +63,9 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
-import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 internal sealed interface ImportSceneTitle {
     data class Resource(val resId: Int) : ImportSceneTitle
@@ -133,13 +132,16 @@ fun ImportScreen(
         }
     }
     uiState.existingWalletResult?.let { result ->
-        ExistingWalletDialog(
-            wallet = result.wallet,
-            onSwitch = {
-                viewModel.dismissExistingWallet()
-                onImported(result)
-            },
-            onDismiss = {
+        InfoBottomSheet(
+            item = InfoSheetEntity.ExistingWalletImported(
+                walletName = result.wallet.name,
+                actionLabel = stringResource(R.string.common_continue),
+                action = {
+                    viewModel.dismissExistingWallet()
+                    onImported(result)
+                },
+            ),
+            onClose = {
                 viewModel.dismissExistingWallet()
                 inputState.value = TextFieldValue()
             },
@@ -304,29 +306,6 @@ private fun TypeSelection(
         }
     }
     Spacer16()
-}
-
-@Composable
-private fun ExistingWalletDialog(
-    wallet: Wallet,
-    onSwitch: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.wallet_import_already_imported_title)) },
-        text = { Text(stringResource(R.string.wallet_import_already_imported_message, wallet.name)) },
-        confirmButton = {
-            TextButton(onClick = onSwitch) {
-                Text(stringResource(R.string.wallet_import_switch_to_wallet, wallet.name))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.wallet_import_import_another))
-            }
-        },
-    )
 }
 
 @Composable

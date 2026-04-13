@@ -45,8 +45,10 @@ internal val infoSheetIconSize = 120.dp
 sealed class InfoSheetEntity(
     val icon: Any,
     val badgeIcon: Any? = null,
-    @param:StringRes val title: Int,
-    @param:StringRes val description: Int,
+    @param:StringRes val title: Int? = null,
+    @param:StringRes val description: Int? = null,
+    val titleText: String? = null,
+    val descriptionText: String? = null,
     val titleArgs: List<Any>? = null,
     val descriptionArgs: List<Any>? = null,
     val actionLabel: String? = null,
@@ -200,6 +202,14 @@ sealed class InfoSheetEntity(
         description = R.string.info_max_supply_description,
         infoUrl = null,
     )
+
+    class ExistingWalletImported(walletName: String, actionLabel: String, action: () -> Unit) : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        titleText = walletName,
+        description = R.string.wallet_import_already_imported_message,
+        actionLabel = actionLabel,
+        action = action,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -233,7 +243,7 @@ fun InfoBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = paddingDefault),
-                text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.title, shownItem.titleArgs)),
+                text = parseMarkdownToAnnotatedString(resolveText(shownItem.title, shownItem.titleText, shownItem.titleArgs)),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
@@ -241,7 +251,7 @@ fun InfoBottomSheet(
             )
             Text(
                 modifier = Modifier.padding(vertical = paddingSmall, horizontal = paddingDefault),
-                text = parseMarkdownToAnnotatedString(resolveStringResource(shownItem.description, shownItem.descriptionArgs)),
+                text = parseMarkdownToAnnotatedString(resolveText(shownItem.description, shownItem.descriptionText, shownItem.descriptionArgs)),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
@@ -286,4 +296,9 @@ private fun resolveStringResource(@StringRes resId: Int, args: List<Any>?): Stri
     return args?.takeIf { it.isNotEmpty() }
         ?.let { stringResource(resId, *it.toTypedArray()) }
         ?: stringResource(resId)
+}
+
+@Composable
+private fun resolveText(@StringRes resId: Int?, text: String?, args: List<Any>?): String {
+    return text ?: resolveStringResource(requireNotNull(resId), args)
 }

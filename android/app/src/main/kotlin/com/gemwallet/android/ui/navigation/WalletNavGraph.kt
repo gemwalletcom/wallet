@@ -25,6 +25,7 @@ import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateW
 import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletScreen
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
+import com.gemwallet.android.features.import_wallet.navigation.importWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.navigateToImportWalletScreen
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.OnboardingDest

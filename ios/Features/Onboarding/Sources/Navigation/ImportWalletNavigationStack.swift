@@ -82,15 +82,14 @@ extension ImportWalletNavigationStack {
         }
     }
 
-    func onImportResult(_ result: WalletImportResult) {
+    func onImportResult(_ result: ImportWalletSceneResult) {
         switch result {
-        case .new(let wallet):
+        case let .new(wallet):
             navigate(to: .walletProfile(wallet: wallet))
         case .existing:
             model.onComplete?()
         }
     }
-
 
     func onSetupWalletComplete(_: Wallet) {
         model.onComplete?()

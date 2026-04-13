@@ -1591,20 +1591,10 @@ public enum Localized {
       public static let action = Localized.tr("Localizable", "wallet.import.action", fallback: "Import")
       /// Address or Name
       public static let addressField = Localized.tr("Localizable", "wallet.import.address_field", fallback: "Address or Name")
-      /// Already added as "%s"
-      public static func alreadyImportedMessage(_ p1: UnsafePointer<CChar>) -> String {
-        return Localized.tr("Localizable", "wallet.import.already_imported_message", p1, fallback: "Already added as \"%s\"")
-      }
-      /// Wallet Already Imported
-      public static let alreadyImportedTitle = Localized.tr("Localizable", "wallet.import.already_imported_title", fallback: "Wallet Already Imported")
+      /// This wallet has already been imported
+      public static let alreadyImportedMessage = Localized.tr("Localizable", "wallet.import.already_imported_message", fallback: "This wallet has already been imported")
       /// Contract or Token ID
       public static let contractAddressField = Localized.tr("Localizable", "wallet.import.contract_address_field", fallback: "Contract or Token ID")
-      /// Import Another
-      public static let importAnother = Localized.tr("Localizable", "wallet.import.import_another", fallback: "Import Another")
-      /// Switch to %s
-      public static func switchToWallet(_ p1: UnsafePointer<CChar>) -> String {
-        return Localized.tr("Localizable", "wallet.import.switch_to_wallet", p1, fallback: "Switch to %s")
-      }
       /// Import Wallet
       public static let title = Localized.tr("Localizable", "wallet.import.title", fallback: "Import Wallet")
     }
