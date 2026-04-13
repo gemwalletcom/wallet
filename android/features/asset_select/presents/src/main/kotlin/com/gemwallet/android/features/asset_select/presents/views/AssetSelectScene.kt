@@ -64,6 +64,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
@@ -77,7 +78,7 @@ fun AssetSelectScene(
     popular: ImmutableList<AssetItemUIModel>,
     pinned: ImmutableList<AssetItemUIModel>,
     unpinned: ImmutableList<AssetItemUIModel>,
-    recent: ImmutableList<AssetItemUIModel>,
+    recent: ImmutableList<Asset>,
     state: UIState,
     titleBadge: (AssetItemUIModel) -> String?,
     support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
@@ -98,6 +99,7 @@ fun AssetSelectScene(
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     onAddAsset: (() -> Unit)? = null,
+    onSelectRecent: ((AssetId) -> Unit)? = null,
     contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     AssetSelectScene(
@@ -132,6 +134,7 @@ fun AssetSelectScene(
         itemTrailing = itemTrailing,
         actions = actions,
         onAddAsset = onAddAsset,
+        onSelectRecent = onSelectRecent,
         contextActions = contextActions,
     )
 }
@@ -142,7 +145,7 @@ fun AssetSelectScene(
     popular: ImmutableList<AssetItemUIModel>,
     pinned: ImmutableList<AssetItemUIModel>,
     unpinned: ImmutableList<AssetItemUIModel>,
-    recent: ImmutableList<AssetItemUIModel>,
+    recent: ImmutableList<Asset>,
     state: UIState,
     titleBadge: (AssetItemUIModel) -> String?,
     support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
@@ -163,6 +166,7 @@ fun AssetSelectScene(
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     onAddAsset: (() -> Unit)? = null,
+    onSelectRecent: ((AssetId) -> Unit)? = null,
     contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     val listState = rememberLazyListState()
@@ -189,15 +193,17 @@ fun AssetSelectScene(
     Scene(
         titleContent = title,
         actions = {
-            IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
-                Icon(
-                    imageVector = Icons.Default.FilterAlt,
-                    tint = if (chainsFilter.isEmpty() && !balanceFilter)
-                        LocalContentColor.current
-                    else
-                        MaterialTheme.colorScheme.primary,
-                    contentDescription = "Filter by networks",
-                )
+            if (availableChains.isNotEmpty()) {
+                IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
+                    Icon(
+                        imageVector = Icons.Default.FilterAlt,
+                        tint = if (chainsFilter.isEmpty() && !balanceFilter)
+                            LocalContentColor.current
+                        else
+                            MaterialTheme.colorScheme.primary,
+                        contentDescription = "Filter by networks",
+                    )
+                }
             }
             actions()
         },
@@ -235,7 +241,7 @@ fun AssetSelectScene(
                     )
                 }
             }
-            recent(recent, onSelect)
+            recent(recent, onSelectRecent)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             assets(pinned, AssetsGroupType.Pined, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
@@ -363,7 +369,7 @@ private fun LazyListScope.loading(state: UIState) {
 }
 
 private fun LazyListScope.recent(
-    items: List<AssetItemUIModel>,
+    items: List<Asset>,
     onSelect: ((AssetId) -> Unit)?
 ) {
     if (items.isEmpty()) {
@@ -377,18 +383,18 @@ private fun LazyListScope.recent(
             modifier = Modifier.padding(top = paddingHalfSmall, start = paddingDefault, bottom = paddingSmall, end = paddingDefault),
             horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
-            items(items) { item ->
+            items(items) { asset ->
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.background)
-                        .clickable(onClick = { onSelect?.invoke(item.asset.id) })
+                        .clickable(onClick = { onSelect?.invoke(asset.id) })
                         .padding(paddingSmall),
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AssetIcon(item.asset, size = smallIconSize)
-                    Text(item.asset.symbol)
+                    AssetIcon(asset, size = smallIconSize)
+                    Text(asset.symbol)
                 }
             }
         }
@@ -403,7 +409,7 @@ fun PreviewAssetScreenUI() {
             pinned = emptyList<AssetInfoUIModel>().toImmutableList(),
             unpinned = emptyList<AssetInfoUIModel>().toImmutableList(),
             popular = emptyList<AssetInfoUIModel>().toImmutableList(),
-            recent = emptyList<AssetInfoUIModel>().toImmutableList(),
+            recent = emptyList<Asset>().toImmutableList(),
             state = UIState.Idle,
             title = "Send",
             titleBadge = { it.asset.symbol },

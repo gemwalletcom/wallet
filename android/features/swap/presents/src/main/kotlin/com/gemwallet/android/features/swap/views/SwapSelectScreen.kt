@@ -36,6 +36,14 @@ fun SwapSelectScreen(
     val receiveId by viewModel.receiveAssetId.collectAsStateWithLifecycle()
     val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
+    val onSelectAsset: (AssetId) -> Unit = { assetId ->
+        when (select) {
+            SwapItemType.Pay -> onSelect(SwapItemType.Pay, assetId, receiveId)
+            SwapItemType.Receive -> onSelect(SwapItemType.Receive, payId, assetId)
+            null -> {}
+        }
+    }
+
     AssetSelectScene(
         title = when (select) {
             SwapItemType.Pay -> stringResource(id = R.string.swap_you_pay)
@@ -57,13 +65,8 @@ fun SwapSelectScreen(
         onChainFilter = viewModel::onChainFilter,
         onBalanceFilter = viewModel::onBalanceFilter,
         onClearFilters = viewModel::onClearFilters,
-        onSelect = {
-            when (select) {
-                SwapItemType.Pay -> onSelect(SwapItemType.Pay, it, receiveId)
-                SwapItemType.Receive -> onSelect(SwapItemType.Receive, payId, it)
-                null -> return@AssetSelectScene
-            }
-        },
+        onSelect = onSelectAsset,
+        onSelectRecent = onSelectAsset,
         onCancel = onCancel,
         onAddAsset = null,
         itemTrailing = { getBalanceInfo(it)() },

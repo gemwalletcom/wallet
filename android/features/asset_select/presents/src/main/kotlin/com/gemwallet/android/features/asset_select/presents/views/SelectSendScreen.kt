@@ -19,6 +19,7 @@ fun SelectSendScreen(
         titleBadge = { null },
         itemTrailing = { getBalanceInfo(it)() },
         onSelect = onSelect,
+        onSelectRecent = onSelect,
         onCancel = onCancel,
         viewModel = viewModel,
     )
