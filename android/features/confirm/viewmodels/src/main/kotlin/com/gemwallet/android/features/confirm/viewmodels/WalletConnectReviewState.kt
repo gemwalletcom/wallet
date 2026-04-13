@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
-import com.gemwallet.android.features.confirm.models.ConfirmProperty
+import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.SimulationHeader

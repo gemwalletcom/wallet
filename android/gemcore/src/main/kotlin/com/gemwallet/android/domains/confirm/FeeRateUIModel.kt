@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.confirm.models
+package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -61,20 +61,20 @@ data class FeeRateUIModel(
     }
 }
 
-internal fun GemGasPriceType.totalFee(): BigInteger = when (this) {
+fun GemGasPriceType.totalFee(): BigInteger = when (this) {
     is GemGasPriceType.Regular -> gasPrice.toBigInteger()
     is GemGasPriceType.Eip1559 -> gasPrice.toBigInteger() + priorityFee.toBigInteger()
     is GemGasPriceType.Solana -> gasPrice.toBigInteger() + priorityFee.toBigInteger()
 }
 
-internal val FeeUnitType.gasPriceDecimals: Int?
+val FeeUnitType.gasPriceDecimals: Int?
     get() = when (this) {
         FeeUnitType.SatVb -> 0
         FeeUnitType.Gwei -> 9
         FeeUnitType.Native -> null
     }
 
-internal val FeeUnitType.gasPriceSymbol: String?
+val FeeUnitType.gasPriceSymbol: String?
     get() = when (this) {
         FeeUnitType.SatVb, FeeUnitType.Gwei -> string
         FeeUnitType.Native -> null

@@ -12,7 +12,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.confirm.models.ConfirmProperty
+import com.gemwallet.android.domains.confirm.ConfirmProperty
 
 @Composable
 fun PropertyDestination(

@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.confirm.models
+package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Currency
