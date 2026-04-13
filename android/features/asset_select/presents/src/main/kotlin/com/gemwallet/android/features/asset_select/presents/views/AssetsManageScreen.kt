@@ -73,7 +73,7 @@ fun AssetsManageScreen(
         onClearFilters = viewModel::onClearFilters,
         onCancel = onCancel,
         onAddAsset = if (isAddAssetAvailable) onAddAsset else null,
-        onSelect = onAssetClick,
+        onSelect = null,
         actions = {
             if (isAddAssetAvailable) {
                 IconButton(onClick = onAddAsset) {

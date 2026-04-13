@@ -174,6 +174,7 @@ fun AssetSelectScene(
 
     var showSelectNetworks by remember { mutableStateOf(false) }
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
+    val showTags = query.text.isEmpty()
 
     LaunchedEffect(Unit) {
         snapshotFlow { query.text.toString() }
@@ -216,29 +217,31 @@ fun AssetSelectScene(
             modifier = Modifier.fillMaxWidth(),
             state = listState,
         ) {
-            item {
-                TabsBar(
-                    tabs = tags,
-                    selected = selectedTag,
-                    onSelect = onTagSelect,
-                    scrollable = true,
-                    equalWidth = false,
-                ) { item ->
-                    val stringId = when (item) {
-                        AssetTag.Trending -> R.string.assets_tags_trending
-                        AssetTag.TrendingFiatPurchase -> R.string.assets_tags_trending
-                        AssetTag.Gainers -> R.string.assets_tags_gainers
-                        AssetTag.Losers -> R.string.assets_tags_losers
-                        AssetTag.New -> R.string.assets_tags_new
-                        AssetTag.Stablecoins -> R.string.assets_tags_stablecoins
-                        null -> R.string.common_all
+            if (showTags) {
+                item {
+                    TabsBar(
+                        tabs = tags,
+                        selected = selectedTag,
+                        onSelect = onTagSelect,
+                        scrollable = true,
+                        equalWidth = false,
+                    ) { item ->
+                        val stringId = when (item) {
+                            AssetTag.Trending -> R.string.assets_tags_trending
+                            AssetTag.TrendingFiatPurchase -> R.string.assets_tags_trending
+                            AssetTag.Gainers -> R.string.assets_tags_gainers
+                            AssetTag.Losers -> R.string.assets_tags_losers
+                            AssetTag.New -> R.string.assets_tags_new
+                            AssetTag.Stablecoins -> R.string.assets_tags_stablecoins
+                            null -> R.string.common_all
+                        }
+                        Text(
+                            stringResource(stringId),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            softWrap = false,
+                        )
                     }
-                    Text(
-                        stringResource(stringId),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        softWrap = false,
-                    )
                 }
             }
             recent(recent, onSelectRecent)

@@ -38,8 +38,10 @@ fun AssetSelectScreen(
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
     val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
-    val selectAsset: ((AssetId) -> Unit)? = onSelect?.let { action ->
-        recentType?.let { type -> { id: AssetId -> viewModel.updateRecent(id, type); action(id) } } ?: action
+    val selectAsset: ((AssetId) -> Unit)? = when {
+        onSelect == null -> null
+        recentType == null -> onSelect
+        else -> { id -> viewModel.updateRecent(id, recentType); onSelect(id) }
     }
 
     AssetSelectScene(
