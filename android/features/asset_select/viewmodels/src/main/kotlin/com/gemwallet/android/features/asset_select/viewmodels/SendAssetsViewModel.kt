@@ -5,11 +5,12 @@ import com.gemwallet.android.application.asset_select.coordinators.GetSelectAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.wallet.core.primitives.AssetTag
@@ -27,18 +28,20 @@ open class SendSelectViewModel @Inject constructor(
     searchSelectAssets: SearchSelectAssets,
     getSelectAssetsInfo: GetSelectAssetsInfo,
     getRecentAssets: GetRecentAssets,
+    updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     toggleAssetPin: ToggleAssetPin,
     searchTokensCase: SearchTokensCase,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
+    updateRecentAsset,
     switchAssetVisibility,
     toggleAssetPin,
     searchTokensCase,
     SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
 ) {
-    override fun getRecentType(): RecentType? = RecentType.Send
+    override fun assetFilters() = setOf(AssetFilter.HasBalance)
 
     override fun getTags(): List<AssetTag?> = listOf(
         null,
