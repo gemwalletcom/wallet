@@ -98,9 +98,9 @@ fun AssetListItem(
 @Composable
 fun AssetListItem(
     asset: Asset,
-    support: @Composable (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
     listPosition: ListPosition,
+    modifier: Modifier = Modifier,
+    support: @Composable (() -> Unit)? = null,
     badge: String? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {

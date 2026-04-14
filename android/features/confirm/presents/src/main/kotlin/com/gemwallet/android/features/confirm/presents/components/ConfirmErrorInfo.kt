@@ -29,8 +29,8 @@ import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.smallIconSize
-import com.gemwallet.android.features.confirm.models.ConfirmError
-import com.gemwallet.android.features.confirm.models.ConfirmState
+import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.features.confirm.presents.toLabel
 
 @Composable

@@ -14,7 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -95,7 +96,10 @@ fun RecipientScreen(
     onCancel: CancelAction,
 ) {
     val isKeyBoardOpen by keyboardAsState()
-    val isSmallScreen = LocalConfiguration.current.screenHeightDp.dp < 680.dp
+    val density = LocalDensity.current
+    val isSmallScreen = with(density) {
+        LocalWindowInfo.current.containerSize.height.toDp() < 680.dp
+    }
 
     Scene(
         title = stringResource(id = R.string.transfer_recipient_title),

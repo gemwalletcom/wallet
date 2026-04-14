@@ -38,6 +38,7 @@ class AppViewModel @Inject constructor(
     private val switchPushEnabled: SwitchPushEnabled,
     private val walletsRepository: WalletsRepository,
     private val getRemoteConfig: GetRemoteConfig,
+    private val platformStore: PlatformStore,
     getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
@@ -122,7 +123,10 @@ class AppViewModel @Inject constructor(
         val skipVersion = userConfig.getAppVersionSkip().firstOrNull()
         val lastVersion = lastRelease.version
         userConfig.setLatestVersion(lastVersion)
-        if (VersionCheck.isVersionHigher(new = lastVersion, current = BuildConfig.VERSION_NAME) && skipVersion != lastVersion/* && current.store != PlatformStore.ApkUniversal*/) {
+        if (VersionCheck.isVersionHigher(new = lastVersion, current = BuildConfig.VERSION_NAME)
+            && skipVersion != lastVersion
+            && platformStore != PlatformStore.ApkUniversal
+        ) {
             state.update { it.copy(intent = AppIntent.ShowUpdate, version = lastVersion) }
         }
     }
