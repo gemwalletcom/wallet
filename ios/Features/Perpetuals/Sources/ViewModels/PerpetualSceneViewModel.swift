@@ -133,19 +133,22 @@ public final class PerpetualSceneViewModel {
 // MARK: - Actions
 
 public extension PerpetualSceneViewModel {
-    func fetch() {
-        Task { await observerService.update(for: wallet) }
-        Task { await updateTransactions() }
-        Task { await updateCandlesticks() }
+    func fetch() async {
+        async let updateObserver: () = observerService.update(for: wallet)
+        async let refreshTransactions: () = updateTransactions()
+        async let refreshCandlesticks: () = updateCandlesticks()
+        _ = await (updateObserver, refreshTransactions, refreshCandlesticks)
     }
 
     func onAppear() async {
-        fetch()
+        async let refresh: () = fetch()
         await subscribeCandles(currentCandleSubscription)
         await subscribeMarket(perpetual.coin)
+        observeTask?.cancel()
         observeTask = Task {
             await observeCandles()
         }
+        _ = await refresh
     }
 
     func onDisappear() async {

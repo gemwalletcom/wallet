@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.descriptionRes
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -18,12 +19,8 @@ internal fun ShowSecretDataProperty(
     walletType: WalletType,
     onClick: (String, WalletType) -> Unit,
 ) {
-    val secretDataLabel = when (walletType) {
-        WalletType.Multicoin,
-        WalletType.Single -> stringResource(id = R.string.common_secret_phrase)
-        WalletType.PrivateKey -> stringResource(R.string.common_private_key)
-        WalletType.View -> return
-    }
+    if (walletType == WalletType.View) return
+    val secretDataLabel = stringResource(walletType.descriptionRes)
     PropertyItem(
         modifier = Modifier.clickable { onClick(walletId, walletType) },
         title = {

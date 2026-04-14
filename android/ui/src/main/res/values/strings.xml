@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">Permissions</string>
   <string name="wallet_connect.permissions.view_balance">View your balance and activity</string>
   <string name="wallet_connect.permissions.approval_requests">Send approval requests</string>
-  <string name="wallet.import.already_imported_title">Wallet Already Imported</string>
-  <string name="wallet.import.already_imported_message">Already added as \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Switch to %s</string>
-  <string name="wallet.import.import_another">Import Another</string>
+  <string name="wallet.import.already_imported_message">This wallet has already been imported</string>
+  <string name="rewards.unverified.title">Rewards not active yet.</string>
+  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
 </resources>

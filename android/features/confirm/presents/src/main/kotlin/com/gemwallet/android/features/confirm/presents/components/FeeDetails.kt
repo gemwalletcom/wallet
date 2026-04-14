@@ -36,8 +36,8 @@ import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
-import com.gemwallet.android.features.confirm.models.FeeRateUIModel
-import com.gemwallet.android.features.confirm.models.FeeUIModel
+import com.gemwallet.android.domains.confirm.FeeRateUIModel
+import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
 

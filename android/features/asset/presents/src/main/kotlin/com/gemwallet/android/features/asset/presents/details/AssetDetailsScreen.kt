@@ -8,11 +8,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.actions.AssetIdAction
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIState
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetStateError
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 import com.wallet.core.primitives.AssetId
 
@@ -31,27 +28,20 @@ fun AssetDetailsScreen(
     onPriceAlerts: (AssetId) -> Unit,
 ) {
     val viewModel: AssetDetailsViewModel = hiltViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val priceAlertsCount by viewModel.priceAlertsCount.collectAsStateWithLifecycle()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val isOperationEnabled by viewModel.isOperationEnabled.collectAsStateWithLifecycle()
 
-    when {
-        uiState is AssetInfoUIState.Fatal -> FatalStateScene(
-            title = "Asset",
-            message = when ((uiState as AssetInfoUIState.Fatal).error) {
-                AssetStateError.AssetNotFound -> "Asset not found"
-            },
-            onCancel = onCancel
-        )
-        uiState is AssetInfoUIState.Idle && uiModel != null -> AssetDetailsScene(
+    if (uiModel != null) {
+        AssetDetailsScene(
             uiState = uiModel ?: return,
             transactions = transactions,
             priceAlertEnabled = priceAlertEnabled is PriceAlertsStateEvent.Enable,
             priceAlertsCount = priceAlertsCount,
-            syncState = (uiState as AssetInfoUIState.Idle).sync,
+            isRefreshing = isRefreshing,
             isOperationEnabled = isOperationEnabled,
             onRefresh = viewModel::refresh,
             onTransfer = onTransfer,
@@ -69,7 +59,7 @@ fun AssetDetailsScreen(
             onAdd = viewModel::add,
             onCancel = onCancel,
         )
-        uiState is AssetInfoUIState.Loading || uiModel == null -> LoadingScene(stringResource(R.string.common_loading), onCancel)
+    } else {
+        LoadingScene(stringResource(R.string.common_loading), onCancel)
     }
-
 }

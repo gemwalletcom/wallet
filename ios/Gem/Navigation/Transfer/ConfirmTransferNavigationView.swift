@@ -13,7 +13,7 @@ import Transfer
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
-    @Bindable var model: ConfirmTransferSceneViewModel
+    @State var model: ConfirmTransferSceneViewModel
 
     var body: some View {
         ConfirmTransferScene(model: model)

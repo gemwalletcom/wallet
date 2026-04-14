@@ -10,6 +10,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
@@ -19,25 +20,25 @@ class SyncAssetInfoImpl(
     private val streamSubscriptionService: StreamSubscriptionService,
 ) : SyncAssetInfo {
 
-    override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet) = withContext(Dispatchers.IO) {
+    override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet): Unit = withContext(Dispatchers.IO) {
         val account = wallet.getAccount(assetId) ?: return@withContext
-
-        ensureWalletAsset(
-            walletId = wallet.id,
-            accountAddress = account.address,
-            assetId = assetId,
-        ) ?: return@withContext
-
-        val updateBalancesJob = async { assetsRepository.updateBalances(assetId) }
-        val updateAssetMetadataJob = async {
-            val assetFull = loadAssetMetadata(assetId) ?: return@async
-            assetsRepository.updateAssetMetadata(assetFull)
-        }
 
         streamSubscriptionService.addAssetIds(listOf(assetId))
 
-        updateBalancesJob.await()
-        updateAssetMetadataJob.await()
+        coroutineScope {
+            async {
+                ensureWalletAsset(
+                    walletId = wallet.id,
+                    accountAddress = account.address,
+                    assetId = assetId,
+                )
+            }
+            async { assetsRepository.updateBalances(assetId) }
+            async {
+                val assetFull = loadAssetMetadata(assetId) ?: return@async
+                assetsRepository.updateAssetMetadata(assetFull)
+            }
+        }
     }
 
     private suspend fun ensureWalletAsset(

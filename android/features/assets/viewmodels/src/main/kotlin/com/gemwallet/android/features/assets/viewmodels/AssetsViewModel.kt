@@ -13,24 +13,17 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.model.SyncState
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AssetsViewModel @Inject constructor(
     private val syncAssets: SyncAssets,
@@ -53,22 +46,7 @@ class AssetsViewModel @Inject constructor(
     val importInProgress = getImportInProgress()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val refreshingState = MutableStateFlow<RefreshingState>(RefreshingState.OnOpen)
-    val screenState = refreshingState.map { refreshingState ->
-            when (refreshingState) {
-                RefreshingState.OnOpen -> SyncState.Idle
-                RefreshingState.OnForce -> SyncState.InSync
-            }
-        }
-        .flatMapLatest { state ->
-            flow {
-                emit(state)
-                delay(1000)
-                emit(SyncState.Idle)
-            }
-        }
-        .map { it == SyncState.InSync }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    val isRefreshing = MutableStateFlow(false)
 
     private val isHideBalances = getHideBalancesState()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -105,13 +83,13 @@ class AssetsViewModel @Inject constructor(
     val showWelcomeBanner = getShowWelcomeBanner(isWalletEmpty)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    fun onRefresh() {
-        refreshingState.update { RefreshingState.OnForce }
-        updateAssetData()
-    }
-
-    private fun updateAssetData() = viewModelScope.launch(Dispatchers.IO) {
-        syncAssets()
+    fun onRefresh() = viewModelScope.launch(Dispatchers.IO) {
+        isRefreshing.value = true
+        try {
+            syncAssets()
+        } finally {
+            isRefreshing.value = false
+        }
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch {
@@ -128,10 +106,5 @@ class AssetsViewModel @Inject constructor(
 
     fun onHideWelcomeBanner() = viewModelScope.launch {
         hideWelcomeBanner()
-    }
-
-    enum class RefreshingState {
-        OnOpen,
-        OnForce,
     }
 }

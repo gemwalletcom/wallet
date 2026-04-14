@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">Разрешения</string>
   <string name="wallet_connect.permissions.view_balance">Просматривать баланс и активность</string>
   <string name="wallet_connect.permissions.approval_requests">Отправлять запросы на подтверждение</string>
-  <string name="wallet.import.already_imported_title">Кошелек уже импортирован</string>
-  <string name="wallet.import.already_imported_message">Уже добавлено как \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Переключиться на %s</string>
-  <string name="wallet.import.import_another">Импортировать другой</string>
+  <string name="wallet.import.already_imported_message">Этот кошелек уже импортирован.</string>
+  <string name="rewards.unverified.title">Награды пока неактивны.</string>
+  <string name="rewards.unverified.description">Награды активируются автоматически по мере более частого использования приложения.</string>
 </resources>

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -105,6 +106,19 @@ struct ImportWalletScene: View {
         }
         .navigationBarTitle(model.title)
         .alertSheet($model.isPresentingAlertMessage)
+        .sheet(isPresented: $model.isPresentingExistingWalletName.mappedToBool()) {
+            InfoSheetScene(
+                model: InfoSheetModel(
+                    title: model.isPresentingExistingWalletName ?? "",
+                    description: Localized.Wallet.Import.alreadyImportedMessage,
+                    image: .image(Images.Logo.logo),
+                    button: .action(
+                        title: Localized.Common.continue,
+                        action: model.onSelectExistingWalletContinue,
+                    ),
+                ),
+            )
+        }
         .sheet(isPresented: $model.isPresentingScanner) {
             ScanQRCodeNavigationStack(action: model.onHandleScan)
         }

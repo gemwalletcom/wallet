@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">Tilladelser</string>
   <string name="wallet_connect.permissions.view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect.permissions.approval_requests">Send godkendelsesanmodninger</string>
-  <string name="wallet.import.already_imported_title">Tegnebogen er allerede importeret</string>
-  <string name="wallet.import.already_imported_message">Allerede tilføjet som \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Skift til %s</string>
-  <string name="wallet.import.import_another">Importer en anden</string>
+  <string name="wallet.import.already_imported_message">Denne tegnebog er allerede blevet importeret</string>
+  <string name="rewards.unverified.title">Belønninger er endnu ikke aktive.</string>
+  <string name="rewards.unverified.description">Belønninger aktiveres automatisk, når du bruger appen mere.</string>
 </resources>

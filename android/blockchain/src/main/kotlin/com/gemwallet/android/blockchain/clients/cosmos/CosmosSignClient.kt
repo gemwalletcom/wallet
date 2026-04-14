@@ -94,7 +94,7 @@ class CosmosSignClient(
         val message = getRedelegateMessage(
             delegatorAddress = params.from.address,
             validatorSrcAddress = params.delegation.validator.id,
-            validatorDstAddress = params.dstValidator.id,
+            validatorDstAddress = params.destinationValidator.id,
             amount = getAmount(params.amount, denom),
         )
         return sign(chainData, fee, message, "Stake via Gem Wallet", privateKey)

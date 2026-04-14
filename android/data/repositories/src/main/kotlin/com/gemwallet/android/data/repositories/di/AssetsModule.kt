@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
+import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
@@ -129,11 +130,13 @@ object AssetsModule {
     @Singleton
     fun provideStreamObserverService(
         sessionRepository: SessionRepository,
+        syncAssets: SyncAssets,
         deviceRequestSigner: DeviceRequestSigner,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
+        syncAssets = syncAssets,
         deviceRequestSigner = deviceRequestSigner,
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,

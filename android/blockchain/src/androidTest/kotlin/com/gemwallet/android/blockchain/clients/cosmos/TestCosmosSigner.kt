@@ -195,7 +195,7 @@ class TestCosmosSigner {
     fun testSignRedelegate() {
         val transfer = ConfirmParams.Builder(Chain.Osmosis.asset(), osmoAccount, BigInteger.TEN)
             .redelegate(
-                dstValidator = DelegationValidator(Chain.Osmosis, id = "osmovaloper1z0sh4s80u99l6y9d3vfy582p8jejeeu6tcucs2", name = "", isActive = true, commission = 1.0, apr = 9.0, providerType = StakeProviderType.Stake),
+                destinationValidator = DelegationValidator(Chain.Osmosis, id = "osmovaloper1z0sh4s80u99l6y9d3vfy582p8jejeeu6tcucs2", name = "", isActive = true, commission = 1.0, apr = 9.0, providerType = StakeProviderType.Stake),
                 delegation = Delegation(
                     base = DelegationBase(
                         assetId = AssetId(Chain.Osmosis),

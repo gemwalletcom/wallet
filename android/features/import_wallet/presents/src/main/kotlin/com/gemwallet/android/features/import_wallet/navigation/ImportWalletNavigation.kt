@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navOptions
 import androidx.navigation.navigation
 import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.features.import_wallet.views.ImportScreen
 import com.gemwallet.android.features.import_wallet.views.SelectImportTypeScreen
 import com.gemwallet.android.model.ImportType
@@ -33,7 +34,7 @@ fun NavController.navigateToImportWalletScreen(importType: ImportType? = null, n
 
 fun NavGraphBuilder.importWalletScreen(
     onCancel: () -> Unit,
-    onImported: (walletId: String) -> Unit,
+    onImported: (WalletImportResult) -> Unit,
     onSelectType: (ImportType?) -> Unit,
 ) {
     navigation(startDestination = importSelectType, route = importWalletRoute) {

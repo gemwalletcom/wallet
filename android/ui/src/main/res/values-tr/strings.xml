@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">İzinler</string>
   <string name="wallet_connect.permissions.view_balance">Bakiyenizi ve işlemlerinizi görüntüleyin.</string>
   <string name="wallet_connect.permissions.approval_requests">Onay isteklerini gönderin</string>
-  <string name="wallet.import.already_imported_title">Cüzdan Zaten İçe Aktarıldı</string>
-  <string name="wallet.import.already_imported_message">Zaten \" olarak eklendi\"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Şuna geçin %s</string>
-  <string name="wallet.import.import_another">Başka bir şeyi içe aktar</string>
+  <string name="wallet.import.already_imported_message">Bu cüzdan zaten içe aktarıldı.</string>
+  <string name="rewards.unverified.title">Ödüller henüz aktif değil.</string>
+  <string name="rewards.unverified.description">Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.</string>
 </resources>

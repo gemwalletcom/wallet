@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "الأذونات";
 "wallet_connect.permissions.view_balance" = "اطلع على رصيدك ونشاطك";
 "wallet_connect.permissions.approval_requests" = "إرسال طلبات الموافقة";
-"wallet.import.already_imported_title" = "المحفظة مستوردة بالفعل";
-"wallet.import.already_imported_message" = "تمت إضافته بالفعل باسم \"%s\"";
-"wallet.import.switch_to_wallet" = "انتقل إلى %s";
-"wallet.import.import_another" = "استيراد آخر";
+"wallet.import.already_imported_message" = "تم استيراد هذه المحفظة بالفعل";
+"rewards.unverified.title" = "المكافآت غير مفعلة بعد.";
+"rewards.unverified.description" = "يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.";

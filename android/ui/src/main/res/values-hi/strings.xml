@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">अनुमतियां</string>
   <string name="wallet_connect.permissions.view_balance">अपना बैलेंस और गतिविधि देखें</string>
   <string name="wallet_connect.permissions.approval_requests">अनुमोदन अनुरोध भेजें</string>
-  <string name="wallet.import.already_imported_title">वॉलेट पहले ही आयात किया जा चुका है</string>
-  <string name="wallet.import.already_imported_message">पहले से ही \" के रूप में जोड़ा गया है%s\"</string>
-  <string name="wallet.import.switch_to_wallet">पर स्विच %s</string>
-  <string name="wallet.import.import_another">किसी अन्य को आयात करें</string>
+  <string name="wallet.import.already_imported_message">यह बटुआ पहले ही आयात किया जा चुका है</string>
+  <string name="rewards.unverified.title">पुरस्कार अभी सक्रिय नहीं हैं।</string>
+  <string name="rewards.unverified.description">जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।</string>
 </resources>

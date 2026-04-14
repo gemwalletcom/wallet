@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">สิทธิ์การเข้าถึง</string>
   <string name="wallet_connect.permissions.view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
   <string name="wallet_connect.permissions.approval_requests">ส่งคำขออนุมัติ</string>
-  <string name="wallet.import.already_imported_title">กระเป๋าสตางค์ที่นำเข้าแล้ว</string>
-  <string name="wallet.import.already_imported_message">เพิ่มแล้วในชื่อ \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">เปลี่ยนไปใช้ %s</string>
-  <string name="wallet.import.import_another">นำเข้าอีกรายการ</string>
+  <string name="wallet.import.already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
+  <string name="rewards.unverified.title">ระบบรางวัลยังไม่เปิดใช้งาน</string>
+  <string name="rewards.unverified.description">รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น</string>
 </resources>

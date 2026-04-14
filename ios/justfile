@@ -150,14 +150,10 @@ reset-simulator NAME=SIMULATOR_NAME:
     @xcrun simctl erase "{{NAME}}" 2>/dev/null || true
     @xcrun simctl boot "{{NAME}}" 2>/dev/null || true
 
-_localize languages="":
-    @sh ../core/scripts/localize.sh ios Packages/Localization/Sources/Resources {{languages}}
+localize:
+    @sh ../core/scripts/localize.sh ios Packages/Localization/Sources/Resources
     just generate-models
     just generate-swiftgen
-
-localize: (_localize "en")
-
-localize-all: (_localize)
 
 generate: generate-models generate-swiftgen
 
@@ -169,10 +165,8 @@ generate-swiftgen:
     @echo "==> SwiftGen assets and Localizable.strings"
     @swiftgen config run --quiet
 
-export BUILD_MODE := env_var_or_default("BUILD_MODE","")
-
-generate-stone:
-    @./scripts/generate-stone.sh $BUILD_MODE
+generate-stone BUILD_MODE="":
+    @./scripts/generate-stone.sh {{BUILD_MODE}}
 
 bump TARGET="patch":
     @cd .. && just bump {{TARGET}}

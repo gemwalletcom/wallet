@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
-import com.gemwallet.android.features.confirm.models.ConfirmProperty
+import com.gemwallet.android.domains.confirm.ConfirmProperty
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

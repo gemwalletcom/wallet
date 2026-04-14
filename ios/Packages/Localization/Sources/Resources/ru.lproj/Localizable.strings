@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "Разрешения";
 "wallet_connect.permissions.view_balance" = "Просматривать баланс и активность";
 "wallet_connect.permissions.approval_requests" = "Отправлять запросы на подтверждение";
-"wallet.import.already_imported_title" = "Кошелек уже импортирован";
-"wallet.import.already_imported_message" = "Уже добавлено как \"%s\"";
-"wallet.import.switch_to_wallet" = "Переключиться на %s";
-"wallet.import.import_another" = "Импортировать другой";
+"wallet.import.already_imported_message" = "Этот кошелек уже импортирован.";
+"rewards.unverified.title" = "Награды пока неактивны.";
+"rewards.unverified.description" = "Награды активируются автоматически по мере более частого использования приложения.";

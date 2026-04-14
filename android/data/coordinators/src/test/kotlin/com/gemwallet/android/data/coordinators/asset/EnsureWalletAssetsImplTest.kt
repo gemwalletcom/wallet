@@ -28,12 +28,10 @@ class EnsureWalletAssetsImplTest {
     fun ensureWalletAssets_addsOnlyMissingWalletAssets() = runTest {
         val bitcoin = mockAsset()
         val ethereum = mockAssetEthereum()
+        val ethereumAccount = mockAccount(chain = Chain.Ethereum, address = "0x-current")
         val wallet = mockWallet(
             id = "wallet-1",
-            accounts = listOf(
-                mockAccount(chain = Chain.Bitcoin, address = "bc1-current"),
-                mockAccount(chain = Chain.Ethereum, address = "0x-current"),
-            ),
+            accounts = listOf(ethereumAccount),
         )
         val assetIds = listOf(bitcoin.id, ethereum.id)
 
@@ -64,11 +62,12 @@ class EnsureWalletAssetsImplTest {
     }
 
     @Test
-    fun ensureWalletAssets_skipsLinkedAssets() = runTest {
+    fun ensureWalletAssets_skipsExistingWalletAssets() = runTest {
         val bitcoin = mockAsset()
+        val bitcoinAccount = mockAccount(chain = Chain.Bitcoin, address = "bc1-current")
         val wallet = mockWallet(
             id = "wallet-1",
-            accounts = listOf(mockAccount(chain = Chain.Bitcoin, address = "bc1-current")),
+            accounts = listOf(bitcoinAccount),
         )
 
         coEvery { assetsRepository.hasWalletAssets("wallet-1", listOf(bitcoin.id)) } returns setOf(bitcoin.id)
@@ -76,6 +75,6 @@ class EnsureWalletAssetsImplTest {
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id))
 
         coVerify(exactly = 0) { assetsRepository.add(any(), any(), any<com.wallet.core.primitives.Asset>(), any()) }
-        coVerify(exactly = 0) { assetsRepository.updateBalances(bitcoin.id) }
+        coVerify(exactly = 0) { assetsRepository.updateBalances(any()) }
     }
 }
