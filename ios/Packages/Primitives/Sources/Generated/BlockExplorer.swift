@@ -13,3 +13,15 @@ public struct BlockExplorerLink: Codable, Equatable, Hashable, Sendable {
 		self.link = link
 	}
 }
+
+public struct SwapExplorerInput: Codable, Equatable, Hashable, Sendable {
+	public let tx_hash: String
+	public let recipient: String?
+	public let memo: String?
+
+	public init(tx_hash: String, recipient: String?, memo: String?) {
+		self.tx_hash = tx_hash
+		self.recipient = recipient
+		self.memo = memo
+	}
+}
