@@ -23,7 +23,7 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import com.wallet.core.primitives.NodeState
-import uniffi.gemstone.GemSwapExplorerInput
+import uniffi.gemstone.GemExplorerInput
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -127,7 +127,7 @@ class NodesRepository(
         val swapExplorerUrl = provider?.let {
             explorer.getTransactionSwapUrl(
                 blockExplorerName,
-                GemSwapExplorerInput(
+                GemExplorerInput(
                     txHash = transaction.hash,
                     recipient = transaction.to,
                     memo = transaction.memo,

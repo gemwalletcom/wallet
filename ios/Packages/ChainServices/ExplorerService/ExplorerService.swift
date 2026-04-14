@@ -25,7 +25,7 @@ public struct ExplorerService {
         return makeLink(name: name, url: explorer.getTransactionUrl(explorerName: name, transactionId: hash))!
     }
 
-    public func swapTransactionUrl(chain: Chain, provider: String, input: SwapExplorerInput) -> BlockExplorerLink? {
+    public func swapTransactionUrl(chain: Chain, provider: String, input: ExplorerInput) -> BlockExplorerLink? {
         let (name, explorer) = getExplorer(chain: chain)
         guard let url = explorer.getTransactionSwapUrl(explorerName: name, input: input.map(), providerId: provider) else {
             return nil

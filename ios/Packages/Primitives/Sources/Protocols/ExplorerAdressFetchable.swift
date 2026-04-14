@@ -5,7 +5,7 @@ import Foundation
 public protocol ExplorerLinkFetchable: Sendable {
     func addressUrl(chain: Chain, address: String) -> BlockExplorerLink
     func transactionUrl(chain: Chain, hash: String) -> BlockExplorerLink
-    func swapTransactionUrl(chain: Chain, provider: String, input: SwapExplorerInput) -> BlockExplorerLink?
+    func swapTransactionUrl(chain: Chain, provider: String, input: ExplorerInput) -> BlockExplorerLink?
 }
 
 public extension ExplorerLinkFetchable {
@@ -19,7 +19,7 @@ public extension ExplorerLinkFetchable {
         guard let provider else {
             return transactionUrl(chain: chain, hash: hash)
         }
-        let input = SwapExplorerInput(tx_hash: hash, recipient: recipient, memo: memo)
+        let input = ExplorerInput(tx_hash: hash, recipient: recipient, memo: memo)
         return swapTransactionUrl(chain: chain, provider: provider, input: input)
             ?? transactionUrl(chain: chain, hash: hash)
     }

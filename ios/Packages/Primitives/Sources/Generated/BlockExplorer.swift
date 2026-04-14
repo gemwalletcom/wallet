@@ -14,7 +14,7 @@ public struct BlockExplorerLink: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct SwapExplorerInput: Codable, Equatable, Hashable, Sendable {
+public struct ExplorerInput: Codable, Equatable, Hashable, Sendable {
 	public let tx_hash: String
 	public let recipient: String?
 	public let memo: String?
