@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "צפה ביתרה ובפעילות שלך";
 "wallet_connect.permissions.approval_requests" = "שלח בקשות אישור";
 "wallet.import.already_imported_message" = "ארנק זה כבר יובא";
+"rewards.unverified.title" = "Rewards not active yet.";
+"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";

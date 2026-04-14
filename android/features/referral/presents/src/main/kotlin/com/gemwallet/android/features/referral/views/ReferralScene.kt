@@ -45,15 +45,15 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.gemwallet.android.features.referral.viewmodels.SyncType
 import com.gemwallet.android.features.referral.views.components.referralConfirmCode
 import com.gemwallet.android.features.referral.views.components.referralError
 import com.gemwallet.android.features.referral.views.components.referralHead
+import com.gemwallet.android.features.referral.views.components.referralUnverified
 import com.gemwallet.android.features.referral.views.components.referralInfo
 import com.gemwallet.android.features.referral.views.dialogs.GetStartedDialog
 import com.gemwallet.android.features.referral.views.dialogs.ReferralCodeDialog
-import com.wallet.core.primitives.ReferralAllowance
-import com.wallet.core.primitives.ReferralQuota
 import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
@@ -66,6 +66,7 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     rewards: Rewards?,
+    uiState: RewardsUIState,
     currentWallet: Wallet?,
     joinPointsCost: Int,
     referralCode: String? = null,
@@ -154,7 +155,8 @@ fun ReferralScene(
             LazyColumn {
                 referralHead(
                     joinPointsCost = joinPointsCost,
-                    rewards = rewards,
+                    canInvite = uiState.canInvite,
+                    hasCode = rewards != null,
                     onGetStarted = { getStartedDialogShow = true },
                     onShare = onShare,
                 )
@@ -180,7 +182,8 @@ fun ReferralScene(
                     }
                 } else {
                     referralError(rewards)
-                    referralConfirmCode(rewards) {
+                    referralUnverified(uiState)
+                    referralConfirmCode(rewards, uiState) {
                         onCode(it) {
                             Toast.makeText(context, it?.message ?: successStr, Toast.LENGTH_SHORT).show()
                             onRefresh()
@@ -218,13 +221,10 @@ private fun ReferralScenePreview() {
                 referralCount = 5,
                 points = 1000,
                 usedReferralCode = null,
-                status = RewardStatus.Unverified,
+                status = RewardStatus.Verified,
                 redemptionOptions = emptyList(),
-                referralAllowance = ReferralAllowance(
-                    daily = ReferralQuota(0, 0),
-                    weekly = ReferralQuota(0, 0),
-                ),
             ),
+            uiState = RewardsUIState(canInvite = true, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
             currentWallet = Wallet(
                 id = "1",
                 name = "Wallet 1",
@@ -236,7 +236,7 @@ private fun ReferralScenePreview() {
                 imageUrl = null,
                 source = WalletSource.Create
             ),
-            joinPointsCost = 1000,
+            joinPointsCost = 100,
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
             onCancelCode = {},
@@ -256,6 +256,7 @@ private fun ReferralSceneNoRewardsPreview() {
             inSync = SyncType.None,
             isAvailableWalletSelect = false,
             rewards = null,
+            uiState = RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
             currentWallet = Wallet(
                 id = "1",
                 name = "Wallet 1",
@@ -267,7 +268,7 @@ private fun ReferralSceneNoRewardsPreview() {
                 imageUrl = null,
                 source = WalletSource.Create
             ),
-            joinPointsCost = 1000,
+            joinPointsCost = 100,
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
             onCancelCode = {},

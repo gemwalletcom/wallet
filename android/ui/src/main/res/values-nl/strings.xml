@@ -584,4 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">Bekijk je saldo en activiteit</string>
   <string name="wallet_connect.permissions.approval_requests">Verzoeken om goedkeuring verzenden</string>
   <string name="wallet.import.already_imported_message">Deze portemonnee is al geïmporteerd.</string>
+  <string name="rewards.unverified.title">Rewards not active yet.</string>
+  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
 </resources>

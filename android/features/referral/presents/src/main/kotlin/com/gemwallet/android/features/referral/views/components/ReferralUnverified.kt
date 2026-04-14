@@ -5,29 +5,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.wallet.core.primitives.RewardStatus
-import com.wallet.core.primitives.Rewards
 
-internal fun LazyListScope.referralError(rewards: Rewards) {
-    val reason = rewards.disableReason ?: return
+internal fun LazyListScope.referralUnverified(uiState: RewardsUIState) {
+    if (!uiState.isUnverified) return
     item {
         Column(
             modifier = Modifier
@@ -36,35 +31,17 @@ internal fun LazyListScope.referralError(rewards: Rewards) {
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
         ) {
             PropertyTitleText(
-                text = R.string.errors_error_occured,
+                text = R.string.rewards_unverified_title,
                 trailing = {
                     Icon(
                         modifier = Modifier.size(tinyIconSize),
-                        imageVector = Icons.Default.WarningAmber,
-                        tint = MaterialTheme.colorScheme.error,
+                        imageVector = Icons.Default.Info,
+                        tint = pendingColor,
                         contentDescription = "",
                     )
                 }
             )
-            ListItemSupportText(reason)
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun ReferralErrorPreview() {
-    WalletTheme {
-        LazyColumn {
-            referralError(
-                Rewards(
-                    referralCount = 0,
-                    points = 0,
-                    status = RewardStatus.Pending,
-                    redemptionOptions = emptyList(),
-                    disableReason = "Account verification required"
-                )
-            )
+            ListItemSupportText(R.string.rewards_unverified_description)
         }
     }
 }

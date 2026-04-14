@@ -26,9 +26,7 @@ public struct RewardsScene: View {
                 if let disableReason = model.disableReason {
                     disableReasonSection(reason: disableReason)
                 }
-                if model.hasPendingReferral {
-                    pendingReferralSection
-                }
+                statusSection
                 if model.isInfoEnabled {
                     infoSection(rewards: rewards)
                 }
@@ -41,6 +39,7 @@ public struct RewardsScene: View {
         }
         .refreshable { await model.fetch() }
         .contentMargins(.top, .scene.top, for: .scrollContent)
+        .listSectionSpacing(.compact)
         .listStyle(.insetGrouped)
         .navigationTitle(model.title)
         .toolbar {
@@ -138,21 +137,24 @@ public struct RewardsScene: View {
                     featureItem(emoji: "🎉", text: Localized.Rewards.GetRewards.title)
                 }
 
-                Button {
-                    if code != nil {
+                if code != nil && !model.isUnverified {
+                    Button {
                         model.isPresentingSheet = .share
-                    } else {
-                        model.isPresentingSheet = .createCode
-                    }
-                } label: {
-                    HStack(spacing: Spacing.small) {
-                        if code != nil {
+                    } label: {
+                        HStack(spacing: Spacing.small) {
                             Images.System.share
+                            Text(Localized.Rewards.InviteFriends.title)
                         }
-                        Text(code != nil ? Localized.Rewards.InviteFriends.title : model.createCodeButtonTitle)
                     }
+                    .buttonStyle(.blue())
+                } else if code == nil {
+                    Button {
+                        model.isPresentingSheet = .createCode
+                    } label: {
+                        Text(model.createCodeButtonTitle)
+                    }
+                    .buttonStyle(.blue())
                 }
-                .buttonStyle(.blue())
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, Spacing.small)
@@ -248,24 +250,33 @@ public struct RewardsScene: View {
     }
 
     @ViewBuilder
-    private var pendingReferralSection: some View {
-        Section {
-            ListItemInfoView(
-                title: model.pendingReferralTitle,
-                description: model.pendingReferralDescription,
-            )
+    private var statusSection: some View {
+        if model.isUnverified {
+            Section {
+                ListItemInfoView(
+                    title: model.unverifiedTitle,
+                    description: model.unverifiedDescription,
+                )
+            }
+        } else if model.hasPendingReferral {
+            Section {
+                ListItemInfoView(
+                    title: model.pendingReferralTitle,
+                    description: model.pendingReferralDescription,
+                )
 
-            HStack {
-                Spacer()
-                StateButton(
-                    text: model.pendingReferralButtonTitle,
-                    type: model.activatePendingButtonType,
-                ) {
-                    Task { await model.activatePendingReferral() }
+                HStack {
+                    Spacer()
+                    StateButton(
+                        text: model.pendingReferralButtonTitle,
+                        type: model.activatePendingButtonType,
+                    ) {
+                        Task { await model.activatePendingReferral() }
+                    }
+                    .frame(height: .scene.button.height)
+                    .frame(maxWidth: .scene.button.maxWidth)
+                    Spacer()
                 }
-                .frame(height: .scene.button.height)
-                .frame(maxWidth: .scene.button.maxWidth)
-                Spacer()
             }
         }
     }

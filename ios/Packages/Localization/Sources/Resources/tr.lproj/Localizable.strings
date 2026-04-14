@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Bakiyenizi ve işlemlerinizi görüntüleyin.";
 "wallet_connect.permissions.approval_requests" = "Onay isteklerini gönderin";
 "wallet.import.already_imported_message" = "Bu cüzdan zaten içe aktarıldı.";
+"rewards.unverified.title" = "Rewards not active yet.";
+"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";

@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Bekijk je saldo en activiteit";
 "wallet_connect.permissions.approval_requests" = "Verzoeken om goedkeuring verzenden";
 "wallet.import.already_imported_message" = "Deze portemonnee is al geïmporteerd.";
+"rewards.unverified.title" = "Rewards not active yet.";
+"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";

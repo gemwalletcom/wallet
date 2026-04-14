@@ -26,11 +26,11 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
-import com.wallet.core.primitives.Rewards
 
 internal fun LazyListScope.referralHead(
     joinPointsCost: Int,
-    rewards: Rewards?,
+    canInvite: Boolean,
+    hasCode: Boolean,
     onGetStarted: () -> Unit,
     onShare: () -> Unit,
 ) {
@@ -117,18 +117,19 @@ internal fun LazyListScope.referralHead(
                     )
                 }
             }
-            rewards?.let {
-                MainActionButton(
+            when {
+                !hasCode -> MainActionButton(
+                    title = stringResource(R.string.common_get_started),
+                    onClick = onGetStarted,
+                )
+                canInvite -> MainActionButton(
                     onClick = onShare
                 ) {
                     Icon(Icons.Default.Share, contentDescription = "share")
                     Spacer8()
                     Text(stringResource(R.string.rewards_invite_friends_title))
                 }
-            } ?: MainActionButton(
-                title = stringResource(R.string.common_get_started),
-                onClick = onGetStarted,
-            )
+            }
         }
     }
 }

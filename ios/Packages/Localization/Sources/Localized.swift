@@ -1105,6 +1105,12 @@ public enum Localized {
       /// Bonus Pending
       public static let title = Localized.tr("Localizable", "rewards.pending.title", fallback: "Bonus Pending")
     }
+    public enum Unverified {
+      /// Rewards activate automatically as you use the app more.
+      public static let description = Localized.tr("Localizable", "rewards.unverified.description", fallback: "Rewards activate automatically as you use the app more.")
+      /// Rewards not active yet.
+      public static let title = Localized.tr("Localizable", "rewards.unverified.title", fallback: "Rewards not active yet.")
+    }
     public enum WaysSpend {
       /// Ways to Spend
       public static let title = Localized.tr("Localizable", "rewards.ways_spend.title", fallback: "Ways to Spend")
