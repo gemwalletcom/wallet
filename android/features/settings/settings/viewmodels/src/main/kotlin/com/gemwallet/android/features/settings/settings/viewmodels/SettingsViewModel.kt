@@ -71,11 +71,21 @@ class SettingsViewModel @Inject constructor(
         refresh()
     }
 
-    fun notificationEnable() {
-        val pushEnabled = !pushEnabled.value
+    fun enableNotifications() {
         viewModelScope.launch(Dispatchers.IO) {
+            userConfig.stopAskNotifications()
             switchPushEnabled.switchPushEnabled(
-                pushEnabled,
+                true,
+                walletsRepository.getAll().firstOrNull() ?: emptyList()
+            )
+        }
+    }
+
+    fun disableNotifications() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userConfig.stopAskNotifications()
+            switchPushEnabled.switchPushEnabled(
+                false,
                 walletsRepository.getAll().firstOrNull() ?: emptyList()
             )
         }

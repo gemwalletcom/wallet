@@ -129,7 +129,7 @@ fun SettingsScene(
             ) {
                 if (!pushEnabled) {
                     requestPushGrant = {
-                        viewModel.notificationEnable()
+                        viewModel.enableNotifications()
                         onSupport()
                     }
                 } else {

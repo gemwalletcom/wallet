@@ -77,7 +77,6 @@ fun WalletApp(
 
     if (askNotifications) {
         PushRequest(
-            showRequestDialog = true,
             onNotificationEnable = viewModel::onNotificationsEnable,
             onDismiss = viewModel::laterAskNotifications,
         )
