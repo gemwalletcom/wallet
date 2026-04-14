@@ -112,19 +112,17 @@ extension ImportWalletSceneViewModel {
         }
     }
 
-    func onSelectActionButton() {
+    func onSelectActionButton() async {
         buttonState = .loading(showProgress: true)
 
-        Task {
-            do {
-                try await importWallet()
-            } catch {
-                isPresentingAlertMessage = AlertMessage(
-                    title: alertTitle,
-                    message: error.localizedDescription,
-                )
-                buttonState = .normal
-            }
+        do {
+            try await importWallet()
+        } catch {
+            isPresentingAlertMessage = AlertMessage(
+                title: alertTitle,
+                message: error.localizedDescription,
+            )
+            buttonState = .normal
         }
     }
 

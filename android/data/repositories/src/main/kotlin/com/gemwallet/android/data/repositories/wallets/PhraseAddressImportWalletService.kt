@@ -54,7 +54,6 @@ class PhraseAddressImportWalletService(
                 WalletType.PrivateKey -> handlePrivateKey(importType.chain!!, walletName, data)
             }
         } catch (err: ImportError.DuplicatedWallet) {
-            sessionRepository.setWallet(err.wallet)
             return WalletImportResult.Existing(err.wallet)
         } // Other exception handle on call
 
