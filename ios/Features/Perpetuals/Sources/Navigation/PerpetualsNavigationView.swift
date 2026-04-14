@@ -16,6 +16,7 @@ public struct PerpetualsNavigationView: View {
         activityService: ActivityService,
         onSelectAssetType: @escaping (SelectAssetType) -> Void,
         onSelectAsset: @escaping (Asset) -> Void,
+        onSelectPortfolio: @escaping () -> Void,
     ) {
         _model = State(
             initialValue: PerpetualsSceneViewModel(
@@ -25,6 +26,7 @@ public struct PerpetualsNavigationView: View {
                 activityService: activityService,
                 onSelectAssetType: onSelectAssetType,
                 onSelectAsset: onSelectAsset,
+                onSelectPortfolio: onSelectPortfolio,
             ),
         )
     }
