@@ -24,41 +24,40 @@ fun PushRequest(
     onNotificationEnable: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val permissionState = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-        null
-    } else {
-        rememberPermissionState(
-            permission = Manifest.permission.POST_NOTIFICATIONS,
-            onPermissionResult = {
-                if (it) {
-                    onNotificationEnable()
-                } else {
-                    onDismiss()
-                }
-            }
-        )
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+        LaunchedEffect(Unit) {
+            onNotificationEnable()
+        }
+        return
     }
+
+    val permissionState = rememberPermissionState(
+        permission = Manifest.permission.POST_NOTIFICATIONS,
+        onPermissionResult = {
+            if (it) {
+                onNotificationEnable()
+            } else {
+                onDismiss()
+            }
+        }
+    )
 
     var requestNotificationPermissions by remember { mutableStateOf(false) }
 
     LaunchedEffect(requestNotificationPermissions) {
         if (requestNotificationPermissions) {
-            permissionState?.launchPermissionRequest()
+            permissionState.launchPermissionRequest()
         }
     }
 
-    if (permissionState == null) {
-        NotificationPermissionRequestDialog(onNotificationEnable, onDismiss)
-    } else {
-        if (permissionState.status.isGranted) {
-            if (showRequestDialog) {
-                NotificationPermissionRequestDialog(onNotificationEnable, onDismiss)
-            } else {
-                onNotificationEnable()
-            }
+    if (permissionState.status.isGranted) {
+        if (showRequestDialog) {
+            NotificationPermissionRequestDialog(onNotificationEnable, onDismiss)
         } else {
-            requestNotificationPermissions = true
+            onNotificationEnable()
         }
+    } else {
+        requestNotificationPermissions = true
     }
 }
 
