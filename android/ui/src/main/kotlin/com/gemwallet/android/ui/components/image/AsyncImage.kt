@@ -28,12 +28,12 @@ private val DefaultCircleCropTransformation = CircleCropTransformation()
 @Composable
 fun AsyncImage(
     model: Any?,
-    size: Dp? = iconSize,
     modifier: Modifier = Modifier,
+    size: Dp? = iconSize,
     contentDescription: String? = null,
     placeholderText: String? = null,
     errorImageVector: ImageVector? = null,
-    transformation: Transformation? = DefaultCircleCropTransformation
+    transformation: Transformation? = DefaultCircleCropTransformation,
 ) {
     if (model == null) {
         return
@@ -86,8 +86,8 @@ fun AsyncImage(
 @Composable
 fun AsyncImage(
     model: Asset,
-    size: Dp = iconSize,
     modifier: Modifier = Modifier,
+    size: Dp = iconSize,
     placeholderText: String? = model.symbol,
     errorImageVector: ImageVector? = null,
 ) {

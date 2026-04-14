@@ -14,11 +14,9 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.models.RewardsInfoUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.earn.delegation.models.DelegationActions
-import com.gemwallet.android.features.earn.delegation.models.DelegationBalances
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
 import com.gemwallet.android.features.earn.delegation.presents.components.DelegationState
 import com.gemwallet.android.features.earn.delegation.presents.components.StakeApr
@@ -74,10 +72,11 @@ fun DelegationScene(
             }
 
             itemsPositioned(balances) { position, item ->
-                when (item) {
-                    is RewardsInfoUIModel -> PropertyAssetBalanceItem(item, title = stringResource(R.string.stake_rewards), listPosition = position)
-                    is DelegationBalances.Stake -> PropertyItem(R.string.transfer_stake_title, item.data, listPosition = position)
-                }
+                PropertyAssetBalanceItem(
+                    model = item,
+                    title = stringResource(R.string.stake_rewards),
+                    listPosition = position,
+                )
             }
 
             if (actions.isNotEmpty()) {
