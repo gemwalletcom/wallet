@@ -73,7 +73,7 @@ fun AssetsScreen(
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
 //    val walletInfo by viewModel.walletInfo.collectAsStateWithLifecycle()
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
-    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val showWelcomeBanner by viewModel.showWelcomeBanner.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
@@ -87,13 +87,13 @@ fun AssetsScreen(
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
             modifier = Modifier.padding(top = it.calculateTopPadding()),
-            isRefreshing = screenState,
+            isRefreshing = isRefreshing,
             onRefresh = viewModel::onRefresh,
             state = pullToRefreshState,
             indicator = {
                 Indicator(
                     modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = screenState,
+                    isRefreshing = isRefreshing,
                     state = pullToRefreshState,
                     containerColor = MaterialTheme.colorScheme.background
                 )

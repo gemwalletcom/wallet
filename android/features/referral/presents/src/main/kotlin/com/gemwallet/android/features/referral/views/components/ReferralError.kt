@@ -23,8 +23,6 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.wallet.core.primitives.ReferralAllowance
-import com.wallet.core.primitives.ReferralQuota
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
 
@@ -62,12 +60,8 @@ private fun ReferralErrorPreview() {
                 Rewards(
                     referralCount = 0,
                     points = 0,
-                    status = RewardStatus.Unverified,
+                    status = RewardStatus.Pending,
                     redemptionOptions = emptyList(),
-                    referralAllowance = ReferralAllowance(
-                        daily = ReferralQuota(limit = 0, available = 0),
-                        weekly = ReferralQuota(limit = 0, available = 0)
-                    ),
                     disableReason = "Account verification required"
                 )
             )

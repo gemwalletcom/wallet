@@ -12,18 +12,6 @@ import WalletTabTestKit
 @MainActor
 struct WalletSceneViewModelTests {
     @Test
-    func isLoading() {
-        let model = WalletSceneViewModel.mock()
-        #expect(model.isLoadingAssets == false)
-
-        model.shouldStartLoadingAssets()
-        #expect(model.isLoadingAssets)
-
-        model.fetch()
-        #expect(!model.isLoadingAssets == false)
-    }
-
-    @Test
     func priorityBannerReturnsHighestPriority() {
         let model = WalletSceneViewModel.mock()
         model.bannersQuery.value = [

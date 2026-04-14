@@ -261,13 +261,7 @@ public extension AssetSceneViewModel {
     internal func fetch() async {
         await updateWallet()
         if assetData.priceAlerts.isNotEmpty {
-            Task {
-                do {
-                    try await priceAlertService.update(assetId: asset.id.identifier)
-                } catch {
-                    debugLog("asset scene: price alerts update error \(error)")
-                }
-            }
+            await updatePriceAlerts()
         }
     }
 
@@ -494,5 +488,13 @@ extension AssetSceneViewModel {
         async let balance: Void = balanceService.updateBalance(for: walletModel.wallet, assetIds: [assetModel.asset.id])
         async let transactions: Void = fetchTransactions()
         _ = await (balance, transactions)
+    }
+
+    private func updatePriceAlerts() async {
+        do {
+            try await priceAlertService.update(assetId: asset.id.identifier)
+        } catch {
+            debugLog("asset scene: price alerts update error \(error)")
+        }
     }
 }

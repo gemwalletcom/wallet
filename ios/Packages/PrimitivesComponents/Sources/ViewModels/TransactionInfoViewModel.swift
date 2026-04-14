@@ -62,7 +62,7 @@ public struct TransactionInfoViewModel: Sendable {
                 price: feeAssetPrice,
                 value: $0,
                 currency: currency,
-                formatter: .medium,
+                formatter: .auto,
             )
         }
     }

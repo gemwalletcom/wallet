@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">Izin</string>
   <string name="wallet_connect.permissions.view_balance">Lihat saldo dan aktivitas Anda</string>
   <string name="wallet_connect.permissions.approval_requests">Kirim permintaan persetujuan</string>
-  <string name="wallet.import.already_imported_title">Dompet Sudah Diimpor</string>
-  <string name="wallet.import.already_imported_message">Sudah ditambahkan sebagai \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Beralih ke %s</string>
-  <string name="wallet.import.import_another">Impor Lainnya</string>
+  <string name="wallet.import.already_imported_message">Dompet ini sudah diimpor.</string>
+  <string name="rewards.unverified.title">Hadiah belum aktif.</string>
+  <string name="rewards.unverified.description">Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.</string>
 </resources>

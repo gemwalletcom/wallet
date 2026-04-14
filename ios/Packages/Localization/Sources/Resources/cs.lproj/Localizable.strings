@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "Oprávnění";
 "wallet_connect.permissions.view_balance" = "Zobrazení zůstatku a aktivity";
 "wallet_connect.permissions.approval_requests" = "Odeslat žádosti o schválení";
-"wallet.import.already_imported_title" = "Peněženka již importována";
-"wallet.import.already_imported_message" = "Již přidáno jako „%s\"";
-"wallet.import.switch_to_wallet" = "Přepnout na %s";
-"wallet.import.import_another" = "Importovat další";
+"wallet.import.already_imported_message" = "Tato peněženka již byla importována";
+"rewards.unverified.title" = "Odměny zatím nejsou aktivní.";
+"rewards.unverified.description" = "Odměny se aktivují automaticky, jakmile aplikaci používáte více.";

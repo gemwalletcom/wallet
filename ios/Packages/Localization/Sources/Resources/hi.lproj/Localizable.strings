@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "अनुमतियां";
 "wallet_connect.permissions.view_balance" = "अपना बैलेंस और गतिविधि देखें";
 "wallet_connect.permissions.approval_requests" = "अनुमोदन अनुरोध भेजें";
-"wallet.import.already_imported_title" = "वॉलेट पहले ही आयात किया जा चुका है";
-"wallet.import.already_imported_message" = "पहले से ही \" के रूप में जोड़ा गया है%s\"";
-"wallet.import.switch_to_wallet" = "पर स्विच %s";
-"wallet.import.import_another" = "किसी अन्य को आयात करें";
+"wallet.import.already_imported_message" = "यह बटुआ पहले ही आयात किया जा चुका है";
+"rewards.unverified.title" = "पुरस्कार अभी सक्रिय नहीं हैं।";
+"rewards.unverified.description" = "जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।";

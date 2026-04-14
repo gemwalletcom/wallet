@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">権限</string>
   <string name="wallet_connect.permissions.view_balance">残高とアクティビティを確認する</string>
   <string name="wallet_connect.permissions.approval_requests">承認依頼を送信する</string>
-  <string name="wallet.import.already_imported_title">ウォレットは既にインポート済みです</string>
-  <string name="wallet.import.already_imported_message">既に追加済み%s「</string>
-  <string name="wallet.import.switch_to_wallet">切り替えて %s</string>
-  <string name="wallet.import.import_another">別のものをインポートする</string>
+  <string name="wallet.import.already_imported_message">このウォレットは既にインポート済みです</string>
+  <string name="rewards.unverified.title">特典はまだ有効になっていません。</string>
+  <string name="rewards.unverified.description">アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。</string>
 </resources>

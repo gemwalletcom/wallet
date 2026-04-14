@@ -124,13 +124,13 @@ sealed class ConfirmParams() {
             )
         }
 
-        fun redelegate(dstValidator: DelegationValidator, delegation: Delegation): Stake.RedelegateParams {
+        fun redelegate(destinationValidator: DelegationValidator, delegation: Delegation): Stake.RedelegateParams {
             return Stake.RedelegateParams(
                 asset,
                 from = from,
                 amount,
                 delegation,
-                dstValidator,
+                destinationValidator,
                 delegation.base.shares,
                 delegation.base.balance,
             )
@@ -494,7 +494,7 @@ sealed class ConfirmParams() {
             override val from: Account,
             @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
             val delegation: Delegation,
-            val dstValidator: DelegationValidator,
+            val destinationValidator: DelegationValidator,
             val share: String?,
             val balance: String?,
         ) : Stake() {
@@ -505,7 +505,7 @@ sealed class ConfirmParams() {
                 asset = asset.toGem(),
                 stakeType = GemStakeType.Redelegate(
                     delegation = delegation.toGem(asset.chain.string),
-                    toValidator = dstValidator.toGem(asset.chain.string)
+                    toValidator = destinationValidator.toGem(asset.chain.string)
                 )
             )
 

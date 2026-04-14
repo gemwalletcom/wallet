@@ -24,6 +24,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.features.referral.viewmodels.ReferralViewModel
+import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
@@ -45,12 +46,14 @@ fun ReferralNavScreen(
     val rewards by viewModel.rewards.collectAsStateWithLifecycle()
     val inSync by viewModel.inSync.collectAsStateWithLifecycle()
     val referralCode by viewModel.referralCode.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     ReferralScene(
         inSync = inSync,
         isAvailableWalletSelect = availableWallets.size > 1,
         referralCode = referralCode,
         rewards = rewards,
+        uiState = uiState,
         currentWallet = currentWallet,
         joinPointsCost = 100,
         onUsername = viewModel::createReferral,

@@ -13,9 +13,11 @@ fun FiatTransactionsNavScreen(
     viewModel: FiatTransactionsViewModel = hiltViewModel(),
 ) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     FiatTransactionsScene(
         transactions = transactions,
+        isRefreshing = isRefreshing,
         onClose = { onClose() },
         onRefresh = viewModel::refresh,
     )

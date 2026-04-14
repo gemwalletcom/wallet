@@ -37,7 +37,6 @@ import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIState
 import com.wallet.core.primitives.AssetId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,7 +46,7 @@ internal fun AssetDetailsScene(
     transactions: List<TransactionDataAggregate>,
     priceAlertEnabled: Boolean,
     priceAlertsCount: Int,
-    syncState: AssetInfoUIState.SyncState,
+    isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onCancel: () -> Unit,
     onTransfer: AssetIdAction,
@@ -92,8 +91,6 @@ internal fun AssetDetailsScene(
         onClose = onCancel,
         snackbar = snackBar,
     ) {
-        val isRefreshing = syncState == AssetInfoUIState.SyncState.Loading
-
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,

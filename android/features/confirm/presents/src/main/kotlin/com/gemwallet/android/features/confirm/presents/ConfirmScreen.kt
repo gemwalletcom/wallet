@@ -25,10 +25,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
-import com.gemwallet.android.features.confirm.models.ConfirmError
-import com.gemwallet.android.features.confirm.models.ConfirmProperty
-import com.gemwallet.android.features.confirm.models.ConfirmState
-import com.gemwallet.android.features.confirm.models.FeeUIModel
+import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.domains.confirm.ConfirmProperty
+import com.gemwallet.android.domains.confirm.ConfirmState
+import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.features.confirm.presents.components.ConfirmErrorInfo
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails

@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "اجازتیں";
 "wallet_connect.permissions.view_balance" = "اپنا توازن اور سرگرمی دیکھیں";
 "wallet_connect.permissions.approval_requests" = "منظوری کی درخواستیں بھیجیں۔";
-"wallet.import.already_imported_title" = "والیٹ پہلے سے درآمد شدہ";
-"wallet.import.already_imported_message" = "پہلے ہی شامل کیا گیا بطور \"%s\"";
-"wallet.import.switch_to_wallet" = "پر سوئچ کریں۔ %s";
-"wallet.import.import_another" = "دوسرا درآمد کریں۔";
+"wallet.import.already_imported_message" = "یہ پرس پہلے ہی درآمد کیا جا چکا ہے۔";
+"rewards.unverified.title" = "انعامات ابھی فعال نہیں ہیں۔";
+"rewards.unverified.description" = "جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔";

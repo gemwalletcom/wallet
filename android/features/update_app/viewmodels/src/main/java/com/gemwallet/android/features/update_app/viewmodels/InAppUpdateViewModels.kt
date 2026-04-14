@@ -16,7 +16,6 @@ import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -25,33 +24,27 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okio.Buffer
-import okio.BufferedSink
-import okio.BufferedSource
-import okio.IOException
 import okio.buffer
 import okio.sink
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class InAppUpdateViewModels @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val buildInfo: BuildInfo,
     private val getLatestVersion: GetLatestVersion,
     private val userConfig: UserConfig,
 ) : ViewModel() {
 
-    val appFileProvider = "${context.packageName}.provider"
-    val intentDataType = "application/vnd.android.package-archive"
+    private val appFileProvider = "${context.packageName}.provider"
+    private val intentDataType = "application/vnd.android.package-archive"
 
     val updateAvailable = userConfig.getAppVersionSkip().combine(getLatestVersion.getLatestVersion()) { skip, version ->
         if (version != skip
             && VersionCheck.isVersionHigher(new = version, current = buildInfo.versionName)
-            && buildInfo.platformStore == PlatformStore.ApkUniversal
-            && userConfig.developEnabled()
+            && isApkStore(buildInfo.platformStore)
         ) {
             version
         } else {
@@ -69,7 +62,7 @@ class InAppUpdateViewModels @Inject constructor(
     }
 
     fun update(): Boolean {
-        if (!requestInstallFromUnknownSources(context)) {
+        if (!context.packageManager.canRequestPackageInstalls()) {
             return false
         }
 
@@ -77,9 +70,12 @@ class InAppUpdateViewModels @Inject constructor(
             downloadState.update { DownloadState.Preparing }
             try {
                 download()
-                installApk()
+                if (downloadState.value == DownloadState.Success) {
+                    installApk()
+                }
             } catch (_: Throwable) {
                 downloadState.update { DownloadState.Error }
+                runCatching { getApkFile().delete() }
             }
         }
         return true
@@ -95,31 +91,42 @@ class InAppUpdateViewModels @Inject constructor(
         val version = updateAvailable.value ?: throw IllegalArgumentException()
         val url = universalApkDownloadUrl(version)
         val destinationFile = getApkFile()
-        val client = OkHttpClient()
+
+        val client = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
+
         val request = Request.Builder().url(url).build()
         val response = client.newCall(request).execute()
-        val body = response.body ?: throw IOException()
-        val contentLength = body.contentLength()
-        val source: BufferedSource = body.source()
 
-        val sink: BufferedSink = destinationFile.sink().buffer()
-        val sinkBuffer: Buffer = sink.buffer
+        if (!response.isSuccessful) {
+            response.close()
+            throw IllegalStateException("Download failed: ${response.code}")
+        }
+
+        val body = response.body
+        val contentLength = body.contentLength()
+        val source = body.source()
+        val sink = destinationFile.sink().buffer()
 
         var totalBytesRead: Long = 0
-        val bufferSize = 8 * 1024
-        var bytesRead: Long = 0
+        val bufferSize = 8L * 1024
+        var bytesRead: Long
 
         try {
-            if (downloadState.value == DownloadState.Canceled) {
-                return
-            }
-            while ((source.read(sinkBuffer, bufferSize.toLong()).also { bytesRead = it }) != -1L) {
+            while (source.read(sink.buffer, bufferSize).also { bytesRead = it } != -1L) {
                 sink.emit()
                 totalBytesRead += bytesRead
                 if (downloadState.value == DownloadState.Canceled) {
                     return
                 }
-                downloadState.update { DownloadState.Progress(totalBytesRead.toFloat() / contentLength.toFloat()) }
+                val progress = if (contentLength > 0) {
+                    totalBytesRead.toFloat() / contentLength.toFloat()
+                } else {
+                    -1f
+                }
+                downloadState.update { DownloadState.Progress(progress) }
             }
         } finally {
             sink.flush()
@@ -127,17 +134,17 @@ class InAppUpdateViewModels @Inject constructor(
             source.close()
         }
 
+        if (downloadState.value == DownloadState.Canceled) {
+            runCatching { destinationFile.delete() }
+            return
+        }
+
         downloadState.update { DownloadState.Success }
     }
 
-    private fun requestInstallFromUnknownSources(context: Context): Boolean = context.packageManager.canRequestPackageInstalls()
-
     private fun installApk() {
-        if (downloadState.value == DownloadState.Canceled) {
-            return
-        }
-        val fileName = getApkFile()
-        val apkUri = FileProvider.getUriForFile(context, appFileProvider, fileName)
+        val apkFile = getApkFile()
+        val apkUri = FileProvider.getUriForFile(context, appFileProvider, apkFile)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             flags = FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
             setDataAndType(apkUri, intentDataType)
@@ -153,6 +160,9 @@ class InAppUpdateViewModels @Inject constructor(
         downloadState.update { DownloadState.Canceled }
     }
 }
+
+private fun isApkStore(store: PlatformStore): Boolean =
+    store == PlatformStore.ApkUniversal
 
 sealed interface DownloadState {
     object Idle : DownloadState

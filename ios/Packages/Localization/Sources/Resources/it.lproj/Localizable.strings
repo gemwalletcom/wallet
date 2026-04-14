@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "Autorizzazioni";
 "wallet_connect.permissions.view_balance" = "Visualizza il tuo saldo e la tua attività";
 "wallet_connect.permissions.approval_requests" = "Invia richieste di approvazione";
-"wallet.import.already_imported_title" = "Portafoglio già importato";
-"wallet.import.already_imported_message" = "Già aggiunto come \"%s\"";
-"wallet.import.switch_to_wallet" = "Passa a %s";
-"wallet.import.import_another" = "Lavora un altro";
+"wallet.import.already_imported_message" = "Questo portafoglio è già stato importato";
+"rewards.unverified.title" = "Premi non ancora attivi.";
+"rewards.unverified.description" = "I premi si attivano automaticamente man mano che utilizzi l'app.";

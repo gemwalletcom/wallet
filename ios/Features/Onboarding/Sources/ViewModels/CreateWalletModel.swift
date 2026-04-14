@@ -46,14 +46,14 @@ extension CreateWalletModel {
     }
 
     func createWallet(words: [String]) async throws -> Wallet {
-        let wallet = try await walletService.loadOrCreateWallet(
+        let result = try await walletService.loadOrCreateWallet(
             name: WalletNameGenerator(type: .multicoin, walletService: walletService).name,
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
         )
         walletService.acceptTerms()
-        WalletPreferences(walletId: wallet.walletId).completeInitialSynchronization()
-        return wallet
+        WalletPreferences(walletId: result.wallet.walletId).completeInitialSynchronization()
+        return result.wallet
     }
 
     func setupWalletComplete(wallet: Wallet) async throws {

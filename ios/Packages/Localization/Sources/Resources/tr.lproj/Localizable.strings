@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "İzinler";
 "wallet_connect.permissions.view_balance" = "Bakiyenizi ve işlemlerinizi görüntüleyin.";
 "wallet_connect.permissions.approval_requests" = "Onay isteklerini gönderin";
-"wallet.import.already_imported_title" = "Cüzdan Zaten İçe Aktarıldı";
-"wallet.import.already_imported_message" = "Zaten \" olarak eklendi\"%s\"";
-"wallet.import.switch_to_wallet" = "Şuna geçin %s";
-"wallet.import.import_another" = "Başka bir şeyi içe aktar";
+"wallet.import.already_imported_message" = "Bu cüzdan zaten içe aktarıldı.";
+"rewards.unverified.title" = "Ödüller henüz aktif değil.";
+"rewards.unverified.description" = "Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.";

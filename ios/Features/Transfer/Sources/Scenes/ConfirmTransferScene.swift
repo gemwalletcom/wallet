@@ -26,11 +26,9 @@ public struct ConfirmTransferScene: View {
             StateButton(model.confirmButtonModel)
         }
         .frame(maxWidth: .infinity)
-        .debounce(
-            value: model.feeModel.priority,
-            interval: .none,
-            action: model.onChangeFeePriority,
-        )
+        .onChange(of: model.feeModel.priority) { _, _ in
+            model.onChangeFeePriority()
+        }
         .taskOnce { model.fetch() }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)

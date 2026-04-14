@@ -23,6 +23,7 @@ import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
+import com.gemwallet.android.data.coordinators.asset.DeviceAssetsSyncService
 import com.gemwallet.android.data.coordinators.asset.EnsureWalletAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
@@ -116,8 +117,14 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideSyncAssets(
+        sessionRepository: SessionRepository,
+        deviceAssetsSyncService: DeviceAssetsSyncService,
         assetsRepository: AssetsRepository,
-    ): SyncAssets = SyncAssetsImpl(assetsRepository)
+    ): SyncAssets = SyncAssetsImpl(
+        sessionRepository = sessionRepository,
+        deviceAssetsSyncService = deviceAssetsSyncService,
+        assetsRepository = assetsRepository,
+    )
 
     @Provides
     @Singleton

@@ -239,6 +239,7 @@ class SwapViewModel @Inject constructor(
                     savedStateHandle["to"] = null
                 }
                 savedStateHandle["from"] = assetId.toIdentifier()
+                payValue.clearText()
             }
             SwapItemType.Receive -> {
                 if (payAsset.value?.id() == assetId) {

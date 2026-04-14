@@ -562,7 +562,6 @@
 "wallet_connect.permissions.title" = "Berechtigungen";
 "wallet_connect.permissions.view_balance" = "Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein.";
 "wallet_connect.permissions.approval_requests" = "Genehmigungsanfragen senden";
-"wallet.import.already_imported_title" = "Wallet bereits importiert";
-"wallet.import.already_imported_message" = "Bereits hinzugefügt als \"%s\"";
-"wallet.import.switch_to_wallet" = "Wechseln zu %s";
-"wallet.import.import_another" = "Importieren Sie einen anderen";
+"wallet.import.already_imported_message" = "Diese Geldbörse wurde bereits importiert";
+"rewards.unverified.title" = "Prämien noch nicht aktiv.";
+"rewards.unverified.description" = "Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.";

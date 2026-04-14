@@ -48,7 +48,7 @@ public struct PerpetualNavigationView: View {
                 guard newValue == nil else { return }
                 switch oldValue {
                 case .transferData, .perpetualRecipientData:
-                    model.fetch()
+                    Task { await model.fetch() }
                 default:
                     break
                 }

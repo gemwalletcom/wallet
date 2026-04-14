@@ -8,6 +8,7 @@ import com.wallet.core.primitives.FiatTransactionAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,16 +20,22 @@ class FiatTransactionsViewModel @Inject constructor(
     private val syncFiatTransactions: SyncFiatTransactions,
 ) : ViewModel() {
 
+    val isRefreshing = MutableStateFlow(false)
     val transactions: StateFlow<List<FiatTransactionAssetData>> = observeFiatTransactions()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
-        refresh()
-    }
-
-    fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
             syncFiatTransactions()
+        }
+    }
+
+    fun refresh() = viewModelScope.launch(Dispatchers.IO) {
+        isRefreshing.value = true
+        try {
+            syncFiatTransactions()
+        } finally {
+            isRefreshing.value = false
         }
     }
 }

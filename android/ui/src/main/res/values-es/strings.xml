@@ -583,8 +583,7 @@
   <string name="wallet_connect.permissions.title">Permisos</string>
   <string name="wallet_connect.permissions.view_balance">Consulta tu saldo y actividad.</string>
   <string name="wallet_connect.permissions.approval_requests">Enviar solicitudes de aprobación</string>
-  <string name="wallet.import.already_imported_title">Cartera ya importada</string>
-  <string name="wallet.import.already_imported_message">Ya añadido como \"%s\"</string>
-  <string name="wallet.import.switch_to_wallet">Cambiar a %s</string>
-  <string name="wallet.import.import_another">Importar otro</string>
+  <string name="wallet.import.already_imported_message">Esta cartera ya ha sido importada.</string>
+  <string name="rewards.unverified.title">Las recompensas aún no están activas.</string>
+  <string name="rewards.unverified.description">Las recompensas se activan automáticamente a medida que usas más la aplicación.</string>
 </resources>

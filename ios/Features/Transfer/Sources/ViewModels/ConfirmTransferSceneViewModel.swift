@@ -314,8 +314,8 @@ extension ConfirmTransferSceneViewModel {
         isPresentingSheet = .perpetualDetails(model)
     }
 
-    func onChangeFeePriority(_: FeePriority) async {
-        await fetchData()
+    func onChangeFeePriority() {
+        fetch()
     }
 
     func fetch() {

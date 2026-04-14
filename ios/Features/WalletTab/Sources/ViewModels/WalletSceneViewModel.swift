@@ -44,7 +44,7 @@ public final class WalletSceneViewModel: Sendable {
     public var isPresentingUrl: URL?
     public var isPresentingToastMessage: ToastMessage?
 
-    public var isLoadingAssets: Bool = false
+    public var isLoadingAssets = false
 
     public init(
         assetDiscoveryService: any AssetDiscoverable,
@@ -120,12 +120,12 @@ public final class WalletSceneViewModel: Sendable {
 // MARK: - Business Logic
 
 public extension WalletSceneViewModel {
-    internal func fetch() {
-        Task {
-            shouldStartLoadingAssets()
-            await fetch(wallet: wallet, assetIds: assets.map(\.asset.id))
-            isLoadingAssets = false
-        }
+    internal func fetch() async {
+        await updateWallet(for: wallet)
+    }
+
+    internal func fetchOnce() async {
+        await fetchOnce(wallet: wallet)
     }
 
     func onSelectWalletBar() {
@@ -215,11 +215,6 @@ public extension WalletSceneViewModel {
         isPresentingSearch = false
     }
 
-    internal func shouldStartLoadingAssets() {
-        let preferences = WalletPreferences(walletId: wallet.walletId)
-        isLoadingAssets = !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
-    }
-
     func onTransferComplete() {
         isPresentingSheet = nil
     }
@@ -245,7 +240,22 @@ public extension WalletSceneViewModel {
 // MARK: - Private
 
 extension WalletSceneViewModel {
-    private func fetch(wallet: Wallet, assetIds: [AssetId]) async {
+    private func fetchOnce(wallet: Wallet) async {
+        let shouldShowLoadingAssets = shouldShowInitialLoadingAssets(for: wallet)
+
+        if shouldShowLoadingAssets {
+            isLoadingAssets = true
+        }
+
+        await updateWallet(for: wallet)
+
+        if shouldShowLoadingAssets, self.wallet.walletId == wallet.walletId {
+            isLoadingAssets = false
+        }
+    }
+
+    private func updateWallet(for wallet: Wallet) async {
+        let assetIds = assets.map(\.asset.id)
         async let balance: () = balanceService.updateBalance(for: wallet, assetIds: assetIds)
         async let discovery: () = discoverAssets(wallet: wallet)
         _ = await (balance, discovery)
@@ -259,13 +269,19 @@ extension WalletSceneViewModel {
         }
     }
 
+    private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
+        let preferences = WalletPreferences(walletId: wallet.walletId)
+        return !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
+    }
+
     private func refresh(for newWallet: Wallet) {
+        isLoadingAssets = false
         wallet = newWallet
         totalFiatQuery.request.walletId = newWallet.walletId
         assetsQuery.request.walletId = newWallet.walletId
         bannersQuery.request.walletId = newWallet.walletId
 
-        fetch()
+        Task { await fetchOnce(wallet: newWallet) }
     }
 
     private func handleBanner(action: BannerAction) async throws {

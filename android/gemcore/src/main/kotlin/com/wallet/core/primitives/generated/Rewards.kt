@@ -57,34 +57,8 @@ data class RedemptionResult (
 )
 
 @Serializable
-data class ReferralActivation (
-	val verifyCompleted: Boolean,
-	val verifyAfter: SerializedDate? = null,
-	val swapCompleted: Boolean,
-	val swapAmount: Int
-)
-
-@Serializable
-data class ReferralQuota (
-	val limit: Int,
-	val available: Int
-)
-
-@Serializable
-data class ReferralAllowance (
-	val daily: ReferralQuota,
-	val weekly: ReferralQuota
-)
-
-@Serializable
 data class ReferralCode (
 	val code: String
-)
-
-@Serializable
-data class ReferralCodeActivation (
-	val swapCompleted: Boolean,
-	val swapAmount: Int
 )
 
 @Serializable
@@ -147,10 +121,8 @@ data class Rewards (
 	val points: Int,
 	val usedReferralCode: String? = null,
 	val status: RewardStatus,
+	val verifyAfter: SerializedDate? = null,
 	val redemptionOptions: List<RewardRedemptionOption>,
-	val disableReason: String? = null,
-	val referralAllowance: ReferralAllowance,
-	val referralCodeActivation: ReferralCodeActivation? = null,
-	val referralActivation: ReferralActivation? = null
+	val disableReason: String? = null
 )
 

@@ -97,10 +97,10 @@ public struct WalletScene: View {
         }
         .id(model.wallet.id)
         .refreshable {
-            model.fetch()
+            await model.fetch()
         }
         .taskOnce {
-            model.fetch()
+            Task { await model.fetchOnce() }
         }
     }
 }

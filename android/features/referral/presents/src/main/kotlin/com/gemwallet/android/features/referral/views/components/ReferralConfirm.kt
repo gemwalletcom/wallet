@@ -29,17 +29,13 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.wallet.core.primitives.ReferralActivation
-import com.wallet.core.primitives.ReferralAllowance
-import com.wallet.core.primitives.ReferralCodeActivation
-import com.wallet.core.primitives.ReferralQuota
+import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
 
-internal fun LazyListScope.referralConfirmCode(rewards: Rewards, onConfirm: (String) -> Unit) {
+internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: RewardsUIState, onConfirm: (String) -> Unit) {
     val code = rewards.usedReferralCode ?: return
-    val pendingDate = rewards.referralActivation?.verifyAfter ?: return
-    val isEnable = System.currentTimeMillis() > pendingDate
+    val pendingDate = rewards.verifyAfter ?: return
     item {
         Column(
             modifier = Modifier
@@ -59,7 +55,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, onConfirm: (Str
                 }
             )
             ListItemSupportText(
-                if (isEnable) {
+                if (uiState.canActivatePendingReferral) {
                     stringResource(R.string.rewards_pending_description_ready)
                 } else {
                     stringResource(R.string.rewards_pending_description, getRelativeDate(pendingDate))
@@ -68,7 +64,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, onConfirm: (Str
             HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = 0.5.dp)
             MainActionButton(
                 title = stringResource(R.string.transfer_confirm),
-                enabled = isEnable
+                enabled = uiState.canActivatePendingReferral
             ) {
                 onConfirm(code)
             }
@@ -78,29 +74,20 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, onConfirm: (Str
 
 @Preview
 @Composable
-private fun ReferralConfirmCodePedningPreview() {
+private fun ReferralConfirmCodePendingPreview() {
     WalletTheme {
         LazyColumn {
             referralConfirmCode(
                 Rewards(
                     referralCount = 0,
                     points = 0,
-                    status = RewardStatus.Unverified,
+                    status = RewardStatus.Pending,
                     redemptionOptions = emptyList(),
-                    referralAllowance = ReferralAllowance(
-                        daily = ReferralQuota(limit = 0, available = 0),
-                        weekly = ReferralQuota(limit = 0, available = 0)
-                    ),
                     code = "some_code",
                     usedReferralCode = "some_code_1",
-                    referralCodeActivation = ReferralCodeActivation(false, 0),
-                    referralActivation = ReferralActivation(
-                        verifyCompleted = false,
-                        verifyAfter = null,
-                        swapCompleted = false,
-                        swapAmount = 0,
-                    ),
-                )
+                    verifyAfter = System.currentTimeMillis() + 86400000,
+                ),
+                RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = true, canActivatePendingReferral = false),
             ) {}
         }
     }
@@ -115,22 +102,13 @@ private fun ReferralConfirmCodeReadyPreview() {
                 Rewards(
                     referralCount = 0,
                     points = 0,
-                    status = RewardStatus.Unverified,
+                    status = RewardStatus.Pending,
                     redemptionOptions = emptyList(),
-                    referralAllowance = ReferralAllowance(
-                        daily = ReferralQuota(limit = 0, available = 0),
-                        weekly = ReferralQuota(limit = 0, available = 0)
-                    ),
                     code = "some_code",
                     usedReferralCode = "some_code_1",
-                    referralCodeActivation = ReferralCodeActivation(false, 0),
-                    referralActivation = ReferralActivation(
-                        verifyCompleted = false,
-                        verifyAfter = null,
-                        swapCompleted = false,
-                        swapAmount = 0,
-                    ),
-                )
+                    verifyAfter = 0,
+                ),
+                RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = true, canActivatePendingReferral = true),
             ) {}
         }
     }

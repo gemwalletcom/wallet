@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,8 +39,12 @@ import com.gemwallet.android.features.update_app.viewmodels.DownloadState
 import com.gemwallet.android.features.update_app.viewmodels.InAppUpdateViewModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.defaultPadding
+import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space2
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,7 +134,7 @@ private fun UpdateInfo(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(ListItemDefaults.defaultMinHeight)
             .defaultPadding(),
         verticalArrangement = Arrangement.Center,
     ) {
@@ -157,7 +160,7 @@ private fun UpdateInfo(
                     DownloadState.Canceled,
                     DownloadState.Idle -> TextButton(
                         onClick = onAction,
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(space0)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(stringResource(R.string.update_app_action))
@@ -166,20 +169,27 @@ private fun UpdateInfo(
                         }
                     }
                     DownloadState.Preparing -> CircularProgressIndicator(
-                        modifier = Modifier.size(size = 36.dp),
-                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(iconSize),
+                        strokeWidth = space2,
                     )
                     is DownloadState.Progress -> Box {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(size = 36.dp),
-                            strokeWidth = 2.dp,
-                            progress = { state.value },
-                        )
-                        Text(
-                            modifier = Modifier.align(Alignment.Center),
-                            text = "${(state.value * 100).roundToInt()}%",
-                            style = MaterialTheme.typography.labelSmall,
-                        )
+                        if (state.value < 0f) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(iconSize),
+                                strokeWidth = space2,
+                            )
+                        } else {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(iconSize),
+                                strokeWidth = space2,
+                                progress = { state.value },
+                            )
+                            Text(
+                                modifier = Modifier.align(Alignment.Center),
+                                text = "${(state.value * 100).roundToInt()}%",
+                                style = MaterialTheme.typography.labelSmall,
+                            )
+                        }
                     }
                 }
             }

@@ -1,5 +1,8 @@
-package com.gemwallet.android.features.confirm.models
+package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.gasPriceDecimals
+import com.gemwallet.android.ext.gasPriceSymbol
+import com.gemwallet.android.ext.totalFee
 import com.wallet.core.primitives.FeeUnitType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
