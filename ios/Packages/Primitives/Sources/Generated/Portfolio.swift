@@ -104,7 +104,139 @@ public struct PortfolioAssetsRequest: Codable, Sendable {
 	}
 }
 
-public enum PerpetualPortfolioChartType: String, Codable, CaseIterable, Equatable, Identifiable, Sendable {
+public enum PortfolioChartType: String, Codable, CaseIterable, Equatable, Identifiable, Sendable {
 	case value
 	case pnl
+}
+
+public struct PortfolioChartData: Codable, Equatable, Sendable {
+	public let chartType: PortfolioChartType
+	public let values: [ChartDateValue]
+
+	public init(chartType: PortfolioChartType, values: [ChartDateValue]) {
+		self.chartType = chartType
+		self.values = values
+	}
+}
+
+public enum PortfolioStatistic: Codable, Equatable, Sendable {
+	case allTimeHigh(ChartValuePercentage)
+	case allTimeLow(ChartValuePercentage)
+	case unrealizedPnl(Double)
+	case accountLeverage(Double)
+	case marginUsage(PortfolioMarginUsage)
+	case allTimePnl(Double)
+	case volume(Double)
+
+	enum CodingKeys: String, CodingKey, Codable {
+		case allTimeHigh,
+			allTimeLow,
+			unrealizedPnl,
+			accountLeverage,
+			marginUsage,
+			allTimePnl,
+			volume
+	}
+
+	private enum ContainerCodingKeys: String, CodingKey {
+		case type, content
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
+		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
+			switch type {
+			case .allTimeHigh:
+				if let content = try? container.decode(ChartValuePercentage.self, forKey: .content) {
+					self = .allTimeHigh(content)
+					return
+				}
+			case .allTimeLow:
+				if let content = try? container.decode(ChartValuePercentage.self, forKey: .content) {
+					self = .allTimeLow(content)
+					return
+				}
+			case .unrealizedPnl:
+				if let content = try? container.decode(Double.self, forKey: .content) {
+					self = .unrealizedPnl(content)
+					return
+				}
+			case .accountLeverage:
+				if let content = try? container.decode(Double.self, forKey: .content) {
+					self = .accountLeverage(content)
+					return
+				}
+			case .marginUsage:
+				if let content = try? container.decode(PortfolioMarginUsage.self, forKey: .content) {
+					self = .marginUsage(content)
+					return
+				}
+			case .allTimePnl:
+				if let content = try? container.decode(Double.self, forKey: .content) {
+					self = .allTimePnl(content)
+					return
+				}
+			case .volume:
+				if let content = try? container.decode(Double.self, forKey: .content) {
+					self = .volume(content)
+					return
+				}
+			}
+		}
+		throw DecodingError.typeMismatch(PortfolioStatistic.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for PortfolioStatistic"))
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
+		switch self {
+		case .allTimeHigh(let content):
+			try container.encode(CodingKeys.allTimeHigh, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .allTimeLow(let content):
+			try container.encode(CodingKeys.allTimeLow, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .unrealizedPnl(let content):
+			try container.encode(CodingKeys.unrealizedPnl, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .accountLeverage(let content):
+			try container.encode(CodingKeys.accountLeverage, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .marginUsage(let content):
+			try container.encode(CodingKeys.marginUsage, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .allTimePnl(let content):
+			try container.encode(CodingKeys.allTimePnl, forKey: .type)
+			try container.encode(content, forKey: .content)
+		case .volume(let content):
+			try container.encode(CodingKeys.volume, forKey: .type)
+			try container.encode(content, forKey: .content)
+		}
+	}
+}
+
+public struct PortfolioData: Codable, Sendable {
+	public let charts: [PortfolioChartData]
+	public let statistics: [PortfolioStatistic]
+	public let availablePeriods: [ChartPeriod]
+
+	public init(charts: [PortfolioChartData], statistics: [PortfolioStatistic], availablePeriods: [ChartPeriod]) {
+		self.charts = charts
+		self.statistics = statistics
+		self.availablePeriods = availablePeriods
+	}
+}
+
+public struct PortfolioMarginUsage: Codable, Equatable, Hashable, Sendable {
+	public let accountValue: Double
+	public let usage: Double
+
+	public init(accountValue: Double, usage: Double) {
+		self.accountValue = accountValue
+		self.usage = usage
+	}
+}
+
+public enum PortfolioType: String, Codable, CaseIterable, Equatable, Identifiable, Sendable {
+	case wallet
+	case perpetuals
 }
