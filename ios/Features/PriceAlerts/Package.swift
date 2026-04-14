@@ -20,6 +20,7 @@ let package = Package(
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
 
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
@@ -34,6 +35,7 @@ let package = Package(
                 "Style",
                 "Localization",
                 "PrimitivesComponents",
+                "Gemstone",
                 "Store",
                 .product(name: "PriceAlertService", package: "FeatureServices"),
                 "Preferences",
