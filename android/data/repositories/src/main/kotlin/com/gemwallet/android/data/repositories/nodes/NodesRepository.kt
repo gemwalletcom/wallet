@@ -128,7 +128,7 @@ class NodesRepository(
             explorer.getTransactionSwapUrl(
                 blockExplorerName,
                 GemExplorerInput(
-                    txHash = transaction.hash,
+                    hash = transaction.hash,
                     recipient = transaction.to,
                     memo = transaction.memo,
                 ),

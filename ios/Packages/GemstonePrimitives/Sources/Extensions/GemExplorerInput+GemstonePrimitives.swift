@@ -6,6 +6,6 @@ import Primitives
 
 public extension Primitives.ExplorerInput {
     func map() -> Gemstone.GemExplorerInput {
-        Gemstone.GemExplorerInput(txHash: tx_hash, recipient: recipient, memo: memo)
+        Gemstone.GemExplorerInput(hash: hash, recipient: recipient, memo: memo)
     }
 }

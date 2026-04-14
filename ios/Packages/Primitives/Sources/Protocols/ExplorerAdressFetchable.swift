@@ -19,7 +19,7 @@ public extension ExplorerLinkFetchable {
         guard let provider else {
             return transactionUrl(chain: chain, hash: hash)
         }
-        let input = ExplorerInput(tx_hash: hash, recipient: recipient, memo: memo)
+        let input = ExplorerInput(hash: hash, recipient: recipient, memo: memo)
         return swapTransactionUrl(chain: chain, provider: provider, input: input)
             ?? transactionUrl(chain: chain, hash: hash)
     }
