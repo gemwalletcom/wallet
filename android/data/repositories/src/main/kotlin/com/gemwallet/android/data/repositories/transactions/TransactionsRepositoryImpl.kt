@@ -77,8 +77,8 @@ class TransactionsRepositoryImpl(
             .mapNotNull { items -> items.toDTO() }
     }
 
-    override fun getTransaction(txId: String): Flow<TransactionExtended?> {
-        return transactionsDao.getExtendedTransaction(txId)
+    override fun getTransaction(transactionId: String): Flow<TransactionExtended?> {
+        return transactionsDao.getExtendedTransaction(transactionId)
             .mapNotNull { it?.toDTO() }
             .flowOn(Dispatchers.IO)
     }

@@ -8,13 +8,15 @@ import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.models.subtitleSymbol
 
 @Composable
-fun RecipientHead(type: RecipientType) = when (type) {
-    is RecipientType.Nft -> NftHead(type.nftAsset)
-    is RecipientType.Asset -> type.assetInfo.asset.let { asset ->
-        CenteredListHead(
-            title = asset.name,
-            subtitle = asset.subtitleSymbol,
-            leading = { HeaderIcon(asset) },
-        )
+fun RecipientHead(type: RecipientType) {
+    when (type) {
+        is RecipientType.Nft -> NftHead(type.nftAsset)
+        is RecipientType.Asset -> type.assetInfo.asset.let { asset ->
+            CenteredListHead(
+                title = asset.name,
+                subtitle = asset.subtitleSymbol,
+                leading = { HeaderIcon(asset) },
+            )
+        }
     }
 }

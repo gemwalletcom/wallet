@@ -4,5 +4,5 @@ import com.gemwallet.android.model.TransactionExtended
 import kotlinx.coroutines.flow.Flow
 
 interface GetTransaction {
-    fun getTransaction(txId: String): Flow<TransactionExtended?>
+    fun getTransaction(transactionId: String): Flow<TransactionExtended?>
 }

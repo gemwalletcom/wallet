@@ -40,7 +40,7 @@ data class AssetContextActions(
 
 @Immutable
 class AssetContextMenuItem(
-    @StringRes val titleRes: Int,
+    @get:StringRes val titleRes: Int,
     val icon: @Composable () -> Unit,
     val onClick: () -> Unit,
 )

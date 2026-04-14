@@ -99,7 +99,7 @@ class StakeViewModel @Inject constructor(
             StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { assetInfo.chain?.claimed == true && rewardsBalance > BigInteger.ZERO }
+                .takeIf { assetInfo.chain.claimed && rewardsBalance > BigInteger.ZERO }
                 ?.let { StakeAction.Rewards(assetInfo.asset.format(Crypto(rewardsBalance))) },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

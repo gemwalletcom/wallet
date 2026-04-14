@@ -17,7 +17,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
 
 @DatabaseView(
     viewName = "asset_info",
@@ -137,7 +137,7 @@ data class DbAssetInfo(
     val balanceUpdatedAt: Long?,
 )
 
-fun Flow<List<DbAssetInfo>>.toAssetInfoModel() = mapLatest { it.toAssetInfoModels() }
+fun Flow<List<DbAssetInfo>>.toAssetInfoModel() = map { it.toAssetInfoModels() }
 
 fun List<DbAssetInfo>.toAssetInfoModels() = mapNotNull { it.toDTO() }
 

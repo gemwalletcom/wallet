@@ -1,9 +1,8 @@
 package com.gemwallet.android.features.settings.price_alerts.presents
 
-import android.content.res.Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertTargetViewModel
@@ -18,7 +17,7 @@ fun PriceAlertTargetNavScreen(
     onComplete: (String) -> Unit = { onCancel() },
     viewModel: PriceAlertTargetViewModel = hiltViewModel(),
 ) {
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val currency by viewModel.currency.collectAsStateWithLifecycle()
     val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
     val currentPriceValue by viewModel.currentPriceValue.collectAsStateWithLifecycle()
@@ -48,7 +47,7 @@ fun PriceAlertTargetNavScreen(
     )
 }
 
-private fun PriceAlertConfirmResult.toMessage(resources: Resources): String {
+private fun PriceAlertConfirmResult.toMessage(resources: android.content.res.Resources): String {
     val directionTitle = when (type) {
         PriceAlertNotificationType.Price -> when (direction) {
             PriceAlertDirection.Up -> R.string.price_alerts_set_alert_price_over

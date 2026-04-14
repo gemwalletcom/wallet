@@ -62,7 +62,7 @@ fun PropertyItem(
 ) {
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
-        title = { PropertyTitleText(text = action, trailing = { AsyncImage(actionIconModel, smallIconSize) }) },
+        title = { PropertyTitleText(text = action, trailing = { AsyncImage(model = actionIconModel, size = smallIconSize) }) },
         data = {
             PropertyDataText(
                 text = data ?: "",

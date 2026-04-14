@@ -2,6 +2,7 @@
 
 package com.gemwallet.android.features.settings.settings.presents.views
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
@@ -9,6 +10,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
+import androidx.core.net.toUri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -115,6 +117,7 @@ fun SupportChatScreen(
 }
 
 @Composable
+@SuppressLint("SetJavaScriptEnabled")
 private fun GemWebView(
     state: WebViewState,
     navigator: WebViewNavigator = rememberWebViewNavigator(),
@@ -142,19 +145,12 @@ private fun GemWebView(
             captureBackPresses = false,
             client = object : AccompanistWebViewClient() {
 
-                override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                    val url = Uri.parse(url) ?: return false
-                    if ("support.gemwallet.com" == url.host && ("https" == url.scheme || "wss" == url.scheme)) {
-                        return true
-                    }
-                    return false
-                }
-
                 override fun shouldOverrideUrlLoading(
                     view: WebView?,
                     request: WebResourceRequest?
                 ): Boolean {
-                    return shouldOverrideUrlLoading(view, request?.url?.toString() ?: return false)
+                    val url = request?.url?.toString()?.toUri() ?: return false
+                    return "support.gemwallet.com" == url.host && ("https" == url.scheme || "wss" == url.scheme)
                 }
 
                 override fun shouldInterceptRequest(
