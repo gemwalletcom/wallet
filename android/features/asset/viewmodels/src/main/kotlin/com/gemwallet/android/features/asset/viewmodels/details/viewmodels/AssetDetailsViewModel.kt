@@ -34,7 +34,6 @@ import com.gemwallet.android.model.totalFormatted
 import com.gemwallet.android.model.totalStakeFormatted
 import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIState
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
@@ -45,10 +44,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -79,22 +82,24 @@ class AssetDetailsViewModel @Inject constructor(
     private val hasMultiSign: HasMultiSign,
     private val syncTransactions: SyncTransactions,
 ) : ViewModel() {
+    private var syncJob: Job? = null
 
     val session = sessionRepository.session()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val uiState = MutableStateFlow<AssetInfoUIState>(AssetInfoUIState.Idle(AssetInfoUIState.SyncState.Process))
+    val isRefreshing = MutableStateFlow(false)
 
     private val assetId = savedStateHandle.getStateFlow(assetIdArg, "").map { it.toAssetId() }
+        .distinctUntilChanged()
         .onEach { assetId ->
             assetId ?: return@onEach
+            val wallet = session.value?.wallet ?: return@onEach
             priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(assetId))
-            syncAssetInfo(assetId, refreshPriceAlerts = true)
+            syncAssetDetails(wallet, assetId, shouldRefreshPriceAlerts = true)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetInfo = assetId
-        .onEach { uiState.update { AssetInfoUIState.Idle(AssetInfoUIState.SyncState.Process) } }
         .flatMapLatest { assetId ->
             assetId?.let { id -> assetsRepository.getTokenInfo(id).mapNotNull { it } } ?: emptyFlow()
         }
@@ -134,42 +139,54 @@ class AssetDetailsViewModel @Inject constructor(
 
     fun refresh() {
         val assetId = assetId.value ?: return
-        syncAssetInfo(assetId, showLoading = true, refreshPriceAlerts = true)
+        val wallet = session.value?.wallet ?: return
+        syncAssetDetails(wallet, assetId, showLoading = true, shouldRefreshPriceAlerts = true)
     }
 
-    private fun syncAssetInfo(assetId: AssetId, showLoading: Boolean = false, refreshPriceAlerts: Boolean = false) {
-        val currentSync = (uiState.value as? AssetInfoUIState.Idle)?.sync
-        if (showLoading || currentSync == AssetInfoUIState.SyncState.Process) {
-            uiState.update {
-                AssetInfoUIState.Idle(
-                    if (showLoading) {
-                        AssetInfoUIState.SyncState.Loading
-                    } else {
-                        AssetInfoUIState.SyncState.None
-                    }
-                )
+    private fun syncAssetDetails(
+        wallet: Wallet,
+        assetId: AssetId,
+        showLoading: Boolean = false,
+        shouldRefreshPriceAlerts: Boolean = false,
+    ) {
+        val previousJob = syncJob
+        if (previousJob?.isActive == true) {
+            if (showLoading) {
+                return
             }
         }
 
-        if (refreshPriceAlerts) {
-            viewModelScope.launch {
-                if (priceAlertRepository.hasAssetPriceAlerts(assetId)) {
-                    runCatching { updatePriceAlerts.update(assetId) }
+        if (showLoading) {
+            isRefreshing.value = true
+        }
+
+        if (shouldRefreshPriceAlerts) {
+            refreshPriceAlertsIfNeeded(assetId)
+        }
+
+        syncJob = viewModelScope.launch(Dispatchers.IO) {
+            if (previousJob?.isActive == true) {
+                previousJob.cancelAndJoin()
+            }
+
+            try {
+                refreshAssetDetails(wallet, assetId)
+            } finally {
+                if (showLoading) {
+                    isRefreshing.value = false
                 }
             }
         }
+    }
 
-        viewModelScope.launch {
-            val wallet = session.value?.wallet ?: return@launch
-            syncAssetInfo.syncAssetInfo(
-                assetId = assetId,
-                wallet = wallet,
-            )
-            syncTransactions.syncTransactions(wallet, assetId)
-        }
-        viewModelScope.launch {
-            delay(300)
-            uiState.update { AssetInfoUIState.Idle() }
+    private suspend fun refreshAssetDetails(wallet: Wallet, assetId: AssetId) = coroutineScope {
+        launch { syncAssetInfo.syncAssetInfo(assetId = assetId, wallet = wallet) }
+        launch { syncTransactions.syncTransactions(wallet, assetId) }
+    }
+
+    private fun refreshPriceAlertsIfNeeded(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+        if (priceAlertRepository.hasAssetPriceAlerts(assetId)) {
+            runCatching { updatePriceAlerts.update(assetId) }
         }
     }
 

@@ -62,9 +62,6 @@ public struct AutocloseScene: View {
         }
         .navigationTitle(model.title)
         .onChange(of: focusedField, model.onChangeFocusField)
-        .onDisappear {
-            focusedField = nil
-        }
     }
 
     private func onSelectConfirm() {

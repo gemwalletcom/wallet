@@ -18,8 +18,9 @@ class EnsureWalletAssetsImpl(
             return
         }
 
-        val existingAssetIds = assetsRepository.hasWalletAssets(wallet.id, requestedAssetIds)
-        val missingAssetIds = requestedAssetIds.filterNot(existingAssetIds::contains)
+        val missingAssetIds = requestedAssetIds.filterNot(
+            assetsRepository.hasWalletAssets(wallet.id, requestedAssetIds)::contains
+        )
 
         if (missingAssetIds.isEmpty()) {
             return

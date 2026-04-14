@@ -101,16 +101,6 @@ class AssetsRepository @Inject constructor(
             }
         }
         scope.launch(Dispatchers.IO) {
-            sessionRepository.session()
-                .map { it?.wallet?.id }
-                .distinctUntilChanged()
-                .collectLatest { walletId ->
-                    walletId ?: return@collectLatest
-                    sync()
-                }
-        }
-
-        scope.launch(Dispatchers.IO) {
             syncSwapSupportChains()
         }
     }
@@ -320,15 +310,17 @@ class AssetsRepository @Inject constructor(
         visibility: Boolean,
     ) = withContext(Dispatchers.IO) {
         val assetInfo = getAssetInfo(assetId).firstOrNull()
-        if (assetInfo?.walletId != walletId) {
+        val isCurrentWalletAsset = assetInfo?.walletId == walletId
+        val isVisible = assetInfo?.metadata?.isBalanceEnabled == true
+
+        if (!isCurrentWalletAsset) {
             linkAssetToWallet(walletId, owner.address, assetId, visibility)
         }
-        if (assetInfo?.metadata?.isBalanceEnabled != visibility) {
+        if (isVisible != visibility) {
             setVisibility(walletId, assetId, visibility)
         }
-        if (visibility) {
+        if (visibility && (!isCurrentWalletAsset || !isVisible)) {
             updateBalances(assetId)
-            streamSubscriptionService.addAssetIds(listOf(assetId))
         }
     }
 

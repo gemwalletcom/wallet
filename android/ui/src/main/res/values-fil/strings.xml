@@ -584,4 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">Tingnan ang iyong balanse at aktibidad</string>
   <string name="wallet_connect.permissions.approval_requests">Magpadala ng mga kahilingan sa pag-apruba</string>
   <string name="wallet.import.already_imported_message">Na-import na ang wallet na ito</string>
+  <string name="rewards.unverified.title">Hindi pa aktibo ang mga gantimpala.</string>
+  <string name="rewards.unverified.description">Awtomatikong naa-activate ang mga reward habang mas madalas mong ginagamit ang app.</string>
 </resources>

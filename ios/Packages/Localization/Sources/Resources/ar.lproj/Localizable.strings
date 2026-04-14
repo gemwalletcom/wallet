@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "اطلع على رصيدك ونشاطك";
 "wallet_connect.permissions.approval_requests" = "إرسال طلبات الموافقة";
 "wallet.import.already_imported_message" = "تم استيراد هذه المحفظة بالفعل";
+"rewards.unverified.title" = "المكافآت غير مفعلة بعد.";
+"rewards.unverified.description" = "يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.";

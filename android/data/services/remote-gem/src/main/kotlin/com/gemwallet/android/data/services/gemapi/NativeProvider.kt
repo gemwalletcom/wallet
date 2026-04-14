@@ -5,6 +5,8 @@ import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.data.services.gemapi.http.getNodeUrl
 import com.gemwallet.android.ext.toChain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -26,16 +28,16 @@ class NativeProvider(
             ?: throw GatewayException.PlatformException("Can't found node url for chain: $chain")
     }
 
-    override suspend fun request(target: AlienTarget): AlienResponse {
+    override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
         val requestBuilder = Request.Builder()
             .url(target.url)
             .method(target.method.name, target.body?.toRequestBody())
         target.headers?.forEach {
             requestBuilder.addHeader(it.key, it.value)
         }
-        return try {
+        try {
             val response = httpClient.newCall(requestBuilder.build()).execute()
-            val data = response.body?.bytes() ?: byteArrayOf()
+            val data = response.body.bytes()
             val status = response.code.toUShort()
             AlienResponse(status, data)
         } catch (_: Throwable) {

@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Veja seu saldo e atividade";
 "wallet_connect.permissions.approval_requests" = "Enviar solicitações de aprovação";
 "wallet.import.already_imported_message" = "Esta carteira já foi importada.";
+"rewards.unverified.title" = "As recompensas ainda não estão ativas.";
+"rewards.unverified.description" = "As recompensas são ativadas automaticamente conforme você usa o aplicativo com mais frequência.";

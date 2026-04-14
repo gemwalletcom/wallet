@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.di
 
-import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
@@ -14,11 +13,11 @@ import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemSwapper
 import javax.inject.Singleton
@@ -36,14 +35,14 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideSyncTransactions(
-        @ApplicationContext context: Context,
+        walletPreferencesFactory: WalletPreferencesFactory,
         gemDeviceApiClient: GemDeviceApiClient,
         saveTransactions: SaveTransactions,
         prefetchAssets: PrefetchAssets,
         ensureWalletAssets: EnsureWalletAssets,
     ): SyncTransactions {
         return SyncTransactionsImpl(
-            context = context,
+            walletPreferencesFactory = walletPreferencesFactory,
             gemDeviceApiClient = gemDeviceApiClient,
             saveTransactions = saveTransactions,
             prefetchAssets = prefetchAssets,

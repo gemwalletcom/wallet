@@ -584,4 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect.permissions.approval_requests">שלח בקשות אישור</string>
   <string name="wallet.import.already_imported_message">ארנק זה כבר יובא</string>
+  <string name="rewards.unverified.title">הפרסים עדיין לא פעילים.</string>
+  <string name="rewards.unverified.description">הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.</string>
 </resources>

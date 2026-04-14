@@ -38,7 +38,7 @@ generate-stone:
     @cd ios && just generate-stone
 
 localize:
-    @cd ios && just localize-all
+    @cd ios && just localize
     @cd android && just localize
 
 bump TARGET="patch":

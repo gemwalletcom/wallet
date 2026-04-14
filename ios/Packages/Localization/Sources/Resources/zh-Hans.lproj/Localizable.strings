@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "查看您的余额和活动";
 "wallet_connect.permissions.approval_requests" = "发送审批请求";
 "wallet.import.already_imported_message" = "这个钱包已经进口了。";
+"rewards.unverified.title" = "奖励尚未激活。";
+"rewards.unverified.description" = "您使用应用程序的次数越多，奖励就会自动激活。";

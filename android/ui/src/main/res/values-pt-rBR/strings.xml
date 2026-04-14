@@ -584,4 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">Veja seu saldo e atividade</string>
   <string name="wallet_connect.permissions.approval_requests">Enviar solicitações de aprovação</string>
   <string name="wallet.import.already_imported_message">Esta carteira já foi importada.</string>
+  <string name="rewards.unverified.title">As recompensas ainda não estão ativas.</string>
+  <string name="rewards.unverified.description">As recompensas são ativadas automaticamente conforme você usa o aplicativo com mais frequência.</string>
 </resources>

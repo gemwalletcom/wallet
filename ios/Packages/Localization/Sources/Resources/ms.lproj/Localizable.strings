@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Lihat keseimbangan dan aktiviti anda";
 "wallet_connect.permissions.approval_requests" = "Hantar permintaan kelulusan";
 "wallet.import.already_imported_message" = "Dompet ini telah diimport";
+"rewards.unverified.title" = "Ganjaran belum aktif lagi.";
+"rewards.unverified.description" = "Ganjaran diaktifkan secara automatik apabila anda menggunakan aplikasi dengan lebih kerap.";

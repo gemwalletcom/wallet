@@ -563,3 +563,5 @@
 "wallet_connect.permissions.view_balance" = "残高とアクティビティを確認する";
 "wallet_connect.permissions.approval_requests" = "承認依頼を送信する";
 "wallet.import.already_imported_message" = "このウォレットは既にインポート済みです";
+"rewards.unverified.title" = "特典はまだ有効になっていません。";
+"rewards.unverified.description" = "アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。";

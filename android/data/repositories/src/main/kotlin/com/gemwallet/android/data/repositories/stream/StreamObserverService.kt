@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.stream
 
 import android.util.Log
 import com.gemwallet.android.Constants
+import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.serializer.StreamEventSerializer
@@ -19,6 +20,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -30,6 +32,7 @@ import kotlinx.serialization.encodeToString
 
 class StreamObserverService(
     private val sessionRepository: SessionRepository,
+    private val syncAssets: SyncAssets,
     private val deviceRequestSigner: DeviceRequestSigner,
     private val subscriptionService: StreamSubscriptionService,
     private val eventHandler: StreamEventHandler,
@@ -55,6 +58,12 @@ class StreamObserverService(
                     subscriptionService.setupAssets(walletId)
                     if (connectionJob == null) {
                         start()
+                    }
+                    try {
+                        syncAssets()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (_: Throwable) {
                     }
                 }
             }

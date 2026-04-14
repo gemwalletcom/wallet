@@ -54,6 +54,7 @@ class UpdateBalances(
     }
 
     private suspend fun updateTokensBalance(walletId: String, account: Account, tokens: List<Asset>, updatedAt: Long): List<AssetBalance> {
+        if (tokens.none { it.id.tokenId != null }) return emptyList()
         val balances = balancesService.getTokensBalances(account, tokens)
         runCatching {
             val record = balances.map {

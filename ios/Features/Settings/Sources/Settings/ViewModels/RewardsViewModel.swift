@@ -62,7 +62,7 @@ public final class RewardsViewModel: Sendable {
     var myReferralCodeTitle: String { Localized.Rewards.myReferralCode }
     var createCodeTitle: String { Localized.Rewards.InviteFriends.title }
     var createCodeDescription: String {
-        Localized.Rewards.InviteFriends.description(100.description.boldMarkdown())
+        Localized.Rewards.InviteFriends.description(String(100).boldMarkdown())
     }
 
     var activateCodeFooterTitle: String { Localized.Rewards.ActivateReferralCode.title }
@@ -115,12 +115,24 @@ public final class RewardsViewModel: Sendable {
         hasReferralCode || hasUsedReferralCode
     }
 
+    var isUnverified: Bool {
+        hasReferralCode && rewards?.status == .unverified && !hasPendingReferral
+    }
+
+    var unverifiedTitle: String {
+        Localized.Rewards.Unverified.title
+    }
+
+    var unverifiedDescription: String {
+        Localized.Rewards.Unverified.description
+    }
+
     var disableReason: String? {
         rewards?.disableReason
     }
 
     var pendingVerificationAfter: Date? {
-        rewards?.referralActivation?.verifyAfter
+        rewards?.verifyAfter
     }
 
     var hasPendingReferral: Bool {

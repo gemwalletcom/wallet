@@ -1,11 +1,10 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.transactions.SaveTransactions
-import com.gemwallet.android.data.service.store.WalletPreferences
+import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.identifier
@@ -14,7 +13,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 
 class SyncTransactionsImpl(
-    private val context: Context,
+    private val walletPreferencesFactory: WalletPreferencesFactory,
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val saveTransactions: SaveTransactions,
     private val prefetchAssets: PrefetchAssets,
@@ -22,7 +21,7 @@ class SyncTransactionsImpl(
 ) : SyncTransactions {
 
     override suspend fun syncTransactions(wallet: Wallet) {
-        val preferences = WalletPreferences(context, wallet.id)
+        val preferences = walletPreferencesFactory.create(wallet.id)
         val transactions = runCatching {
             gemDeviceApiClient.getTransactions(wallet.id, preferences.transactionsTimestamp)?.transactions
         }.getOrNull() ?: return
@@ -33,7 +32,7 @@ class SyncTransactionsImpl(
     }
 
     override suspend fun syncTransactions(wallet: Wallet, assetId: AssetId) {
-        val preferences = WalletPreferences(context, wallet.id)
+        val preferences = walletPreferencesFactory.create(wallet.id)
         val assetId = assetId.identifier
         val timestamp = preferences.transactionsForAssetTimestamp(assetId)
         val transactions = runCatching {

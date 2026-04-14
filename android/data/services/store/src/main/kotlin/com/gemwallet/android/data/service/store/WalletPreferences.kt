@@ -15,6 +15,10 @@ class WalletPreferences(context: Context, walletId: String) {
         get() = store.getLong(KEY_TRANSACTIONS_TIMESTAMP)
         set(value) = store.putLong(KEY_TRANSACTIONS_TIMESTAMP, value)
 
+    var assetsTimestamp: Long
+        get() = store.getLong(KEY_ASSETS_TIMESTAMP)
+        set(value) = store.putLong(KEY_ASSETS_TIMESTAMP, value)
+
     fun transactionsForAssetTimestamp(assetId: String): Long {
         return store.getLong(KEY_TRANSACTIONS_FOR_ASSET, postfix = assetId)
     }
@@ -28,6 +32,7 @@ class WalletPreferences(context: Context, walletId: String) {
     }
 
     companion object {
+        private const val KEY_ASSETS_TIMESTAMP = "assets_timestamp"
         private const val KEY_TRANSACTIONS_TIMESTAMP = "transactions_timestamp"
         private const val KEY_TRANSACTIONS_FOR_ASSET = "transactions_for_asset"
     }
