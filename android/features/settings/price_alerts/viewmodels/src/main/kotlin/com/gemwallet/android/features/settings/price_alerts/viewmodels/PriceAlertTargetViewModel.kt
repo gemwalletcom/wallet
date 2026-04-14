@@ -34,8 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.priceAlertPercentageSuggestions
-import uniffi.gemstone.priceAlertRoundedValues
+import uniffi.gemstone.PriceAlertFormatter
 import java.math.BigDecimal
 import javax.inject.Inject
 
@@ -47,6 +46,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    private val priceAlertFormatter = PriceAlertFormatter()
     private val suggestionOffsetPercent = 5.0
 
     val value = TextFieldState()
@@ -84,14 +84,14 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val priceSuggestions: StateFlow<List<Pair<String, String>>> = combine(currentPriceValue, currency) { price, currency ->
         if (price <= 0.0) return@combine emptyList()
-        priceAlertRoundedValues(price, suggestionOffsetPercent).map { value ->
+        priceAlertFormatter.roundedValues(price, suggestionOffsetPercent).map { value ->
             val formatted = currency.format(BigDecimal.valueOf(value), dynamicPlace = true)
             formatted to value.toBigDecimal().stripTrailingZeros().toPlainString()
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val percentageSuggestions: StateFlow<List<Int>> = currentPriceValue.map { price ->
-        priceAlertPercentageSuggestions(price).map { it.toInt() }
+        priceAlertFormatter.percentageSuggestions(price).map { it.toInt() }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf(5, 10, 15))
 
     val error: StateFlow<PriceAlertTargetError?> = snapshotFlow { value.text }.map {

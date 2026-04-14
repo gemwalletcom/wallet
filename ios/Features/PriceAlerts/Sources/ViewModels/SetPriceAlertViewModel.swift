@@ -20,6 +20,7 @@ public final class SetPriceAlertViewModel {
     private let onComplete: StringAction
     private let preferences = Preferences.standard
     private let currencyFormatter = CurrencyFormatter(currencyCode: Preferences.standard.currency)
+    private let priceAlertFormatter = PriceAlertFormatter()
     private let suggestionOffsetPercent: Double = 5
 
     var state: SetPriceAlertViewModelState
@@ -43,14 +44,14 @@ public final class SetPriceAlertViewModel {
 
     func percentageSuggestions(for price: Price?) -> [PercentageSuggestion] {
         guard let currentPrice = price?.price else { return [] }
-        return Gemstone.priceAlertPercentageSuggestions(price: currentPrice).map {
+        return priceAlertFormatter.percentageSuggestions(price: currentPrice).map {
             PercentageSuggestion(value: $0.asInt)
         }
     }
 
     func priceSuggestions(for price: Price?) -> [PriceSuggestion] {
         guard let currentPrice = price?.price else { return [] }
-        return Gemstone.priceAlertRoundedValues(price: currentPrice, byPercent: suggestionOffsetPercent).map {
+        return priceAlertFormatter.roundedValues(price: currentPrice, byPercent: suggestionOffsetPercent).map {
             PriceSuggestion(
                 title: currencyFormatter.string($0),
                 value: $0,
