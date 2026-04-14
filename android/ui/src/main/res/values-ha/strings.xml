@@ -584,6 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">Duba ma\'aunin ku da ayyukan ku</string>
   <string name="wallet_connect.permissions.approval_requests">Aika buƙatun amincewa</string>
   <string name="wallet.import.already_imported_message">An riga an shigo da wannan walat ɗin</string>
-  <string name="rewards.unverified.title">Rewards not active yet.</string>
-  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards.unverified.title">Ladabi bai yi aiki ba tukuna.</string>
+  <string name="rewards.unverified.description">Lada yana kunna ta atomatik yayin da kake amfani da app ɗin sosai.</string>
 </resources>

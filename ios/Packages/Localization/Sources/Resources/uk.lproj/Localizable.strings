@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Перегляд вашого балансу та активності";
 "wallet_connect.permissions.approval_requests" = "Надсилати запити на схвалення";
 "wallet.import.already_imported_message" = "Цей гаманець вже імпортовано";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "Нагороди ще не активні.";
+"rewards.unverified.description" = "Винагороди активуються автоматично, коли ви більше користуєтеся додатком.";

@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Vizualizați soldul și activitatea dvs.";
 "wallet_connect.permissions.approval_requests" = "Trimiteți cereri de aprobare";
 "wallet.import.already_imported_message" = "Acest portofel a fost deja importat";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "Recompensele nu sunt încă active.";
+"rewards.unverified.description" = "Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.";

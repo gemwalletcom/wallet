@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Xem số dư và hoạt động của bạn";
 "wallet_connect.permissions.approval_requests" = "Gửi yêu cầu phê duyệt";
 "wallet.import.already_imported_message" = "Ví này đã được nhập khẩu.";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "Phần thưởng chưa được kích hoạt.";
+"rewards.unverified.description" = "Phần thưởng sẽ tự động được kích hoạt khi bạn sử dụng ứng dụng nhiều hơn.";

@@ -584,6 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">查看您的餘額和活動</string>
   <string name="wallet_connect.permissions.approval_requests">發送審批請求</string>
   <string name="wallet.import.already_imported_message">這個錢包已經進口了。</string>
-  <string name="rewards.unverified.title">Rewards not active yet.</string>
-  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards.unverified.title">獎勵尚未激活。</string>
+  <string name="rewards.unverified.description">您使用應用程式的次數越多，獎勵就會自動啟動。</string>
 </resources>

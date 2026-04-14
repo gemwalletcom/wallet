@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "مشاهده موجودی و فعالیت خود";
 "wallet_connect.permissions.approval_requests" = "ارسال درخواست‌های تأیید";
 "wallet.import.already_imported_message" = "این کیف پول قبلاً وارد شده است";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "هنوز بخش جوایز فعال نشده است.";
+"rewards.unverified.description" = "با استفاده بیشتر از برنامه، جوایز به طور خودکار فعال می‌شوند.";

@@ -584,6 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
   <string name="wallet_connect.permissions.approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
   <string name="wallet.import.already_imported_message">یہ پرس پہلے ہی درآمد کیا جا چکا ہے۔</string>
-  <string name="rewards.unverified.title">Rewards not active yet.</string>
-  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards.unverified.title">انعامات ابھی فعال نہیں ہیں۔</string>
+  <string name="rewards.unverified.description">جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔</string>
 </resources>

@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Lihat saldo dan aktivitas Anda";
 "wallet_connect.permissions.approval_requests" = "Kirim permintaan persetujuan";
 "wallet.import.already_imported_message" = "Dompet ini sudah diimpor.";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "Hadiah belum aktif.";
+"rewards.unverified.description" = "Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.";

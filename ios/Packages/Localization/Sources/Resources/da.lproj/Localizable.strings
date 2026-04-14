@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Se din saldo og aktivitet";
 "wallet_connect.permissions.approval_requests" = "Send godkendelsesanmodninger";
 "wallet.import.already_imported_message" = "Denne tegnebog er allerede blevet importeret";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "Belønninger er endnu ikke aktive.";
+"rewards.unverified.description" = "Belønninger aktiveres automatisk, når du bruger appen mere.";

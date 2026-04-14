@@ -584,6 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">Tazama salio na shughuli zako</string>
   <string name="wallet_connect.permissions.approval_requests">Tuma maombi ya idhini</string>
   <string name="wallet.import.already_imported_message">Pochi hii tayari imeingizwa</string>
-  <string name="rewards.unverified.title">Rewards not active yet.</string>
-  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards.unverified.title">Zawadi hazijaanza kutumika bado.</string>
+  <string name="rewards.unverified.description">Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.</string>
 </resources>

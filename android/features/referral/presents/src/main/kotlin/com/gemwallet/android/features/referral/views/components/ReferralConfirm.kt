@@ -35,7 +35,6 @@ import com.wallet.core.primitives.Rewards
 
 internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: RewardsUIState, onConfirm: (String) -> Unit) {
     val code = rewards.usedReferralCode ?: return
-    if (!uiState.hasPendingReferral) return
     val pendingDate = rewards.verifyAfter ?: return
     item {
         Column(

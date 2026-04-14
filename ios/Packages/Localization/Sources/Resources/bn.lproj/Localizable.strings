@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন";
 "wallet_connect.permissions.approval_requests" = "অনুমোদনের অনুরোধ পাঠান";
 "wallet.import.already_imported_message" = "এই ওয়ালেটটি ইতিমধ্যে আমদানি করা হয়েছে।";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "পুরস্কারগুলো এখনও সক্রিয় হয়নি।";
+"rewards.unverified.description" = "আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।";

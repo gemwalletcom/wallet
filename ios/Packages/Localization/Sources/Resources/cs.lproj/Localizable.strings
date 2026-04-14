@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "Zobrazení zůstatku a aktivity";
 "wallet_connect.permissions.approval_requests" = "Odeslat žádosti o schválení";
 "wallet.import.already_imported_message" = "Tato peněženka již byla importována";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "Odměny zatím nejsou aktivní.";
+"rewards.unverified.description" = "Odměny se aktivují automaticky, jakmile aplikaci používáte více.";

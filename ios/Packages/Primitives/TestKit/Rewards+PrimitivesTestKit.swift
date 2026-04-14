@@ -6,7 +6,6 @@ import Primitives
 public extension Rewards {
     static func mock(
         code: String? = "test123",
-        inviteRewardPoints: Int32 = 100,
         referralCount: Int32 = 5,
         points: Int32 = 0,
         usedReferralCode: String? = nil,

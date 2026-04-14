@@ -563,5 +563,5 @@
 "wallet_connect.permissions.view_balance" = "اپنا توازن اور سرگرمی دیکھیں";
 "wallet_connect.permissions.approval_requests" = "منظوری کی درخواستیں بھیجیں۔";
 "wallet.import.already_imported_message" = "یہ پرس پہلے ہی درآمد کیا جا چکا ہے۔";
-"rewards.unverified.title" = "Rewards not active yet.";
-"rewards.unverified.description" = "Rewards activate automatically as you use the app more.";
+"rewards.unverified.title" = "انعامات ابھی فعال نہیں ہیں۔";
+"rewards.unverified.description" = "جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔";

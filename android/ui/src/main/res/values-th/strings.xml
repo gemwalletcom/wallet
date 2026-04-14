@@ -584,6 +584,6 @@
   <string name="wallet_connect.permissions.view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
   <string name="wallet_connect.permissions.approval_requests">ส่งคำขออนุมัติ</string>
   <string name="wallet.import.already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
-  <string name="rewards.unverified.title">Rewards not active yet.</string>
-  <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
+  <string name="rewards.unverified.title">ระบบรางวัลยังไม่เปิดใช้งาน</string>
+  <string name="rewards.unverified.description">รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น</string>
 </resources>
