@@ -1,41 +1,48 @@
-# Reproducible builds
+# Reproducible Builds
 
-This folder contains the tooling to rebuild tagged releases inside Docker and compare them to published APKs.
+Gem Wallet Android uses [Nix](https://nixos.org/) to provide a hermetic, cross-platform build environment. Anyone can rebuild a tagged release and verify the output matches the published APK.
 
-## Principle
-- Build from `/android` using the Android-local `Dockerfile` and `reproducible/Dockerfile`, while cloning the monorepo and building from `/root/wallet/android` inside the container.
-- Base image publishing is done by the `Publish Base Image` workflow to build/push `ghcr.io/gemwalletcom/gem-android-base:<base-tag>` (where `<base-tag>` lives in `reproducible/base_image_tag.txt`), for `linux/amd64` and `linux/arm64`.
-- Verification defaults to `ghcr.io/gemwalletcom/gem-android-base:<base-tag>` and runs on `linux/amd64` (override with `VERIFY_DOCKER_PLATFORM` if you must).
-- Require `local.properties` for GitHub packages; use the same base image used for releases.
-- Strip signing artifacts, patch map-id when present, then copy the official signing block onto the rebuilt APK with [apksigcopier](https://github.com/obfusk/apksigcopier) to confirm payload identity without exposing keys.
-- Keep outputs under `artifacts/reproducible/<tag>/` and only run diffoscope if hashes still differ after signature copy.
+## How it works
 
-## Prerequisites
-- Docker
-- unzip, curl
-- uv for tool installs, plus `apksigcopier` and `diffoscope`: `uv tool install apksigcopier diffoscope`
-- Android SDK build-tools `dexdump` for `diff_dexdump.py` (e.g., `${ANDROID_HOME}/build-tools/<ver>/dexdump`)
-- Tooling snapshot: Gradle wrapper 9.2.1, AGP 9.0.0, Kotlin/KSP from `gradle/libs.versions.toml`; R8 is the AGP-bundled version (AGP still does not expose a public map-id seed/template flag).
+`shell.nix` at the repo root pins every build dependency to exact versions via a locked nixpkgs commit:
 
-## Step-by-step verification
-1) Auth + credentials:
-   - Ensure `local.properties` has GitHub package creds (e.g., `gpr.username`, `gpr.token`) and obtain the official APK path (or URL for CI).
-   - Use the same token to log in to GHCR so the base image pull succeeds (otherwise it will rebuild locally). Example using `gpr.token` from `local.properties`:
-     ```bash
-     grep gpr.token ../local.properties | cut -d'=' -f2- | docker login ghcr.io -u "$(grep gpr.username ../local.properties | cut -d'=' -f2-)" --password-stdin
-     ```
-     Or, with an exported token: `echo <github-token> | docker login ghcr.io -u <github-username> --password-stdin` (token needs `read:packages`).
-2) Run: `./verify_apk.py <git-tag-or-branch> <path-to-official-apk> [--stage all|build|diff]`. Outputs: `official.apk`, `rebuilt.apk`, `r8_patched.apk` (when needed), `rebuilt_signed.apk`, `diffoscope.html` under `artifacts/reproducible/<tag>/`.
-3) CI: trigger the `Verify APK` workflow dispatch (`.github/workflows/android-verify-apk.yml`) with `tag`, `official_apk_url`, optional `stage`, and optional `base_image_tag`; artifacts upload mirrors local outputs. If `base_image_tag` is empty, the workflow reads `reproducible/base_image_tag.txt`.
-4) `verify_apk.py` will `docker pull` the base image by default (set `VERIFY_PULL_BASE=false` to skip). It then reuses a local image or builds if the pull fails.
-5) Optional manual map-id patch: `./fix_pg_map_id.py <apk-in> <apk-out> <pg-map-id>`.
-6) Optional dexdump diff: `./diff_dexdump.py <official-apk> <rebuilt-apk> [--out-dir DIR] [--dexdump PATH] [--tag TAG]` to write per-dex dumps/diffs (defaults to `artifacts/reproducible/<tag>/dexdump` when `--tag` is provided).
+- **JDK**: Temurin 17
+- **Android SDK**: platform 36, build-tools 36.0.0, NDK 28.1.13356709
+- **Rust**: via rustup, with `cargo-ndk` for Android cross-compilation
+- **Gradle**: pinned via the wrapper (`gradle-wrapper.properties`)
+- **R8 map-id**: overridden with `-renamesourcefileattribute SourceFile` in ProGuard rules to eliminate non-deterministic DEX output
 
-## Known issues
-- AGP 9.0.0 (bundled R8) still does not provide a public DSL/property to set deterministic map-id values for release builds; we patch via `fix_pg_map_id.py` and confirm payload identity by copying the official signing block (apksigcopier).
-- `R8_MAP_ID_SEED` is kept as reproducible tooling input, but AGP 9.0.0 does not currently wire it to a supported map-id flag.
+## Current status
 
-## Path forward
-1) Track AGP/R8 support for deterministic map-id configuration (seed/template/fixed id) through public APIs.
-2) Wire deterministic map-id into release builds once AGP exposes it.
-3) Re-run `./verify_apk.py <tag> <apk>` and confirm hashes match without signature copying.
+- [x] `shell.nix` with pinned nixpkgs, JDK, Android SDK, NDK, Rust, cargo-ndk, just
+- [x] `-renamesourcefileattribute SourceFile` in ProGuard rules
+- [x] Nix CI job (`.github/workflows/android-nix.yml`) builds on `ubuntu-latest`
+- [x] Verified: clean build of tagged release succeeds inside `nix-shell`
+- [x] End-to-end APK comparison — `verify.sh` script added
+- [x] Byte-identical builds confirmed (two independent builds from same tag produce identical APKs)
+- [ ] Cross-platform verification tested (Linux x86_64, Linux aarch64, macOS arm64)
+- [ ] Release builds via Nix in CI (release repo prepared, pending first tagged release)
+
+## Quick start
+
+```bash
+# Install Nix (one-time)
+curl -L https://nixos.org/nix/install | sh -s -- --daemon
+
+# Clone and build
+git clone --recurse-submodules --branch <tag> https://github.com/gemwalletcom/wallet.git
+cd wallet
+touch android/local.properties
+nix-shell shell.nix --run "cd android && ./gradlew assembleGoogleDebug"
+```
+
+## Updating the pinned toolchain
+
+1. Pick a commit from [nixpkgs nixos-unstable](https://github.com/NixOS/nixpkgs/commits/nixos-unstable)
+2. Run: `nix-prefetch-url --unpack https://github.com/NixOS/nixpkgs/archive/<commit>.tar.gz`
+3. Update `url` and `sha256` in `shell.nix`
+
+## Next steps
+
+1. Test cross-platform: confirm identical output on Linux x86_64 and macOS arm64
+2. Integrate verification into CI as an optional workflow dispatch
