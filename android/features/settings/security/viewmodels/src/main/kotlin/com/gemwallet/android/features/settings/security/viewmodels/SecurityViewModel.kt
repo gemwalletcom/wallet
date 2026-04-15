@@ -34,7 +34,7 @@ class SecurityViewModel @Inject constructor(
     }
 
     fun setHideBalances() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             userConfig.hideBalances()
         }
     }

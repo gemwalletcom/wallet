@@ -2,6 +2,8 @@ package com.gemwallet.android.features.settings.develop.presents
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -19,6 +21,7 @@ fun DevelopScene(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
+    val pushToken by viewModel.pushToken.collectAsState()
     Scene(
         title = stringResource(id = R.string.settings_developer),
         onClose = onCancel,
@@ -37,8 +40,8 @@ fun DevelopScene(
                 PropertyItem("Device Id", data = viewModel.getDeviceId()) {
                     clipboardManager.setPlainText(context, viewModel.getDeviceId())
                 }
-                PropertyItem("Push token", data = viewModel.getPushToken().let { it.takeIf { it.isNotEmpty() } ?: "-" }) {
-                    clipboardManager.setPlainText(context, viewModel.getPushToken())
+                PropertyItem("Push token", data = pushToken.ifEmpty { "-" }) {
+                    clipboardManager.setPlainText(context, pushToken)
                 }
                 PropertyItem("Store", data = viewModel.platformStore.string) {
                     clipboardManager.setPlainText(context, viewModel.platformStore.string)
