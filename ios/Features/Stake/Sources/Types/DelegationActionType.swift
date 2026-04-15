@@ -6,4 +6,5 @@ public enum DelegationActionType: Hashable, Identifiable {
     case stake, unstake, redelegate
     case deposit
     case withdraw
+    case claimRewards
 }

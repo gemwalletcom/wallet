@@ -68,12 +68,17 @@ extension StakeScene {
                 }
             }
 
-            if model.canClaimRewards {
-                NavigationLink(value: model.claimRewardsDestination) {
-                    ListItemView(
-                        title: model.claimRewardsTitle,
-                        subtitle: model.claimRewardsText,
-                    )
+            if model.showRewards {
+                let rewardsItem = ListItemView(
+                    title: model.rewardsTitle,
+                    subtitle: model.claimRewardsText,
+                )
+                if model.canClaimAllRewards {
+                    NavigationLink(value: model.claimRewardsDestination) {
+                        rewardsItem
+                    }
+                } else {
+                    rewardsItem
                 }
             }
         }

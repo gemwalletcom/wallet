@@ -10,6 +10,7 @@ import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
+import com.gemwallet.android.ext.claimAllAvailable
 import com.gemwallet.android.ext.claimed
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
@@ -100,7 +101,17 @@ class StakeViewModel @Inject constructor(
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
                 .takeIf { assetInfo.chain.claimed && rewardsBalance > BigInteger.ZERO }
-                ?.let { StakeAction.Rewards(assetInfo.asset.format(Crypto(rewardsBalance))) },
+                ?.let {
+                    StakeAction.Rewards(
+                        data = assetInfo.asset.format(
+                            crypto = Crypto(rewardsBalance),
+                            decimalPlace = 2,
+                            maxDecimals = assetInfo.asset.decimals,
+                            dynamicPlace = true,
+                        ),
+                        claimable = assetInfo.chain.claimAllAvailable,
+                    )
+                },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

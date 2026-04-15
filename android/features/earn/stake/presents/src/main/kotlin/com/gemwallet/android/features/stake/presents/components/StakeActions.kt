@@ -27,12 +27,20 @@ internal fun LazyListScope.stakeActions(
     }
     itemsPositioned(actions) { position, item ->
         val title = when (item) {
-            is StakeAction.Rewards -> R.string.transfer_rewards_title
+            is StakeAction.Rewards -> if (item.claimable) R.string.transfer_claim_rewards_title else R.string.transfer_rewards_title
             StakeAction.Stake -> R.string.transfer_stake_title
             StakeAction.Freeze -> R.string.transfer_freeze_title
             StakeAction.Unfreeze -> R.string.transfer_unfreeze_title
         }
-        val onClick = when(item) {
+        if (item is StakeAction.Rewards && !item.claimable) {
+            PropertyItem(
+                title = { PropertyTitleText(text = title) },
+                data = { PropertyDataText(text = item.data ?: "") },
+                listPosition = position,
+            )
+            return@itemsPositioned
+        }
+        val onClick = when (item) {
             StakeAction.Stake,
             StakeAction.Freeze,
             StakeAction.Unfreeze -> {

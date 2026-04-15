@@ -22,6 +22,7 @@
         android:name="com.gemwallet.android.App"
         android:exported="true"
         tools:node="merge"
+        tools:replace="android:dataExtractionRules"
         >
         <activity
             android:name="com.gemwallet.android.MainActivity"

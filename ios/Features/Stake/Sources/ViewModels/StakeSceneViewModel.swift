@@ -58,7 +58,7 @@ public final class StakeSceneViewModel {
     var title: String { Localized.Transfer.Stake.title }
 
     var stakeTitle: String { Localized.Transfer.Stake.title }
-    var claimRewardsTitle: String { Localized.Transfer.ClaimRewards.title }
+    var rewardsTitle: String { canClaimAllRewards ? Localized.Transfer.ClaimRewards.title : Localized.Stake.rewards }
     var delegationsTitle: String { Localized.Stake.delegations }
 
     var stakeAprModel: AprViewModel {
@@ -150,8 +150,12 @@ public final class StakeSceneViewModel {
         formatter.string(rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
-    var canClaimRewards: Bool {
+    var showRewards: Bool {
         chain.supportClaimRewards && rewardsValue > 0
+    }
+
+    var canClaimAllRewards: Bool {
+        chain.supportClaimAllRewards && rewardsValue > 0
     }
 
     var claimRewardsDestination: any Hashable {

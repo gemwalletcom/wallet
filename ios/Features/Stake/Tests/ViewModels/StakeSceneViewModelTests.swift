@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import Primitives
 import PrimitivesTestKit
 import StakeService
@@ -44,5 +45,23 @@ struct StakeSceneViewModelTests {
         model.validatorsQuery.value = [.mock(.cosmos, id: "other"), .mock(.cosmos, id: recommendedId)]
 
         #expect(model.recommendedCurrentValidator?.id == recommendedId)
+    }
+
+    @Test
+    func rewardsState() {
+        let rewards = [Delegation.mock(base: .mock(state: .active, rewards: "100"))]
+
+        let monad = StakeSceneViewModel.mock(chain: .monad)
+        monad.delegationsQuery.value = rewards
+
+        #expect(monad.showRewards == true)
+        #expect(monad.rewardsTitle == Localized.Stake.rewards)
+
+        let cosmos = StakeSceneViewModel.mock(chain: .cosmos)
+        cosmos.delegationsQuery.value = rewards
+
+        #expect(cosmos.showRewards == true)
+        #expect(cosmos.rewardsTitle == Localized.Transfer.ClaimRewards.title)
+        #expect(StakeSceneViewModel.mock(chain: .cosmos).showRewards == false)
     }
 }
