@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.di
 import android.content.Context
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
-import com.gemwallet.android.application.fiat.coordinators.AddBuyRecent
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
@@ -13,7 +12,6 @@ import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
-import com.gemwallet.android.data.coordinators.fiat.AddBuyRecentImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
@@ -157,11 +155,4 @@ object FiatModule {
         return GetBuyQuoteUrlImpl(gemDeviceApiClient)
     }
 
-    @Provides
-    @Singleton
-    fun provideAddBuyRecent(
-        assetsRepository: AssetsRepository,
-    ): AddBuyRecent {
-        return AddBuyRecentImpl(assetsRepository)
-    }
 }

@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.assetType
@@ -20,6 +23,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAsset
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
@@ -45,6 +49,7 @@ import kotlinx.coroutines.launch
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
     private val getRecentAssets: GetRecentAssets,
+    private val updateRecentAsset: UpdateRecentAsset,
     private val switchAssetVisibility: SwitchAssetVisibility,
     private val toggleAssetPin: ToggleAssetPin,
     private val searchTokensCase: SearchTokensCase,
@@ -136,26 +141,17 @@ open class BaseAssetSelectViewModel(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
 
-    val recent = filters.flatMapLatest { filters ->
-        val type = getRecentType()
-        if (filters?.query?.isEmpty() != true || type == null) {
-            return@flatMapLatest flow { emit(emptyList()) }
-        }
-        val chainFilter = filters.chainFilter
-        val balanceFilter = filters.hasBalance
-        val hasChainFilter = chainFilter.isNotEmpty()
-
-        getRecentAssets(RecentType.entries).map { items ->
-            items.filter {
-                (!hasChainFilter || chainFilter.contains(it.id().chain))
-                        && (!balanceFilter || it.balance.totalAmount > 0.0)
+    val recent = snapshotFlow { queryState.text.toString() }
+        .flatMapLatest { query ->
+            if (query.isNotEmpty() || !showRecents) {
+                flow<List<Asset>> { emit(emptyList()) }
+            } else {
+                getRecentAssets(RecentAssetsRequest(filters = assetFilters()))
             }
         }
-        .map { items -> search.filter(items) }
-    }
-    .map { items -> items.map { AssetInfoUIModel(it) }.toImmutableList() }
+    .map { it.toImmutableList() }
     .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
+    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
     val uiState = assets.combine(searchState) { assets, searchState ->
         when {
@@ -227,5 +223,12 @@ open class BaseAssetSelectViewModel(
         searchState.update { SearchState.Idle }
     }
 
-    open fun getRecentType(): RecentType? = RecentType.Receive
+    fun updateRecent(assetId: AssetId, type: RecentType) = viewModelScope.launch(Dispatchers.IO) {
+        val walletId = session.value?.wallet?.id ?: return@launch
+        updateRecentAsset(assetId, walletId, type)
+    }
+
+    open val showRecents: Boolean get() = true
+
+    open fun assetFilters(): Set<AssetFilter> = emptySet()
 }

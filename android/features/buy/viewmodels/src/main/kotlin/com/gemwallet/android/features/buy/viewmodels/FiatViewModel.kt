@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.coordinators.AddBuyRecent
 import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
@@ -57,7 +56,6 @@ private data class QuoteRefreshTrigger(
 class FiatViewModel @Inject constructor(
     private val getBuyQuotes: GetBuyQuotes,
     private val getBuyQuoteUrl: GetBuyQuoteUrl,
-    private val addBuyRecent: AddBuyRecent,
     getBuyAssetInfo: GetBuyAssetInfo,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -232,7 +230,6 @@ class FiatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val data = assetData.value ?: return@launch callback(null)
             val quoteId = currentSelectedQuote.value?.id ?: return@launch callback(null)
-            addBuyRecent(data.asset.id, data.walletId.id)
             val url = getBuyQuoteUrl(quoteId = quoteId, walletId = data.walletId)
             callback(url)
         }

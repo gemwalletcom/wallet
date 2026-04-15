@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.swap.GetSwapSupported
 import com.gemwallet.android.model.hasAvailable
@@ -16,7 +18,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
@@ -47,6 +48,7 @@ import javax.inject.Inject
 class SwapSelectViewModel @Inject constructor(
     getSession: GetSession,
     getRecentAssets: GetRecentAssets,
+    updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     toggleAssetPin: ToggleAssetPin,
     assetsRepository: AssetsRepository,
@@ -56,6 +58,7 @@ class SwapSelectViewModel @Inject constructor(
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
     getRecentAssets = getRecentAssets,
+    updateRecentAsset = updateRecentAsset,
     switchAssetVisibility = switchAssetVisibility,
     toggleAssetPin = toggleAssetPin,
     searchTokensCase = searchTokensCase,
@@ -94,7 +97,7 @@ class SwapSelectViewModel @Inject constructor(
         }
     }
 
-    override fun getRecentType(): RecentType? = null// TODO: Change to RecentType.Swap later. Now just collect data for user
+    override fun assetFilters() = setOf(AssetFilter.Swappable)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
