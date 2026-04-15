@@ -3,7 +3,6 @@ package com.gemwallet.android.features.update_app.presents
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.provider.Settings
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,13 +34,16 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.update_app.viewmodels.DownloadState
-import com.gemwallet.android.features.update_app.viewmodels.InAppUpdateViewModels
+import com.gemwallet.android.features.update_app.viewmodels.InAppUpdateViewModel
+import com.gemwallet.android.model.AppUpdateInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
-import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.mainActionHeight
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space2
 import kotlin.math.roundToInt
@@ -50,40 +51,42 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InAppUpdateBanner() {
-    val viewModel: InAppUpdateViewModels = hiltViewModel()
+    val viewModel: InAppUpdateViewModel = hiltViewModel()
 
     val updateAvailable by viewModel.updateAvailable.collectAsStateWithLifecycle()
     val state by viewModel.downloadState.collectAsStateWithLifecycle()
 
-    var requestInstallPermissions = remember { mutableStateOf(false) }
     var isShowContextMenu by remember { mutableStateOf(false) }
 
-    if (updateAvailable == null) {
-        return
-    }
+    val update = updateAvailable ?: return
+    if (state == DownloadState.Success) return
+    val canDismiss = !update.isRequired
 
-    val action = remember {
-        fun() {
-            when (state) {
-                DownloadState.Error,
-                DownloadState.Success,
-                DownloadState.Canceled,
-                DownloadState.Idle -> requestInstallPermissions.value = !viewModel.update()
+    val action = {
+        when (state) {
+            DownloadState.Error,
+            DownloadState.Success,
+            DownloadState.Canceled,
+            DownloadState.PermissionRequired,
+            DownloadState.Idle -> viewModel.update()
 
-                DownloadState.Preparing,
-                is DownloadState.Progress -> viewModel.cancel()
+            DownloadState.Preparing,
+            is DownloadState.Progress -> {
+                if (canDismiss) viewModel.cancel()
             }
         }
     }
 
     DropDownContextItem(
+        modifier = Modifier.listItem(ListPosition.Single),
         isExpanded = isShowContextMenu,
         onDismiss = { isShowContextMenu = false },
-        content = {
+        content = { modifier ->
             UpdateInfo(
-                state,
-                updateAvailable,
-                action,
+                modifier = modifier,
+                state = state,
+                updateAvailable = update,
+                onAction = action,
             )
         },
         menuItems = {
@@ -91,132 +94,142 @@ fun InAppUpdateBanner() {
                 DownloadState.Idle,
                 DownloadState.Error,
                 DownloadState.Canceled,
+                DownloadState.PermissionRequired,
                 DownloadState.Success -> {
                     DropdownMenuItem(
                         text = { Text(text = stringResource(id = R.string.update_app_action)) },
                         onClick = {
                             isShowContextMenu = false
-                            requestInstallPermissions.value = !viewModel.update()
+                            viewModel.update()
                         },
                     )
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(R.string.common_skip)) },
-                        onClick = {
-                            isShowContextMenu = false
-                            viewModel.skip()
-                        },
-                    )
+                    if (canDismiss) {
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(R.string.common_skip)) },
+                            onClick = {
+                                isShowContextMenu = false
+                                viewModel.skip()
+                            },
+                        )
+                    }
                 }
                 DownloadState.Preparing,
                 is DownloadState.Progress -> {
-                    DropdownMenuItem(
-                        text = { Text(text = stringResource(id = R.string.common_cancel)) },
-                        onClick = {
-                            isShowContextMenu = false
-                            viewModel.cancel()
-                        },
-                    )
+                    if (canDismiss) {
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(id = R.string.common_cancel)) },
+                            onClick = {
+                                isShowContextMenu = false
+                                viewModel.cancel()
+                            },
+                        )
+                    }
                 }
             }
         },
         onLongClick = { isShowContextMenu = true },
         onClick = action,
     )
-    RequestInstallPermissions(requestInstallPermissions)
+    RequestInstallPermissions(
+        isVisible = state == DownloadState.PermissionRequired,
+        onDismiss = viewModel::dismissPermissionPrompt,
+    )
 }
 
 @Composable
 private fun UpdateInfo(
+    modifier: Modifier = Modifier,
     state: DownloadState,
-    updateAvailable: String?,
-    onAction: () -> Unit
+    updateAvailable: AppUpdateInfo,
+    onAction: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
+    Row(
+        modifier = modifier
             .fillMaxWidth()
-            .height(ListItemDefaults.defaultMinHeight)
             .defaultPadding(),
-        verticalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(
-                    text = stringResource(R.string.update_app_title)
-                )
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = updateAvailable ?: "",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-            }
-
-            state.let { state ->
-                when (state) {
-                    DownloadState.Error,
-                    DownloadState.Success,
-                    DownloadState.Canceled,
-                    DownloadState.Idle -> TextButton(
-                        onClick = onAction,
-                        contentPadding = PaddingValues(space0)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.update_app_action))
-                            Spacer4()
-                            Icon(Icons.Default.ArrowCircleDown, "Update application", tint = MaterialTheme.colorScheme.primary)
-                        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = stringResource(R.string.update_app_title))
+            Text(
+                text = if (state is DownloadState.Error) {
+                    "${updateAvailable.version} · ${stringResource(R.string.common_try_again)}"
+                } else {
+                    updateAvailable.version
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (state is DownloadState.Error) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.secondary
+                },
+            )
+        }
+        Box(
+            modifier = Modifier.height(mainActionHeight),
+            contentAlignment = Alignment.Center,
+        ) {
+            when (state) {
+                DownloadState.Error,
+                DownloadState.Success,
+                DownloadState.Canceled,
+                DownloadState.PermissionRequired,
+                DownloadState.Idle -> TextButton(
+                    onClick = onAction,
+                    contentPadding = PaddingValues(space0),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.update_app_action))
+                        Spacer4()
+                        Icon(Icons.Default.ArrowCircleDown, "Update application", tint = MaterialTheme.colorScheme.primary)
                     }
-                    DownloadState.Preparing -> CircularProgressIndicator(
-                        modifier = Modifier.size(iconSize),
-                        strokeWidth = space2,
-                    )
-                    is DownloadState.Progress -> Box {
-                        if (state.value < 0f) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(iconSize),
-                                strokeWidth = space2,
-                            )
-                        } else {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(iconSize),
-                                strokeWidth = space2,
-                                progress = { state.value },
-                            )
-                            Text(
-                                modifier = Modifier.align(Alignment.Center),
-                                text = "${(state.value * 100).roundToInt()}%",
-                                style = MaterialTheme.typography.labelSmall,
-                            )
-                        }
+                }
+                DownloadState.Preparing -> CircularProgressIndicator(
+                    modifier = Modifier.size(iconSize),
+                    strokeWidth = space2,
+                )
+                is DownloadState.Progress -> Box {
+                    val fraction = state.fraction
+                    if (fraction == null) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(iconSize),
+                            strokeWidth = space2,
+                        )
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(iconSize),
+                            strokeWidth = space2,
+                            progress = { fraction },
+                        )
+                        Text(
+                            modifier = Modifier.align(Alignment.Center),
+                            text = "${(fraction * 100).roundToInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                        )
                     }
                 }
             }
-        }
-        if (state == DownloadState.Error) {
-            Text(
-                text = stringResource(R.string.errors_error_occured),
-                color = MaterialTheme.colorScheme.error,
-            )
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RequestInstallPermissions(state: MutableState<Boolean>) {
-    if (!state.value) {
+private fun RequestInstallPermissions(
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+) {
+    if (!isVisible) {
         return
     }
     val context = LocalContext.current
     AlertDialog(
-        onDismissRequest = { state.value = false },
+        onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             Button(
                 onClick = {
-                    state.value = false
+                    onDismiss()
                     val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                         data = "package:${context.packageName}".toUri()
                         addFlags(FLAG_ACTIVITY_NEW_TASK)
@@ -228,7 +241,7 @@ private fun RequestInstallPermissions(state: MutableState<Boolean>) {
             }
         },
         dismissButton = {
-            Button(onClick = { state.value = false }) {
+            Button(onClick = onDismiss) {
                 Text(stringResource(R.string.common_cancel))
             }
         },

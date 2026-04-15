@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui
 
+import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.content.Context
 import android.os.Build
 import androidx.activity.compose.LocalActivity
@@ -10,8 +12,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -62,9 +64,10 @@ fun WalletApp(
             )
         },
     )
-    if (state.intent == AppIntent.ShowUpdate) {
+    state.update?.let { update ->
         ShowUpdateDialog(
-            version = state.version,
+            version = update.version,
+            isRequired = update.isRequired,
             onSkip = viewModel::onSkip,
             onCancel = viewModel::onCancelUpdate
         )
@@ -86,39 +89,49 @@ fun WalletApp(
 @Composable
 private fun ShowUpdateDialog(
     version: String,
-    onSkip: (String) -> Unit,
+    isRequired: Boolean,
+    onSkip: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    if (fromGooglePlay(LocalContext.current)) {
+    val context = LocalContext.current
+    val isPlayStoreInstall = fromGooglePlay(context)
+
+    if (isPlayStoreInstall && !isRequired) {
         return
     }
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
+
     AlertDialog(
-        onDismissRequest = onCancel,
+        onDismissRequest = {
+            if (!isRequired) {
+                onCancel()
+            }
+        },
         confirmButton = {
             TextButton(onClick = {
-                onCancel()
-                uriHandler.open(
-                    context,
-                    updateUrl(
-                        flavor = BuildConfig.FLAVOR,
-                        version = version,
-                        fallbackUrl = BuildConfig.UPDATE_URL,
-                    )
+                openUpdateDestination(
+                    context = context,
+                    version = version,
+                    isPlayStoreInstall = isPlayStoreInstall,
                 )
+                if (!isRequired) {
+                    onCancel()
+                }
             }) {
                 Text(text = stringResource(id = R.string.update_app_action))
             }
         },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onCancel) {
-                    Text(text = stringResource(id = R.string.common_cancel))
-                }
-                Spacer16()
-                TextButton(onClick = { onSkip(version) }) {
-                    Text(text = stringResource(R.string.common_skip))
+        dismissButton = if (isRequired) {
+            null
+        } else {
+            {
+                Row {
+                    TextButton(onClick = onCancel) {
+                        Text(text = stringResource(id = R.string.common_cancel))
+                    }
+                    Spacer16()
+                    TextButton(onClick = onSkip) {
+                        Text(text = stringResource(R.string.common_skip))
+                    }
                 }
             }
         },
@@ -129,6 +142,38 @@ private fun ShowUpdateDialog(
             Text(text = stringResource(id = R.string.update_app_description, version))
         }
     )
+}
+
+private fun openUpdateDestination(
+    context: Context,
+    version: String,
+    isPlayStoreInstall: Boolean,
+) {
+    val urls = if (isPlayStoreInstall) {
+        listOf(
+            "market://details?id=${context.packageName}",
+            BuildConfig.UPDATE_URL,
+        )
+    } else {
+        listOf(
+            updateUrl(
+                flavor = BuildConfig.FLAVOR,
+                version = version,
+                fallbackUrl = BuildConfig.UPDATE_URL,
+            )
+        )
+    }
+
+    for (uri in urls) {
+        val launched = runCatching {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+                    addFlags(FLAG_ACTIVITY_NEW_TASK)
+                }
+            )
+        }.isSuccess
+        if (launched) return
+    }
 }
 
 @Suppress("DEPRECATION")

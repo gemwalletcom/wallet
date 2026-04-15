@@ -363,7 +363,7 @@ class SwapViewModel @Inject constructor(
         }
 
         return ConfirmParams.SwapParams(
-            from = quote.pay.owner!!,
+            from = quote.pay.owner ?: throw SwapError.NoQuote,
             fromAsset = quote.pay.asset,
             toAsset = quote.receive.asset,
             fromAmount = fromAmount,

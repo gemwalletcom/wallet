@@ -1,8 +1,6 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
-import com.gemwallet.android.cases.config.GetLatestVersion
-import com.gemwallet.android.cases.config.SetLatestVersion
 import com.gemwallet.android.data.repositories.config.UserConfig
 import dagger.Module
 import dagger.Provides
@@ -20,13 +18,4 @@ object ConfigModule {
     fun provideConfigRepository(
         @ApplicationContext context: Context,
     ): UserConfig = UserConfig(context = context)
-
-    @Singleton
-    @Provides
-    fun provideGetLatestVersion(userConfig: UserConfig): GetLatestVersion = userConfig
-
-    @Singleton
-    @Provides
-    fun provideSetLatestVersion(userConfig: UserConfig): SetLatestVersion = userConfig
 }
-

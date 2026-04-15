@@ -160,7 +160,7 @@ fun SettingsScene(
                     DropdownMenuItem(
                         text = { Text("Enable develop") },
                         onClick = {
-                            isShowDevelopEnable =  false
+                            isShowDevelopEnable = false
                             viewModel.developEnable()
                         }
                     )

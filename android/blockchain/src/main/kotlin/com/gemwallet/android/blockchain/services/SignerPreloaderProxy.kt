@@ -27,6 +27,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemGasPriceType
@@ -50,18 +52,25 @@ class SignerPreloaderProxy(
         val destination = params.destination()?.address ?: throw java.lang.IllegalArgumentException()
 
         val inputType = params.toDto()
-        val metadata = gateway.getTransactionPreload(
-            chain = gemChain,
-            input = GemTransactionPreloadInput(
-                inputType = inputType,
-                senderAddress = params.from.address,
-                destinationAddress = destination
-            )
-        )
-        val feeRates = gateway.getFeeRates(
-            chain = gemChain,
-            input = inputType
-        )
+        val (metadata, feeRates) = coroutineScope {
+            val metadataDeferred = async {
+                gateway.getTransactionPreload(
+                    chain = gemChain,
+                    input = GemTransactionPreloadInput(
+                        inputType = inputType,
+                        senderAddress = params.from.address,
+                        destinationAddress = destination
+                    )
+                )
+            }
+            val feeRatesDeferred = async {
+                gateway.getFeeRates(
+                    chain = gemChain,
+                    input = inputType
+                )
+            }
+            Pair(metadataDeferred.await(), feeRatesDeferred.await())
+        }
         val validFeeRates = feeRates.filter { it.priority.toFeePriority() != null }
         val selectedRate = validFeeRates.select(feePriority)
         val selectedPriority = requireNotNull(selectedRate.priority.toFeePriority())

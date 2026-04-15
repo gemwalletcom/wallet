@@ -322,6 +322,7 @@ public struct TransactionViewModel: Sendable {
             provider: transaction.transaction.swapProvider,
             hash: transaction.transaction.id.hash,
             recipient: transaction.transaction.to,
+            memo: transaction.transaction.memo,
         )
     }
 

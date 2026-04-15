@@ -55,7 +55,7 @@ public final class DeveloperViewModel {
     }
 
     var deviceToken: String {
-        (try? SecurePreferences().get(key: .deviceToken)) ?? .empty
+        (try? SecurePreferences.standard.get(key: .deviceToken)) ?? .empty
     }
 
     func reset() {

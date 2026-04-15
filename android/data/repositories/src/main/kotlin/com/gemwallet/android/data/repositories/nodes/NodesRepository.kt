@@ -23,7 +23,7 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import com.wallet.core.primitives.NodeState
-import com.wallet.core.primitives.SwapProvider
+import uniffi.gemstone.GemExplorerInput
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -120,18 +120,21 @@ class NodesRepository(
 
     override fun getBlockExplorerInfo(transaction: Transaction): Pair<String, String> {
         val chain = transaction.assetId.chain
-        val swapMetadata = transaction.getSwapMetadata()
-        val provider = swapMetadata?.provider
-        val swapProvider = SwapProvider.entries.firstOrNull { it.string == provider }
-
-        val identifier = when (swapProvider) {
-            SwapProvider.NearIntents -> transaction.to
-            else -> transaction.hash
-        }
+        val provider = transaction.getSwapMetadata()?.provider
 
         val blockExplorerName = getCurrentBlockExplorer(chain)
         val explorer = Explorer(chain.string)
-        val swapExplorerUrl = provider?.let { explorer.getTransactionSwapUrl(blockExplorerName, identifier, provider) }
+        val swapExplorerUrl = provider?.let {
+            explorer.getTransactionSwapUrl(
+                blockExplorerName,
+                GemExplorerInput(
+                    hash = transaction.hash,
+                    recipient = transaction.to,
+                    memo = transaction.memo,
+                ),
+                provider,
+            )
+        }
         val explorerUrl = swapExplorerUrl?.url ?: explorer.getTransactionUrl(blockExplorerName, transaction.hash)
         return Pair(
             explorerUrl,

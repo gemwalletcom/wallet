@@ -29,14 +29,14 @@ class PolkadotGatewayEstimateFee : GemGatewayEstimateFee {
             ?: throw IllegalArgumentException("Incorrect metadata: wait polkadot")
 
         val transactionData = transactionPayload(
-            toAdresss = input.destinationAddress,
+            toAddress = input.destinationAddress,
             value = input.value.toBigInteger(),
             data = metadata,
         )
         return transactionData
     }
 
-    fun transactionPayload(toAdresss: String, value: BigInteger, data: PolkadotChainData): String {
+    fun transactionPayload(toAddress: String, value: BigInteger, data: PolkadotChainData): String {
         val input = Polkadot.SigningInput.newBuilder().apply {
             this.genesisHash = ByteString.copyFrom(data.genesisHash.toByteArray())
             this.blockHash = ByteString.copyFrom(data.blockHash.toByteArray())
@@ -52,7 +52,7 @@ class PolkadotGatewayEstimateFee : GemGatewayEstimateFee {
             }.build()
             this.balanceCall = Polkadot.Balance.newBuilder().apply {
                 transfer = Polkadot.Balance.Transfer.newBuilder().apply {
-                    this.toAddress = toAdresss
+                    this.toAddress = toAddress
                     this.value = ByteString.copyFrom(value.toByteArray())
                     this.setCallIndices(
                         Polkadot.CallIndices.newBuilder().apply {

@@ -23,6 +23,9 @@ struct ScreenRecordingProtectionModifier: ViewModifier {
         .onChange(of: scenePhase) { _, _ in
             updateRecordingState()
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIScreen.capturedDidChangeNotification)) { _ in
+            updateRecordingState()
+        }
         .onAppear {
             updateRecordingState()
         }

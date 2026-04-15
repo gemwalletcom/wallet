@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.clients.algorand
 
 import com.gemwallet.android.blockchain.includeLibs
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
@@ -28,7 +29,7 @@ class TestAlgorandSigner {
     @Test
     fun testAlgorandNativeSign() {
         val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.ALGORAND)
-        val signer = AlgorandSignClient(Chain.Algorand)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(

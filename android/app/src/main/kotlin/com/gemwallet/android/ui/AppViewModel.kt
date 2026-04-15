@@ -8,6 +8,7 @@ import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.model.AppUpdateInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.VersionCheck
@@ -86,13 +87,20 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    fun onSkip(version: String) = viewModelScope.launch {
-        userConfig.setAppVersionSkip(version)
-        state.update { it.copy(intent = AppIntent.None) }
+    fun onSkip() = viewModelScope.launch {
+        val update = state.value.update ?: return@launch
+        if (update.isRequired) {
+            return@launch
+        }
+        userConfig.setAppVersionSkip(update.version)
+        state.update { it.copy(update = null) }
     }
 
     fun onCancelUpdate() {
-        state.update { it.copy(intent = AppIntent.None) }
+        if (state.value.update?.isRequired == true) {
+            return
+        }
+        state.update { it.copy(update = null) }
     }
 
     private suspend fun handleAppVersion() = withContext(Dispatchers.IO) {
@@ -122,12 +130,20 @@ class AppViewModel @Inject constructor(
 
         val skipVersion = userConfig.getAppVersionSkip().firstOrNull()
         val lastVersion = lastRelease.version
-        userConfig.setLatestVersion(lastVersion)
+        val appUpdate = AppUpdateInfo(
+            version = lastVersion,
+            isRequired = lastRelease.upgradeRequired,
+        )
+        userConfig.setLatestAppUpdate(appUpdate)
         if (VersionCheck.isVersionHigher(new = lastVersion, current = BuildConfig.VERSION_NAME)
-            && skipVersion != lastVersion
+            && (lastRelease.upgradeRequired || skipVersion != lastVersion)
             && platformStore != PlatformStore.ApkUniversal
         ) {
-            state.update { it.copy(intent = AppIntent.ShowUpdate, version = lastVersion) }
+            state.update {
+                it.copy(
+                    update = appUpdate,
+                )
+            }
         }
     }
 
@@ -189,24 +205,23 @@ class AppViewModel @Inject constructor(
 
 data class AppState(
     val session: Session? = null,
-    val version: String = "",
     val intent: AppIntent = AppIntent.None,
+    val update: AppUpdateInfo? = null,
 ) {
     fun toUIState() = AppUIState(
         session = session,
-        version = version,
         intent = intent,
+        update = update,
     )
 }
 
 data class AppUIState(
     val session: Session? = null,
-    val version: String = "",
     val intent: AppIntent = AppIntent.None,
+    val update: AppUpdateInfo? = null,
 )
 
 enum class AppIntent {
     None,
-    ShowUpdate,
     ShowReview,
 }
