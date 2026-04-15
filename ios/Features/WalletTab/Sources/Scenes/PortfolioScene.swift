@@ -16,27 +16,14 @@ public struct PortfolioScene: View {
 
     public var body: some View {
         NavigationStack {
-            VStack(spacing: .zero) {
-                if model.showSegmentedControl {
-                    Picker("", selection: $model.state.selectedType) {
-                        ForEach(PortfolioType.allCases) { type in
-                            Text(model.typeTitle(for: type)).tag(type)
+            ChartListView(model: model) {
+                if model.statistics.isNotEmpty {
+                    Section {
+                        ForEach(Array(model.statistics.enumerated()), id: \.offset) { _, statistic in
+                            ListItemView(model: model.statisticModel(statistic))
                         }
-                    }
-                    .pickerStyle(.segmented)
-                    .fixedSize()
-                    .padding(.vertical, Spacing.medium)
-                }
-
-                ChartListView(model: model) {
-                    if model.statistics.isNotEmpty {
-                        Section {
-                            ForEach(Array(model.statistics.enumerated()), id: \.offset) { _, statistic in
-                                ListItemView(model: model.statisticModel(statistic))
-                            }
-                        } header: {
-                            Text(model.statisticsTitle)
-                        }
+                    } header: {
+                        Text(model.statisticsTitle)
                     }
                 }
             }
@@ -45,6 +32,17 @@ public struct PortfolioScene: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarDismissItem(type: .close, placement: .cancellationAction)
             .toolbar {
+                if model.showSegmentedControl {
+                    ToolbarItem(placement: .principal) {
+                        Picker("", selection: $model.state.selectedType) {
+                            ForEach(PortfolioType.allCases) { type in
+                                Text(model.typeTitle(for: type)).tag(type)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .fixedSize()
+                    }
+                }
                 if model.showChartTypePicker {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {

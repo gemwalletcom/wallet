@@ -53,7 +53,9 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         preferences.isPerpetualEnabled && wallet.isMultiCoins && wallet.hyperliquidAccount != nil
     }
 
-    var navigationTitle: String { typeTitle(for: state.selectedType) }
+    var navigationTitle: String {
+        showSegmentedControl ? "" : typeTitle(for: state.selectedType)
+    }
 
     public var chartState: StateViewType<ChartValuesViewModel> {
         switch selectedState {
