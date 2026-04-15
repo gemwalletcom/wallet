@@ -5,7 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.Balance
 import com.wallet.core.primitives.BalanceMetadata
@@ -52,39 +51,7 @@ data class DbBalance(
     @ColumnInfo("bandwidth_available", defaultValue = "0") var bandwidthAvailable: Long = 0L,
     @ColumnInfo("bandwidth_total", defaultValue = "0") var bandwidthTotal: Long = 0L,
     @ColumnInfo("updated_at") var updatedAt: Long?,
-) {
-    companion object
-}
-
-fun AssetBalance.toRecord(walletId: String, accountAddress: String, updateAt: Long): DbBalance {
-    return DbBalance(
-        assetId = this.asset.id.toIdentifier(),
-        walletId = walletId,
-        accountAddress = accountAddress,
-        available = this.balance.available,
-        availableAmount = this.balanceAmount.available,
-        frozen = this.balance.frozen,
-        frozenAmount = this.balanceAmount.frozen,
-        locked = this.balance.locked,
-        lockedAmount = this.balanceAmount.locked,
-        staked = this.balance.staked,
-        stakedAmount = this.balanceAmount.staked,
-        pending = this.balance.pending,
-        pendingAmount = this.balanceAmount.pending,
-        rewards = this.balance.rewards,
-        rewardsAmount = this.balanceAmount.rewards,
-        reserved = this.balance.reserved,
-        reservedAmount = this.balanceAmount.reserved,
-        totalAmount = this.totalAmount,
-        energyAvailable = this.metadata?.energyAvailable?.toLong() ?: 0L,
-        energyTotal = this.metadata?.energyAvailable?.toLong() ?: 0L,
-        bandwidthAvailable = this.metadata?.bandwidthAvailable?.toLong() ?: 0L,
-        bandwidthTotal = this.metadata?.bandwidthTotal?.toLong() ?: 0L,
-        votes = this.metadata?.votes?.toLong() ?: 0L,
-        updatedAt = updateAt,
-        isActive = isActive,
-    )
-}
+)
 
 fun DbBalance.toDTO(): AssetBalance? {
     return AssetBalance(
@@ -119,38 +86,3 @@ fun DbBalance.toDTO(): AssetBalance? {
     )
 }
 
-fun DbBalance.Companion.mergeNative(old: DbBalance?, current: DbBalance?): DbBalance? {
-    old ?: return current
-    current ?: return old
-
-    val newBalance = old.copy(
-        available = current.available,
-        availableAmount = current.availableAmount
-    )
-
-    return newBalance.copy(
-        totalAmount = newBalance.availableAmount
-                + newBalance.frozenAmount
-                + newBalance.lockedAmount
-                + newBalance.stakedAmount
-                + newBalance.pendingAmount
-                + newBalance.rewardsAmount
-    )
-}
-
-fun DbBalance.Companion.mergeDelegation(old: DbBalance?, current: DbBalance?): DbBalance? {
-    old ?: return current
-    current ?: return old
-
-    val newBalance = current.copy(available = old.available, availableAmount = old.availableAmount)
-    return newBalance.copy(
-        totalAmount = newBalance.availableAmount
-                + newBalance.frozenAmount
-                + newBalance.lockedAmount
-                + newBalance.stakedAmount
-                + newBalance.pendingAmount
-                + newBalance.rewardsAmount
-                + newBalance.reservedAmount,
-
-    )
-}
