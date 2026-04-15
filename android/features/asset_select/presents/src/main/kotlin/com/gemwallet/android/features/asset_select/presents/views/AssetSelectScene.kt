@@ -44,6 +44,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.TabsBar
+import com.gemwallet.android.ui.components.labelRes
 import com.gemwallet.android.ui.components.filters.AssetsFilter
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
@@ -202,7 +203,7 @@ fun AssetSelectScene(
                             LocalContentColor.current
                         else
                             MaterialTheme.colorScheme.primary,
-                        contentDescription = "Filter by networks",
+                        contentDescription = null,
                     )
                 }
             }
@@ -226,17 +227,8 @@ fun AssetSelectScene(
                         scrollable = true,
                         equalWidth = false,
                     ) { item ->
-                        val stringId = when (item) {
-                            AssetTag.Trending -> R.string.assets_tags_trending
-                            AssetTag.TrendingFiatPurchase -> R.string.assets_tags_trending
-                            AssetTag.Gainers -> R.string.assets_tags_gainers
-                            AssetTag.Losers -> R.string.assets_tags_losers
-                            AssetTag.New -> R.string.assets_tags_new
-                            AssetTag.Stablecoins -> R.string.assets_tags_stablecoins
-                            null -> R.string.common_all
-                        }
                         Text(
-                            stringResource(stringId),
+                            stringResource(item.labelRes()),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             softWrap = false,
