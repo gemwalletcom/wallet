@@ -9,9 +9,7 @@ import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
-import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
@@ -64,7 +62,6 @@ class ConfirmViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
     private val signerPreload: SignerPreloaderProxy,
-    private val stakeRepository: StakeRepository,
     private val transactionBalanceService: TransactionBalanceService,
     private val validateBalance: ValidateBalance,
     private val confirmTransaction: ConfirmTransaction,
@@ -149,8 +146,7 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val finalAmount = when {
-            preload.input is ConfirmParams.Stake.RewardsParams ->
-                stakeRepository.getRewards(preload.input.assetId, preload.input.from.address).sumRewardsBalance()
+            preload.input is ConfirmParams.Stake.RewardsParams -> preload.input.amount
             preload.input.useMaxAmount && preload.input.assetId == preload.fee().feeAssetId ->
                 preload.input.amount - preload.fee().amount
             else -> preload.input.amount

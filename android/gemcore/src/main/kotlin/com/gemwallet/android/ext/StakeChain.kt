@@ -12,6 +12,9 @@ fun StakeChain.Companion.byChain(chain: Chain): StakeChain?
 val Chain.claimed: Boolean
     get() = Config().getStakeConfig(string).canClaimRewards
 
+val Chain.claimAllAvailable: Boolean
+    get() = Config().getStakeConfig(string).canClaimAllRewards
+
 val Chain.withdraw: Boolean
     get() = Config().getStakeConfig(string).canWithdraw
 

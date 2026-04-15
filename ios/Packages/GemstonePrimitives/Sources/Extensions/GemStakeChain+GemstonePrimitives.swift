@@ -47,4 +47,8 @@ public extension StakeChain {
     var supportClaimRewards: Bool {
         Config.shared.getStakeConfig(chain: rawValue).canClaimRewards
     }
+
+    var supportClaimAllRewards: Bool {
+        Config.shared.getStakeConfig(chain: rawValue).canClaimAllRewards
+    }
 }

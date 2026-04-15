@@ -35,4 +35,13 @@ struct DelegationSceneViewModelTests {
         #expect(DelegationSceneViewModel.mock(chain: .ethereum, state: .pending, providerType: .earn).availableActions == [])
         #expect(DelegationSceneViewModel.mock(chain: .ethereum, state: .awaitingWithdrawal, providerType: .earn).availableActions == [])
     }
+
+    @Test
+    func canClaimRewards() {
+        #expect(DelegationSceneViewModel.mock(chain: .cosmos, state: .active, rewards: "100").canClaimRewards == true)
+        #expect(DelegationSceneViewModel.mock(chain: .ethereum, state: .active, rewards: "100").canClaimRewards == false)
+        #expect(DelegationSceneViewModel.mock(chain: .cosmos, state: .inactive, rewards: "100").canClaimRewards == false)
+        #expect(DelegationSceneViewModel.mock(chain: .cosmos, state: .active, rewards: "0").canClaimRewards == false)
+        #expect(DelegationSceneViewModel.mock(wallet: .mock(type: .view), chain: .cosmos, state: .active, rewards: "100").canClaimRewards == false)
+    }
 }

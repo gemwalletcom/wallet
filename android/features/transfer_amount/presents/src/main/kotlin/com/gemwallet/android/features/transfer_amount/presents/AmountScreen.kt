@@ -16,8 +16,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.TransactionType
 
 @Composable
 fun AmountScreen(
@@ -73,15 +75,25 @@ fun AmountScreen(
         label = "stake"
     ) { state ->
         when (state) {
-            true -> ValidatorsScreen(
-                chain = assetInfo?.asset?.id?.chain ?: return@AnimatedContent,
-                selectedValidatorId = validatorState?.id!!,
-                onCancel = { isSelectValidator = false },
-                onSelect = {
-                    isSelectValidator = false
-                    viewModel.setDelegatorValidator(it)
+            true -> {
+                val asset = assetInfo?.asset ?: return@AnimatedContent
+                val source = when (params?.txType) {
+                    TransactionType.StakeRewards -> ValidatorsSource.Rewards(
+                        assetId = asset.id,
+                        owner = assetInfo?.owner?.address ?: return@AnimatedContent,
+                    )
+                    else -> ValidatorsSource.ChainValidators(chain = asset.id.chain)
                 }
-            )
+                ValidatorsScreen(
+                    source = source,
+                    selectedValidatorId = validatorState?.id!!,
+                    onCancel = { isSelectValidator = false },
+                    onSelect = {
+                        isSelectValidator = false
+                        viewModel.setDelegatorValidator(it)
+                    }
+                )
+            }
             false -> AmountScene(
                 amount = viewModel.amount,
                 amountPrefill = amountPrefill,

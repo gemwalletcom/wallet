@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.transactions
 
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.transaction.TransactionBalanceContext
 import com.gemwallet.android.domains.transaction.balance
@@ -71,7 +72,7 @@ class TransactionBalanceService @Inject constructor(
     ): TransactionBalanceContext {
         return when (params.txType) {
             TransactionType.StakeRewards -> TransactionBalanceContext(
-                rewardsBalance = getRewardsBalance(assetInfo),
+                rewardsBalance = delegation?.rewardsBalance() ?: getRewardsBalance(assetInfo),
             )
             TransactionType.StakeUndelegate,
             TransactionType.StakeRedelegate,

@@ -68,10 +68,10 @@ extension StakeScene {
                 }
             }
 
-            if model.canClaimRewards {
+            if model.showRewards {
                 NavigationLink(value: model.claimRewardsDestination) {
                     ListItemView(
-                        title: model.claimRewardsTitle,
+                        title: model.rewardsTitle,
                         subtitle: model.claimRewardsText,
                     )
                 }

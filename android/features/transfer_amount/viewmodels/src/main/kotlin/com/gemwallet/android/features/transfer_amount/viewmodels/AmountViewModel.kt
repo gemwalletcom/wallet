@@ -12,6 +12,7 @@ import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
+import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.transaction.TransactionBalanceContext
 import com.gemwallet.android.domains.transaction.balance
 import com.gemwallet.android.ext.freezed
@@ -40,8 +41,9 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -97,14 +99,27 @@ class AmountViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val delegation: StateFlow<Delegation?> = params.flatMapMerge {
-        if (it?.validatorId != null
-            && (it.txType == TransactionType.StakeUndelegate
-                    || it.txType == TransactionType.StakeRedelegate
-                    || it.txType == TransactionType.StakeWithdraw)) {
-            stakeRepository.getDelegation(it.validatorId!!, it.delegationId ?: "")
-        } else {
-            emptyFlow()
+
+    private val selectedValidatorId = MutableStateFlow<String?>(null)
+
+    private val delegation: StateFlow<Delegation?> = combine(params, assetInfo, selectedValidatorId) { params, assetInfo, selectedId ->
+        Triple(params, assetInfo, selectedId)
+    }.flatMapLatest { (params, assetInfo, selectedId) ->
+        when (params?.txType) {
+            TransactionType.StakeUndelegate,
+            TransactionType.StakeRedelegate,
+            TransactionType.StakeWithdraw -> {
+                val validatorId = params.validatorId ?: return@flatMapLatest flowOf(null)
+                stakeRepository.getDelegation(validatorId, params.delegationId ?: "")
+            }
+            TransactionType.StakeRewards -> {
+                val owner = assetInfo?.owner?.address ?: return@flatMapLatest flowOf(null)
+                stakeRepository.getDelegations(assetInfo.asset.id, owner).map { list ->
+                    val rewards = list.filter { it.rewardsBalance() > BigInteger.ZERO }
+                    rewards.firstOrNull { it.validator.id == selectedId } ?: rewards.firstOrNull()
+                }
+            }
+            else -> flowOf(null)
         }
     }
     .flowOn(Dispatchers.IO)
@@ -119,7 +134,8 @@ class AmountViewModel @Inject constructor(
     private val srcValidator = combine(params, delegation, recommendedValidator) { params, delegation, recommended ->
         when (params?.txType) {
             TransactionType.StakeWithdraw,
-            TransactionType.StakeUndelegate -> delegation?.validator
+            TransactionType.StakeUndelegate,
+            TransactionType.StakeRewards -> delegation?.validator
             TransactionType.StakeDelegate,
             TransactionType.StakeRedelegate -> recommended
             else -> null
@@ -127,7 +143,6 @@ class AmountViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val selectedValidatorId = MutableStateFlow<String?>(null)
     private val selectedValidator = combine(assetInfo, selectedValidatorId) { assetInfo, validatorId ->
         val assetId = assetInfo?.asset?.id ?: return@combine null
         validatorId ?: return@combine null
@@ -143,12 +158,7 @@ class AmountViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val balanceContext = combine(params, assetInfo, delegation, resource) { params, assetInfo, delegation, resource ->
-        BalanceRequest(
-            params = params,
-            assetInfo = assetInfo,
-            delegation = delegation,
-            resource = resource,
-        )
+        BalanceRequest(params, assetInfo, delegation, resource)
     }
     .mapLatest { request ->
         val params = request.params ?: return@mapLatest null
@@ -191,6 +201,12 @@ class AmountViewModel @Inject constructor(
             TransactionType.StakeRedelegate,
             TransactionType.StakeWithdraw -> {
                 val balance = Crypto(delegation?.base?.balance?.toBigIntegerOrNull() ?: BigInteger.ZERO)
+                val value = balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString()
+                amount = value
+                value
+            }
+            TransactionType.StakeRewards -> {
+                val balance = Crypto(delegation?.rewardsBalance() ?: BigInteger.ZERO)
                 val value = balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString()
                 amount = value
                 value
@@ -309,11 +325,7 @@ class AmountViewModel @Inject constructor(
             TransactionType.EarnDeposit,
             TransactionType.StakeDelegate -> builder.delegate(validator ?: return)
             TransactionType.StakeUndelegate -> builder.undelegate(delegation ?: return)
-            TransactionType.StakeRewards -> {
-                val validators = stakeRepository.getRewards(asset.id, owner.address)
-                    .map { it.validator }
-                builder.rewards(validators)
-            }
+            TransactionType.StakeRewards -> builder.rewards(listOfNotNull(validator))
             TransactionType.StakeRedelegate -> builder.redelegate(validator!!, delegation!!)
             TransactionType.EarnWithdraw,
             TransactionType.StakeWithdraw -> builder.withdraw(delegation!!)

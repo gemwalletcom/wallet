@@ -5,16 +5,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.stake.viewmodels.StakeViewModel
 
 @Composable
 fun StakeScreen(
     amountAction: AmountTransactionAction,
-    onConfirm: (ConfirmParams) -> Unit,
+    onConfirm: ConfirmTransactionAction,
     onDelegation: (String, String) -> Unit,
     onCancel: () -> Unit,
     viewModel: StakeViewModel = hiltViewModel()
@@ -39,7 +39,7 @@ fun StakeScreen(
             isStakeEnabled = isStakeEnabled,
             onRefresh = viewModel::onRefresh,
             amountAction = amountAction,
-            onConfirm = { viewModel.onRewards(onConfirm) },
+            onRewards = { viewModel.onRewards(amountAction, onConfirm) },
             onDelegation = onDelegation,
             onCancel = onCancel
         )

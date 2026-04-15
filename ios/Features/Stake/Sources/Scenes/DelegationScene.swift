@@ -47,7 +47,7 @@ public struct DelegationScene: View {
 
             if let rewardsText = model.model.rewardsText {
                 Section {
-                    ListItemView(
+                    let rewardsItem = ListItemView(
                         title: model.rewardsTitle,
                         titleStyle: model.model.titleStyle,
                         subtitle: rewardsText,
@@ -56,6 +56,13 @@ public struct DelegationScene: View {
                         subtitleStyleExtra: model.model.subtitleExtraStyle,
                         imageStyle: model.assetImageStyle,
                     )
+                    if model.canClaimRewards {
+                        NavigationCustomLink(with: rewardsItem) {
+                            model.onClaimRewards()
+                        }
+                    } else {
+                        rewardsItem
+                    }
                 }
             }
 

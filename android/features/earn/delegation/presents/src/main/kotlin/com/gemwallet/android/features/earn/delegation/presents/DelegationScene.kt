@@ -1,8 +1,10 @@
 package com.gemwallet.android.features.earn.delegation.presents
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,6 +37,7 @@ fun DelegationScene(
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val balances by viewModel.balances.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
+    val canClaimRewards by viewModel.canClaimRewards.collectAsStateWithLifecycle()
 
     if (uiState == null) {
         LoadingScene(title = stringResource(id = R.string.transfer_stake_title), onCancel = onCancel)
@@ -72,9 +75,16 @@ fun DelegationScene(
             }
 
             itemsPositioned(balances) { position, item ->
+                val modifier = if (canClaimRewards) {
+                    Modifier.clickable { viewModel.onClaimRewards(onConfirm) }
+                } else {
+                    Modifier
+                }
                 PropertyAssetBalanceItem(
                     model = item,
                     title = stringResource(R.string.stake_rewards),
+                    modifier = modifier,
+                    showChevron = canClaimRewards,
                     listPosition = position,
                 )
             }
