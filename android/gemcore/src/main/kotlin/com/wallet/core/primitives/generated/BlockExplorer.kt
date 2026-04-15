@@ -13,3 +13,10 @@ data class BlockExplorerLink (
 	val link: String
 )
 
+@Serializable
+data class ExplorerInput (
+	val hash: String,
+	val recipient: String? = null,
+	val memo: String? = null
+)
+
