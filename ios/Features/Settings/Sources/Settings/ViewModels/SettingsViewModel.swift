@@ -17,20 +17,20 @@ import WalletSessionService
 public final class SettingsViewModel {
     private let walletId: WalletId
     private let walletSessionService: any WalletSessionManageable
-    private let observablePrefereces: ObservablePreferences
+    private let observablePreferences: ObservablePreferences
 
     public init(
         walletId: WalletId,
         walletSessionService: any WalletSessionManageable,
-        observablePrefereces: ObservablePreferences,
+        observablePreferences: ObservablePreferences,
     ) {
         self.walletId = walletId
         self.walletSessionService = walletSessionService
-        self.observablePrefereces = observablePrefereces
+        self.observablePreferences = observablePreferences
     }
 
     var isDeveloperEnabled: Bool {
-        observablePrefereces.isDeveloperEnabled
+        observablePreferences.isDeveloperEnabled
     }
 
     var title: String { Localized.Settings.title }

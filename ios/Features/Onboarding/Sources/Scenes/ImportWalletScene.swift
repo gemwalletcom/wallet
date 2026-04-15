@@ -80,7 +80,7 @@ struct ImportWalletScene: View {
                     StateButton(
                         text: Localized.Wallet.Import.action,
                         type: .primary(model.buttonState),
-                        action: model.onSelectActionButton,
+                        action: onSelectActionButton,
                     )
                     .frame(height: .scene.button.height)
                     .frame(maxWidth: .scene.button.maxWidth)
@@ -129,5 +129,11 @@ struct ImportWalletScene: View {
         }
         .detectScreenshots(docsUrl: model.docsUrl)
         .protectFromScreenRecording()
+    }
+
+    private func onSelectActionButton() {
+        Task {
+            await model.onSelectActionButton()
+        }
     }
 }

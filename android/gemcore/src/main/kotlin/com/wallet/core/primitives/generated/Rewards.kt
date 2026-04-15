@@ -83,8 +83,6 @@ enum class RewardEventType(val string: String) {
 	InvitePending("invitePending"),
 	@SerialName("inviteNew")
 	InviteNew("inviteNew"),
-	@SerialName("inviteExisting")
-	InviteExisting("inviteExisting"),
 	@SerialName("joined")
 	Joined("joined"),
 	@SerialName("disabled")

@@ -1,9 +1,8 @@
 package com.gemwallet.android.features.settings.price_alerts.presents
 
-import android.content.res.Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAlertTargetViewModel
@@ -18,13 +17,19 @@ fun PriceAlertTargetNavScreen(
     onComplete: (String) -> Unit = { onCancel() },
     viewModel: PriceAlertTargetViewModel = hiltViewModel(),
 ) {
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val currency by viewModel.currency.collectAsStateWithLifecycle()
     val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
     val currentPriceValue by viewModel.currentPriceValue.collectAsStateWithLifecycle()
     val type by viewModel.type.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val priceSuggestions by viewModel.priceSuggestions.collectAsStateWithLifecycle()
+    val percentageSuggestions by viewModel.percentageSuggestions.collectAsStateWithLifecycle()
+    val asset by viewModel.asset.collectAsStateWithLifecycle()
+    val priceFormatted by viewModel.priceFormatted.collectAsStateWithLifecycle()
+    val priceChangeFormatted by viewModel.priceChangeFormatted.collectAsStateWithLifecycle()
+    val priceState by viewModel.priceState.collectAsStateWithLifecycle()
 
     PriceAlertTargetScene(
         value = viewModel.value,
@@ -33,6 +38,12 @@ fun PriceAlertTargetNavScreen(
         currency = currency,
         currentPriceValue = currentPriceValue,
         currentPriceFormatted = currentPriceFormatted,
+        priceSuggestions = priceSuggestions,
+        percentageSuggestions = percentageSuggestions,
+        asset = asset,
+        assetPriceFormatted = priceFormatted,
+        assetPriceChangeFormatted = priceChangeFormatted,
+        assetPriceState = priceState,
         error = error,
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,
@@ -48,7 +59,7 @@ fun PriceAlertTargetNavScreen(
     )
 }
 
-private fun PriceAlertConfirmResult.toMessage(resources: Resources): String {
+private fun PriceAlertConfirmResult.toMessage(resources: android.content.res.Resources): String {
     val directionTitle = when (type) {
         PriceAlertNotificationType.Price -> when (direction) {
             PriceAlertDirection.Up -> R.string.price_alerts_set_alert_price_over

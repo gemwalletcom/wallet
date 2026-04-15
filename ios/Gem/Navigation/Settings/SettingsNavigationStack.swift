@@ -73,7 +73,7 @@ struct SettingsNavigationStack: View {
                 model: SettingsViewModel(
                     walletId: walletId,
                     walletSessionService: walletSessionService,
-                    observablePrefereces: observablePreferences,
+                    observablePreferences: observablePreferences,
                 ),
                 isPresentingWallets: $isPresentingWallets,
                 isPresentingSupport: $isPresentingSupport,

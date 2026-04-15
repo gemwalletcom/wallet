@@ -23,7 +23,7 @@ class ConnectionsViewModel @Inject constructor(
             bridgesRepository.addPairing(
                 uri = uri,
                 onSuccess = onSuccess,
-                onError = onError,/*{ msg -> state.update { it.copy(pairError = msg) } }*/
+                onError = onError,
             )
         }
     }

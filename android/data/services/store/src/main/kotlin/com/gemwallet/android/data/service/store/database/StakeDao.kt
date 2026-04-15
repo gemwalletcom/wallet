@@ -51,6 +51,7 @@ abstract class StakeDao {
             "validator.isActive as isActive," +
             "validator.commission as commission," +
             "validator.apr as apr," +
+            "validator.providerType as providerType," +
             "base.address as address," +
             "base.delegation_id as delegationId," +
             "base.asset_id as assetId," +
@@ -77,6 +78,7 @@ abstract class StakeDao {
                 "validator.isActive as isActive," +
                 "validator.commission as commission," +
                 "validator.apr as apr," +
+                "validator.providerType as providerType," +
                 "base.address as address," +
                 "base.delegation_id as delegationId," +
                 "base.asset_id as assetId," +

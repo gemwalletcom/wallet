@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SupportChatViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     sessionRepository: SessionRepository,
     getDeviceId: GetDeviceId,
 ): ViewModel() {

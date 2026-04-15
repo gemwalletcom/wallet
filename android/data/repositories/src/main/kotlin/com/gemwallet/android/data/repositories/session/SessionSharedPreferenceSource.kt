@@ -17,12 +17,6 @@ class SessionSharedPreferenceSource @Inject constructor(
 
     private fun getStore() = context.getSharedPreferences("session", MODE_PRIVATE)
 
-    private fun setString(prop: Props, value: String?) {
-        getStore().edit()
-            .putString(prop.name, value)
-            .apply()
-    }
-
     private fun getString(prop: Props, default: String? = null): String? =
         getStore().getString(prop.name, default)
 

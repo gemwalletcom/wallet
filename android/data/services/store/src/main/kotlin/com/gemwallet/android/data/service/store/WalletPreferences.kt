@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.service.store
 
 import android.content.Context
+import androidx.core.content.edit
 
 class WalletPreferences(context: Context, walletId: String) {
 
@@ -28,7 +29,9 @@ class WalletPreferences(context: Context, walletId: String) {
     }
 
     fun clear() {
-        store.store.edit().clear().apply()
+        store.store.edit {
+            clear()
+        }
     }
 
     companion object {

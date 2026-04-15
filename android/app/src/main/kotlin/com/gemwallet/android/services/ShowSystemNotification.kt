@@ -24,7 +24,7 @@ import com.wallet.core.primitives.PushNotificationTypes
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 
-class ShowSystemNotification @Inject constructor(@ApplicationContext val applicationContext: Context) :
+class ShowSystemNotification @Inject constructor(@param:ApplicationContext val applicationContext: Context) :
     ShowSystemNotification {
 
     override fun showNotification(

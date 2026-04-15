@@ -9,21 +9,21 @@ public struct MockExplorerLink: ExplorerLinkFetchable {
     public func addressUrl(chain: Chain, address: String) -> BlockExplorerLink {
         BlockExplorerLink(
             name: "MockExplorer",
-            link: "https://mock.explorer/\(chain.rawValue)/address/\(address)",
+            link: "https://mock.explorer/\(chain.rawValue)/address/\(address)"
         )
     }
 
     public func transactionUrl(chain: Chain, hash: String) -> BlockExplorerLink {
         BlockExplorerLink(
             name: "MockExplorer",
-            link: "https://mock.explorer/\(chain.rawValue)/tx/\(hash)",
+            link: "https://mock.explorer/\(chain.rawValue)/tx/\(hash)"
         )
     }
 
-    public func swapTransactionUrl(chain _: Chain, provider _: String, identifier: String) -> BlockExplorerLink? {
+    public func swapTransactionUrl(chain _: Chain, provider _: String, input: ExplorerInput) -> BlockExplorerLink? {
         BlockExplorerLink(
             name: "MockExplorer",
-            link: "https://mock.explorer/tx/\(identifier)",
+            link: "https://mock.explorer/tx/\(input.hash))"
         )
     }
 }

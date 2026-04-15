@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.referral.views.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -17,18 +19,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.image.AssetIcon
-import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.wallet.core.primitives.RewardRedemptionOption
@@ -87,23 +85,23 @@ private fun RewardRedemptionOptionItem(
 ) {
     val asset = option.asset ?: return
     var showConfirm by remember { mutableStateOf(false) }
-    ListItem(
+    PropertyItem(
         modifier = Modifier
+            .heightIn(min = ListItemDefaults.defaultMinHeight)
             .clickable { showConfirm = true },
-        leading = { AssetIcon(asset) },
         title = {
-            ListItemTitleText(
-                text = stringResource(R.string.rewards_ways_spend_asset_title, option.formattedValue),
+            PropertyTitleText(
+                text = stringResource(R.string.rewards_ways_spend_asset_title, option.valueText),
+                trailing = { AssetIcon(asset) },
             )
         },
-        trailing = {
+        data = {
             PropertyDataText(
-                text = option.formattedPoints,
+                text = option.pointsText,
                 badge = { DataBadgeChevron() },
             )
         },
         listPosition = listPosition,
-        minHeight = ListItemDefaults.iconMinHeight,
     )
 
     if (!showConfirm) return
@@ -113,7 +111,7 @@ private fun RewardRedemptionOptionItem(
         containerColor = MaterialTheme.colorScheme.background,
         text = {
             Text(
-                text = parseMarkdownToAnnotatedString( stringResource(R.string.rewards_confirm_redeem, option.formattedValue, option.formattedPoints)),
+                text = option.confirmationMessage(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         },
@@ -135,5 +133,13 @@ private fun RewardRedemptionOptionItem(
     )
 }
 
-val RewardRedemptionOption.formattedValue get() = asset?.format(value.toBigInteger(), decimalPlace = 0) ?: ""
-val RewardRedemptionOption.formattedPoints get() = "${points} \uD83D\uDC8E"
+@Composable
+private fun RewardRedemptionOption.confirmationMessage(): String {
+    return stringResource(R.string.rewards_confirm_redeem, valueText, pointsText)
+}
+
+private val RewardRedemptionOption.valueText: String
+    get() = asset?.format(value.toBigInteger(), decimalPlace = 0) ?: ""
+
+private val RewardRedemptionOption.pointsText: String
+    get() = "$points \uD83D\uDC8E"

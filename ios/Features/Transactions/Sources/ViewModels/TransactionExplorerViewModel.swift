@@ -24,6 +24,7 @@ struct TransactionExplorerViewModel: Sendable {
             provider: transactionViewModel.transaction.transaction.swapProvider,
             hash: transactionViewModel.transaction.transaction.id.hash,
             recipient: transactionViewModel.transaction.transaction.to,
+            memo: transactionViewModel.transaction.transaction.memo,
         )
     }
 

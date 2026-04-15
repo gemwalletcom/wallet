@@ -77,7 +77,7 @@ public extension NodeService {
         return nodes.map { ChainNode(chain: chain.rawValue, node: $0.node) }
     }
 
-    static func isValid(netoworkId: String, for chain: Chain) -> Bool {
-        ChainConfig.config(chain: chain).networkId == netoworkId
+    static func isValid(networkId: String, for chain: Chain) -> Bool {
+        ChainConfig.config(chain: chain).networkId == networkId
     }
 }

@@ -10,20 +10,17 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.cases.config.GetLatestVersion
 import com.gemwallet.android.cases.config.GetLockInterval
 import com.gemwallet.android.cases.config.HideWelcomeBanner
 import com.gemwallet.android.cases.config.IsWelcomeBannerHidden
-import com.gemwallet.android.cases.config.SetLatestVersion
 import com.gemwallet.android.cases.config.SetLockInterval
+import com.gemwallet.android.model.AppUpdateInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class UserConfig(
     private val context: Context,
-) : GetLatestVersion,
-        SetLatestVersion,
-        GetLockInterval,
+) : GetLockInterval,
         SetLockInterval,
         IsWelcomeBannerHidden,
         HideWelcomeBanner
@@ -65,12 +62,23 @@ class UserConfig(
         }
     }
 
-    override fun getLatestVersion(): Flow<String> = context.dataStore.data
-        .map { preferences -> preferences[Key.LatestVersion] ?: "" }
+    fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data
+        .map { preferences ->
+            val version = preferences[Key.LatestVersion].orEmpty()
+            if (version.isBlank()) {
+                null
+            } else {
+                AppUpdateInfo(
+                    version = version,
+                    isRequired = preferences[Key.LatestVersionRequired] == true,
+                )
+            }
+        }
 
-    override suspend fun setLatestVersion(version: String) {
+    suspend fun setLatestAppUpdate(update: AppUpdateInfo) {
         context.dataStore.edit { preferences ->
-            preferences[Key.LatestVersion] = version
+            preferences[Key.LatestVersion] = update.version
+            preferences[Key.LatestVersionRequired] = update.isRequired
         }
     }
 
@@ -170,6 +178,7 @@ class UserConfig(
     private object Key {
         val IsHideBalances = booleanPreferencesKey("hide_balances")
         val LatestVersion = stringPreferencesKey("latest_version")
+        val LatestVersionRequired = booleanPreferencesKey("latest_version_required")
         val LockInterval = intPreferencesKey("lock_interval")
         val AppVersionSkip = stringPreferencesKey("app-version-skip")
         val IsWelcomeBannerHidden = stringSetPreferencesKey("is_welcome_banner_state")

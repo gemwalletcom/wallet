@@ -89,7 +89,7 @@ extension AddNodeSceneViewModel {
         let node = Node(url: model.url.absoluteString, status: .active, priority: 5)
         try addNodeService.addNode(ChainNodes(chain: chain.rawValue, nodes: [node]))
 
-        // TODO: - impement correct way of selection node
+        // TODO: - implement correct way of selection node
         /*
          try nodeService.setNodeSelected(chain: chain, node: node)
           */
@@ -103,12 +103,12 @@ extension AddNodeSceneViewModel {
         }
 
         state = .loading
-        let nodeProvider = CustomNodeULRFetchable(url: url, requestInterceptor: chainServiceFactory.requestInterceptor)
+        let nodeProvider = CustomNodeURLFetchable(url: url, requestInterceptor: chainServiceFactory.requestInterceptor)
         let service = ChainServiceFactory(nodeProvider: nodeProvider).service(for: chain)
 
         do {
             let nodeStatus = try await service.getNodeStatus(url: urlInputModel.text)
-            guard NodeService.isValid(netoworkId: nodeStatus.chainId, for: chain) else {
+            guard NodeService.isValid(networkId: nodeStatus.chainId, for: chain) else {
                 throw AddNodeError.invalidNetworkId
             }
 

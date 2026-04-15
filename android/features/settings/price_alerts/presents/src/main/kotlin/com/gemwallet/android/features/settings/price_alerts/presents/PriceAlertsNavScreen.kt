@@ -7,7 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.AssetInfo
@@ -27,7 +27,7 @@ fun PriceAlertsNavScreen(
     onCancel: () -> Unit,
     viewModel: PriceAlertViewModel = hiltViewModel(),
 ) {
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val snackbar = rememberSnackbarState(message = toastMessage, onShown = onToastShown)
 

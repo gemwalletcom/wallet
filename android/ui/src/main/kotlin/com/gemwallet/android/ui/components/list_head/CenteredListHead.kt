@@ -28,8 +28,8 @@ enum class CenteredListHeadSubtitleLayout {
 @Composable
 fun CenteredListHead(
     title: String,
-    subtitle: String? = null,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
     leading: (@Composable () -> Unit)? = null,
     subtitleLayout: CenteredListHeadSubtitleLayout = CenteredListHeadSubtitleLayout.Horizontal,
     bottomPadding: Dp = paddingDefault,
@@ -67,8 +67,8 @@ fun CenteredListHead(
 fun CenteredListHead(
     icon: Any?,
     title: String,
-    subtitle: String? = null,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
     iconSize: Dp = headerIconSize,
     placeholderText: String? = title.firstOrNull()?.uppercaseChar()?.toString(),
     contentDescription: String = "centered_list_head_icon",

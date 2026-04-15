@@ -2,6 +2,7 @@ package com.gemwallet.android.features.import_wallet.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class ImportViewModel @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val importWalletService: ImportWalletService,
+    private val setCurrentWallet: SetCurrentWallet,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(ImportViewModelState())
@@ -70,8 +72,11 @@ class ImportViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 when (result) {
                     is WalletImportResult.New -> onImported(result)
-                    is WalletImportResult.Existing -> state.update {
-                        it.copy(existingWalletResult = result, loading = false)
+                    is WalletImportResult.Existing -> {
+                        setCurrentWallet.setCurrentWallet(result.wallet.id)
+                        state.update {
+                            it.copy(existingWalletResult = result, loading = false)
+                        }
                     }
                 }
             }
