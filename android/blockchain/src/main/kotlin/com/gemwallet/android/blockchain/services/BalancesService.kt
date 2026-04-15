@@ -39,7 +39,7 @@ class BalancesService(
         }
     }
 
-    suspend fun getDelegationBalances(account: Account): AssetBalance? {
+    suspend fun getStakeBalances(account: Account): AssetBalance? {
         return try {
             val result = gateway.getBalanceStaking(account.chain.string, account.address)
                 ?: return null

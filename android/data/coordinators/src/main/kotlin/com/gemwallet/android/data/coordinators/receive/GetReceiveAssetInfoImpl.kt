@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetReceiveAssetInfoImpl(
@@ -23,9 +22,6 @@ class GetReceiveAssetInfoImpl(
     override fun invoke(assetId: AssetId): Flow<AssetInfo?> {
         return sessionRepository.session()
             .filterNotNull()
-            .onEach { session ->
-                assetsRepository.addRecentReceive(assetId, session.wallet.id)
-            }
             .flatMapLatest { session ->
                 assetsRepository.getTokenInfo(assetId).map { info ->
                     if (info?.owner == null) {

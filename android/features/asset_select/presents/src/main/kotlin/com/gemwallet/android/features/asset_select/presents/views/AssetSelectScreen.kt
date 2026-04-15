@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
+import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -16,9 +17,11 @@ import kotlinx.collections.immutable.toImmutableList
 fun AssetSelectScreen(
     title: String = "",
     titleBadge: (AssetItemUIModel) -> String?,
-    populartShowed: Boolean = false,
+    showPopular: Boolean = false,
+    recentType: RecentType? = null,
     onCancel: () -> Unit,
     onSelect: ((AssetId) -> Unit)? = null,
+    onSelectRecent: ((AssetId) -> Unit)? = null,
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)? = null,
     itemSupport: ((AssetItemUIModel) -> (@Composable () -> Unit)?)? = null,
     onAddAsset: (() -> Unit)? = null,
@@ -35,6 +38,12 @@ fun AssetSelectScreen(
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
     val selectedTag by viewModel.selectedTag.collectAsStateWithLifecycle()
 
+    val selectAsset: ((AssetId) -> Unit)? = when {
+        onSelect == null -> null
+        recentType == null -> onSelect
+        else -> { id -> viewModel.updateRecent(id, recentType); onSelect(id) }
+    }
+
     AssetSelectScene(
         title = title,
         titleBadge = titleBadge,
@@ -49,7 +58,7 @@ fun AssetSelectScreen(
         },
         query = viewModel.queryState,
         pinned = pinned,
-        popular = if (populartShowed) {
+        popular = if (showPopular) {
             popular
         } else {
             emptyList<AssetItemUIModel>().toImmutableList()
@@ -64,7 +73,8 @@ fun AssetSelectScreen(
         onChainFilter = viewModel::onChainFilter,
         onBalanceFilter = viewModel::onBalanceFilter,
         onClearFilters = viewModel::onClearFilters,
-        onSelect = onSelect,
+        onSelect = selectAsset,
+        onSelectRecent = onSelectRecent,
         onCancel = onCancel,
         onAddAsset = onAddAsset,
         itemTrailing = itemTrailing,

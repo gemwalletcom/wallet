@@ -5,11 +5,13 @@ import com.gemwallet.android.application.asset_select.coordinators.GetSelectAsse
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
 import com.gemwallet.android.data.coordinators.asset_select.ToggleAssetPinImpl
+import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import dagger.Module
 import dagger.Provides
@@ -50,4 +52,10 @@ object AssetSelectModule {
     fun provideToggleAssetPin(
         assetsRepository: AssetsRepository,
     ): ToggleAssetPin = ToggleAssetPinImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideUpdateRecentAsset(
+        assetsRepository: AssetsRepository,
+    ): UpdateRecentAsset = UpdateRecentAssetImpl(assetsRepository)
 }

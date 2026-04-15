@@ -3,13 +3,13 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
+import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
@@ -28,6 +28,7 @@ class PriceAlertsSelectViewModel @Inject constructor(
     getPriceAlerts: GetPriceAlerts,
     getSession: GetSession,
     getRecentAssets: GetRecentAssets,
+    updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     toggleAssetPin: ToggleAssetPin,
     assetsRepository: AssetsRepository,
@@ -35,12 +36,13 @@ class PriceAlertsSelectViewModel @Inject constructor(
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
+    updateRecentAsset,
     switchAssetVisibility,
     toggleAssetPin,
     searchTokensCase,
     PriceAlertSelectSearch(assetsRepository, getPriceAlerts),
 ) {
-    override fun getRecentType(): RecentType? = null
+    override val showRecents: Boolean get() = false
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

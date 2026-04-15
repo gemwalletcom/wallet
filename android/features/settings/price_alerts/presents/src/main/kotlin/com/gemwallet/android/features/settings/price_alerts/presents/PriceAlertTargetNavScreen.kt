@@ -24,6 +24,12 @@ fun PriceAlertTargetNavScreen(
     val type by viewModel.type.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val priceSuggestions by viewModel.priceSuggestions.collectAsStateWithLifecycle()
+    val percentageSuggestions by viewModel.percentageSuggestions.collectAsStateWithLifecycle()
+    val asset by viewModel.asset.collectAsStateWithLifecycle()
+    val priceFormatted by viewModel.priceFormatted.collectAsStateWithLifecycle()
+    val priceChangeFormatted by viewModel.priceChangeFormatted.collectAsStateWithLifecycle()
+    val priceState by viewModel.priceState.collectAsStateWithLifecycle()
 
     PriceAlertTargetScene(
         value = viewModel.value,
@@ -32,6 +38,12 @@ fun PriceAlertTargetNavScreen(
         currency = currency,
         currentPriceValue = currentPriceValue,
         currentPriceFormatted = currentPriceFormatted,
+        priceSuggestions = priceSuggestions,
+        percentageSuggestions = percentageSuggestions,
+        asset = asset,
+        assetPriceFormatted = priceFormatted,
+        assetPriceChangeFormatted = priceChangeFormatted,
+        assetPriceState = priceState,
         error = error,
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,

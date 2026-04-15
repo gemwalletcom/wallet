@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class RecentType {
+    @SerialName("Search")
+    Search,
     @SerialName("Send")
     Send,
     @SerialName("Receive")

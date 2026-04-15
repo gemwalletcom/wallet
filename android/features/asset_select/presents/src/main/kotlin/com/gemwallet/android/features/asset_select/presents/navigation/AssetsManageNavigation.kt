@@ -6,6 +6,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
 import com.gemwallet.android.features.asset_select.presents.views.AssetsManageScreen
+import com.gemwallet.android.features.asset_select.presents.views.AssetsSearchScreen
 import com.wallet.core.primitives.AssetId
 
 const val assetsManageRoute = "manage_assets"
@@ -26,7 +27,6 @@ fun NavGraphBuilder.assetsManageScreen(
 ) {
     composable(assetsManageRoute) {
         AssetsManageScreen(
-            manageable = true,
             onAddAsset = onAddAsset,
             onAssetClick = onAssetClick,
             onCancel = onCancel,
@@ -34,7 +34,7 @@ fun NavGraphBuilder.assetsManageScreen(
     }
 
     composable(assetsSearchRoute) {
-        AssetsManageScreen(
+        AssetsSearchScreen(
             onAddAsset = onAddAsset,
             onAssetClick = onAssetClick,
             onCancel = onCancel,
