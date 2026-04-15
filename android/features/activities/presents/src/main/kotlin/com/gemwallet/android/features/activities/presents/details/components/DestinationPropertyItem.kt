@@ -24,7 +24,6 @@ fun DestinationPropertyItem(property: TransactionDetailsValue.Destination, listP
                 is TransactionDetailsValue.Destination.Contract -> R.string.asset_contract
                 is TransactionDetailsValue.Destination.Validator -> R.string.stake_validator
                 is TransactionDetailsValue.Destination.ProviderAddress -> R.string.common_provider
-                else -> return
             },
             displayText = AddressFormatter(property.data).value(),
             copyValue = property.data,

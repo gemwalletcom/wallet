@@ -49,7 +49,7 @@ class StakeService(
             )
             result.mapNotNull { item ->
                 DelegationBase(
-                    assetId = item.assetId.toAssetId() ?: return@mapNotNull  null,
+                    assetId = item.assetId.toAssetId() ?: return@mapNotNull null,
                     state = when (item.state) {
                         GemDelegationState.ACTIVE -> DelegationState.Active
                         GemDelegationState.PENDING -> DelegationState.Pending
@@ -60,7 +60,7 @@ class StakeService(
                     },
                     balance = item.balance,
                     rewards = item.rewards,
-                    completionDate = item.completionDate?.toLong(),
+                    completionDate = item.completionDate,
                     delegationId = item.delegationId,
                     validatorId = item.validatorId,
                     shares = item.shares,

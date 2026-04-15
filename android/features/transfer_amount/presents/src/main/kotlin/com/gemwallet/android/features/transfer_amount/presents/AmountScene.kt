@@ -17,7 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
@@ -71,7 +72,10 @@ fun AmountScene(
 ) {
     val focusRequester = remember { FocusRequester() }
     val isKeyBoardOpen by keyboardAsState()
-    val isSmallScreen = LocalConfiguration.current.screenHeightDp.dp < 680.dp
+    val density = LocalDensity.current
+    val isSmallScreen = with(density) {
+        LocalWindowInfo.current.containerSize.height.toDp() < 680.dp
+    }
 
     Scene(
         title = title,

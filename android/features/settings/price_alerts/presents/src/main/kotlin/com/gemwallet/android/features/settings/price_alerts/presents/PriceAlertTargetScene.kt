@@ -36,17 +36,25 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.list_item.Badge
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
@@ -65,6 +73,12 @@ fun PriceAlertTargetScene(
     currency: Currency,
     currentPriceValue: Double,
     currentPriceFormatted: String,
+    priceSuggestions: List<Pair<String, String>> = emptyList(),
+    percentageSuggestions: List<Int> = listOf(5, 10, 15),
+    asset: Asset? = null,
+    assetPriceFormatted: String = "",
+    assetPriceChangeFormatted: String = "",
+    assetPriceState: PriceState = PriceState.None,
     error: PriceAlertTargetError?,
     onType: (PriceAlertNotificationType) -> Unit,
     onDirection: (PriceAlertDirection) -> Unit,
@@ -102,11 +116,31 @@ fun PriceAlertTargetScene(
             }
         },
         mainAction = {
-            MainActionButton(
-                title = stringResource(R.string.transfer_confirm),
-                enabled = error == null && value.text.isNotEmpty(),
-                onClick = onConfirm,
-            )
+            if (value.text.isEmpty()) {
+                val suggestions = when (type) {
+                    PriceAlertNotificationType.Price -> priceSuggestions
+                    PriceAlertNotificationType.PricePercentChange -> percentageSuggestions.map { "$it%" to it.toString() }
+                    else -> emptyList()
+                }
+                if (suggestions.isNotEmpty()) {
+                    TabsBar(
+                        tabs = suggestions,
+                        selected = "" to "",
+                        onSelect = { pair ->
+                            value.edit { this.replace(0, this.length, pair.second) }
+                        },
+                        equalWidth = false,
+                    ) { pair ->
+                        Text(pair.first)
+                    }
+                }
+            } else {
+                MainActionButton(
+                    title = stringResource(R.string.transfer_confirm),
+                    enabled = error == null,
+                    onClick = onConfirm,
+                )
+            }
         },
         onClose = onCancel,
     ) {
@@ -146,25 +180,35 @@ fun PriceAlertTargetScene(
                     horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
                     Box(Modifier.weight(1f)) {
-                        if (type == PriceAlertNotificationType.PricePercentChange) {
-                            Icon(
-                                modifier = Modifier.align(Alignment.CenterEnd).clickable {
-                                    val direction = when (direction) {
-                                        PriceAlertDirection.Up -> PriceAlertDirection.Down
-                                        PriceAlertDirection.Down -> PriceAlertDirection.Up
-                                    }
-                                    onDirection(direction)
-                                },
-                                imageVector = when (direction) {
-                                    PriceAlertDirection.Up -> Icons.Default.ArrowCircleUp
-                                    PriceAlertDirection.Down -> Icons.Default.ArrowCircleDown
-                                },
-                                contentDescription = "",
-                                tint = when (direction) {
-                                    PriceAlertDirection.Up -> MaterialTheme.colorScheme.tertiary
-                                    PriceAlertDirection.Down -> MaterialTheme.colorScheme.error
-                                },
-                            )
+                        when (type) {
+                            PriceAlertNotificationType.Price -> {
+                                Text(
+                                    modifier = Modifier.align(Alignment.CenterEnd),
+                                    text = java.util.Currency.getInstance(currency.string).symbol,
+                                    style = MaterialTheme.typography.displaySmall,
+                                )
+                            }
+                            PriceAlertNotificationType.PricePercentChange -> {
+                                Icon(
+                                    modifier = Modifier.align(Alignment.CenterEnd).clickable {
+                                        val direction = when (direction) {
+                                            PriceAlertDirection.Up -> PriceAlertDirection.Down
+                                            PriceAlertDirection.Down -> PriceAlertDirection.Up
+                                        }
+                                        onDirection(direction)
+                                    },
+                                    imageVector = when (direction) {
+                                        PriceAlertDirection.Up -> Icons.Default.ArrowCircleUp
+                                        PriceAlertDirection.Down -> Icons.Default.ArrowCircleDown
+                                    },
+                                    contentDescription = "",
+                                    tint = when (direction) {
+                                        PriceAlertDirection.Up -> MaterialTheme.colorScheme.tertiary
+                                        PriceAlertDirection.Down -> MaterialTheme.colorScheme.error
+                                    },
+                                )
+                            }
+                            else -> {}
                         }
                     }
                     BasicTextField(
@@ -185,30 +229,37 @@ fun PriceAlertTargetScene(
                         }
                     )
                     Box(Modifier.weight(1f)) {
-                        Text(
-                            text = when (type) {
-                                PriceAlertNotificationType.Auto -> ""
-                                PriceAlertNotificationType.Price -> java.util.Currency.getInstance(currency.string).symbol
-                                PriceAlertNotificationType.PricePercentChange -> "%"
-                            },
-                            style = MaterialTheme.typography.displaySmall,
-                        )
+                        if (type == PriceAlertNotificationType.PricePercentChange) {
+                            Text(
+                                text = "%",
+                                style = MaterialTheme.typography.displaySmall,
+                            )
+                        }
                     }
                 }
             }
             item {
                 Text(
                     text = parseMarkdownToAnnotatedString("${stringResource(R.string.price_alerts_set_alert_current_price)} **$currentPriceFormatted**"),
+                    color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-
-            if (type == PriceAlertNotificationType.PricePercentChange) {
-                val percentage = listOf("5", "10", "15")
+            if (asset != null) {
                 item {
-                    TabsBar(tabs = percentage, selected = value.text, onSelect = { select -> value.edit { this.replace(0, this.length, select) } }) {
-                        Text("$it%")
-                    }
+                    ListItem(
+                        listPosition = ListPosition.Single,
+                        leading = { AssetIcon(asset) },
+                        title = { ListItemTitleText(asset.name, titleBadge = { Badge(asset.symbol) }) },
+                        subtitle = {
+                            PriceInfo(
+                                price = assetPriceFormatted,
+                                changes = assetPriceChangeFormatted,
+                                state = assetPriceState,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        },
+                    )
                 }
             }
         }
@@ -224,8 +275,10 @@ fun PriceAlertTargetScenePricePreview() {
             direction = PriceAlertDirection.Up,
             type = PriceAlertNotificationType.Price,
             currency = Currency.USD,
-            currentPriceFormatted = "901.8$",
+            currentPriceFormatted = "$901.80",
             currentPriceValue = 901.8,
+            priceSuggestions = listOf("$850" to "850", "$950" to "950"),
+            percentageSuggestions = listOf(3, 6, 9),
             error = null,
             onType = {},
             onDirection = {},
@@ -244,8 +297,10 @@ fun PriceAlertTargetScenePercentagePreview() {
             direction = PriceAlertDirection.Up,
             type = PriceAlertNotificationType.PricePercentChange,
             currency = Currency.USD,
-            currentPriceFormatted = "901.8$",
+            currentPriceFormatted = "$901.80",
             currentPriceValue = 901.8,
+            priceSuggestions = listOf("$850" to "850", "$950" to "950"),
+            percentageSuggestions = listOf(3, 6, 9),
             error = null,
             onType = {},
             onDirection = {},

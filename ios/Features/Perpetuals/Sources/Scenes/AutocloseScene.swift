@@ -47,6 +47,7 @@ public struct AutocloseScene: View {
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
+        .scrollDismissesKeyboard(.interactively)
         .safeAreaView {
             InputAccessoryView(
                 isEditing: model.input.focused?.text.isEmpty == true,

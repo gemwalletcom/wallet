@@ -17,8 +17,8 @@ class AssetMarketUIModel(
     class Link(
         val type: String,
         val url: String,
-        @StringRes val label: Int,
-        @DrawableRes val icon: Int,
+        @get:StringRes val label: Int,
+        @get:DrawableRes val icon: Int,
         val host: String? = null,
     )
 }

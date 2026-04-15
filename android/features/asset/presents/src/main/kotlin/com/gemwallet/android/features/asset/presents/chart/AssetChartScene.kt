@@ -166,7 +166,7 @@ private fun LazyListScope.links(links: List<AssetMarketUIModel.Link>) {
         val context = LocalContext.current
         PropertyItem(
             modifier = Modifier.clickable { uriHandler.open(context, item.url) },
-            title = { PropertyTitleText(item.label, trailing = { AsyncImage(item.icon, smallIconSize) }) },
+            title = { PropertyTitleText(item.label, trailing = { AsyncImage(model = item.icon, size = smallIconSize) }) },
             data = { PropertyDataText(item.host.orEmpty(), badge = { DataBadgeChevron() }) },
             listPosition = ListPosition.getPosition(index, links.size)
         )

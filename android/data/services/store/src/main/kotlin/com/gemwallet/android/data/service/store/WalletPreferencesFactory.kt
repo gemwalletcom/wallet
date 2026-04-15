@@ -7,7 +7,7 @@ import javax.inject.Singleton
 
 @Singleton
 class WalletPreferencesFactory @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     fun create(walletId: String): WalletPreferences = WalletPreferences(context, walletId)
 }

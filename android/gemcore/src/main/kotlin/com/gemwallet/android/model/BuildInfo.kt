@@ -7,5 +7,5 @@ data class BuildInfo(
     val platformStore: PlatformStore,
     val versionName: String,
     val versionCode: Int,
-    val requestPushToken: RequestPushToken
+    val requestPushToken: RequestPushToken,
 )

@@ -69,7 +69,7 @@ public final class ChainSettingsSceneViewModel {
     func canDelete(node: ChainNode) -> Bool { !node.isGemNode && !defaultNodes.contains(where: { $0 == node }) }
 }
 
-// MARL: - Actions
+// MARK: - Actions
 
 extension ChainSettingsSceneViewModel {
     func fetch() async {
@@ -163,7 +163,7 @@ extension ChainSettingsSceneViewModel {
         guard let url = URL(string: node.node.url) else {
             return .error(error: URLError(.badURL))
         }
-        let nodeProvider = CustomNodeULRFetchable(url: url, requestInterceptor: chainServiceFactory.requestInterceptor)
+        let nodeProvider = CustomNodeURLFetchable(url: url, requestInterceptor: chainServiceFactory.requestInterceptor)
         let service = ChainServiceFactory(nodeProvider: nodeProvider).service(for: chain)
 
         do {

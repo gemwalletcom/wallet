@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-struct CustomNodeULRFetchable: NodeURLFetchable {
+struct CustomNodeURLFetchable: NodeURLFetchable {
     let url: URL
     let requestInterceptor: any RequestInterceptable
 

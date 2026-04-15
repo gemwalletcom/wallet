@@ -112,19 +112,17 @@ extension ImportWalletSceneViewModel {
         }
     }
 
-    func onSelectActionButton() {
+    func onSelectActionButton() async {
         buttonState = .loading(showProgress: true)
 
-        Task {
-            do {
-                try await importWallet()
-            } catch {
-                isPresentingAlertMessage = AlertMessage(
-                    title: alertTitle,
-                    message: error.localizedDescription,
-                )
-                buttonState = .normal
-            }
+        do {
+            try await importWallet()
+        } catch {
+            isPresentingAlertMessage = AlertMessage(
+                title: alertTitle,
+                message: error.localizedDescription,
+            )
+            buttonState = .normal
         }
     }
 
@@ -156,7 +154,6 @@ extension ImportWalletSceneViewModel {
     }
 
     func onSelectExistingWalletContinue() {
-        walletService.acceptTerms()
         onComplete?(.existing)
     }
 }
@@ -211,14 +208,18 @@ extension ImportWalletSceneViewModel {
 
         switch result {
         case let .new(wallet):
-            walletService.acceptTerms()
-            try await walletService.setCurrent(wallet: wallet)
-            buttonState = .normal
+            try await activateWallet(wallet)
             onComplete?(.new(wallet))
         case let .existing(wallet):
-            buttonState = .normal
+            try await activateWallet(wallet)
             isPresentingExistingWalletName = wallet.name
         }
+    }
+
+    private func activateWallet(_ wallet: Wallet) async throws {
+        walletService.acceptTerms()
+        try await walletService.setCurrent(wallet: wallet)
+        buttonState = .normal
     }
 
     private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {
