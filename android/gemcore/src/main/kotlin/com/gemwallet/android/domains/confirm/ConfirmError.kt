@@ -14,5 +14,5 @@ sealed class ConfirmError : Exception() {
     class InsufficientFee(val chain: Chain) : ConfirmError()
     class MinimumAccountBalanceTooLow(val asset: Asset, val required: Long) : ConfirmError()
     class BroadcastError(val details: String) : ConfirmError()
-    class DustThreshold(val chainTitle: String) : ConfirmError()
+    class DustThreshold(val chain: Chain) : ConfirmError()
 }

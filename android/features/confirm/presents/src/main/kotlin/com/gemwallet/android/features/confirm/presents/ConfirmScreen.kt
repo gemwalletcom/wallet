@@ -341,7 +341,7 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.BroadcastError -> "${stringResource(R.string.errors_transfer_error)}: ${this.details}"
     is ConfirmError.SignFail -> stringResource(R.string.errors_transfer_error)
     is ConfirmError.RecipientEmpty -> "${stringResource(R.string.errors_transfer_error)}: recipient can't be empty"
-    is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold, chainTitle)
+    is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)
     is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
     is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
 }

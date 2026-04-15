@@ -84,5 +84,6 @@ private fun ConfirmError.toInfoSheetEntity(feeValue: String, onBuy: AssetIdActio
         asset = asset,
         value = asset.format(required.toBigInteger(), dynamicPlace = true),
     )
+    is ConfirmError.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = chain)
     else -> null
 }

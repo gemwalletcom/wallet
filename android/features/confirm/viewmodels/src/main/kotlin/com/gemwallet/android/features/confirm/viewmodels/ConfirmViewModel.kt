@@ -13,7 +13,6 @@ import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
@@ -140,7 +139,7 @@ class ConfirmViewModel @Inject constructor(
             state.update {
                 ConfirmState.Error(
                     when (err.message?.contains(GemPlatformErrors.Dust.message)) {
-                        true -> ConfirmError.DustThreshold("${owner.chain.asset().name} (${owner.chain.asset().symbol})")
+                        true -> ConfirmError.DustThreshold(owner.chain)
                         else -> ConfirmError.PreloadError
                     }
                 )
