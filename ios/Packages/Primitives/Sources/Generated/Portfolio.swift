@@ -104,12 +104,12 @@ public struct PortfolioAssetsRequest: Codable, Sendable {
 	}
 }
 
-public enum PortfolioChartType: String, Codable, CaseIterable, Equatable, Identifiable, Sendable {
+public enum PortfolioChartType: String, Codable, CaseIterable, Equatable, Hashable, Identifiable, Sendable {
 	case value
 	case pnl
 }
 
-public struct PortfolioChartData: Codable, Equatable, Sendable {
+public struct PortfolioChartData: Codable, Equatable, Hashable, Sendable {
 	public let chartType: PortfolioChartType
 	public let values: [ChartDateValue]
 
@@ -119,7 +119,7 @@ public struct PortfolioChartData: Codable, Equatable, Sendable {
 	}
 }
 
-public enum PortfolioStatistic: Codable, Equatable, Sendable {
+public enum PortfolioStatistic: Codable, Equatable, Hashable, Sendable {
 	case allTimeHigh(ChartValuePercentage)
 	case allTimeLow(ChartValuePercentage)
 	case unrealizedPnl(Double)
@@ -214,7 +214,7 @@ public enum PortfolioStatistic: Codable, Equatable, Sendable {
 	}
 }
 
-public struct PortfolioData: Codable, Sendable {
+public struct PortfolioData: Codable, Equatable, Sendable {
 	public let charts: [PortfolioChartData]
 	public let statistics: [PortfolioStatistic]
 	public let availablePeriods: [ChartPeriod]
@@ -236,7 +236,7 @@ public struct PortfolioMarginUsage: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public enum PortfolioType: String, Codable, CaseIterable, Equatable, Identifiable, Sendable {
+public enum PortfolioType: String, Codable, CaseIterable, Equatable, Hashable, Identifiable, Sendable {
 	case wallet
 	case perpetuals
 }
