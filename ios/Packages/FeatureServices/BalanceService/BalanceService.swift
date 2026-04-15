@@ -160,7 +160,6 @@ extension BalanceService {
     ) async -> [AssetBalanceChange] {
         do {
             let balances = try await fetchBalance().compactMap { mapBalance($0) }
-            try await addAssetsIfNeeded(balances: balances)
             try storeBalances(balances: balances, walletId: walletId)
             return balances
         } catch {
@@ -202,7 +201,8 @@ extension BalanceService {
         for balance in balances {
             debugLog("update balance: \(balance.assetId.identifier): \(balance.type)")
         }
-        let assets = try assetsService.getAssets(for: balances.map(\.assetId))
+        let assetIds = balances.map(\.assetId)
+        let assets = try assetsService.getAssets(for: assetIds)
         let updates = createBalanceUpdate(assets: assets, balances: balances)
 
         try updateBalances(updates, walletId: walletId)
@@ -236,14 +236,5 @@ extension BalanceService {
 
         try balanceStore.addBalance(addBalances, for: walletId)
         try balanceStore.updateBalances(balances, for: walletId)
-    }
-
-    private func addAssetsIfNeeded(balances: [AssetBalanceChange]) async throws {
-        let assetIds = balances.map(\.assetId)
-        let existAssets = try assetsService.getAssets(for: assetIds)
-        let missingIds = assetIds.asSet().subtracting(existAssets.map(\.id)).asArray()
-        if missingIds.isNotEmpty {
-            try await assetsService.addAssets(assetIds: missingIds)
-        }
     }
 }
