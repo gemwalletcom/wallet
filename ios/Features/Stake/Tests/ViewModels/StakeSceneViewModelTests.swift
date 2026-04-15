@@ -49,19 +49,26 @@ struct StakeSceneViewModelTests {
 
     @Test
     func rewardsState() {
-        let rewards = [Delegation.mock(base: .mock(state: .active, rewards: "100"))]
+        let oneReward = [Delegation.mock(base: .mock(state: .active, rewards: "100"))]
+        let twoRewards = [
+            Delegation.mock(validator: .mock(.monad, id: "a"), base: .mock(state: .active, rewards: "100")),
+            Delegation.mock(validator: .mock(.monad, id: "b"), base: .mock(state: .active, rewards: "100")),
+        ]
 
-        let monad = StakeSceneViewModel.mock(chain: .monad)
-        monad.delegationsQuery.value = rewards
+        let monadMulti = StakeSceneViewModel.mock(chain: .monad)
+        monadMulti.delegationsQuery.value = twoRewards
+        #expect(monadMulti.showRewards == true)
+        #expect(monadMulti.canClaimAllRewards == false)
 
-        #expect(monad.showRewards == true)
-        #expect(monad.rewardsTitle == Localized.Stake.rewards)
+        let monadSingle = StakeSceneViewModel.mock(chain: .monad)
+        monadSingle.delegationsQuery.value = oneReward
+        #expect(monadSingle.canClaimAllRewards == true)
 
         let cosmos = StakeSceneViewModel.mock(chain: .cosmos)
-        cosmos.delegationsQuery.value = rewards
-
+        cosmos.delegationsQuery.value = oneReward
         #expect(cosmos.showRewards == true)
-        #expect(cosmos.rewardsTitle == Localized.Transfer.ClaimRewards.title)
+        #expect(cosmos.canClaimAllRewards == true)
+
         #expect(StakeSceneViewModel.mock(chain: .cosmos).showRewards == false)
     }
 }

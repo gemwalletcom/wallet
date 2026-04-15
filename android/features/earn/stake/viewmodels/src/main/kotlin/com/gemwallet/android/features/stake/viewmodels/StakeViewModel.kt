@@ -16,10 +16,14 @@ import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.stake.models.StakeAction
+import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -109,7 +113,6 @@ class StakeViewModel @Inject constructor(
                             maxDecimals = assetInfo.asset.decimals,
                             dynamicPlace = true,
                         ),
-                        claimable = assetInfo.chain.claimAllAvailable,
                     )
                 },
         )
@@ -140,20 +143,27 @@ class StakeViewModel @Inject constructor(
         sync.update { true }
     }
 
-    fun onRewards(onConfirm: (ConfirmParams) -> Unit) {
+    fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val account = account.value ?: return
-        val validators = delegations.value.filter { it.rewardsBalance() > BigInteger.ZERO }
-            .map { it.validator }
-            .toSet()
-            .toList()
-        onConfirm(
-            ConfirmParams.Stake.RewardsParams(
-                asset = assetInfo.asset,
-                from = account,
-                validators = validators,
-                amount = rewardsBalance.value
+        val withRewards = delegations.value.filter { it.rewardsBalance() > BigInteger.ZERO }
+        val canClaimAllRewards = assetInfo.chain.claimAllAvailable || withRewards.size == 1
+        if (canClaimAllRewards) {
+            onConfirm(
+                ConfirmParams.Stake.RewardsParams(
+                    asset = assetInfo.asset,
+                    from = account,
+                    validators = withRewards.map { it.validator },
+                    amount = withRewards.sumOf { it.rewardsBalance() },
+                )
             )
-        )
+        } else {
+            onAmount(
+                AmountParams.buildStake(
+                    assetId = assetInfo.asset.id,
+                    txType = TransactionType.StakeRewards,
+                )
+            )
+        }
     }
 }

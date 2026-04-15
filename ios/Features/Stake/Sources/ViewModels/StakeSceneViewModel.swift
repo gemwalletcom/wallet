@@ -58,7 +58,7 @@ public final class StakeSceneViewModel {
     var title: String { Localized.Transfer.Stake.title }
 
     var stakeTitle: String { Localized.Transfer.Stake.title }
-    var rewardsTitle: String { canClaimAllRewards ? Localized.Transfer.ClaimRewards.title : Localized.Stake.rewards }
+    var rewardsTitle: String { Localized.Transfer.ClaimRewards.title }
     var delegationsTitle: String { Localized.Stake.delegations }
 
     var stakeAprModel: AprViewModel {
@@ -155,21 +155,24 @@ public final class StakeSceneViewModel {
     }
 
     var canClaimAllRewards: Bool {
-        chain.supportClaimAllRewards && rewardsValue > 0
+        guard showRewards else { return false }
+        return chain.supportClaimAllRewards || delegationsWithRewards.count == 1
     }
 
     var claimRewardsDestination: any Hashable {
-        let validators = delegations
-            .filter { $0.base.rewardsValue > 0 }
-            .map(\.validator)
-
-        return TransferData(
-            type: .stake(chain.chain.asset, .rewards(validators)),
-            recipientData: RecipientData(
-                recipient: Recipient(name: .none, address: "", memo: .none),
-                amount: .none,
-            ),
-            value: rewardsValue,
+        if canClaimAllRewards {
+            return TransferData(
+                type: .stake(chain.chain.asset, .rewards(delegationsWithRewards.map(\.validator))),
+                recipientData: RecipientData(
+                    recipient: Recipient(name: .none, address: "", memo: .none),
+                    amount: .none,
+                ),
+                value: rewardsValue,
+            )
+        }
+        return AmountInput(
+            type: .stake(.claimRewards(delegations: delegationsWithRewards)),
+            asset: asset,
         )
     }
 
@@ -258,6 +261,10 @@ extension StakeSceneViewModel {
 
     private var rewardsValue: BigInt {
         delegations.map(\.base.rewardsValue).reduce(0, +)
+    }
+
+    private var delegationsWithRewards: [Delegation] {
+        delegations.filter { $0.base.rewardsValue > 0 }
     }
 
     private func destination(type: AmountType) -> any Hashable {

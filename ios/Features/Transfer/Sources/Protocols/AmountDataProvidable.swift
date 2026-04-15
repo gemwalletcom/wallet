@@ -10,6 +10,7 @@ protocol AmountDataProvidable {
     var amountType: AmountType { get }
     var minimumValue: BigInt { get }
     var canChangeValue: Bool { get }
+    var showsAssetBalance: Bool { get }
     var reserveForFee: BigInt { get }
 
     func availableValue(from assetData: AssetData) -> BigInt
@@ -20,6 +21,8 @@ protocol AmountDataProvidable {
 }
 
 extension AmountDataProvidable {
+    var showsAssetBalance: Bool { canChangeValue }
+
     func maxValue(from assetData: AssetData) -> BigInt {
         shouldReserveFee(from: assetData) ? max(.zero, availableValue(from: assetData) - reserveForFee) : availableValue(from: assetData)
     }
