@@ -36,10 +36,10 @@ final class PerpetualsSceneViewModel {
     var searchQuery: String = .empty
     var isSearching: Bool = false
     var isPresentingRecents: Bool = false
-    var isPresentingPortfolio: Bool = false
 
     let onSelectAssetType: ((SelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
+    let onSelectPortfolio: VoidAction
 
     init(
         wallet: Wallet,
@@ -48,6 +48,7 @@ final class PerpetualsSceneViewModel {
         activityService: ActivityService,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
+        onSelectPortfolio: (() -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.perpetualService = perpetualService
@@ -55,6 +56,7 @@ final class PerpetualsSceneViewModel {
         self.activityService = activityService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
+        self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
         walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.walletId), initialValue: .zero)
@@ -179,6 +181,6 @@ extension PerpetualsSceneViewModel {
     }
 
     func onSelectBalance() {
-        isPresentingPortfolio = true
+        onSelectPortfolio?()
     }
 }

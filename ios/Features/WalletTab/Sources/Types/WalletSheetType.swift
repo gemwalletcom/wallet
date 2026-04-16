@@ -3,6 +3,7 @@
 import Foundation
 import InfoSheet
 import Primitives
+import PrimitivesComponents
 
 public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case wallets
@@ -12,7 +13,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case perpetualRecipientData(PerpetualRecipientData)
     case setPriceAlert(Asset)
     case addAsset
-    case portfolio
+    case portfolio(PortfolioType)
 
     public var id: String {
         switch self {
@@ -23,7 +24,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
         case .perpetualRecipientData: "perpetualRecipientData"
         case let .setPriceAlert(asset): "setPriceAlert-\(asset.id.identifier)"
         case .addAsset: "addAsset"
-        case .portfolio: "portfolio"
+        case let .portfolio(type): "portfolio-\(type.id)"
         }
     }
 }

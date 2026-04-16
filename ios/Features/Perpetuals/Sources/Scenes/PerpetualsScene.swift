@@ -65,14 +65,6 @@ struct PerpetualsScene: View {
                 ),
             )
         }
-        .sheet(isPresented: $model.isPresentingPortfolio) {
-            PerpetualPortfolioScene(
-                model: PerpetualPortfolioSceneViewModel(
-                    wallet: model.wallet,
-                    perpetualService: model.perpetualService,
-                ),
-            )
-        }
     }
 
     var list: some View {
