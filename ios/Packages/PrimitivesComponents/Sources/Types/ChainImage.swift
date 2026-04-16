@@ -57,7 +57,8 @@ public struct ChainImage: Sendable {
         case .polkadot: Images.Chains.polkadot
         case .cardano: Images.Chains.cardano
         case .berachain: Images.Chains.berachain
-        case .hyperliquid, .hyperCore: Images.Chains.hyperliquid
+        case .hyperliquid: Images.Chains.hyperliquid
+        case .hyperCore: Images.Chains.hypercore
         case .monad: Images.Chains.monad
         case .plasma: Images.Chains.plasma
         case .zcash: Images.Chains.zcash

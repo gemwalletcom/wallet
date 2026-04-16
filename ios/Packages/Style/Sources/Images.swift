@@ -79,7 +79,7 @@ public enum Images {
         public static let chainflip = Image(.chainflip)
         public static let relay = Image(.relay)
         public static let aerodrome = Image(.aerodrome)
-        public static let hyperliquid = Image(.hypercore)
+        public static let hyperliquid = Image(.hyperliquid)
         public static let panora = Image(.panora)
         public static let okx = Image(.okx)
         public static let nearIntents = Image(.nearIntents)
