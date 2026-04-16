@@ -81,7 +81,7 @@ extension PortfolioSceneViewModel {
     public func fetch() async {
         selectedState = .loading
         do {
-            let data = try await service.getData(request: getPortfolioRequest())
+            let data = try await service.getPortfoliData(input: getDataInput())
             if data.availablePeriods.isNotEmpty, !data.availablePeriods.contains(selectedPeriod) {
                 selectedPeriod = data.availablePeriods.first ?? selectedPeriod
             }
@@ -136,7 +136,7 @@ extension PortfolioSceneViewModel {
 // MARK: - Private
 
 extension PortfolioSceneViewModel {
-    private func getPortfolioRequest() throws -> PortfolioRequest {
+    private func getDataInput() throws -> PortfolioDataInput {
         switch state.selectedType {
         case .wallet:
             return .wallet(walletId: wallet.walletId, period: selectedPeriod, currencyCode: currencyCode)

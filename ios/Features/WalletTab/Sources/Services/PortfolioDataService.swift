@@ -5,7 +5,7 @@ import PerpetualService
 import Primitives
 import PriceService
 
-public enum PortfolioRequest: Sendable {
+enum PortfolioDataInput: Sendable {
     case wallet(walletId: WalletId, period: ChartPeriod, currencyCode: String)
     case perpetuals(period: ChartPeriod, address: String)
 }
@@ -25,18 +25,20 @@ public struct PortfolioDataService: Sendable {
         self.priceService = priceService
     }
 
-    func getData(request: PortfolioRequest) async throws -> PortfolioData {
-        switch request {
+    func getPortfoliData(input: PortfolioDataInput) async throws -> PortfolioData {
+        switch input {
         case let .wallet(walletId, period, currencyCode):
-            try await walletData(walletId: walletId, period: period, currencyCode: currencyCode)
+            try await getWalletData(walletId: walletId, period: period, currencyCode: currencyCode)
         case let .perpetuals(period, address):
-            try await perpetualData(address: address, period: period)
+            try await getPerpetualData(address: address, period: period)
         }
     }
 }
 
+// MARK: - Private
+
 extension PortfolioDataService {
-    private func walletData(walletId: WalletId, period: ChartPeriod, currencyCode: String) async throws -> PortfolioData {
+    private func getWalletData(walletId: WalletId, period: ChartPeriod, currencyCode: String) async throws -> PortfolioData {
         let rate = try priceService.getRate(currency: currencyCode)
         let portfolio = try await portfolioService.getPortfolioAssets(walletId: walletId, period: period)
 
@@ -57,7 +59,7 @@ extension PortfolioDataService {
         return PortfolioData(charts: charts, statistics: statistics, availablePeriods: [.day, .week, .month, .year, .all])
     }
 
-    private func perpetualData(address: String, period: ChartPeriod) async throws -> PortfolioData {
+    private func getPerpetualData(address: String, period: ChartPeriod) async throws -> PortfolioData {
         let portfolio = try await perpetualService.portfolio(address: address)
         let timeframe = portfolio.timeframeData(for: period)
 
