@@ -113,6 +113,13 @@ public struct DelegationSceneViewModel {
         availableActions.isNotEmpty
     }
 
+    public var canClaimRewards: Bool {
+        wallet.canSign
+            && stakeChain.supportClaimRewards
+            && model.state == .active
+            && model.delegation.base.rewardsValue > 0
+    }
+
     public func actionTitle(_ action: DelegationActionType) -> String {
         switch action {
         case .stake: Localized.Transfer.Stake.title
@@ -120,6 +127,7 @@ public struct DelegationSceneViewModel {
         case .redelegate: Localized.Transfer.Redelegate.title
         case .deposit: Localized.Wallet.deposit
         case .withdraw: Localized.Transfer.Withdraw.title
+        case .claimRewards: Localized.Transfer.ClaimRewards.title
         }
     }
 }
@@ -146,7 +154,13 @@ public extension DelegationSceneViewModel {
             case .stake: onTransferAction?(stakeTransferData(.withdraw(model.delegation)))
             case .earn: onAmountInputAction?(amountInput(.earn(.withdraw(model.delegation))))
             }
+        case .claimRewards:
+            onClaimRewards()
         }
+    }
+
+    func onClaimRewards() {
+        onTransferAction?(claimRewardsTransferData())
     }
 }
 
@@ -165,6 +179,17 @@ extension DelegationSceneViewModel {
                 amount: .none,
             ),
             value: model.delegation.base.balanceValue,
+        )
+    }
+
+    private func claimRewardsTransferData() -> TransferData {
+        TransferData(
+            type: .stake(asset, .rewards([model.delegation.validator])),
+            recipientData: RecipientData(
+                recipient: Recipient(name: .none, address: "", memo: .none),
+                amount: .none,
+            ),
+            value: model.delegation.base.rewardsValue,
         )
     }
 

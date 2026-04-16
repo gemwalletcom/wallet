@@ -9,22 +9,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsUIState
 import com.gemwallet.android.features.transfer_amount.viewmodels.ValidatorsViewModel
-import com.wallet.core.primitives.Chain
 
 @Composable
 fun ValidatorsScreen(
-    chain: Chain,
+    source: ValidatorsSource,
     selectedValidatorId: String,
     viewModel: ValidatorsViewModel = hiltViewModel(),
     onCancel: () -> Unit,
     onSelect: (String) -> Unit
 ) {
-    DisposableEffect(chain) {
-
-        viewModel.init(chain)
-
+    DisposableEffect(source) {
+        viewModel.init(source)
         onDispose {  }
     }
 

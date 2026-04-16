@@ -4,9 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsUIState
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -26,16 +26,30 @@ class ValidatorsViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val assetId = MutableStateFlow<AssetId?>(null)
-    val validators = assetId.filterNotNull()
-        .flatMapLatest { stakeRepository.getValidators(it.chain) }
+    private val source = MutableStateFlow<ValidatorsSource?>(null)
+
+    val validators = source.filterNotNull()
+        .flatMapLatest { source ->
+            when (source) {
+                is ValidatorsSource.ChainValidators -> stakeRepository.getValidators(source.chain)
+                is ValidatorsSource.Rewards -> stakeRepository.getDelegations(source.assetId, source.owner)
+                    .map { delegations ->
+                        delegations
+                            .filter { (it.base.rewards.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO }
+                            .map { it.validator }
+                    }
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, emptyList())
 
-    val uiState = combine(assetId, validators) { assetId, validators ->
+    val uiState = combine(source, validators) { source, validators ->
         when {
-            assetId == null -> ValidatorsUIState.Loading
+            source == null -> ValidatorsUIState.Loading
             validators.isNotEmpty() -> {
-                val recommended = stakeRepository.getRecommendValidators(assetId.chain)
+                val recommended = when (source) {
+                    is ValidatorsSource.ChainValidators -> stakeRepository.getRecommendValidators(source.chain)
+                    is ValidatorsSource.Rewards -> emptySet()
+                }
                 ValidatorsUIState.Loaded(
                     loading = false,
                     recomended = validators.filter { recommended.contains(it.id) },
@@ -47,7 +61,7 @@ class ValidatorsViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Companion.Eagerly, ValidatorsUIState.Loading)
 
-    fun init(chain: Chain) {
-        assetId.update { AssetId(chain) }
+    fun init(source: ValidatorsSource) {
+        this.source.update { source }
     }
 }

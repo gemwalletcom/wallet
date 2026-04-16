@@ -22,7 +22,7 @@ struct AmountInputConfig: CurrencyInputConfigurable {
         case let .stake(stakeType):
             switch stakeType {
             case .stake, .unstake: asset.chain == .tron ? .numberPad : .decimalPad
-            case .redelegate, .withdraw: .decimalPad
+            case .redelegate, .withdraw, .claimRewards: .decimalPad
             }
         }
     }

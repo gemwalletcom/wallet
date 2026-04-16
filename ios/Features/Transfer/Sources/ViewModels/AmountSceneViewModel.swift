@@ -64,7 +64,7 @@ public final class AmountSceneViewModel {
     var title: String { provider.title }
     var canChangeValue: Bool { provider.canChangeValue }
     var isInputDisabled: Bool { !canChangeValue }
-    var isBalanceViewEnabled: Bool { !isInputDisabled }
+    var isBalanceViewEnabled: Bool { provider.showsAssetBalance }
 
     var assetImage: AssetImage { AssetViewModel(asset: asset).assetImage }
     var assetName: String { asset.name }
@@ -165,8 +165,10 @@ extension AmountSceneViewModel {
     }
 
     public func onValidatorSelected(_ validator: DelegationValidator) {
-        if case let .stake(stake) = provider {
-            stake.validatorSelection.selected = validator
+        guard case let .stake(stake) = provider else { return }
+        stake.validatorSelection.selected = validator
+        if !canChangeValue {
+            setMax()
         }
     }
 

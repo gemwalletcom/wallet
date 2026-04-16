@@ -7,6 +7,7 @@ public enum StakeAmountType: Equatable, Hashable, Sendable {
     case unstake(Delegation)
     case redelegate(Delegation, validators: [DelegationValidator], recommended: DelegationValidator?)
     case withdraw(Delegation)
+    case claimRewards(delegations: [Delegation])
 }
 
 public enum AmountType: Equatable, Hashable, Sendable {

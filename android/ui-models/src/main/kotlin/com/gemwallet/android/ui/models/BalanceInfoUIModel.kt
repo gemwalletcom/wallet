@@ -30,7 +30,9 @@ class RewardsInfoUIModel(
     balance = BigInteger(balance),
     price = assetInfo.price?.price?.price,
     currency = assetInfo.price?.currency ?: Currency.USD,
-)
+) {
+    override val maxFraction: Int get() = asset.decimals
+}
 
 class DelegationBalanceInfoUIModel(
     assetInfo: AssetInfo,
