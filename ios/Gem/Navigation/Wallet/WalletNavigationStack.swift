@@ -133,6 +133,7 @@ struct WalletNavigationStack: View {
                     activityService: activityService,
                     onSelectAssetType: { model.isPresentingSheet = .selectAsset($0) },
                     onSelectAsset: { navigationState.wallet.append(Scenes.Perpetual($0)) },
+                    onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
                 )
             }
             .navigationDestination(for: Scenes.AssetsResults.self) { destination in
@@ -210,13 +211,17 @@ struct WalletNavigationStack: View {
                     )
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)
-                case .portfolio:
-                    WalletPortfolioScene(
-                        model: WalletPortfolioSceneViewModel(
+                case let .portfolio(defaultType):
+                    PortfolioScene(
+                        model: PortfolioSceneViewModel(
                             wallet: model.wallet,
-                            portfolioService: portfolioService,
-                            priceService: priceService,
-                            currencyCode: preferences.preferences.currency,
+                            service: PortfolioDataService(
+                                portfolioService: portfolioService,
+                                perpetualService: perpetualService,
+                                priceService: priceService,
+                            ),
+                            preferences: preferences,
+                            defaultType: defaultType,
                         ),
                     )
                 }

@@ -86,7 +86,7 @@ fun AmountScreen(
                 }
                 ValidatorsScreen(
                     source = source,
-                    selectedValidatorId = validatorState?.id!!,
+                    selectedValidatorId = validatorState?.id ?: "",
                     onCancel = { isSelectValidator = false },
                     onSelect = {
                         isSelectValidator = false
