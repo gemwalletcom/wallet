@@ -1,11 +1,13 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
 import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
@@ -58,4 +60,10 @@ object AssetSelectModule {
     fun provideUpdateRecentAsset(
         assetsRepository: AssetsRepository,
     ): UpdateRecentAsset = UpdateRecentAssetImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideClearRecentAssets(
+        assetsRepository: AssetsRepository,
+    ): ClearRecentAssets = ClearRecentAssetsImpl(assetsRepository)
 }
