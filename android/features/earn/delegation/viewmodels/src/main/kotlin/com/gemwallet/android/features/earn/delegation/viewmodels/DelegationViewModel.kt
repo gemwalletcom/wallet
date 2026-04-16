@@ -7,9 +7,10 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.byChain
-import com.gemwallet.android.ext.claimed
+import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.redelegated
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
@@ -130,9 +131,8 @@ class DelegationViewModel @Inject constructor(
         if (delegation == null || assetInfo == null || session.wallet.type == WalletType.View) {
             return@combine false
         }
-        delegation.base.state == DelegationState.Active
-            && assetInfo.asset.id.chain.claimed
-            && delegation.rewardsBalance() > BigInteger.ZERO
+        assetInfo.asset.id.chain.canClaimRewards
+            && delegation.hasRewards()
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

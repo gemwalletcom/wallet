@@ -12,6 +12,7 @@ import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
+import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.transaction.TransactionBalanceContext
 import com.gemwallet.android.domains.transaction.balance
@@ -115,7 +116,7 @@ class AmountViewModel @Inject constructor(
             TransactionType.StakeRewards -> {
                 val owner = assetInfo?.owner?.address ?: return@flatMapLatest flowOf(null)
                 stakeRepository.getDelegations(assetInfo.asset.id, owner).map { list ->
-                    val rewards = list.filter { it.rewardsBalance() > BigInteger.ZERO }
+                    val rewards = list.filter { it.hasRewards() }
                     rewards.firstOrNull { it.validator.id == selectedId } ?: rewards.firstOrNull()
                 }
             }

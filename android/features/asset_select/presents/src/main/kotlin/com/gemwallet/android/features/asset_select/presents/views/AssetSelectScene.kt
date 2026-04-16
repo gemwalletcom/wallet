@@ -103,6 +103,7 @@ fun AssetSelectScene(
     actions: @Composable RowScope.() -> Unit = {},
     onAddAsset: (() -> Unit)? = null,
     onSelectRecent: ((AssetId) -> Unit)? = null,
+    onOpenRecentsSheet: (() -> Unit)? = null,
     contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     AssetSelectScene(
@@ -138,6 +139,7 @@ fun AssetSelectScene(
         actions = actions,
         onAddAsset = onAddAsset,
         onSelectRecent = onSelectRecent,
+        onOpenRecentsSheet = onOpenRecentsSheet,
         contextActions = contextActions,
     )
 }
@@ -170,6 +172,7 @@ fun AssetSelectScene(
     actions: @Composable RowScope.() -> Unit = {},
     onAddAsset: (() -> Unit)? = null,
     onSelectRecent: ((AssetId) -> Unit)? = null,
+    onOpenRecentsSheet: (() -> Unit)? = null,
     contextActions: AssetContextActions = AssetContextActions.Empty,
 ) {
     val listState = rememberLazyListState()
@@ -238,7 +241,7 @@ fun AssetSelectScene(
                     }
                 }
             }
-            recent(recent, onSelectRecent)
+            recent(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             assets(pinned, AssetsGroupType.Pined, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
@@ -355,13 +358,18 @@ private fun LazyListScope.loading(state: UIState) {
 
 private fun LazyListScope.recent(
     items: List<Asset>,
-    onSelect: ((AssetId) -> Unit)?
+    onSelect: ((AssetId) -> Unit)?,
+    onOpenRecentsSheet: (() -> Unit)? = null,
 ) {
     if (items.isEmpty()) {
         return
     }
     item {
-        SubheaderItem(R.string.recent_activity_title)
+        if (onOpenRecentsSheet == null) {
+            SubheaderItem(R.string.recent_activity_title)
+        } else {
+            SubheaderItem(R.string.recent_activity_title, onClick = onOpenRecentsSheet)
+        }
     }
     item {
         LazyRow(

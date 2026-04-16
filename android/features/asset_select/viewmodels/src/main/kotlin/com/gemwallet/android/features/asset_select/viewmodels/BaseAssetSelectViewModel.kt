@@ -144,12 +144,12 @@ open class BaseAssetSelectViewModel(
     val recent = snapshotFlow { queryState.text.toString() }
         .flatMapLatest { query ->
             if (query.isNotEmpty() || !showRecents) {
-                flow<List<Asset>> { emit(emptyList()) }
+                flow { emit(emptyList()) }
             } else {
                 getRecentAssets(RecentAssetsRequest(filters = assetFilters()))
             }
         }
-    .map { it.toImmutableList() }
+    .map { items -> items.map { it.asset }.toImmutableList() }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 

@@ -102,7 +102,6 @@ public enum RewardEventType: String, Codable, CaseIterable, Equatable, Hashable,
 	case createUsername
 	case invitePending
 	case inviteNew
-	case inviteExisting
 	case joined
 	case disabled
 	case redeemed

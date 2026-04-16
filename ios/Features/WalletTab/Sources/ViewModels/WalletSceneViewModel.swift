@@ -145,7 +145,7 @@ public extension WalletSceneViewModel {
     }
 
     internal func onSelectPortfolio() {
-        isPresentingSheet = .portfolio
+        isPresentingSheet = .portfolio(.wallet)
     }
 
     internal func onHeaderAction(type: HeaderButtonType) {

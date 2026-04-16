@@ -2,6 +2,7 @@ package com.gemwallet.android.features.asset_select.presents.views
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
@@ -9,6 +10,7 @@ import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import kotlinx.collections.immutable.toImmutableList
@@ -26,6 +28,7 @@ fun AssetSelectScreen(
     itemSupport: ((AssetItemUIModel) -> (@Composable () -> Unit)?)? = null,
     onAddAsset: (() -> Unit)? = null,
     viewModel: BaseAssetSelectViewModel,
+    recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val popular by viewModel.popular.collectAsStateWithLifecycle()
@@ -75,6 +78,9 @@ fun AssetSelectScreen(
         onClearFilters = viewModel::onClearFilters,
         onSelect = selectAsset,
         onSelectRecent = onSelectRecent,
+        onOpenRecentsSheet = if (onSelectRecent != null) {
+            { recentsViewModel.show(filters = viewModel.assetFilters()) }
+        } else null,
         onCancel = onCancel,
         onAddAsset = onAddAsset,
         itemTrailing = itemTrailing,
@@ -82,4 +88,8 @@ fun AssetSelectScreen(
         selectedTag = selectedTag,
         tags = viewModel.getTags(),
     )
+
+    if (onSelectRecent != null) {
+        RecentsSheetHost(viewModel = recentsViewModel, onSelect = onSelectRecent)
+    }
 }

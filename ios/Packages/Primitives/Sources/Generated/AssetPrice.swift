@@ -88,7 +88,7 @@ public struct Charts: Codable, Sendable {
 	}
 }
 
-public enum ChartPeriod: String, Codable, Sendable {
+public enum ChartPeriod: String, Codable, Equatable, Hashable, Sendable {
 	case hour
 	case day
 	case week
