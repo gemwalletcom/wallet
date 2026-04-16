@@ -6,12 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.ext.claimAllAvailable
-import com.gemwallet.android.ext.claimed
+import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
@@ -104,7 +105,7 @@ class StakeViewModel @Inject constructor(
             StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { assetInfo.chain.claimed && rewardsBalance > BigInteger.ZERO }
+                .takeIf { assetInfo.chain.canClaimRewards && rewardsBalance > BigInteger.ZERO }
                 ?.let {
                     StakeAction.Rewards(
                         data = assetInfo.asset.format(
@@ -146,7 +147,7 @@ class StakeViewModel @Inject constructor(
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val account = account.value ?: return
-        val withRewards = delegations.value.filter { it.rewardsBalance() > BigInteger.ZERO }
+        val withRewards = delegations.value.filter { it.hasRewards() }
         val canClaimAllRewards = assetInfo.chain.claimAllAvailable || withRewards.size == 1
         if (canClaimAllRewards) {
             onConfirm(
