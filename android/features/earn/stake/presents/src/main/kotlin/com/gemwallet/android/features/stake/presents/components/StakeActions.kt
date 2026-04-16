@@ -20,19 +20,19 @@ internal fun LazyListScope.stakeActions(
     isStakeEnabled: Boolean,
     assetId: AssetId,
     amountAction: AmountTransactionAction,
-    onConfirm: () -> Unit
+    onRewards: () -> Unit
 ) {
     item {
         SubheaderItem(R.string.common_manage)
     }
     itemsPositioned(actions) { position, item ->
         val title = when (item) {
-            is StakeAction.Rewards -> R.string.transfer_rewards_title
+            is StakeAction.Rewards -> R.string.transfer_claim_rewards_title
             StakeAction.Stake -> R.string.transfer_stake_title
             StakeAction.Freeze -> R.string.transfer_freeze_title
             StakeAction.Unfreeze -> R.string.transfer_unfreeze_title
         }
-        val onClick = when(item) {
+        val onClick = when (item) {
             StakeAction.Stake,
             StakeAction.Freeze,
             StakeAction.Unfreeze -> {
@@ -45,7 +45,7 @@ internal fun LazyListScope.stakeActions(
                     )
                 }
             }
-            is StakeAction.Rewards -> onConfirm
+            is StakeAction.Rewards -> onRewards
         }
         val enabled = !item.requiresValidators() || isStakeEnabled
         PropertyItem(

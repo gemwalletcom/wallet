@@ -53,7 +53,7 @@ fun StakeScene(
     delegations: List<Delegation>,
     amountAction: AmountTransactionAction,
     onRefresh: () -> Unit,
-    onConfirm: () -> Unit,
+    onRewards: () -> Unit,
     onDelegation: (String, String) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -94,7 +94,7 @@ fun StakeScene(
                     isStakeEnabled = isStakeEnabled,
                     assetId = assetInfo.id(),
                     amountAction = amountAction,
-                    onConfirm = onConfirm,
+                    onRewards = onRewards,
                 )
 
                 energyItem(assetInfo.balance.metadata)

@@ -17,6 +17,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.Constants
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.models.DelegationBalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer2
@@ -111,7 +112,10 @@ fun DelegationItem(
                 assetInfo = assetInfo,
                 delegation = delegation.base,
             )
-            getBalanceInfo(balance, balance).invoke()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                getBalanceInfo(balance, balance).invoke()
+                DataBadgeChevron()
+            }
         }
     )
 }

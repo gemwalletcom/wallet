@@ -7,7 +7,9 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.byChain
+import com.gemwallet.android.ext.claimed
 import com.gemwallet.android.ext.redelegated
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
@@ -120,6 +122,20 @@ class DelegationViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val canClaimRewards = combine(
+        delegation,
+        assetInfo,
+        sessionRepository.session().filterNotNull(),
+    ) { delegation, assetInfo, session ->
+        if (delegation == null || assetInfo == null || session.wallet.type == WalletType.View) {
+            return@combine false
+        }
+        delegation.base.state == DelegationState.Active
+            && assetInfo.asset.id.chain.claimed
+            && delegation.rewardsBalance() > BigInteger.ZERO
+    }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val delegationInfo = combine(
         delegation,
         assetInfo,
@@ -167,6 +183,20 @@ class DelegationViewModel @Inject constructor(
         val params = ConfirmParams.Builder(assetInfo.asset, from, balance.atomicValue, false)
             .withdraw(delegation)
         call(params)
+    }
+
+    fun onClaimRewards(call: ConfirmTransactionAction) {
+        val assetInfo = assetInfo.value ?: return
+        val from = assetInfo.owner ?: return
+        val delegation = delegation.value ?: return
+        call(
+            ConfirmParams.Stake.RewardsParams(
+                asset = assetInfo.asset,
+                from = from,
+                validators = listOf(delegation.validator),
+                amount = delegation.rewardsBalance(),
+            )
+        )
     }
 
     private fun buildStake(type: TransactionType): AmountParams {

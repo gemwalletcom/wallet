@@ -32,7 +32,16 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
         case let .withdraw(delegation):
             SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
+        case let .claimRewards(delegations):
+            SelectionState(options: delegations.map(\.validator), selected: selectedClaimRewardsValidator(from: delegations), isEnabled: delegations.count > 1, title: Localized.Stake.validator)
         }
+    }
+
+    private static func selectedClaimRewardsValidator(from delegations: [Delegation]) -> DelegationValidator {
+        guard let first = delegations.first?.validator else {
+            preconditionFailure("Claim rewards selection requires at least one delegation")
+        }
+        return first
     }
 
     private static func selectedValidator(
@@ -53,7 +62,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     public var validatorSelectType: ValidatorSelectType {
         switch action {
         case .stake, .redelegate: .stake
-        case .unstake, .withdraw: .unstake
+        case .unstake, .withdraw, .claimRewards: .unstake
         }
     }
 
@@ -63,6 +72,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case .unstake: Localized.Transfer.Unstake.title
         case .redelegate: Localized.Transfer.Redelegate.title
         case .withdraw: Localized.Transfer.Withdraw.title
+        case .claimRewards: Localized.Transfer.ClaimRewards.title
         }
     }
 
@@ -81,6 +91,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             .zero
         case .withdraw:
             asset.symbol == "USDC" ? AmountPerpetualLimits.minDeposit : .zero
+        case .claimRewards:
+            .zero
         }
     }
 
@@ -90,8 +102,15 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             true
         case .unstake:
             StakeChain(rawValue: asset.chain.rawValue)?.canChangeAmountOnUnstake ?? true
-        case .withdraw:
+        case .withdraw, .claimRewards:
             false
+        }
+    }
+
+    var showsAssetBalance: Bool {
+        switch action {
+        case .claimRewards: true
+        default: canChangeValue
         }
     }
 
@@ -100,7 +119,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         return switch action {
         case .stake:
             asset.chain != .tron && maxAfterFee > minimumValue && !reserveForFee.isZero
-        case .unstake, .redelegate, .withdraw:
+        case .unstake, .redelegate, .withdraw, .claimRewards:
             false
         }
     }
@@ -127,6 +146,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             return assetData.balance.available
         case let .unstake(delegation), let .redelegate(delegation, _, _), let .withdraw(delegation):
             return delegation.base.balanceValue
+        case let .claimRewards(delegations):
+            return delegations.first { $0.validator.id == validatorSelection.selected.id }?.base.rewardsValue ?? .zero
         }
     }
 
@@ -151,6 +172,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
             .redelegate(RedelegateData(delegation: delegation, toValidator: validatorSelection.selected))
         case let .withdraw(delegation):
             .withdraw(delegation)
+        case .claimRewards:
+            .rewards([validatorSelection.selected])
         }
         return TransferData(
             type: .stake(asset, stakeType),

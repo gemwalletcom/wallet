@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import Primitives
 import PrimitivesTestKit
 import StakeService
@@ -44,5 +45,30 @@ struct StakeSceneViewModelTests {
         model.validatorsQuery.value = [.mock(.cosmos, id: "other"), .mock(.cosmos, id: recommendedId)]
 
         #expect(model.recommendedCurrentValidator?.id == recommendedId)
+    }
+
+    @Test
+    func rewardsState() {
+        let oneReward = [Delegation.mock(base: .mock(state: .active, rewards: "100"))]
+        let twoRewards = [
+            Delegation.mock(validator: .mock(.monad, id: "a"), base: .mock(state: .active, rewards: "100")),
+            Delegation.mock(validator: .mock(.monad, id: "b"), base: .mock(state: .active, rewards: "100")),
+        ]
+
+        let monadMulti = StakeSceneViewModel.mock(chain: .monad)
+        monadMulti.delegationsQuery.value = twoRewards
+        #expect(monadMulti.showRewards == true)
+        #expect(monadMulti.canClaimAllRewards == false)
+
+        let monadSingle = StakeSceneViewModel.mock(chain: .monad)
+        monadSingle.delegationsQuery.value = oneReward
+        #expect(monadSingle.canClaimAllRewards == true)
+
+        let cosmos = StakeSceneViewModel.mock(chain: .cosmos)
+        cosmos.delegationsQuery.value = oneReward
+        #expect(cosmos.showRewards == true)
+        #expect(cosmos.canClaimAllRewards == true)
+
+        #expect(StakeSceneViewModel.mock(chain: .cosmos).showRewards == false)
     }
 }
