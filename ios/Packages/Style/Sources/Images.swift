@@ -55,6 +55,7 @@ public enum Images {
         public static let ink = Image(.ink)
         public static let unichain = Image(.unichain)
         public static let hyperliquid = Image(.hyperliquid)
+        public static let hypercore = Image(.hypercore)
         public static let monad = Image(.monad)
         public static let plasma = Image(.plasma)
         public static let zcash = Image(.zcash)
