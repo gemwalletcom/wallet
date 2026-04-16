@@ -3,8 +3,6 @@ package com.gemwallet.android.data.repositories.assets
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.operators.GetAsset
 import com.gemwallet.android.blockchain.services.BalancesService
-import com.gemwallet.android.cases.assets.AddRecentActivity
-import com.gemwallet.android.cases.assets.GetRecent
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
@@ -37,6 +35,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.AssetPriceInfo
+import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.TransactionExtended
@@ -87,7 +86,7 @@ class AssetsRepository @Inject constructor(
     private val streamSubscriptionService: StreamSubscriptionService,
     private val updateBalances: UpdateBalances = UpdateBalances(balancesDao, balancesService),
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-) : GetAsset, AddRecentActivity, GetRecent {
+) : GetAsset {
 
 
     init {
@@ -551,11 +550,11 @@ class AssetsRepository @Inject constructor(
         return pricesDao.getRates(currency).map { it?.toDTO() }
     }
 
-    override suspend fun addRecentActivity(
+    suspend fun addRecentActivity(
         assetId: AssetId,
         walletId: String,
         type: RecentType,
-        toAssetId: AssetId?,
+        toAssetId: AssetId? = null,
     ) {
         return assetsDao.addRecentActivity(
             DbRecentActivity(
@@ -568,8 +567,17 @@ class AssetsRepository @Inject constructor(
         )
     }
 
-    override fun getRecentAssets(request: RecentAssetsRequest): Flow<List<Asset>> {
-        return assetsDao.getRecentAssets(request.types, request.filters)
-            .map { items -> items.mapNotNull { it.toDTO() } }
+    fun getRecentAssets(request: RecentAssetsRequest): Flow<List<RecentAsset>> {
+        return assetsDao.getRecentAssets(request.types, request.filters, request.limit)
+            .map { items ->
+                items.mapNotNull { row ->
+                    val asset = row.asset.toDTO() ?: return@mapNotNull null
+                    RecentAsset(asset = asset, addedAt = row.addedAt)
+                }
+            }
+    }
+
+    suspend fun clearRecentAssets(types: List<RecentType>) {
+        assetsDao.clearRecentAssets(types)
     }
 }

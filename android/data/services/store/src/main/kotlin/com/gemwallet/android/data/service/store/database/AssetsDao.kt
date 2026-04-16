@@ -13,6 +13,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
+import com.gemwallet.android.data.service.store.database.entities.DbRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentType
 import com.wallet.core.primitives.Chain
@@ -199,7 +200,7 @@ interface AssetsDao {
     fun swapSearchWithPriority(query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
-        SELECT asset.*
+        SELECT asset.*, MAX(recent_assets.addedAt) AS added_at
         FROM asset
         JOIN recent_assets
             ON asset.id = recent_assets.asset_id
@@ -215,24 +216,27 @@ interface AssetsDao {
                     AND balances.total_amount > 0
             ))
         GROUP BY asset.id
-        ORDER BY MAX(recent_assets.addedAt) DESC, asset.id ASC
-        LIMIT 10
+        ORDER BY added_at DESC, asset.id ASC
+        LIMIT CASE WHEN :limit <= 0 THEN -1 ELSE :limit END
         """)
     fun getRecentAssetsQuery(
         type: List<RecentType>,
         buyable: Boolean,
         swappable: Boolean,
         hasBalance: Boolean,
-    ): Flow<List<DbAsset>>
+        limit: Int,
+    ): Flow<List<DbRecentAsset>>
 
     fun getRecentAssets(
         type: List<RecentType>,
         filters: Set<AssetFilter> = emptySet(),
-    ): Flow<List<DbAsset>> = getRecentAssetsQuery(
+        limit: Int = 10,
+    ): Flow<List<DbRecentAsset>> = getRecentAssetsQuery(
         type = type,
         buyable = AssetFilter.Buyable in filters,
         swappable = AssetFilter.Swappable in filters,
         hasBalance = AssetFilter.HasBalance in filters,
+        limit = limit,
     )
 
     @Query("SELECT * FROM asset_config WHERE wallet_id=:walletId AND asset_id=:assetId")
@@ -249,4 +253,11 @@ interface AssetsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addRecentActivity(record: DbRecentActivity)
+
+    @Query("""
+        DELETE FROM recent_assets
+        WHERE wallet_id = (SELECT wallet_id FROM session WHERE session.id = 1)
+            AND type IN (:types)
+    """)
+    suspend fun clearRecentAssets(types: List<RecentType>)
 }

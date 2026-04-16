@@ -12,6 +12,8 @@ import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
+import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
+import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.swap.viewmodels.SwapSelectViewModel
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.wallet.core.primitives.AssetId
@@ -22,7 +24,8 @@ import kotlinx.collections.immutable.toImmutableList
 fun SwapSelectScreen(
     onCancel: () -> Unit,
     onSelect: (select: SwapItemType, payId: AssetId?, receiveId: AssetId?) -> Unit,
-    viewModel: SwapSelectViewModel = hiltViewModel()
+    viewModel: SwapSelectViewModel = hiltViewModel(),
+    recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -67,6 +70,7 @@ fun SwapSelectScreen(
         onClearFilters = viewModel::onClearFilters,
         onSelect = onSelectAsset,
         onSelectRecent = onSelectAsset,
+        onOpenRecentsSheet = { recentsViewModel.show(filters = viewModel.assetFilters()) },
         onCancel = onCancel,
         onAddAsset = null,
         itemTrailing = { getBalanceInfo(it)() },
@@ -77,4 +81,6 @@ fun SwapSelectScreen(
         },
         onTagSelect = viewModel::onTagSelect
     )
+
+    RecentsSheetHost(viewModel = recentsViewModel, onSelect = onSelectAsset)
 }

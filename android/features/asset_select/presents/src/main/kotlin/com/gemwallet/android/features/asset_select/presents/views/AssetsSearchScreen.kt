@@ -15,6 +15,7 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.model.RecentType
 import com.wallet.core.primitives.AssetId
 import kotlinx.collections.immutable.toImmutableList
@@ -25,6 +26,7 @@ fun AssetsSearchScreen(
     onAssetClick: (AssetId) -> Unit,
     onCancel: () -> Unit,
     viewModel: AssetSelectViewModel = hiltViewModel(),
+    recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,8 +77,11 @@ fun AssetsSearchScreen(
         onAddAsset = if (isAddAssetAvailable) onAddAsset else null,
         onSelect = selectAsset,
         onSelectRecent = onAssetClick,
+        onOpenRecentsSheet = { recentsViewModel.show(filters = viewModel.assetFilters()) },
         onTagSelect = viewModel::onTagSelect,
         itemTrailing = { asset -> getBalanceInfo(asset)() },
         contextActions = contextActions,
     )
+
+    RecentsSheetHost(viewModel = recentsViewModel, onSelect = onAssetClick)
 }

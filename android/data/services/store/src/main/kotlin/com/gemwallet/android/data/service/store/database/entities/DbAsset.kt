@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import com.gemwallet.android.domains.asset.chain
@@ -114,6 +115,11 @@ data class DbRecentActivity(
     @ColumnInfo("to_asset_id") val toAssetId: String? = null,
     val type: RecentType,
     val addedAt: Long,
+)
+
+data class DbRecentAsset(
+    @Embedded val asset: DbAsset,
+    @ColumnInfo("added_at") val addedAt: Long,
 )
 
 fun List<DbAsset>.toDTO() = mapNotNull { it.toDTO() }
