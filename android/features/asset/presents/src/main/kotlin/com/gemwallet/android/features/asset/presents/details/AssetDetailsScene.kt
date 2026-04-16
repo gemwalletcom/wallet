@@ -145,7 +145,14 @@ internal fun AssetDetailsScene(
                     )
                 }
                 energyItem(uiState.accountInfoUIModel.balanceMetadata)
-                item { EmptyTransactionsItem(transactions.size) }
+                item {
+                    EmptyTransactionsItem(
+                        size = transactions.size,
+                        symbol = uiState.asset.symbol,
+                        onBuy = if (uiState.isBuyEnabled) { { onBuy(uiState.asset.id) } } else null,
+                        onSwap = if (!uiState.isBuyEnabled && uiState.isSwapEnabled) { { onSwap(uiState.asset.id, null) } } else null,
+                    )
+                }
                 transactionsList(transactions, onTransaction)
             }
         }

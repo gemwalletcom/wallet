@@ -217,6 +217,8 @@ fun MainScreen(
                 transactionsRoute -> TransactionsNavScreen(
                     listState = activitiesListState,
                     onTransaction = navController::navigateToTransactionScreen,
+                    onBuy = navController::navigateToBuyScreen,
+                    onReceive = navController::navigateToReceiveScreen,
                 )
                 nftRoute -> NftListScene(
                     listState = nftListState,

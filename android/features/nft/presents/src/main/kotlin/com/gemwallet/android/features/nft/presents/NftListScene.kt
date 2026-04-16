@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +28,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.cases.nft.NftError
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -104,14 +104,7 @@ fun NftListScene(
             }
 
             if (!isLoading && items.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                    Text(
-                        modifier = Modifier.align(Alignment.Center),
-                        textAlign = TextAlign.Center,
-                        text = stringResource(R.string.nft_state_empty_title)
-                    )
-                    // TODO: Add empty description
-                }
+                EmptyContentView(type = EmptyContentType.Nft(), modifier = Modifier.fillMaxSize())
                 return@PullToRefreshBox
             }
 

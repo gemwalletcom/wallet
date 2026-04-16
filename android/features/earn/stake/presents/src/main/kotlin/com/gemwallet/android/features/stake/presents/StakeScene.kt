@@ -2,7 +2,9 @@
 
 package com.gemwallet.android.features.stake.presents
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -26,6 +28,9 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.theme.paddingLarge
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
@@ -99,14 +104,21 @@ fun StakeScene(
 
                 energyItem(assetInfo.balance.metadata)
 
-                itemsIndexed(delegations) { index, item ->
-                    DelegationItem(
-                        assetInfo = assetInfo,
-                        delegation = item,
-                        completedAt = availableIn(item),
-                        listPosition = ListPosition.getPosition(index, delegations.size),
-                        onClick = { onDelegation(item.validator.id, item.base.delegationId) }
-                    )
+                if (delegations.isEmpty()) {
+                    item {
+                        Spacer(modifier = Modifier.height(paddingLarge))
+                        EmptyContentView(type = EmptyContentType.Stake(symbol = assetInfo.asset.symbol))
+                    }
+                } else {
+                    itemsIndexed(delegations) { index, item ->
+                        DelegationItem(
+                            assetInfo = assetInfo,
+                            delegation = item,
+                            completedAt = availableIn(item),
+                            listPosition = ListPosition.getPosition(index, delegations.size),
+                            onClick = { onDelegation(item.validator.id, item.base.delegationId) }
+                        )
+                    }
                 }
             }
         }

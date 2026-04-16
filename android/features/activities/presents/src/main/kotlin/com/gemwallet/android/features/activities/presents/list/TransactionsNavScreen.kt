@@ -14,6 +14,8 @@ import com.gemwallet.android.features.activities.viewmodels.TransactionsViewMode
 @Composable
 fun TransactionsNavScreen(
     onTransaction: (String) -> Unit,
+    onBuy: (() -> Unit)? = null,
+    onReceive: (() -> Unit)? = null,
     listState: LazyListState = rememberLazyListState(),
     viewModel: TransactionsViewModel = hiltViewModel()
 ) {
@@ -34,5 +36,7 @@ fun TransactionsNavScreen(
         onTransactionClick = onTransaction,
         onClearChainsFilter = viewModel::clearChainsFilter,
         onClearTypesFilter = viewModel::clearTypeFilter,
+        onBuy = onBuy,
+        onReceive = onReceive,
     )
 }
