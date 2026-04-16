@@ -9,7 +9,7 @@ fun StakeChain.Companion.isStaked(chain: Chain): Boolean = byChain(chain) != nul
 fun StakeChain.Companion.byChain(chain: Chain): StakeChain?
     = StakeChain.entries.firstOrNull { it.string == chain.string }
 
-val Chain.claimed: Boolean
+val Chain.canClaimRewards: Boolean
     get() = Config().getStakeConfig(string).canClaimRewards
 
 val Chain.claimAllAvailable: Boolean
