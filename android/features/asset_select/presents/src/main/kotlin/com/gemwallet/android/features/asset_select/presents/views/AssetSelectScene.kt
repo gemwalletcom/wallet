@@ -375,10 +375,10 @@ private fun LazyListScope.recent(
         return
     }
     item {
-        if (onOpenRecentsSheet != null) {
-            SubheaderItem(R.string.recent_activity_title, onClick = onOpenRecentsSheet)
-        } else {
+        if (onOpenRecentsSheet == null) {
             SubheaderItem(R.string.recent_activity_title)
+        } else {
+            SubheaderItem(R.string.recent_activity_title, onClick = onOpenRecentsSheet)
         }
     }
     item {
