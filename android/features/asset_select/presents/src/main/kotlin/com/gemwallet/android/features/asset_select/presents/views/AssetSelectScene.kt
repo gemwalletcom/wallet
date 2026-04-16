@@ -55,6 +55,8 @@ import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.AssetsGroupType
@@ -329,24 +331,12 @@ private fun LazyListScope.notFound(
         return
     }
     item {
-        Box(
-            modifier = Modifier
-                .animateItem()
-                .fillMaxWidth()
-                .defaultPadding(),
-        ) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(text = stringResource(id = R.string.assets_no_assets_found))
-                if (isAddAvailable) {
-                    TextButton(onClick = { onAddAsset?.invoke() }) {
-                        Text(text = stringResource(id = R.string.assets_add_custom_token))
-                    }
-                }
-            }
-        }
+        EmptyContentView(
+            type = EmptyContentType.SearchAssets(
+                onAddCustomToken = if (isAddAvailable) onAddAsset else null,
+            ),
+            modifier = Modifier.animateItem().fillParentMaxSize(),
+        )
     }
 }
 

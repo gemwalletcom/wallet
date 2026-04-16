@@ -11,6 +11,8 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
@@ -31,14 +33,23 @@ fun SelectChain(
             item {
                 SearchBar(query = chainFilter)
             }
-            val size = chains.size
-            itemsIndexed(chains) { index, item ->
-                ChainItem(
-                    title = item.asset().name,
-                    icon = item,
-                    listPosition = ListPosition.getPosition(index, size)
-                ) {
-                    onSelect(item)
+            if (chains.isEmpty()) {
+                item {
+                    EmptyContentView(
+                        type = EmptyContentType.SearchNetworks,
+                        modifier = Modifier.fillParentMaxSize(),
+                    )
+                }
+            } else {
+                val size = chains.size
+                itemsIndexed(chains) { index, item ->
+                    ChainItem(
+                        title = item.asset().name,
+                        icon = item,
+                        listPosition = ListPosition.getPosition(index, size)
+                    ) {
+                        onSelect(item)
+                    }
                 }
             }
         }

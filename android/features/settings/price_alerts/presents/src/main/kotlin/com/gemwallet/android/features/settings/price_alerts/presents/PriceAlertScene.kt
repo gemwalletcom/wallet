@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,6 +21,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -171,34 +175,10 @@ private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
         return
     }
     item {
-        Box(modifier = Modifier.fillMaxWidth().fillParentMaxHeight(0.7f)) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(headerIconSize)
-                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f), CircleShape)
-                        .padding(paddingSmall),
-                    imageVector = Icons.Default.Notifications,
-                    tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = ""
-                )
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.price_alerts_state_empty_title),
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.secondary,
-                    text = stringResource(R.string.price_alerts_state_empty_description),
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
+        EmptyContentView(
+            type = EmptyContentType.PriceAlerts,
+            modifier = Modifier.fillParentMaxHeight(0.5f),
+        )
     }
 }
 

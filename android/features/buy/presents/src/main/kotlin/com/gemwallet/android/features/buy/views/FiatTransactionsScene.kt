@@ -1,14 +1,8 @@
 package com.gemwallet.android.features.buy.views
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -17,8 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.wallet.core.primitives.FiatTransactionAssetData
 
@@ -50,17 +45,7 @@ fun FiatTransactionsScene(
             }
         ) {
             if (transactions.isEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        modifier = Modifier.fillMaxWidth().weight(1f)
-                            .wrapContentHeight(align = Alignment.CenterVertically),
-                        text = stringResource(id = R.string.activity_state_empty_title),
-                        textAlign = TextAlign.Center,
-                    )
-                }
+                EmptyContentView(type = EmptyContentType.Activity(), modifier = Modifier.fillMaxSize())
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     fiatTransactionsList(

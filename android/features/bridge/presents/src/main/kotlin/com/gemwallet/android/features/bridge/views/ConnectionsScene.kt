@@ -35,6 +35,8 @@ import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -93,9 +95,7 @@ fun ConnectionsScene(
         onClose = onCancel,
     ) {
         if (connections.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Text(modifier = Modifier.align(Alignment.Center), text = stringResource(id = R.string.wallet_connect_no_active_connections))
-            }
+            EmptyContentView(type = EmptyContentType.WalletConnect, modifier = Modifier.fillMaxSize())
         } else {
             LazyColumn {
                 itemsIndexed(connections) { index, item ->
