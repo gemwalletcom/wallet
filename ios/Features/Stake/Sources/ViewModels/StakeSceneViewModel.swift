@@ -161,10 +161,16 @@ public final class StakeSceneViewModel {
 
     var claimRewardsDestination: any Hashable {
         if canClaimAllRewards {
+            let validators = delegationsWithRewards.map(\.validator)
+            let recipient: Recipient = if validators.count == 1, let validator = validators.first {
+                Recipient(name: validator.name, address: validator.id, memo: .none)
+            } else {
+                Recipient(name: .none, address: "", memo: .none)
+            }
             return TransferData(
-                type: .stake(chain.chain.asset, .rewards(delegationsWithRewards.map(\.validator))),
+                type: .stake(chain.chain.asset, .rewards(validators)),
                 recipientData: RecipientData(
-                    recipient: Recipient(name: .none, address: "", memo: .none),
+                    recipient: recipient,
                     amount: .none,
                 ),
                 value: rewardsValue,
@@ -186,15 +192,11 @@ public final class StakeSceneViewModel {
     }
 
     var freezeDestination: any Hashable {
-        destination(
-            type: .freeze(resource: .bandwidth),
-        )
+        destination(type: .freeze(resource: .bandwidth),)
     }
 
     var unfreezeDestination: any Hashable {
-        destination(
-            type: .unfreeze(resource: .bandwidth),
-        )
+        destination(type: .unfreeze(resource: .bandwidth),)
     }
 
     var showFreeze: Bool { chain == .tron }
@@ -207,10 +209,7 @@ public final class StakeSceneViewModel {
     }
 
     var isStakeEnabled: Bool { validators.isNotEmpty }
-
-    var showTronResources: Bool {
-        balanceModel.hasStakingResources
-    }
+    var showTronResources: Bool { balanceModel.hasStakingResources }
 }
 
 // MARK: - Business Logic

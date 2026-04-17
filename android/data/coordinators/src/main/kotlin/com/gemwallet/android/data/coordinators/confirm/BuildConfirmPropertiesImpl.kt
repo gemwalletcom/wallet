@@ -33,22 +33,28 @@ class BuildConfirmPropertiesImpl(
             add(ConfirmProperty.Source(assetInfo.walletName))
             val destination = ConfirmProperty.Destination.map(request, getValidator(request))
             add(
-                if (destination is ConfirmProperty.Destination.Transfer) {
-                    ConfirmProperty.Destination.Transfer(
+                when (destination) {
+                    is ConfirmProperty.Destination.Transfer -> ConfirmProperty.Destination.Transfer(
                         domain = destination.domain,
                         address = destination.address,
                         explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, destination.address)),
                     )
-                } else {
-                    destination
+                    is ConfirmProperty.Destination.Stake -> destination.address?.let { address ->
+                        ConfirmProperty.Destination.Stake(
+                            data = destination.data,
+                            address = address,
+                            explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, address)),
+                        )
+                    } ?: destination
+                    else -> destination
                 }
             )
+            add(ConfirmProperty.Network(assetInfo.chain.asset()))
             add(request.memo()?.takeIf {
                 (request is ConfirmParams.TransferParams.Native || request is ConfirmParams.TransferParams.Token)
                         && assetInfo.asset.isMemoSupport()
                         && it.isNotEmpty()
             }?.let { ConfirmProperty.Memo(it) })
-            add(ConfirmProperty.Network(assetInfo.chain.asset()))
         }.filterNotNull()
     }
 
@@ -58,8 +64,8 @@ class BuildConfirmPropertiesImpl(
             is ConfirmParams.Stake.RedelegateParams -> params.destinationValidator.id
             is ConfirmParams.Stake.UndelegateParams -> params.delegation.base.validatorId
             is ConfirmParams.Stake.WithdrawParams -> params.delegation.base.validatorId
+            is ConfirmParams.Stake.RewardsParams -> params.validators.singleOrNull()?.id
             is ConfirmParams.Activate,
-            is ConfirmParams.Stake.RewardsParams,
             is ConfirmParams.Stake.Freeze,
             is ConfirmParams.Stake.Unfreeze,
             is ConfirmParams.SwapParams,

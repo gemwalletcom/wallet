@@ -186,7 +186,7 @@ extension DelegationSceneViewModel {
         TransferData(
             type: .stake(asset, .rewards([model.delegation.validator])),
             recipientData: RecipientData(
-                recipient: Recipient(name: .none, address: "", memo: .none),
+                recipient: Recipient(name: model.delegation.validator.name, address: model.delegation.validator.id, memo: .none),
                 amount: .none,
             ),
             value: model.delegation.base.rewardsValue,
