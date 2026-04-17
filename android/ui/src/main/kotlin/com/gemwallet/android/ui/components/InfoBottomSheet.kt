@@ -83,6 +83,14 @@ sealed class InfoSheetEntity(
         descriptionArgs = listOf("**$value**"),
     )
 
+    class DustThresholdInfo(chain: Chain) : InfoSheetEntity(
+        icon = chain.asset().getIconUrl(),
+        title = R.string.errors_transfer_error,
+        description = R.string.errors_dust_threshold,
+        infoUrl = { AppUrl.docs(DocsUrl.Dust) },
+        descriptionArgs = listOf("**${chain.asset().name}**"),
+    )
+
     class ReserveForFee(icon: Any) : InfoSheetEntity(
         icon = icon,
         title = R.string.info_stake_reserved_title,

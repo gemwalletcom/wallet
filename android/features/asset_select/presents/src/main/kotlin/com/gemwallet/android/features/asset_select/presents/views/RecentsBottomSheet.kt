@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
+import com.gemwallet.android.ui.components.empty.EmptyContentType
+import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
@@ -133,33 +135,11 @@ private fun LazyListScope.recentsSection(
 
 @Composable
 private fun RecentsEmptyStateView(state: RecentsEmptyState) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingDefault),
-    ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            val titleRes = when (state) {
-                RecentsEmptyState.NoRecents -> R.string.recent_activity_state_empty_title
-                RecentsEmptyState.NoSearchResults -> R.string.assets_no_assets_found
-            }
-            Text(
-                text = stringResource(titleRes),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            if (state == RecentsEmptyState.NoRecents) {
-                Text(
-                    modifier = Modifier.padding(top = paddingHalfSmall),
-                    text = stringResource(R.string.recent_activity_state_empty_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+    val type = when (state) {
+        RecentsEmptyState.NoRecents -> EmptyContentType.Recents
+        RecentsEmptyState.NoSearchResults -> EmptyContentType.SearchAssets()
     }
+    EmptyContentView(type = type, modifier = Modifier.fillMaxSize())
 }
 
 private data class RecentsDateSection(
