@@ -10,7 +10,11 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +50,7 @@ fun NftListScene(
     cancelAction: CancelAction?,
     collectionAction: NftCollectionIdAction,
     assetAction: NftAssetIdAction,
+    onReceive: (() -> Unit)? = null,
     listState: LazyGridState = rememberLazyGridState(),
 ) {
     val viewModel: NftListViewModels = hiltViewModel()
@@ -59,6 +64,16 @@ fun NftListScene(
     Scene(
         title = stringResource(R.string.nft_collections),
         navigationBarPadding = false,
+        actions = {
+            if (onReceive != null) {
+                IconButton(onClick = onReceive) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.wallet_receive),
+                    )
+                }
+            }
+        },
         onClose = if (cancelAction == null) null else { { cancelAction() } } // TODO: Replace to action in scene
     ) {
         val isRefreshing = isLoading && !items.isEmpty()
@@ -104,7 +119,7 @@ fun NftListScene(
             }
 
             if (!isLoading && items.isEmpty()) {
-                EmptyContentView(type = EmptyContentType.Nft(), modifier = Modifier.fillMaxSize())
+                EmptyContentView(type = EmptyContentType.Nft(onReceive = onReceive), modifier = Modifier.fillMaxSize())
                 return@PullToRefreshBox
             }
 

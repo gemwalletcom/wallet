@@ -98,6 +98,8 @@ fun Chain.getMinimumAccountBalance(): Long = Config().getChainConfig(this.string
 
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
+fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
+
 fun Chain.asset(): Asset {
     val wrapper = uniffi.gemstone.assetWrapper(string)
     return Asset(
