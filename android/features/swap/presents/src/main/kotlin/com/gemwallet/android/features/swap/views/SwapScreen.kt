@@ -76,6 +76,7 @@ fun SwapScreen(
         onCancel = onCancel,
         onDetails = { isShowDetails = true },
         onPrimaryAction = onPrimaryAction,
+        onSelectPayPercent = viewModel::onSelectPayPercent,
     )
 
     PriceImpactWarningDialog(

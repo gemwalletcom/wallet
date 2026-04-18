@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
+import com.gemwallet.android.model.Crypto
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -248,6 +249,19 @@ class SwapViewModel @Inject constructor(
                 savedStateHandle["to"] = assetId.toIdentifier()
             }
         }
+    }
+
+    fun onSelectPayPercent(percent: Int) {
+        val asset = payAsset.value ?: return
+        val available = asset.balance.balance.available.toBigIntegerOrNull() ?: return
+        val scaled = available.multiply(percent.toBigInteger()).divide(100.toBigInteger())
+        val formatted = Crypto(scaled)
+            .value(asset.asset.decimals)
+            .stripTrailingZeros()
+            .toPlainString()
+        clearTransferQuoteState()
+        payValue.clearText()
+        payValue.setTextAndPlaceCursorAtEnd(formatted)
     }
 
     fun switchSwap() = viewModelScope.launch {
