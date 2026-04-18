@@ -1,17 +1,30 @@
 package com.gemwallet.android.ui.components.swap
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,11 +35,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.ui.theme.alpha10
+import com.gemwallet.android.ui.theme.alpha50
+import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -48,8 +67,8 @@ import com.gemwallet.android.ui.models.swap.SwapRateUIModel
 import com.wallet.core.primitives.swap.SwapPriceImpactType
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.pendingColor
 import uniffi.gemstone.SwapperProvider
 
 @Composable
@@ -100,12 +119,24 @@ fun SwapDetailsBottomSheet(
 ) {
     if (model == null) return
 
+    var showProviderPicker by remember { mutableStateOf(false) }
+    val canSelectProvider = onProviderSelect != null && model.isProviderSelectable && model.providers.size > 1
+
     ModalBottomSheet(
         isVisible = isVisible,
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            showProviderPicker = false
+            onDismiss()
+        },
         modifier = modifier,
         skipPartiallyExpanded = skipPartiallyExpanded,
-        dragHandle = { DialogBar(onDismissRequest = onDismiss, showDismissAction = false) },
+        dragHandle = {
+            SwapDetailsSheetHeader(
+                title = if (showProviderPicker) R.string.buy_providers_title else R.string.common_details,
+                onDismiss = if (showProviderPicker) { { showProviderPicker = false } } else onDismiss,
+                showCheckmark = !showProviderPicker,
+            )
+        },
     ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -114,69 +145,131 @@ fun SwapDetailsBottomSheet(
             return@ModalBottomSheet
         }
 
-        LazyColumn {
-            val providers = model.inlineProviders(onProviderSelect != null)
-            val providerSectionTitle = when {
-                onProviderSelect != null -> R.string.buy_providers_title
-                showProviderSectionHeader -> R.string.common_provider
-                else -> null
-            }
-
-            if (providerSectionTitle != null && providers.isNotEmpty()) {
-                item {
-                    SubheaderItem(providerSectionTitle)
+        AnimatedContent(
+            targetState = showProviderPicker && canSelectProvider && onProviderSelect != null,
+            transitionSpec = {
+                if (targetState) {
+                    slideInVertically { it } togetherWith slideOutVertically { -it }
+                } else {
+                    slideInVertically { -it } togetherWith slideOutVertically { it }
                 }
-            }
-            if (providers.size > 1 && onProviderSelect != null) {
-                itemsIndexed(providers) { index, provider ->
-                    SwapProviderListItemView(
-                        provider = provider,
-                        listPosition = ListPosition.getPosition(index, providers.size),
-                        isSelected = provider.id == model.provider.id,
-                        onProviderSelect = { selected ->
-                            onDismiss()
-                            onProviderSelect(selected)
-                        },
-                    )
+            },
+            label = "swap_details_content",
+        ) { showingPicker ->
+            if (showingPicker && onProviderSelect != null) {
+                LazyColumn {
+                    item { SubheaderItem(R.string.buy_providers_title) }
+                    itemsIndexed(model.providers) { index, provider ->
+                        SwapProviderListItemView(
+                            provider = provider,
+                            listPosition = ListPosition.getPosition(index, model.providers.size),
+                            isSelected = provider.id == model.provider.id,
+                            onProviderSelect = { selected ->
+                                showProviderPicker = false
+                                onProviderSelect(selected)
+                            },
+                        )
+                    }
                 }
             } else {
-                item {
-                    SwapCurrentProviderRow(
-                        provider = providers.firstOrNull() ?: model.provider,
-                    )
+                LazyColumn {
+                    if (onProviderSelect != null || showProviderSectionHeader) {
+                        item { SubheaderItem(R.string.common_provider) }
+                    }
+                    item {
+                        SwapCurrentProviderRow(
+                            provider = model.provider,
+                            showChevron = canSelectProvider,
+                            onClick = if (canSelectProvider) { { showProviderPicker = true } } else null,
+                        )
+                    }
+                    item { SwapRatePropertyItem(model.rate, ListPosition.First) }
+                    model.estimatedTime?.let {
+                        item {
+                            PropertyItem(
+                                title = R.string.swap_estimated_time_title,
+                                data = it,
+                                listPosition = ListPosition.Middle,
+                            )
+                        }
+                    }
+                    model.priceImpact?.let {
+                        item { PriceImpactPropertyItem(it, ListPosition.Middle) }
+                    }
+                    item {
+                        PropertyItem(
+                            title = R.string.swap_min_receive,
+                            data = model.minimumReceive,
+                            listPosition = ListPosition.Middle,
+                        )
+                    }
+                    item {
+                        PropertyItem(
+                            title = R.string.swap_slippage,
+                            data = model.slippageText,
+                            info = InfoSheetEntity.Slippage,
+                            listPosition = ListPosition.Last,
+                        )
+                    }
                 }
             }
-            item {
-                SwapRatePropertyItem(model.rate, ListPosition.First)
-            }
-            model.estimatedTime?.let {
-                item {
-                    PropertyItem(
-                        title = R.string.swap_estimated_time_title,
-                        data = it,
-                        listPosition = ListPosition.Middle,
-                    )
+        }
+    }
+}
+
+@Composable
+private fun SwapDetailsSheetHeader(
+    title: Int,
+    onDismiss: () -> Unit,
+    showCheckmark: Boolean,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(top = paddingDefault, bottom = paddingSmall)
+                .width(iconSize)
+                .height(space4)
+                .background(
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
+                    shape = RoundedCornerShape(percent = 50),
+                ),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingSmall, vertical = space4),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (!showCheckmark) {
+                Box(modifier = Modifier.align(Alignment.CenterStart)) {
+                    IconButton(
+                        onClick = onDismiss,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
+                        ),
+                    ) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                    }
                 }
             }
-            model.priceImpact?.let {
-                item {
-                    PriceImpactPropertyItem(it, ListPosition.Middle)
+            Text(
+                text = stringResource(title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (showCheckmark) {
+                Box(modifier = Modifier.align(Alignment.CenterEnd)) {
+                    IconButton(
+                        onClick = onDismiss,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
+                        ),
+                    ) {
+                        Icon(imageVector = Icons.Default.Check, contentDescription = null)
+                    }
                 }
-            }
-            item {
-                PropertyItem(
-                    title = R.string.swap_min_receive,
-                    data = model.minimumReceive,
-                    listPosition = ListPosition.Middle,
-                )
-            }
-            item {
-                PropertyItem(
-                    title = R.string.swap_slippage,
-                    data = model.slippageText,
-                    info = InfoSheetEntity.Slippage,
-                    listPosition = ListPosition.Last,
-                )
             }
         }
     }
@@ -211,14 +304,20 @@ private fun SwapProviderListItemView(
 @Composable
 private fun SwapCurrentProviderRow(
     provider: SwapProviderUIModel,
+    showChevron: Boolean = false,
+    onClick: (() -> Unit)? = null,
 ) {
     ListItem(
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         leading = { SwapProviderIcon(provider.icon, listItemIconSize) },
-        title = {
-            ListItemTitleText(provider.title)
-        },
+        title = { ListItemTitleText(provider.title) },
         trailing = {
-            SwapProviderAmounts(provider)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SwapProviderAmounts(provider)
+                if (showChevron) {
+                    DataBadgeChevron()
+                }
+            }
         },
         listPosition = ListPosition.Single,
     )
@@ -266,23 +365,6 @@ private fun SwapProviderAmounts(provider: SwapProviderUIModel) {
 private fun SwapProviderIcon(icon: Any, size: Dp) {
     AsyncImage(model = icon, size = size)
 }
-
-private fun SwapDetailsUIModel.inlineProviders(isSelectionEnabled: Boolean): List<SwapProviderUIModel> {
-    if (!isSelectionEnabled || !isProviderSelectable) {
-        return listOf(provider)
-    }
-
-    val topProviders = providers.take(MAX_INLINE_PROVIDERS).toMutableList()
-    if (topProviders.none { it.id == provider.id }) {
-        topProviders.add(0, provider)
-    }
-
-    return topProviders
-        .distinctBy { it.id }
-        .take(MAX_INLINE_PROVIDERS)
-}
-
-private const val MAX_INLINE_PROVIDERS = 3
 
 @Composable
 private fun PriceImpactPropertyItem(
