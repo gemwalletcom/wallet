@@ -69,8 +69,10 @@ internal fun SwapScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_swap),
-        mainAction = {
-            SwapAction(swapState, onPrimaryAction)
+        mainAction = if (swapState.isSwapButtonVisible) {
+            { SwapAction(swapState, onPrimaryAction) }
+        } else {
+            null
         },
         onClose = onCancel,
     ) {

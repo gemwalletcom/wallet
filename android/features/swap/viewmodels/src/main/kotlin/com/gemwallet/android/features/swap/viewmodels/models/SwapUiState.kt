@@ -35,6 +35,7 @@ data class SwapUiState(
     val action: SwapActionState = SwapActionState.None,
     val isQuoteLoading: Boolean = false,
     val isTransferLoading: Boolean = false,
+    val isSwapButtonVisible: Boolean = false,
 ) {
     val error: SwapError?
         get() = when (val currentAction = action) {
@@ -47,7 +48,7 @@ data class SwapUiState(
         }
 
     val isReceiveLoading: Boolean
-        get() = isQuoteLoading && !isTransferLoading
+        get() = isQuoteLoading
 
     val isQuoteInteractionEnabled: Boolean
         get() = !isTransferLoading
@@ -104,5 +105,6 @@ internal fun createSwapUiState(
         action = action,
         isQuoteLoading = quoteState is QuoteUiState.Loading,
         isTransferLoading = transferState is TransferDataUiState.Loading,
+        isSwapButtonVisible = quoteState !is QuoteUiState.NoInput,
     )
 }
