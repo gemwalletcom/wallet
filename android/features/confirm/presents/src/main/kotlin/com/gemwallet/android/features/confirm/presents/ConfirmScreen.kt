@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -173,8 +172,13 @@ fun ConfirmScreen(
                     )
                 }
             }
+            val groupSize = displayTxProperties.size + detailElements.size
             itemsIndexed(displayTxProperties) { index, item ->
-                val listPosition = ListPosition.getPosition(index, displayTxProperties.size)
+                val listPosition = if (detailElements.isNotEmpty()) {
+                    ListPosition.getPosition(index, groupSize)
+                } else {
+                    ListPosition.getPosition(index, displayTxProperties.size)
+                }
                 when (item) {
                     is ConfirmProperty.Destination -> PropertyDestination(item, listPosition)
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
@@ -182,11 +186,15 @@ fun ConfirmScreen(
                     is ConfirmProperty.Source -> PropertyItem(R.string.common_wallet, item.data, listPosition = listPosition)
                 }
             }
-            items(
-                items = detailElements,
-            ) { item ->
+            itemsIndexed(detailElements) { index, item ->
+                val listPosition = if (displayTxProperties.isNotEmpty()) {
+                    ListPosition.getPosition(displayTxProperties.size + index, groupSize)
+                } else {
+                    ListPosition.getPosition(index, detailElements.size)
+                }
                 ConfirmDetailElementRow(
                     item = item,
+                    listPosition = listPosition,
                     onClick = { selectedDetailElement = item },
                 )
             }
@@ -290,11 +298,13 @@ fun ConfirmScreen(
 @Composable
 private fun ConfirmDetailElementRow(
     item: ConfirmDetailElement,
+    listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
     when (item) {
         is ConfirmDetailElement.SwapDetails -> SwapDetailsSummaryItem(
             model = item.model,
+            listPosition = listPosition,
             onClick = onClick,
         )
     }

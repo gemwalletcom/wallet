@@ -75,6 +75,7 @@ import uniffi.gemstone.SwapperProvider
 fun SwapDetailsSummaryItem(
     model: SwapDetailsUIModel,
     onClick: () -> Unit,
+    listPosition: ListPosition = ListPosition.Single,
 ) {
     val badgeText = model.summaryPriceImpactBadgeText
 
@@ -101,7 +102,7 @@ fun SwapDetailsSummaryItem(
                 },
             )
         },
-        listPosition = ListPosition.Single,
+        listPosition = listPosition,
     )
 }
 
