@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +28,49 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
+
+@Composable
+fun SheetHeader(
+    title: String,
+    onDismissRequest: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(top = paddingDefault, bottom = paddingSmall)
+                .width(iconSize)
+                .height(space4)
+                .background(
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
+                    shape = RoundedCornerShape(percent = 50),
+                ),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingSmall, vertical = space4),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(modifier = Modifier.align(Alignment.CenterStart)) {
+                IconButton(
+                    onClick = onDismissRequest,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
+                    ),
+                ) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = null)
+                }
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+    }
+}
 
 @Composable
 fun DialogBar(

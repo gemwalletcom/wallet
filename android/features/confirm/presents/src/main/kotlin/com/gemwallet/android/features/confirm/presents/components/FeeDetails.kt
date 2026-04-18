@@ -27,7 +27,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.dialog.SheetHeader
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -58,13 +58,16 @@ fun FeeDetails(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onCancel,
+        dragHandle = {
+            SheetHeader(
+                title = stringResource(R.string.transfer_network_fee),
+                onDismissRequest = onCancel,
+            )
+        },
     ) {
         LazyColumn {
 
             if (feeRates.size > 1) {
-                item {
-                    SubheaderItem(R.string.transfer_network_fee)
-                }
                 itemsPositioned(feeRates) { position, item ->
                     val feeRate = FeeRateUIModel(
                         feeRate = item,
