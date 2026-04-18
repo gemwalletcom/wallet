@@ -129,7 +129,7 @@ fun ConfirmScreen(
                 enabled = state !is ConfirmState.Prepare
                     && state !is ConfirmState.Sending
                     && !walletConnectReview.warnings.hasCriticalWarning(),
-                loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+                loading = state is ConfirmState.Sending || state is ConfirmState.Result,
                 onClick = {
                     context.requestAuth(AuthRequest.Phrase) {
                         viewModel.send(finishAction)

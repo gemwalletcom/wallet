@@ -44,7 +44,10 @@ internal fun SwapAction(
                 text = stringResource(R.string.wallet_swap),
                 style = MaterialTheme.typography.bodyLarge,
             )
-            SwapActionState.QuoteLoading,
+            SwapActionState.QuoteLoading -> Text(
+                text = stringResource(R.string.wallet_swap),
+                style = MaterialTheme.typography.bodyLarge,
+            )
             SwapActionState.TransferLoading -> CircularProgressIndicator20(color = Color.White)
             is SwapActionState.QuoteError,
             is SwapActionState.TransferError -> Text(
