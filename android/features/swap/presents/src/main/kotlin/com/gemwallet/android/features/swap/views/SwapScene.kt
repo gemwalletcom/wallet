@@ -1,8 +1,14 @@
 package com.gemwallet.android.features.swap.views
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
@@ -10,7 +16,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
@@ -30,7 +41,12 @@ import com.gemwallet.android.features.swap.views.components.SwapError
 import com.gemwallet.android.features.swap.views.components.SwapItem
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
+
+private val payPercentOptions = listOf(25, 50, 100)
 
 @Composable
 internal fun SwapScene(
@@ -47,14 +63,33 @@ internal fun SwapScene(
     onDetails: () -> Unit,
     onCancel: () -> Unit,
     onPrimaryAction: () -> Unit,
+    onSelectPayPercent: (Int) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val showPercentBar = imeVisible && swapState.payItemInteraction.isAmountEditable && pay != null
+
     Scene(
         title = stringResource(id = R.string.wallet_swap),
-        mainAction = {
-            SwapAction(swapState, onPrimaryAction)
+        mainAction = when {
+            showPercentBar -> {
+                {
+                    PayPercentBar(
+                        options = payPercentOptions,
+                        onSelect = onSelectPayPercent,
+                        onDone = { keyboardController?.hide() },
+                    )
+                }
+            }
+            swapState.isSwapButtonVisible -> {
+                { SwapAction(swapState, onPrimaryAction) }
+            }
+            else -> null
         },
+        mainActionPadding = if (showPercentBar) PaddingValues(0.dp) else PaddingValues(
+            horizontal = sceneContentPadding(),
+            vertical = paddingDefault,
+        ),
         onClose = onCancel,
     ) {
         LazyColumn {
@@ -131,4 +166,49 @@ private fun SwapSectionHeader(resId: Int, topPadding: Dp? = null) {
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.secondary,
     )
+}
+
+@Composable
+private fun PayPercentBar(
+    options: List<Int>,
+    onSelect: (Int) -> Unit,
+    onDone: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingDefault, vertical = paddingSmall),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+        ) {
+            options.forEach { percent ->
+                TextButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelect(percent) },
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
+                ) {
+                    Text(text = "$percent%", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            TextButton(
+                modifier = Modifier.weight(1f),
+                onClick = onDone,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+            ) {
+                Text(
+                    text = stringResource(R.string.common_done),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
 }
