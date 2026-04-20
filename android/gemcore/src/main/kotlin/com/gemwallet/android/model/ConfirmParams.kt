@@ -71,7 +71,7 @@ sealed class ConfirmParams() {
 
     abstract val useMaxAmount: Boolean
 
-    abstract val ignoreMinimumBalanceCheck: Boolean
+    abstract val shouldIgnoreValueCheck: Boolean
 
     val assetId: AssetId get() = asset.id
 
@@ -205,7 +205,7 @@ sealed class ConfirmParams() {
         abstract val memo: String?
         abstract val inputType: InputType?
 
-        override val ignoreMinimumBalanceCheck: Boolean
+        override val shouldIgnoreValueCheck: Boolean
             get() = false
 
         override fun destination(): DestinationAddress {
@@ -330,7 +330,7 @@ sealed class ConfirmParams() {
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean = false
 
-        override val ignoreMinimumBalanceCheck: Boolean
+        override val shouldIgnoreValueCheck: Boolean
             get() = false
 
         override fun toDto(): GemTransactionInputType = TokenApprove(
@@ -382,7 +382,7 @@ sealed class ConfirmParams() {
         override val amount: BigInteger
             get() = fromAmount
 
-        override val ignoreMinimumBalanceCheck: Boolean
+        override val shouldIgnoreValueCheck: Boolean
             get() = false
 
         override fun toDto(): GemTransactionInputType = Swap(
@@ -406,7 +406,7 @@ sealed class ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
 
-        override val ignoreMinimumBalanceCheck: Boolean
+        override val shouldIgnoreValueCheck: Boolean
             get() = false
 
         override fun toDto(): GemTransactionInputType =
@@ -427,7 +427,7 @@ sealed class ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
 
-        override val ignoreMinimumBalanceCheck: Boolean
+        override val shouldIgnoreValueCheck: Boolean
             get() = true
 
         override fun toDto(): GemTransactionInputType = TransferNft(
@@ -453,7 +453,7 @@ sealed class ConfirmParams() {
             val validator: DelegationValidator,
             override val useMaxAmount: Boolean = false,
         ) : Stake() {
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = false
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -476,7 +476,7 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -499,7 +499,7 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -527,7 +527,7 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -553,7 +553,7 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -576,7 +576,7 @@ sealed class ConfirmParams() {
             val resource: Resource,
             override val useMaxAmount: Boolean = false,
         ) : Stake() {
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = false
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -604,7 +604,7 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
-            override val ignoreMinimumBalanceCheck: Boolean
+            override val shouldIgnoreValueCheck: Boolean
                 get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
@@ -626,7 +626,7 @@ sealed class ConfirmParams() {
     @Serializable
     sealed class PerpetualParams : ConfirmParams() {
 
-        override val ignoreMinimumBalanceCheck: Boolean
+        override val shouldIgnoreValueCheck: Boolean
             get() = false
 
         enum class OrderAction {

@@ -3,12 +3,10 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,8 +33,6 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
-
-private val balanceInfoMaxWidth = 136.dp
 
 @Composable
 private fun assetListItemContentPadding(): Dp {
@@ -238,7 +234,6 @@ private fun BalanceInfo(
     color: Color,
 ) {
     Column(
-        modifier = Modifier.widthIn(max = balanceInfoMaxWidth),
         horizontalAlignment = Alignment.End
     ) {
         Text(

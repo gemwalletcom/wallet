@@ -7,7 +7,9 @@ import androidx.navigation.toRoute
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletSource
+import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,6 +41,8 @@ class SetupWalletViewModel @Inject constructor(
                         it.copy(
                             walletName = wallet.name,
                             walletSource = wallet.source,
+                            walletType = wallet.type,
+                            walletChain = wallet.accounts.firstOrNull()?.chain,
                         )
                     }
                 }
@@ -57,4 +61,6 @@ class SetupWalletViewModel @Inject constructor(
 data class SetupWalletViewModelState(
     val walletName: String = "",
     val walletSource: WalletSource = WalletSource.Create,
+    val walletType: WalletType? = null,
+    val walletChain: Chain? = null,
 )

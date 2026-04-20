@@ -65,7 +65,7 @@ class ImportViewModel @Inject constructor(
         try {
             val result = importWalletService.importWallet(
                 importType = state.value.importType,
-                walletName = generatedName,
+                walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName,
                 data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
             )
             state.update { it.copy(dataError = null, loading = false) }

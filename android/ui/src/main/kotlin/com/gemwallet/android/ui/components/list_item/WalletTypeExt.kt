@@ -11,7 +11,7 @@ val WalletType.descriptionRes: Int get() = when (this) {
     WalletType.View -> R.string.common_address
 }
 
-internal fun WalletType.supportIcon(): String? = when (this) {
+fun WalletType.supportIcon(): String? = when (this) {
     WalletType.View -> "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
     else -> null
 }
