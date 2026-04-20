@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -64,16 +64,12 @@ fun ListItem(
                     .padding(start = contentSpacing)
             ),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(contentSpacing)
+        horizontalArrangement = Arrangement.spacedBy(contentSpacing),
     ) {
         leading?.invoke(this)
         Row(
             modifier = Modifier
-                .padding(
-                    top = contentPadding,
-                    end = trailingEndPadding,
-                    bottom = contentPadding,
-                )
+                .padding(top = contentPadding, end = trailingEndPadding, bottom = contentPadding)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
