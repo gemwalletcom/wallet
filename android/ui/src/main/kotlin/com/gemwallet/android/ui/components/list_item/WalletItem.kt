@@ -111,7 +111,7 @@ private fun WalletEditButton(
     }
 }
 
-private fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {
+fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {
     WalletType.Multicoin -> R.drawable.multicoin_wallet
     WalletType.Single,
     WalletType.PrivateKey,
