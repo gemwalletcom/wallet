@@ -60,6 +60,7 @@ class ValidateBalanceImpl : ValidateBalance {
         val minimumAssetBalance = assetInfo.chain.getMinimumAccountBalance()
 
         if (!signerParams.input.useMaxAmount
+            && !signerParams.input.shouldIgnoreValueCheck
             && assetInfo.asset.type == AssetType.NATIVE
             && minimumAssetBalance > 0L
             && (feeAssetInfo.balance.balance.available.toBigInteger() - totalAmount).let { it > -MAX_256 && it < BigInteger.valueOf(minimumAssetBalance) }) {

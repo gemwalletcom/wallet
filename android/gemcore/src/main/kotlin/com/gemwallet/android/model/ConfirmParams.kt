@@ -71,6 +71,8 @@ sealed class ConfirmParams() {
 
     abstract val useMaxAmount: Boolean
 
+    abstract val shouldIgnoreValueCheck: Boolean
+
     val assetId: AssetId get() = asset.id
 
     class Builder(
@@ -203,6 +205,9 @@ sealed class ConfirmParams() {
         abstract val memo: String?
         abstract val inputType: InputType?
 
+        override val shouldIgnoreValueCheck: Boolean
+            get() = false
+
         override fun destination(): DestinationAddress {
             return destination
         }
@@ -325,6 +330,9 @@ sealed class ConfirmParams() {
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean = false
 
+        override val shouldIgnoreValueCheck: Boolean
+            get() = false
+
         override fun toDto(): GemTransactionInputType = TokenApprove(
             asset.toGem(),
             GemApprovalData(
@@ -374,6 +382,9 @@ sealed class ConfirmParams() {
         override val amount: BigInteger
             get() = fromAmount
 
+        override val shouldIgnoreValueCheck: Boolean
+            get() = false
+
         override fun toDto(): GemTransactionInputType = Swap(
             fromAsset = fromAsset.toGem(),
             toAsset = toAsset.toGem(),
@@ -395,6 +406,9 @@ sealed class ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
 
+        override val shouldIgnoreValueCheck: Boolean
+            get() = false
+
         override fun toDto(): GemTransactionInputType =
             Account(asset.toGem(), GemAccountDataType.ACTIVATE)
 
@@ -412,6 +426,9 @@ sealed class ConfirmParams() {
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
+
+        override val shouldIgnoreValueCheck: Boolean
+            get() = true
 
         override fun toDto(): GemTransactionInputType = TransferNft(
                 asset.toGem(),
@@ -436,6 +453,9 @@ sealed class ConfirmParams() {
             val validator: DelegationValidator,
             override val useMaxAmount: Boolean = false,
         ) : Stake() {
+            override val shouldIgnoreValueCheck: Boolean
+                get() = false
+
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = GemStakeType.Delegate(validator.toGem(asset.chain.string))
@@ -456,6 +476,9 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
+            override val shouldIgnoreValueCheck: Boolean
+                get() = true
+
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = GemStakeType.Withdraw(delegation.toGem(asset.chain.string))
@@ -475,6 +498,9 @@ sealed class ConfirmParams() {
         ) : Stake() {
             override val useMaxAmount: Boolean
                 get() = false
+
+            override val shouldIgnoreValueCheck: Boolean
+                get() = true
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
@@ -501,6 +527,9 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
+            override val shouldIgnoreValueCheck: Boolean
+                get() = true
+
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = GemStakeType.Redelegate(
@@ -524,6 +553,9 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
+            override val shouldIgnoreValueCheck: Boolean
+                get() = true
+
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = GemStakeType.WithdrawRewards(
@@ -544,6 +576,9 @@ sealed class ConfirmParams() {
             val resource: Resource,
             override val useMaxAmount: Boolean = false,
         ) : Stake() {
+            override val shouldIgnoreValueCheck: Boolean
+                get() = false
+
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = GemStakeType.Freeze(
@@ -569,6 +604,9 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean
                 get() = false
 
+            override val shouldIgnoreValueCheck: Boolean
+                get() = true
+
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
                 stakeType = GemStakeType.Freeze(
@@ -587,6 +625,9 @@ sealed class ConfirmParams() {
 
     @Serializable
     sealed class PerpetualParams : ConfirmParams() {
+
+        override val shouldIgnoreValueCheck: Boolean
+            get() = false
 
         enum class OrderAction {
             Open,
