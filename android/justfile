@@ -47,7 +47,7 @@ _run-adb TARGET:
     adb -s "$DEVICE" shell am start -n com.gemwallet.android/com.gemwallet.android.MainActivity
     echo "==> Streaming logs (Ctrl+C to stop)..."
     sleep 1
-    PID=$(adb -s "$DEVICE" shell pidof com.gemwallet.android)
+    PID=$(adb -s "$DEVICE" shell pidof com.gemwallet.android 2>/dev/null || true)
     if [ -z "$PID" ]; then
         echo "App not running, showing unfiltered logcat"
         adb -s "$DEVICE" logcat
