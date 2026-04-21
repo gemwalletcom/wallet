@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.theme.largeIconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
@@ -88,6 +89,7 @@ fun EmptyStateView(
                 } else {
                     MaterialTheme.typography.bodyMedium
                 },
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
             )
 

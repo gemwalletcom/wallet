@@ -35,7 +35,6 @@ import com.gemwallet.android.cases.nft.NftError
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
@@ -77,16 +76,15 @@ fun NftListScene(
         },
         onClose = if (cancelAction == null) null else { { cancelAction() } } // TODO: Replace to action in scene
     ) {
-        val isRefreshing = isLoading && !items.isEmpty()
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
-            isRefreshing = isRefreshing,
+            isRefreshing = isLoading,
             onRefresh = viewModel::refresh,
             state = pullToRefreshState,
             indicator = {
                 Indicator( // TODO: Out to view library
                     modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
+                    isRefreshing = isLoading,
                     state = pullToRefreshState,
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -112,14 +110,7 @@ fun NftListScene(
                 return@PullToRefreshBox
             }
 
-            if (isLoading && items.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator20(modifier = Modifier.align(Alignment.Center))
-                }
-                return@PullToRefreshBox
-            }
-
-            if (!isLoading && items.isEmpty()) {
+            if (items.isEmpty()) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
