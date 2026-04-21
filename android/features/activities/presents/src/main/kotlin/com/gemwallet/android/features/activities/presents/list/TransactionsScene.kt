@@ -90,7 +90,11 @@ internal fun TransactionsScene(
                 } else {
                     EmptyContentType.Activity(onReceive = onReceive, onBuy = onBuy)
                 }
-                EmptyContentView(type = type, modifier = Modifier.fillMaxSize())
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item {
+                        EmptyContentView(type = type, modifier = Modifier.fillParentMaxSize())
+                    }
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

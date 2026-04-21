@@ -8,6 +8,7 @@ import com.gemwallet.android.data.services.gemapi.GemApiClient
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.data.services.gemapi.Mime
+import com.gemwallet.android.data.services.gemapi.http.GemApiErrorInterceptor
 import com.gemwallet.android.data.services.gemapi.http.SecurityInterceptor
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.serializer.jsonEncoder
@@ -35,9 +36,14 @@ object ClientsModule {
 
     @Provides
     @Singleton
+    fun provideGemApiErrorInterceptor() = GemApiErrorInterceptor()
+
+    @Provides
+    @Singleton
     fun provideGemHttpClient(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
+        gemApiErrorInterceptor: GemApiErrorInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         .connectionPool(ConnectionPool(32, 5, TimeUnit.MINUTES))
         .cache(Cache(context.cacheDir, 10 * 1024 * 1024))
@@ -55,6 +61,7 @@ object ClientsModule {
                     .build()
             )
         }
+        .addInterceptor(gemApiErrorInterceptor)
         .build()
 
     @Provides

@@ -74,8 +74,7 @@ extension ConfirmRecipientViewModel {
         return switch model.type {
         case let .stake(_, stakeType):
             switch stakeType {
-            case .stake, .unstake, .redelegate, .withdraw: true
-            case .rewards: false
+            case .stake, .unstake, .redelegate, .withdraw, .rewards: true
             case .freeze, .unfreeze: true
             }
         case .account,

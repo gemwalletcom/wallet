@@ -15,6 +15,7 @@ import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemAuthNonce
 import wallet.core.jni.PrivateKey
 import java.util.Arrays
+import java.io.IOException
 
 class GetAuthPayloadImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
@@ -33,7 +34,7 @@ class GetAuthPayloadImpl(
         )
 
         try {
-            val nonce = gemDeviceApiClient.getAuthNonce() ?: throw ReferralError.NetworkError
+            val nonce = gemDeviceApiClient.getAuthNonce() ?: throw IOException("Auth nonce unavailable")
             val message = uniffi.gemstone.createAuthMessage(
                 chain = Chain.Ethereum.string,
                 address = account.address,

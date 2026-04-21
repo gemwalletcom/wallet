@@ -19,6 +19,8 @@ final class FiatSceneViewModelTests {
         currencyFormatter: CurrencyFormatter = .init(locale: Locale.US, currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress = .mock(),
         wallet: Wallet = .mock(),
+        type: FiatQuoteType = .buy,
+        amount: Int? = nil,
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
             fiatService: fiatService,
@@ -26,6 +28,8 @@ final class FiatSceneViewModelTests {
             assetAddress: assetAddress,
             wallet: wallet,
             assetsEnabler: .mock(),
+            type: type,
+            amount: amount,
         )
     }
 
@@ -242,6 +246,33 @@ final class FiatSceneViewModelTests {
         model.onSelectRandomAmount()
 
         #expect(model.fetchTrigger.isImmediate == true)
+    }
+
+    @Test
+    func presetSelectionDoesNotScheduleSecondDebouncedFetch() {
+        let model = FiatSceneViewModelTests.mock()
+        model.buyViewModel.quotesState = .error(NSError(domain: "test", code: 1))
+
+        model.onSelect(amount: 250)
+
+        #expect(model.buyViewModel.amount == "250")
+        #expect(model.buyViewModel.inputValidationModel.text == "250")
+        #expect(model.buyViewModel.quotesState.isLoading == true)
+        #expect(model.fetchTrigger.amount == "250")
+        #expect(model.fetchTrigger.isImmediate == true)
+
+        model.onChangeAmountText("", text: "250")
+
+        #expect(model.fetchTrigger.amount == "250")
+        #expect(model.fetchTrigger.isImmediate == true)
+    }
+
+    @Test
+    func sellSceneUsesSellDefaultFetchTriggerAmount() {
+        let model = FiatSceneViewModelTests.mock(type: .sell)
+
+        #expect(model.fetchTrigger.type == .sell)
+        #expect(model.fetchTrigger.amount == "100")
     }
 
     // MARK: - ShouldSkipFetch Tests

@@ -20,6 +20,7 @@ public extension Price {
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
             updatedAt: Int64(updatedAt.timeIntervalSince1970),
+            provider: .coingecko,
         )
     }
 }

@@ -101,10 +101,14 @@ class ReferralViewModel @Inject constructor(
         val rewards = try {
             val wallet = currentWallet.value ?: return@launch
             val response = createReferral.createReferral(username, wallet)
-            callback(null)
+            withContext(Dispatchers.Main) {
+                callback(null)
+            }
             response
         } catch (err: Exception) {
-            callback(err)
+            withContext(Dispatchers.Main) {
+                callback(err)
+            }
             null
         }
         this@ReferralViewModel.rewards.update { rewards }
@@ -114,9 +118,13 @@ class ReferralViewModel @Inject constructor(
         try {
             val wallet = currentWallet.value ?: return@launch
             useReferralCode.useReferralCode(code, wallet)
-            callback(null)
+            withContext(Dispatchers.Main) {
+                callback(null)
+            }
         } catch (err: Exception) {
-            callback(err)
+            withContext(Dispatchers.Main) {
+                callback(err)
+            }
         }
     }
 

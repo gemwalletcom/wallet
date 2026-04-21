@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -119,7 +120,14 @@ fun NftListScene(
             }
 
             if (!isLoading && items.isEmpty()) {
-                EmptyContentView(type = EmptyContentType.Nft(onReceive = onReceive), modifier = Modifier.fillMaxSize())
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item {
+                        EmptyContentView(
+                            type = EmptyContentType.Nft(onReceive = onReceive),
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
+                    }
+                }
                 return@PullToRefreshBox
             }
 

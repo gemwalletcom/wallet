@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.bridge.views
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -13,6 +11,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +20,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.getShortUrl
@@ -74,30 +71,52 @@ fun ConnectionsScene(
         backHandle = true,
         snackbar = snackbar,
         actions = {
-            IconButton(
-                onClick = {
-                    viewModel.addPairing(
-                        clipboardManager.getPlainText() ?: return@IconButton,
-                        { scope.launch { snackbar.showSnackbar(message = connectionToastText) } },
-                        { pairError = it }
-                    )
-                }
-            ) {
-                Icon(imageVector = Icons.Default.ContentPaste, contentDescription = "paste_uri")
-            }
-            IconButton(onClick = { scannerShowed  = true }) {
-                Icon(imageVector = Icons.Default.QrCodeScanner, contentDescription = "scan_qr")
-            }
             IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.WalletConnect)) }) {
                 Icon(imageVector = Icons.Outlined.Info, contentDescription = "WC_INFO")
             }
         },
         onClose = onCancel,
     ) {
-        if (connections.isEmpty()) {
-            EmptyContentView(type = EmptyContentType.WalletConnect, modifier = Modifier.fillMaxSize())
-        } else {
-            LazyColumn {
+        LazyColumn {
+            item {
+                ListItem(
+                    modifier = Modifier.clickable {
+                        viewModel.addPairing(
+                            clipboardManager.getPlainText() ?: return@clickable,
+                            { scope.launch { snackbar.showSnackbar(message = connectionToastText) } },
+                            { pairError = it }
+                        )
+                    },
+                    leading = {
+                        Icon(
+                            imageVector = Icons.Default.ContentPaste,
+                            contentDescription = "paste_uri",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    },
+                    title = { ListItemTitleText(stringResource(id = R.string.common_paste)) },
+                    listPosition = ListPosition.First,
+                )
+            }
+            item {
+                ListItem(
+                    modifier = Modifier.clickable { scannerShowed = true },
+                    leading = {
+                        Icon(
+                            imageVector = Icons.Default.QrCodeScanner,
+                            contentDescription = "scan_qr",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    },
+                    title = { ListItemTitleText(stringResource(id = R.string.wallet_scan_qr_code)) },
+                    listPosition = ListPosition.Last,
+                )
+            }
+            if (connections.isEmpty()) {
+                item {
+                    EmptyContentView(type = EmptyContentType.WalletConnect, modifier = Modifier.fillParentMaxHeight(0.7f))
+                }
+            } else {
                 itemsIndexed(connections) { index, item ->
                     ConnectionItem(item, ListPosition.getPosition(index, connections.size), onConnection)
                 }

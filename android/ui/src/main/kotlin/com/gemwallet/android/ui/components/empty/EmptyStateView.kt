@@ -12,9 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,16 +24,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
-import com.gemwallet.android.ui.theme.emptyImageColor
 import com.gemwallet.android.ui.theme.largeIconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space8
 
+enum class EmptyActionStyle { Primary, Secondary }
+
 data class EmptyAction(
     val title: String,
     val onClick: () -> Unit,
+    val style: EmptyActionStyle = EmptyActionStyle.Primary,
 )
 
 @Composable
@@ -56,7 +59,7 @@ fun EmptyStateView(
                     modifier = Modifier
                         .size(largeIconSize)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.scrim),
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (iconVector != null) {
@@ -64,14 +67,14 @@ fun EmptyStateView(
                             imageVector = iconVector,
                             contentDescription = null,
                             modifier = Modifier.size(listItemIconSize),
-                            tint = emptyImageColor,
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     } else if (icon != null) {
                         Icon(
                             painter = icon,
                             contentDescription = null,
                             modifier = Modifier.size(listItemIconSize),
-                            tint = emptyImageColor,
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -103,8 +106,19 @@ fun EmptyStateView(
                 Spacer(modifier = Modifier.height(paddingDefault))
                 Row(horizontalArrangement = Arrangement.spacedBy(paddingSmall)) {
                     buttons.forEach { action ->
-                        OutlinedButton(onClick = action.onClick) {
-                            Text(action.title)
+                        when (action.style) {
+                            EmptyActionStyle.Primary -> Button(onClick = action.onClick) {
+                                Text(action.title)
+                            }
+                            EmptyActionStyle.Secondary -> Button(
+                                onClick = action.onClick,
+                                colors = ButtonDefaults.buttonColors().copy(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
+                                ),
+                            ) {
+                                Text(action.title)
+                            }
                         }
                     }
                 }

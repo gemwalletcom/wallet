@@ -1,5 +1,5 @@
 --exclude ./Submodules
 --exclude ./Packages/Primitives/Sources/Generated
 --exclude ./Packages/Gemstone/Package.swift
---exlcude ./Packages/Localization/Sources/Localized.swift
+--exclude ./Packages/Localization/Sources/Localized.swift
 --exclude ./Packages/Localization/WidgetSources/Localized.swift

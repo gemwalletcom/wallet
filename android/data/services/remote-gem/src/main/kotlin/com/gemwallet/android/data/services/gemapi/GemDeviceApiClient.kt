@@ -85,7 +85,7 @@ interface GemDeviceApiClient {
     suspend fun createReferral(@Header(WALLET_ID_HEADER)  walletId: String, @Body body: AuthenticatedRequest<ReferralCode>): Rewards?
 
     @POST("/v2/devices/rewards/referrals/use")
-    suspend fun useReferralCode(@Header(WALLET_ID_HEADER)  walletId: String, @Body body: AuthenticatedRequest<ReferralCode>): List<RewardEvent>
+    suspend fun useReferralCode(@Header(WALLET_ID_HEADER)  walletId: String, @Body body: AuthenticatedRequest<ReferralCode>): Boolean
 
     @POST("/v2/devices/rewards/redeem")
     suspend fun redeem(@Header(WALLET_ID_HEADER)  walletId: String, @Body request: AuthenticatedRequest<RedemptionRequest>): RedemptionResult

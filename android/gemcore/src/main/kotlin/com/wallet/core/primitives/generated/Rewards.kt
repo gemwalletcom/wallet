@@ -76,24 +76,7 @@ data class ReferralLeaderboard (
 )
 
 @Serializable
-enum class RewardEventType(val string: String) {
-	@SerialName("createUsername")
-	CreateUsername("createUsername"),
-	@SerialName("invitePending")
-	InvitePending("invitePending"),
-	@SerialName("inviteNew")
-	InviteNew("inviteNew"),
-	@SerialName("joined")
-	Joined("joined"),
-	@SerialName("disabled")
-	Disabled("disabled"),
-	@SerialName("redeemed")
-	Redeemed("redeemed"),
-}
-
-@Serializable
 data class RewardEvent (
-	val event: RewardEventType,
 	val points: Int,
 	val createdAt: SerializedDate
 )

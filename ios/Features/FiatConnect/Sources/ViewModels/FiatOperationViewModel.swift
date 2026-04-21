@@ -116,11 +116,6 @@ final class FiatOperationViewModel {
         }
     }
 
-    func reset() {
-        selectedQuote = nil
-        updateValidators()
-    }
-
     func updateValidators() {
         inputValidationModel.update(
             validators: operation.validators(
@@ -130,18 +125,18 @@ final class FiatOperationViewModel {
         )
     }
 
-    func onChangeAmountText(_: String, text: String) {
+    func setAmount(_ text: String) {
         if text != amount {
             selectedQuote = nil
             setLoadingState()
         }
         amount = text
+        inputValidationModel.update(text: text)
         updateValidators()
     }
 
-    private func setLoadingState() {
-        guard !quotesState.isLoading else { return }
-        quotesState = .loading
+    func onChangeAmountText(_: String, text: String) {
+        setAmount(text)
     }
 }
 
@@ -149,5 +144,10 @@ extension FiatOperationViewModel {
     private var selectedQuoteViewModel: FiatQuoteViewModel? {
         guard let selectedQuote else { return nil }
         return FiatQuoteViewModel(asset: asset, quote: selectedQuote, selectedQuote: nil, formatter: currencyFormatter)
+    }
+
+    private func setLoadingState() {
+        guard !quotesState.isLoading else { return }
+        quotesState = .loading
     }
 }

@@ -314,7 +314,7 @@ extension GemAPIService: GemAPIRewardsService {
 
     public func useReferralCode(walletId: String, request: AuthenticatedRequest<ReferralCode>) async throws {
         _ = try await requestDevice(.useDeviceReferralCode(walletId: walletId, request: request))
-            .mapResponse(as: [RewardEvent].self)
+            .mapResponse(as: Bool.self)
     }
 
     public func getRedemptionOption(code: String) async throws -> RewardRedemptionOption {

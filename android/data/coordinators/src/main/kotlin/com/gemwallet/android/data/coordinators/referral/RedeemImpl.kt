@@ -6,11 +6,9 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.tokens.TokensRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
-import com.gemwallet.android.data.services.gemapi.models.ResponseError
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.referralChain
-import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AuthenticatedRequest
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RedemptionRequest
@@ -19,7 +17,6 @@ import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.firstOrNull
-import retrofit2.HttpException
 
 class RedeemImpl(
     private val sessionRepository: SessionRepository,
@@ -31,32 +28,23 @@ class RedeemImpl(
 
     override suspend fun redeem(wallet: Wallet, rewards: Rewards, option: RewardRedemptionOption): RedemptionResult {
         val account = wallet.getAccount(Chain.referralChain) ?: throw ReferralError.BadWallet
-        return try {
-            val authPayload = getAuthPayload.getAuthPayload(wallet, account.chain)
-            if (rewards.points < option.points) {
-                throw ReferralError.InsufficientPoints
-            }
-            val result = gemDeviceApiClient.redeem(
-                walletId = wallet.id,
-                request = AuthenticatedRequest(
-                    auth = authPayload,
-                    data = RedemptionRequest(option.id)
-                )
-            )
-            sessionRepository.session().firstOrNull()?.let {
-                val assetId = option.asset?.id ?: return@let
-                val account = it.wallet.getAccount(assetId.chain) ?: return@let
-                tokensRepository.search(assetId, it.currency)
-                assetsRepository.switchVisibility(it.wallet.id, account, assetId, true)
-            }
-            result
-        } catch (err: HttpException) {
-            val body = err.response()?.errorBody()?.string() ?: throw ReferralError.NetworkError
-            val errorBody = jsonEncoder.decodeFromString<ResponseError>(body)
-            throw ReferralError.OperationError(errorBody.error.message)
-        } catch (err: Throwable) {
-            throw err
+        val authPayload = getAuthPayload.getAuthPayload(wallet, account.chain)
+        if (rewards.points < option.points) {
+            throw ReferralError.InsufficientPoints
         }
-
+        val result = gemDeviceApiClient.redeem(
+            walletId = wallet.id,
+            request = AuthenticatedRequest(
+                auth = authPayload,
+                data = RedemptionRequest(option.id)
+            )
+        )
+        sessionRepository.session().firstOrNull()?.let {
+            val assetId = option.asset?.id ?: return@let
+            val account = it.wallet.getAccount(assetId.chain) ?: return@let
+            tokensRepository.search(assetId, it.currency)
+            assetsRepository.switchVisibility(it.wallet.id, account, assetId, true)
+        }
+        return result
     }
 }

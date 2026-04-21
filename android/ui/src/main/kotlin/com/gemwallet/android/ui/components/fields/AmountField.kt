@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components.fields
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,8 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
@@ -33,9 +33,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.AmountInputType
-import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
 
 @Composable
@@ -84,18 +85,27 @@ fun ColumnScope.AmountField(
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         readOnly = readOnly,
     )
-    Spacer(modifier = Modifier.height(4.dp))
+    Spacer(modifier = Modifier.height(paddingSmall))
     if (equivalent.isNotEmpty()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = if (onInputTypeClick == null) Modifier else Modifier.clickable(
+                interactionSource = null,
+                indication = null,
+                onClick = onInputTypeClick,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+        ) {
             Text(
                 text = equivalent,
                 color = MaterialTheme.colorScheme.secondary,
             )
-            if (onInputTypeClick != null) {
+            onInputTypeClick?.let {
                 Icon(
-                    modifier = Modifier.size(smallIconSize).clickable { onInputTypeClick() },
-                    imageVector = Icons.Default.SwapVert,
-                    contentDescription = ""
+                    modifier = Modifier.size(compactIconSize),
+                    painter = painterResource(R.drawable.amount_switch),
+                    tint = MaterialTheme.colorScheme.secondary,
+                    contentDescription = null,
                 )
             }
         }

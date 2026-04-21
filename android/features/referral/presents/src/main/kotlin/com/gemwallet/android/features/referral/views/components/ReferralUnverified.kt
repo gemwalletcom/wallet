@@ -9,10 +9,12 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
@@ -41,7 +43,11 @@ internal fun LazyListScope.referralUnverified(uiState: RewardsUIState) {
                     )
                 }
             )
-            ListItemSupportText(R.string.rewards_unverified_description)
+            Text(
+                text = stringResource(R.string.rewards_unverified_description),
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 }

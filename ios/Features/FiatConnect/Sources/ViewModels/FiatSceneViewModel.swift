@@ -82,11 +82,16 @@ public final class FiatSceneViewModel {
             currencyFormatter: currencyFormatter,
         )
 
-        let initialAmount = amount.map { String($0) } ?? buyViewModel.amount
+        let defaultAmount = switch type {
+        case .buy: buyViewModel.amount
+        case .sell: sellViewModel.amount
+        }
+
+        let initialAmount = amount.map { String($0) } ?? defaultAmount
         fetchTrigger = FiatFetchTrigger(type: type, amount: initialAmount, isImmediate: true)
 
         if let amount {
-            currentViewModel.inputValidationModel.text = String(amount)
+            currentViewModel.setAmount(String(amount))
         }
     }
 
@@ -231,12 +236,12 @@ extension FiatSceneViewModel {
 
     func onChangeType(oldType: FiatQuoteType, newType: FiatQuoteType) {
         resetStateIfNeeded(for: oldType)
-        currentViewModel.inputValidationModel.text = currentViewModel.amount
-        currentViewModel.updateValidators()
+        currentViewModel.setAmount(currentViewModel.amount)
         fetchTrigger = FiatFetchTrigger(type: newType, amount: currentViewModel.amount, isImmediate: true)
     }
 
     func onChangeAmountText(_: String, text: String) {
+        guard text != currentViewModel.amount else { return }
         currentViewModel.onChangeAmountText("", text: text)
         fetchTrigger = FiatFetchTrigger(type: type, amount: text, isImmediate: false)
     }
@@ -260,9 +265,9 @@ extension FiatSceneViewModel {
     }
 
     private func selectAmount(_ amount: Int) {
-        currentViewModel.reset()
-        currentViewModel.inputValidationModel.update(text: String(amount))
-        fetchTrigger = FiatFetchTrigger(type: type, amount: String(amount), isImmediate: true)
+        let amountText = String(amount)
+        currentViewModel.setAmount(amountText)
+        fetchTrigger = FiatFetchTrigger(type: type, amount: amountText, isImmediate: true)
     }
 
     private func resetStateIfNeeded(for type: FiatQuoteType) {

@@ -110,6 +110,18 @@ struct ConfirmRecipientViewModelTests {
     }
 
     @Test
+    func stakeRewards() {
+        let model = ConfirmRecipientViewModel(
+            model: .mock(type: .stake(.mock(), .rewards([.mock()]))),
+            addressName: nil,
+            addressLink: .mock(),
+        )
+
+        guard case let .recipient(item) = model.itemModel else { return }
+        #expect(item.title == Localized.Stake.validator)
+    }
+
+    @Test
     func stakeFreeze() {
         let model = ConfirmRecipientViewModel(
             model: .mock(type: .stake(.mock(), .freeze(.bandwidth))),

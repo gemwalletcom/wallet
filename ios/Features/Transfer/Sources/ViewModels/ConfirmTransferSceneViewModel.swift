@@ -174,7 +174,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             if case .generic = transferData.type {
                 return [.app, .sender, .network]
             }
-            return [.app, .sender, .network, .recipient, .memo, .details]
+            return [.app, .sender, .recipient, .network, .memo, .details]
         }()
         result.append(ListSection(type: .details, detailItems))
 

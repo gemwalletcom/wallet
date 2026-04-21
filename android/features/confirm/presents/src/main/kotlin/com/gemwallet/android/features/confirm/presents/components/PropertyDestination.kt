@@ -44,12 +44,34 @@ fun PropertyDestination(
                 )
             }
         }
+        is ConfirmProperty.Destination.Stake -> {
+            val address = model.address
+            if (address != null && model.explorerLink != null) {
+                AddressPropertyItem(
+                    title = R.string.stake_validator,
+                    displayText = model.displayData(),
+                    copyValue = address,
+                    explorerLink = model.explorerLink,
+                    listPosition = listPosition,
+                )
+            } else {
+                PropertyItem(
+                    title = { PropertyTitleText(R.string.stake_validator) },
+                    data = {
+                        Column(horizontalAlignment = Alignment.End) {
+                            Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.displayData()) }
+                        }
+                    },
+                    listPosition = listPosition,
+                )
+            }
+        }
         else -> {
             val title = when (model) {
                 is ConfirmProperty.Destination.Provider -> R.string.common_provider
-                is ConfirmProperty.Destination.Stake -> R.string.stake_validator
                 is ConfirmProperty.Destination.Generic -> R.string.wallet_connect_app
                 is ConfirmProperty.Destination.PerpetualOper -> R.string.common_provider
+                is ConfirmProperty.Destination.Stake,
                 is ConfirmProperty.Destination.Transfer -> return
             }
             PropertyItem(

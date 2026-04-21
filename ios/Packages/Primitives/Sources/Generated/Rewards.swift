@@ -98,22 +98,11 @@ public struct ReferralLeaderboard: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public enum RewardEventType: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
-	case createUsername
-	case invitePending
-	case inviteNew
-	case joined
-	case disabled
-	case redeemed
-}
-
 public struct RewardEvent: Codable, Equatable, Hashable, Sendable {
-	public let event: RewardEventType
 	public let points: Int32
 	public let createdAt: Date
 
-	public init(event: RewardEventType, points: Int32, createdAt: Date) {
-		self.event = event
+	public init(points: Int32, createdAt: Date) {
 		self.points = points
 		self.createdAt = createdAt
 	}
