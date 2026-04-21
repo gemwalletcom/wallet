@@ -24,6 +24,8 @@ import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.stake.models.StakeAction
+import com.wallet.core.primitives.Delegation
+import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -142,6 +144,23 @@ class StakeViewModel @Inject constructor(
 
     fun onRefresh() {
         sync.update { true }
+    }
+
+    fun onDelegation(
+        delegation: Delegation,
+        onOpenDetail: (String, String) -> Unit,
+        onConfirm: ConfirmTransactionAction,
+    ) {
+        if (delegation.base.state != DelegationState.AwaitingWithdrawal) {
+            onOpenDetail(delegation.validator.id, delegation.base.delegationId)
+            return
+        }
+        val assetInfo = assetInfo.value ?: return
+        val from = assetInfo.owner ?: return
+        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
+        val params = ConfirmParams.Builder(assetInfo.asset, from, balance.atomicValue, false)
+            .withdraw(delegation)
+        onConfirm(params)
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

@@ -104,6 +104,14 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
     )
 
+    class StakeAprInfo(icon: Any) : InfoSheetEntity(
+        icon = icon,
+        title = R.string.stake_apr,
+        titleArgs = listOf(""),
+        description = R.string.info_stake_apr_description,
+        infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
+    )
+
     class TransactionInfo(icon: Any, state: TransactionState) : InfoSheetEntity(
         icon = icon,
         badgeIcon = state.statusBadgeIconRes(),

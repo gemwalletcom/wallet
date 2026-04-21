@@ -3,6 +3,7 @@ package com.gemwallet.android.features.earn.delegation.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
@@ -11,6 +12,7 @@ import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.byChain
 import com.gemwallet.android.ext.canClaimRewards
+import com.gemwallet.android.ext.changeAmountOnUnstake
 import com.gemwallet.android.ext.redelegated
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
@@ -27,6 +29,7 @@ import com.wallet.core.primitives.StakeChain
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import uniffi.gemstone.Explorer
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -41,6 +44,7 @@ import javax.inject.Inject
 class DelegationViewModel @Inject constructor(
     private val assetsRepository: AssetsRepository,
     private val stakeRepository: StakeRepository,
+    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -67,8 +71,11 @@ class DelegationViewModel @Inject constructor(
             return@combine emptyList()
         }
         val availableIn = availableIn(delegation)
+        val chain = delegation.validator.chain
+        val validatorUrl = Explorer(chain.string)
+            .getValidatorUrl(getCurrentBlockExplorer.getCurrentBlockExplorer(chain), delegation.validator.id)
         listOfNotNull(
-            DelegationProperty.Name(delegation.validator.name),
+            DelegationProperty.Name(delegation.validator.name, validatorUrl),
             DelegationProperty.Apr(delegation.validator),
             DelegationProperty.TransactionStatus(delegation.base.state, delegation.validator.isActive),
             delegation.base.state
@@ -167,8 +174,18 @@ class DelegationViewModel @Inject constructor(
         call(buildStake(TransactionType.StakeDelegate))
     }
 
-    fun onUnstake(call: AmountTransactionAction) {
-        call(buildStake(TransactionType.StakeUndelegate))
+    fun onUnstake(amountCall: AmountTransactionAction, confirmCall: ConfirmTransactionAction) {
+        val assetInfo = assetInfo.value ?: return
+        val delegation = delegation.value ?: return
+        if (assetInfo.chain.changeAmountOnUnstake) {
+            amountCall(buildStake(TransactionType.StakeUndelegate))
+            return
+        }
+        val from = assetInfo.owner ?: return
+        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
+        val params = ConfirmParams.Builder(assetInfo.asset, from, balance.atomicValue, false)
+            .undelegate(delegation)
+        confirmCall(params)
     }
 
     fun onRedelegate(call: AmountTransactionAction) {

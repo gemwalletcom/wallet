@@ -40,7 +40,7 @@ fun StakeScreen(
             onRefresh = viewModel::onRefresh,
             amountAction = amountAction,
             onRewards = { viewModel.onRewards(amountAction, onConfirm) },
-            onDelegation = onDelegation,
+            onDelegation = { delegation -> viewModel.onDelegation(delegation, onDelegation, onConfirm) },
             onCancel = onCancel
         )
     }
