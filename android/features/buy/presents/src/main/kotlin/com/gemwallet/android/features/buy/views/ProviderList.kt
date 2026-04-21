@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
@@ -35,11 +35,9 @@ fun ProviderList(
     ModalBottomSheet(
         isVisible = isShow.value,
         onDismissRequest = { isShow.value = false },
+        title = stringResource(R.string.buy_providers_title),
     ) {
         LazyColumn {
-            item {
-                SubheaderItem(R.string.buy_providers_title)
-            }
             itemsIndexed(providers) { index, item ->
                 FiatProviderListItemView(
                     provider = item,

@@ -41,11 +41,9 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
@@ -248,16 +246,9 @@ fun ConfirmScreen(
             isVisible = showWalletConnectDetails,
             onDismissRequest = { showWalletConnectDetails = false },
             skipPartiallyExpanded = true,
-            dragHandle = {
-                DialogBar(
-                    onDismissRequest = { showWalletConnectDetails = false },
-                )
-            },
+            title = stringResource(R.string.common_details),
         ) {
             LazyColumn {
-                item {
-                    SubheaderItem(R.string.common_details)
-                }
                 simulationPayloadDetailsContent(
                     primaryFields = walletConnectReview.primaryPayloadFields,
                     secondaryFields = walletConnectReview.secondaryPayloadFields,

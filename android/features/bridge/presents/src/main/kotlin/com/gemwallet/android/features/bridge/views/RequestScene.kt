@@ -34,7 +34,6 @@ import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -176,16 +175,9 @@ private fun SignMessageScene(
                 ModalBottomSheet(
                     onDismissRequest = { sheetType = null },
                     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    dragHandle = {
-                        DialogBar(
-                            onDismissRequest = { sheetType = null },
-                        )
-                    },
+                    title = stringResource(R.string.common_details),
                 ) {
                     LazyColumn {
-                        item {
-                            SubheaderItem(R.string.common_details)
-                        }
                         simulationPayloadDetailsContent(
                             primaryFields = request.primaryPayloadFields,
                             secondaryFields = request.secondaryPayloadFields,
@@ -193,11 +185,7 @@ private fun SignMessageScene(
                         item {
                             PropertyItem(
                                 action = R.string.sign_message_view_full_message,
-                                listPosition = if (request.primaryPayloadFields.isEmpty() && request.secondaryPayloadFields.isEmpty()) {
-                                    ListPosition.Single
-                                } else {
-                                    ListPosition.Last
-                                },
+                                listPosition = ListPosition.Single,
                                 onClick = { sheetType = SignMessageSheetType.FullMessage },
                             )
                         }
@@ -209,11 +197,7 @@ private fun SignMessageScene(
                 ModalBottomSheet(
                     onDismissRequest = { sheetType = null },
                     sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    dragHandle = {
-                        DialogBar(
-                            onDismissRequest = { sheetType = null },
-                        )
-                    },
+                    title = stringResource(R.string.sign_message_view_full_message),
                 ) {
                     Box(
                         modifier = Modifier
