@@ -22,11 +22,13 @@ fun SelectChain(
     chains: List<Chain>,
     chainFilter: TextFieldState,
     listState: LazyListState = rememberLazyListState(),
+    title: String = stringResource(id = R.string.settings_networks_title),
+    trailing: (@Composable (Chain) -> Unit)? = null,
     onSelect: (Chain) -> Unit,
     onCancel: () -> Unit,
 ) {
     Scene(
-        title = stringResource(id = R.string.settings_networks_title),
+        title = title,
         onClose = onCancel,
     ) {
         LazyColumn(modifier = Modifier, state = listState) {
@@ -46,10 +48,10 @@ fun SelectChain(
                     ChainItem(
                         title = item.asset().name,
                         icon = item,
-                        listPosition = ListPosition.getPosition(index, size)
-                    ) {
-                        onSelect(item)
-                    }
+                        listPosition = ListPosition.getPosition(index, size),
+                        trailing = trailing?.let { t -> @Composable { t(item) } },
+                        onClick = { onSelect(item) },
+                    )
                 }
             }
         }
