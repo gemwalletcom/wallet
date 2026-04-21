@@ -5,7 +5,9 @@ import Foundation
 import class Gemstone.Config
 import class Gemstone.MessageSigner
 import struct Gemstone.SignMessage
+import class Gemstone.WalletConnect
 import GemstonePrimitives
+import Keystore
 import Preferences
 import Primitives
 import Store
@@ -17,15 +19,18 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     private let connectionsStore: ConnectionsStore
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let walletSessionService: any WalletSessionManageable
+    private let keystore: any Keystore
 
     public init(
         connectionsStore: ConnectionsStore,
         walletSessionService: any WalletSessionManageable,
         walletConnectorInteractor: any WalletConnectorInteractable,
+        keystore: any Keystore,
     ) {
         self.connectionsStore = connectionsStore
         self.walletConnectorInteractor = walletConnectorInteractor
         self.walletSessionService = walletSessionService
+        self.keystore = keystore
     }
 
     public var allChains: [Primitives.Chain] {
@@ -45,7 +50,19 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     public func getAccounts(wallet: Wallet, chains: [Primitives.Chain]) -> [Primitives.Account] {
-        wallet.accounts.filter { chains.contains($0.chain) }
+        let chainsNeedPubKey = WalletConnect().chainsNeedPubKey().compactMap { Chain(rawValue: $0) }
+        return wallet.accounts.filter { chains.contains($0.chain) }.map { account in
+            guard chainsNeedPubKey.contains(account.chain), account.publicKey == nil,
+                  let publicKey = keystore.getPublicKey(wallet: wallet, chain: account.chain)
+            else { return account }
+            return Primitives.Account(
+                chain: account.chain,
+                address: account.address,
+                derivationPath: account.derivationPath,
+                publicKey: publicKey,
+                extendedPublicKey: account.extendedPublicKey,
+            )
+        }
     }
 
     public func getWallets(for proposal: Session.Proposal) throws -> [Wallet] {
@@ -223,9 +240,17 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
             )
 
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
+        case let .ton(transaction, outputType):
+            let transferData = buildTransferData(
+                chain: chain,
+                metadata: session.session.metadata,
+                transaction: transaction,
+                outputType: outputType,
+                outputAction: .signAndSend,
+            )
+            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
         case let .solana(transaction, outputType),
              let .sui(transaction, outputType),
-             let .ton(transaction, outputType),
              let .tron(transaction, outputType):
             let transferData = buildTransferData(
                 chain: chain,

@@ -36,13 +36,13 @@ import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
+import com.wallet.core.primitives.TransferDataOutputAction
 import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
 import uniffi.gemstone.PerpetualConfirmData
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.PerpetualType.Close
 import uniffi.gemstone.PerpetualType.Increase
 import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.TransferDataOutputAction
 import uniffi.gemstone.TransferDataOutputType
 import java.math.BigInteger
 import java.util.Base64
@@ -227,12 +227,15 @@ sealed class ConfirmParams() {
             override val useMaxAmount: Boolean = false,
             override val inputType: InputType? = null,
             val isSendable: Boolean,
+            val outputAction: TransferDataOutputAction = TransferDataOutputAction.Send,
             val name: String,
             val description: String,
             val url: String,
             val icon: String,
             val gasLimit: String?,
         ) : TransferParams() {
+            fun returnHash(): Boolean = outputAction != TransferDataOutputAction.SignAndSend
+
             override fun toDto(): GemTransactionInputType {
                 val type = requireNotNull(inputType) { "inputType is required for Generic transactions" }
                 return Generic(
@@ -258,10 +261,7 @@ sealed class ConfirmParams() {
                         InputType.Signature -> TransferDataOutputType.SIGNATURE
                         InputType.EncodeTransaction -> TransferDataOutputType.ENCODED_TRANSACTION
                     },
-                    outputAction = when (type) {
-                        InputType.Signature -> TransferDataOutputAction.SIGN
-                        InputType.EncodeTransaction -> TransferDataOutputAction.SEND
-                    },
+                    outputAction = outputAction.toGem(),
                     to = destination().address
                 ),
             )

@@ -37,14 +37,13 @@ final class WalletKeyStoreTests {
         )
 
         #expect(wallet.type == .privateKey)
-        #expect(wallet.accounts == [
-            Primitives.Account(
-                chain: .solana,
-                address: expectedAddress,
-                derivationPath: "m/44\'/501\'/0\'",
-                extendedPublicKey: .none,
-            ),
-        ])
+        #expect(wallet.accounts.count == 1)
+        let account = wallet.accounts[0]
+        #expect(account.chain == .solana)
+        #expect(account.address == expectedAddress)
+        #expect(account.derivationPath == "m/44\'/501\'/0\'")
+        #expect(account.extendedPublicKey == nil)
+        #expect(account.publicKey != nil)
     }
 
     @Test

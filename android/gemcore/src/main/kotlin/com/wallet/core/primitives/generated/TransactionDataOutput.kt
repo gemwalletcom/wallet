@@ -13,6 +13,8 @@ enum class TransferDataOutputAction(val string: String) {
 	Sign("sign"),
 	@SerialName("send")
 	Send("send"),
+	@SerialName("signAndSend")
+	SignAndSend("signAndSend"),
 }
 
 @Serializable

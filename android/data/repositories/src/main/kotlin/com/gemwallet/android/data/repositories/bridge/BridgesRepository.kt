@@ -3,11 +3,14 @@ package com.gemwallet.android.data.repositories.bridge
 import android.app.Application
 import android.content.Context
 import androidx.core.net.toUri
+import com.gemwallet.android.blockchain.operators.LoadPublicKeyOperator
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.findByString
+import com.gemwallet.android.ext.toGemAccount
 import com.reown.android.Core
 import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
@@ -32,6 +35,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.WalletConnect
 import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,10 +43,12 @@ class BridgesRepository(
     private val context: Context,
     private val walletsRepository: WalletsRepository,
     private val connectionsDao: ConnectionsDao,
+    private val loadPublicKey: LoadPublicKeyOperator,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) {
 
     private val isWalletConnectInit = MutableStateFlow(false)
+    private val walletConnect = WalletConnect()
     val bridgeEvents = isWalletConnectInit.flatMapLatest {
         if (it) {
             WalletConnectDelegate.walletEvents
@@ -236,10 +242,23 @@ class BridgesRepository(
             sessionProposal = sessionProposal,
             supportedNamespaces = supportedNamespaces
         )
+        val caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() }
+        val chainsNeedPubKey = walletConnect.chainsNeedPubKey().mapNotNull { Chain.findByString(it) }
+        val accounts = wallet.accounts.map { account ->
+            if (account.chain in chainsNeedPubKey && account.publicKey == null) {
+                account.copy(publicKey = loadPublicKey(wallet, account.chain))
+            } else {
+                account
+            }
+        }
         val approveProposal = Wallet.Params.SessionApprove(
             proposerPublicKey = sessionProposal.proposerPublicKey,
             namespaces = sessionNamespaces,
-            properties = proposal.properties ?: emptyMap(),
+            properties = walletConnect.configSessionProperties(
+                properties = proposal.properties ?: emptyMap(),
+                caip2Chains = caip2Chains,
+                accounts = accounts.map { it.toGemAccount() },
+            ),
         )
 
         WalletKit.approveSession(
@@ -344,3 +363,4 @@ class BridgesRepository(
         icon = getIcon(),
     )
 }
+

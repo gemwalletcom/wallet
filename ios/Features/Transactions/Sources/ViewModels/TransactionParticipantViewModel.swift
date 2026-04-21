@@ -75,7 +75,7 @@ extension TransactionParticipantViewModel {
             Localized.Asset.contract
         case .smartContractCall:
             switch transactionViewModel.transaction.transaction.metadata?.decode(TransactionWalletConnectMetadata.self)?.outputAction {
-            case .send: Localized.Transaction.recipient
+            case .send, .signAndSend: Localized.Transaction.recipient
             case .sign, .none: Localized.Asset.contract
             }
         case .stakeDelegate:

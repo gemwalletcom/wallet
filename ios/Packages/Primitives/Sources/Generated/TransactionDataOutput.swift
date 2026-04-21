@@ -5,8 +5,12 @@
 import Foundation
 
 public enum TransferDataOutputAction: String, Codable, Equatable, Hashable, Sendable {
+	/// Sign only; return the signed bytes.
 	case sign
+	/// Sign, broadcast, return the broadcast id/hash.
 	case send
+	/// Sign, broadcast, return the signed encoded transaction (e.g. TON Connect BOC).
+	case signAndSend
 }
 
 public enum TransferDataOutputType: String, Codable, Equatable, Hashable, Sendable {

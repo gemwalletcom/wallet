@@ -197,7 +197,8 @@ class TransactionDetailsAggregateImpl(
         }
         TransactionType.SmartContractCall -> destinationAddress { address, explorerLink ->
             when (data.transaction.getWalletConnectOutputAction()) {
-                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(address, explorerLink)
+                TransferDataOutputAction.Send,
+                TransferDataOutputAction.SignAndSend -> TransactionDetailsValue.Destination.Recipient(address, explorerLink)
                 TransferDataOutputAction.Sign,
                 null -> TransactionDetailsValue.Destination.Contract(address, explorerLink)
             }

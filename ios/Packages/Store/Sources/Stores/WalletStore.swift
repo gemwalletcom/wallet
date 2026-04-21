@@ -173,7 +173,7 @@ extension Account {
             walletId: walletId,
             chain: chain,
             address: address,
-            extendedPublicKey: extendedPublicKey ?? "",
+            extendedPublicKey: extendedPublicKey ?? publicKey ?? "",
             index: 0,
             derivationPath: derivationPath,
         )

@@ -53,7 +53,7 @@ public struct WalletBarView: View {
                     name: "Wallet #1",
                     index: 1,
                     type: .multicoin,
-                    accounts: [.init(chain: .algorand, address: "", derivationPath: "", extendedPublicKey: "")],
+                    accounts: [.init(chain: .algorand, address: "", derivationPath: "", publicKey: nil, extendedPublicKey: "")],
                     order: 1,
                     isPinned: true,
                     imageUrl: nil,

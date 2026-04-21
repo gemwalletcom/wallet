@@ -7,6 +7,8 @@ import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import org.junit.Test
 
 class TestCreateAccountOperator {
@@ -22,7 +24,8 @@ class TestCreateAccountOperator {
         val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.Solana)
         assertEquals("4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S", result.address)
         assertEquals("m/44'/501'/0'", result.derivationPath)
-        assertEquals("", result.extendedPublicKey)
+        assertNotNull(result.publicKey)
+        assertNull(result.extendedPublicKey)
     }
 
     @Test
@@ -31,6 +34,7 @@ class TestCreateAccountOperator {
         val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.BitcoinCash)
         assertEquals("qq29xrkkd68alnrca375qlfyhwdqdkevsvmgkq9cmw", result.address)
         assertEquals("m/44'/145'/0'/0/0", result.derivationPath)
+        assertNull(result.publicKey)
         assertEquals("xpub6Cd3LU6iyrbbhxPRYZpE5hGUdmrQVpQ79i9RYNLrs2iVrtYkKRv6swMWeTpPfomebgisrRGPrFvt1qaFiZLLuQdSFRVBWdbKD4HWnMrFsjR", result.extendedPublicKey)
     }
 
@@ -41,7 +45,8 @@ class TestCreateAccountOperator {
         val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.Ethereum)
         assertEquals("0x9b1DB81180c31B1b428572Be105E209b5A6222b7", result.address)
         assertEquals("m/44'/60'/0'/0/0", result.derivationPath)
-        assertEquals("", result.extendedPublicKey)
+        assertNotNull(result.publicKey)
+        assertNull(result.extendedPublicKey)
     }
 
     @Test

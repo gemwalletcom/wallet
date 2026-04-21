@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
 @preconcurrency import WalletCore
 
@@ -54,10 +55,12 @@ struct WalletKeyStore: Sendable {
         let wallet = try keyStore.import(privateKey: privateKey, name: name, password: password, coin: chain.coinType)
 
         let address = chain.coinType.deriveAddress(privateKey: privateKey)
+        let publicKey = wallet.accounts.first(where: { $0.coin == chain.coinType })?.getPublicKey()
         let account = Primitives.Account(
             chain: chain,
             address: address,
             derivationPath: chain.coinType.derivationPath(), // not applicable
+            publicKey: chain.isUtxo ? nil : publicKey,
             extendedPublicKey: nil,
         )
         return Primitives.Wallet(
@@ -147,6 +150,10 @@ struct WalletKeyStore: Sendable {
         try keyStore.delete(wallet: wallet, password: password)
     }
 
+    func getPublicKey(walletId: String, chain: Chain) -> String? {
+        try? getWallet(id: walletId).accounts.first(where: { $0.coin == chain.coinType })?.getPublicKey()
+    }
+
     func getPrivateKey(id: String, type: Primitives.WalletType, chain: Chain, password: String) throws -> Data {
         let wallet = try getWallet(id: id)
         switch type {
@@ -206,12 +213,22 @@ extension WalletCore.Wallet {
 }
 
 extension WalletCore.Account {
+    func getPublicKey() -> String? {
+        publicKey.isEmpty ? nil : publicKey
+    }
+
+    func getExtendedPublicKey() -> String? {
+        extendedPublicKey.isEmpty ? nil : extendedPublicKey
+    }
+
     func mapToAccount(chain: Chain) -> Primitives.Account {
-        Account(
+        let isUtxo = chain.isUtxo
+        return Account(
             chain: chain,
             address: chain.shortAddress(address: address),
             derivationPath: derivationPath,
-            extendedPublicKey: extendedPublicKey,
+            publicKey: isUtxo ? nil : getPublicKey(),
+            extendedPublicKey: isUtxo ? getExtendedPublicKey() : nil,
         )
     }
 }

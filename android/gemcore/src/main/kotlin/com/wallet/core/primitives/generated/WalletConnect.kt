@@ -38,3 +38,11 @@ data class WCTonMessage (
 	val stateInit: String? = null
 )
 
+@Serializable
+data class WCTonSendTransaction (
+	val valid_until: UInt? = null,
+	val messages: List<WCTonMessage>,
+	val from: String? = null,
+	val network: String? = null
+)
+

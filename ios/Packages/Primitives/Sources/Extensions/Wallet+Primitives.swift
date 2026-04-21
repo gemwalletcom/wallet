@@ -59,6 +59,7 @@ public extension Wallet {
                     chain: chain,
                     address: address,
                     derivationPath: "",
+                    publicKey: nil,
                     extendedPublicKey: "",
                 ),
             ],

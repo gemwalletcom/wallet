@@ -61,7 +61,7 @@ extension ConfirmRecipientViewModel {
         case .generic:
             switch model.type.outputAction {
             case .sign: Localized.Asset.contract
-            case .send: Localized.Transfer.Recipient.title
+            case .send, .signAndSend: Localized.Transfer.Recipient.title
             }
         case .earn: Localized.Common.provider
         case .transfer, .deposit, .withdrawal, .transferNft, .tokenApprove, .account, .perpetual: Localized.Transfer.Recipient.title
@@ -84,7 +84,7 @@ extension ConfirmRecipientViewModel {
         case .generic:
             switch model.type.outputAction {
             case .sign: false
-            case .send: true
+            case .send, .signAndSend: true
             }
         case .transfer,
              .transferNft,

@@ -10,6 +10,7 @@ import com.gemwallet.android.model.DestinationAddress
 import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import uniffi.gemstone.MessageSigner
 import com.gemwallet.android.blockchain.gemstone.toGem
@@ -274,6 +275,7 @@ private fun WalletConnectTransaction.map(
             destination = DestinationAddress(""),
             amount = BigInteger.ZERO,
             isSendable = isSendable,
+            outputAction = TransferDataOutputAction.SignAndSend,
         )
         is WalletConnectTransaction.Tron -> Generic(
             requestId = request.requestId.toString(),

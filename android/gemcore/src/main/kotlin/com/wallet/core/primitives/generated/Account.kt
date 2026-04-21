@@ -12,6 +12,7 @@ data class Account (
 	val chain: Chain,
 	val address: String,
 	val derivationPath: String,
+	val publicKey: String? = null,
 	val extendedPublicKey: String? = null
 )
 

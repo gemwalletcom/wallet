@@ -44,7 +44,7 @@ public struct TransferExecutor: TransferExecutable {
             switch input.data.type.outputAction {
             case .sign:
                 input.delegate?(.success(transactionData))
-            case .send:
+            case .send, .signAndSend:
                 try await send(
                     input: input,
                     transactionData: transactionData,
@@ -69,7 +69,8 @@ extension TransferExecutor {
 
         debugLog("TransferExecutor broadcast response hash \(hash)")
 
-        input.delegate?(.success(hash))
+        let delegateResult = input.data.type.returnHash ? hash : transactionData
+        input.delegate?(.success(delegateResult))
 
         let transaction = try TransactionFactory.makePendingTransaction(
             wallet: input.wallet,

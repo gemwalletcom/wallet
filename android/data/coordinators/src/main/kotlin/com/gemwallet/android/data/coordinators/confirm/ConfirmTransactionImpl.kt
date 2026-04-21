@@ -46,12 +46,12 @@ class ConfirmTransactionImpl(
             throw IllegalStateException("Not implemented")
         }
 
-        if (signerParams.input is ConfirmParams.TransferParams.Generic) {
-            if (!(signerParams.input as ConfirmParams.TransferParams.Generic).isSendable) {
-                val hash = String(signs.firstOrNull() ?: byteArrayOf())
-                return ConfirmTransaction.Result(txHash = hash, finishRoute = "")
-            }
+        val genericInput = signerParams.input as? ConfirmParams.TransferParams.Generic
+        if (genericInput != null && !genericInput.isSendable) {
+            val signed = String(signs.firstOrNull() ?: byteArrayOf())
+            return ConfirmTransaction.Result(txHash = signed, finishRoute = "")
         }
+        val returnHash = genericInput?.returnHash() ?: true
 
         var lastHash = ""
         for (sign in signs) {
@@ -59,7 +59,7 @@ class ConfirmTransactionImpl(
             if (!sign.contentEquals(signs.last())) {
                 delay(500)
             } else {
-                lastHash = txHash
+                lastHash = if (returnHash) txHash else String(sign)
                 addTransaction(txHash, signerParams, assetInfo, session)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }

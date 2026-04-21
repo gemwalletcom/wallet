@@ -62,12 +62,15 @@ struct LocalKeystoreTests {
                 source: .import,
             )
 
-            #expect(wallet.accounts == chains.map {
-                Account(chain: $0,
-                        address: "0x8f348F300873Fd5DA36950B2aC75a26584584feE",
-                        derivationPath: "m/44'/60'/0'/0/0",
-                        extendedPublicKey: "")
-            })
+            #expect(wallet.accounts.count == chains.count)
+            for (index, chain) in chains.enumerated() {
+                let account = wallet.accounts[index]
+                #expect(account.chain == chain)
+                #expect(account.address == "0x8f348F300873Fd5DA36950B2aC75a26584584feE")
+                #expect(account.derivationPath == "m/44'/60'/0'/0/0")
+                #expect(account.extendedPublicKey == nil)
+                #expect(account.publicKey != nil)
+            }
         }
     }
 

@@ -15,6 +15,7 @@ env:
   ANDROID_API: "35"
   ANDROID_AVD_NAME: "ci-emulator"
   ANDROID_EMULATOR_DEVICE: "pixel_6"
+  ANDROID_EMULATOR_HEADLESS: "true"
 
 jobs:
   unit_test:

@@ -9,6 +9,7 @@ import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
+import com.gemwallet.android.blockchain.operators.LoadPublicKeyOperator
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
@@ -17,6 +18,7 @@ import com.gemwallet.android.blockchain.operators.walletcore.WCCreateWalletOpera
 import com.gemwallet.android.blockchain.operators.walletcore.WCDeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateKeyOperator
+import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPublicKeyOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCStorePhraseOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCValidatePhraseOperator
@@ -76,6 +78,12 @@ object InteractsModule {
     fun provideLoadPrivateKeyInteract(
         @ApplicationContext context: Context,
     ): LoadPrivateKeyOperator = WCLoadPrivateKeyOperator(context.dataDir.toString())
+
+    @Singleton
+    @Provides
+    fun provideLoadPublicKeyInteract(
+        @ApplicationContext context: Context,
+    ): LoadPublicKeyOperator = WCLoadPublicKeyOperator(context.dataDir.toString())
 
     @Singleton
     @Provides

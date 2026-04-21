@@ -2,6 +2,7 @@
 
 import Foundation
 import struct Gemstone.SignMessage
+import KeystoreTestKit
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -192,6 +193,7 @@ extension WalletConnectorSigner {
             connectionsStore: connectionsStore,
             walletSessionService: walletSessionService,
             walletConnectorInteractor: WalletConnectorManager(presenter: WalletConnectorPresenter()),
+            keystore: KeystoreMock(),
         )
     }
 

@@ -127,6 +127,10 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
     }
 
+    public func getPublicKey(wallet: Primitives.Wallet, chain: Chain) -> String? {
+        walletKeyStore.getPublicKey(walletId: wallet.keystoreId, chain: chain)
+    }
+
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {
         try keystorePassword.getAuthentication()
     }

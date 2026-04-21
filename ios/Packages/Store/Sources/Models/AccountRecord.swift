@@ -58,6 +58,7 @@ extension AccountRecord {
             chain: chain,
             address: address,
             derivationPath: derivationPath,
+            publicKey: nil,
             extendedPublicKey: extendedPublicKey,
         )
     }

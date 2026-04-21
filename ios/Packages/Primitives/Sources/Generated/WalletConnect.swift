@@ -59,3 +59,17 @@ public struct WCTonMessage: Codable, Equatable, Hashable, Sendable {
 		self.stateInit = stateInit
 	}
 }
+
+public struct WCTonSendTransaction: Codable, Equatable, Hashable, Sendable {
+	public let valid_until: UInt32?
+	public let messages: [WCTonMessage]
+	public let from: String?
+	public let network: String?
+
+	public init(valid_until: UInt32?, messages: [WCTonMessage], from: String?, network: String?) {
+		self.valid_until = valid_until
+		self.messages = messages
+		self.from = from
+		self.network = network
+	}
+}

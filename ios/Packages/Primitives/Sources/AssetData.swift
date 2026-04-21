@@ -33,7 +33,7 @@ public struct AssetData: Codable, Equatable, Hashable, Sendable {
         AssetData(
             asset: asset,
             balance: .zero,
-            account: Account(chain: asset.chain, address: "", derivationPath: "", extendedPublicKey: nil),
+            account: Account(chain: asset.chain, address: "", derivationPath: "", publicKey: nil, extendedPublicKey: nil),
             price: nil,
             priceAlerts: [],
             metadata: AssetMetaData(

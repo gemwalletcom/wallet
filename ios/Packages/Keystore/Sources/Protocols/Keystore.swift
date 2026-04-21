@@ -15,6 +15,7 @@ public protocol Keystore: Sendable {
     func getPrivateKeyEncoded(wallet: Wallet, chain: Chain) async throws -> String
     func getMnemonic(wallet: Wallet) async throws -> [String]
     func getPasswordAuthentication() throws -> KeystoreAuthentication
+    func getPublicKey(wallet: Wallet, chain: Chain) -> String?
     func sign(hash: Data, wallet: Wallet, chain: Chain) async throws -> Data
     func destroy() throws
 }

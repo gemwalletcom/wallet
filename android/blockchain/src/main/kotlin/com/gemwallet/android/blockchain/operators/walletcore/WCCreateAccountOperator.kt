@@ -37,7 +37,7 @@ class WCCreateAccountOperator : CreateAccountOperator {
             chain = chain,
             address = address,
             derivationPath = coinType.derivationPath(),
-            extendedPublicKey = extendedPublicKey
+            extendedPublicKey = extendedPublicKey,
         )
     }
 
@@ -50,7 +50,7 @@ class WCCreateAccountOperator : CreateAccountOperator {
             chain = chain,
             address = address,
             derivationPath = coinType.derivationPath(),
-            extendedPublicKey = ""
+            extendedPublicKey = "",
         )
     }
 }

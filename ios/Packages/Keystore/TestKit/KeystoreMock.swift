@@ -15,6 +15,7 @@ public struct KeystoreMock: Keystore {
     public func getPrivateKeyEncoded(wallet _: Primitives.Wallet, chain _: Primitives.Chain) throws -> String { .empty }
     public func getMnemonic(wallet _: Primitives.Wallet) throws -> [String] { LocalKeystore.words }
     public func getPasswordAuthentication() throws -> KeystoreAuthentication { .none }
+    public func getPublicKey(wallet _: Primitives.Wallet, chain _: Primitives.Chain) -> String? { nil }
     public func sign(hash _: Data, wallet _: Primitives.Wallet, chain _: Primitives.Chain) throws -> Data { Data() }
     public func destroy() throws {}
 }

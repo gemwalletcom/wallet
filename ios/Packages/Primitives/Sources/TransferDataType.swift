@@ -131,6 +131,10 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
         }
     }
 
+    public var returnHash: Bool {
+        outputAction != .signAndSend
+    }
+
     public func swap() throws -> (Asset, Asset, data: SwapData) {
         guard case let .swap(fromAsset, toAsset, data) = self else {
             throw AnyError("SwapQuoteData missed")

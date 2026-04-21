@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.di
 
 import android.content.Context
+import com.gemwallet.android.blockchain.operators.LoadPublicKeyOperator
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
@@ -20,10 +21,12 @@ object BridgesModule {
         @ApplicationContext context: Context,
         walletsRepository: WalletsRepository,
         connectionsDao: ConnectionsDao,
+        loadPublicKey: LoadPublicKeyOperator,
     ): BridgesRepository = BridgesRepository(
         context = context,
         walletsRepository = walletsRepository,
         connectionsDao = connectionsDao,
+        loadPublicKey = loadPublicKey,
     )
 }
 

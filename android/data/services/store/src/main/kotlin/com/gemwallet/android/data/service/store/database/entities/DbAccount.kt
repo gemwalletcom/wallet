@@ -18,8 +18,8 @@ fun DbAccount.toDTO(): Account {
     return Account(
         chain = chain,
         address = address,
-        extendedPublicKey = extendedPublicKey,
         derivationPath = derivationPath,
+        extendedPublicKey = extendedPublicKey,
     )
 }
 
@@ -29,7 +29,7 @@ fun Account.toRecord(walletId: String): DbAccount {
         derivationPath = derivationPath,
         chain = chain,
         address = address,
-        extendedPublicKey = extendedPublicKey,
+        extendedPublicKey = extendedPublicKey ?: publicKey,
     )
 }
 

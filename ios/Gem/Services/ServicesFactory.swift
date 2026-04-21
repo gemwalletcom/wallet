@@ -219,6 +219,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
             nodeProvider: nodeProvider,
+            keystore: storages.keystore,
         )
 
         let assetsEnabler = AssetsEnablerService(
@@ -551,6 +552,7 @@ extension ServicesFactory {
         walletSessionService: WalletSessionService,
         interactor: any WalletConnectorInteractable,
         nodeProvider: any NodeURLFetchable,
+        keystore: any Keystore,
     ) -> ConnectionsService {
         ConnectionsService(
             store: connectionsStore,
@@ -558,6 +560,7 @@ extension ServicesFactory {
                 connectionsStore: connectionsStore,
                 walletSessionService: walletSessionService,
                 walletConnectorInteractor: interactor,
+                keystore: keystore,
             ),
             nodeProvider: nodeProvider,
         )

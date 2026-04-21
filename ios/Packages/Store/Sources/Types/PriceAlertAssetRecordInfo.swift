@@ -19,6 +19,7 @@ extension PriceAlertAssetRecordInfo {
                 chain: asset.chain,
                 address: .empty,
                 derivationPath: .empty,
+                publicKey: nil,
                 extendedPublicKey: nil,
             ),
             price: price?.mapToPrice(),

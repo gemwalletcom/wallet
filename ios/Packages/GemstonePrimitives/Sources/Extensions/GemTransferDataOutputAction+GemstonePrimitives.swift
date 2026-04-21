@@ -9,6 +9,7 @@ public extension Gemstone.TransferDataOutputAction {
         switch self {
         case .sign: .sign
         case .send: .send
+        case .signAndSend: .signAndSend
         }
     }
 }
@@ -18,6 +19,7 @@ public extension Primitives.TransferDataOutputAction {
         switch self {
         case .sign: .sign
         case .send: .send
+        case .signAndSend: .signAndSend
         }
     }
 }

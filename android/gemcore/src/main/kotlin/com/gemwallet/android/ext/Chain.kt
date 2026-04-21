@@ -195,7 +195,6 @@ fun Chain.toChainType(): ChainType {
     }
 }
 
-
 fun Chain.getNetworkId(): String {
     return Config().getChainConfig(string).networkId
 }
@@ -218,6 +217,8 @@ fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
 }
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
+
+fun Chain.isUtxo(): Boolean = Config().getChainConfig(string).isUtxo
 
 fun BitcoinChain.fullAddress(address: String) = when (this) {
     BitcoinChain.BitcoinCash -> if (address.startsWith(Chain.BitcoinCash.string)) {
