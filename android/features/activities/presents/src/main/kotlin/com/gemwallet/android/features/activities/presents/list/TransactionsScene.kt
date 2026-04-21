@@ -83,7 +83,7 @@ internal fun TransactionsScene(
                 )
             }
         ) {
-            if (transactions.isEmpty() && !loading) {
+            if (transactions.isEmpty()) {
                 val hasFilters = chainsFilter.isNotEmpty() || typeFilter.isNotEmpty()
                 val type = if (hasFilters) {
                     EmptyContentType.SearchActivity { onClearChainsFilter(); onClearTypesFilter() }
