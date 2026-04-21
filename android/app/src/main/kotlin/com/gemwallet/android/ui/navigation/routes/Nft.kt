@@ -1,9 +1,11 @@
 package com.gemwallet.android.ui.navigation.routes
 
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
@@ -18,10 +20,17 @@ val nftRoute = "nft"
 data class NftCollectionRoute(val collectionId: String)
 
 @Serializable
+data class NftUnverifiedCollectionsRoute(val unverified: Boolean = true)
+
+@Serializable
 data class NftAssetRoute(val assetId: String)
 
 fun NavController.navigateToNftCollection(collectionId: String) {
     navigate(NftCollectionRoute(collectionId), navOptions { launchSingleTop = true })
+}
+
+fun NavController.navigateToNftUnverifiedCollections() {
+    navigate(NftUnverifiedCollectionsRoute(), navOptions { launchSingleTop = true })
 }
 
 fun NavController.navigateToNftAsset(assetId: String) {
@@ -36,6 +45,15 @@ fun NavGraphBuilder.nftCollection(
 ) {
     composable<NftCollectionRoute> {
         NftListScene(cancelAction, collectionIdAction, assetIdAction)
+    }
+
+    composable<NftUnverifiedCollectionsRoute> {
+        NftListScene(
+            cancelAction = cancelAction,
+            collectionAction = collectionIdAction,
+            assetAction = assetIdAction,
+            title = stringResource(R.string.asset_verification_unverified),
+        )
     }
 
     composable<NftAssetRoute> {

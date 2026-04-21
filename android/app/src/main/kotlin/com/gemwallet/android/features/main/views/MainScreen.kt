@@ -54,6 +54,7 @@ import com.gemwallet.android.ui.navigation.routes.navigateToBuyScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToDevelopScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToNftAsset
 import com.gemwallet.android.ui.navigation.routes.navigateToNftCollection
+import com.gemwallet.android.ui.navigation.routes.navigateToNftUnverifiedCollections
 import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToPreferences
 import com.gemwallet.android.ui.navigation.routes.navigateToNotifications
@@ -225,6 +226,7 @@ fun MainScreen(
                     cancelAction = null,
                     collectionAction = navController::navigateToNftCollection,
                     assetAction = navController::navigateToNftAsset,
+                    onUnverifiedClick = navController::navigateToNftUnverifiedCollections,
                 )
                 else -> SettingsScene(
                     scrollState = settingsScrollState,
