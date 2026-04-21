@@ -85,7 +85,7 @@ private fun EmptyContentType.iconVector(): ImageVector? = when (this) {
 @Composable
 private fun EmptyContentType.buttons(): List<EmptyAction> = when (this) {
     is EmptyContentType.Nft -> listOfNotNull(
-        onReceive?.let { EmptyAction(stringResource(R.string.wallet_receive), it) },
+        onReceive?.let { EmptyAction(stringResource(R.string.wallet_receive), it, EmptyActionStyle.Secondary) },
     )
     is EmptyContentType.Asset -> if (isViewOnly) emptyList() else listOfNotNull(
         onBuy?.let { EmptyAction(stringResource(R.string.wallet_buy), it) },
