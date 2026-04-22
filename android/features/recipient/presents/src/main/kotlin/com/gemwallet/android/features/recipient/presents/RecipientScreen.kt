@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.recipient.presents
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +37,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Wallet
 
@@ -122,7 +123,7 @@ fun RecipientScreen(
         }
     ) {
         LazyColumn(
-            modifier = Modifier.padding(bottom = 72.dp),
+            contentPadding = PaddingValues(bottom = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item { RecipientHead(type) }
