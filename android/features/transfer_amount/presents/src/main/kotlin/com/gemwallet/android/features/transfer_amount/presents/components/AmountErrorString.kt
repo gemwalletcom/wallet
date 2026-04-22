@@ -16,7 +16,7 @@ fun amountErrorString(error: AmountError): String = when (error) {
     AmountError.Unavailable -> "Unavailable"
     is AmountError.InsufficientBalance -> stringResource(
         id = R.string.transfer_insufficient_balance,
-        error.assetName
+        error.assetSymbol
     )
     is AmountError.InsufficientFeeBalance -> stringResource(
         id = R.string.transfer_insufficient_network_fee_balance,

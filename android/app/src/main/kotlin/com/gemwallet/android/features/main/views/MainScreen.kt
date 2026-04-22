@@ -54,10 +54,12 @@ import com.gemwallet.android.ui.navigation.routes.navigateToBuyScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToDevelopScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToNftAsset
 import com.gemwallet.android.ui.navigation.routes.navigateToNftCollection
+import com.gemwallet.android.ui.navigation.routes.navigateToNftUnverifiedCollections
 import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualsScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToPreferences
 import com.gemwallet.android.ui.navigation.routes.navigateToNotifications
 import com.gemwallet.android.ui.navigation.routes.navigateToPriceAlertsScreen
+import com.gemwallet.android.ui.navigation.routes.navigateToReceiveNftChains
 import com.gemwallet.android.ui.navigation.routes.navigateToReceiveScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToRecipientInput
 import com.gemwallet.android.ui.navigation.routes.navigateToReferralScreen
@@ -225,6 +227,8 @@ fun MainScreen(
                     cancelAction = null,
                     collectionAction = navController::navigateToNftCollection,
                     assetAction = navController::navigateToNftAsset,
+                    onReceive = { navController.navigateToReceiveNftChains() },
+                    onUnverifiedClick = navController::navigateToNftUnverifiedCollections,
                 )
                 else -> SettingsScene(
                     scrollState = settingsScrollState,

@@ -14,7 +14,7 @@ public extension PortfolioDataService {
     static func mock(
         portfolioService: PortfolioService = .mock(),
         perpetualService: PerpetualServiceMock = PerpetualServiceMock(),
-        priceService: PriceService = .mock()
+        priceService: PriceService = .mock(),
     ) -> PortfolioDataService {
         PortfolioDataService(
             portfolioService: portfolioService,
@@ -30,7 +30,7 @@ public extension PortfolioSceneViewModel {
         wallet: Wallet = .mock(),
         service: PortfolioDataService = .mock(),
         preferences: ObservablePreferences = .mock(),
-        defaultType: PortfolioType = .wallet
+        defaultType: PortfolioType = .wallet,
     ) -> PortfolioSceneViewModel {
         PortfolioSceneViewModel(
             wallet: wallet,

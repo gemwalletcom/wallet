@@ -11,7 +11,7 @@ sealed class AmountError : Exception() {
 
     object ZeroAmount : AmountError()
 
-    class InsufficientBalance(val assetName: String) : AmountError()
+    class InsufficientBalance(val assetSymbol: String) : AmountError()
 
     class InsufficientFeeBalance(val assetName: String) : AmountError()
 

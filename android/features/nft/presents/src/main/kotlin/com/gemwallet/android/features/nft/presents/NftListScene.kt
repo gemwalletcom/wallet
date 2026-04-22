@@ -4,13 +4,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,8 +35,11 @@ import com.gemwallet.android.cases.nft.NftError
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
+import com.gemwallet.android.ui.components.list_item.LinkItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
@@ -46,31 +54,44 @@ fun NftListScene(
     cancelAction: CancelAction?,
     collectionAction: NftCollectionIdAction,
     assetAction: NftAssetIdAction,
+    onReceive: (() -> Unit)? = null,
     listState: LazyGridState = rememberLazyGridState(),
+    title: String = stringResource(R.string.nft_collections),
+    onUnverifiedClick: (() -> Unit)? = null,
 ) {
     val viewModel: NftListViewModels = hiltViewModel()
 
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val unverifiedCount by viewModel.unverifiedCount.collectAsStateWithLifecycle()
 
     val pullToRefreshState = rememberPullToRefreshState()
 
     Scene(
-        title = stringResource(R.string.nft_collections),
+        title = title,
         navigationBarPadding = false,
+        actions = {
+            if (onReceive != null) {
+                IconButton(onClick = onReceive) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.wallet_receive),
+                    )
+                }
+            }
+        },
         onClose = if (cancelAction == null) null else { { cancelAction() } } // TODO: Replace to action in scene
     ) {
-        val isRefreshing = isLoading && !items.isEmpty()
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
-            isRefreshing = isRefreshing,
+            isRefreshing = isLoading,
             onRefresh = viewModel::refresh,
             state = pullToRefreshState,
             indicator = {
                 Indicator( // TODO: Out to view library
                     modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
+                    isRefreshing = isLoading,
                     state = pullToRefreshState,
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -96,25 +117,42 @@ fun NftListScene(
                 return@PullToRefreshBox
             }
 
-            if (isLoading && items.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    CircularProgressIndicator20(modifier = Modifier.align(Alignment.Center))
+            val showUnverifiedRow = onUnverifiedClick != null && unverifiedCount > 0
+
+            if (items.isEmpty() && !showUnverifiedRow) {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item {
+                        EmptyContentView(
+                            type = EmptyContentType.Nft(onReceive = onReceive),
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
+                    }
                 }
                 return@PullToRefreshBox
             }
 
-            if (!isLoading && items.isEmpty()) {
-                EmptyContentView(type = EmptyContentType.Nft(), modifier = Modifier.fillMaxSize())
-                return@PullToRefreshBox
-            }
-
-            LazyVerticalGrid(
-                modifier = Modifier.padding(/*horizontal = 8.dp*/),
-                columns = GridCells.Adaptive(minSize = 150.dp),
-                state = listState,
-                contentPadding = PaddingValues(paddingSmall, paddingDefault)
-            ) {
-                items(items) { item -> NFTItem(item, collectionAction, assetAction) }
+            Column(modifier = Modifier.fillMaxSize()) {
+                LazyVerticalGrid(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    state = listState,
+                    contentPadding = PaddingValues(paddingSmall, paddingDefault)
+                ) {
+                    items(items) { item -> NFTItem(item, collectionAction, assetAction) }
+                }
+                if (showUnverifiedRow) {
+                    LinkItem(
+                        title = stringResource(R.string.asset_verification_unverified),
+                        listPosition = ListPosition.Single,
+                        trailingContent = {
+                            PropertyDataText(
+                                text = unverifiedCount.toString(),
+                                badge = { DataBadgeChevron() },
+                            )
+                        },
+                        onClick = onUnverifiedClick,
+                    )
+                }
             }
         }
     }

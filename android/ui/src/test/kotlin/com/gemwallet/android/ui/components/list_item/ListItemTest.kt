@@ -1,17 +1,18 @@
 package com.gemwallet.android.ui.components.list_item
 
-import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.paddingMiddle
 
 class ListItemTest {
     @Test
-    fun defaultTrailingContentEndPadding_keepsDefaultInsetForCompactSpacing() {
-        assertEquals(16.dp, defaultTrailingContentEndPadding(8.dp))
+    fun contentSpacing_matchesSharedInnerPadding() {
+        assertEquals(paddingMiddle, ListItemDefaults.contentSpacing)
     }
 
     @Test
-    fun defaultTrailingContentEndPadding_preservesLargerInsets() {
-        assertEquals(20.dp, defaultTrailingContentEndPadding(20.dp))
+    fun iconMinHeight_preservesIconAndPaddingContract() {
+        assertEquals(listItemIconSize + paddingMiddle * 2, ListItemDefaults.iconMinHeight)
     }
 }

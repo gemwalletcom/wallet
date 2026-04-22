@@ -162,7 +162,7 @@ public final class StakeSceneViewModel {
     var claimRewardsDestination: any Hashable {
         if canClaimAllRewards {
             let validators = delegationsWithRewards.map(\.validator)
-            let recipient: Recipient = if validators.count == 1, let validator = validators.first {
+            let recipient = if validators.count == 1, let validator = validators.first {
                 Recipient(name: validator.name, address: validator.id, memo: .none)
             } else {
                 Recipient(name: .none, address: "", memo: .none)
@@ -192,11 +192,11 @@ public final class StakeSceneViewModel {
     }
 
     var freezeDestination: any Hashable {
-        destination(type: .freeze(resource: .bandwidth),)
+        destination(type: .freeze(resource: .bandwidth))
     }
 
     var unfreezeDestination: any Hashable {
-        destination(type: .unfreeze(resource: .bandwidth),)
+        destination(type: .unfreeze(resource: .bandwidth))
     }
 
     var showFreeze: Bool { chain == .tron }

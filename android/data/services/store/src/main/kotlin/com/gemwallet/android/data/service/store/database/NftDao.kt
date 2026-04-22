@@ -7,106 +7,74 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
-import com.gemwallet.android.data.service.store.database.entities.DbNFTAttribute
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
-import com.gemwallet.android.data.service.store.database.entities.DbNFTCollectionLink
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NftDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCollections(collection: List<DbNFTCollection>)
+    suspend fun insertCollections(collections: List<DbNFTCollection>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAsset(assets: List<DbNFTAsset>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAssetAttributes(attributes: List<DbNFTAttribute>)
+    suspend fun insertAssets(assets: List<DbNFTAsset>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun associateWithWallet(relations: List<DbNFTAssociation>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCollectionLinks(links: List<DbNFTCollectionLink>)
+    @Query("SELECT asset_id FROM nft_assets_associations WHERE wallet_id = :walletId")
+    suspend fun getWalletAssetIds(walletId: String): List<String>
 
-    @Query("""
-        DELETE FROM nft_collection WHERE
-            id IN (SELECT nft_asset.collection_id FROM nft_asset
-                LEFT JOIN nft_association ON nft_asset.id = nft_association.asset_id
-                AND nft_association.wallet_id = :walletId
-            )
-    """)
-    suspend fun clean(walletId: String)
+    @Query("DELETE FROM nft_assets_associations WHERE wallet_id = :walletId AND asset_id IN (:assetIds)")
+    suspend fun deleteAssociations(walletId: String, assetIds: List<String>)
 
     @Transaction
     suspend fun updateNft(
         walletId: String,
         collections: List<DbNFTCollection>,
-        collectionLinks: List<DbNFTCollectionLink>,
         assets: List<DbNFTAsset>,
-        attributes: List<DbNFTAttribute>,
         associations: List<DbNFTAssociation>,
     ) {
-        clean(walletId)
+        val newAssetIds = associations.map(DbNFTAssociation::assetId).toSet()
+        val assetIdsToDelete = getWalletAssetIds(walletId).filterNot(newAssetIds::contains)
+
         insertCollections(collections)
-        insertCollectionLinks(collectionLinks)
-        insertAsset(assets)
-        insertAssetAttributes(attributes)
+        insertAssets(assets)
         associateWithWallet(associations)
+
+        if (assetIdsToDelete.isNotEmpty()) {
+            deleteAssociations(walletId, assetIdsToDelete)
+        }
     }
 
     @Query("""
-        SELECT DISTINCT nft_collection.* FROM nft_collection
-        JOIN nft_asset ON nft_collection.id = nft_asset.collection_id
-        JOIN nft_association ON nft_asset.id = nft_association.asset_id
-            AND nft_association.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+        SELECT DISTINCT nft_collections.* FROM nft_collections
+        JOIN nft_assets ON nft_collections.id = nft_assets.collection_id
+        JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
+            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
     """)
     fun getCollection(): Flow<List<DbNFTCollection>>
 
     @Query("""
-        SELECT DISTINCT nft_collection.* FROM nft_collection
-        JOIN nft_asset ON nft_collection.id = nft_asset.collection_id
-        JOIN nft_association ON nft_asset.id = nft_association.asset_id
-            AND nft_association.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
-        WHERE nft_collection.id = :id
+        SELECT DISTINCT nft_collections.* FROM nft_collections
+        JOIN nft_assets ON nft_collections.id = nft_assets.collection_id
+        JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
+            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+        WHERE nft_collections.id = :id
     """)
     fun getCollection(id: String): Flow<DbNFTCollection?>
 
     @Query("""
-        SELECT DISTINCT nft_asset.* FROM nft_asset
-        JOIN nft_association ON nft_asset.id = nft_association.asset_id
-            AND nft_association.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+        SELECT DISTINCT nft_assets.* FROM nft_assets
+        JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
+            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
     """)
     fun getAssets(): Flow<List<DbNFTAsset>>
 
     @Query("""
-        SELECT DISTINCT nft_asset.* FROM nft_asset
-        JOIN nft_association ON nft_asset.id = nft_association.asset_id
-            AND nft_association.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
-        WHERE nft_asset.id = :id
+        SELECT DISTINCT nft_assets.* FROM nft_assets
+        JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
+            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+        WHERE nft_assets.id = :id
     """)
     fun getAsset(id: String): Flow<DbNFTAsset?>
-
-    @Query("""
-        SELECT DISTINCT nft_attributes.* FROM nft_attributes
-        JOIN nft_asset ON nft_attributes.asset_id = nft_asset.id
-        JOIN nft_association ON nft_attributes.asset_id = nft_association.asset_id
-            AND nft_association.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
-    """)
-    fun getAttributes(): Flow<List<DbNFTAttribute>>
-
-    @Query("""
-        SELECT DISTINCT nft_attributes.* FROM nft_attributes
-        JOIN nft_asset ON nft_attributes.asset_id = nft_asset.id
-        JOIN nft_association ON nft_attributes.asset_id = nft_association.asset_id
-            AND nft_association.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
-        WHERE nft_attributes.asset_id = :assetId ORDER BY nft_attributes.name
-    """)
-    fun getAttributes(assetId: String): Flow<List<DbNFTAttribute>>
-
-    @Query("""
-        SELECT DISTINCT * FROM nft_collection_link
-        WHERE collection_id = :collectionId ORDER BY name
-    """)
-    fun getCollectionLinks(collectionId: String): Flow<List<DbNFTCollectionLink>>
 }

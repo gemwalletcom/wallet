@@ -22,11 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -105,7 +105,7 @@ fun SwapDetailsBottomSheet(
         onDismissRequest = onDismiss,
         modifier = modifier,
         skipPartiallyExpanded = skipPartiallyExpanded,
-        dragHandle = { DialogBar(onDismissRequest = onDismiss, showDismissAction = false) },
+        title = stringResource(R.string.common_details),
     ) {
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth()) {

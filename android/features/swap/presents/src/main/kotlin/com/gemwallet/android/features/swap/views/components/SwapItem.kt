@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.swap.views.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -175,9 +174,9 @@ private fun SwapValues(
             Text(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .clip(MaterialTheme.shapes.small)
                     .clickable(
                         enabled = interaction.isBalanceActionEnabled,
+                        shape = MaterialTheme.shapes.small,
                         onClick = onBalanceClick,
                     )
                     .smallPadding(),

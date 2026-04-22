@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -26,7 +25,6 @@ import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.features.referral.viewmodels.ReferralViewModel
 import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
@@ -77,13 +75,10 @@ fun ReferralNavScreen(
 
     ModalBottomSheet(
         isVisible = isShowSelectWallets,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
         onDismissRequest = { isShowSelectWallets = false },
+        title = stringResource(R.string.wallets_title),
     ) {
         LazyColumn {
-            item {
-                SubheaderItem(R.string.wallets_title)
-            }
             itemsIndexed(availableWallets) { index, item ->
                 WalletItem(
                     wallet = item,

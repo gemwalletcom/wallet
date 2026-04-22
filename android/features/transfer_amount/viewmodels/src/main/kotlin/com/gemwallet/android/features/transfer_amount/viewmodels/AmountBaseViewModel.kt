@@ -117,33 +117,6 @@ abstract class AmountBaseViewModel(
         onConfirm: (ConfirmParams) -> Unit
     )
 
-    internal fun validateAmount(asset: Asset, amount: String, minValue: BigInteger) {
-        if (amount.isEmpty()) {
-            throw AmountError.Required
-        }
-        try {
-            amount.parseNumber()
-        } catch (_: Throwable) {
-            throw AmountError.IncorrectAmount
-        }
-        val crypto = Crypto(amount.parseNumber(), asset.decimals)
-        if (BigInteger.ZERO != minValue && crypto.atomicValue < minValue) {
-            throw AmountError.MinimumValue(asset.format(Crypto(minValue), decimalPlace = 2))
-        }
-    }
-
-    internal fun validateBalance(
-        assetInfo: AssetInfo,
-        amount: Crypto
-    ) {
-        if (amount.atomicValue == BigInteger.ZERO) {
-            throw AmountError.ZeroAmount
-        }
-        if (amount.value(assetInfo.asset.decimals) > availableBalance.value) {
-            throw  AmountError.InsufficientBalance(assetInfo.asset.name)
-        }
-    }
-
     internal fun calcEquivalent(
         inputAmount: String,
         inputDirection: AmountInputType,
@@ -154,7 +127,7 @@ abstract class AmountBaseViewModel(
         return try {
             when (inputDirection) {
                 AmountInputType.Crypto -> {
-                    validateAmount(asset, inputAmount, BigInteger.ZERO)
+                    AmountValidation.validateAmount(asset, inputAmount, BigInteger.ZERO)
                     val amount = inputAmount.parseNumber()
                     val decimals = asset.decimals
                     val unit = Crypto(amount, decimals).convert(decimals, price)
@@ -163,7 +136,7 @@ abstract class AmountBaseViewModel(
                 AmountInputType.Fiat -> {
                     val value = inputAmount.parseNumber()
                     val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
-                    validateAmount(asset, crypto.toString(), BigInteger.ZERO)
+                    AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
                     asset.format(crypto, dynamicPlace = true)
                 }
             }

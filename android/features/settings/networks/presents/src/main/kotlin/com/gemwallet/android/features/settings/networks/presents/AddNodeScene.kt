@@ -28,7 +28,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
-import com.gemwallet.android.ui.components.QrCodeRequest
+import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
@@ -127,13 +127,15 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         }
     }
 
-    if (isShowQRScan) {
-        QrCodeRequest(onCancel = { isShowQRScan = false }) {
+    QrCodeScannerModal(
+        isVisible = isShowQRScan,
+        onDismissRequest = { isShowQRScan = false },
+        onResult = {
             isShowQRScan = false
             viewModel.url.value = it.trim()
             viewModel.onUrlChange()
-        }
-    }
+        },
+    )
 }
 
 @Composable

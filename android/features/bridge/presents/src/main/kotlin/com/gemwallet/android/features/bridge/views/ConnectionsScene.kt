@@ -30,7 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.QrCodeRequest
+import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -124,12 +124,14 @@ fun ConnectionsScene(
         }
     }
 
-    if (scannerShowed) {
-        QrCodeRequest(onCancel = { scannerShowed = false }) {
+    QrCodeScannerModal(
+        isVisible = scannerShowed,
+        onDismissRequest = { scannerShowed = false },
+        onResult = {
             viewModel.addPairing(it, onSuccess = {}, onError = {})
             scannerShowed = false
-        }
-    }
+        },
+    )
 
     if (pairError.isNotEmpty()) {
         AlertDialog(

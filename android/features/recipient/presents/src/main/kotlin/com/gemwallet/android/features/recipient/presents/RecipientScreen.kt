@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.recipient.presents
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -30,13 +30,14 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.QrCodeRequest
+import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.keyboardAsState
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Wallet
 
@@ -54,17 +55,6 @@ fun RecipientScreen(
 
     var scan by remember { mutableStateOf(QrScanField.None) }
 
-    if (scan != QrScanField.None) {
-        QrCodeRequest(
-            { scan = QrScanField.None },
-            {
-                viewModel.setQrData(scan, it, confirmAction)
-                scan = QrScanField.None
-            }
-        )
-        return
-    }
-
     val currentType = type ?: return
     RecipientScreen(
         type = currentType,
@@ -78,6 +68,15 @@ fun RecipientScreen(
         onQrScan = { scan = it },
         onNext = { viewModel.onNext(it, amountAction, confirmAction) },
         onCancel = cancelAction,
+    )
+
+    QrCodeScannerModal(
+        isVisible = scan != QrScanField.None,
+        onDismissRequest = { scan = QrScanField.None },
+        onResult = {
+            viewModel.setQrData(scan, it, confirmAction)
+            scan = QrScanField.None
+        },
     )
 }
 
@@ -122,7 +121,7 @@ fun RecipientScreen(
         }
     ) {
         LazyColumn(
-            modifier = Modifier.padding(bottom = 72.dp),
+            contentPadding = PaddingValues(bottom = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item { RecipientHead(type) }

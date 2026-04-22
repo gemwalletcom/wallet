@@ -21,6 +21,13 @@ Read this file first, then load the relevant skills before editing Android code.
 
 Read `core/AGENTS.md` when the task touches `core/`, generated models, JNI bindings, or shared blockchain behavior.
 
+## Store Schema Naming
+
+- For Room store tables, prefer plural `snake_case` names for row collections, for example `nft_collections`, `nft_assets`, and `nft_assets_associations`
+- For Room entity fields, use Kotlin `camelCase` properties and store them as SQLite `snake_case` columns, for example Kotlin/Room property `assetId` maps to SQLite column `asset_id` via `@ColumnInfo(name = "asset_id")`
+- When an equivalent iOS store model exists, mirror its schema naming instead of inventing Android-only singular/plural variants
+- Keep persisted field/column naming consistent within the table and avoid mixing multiple naming schemes in the same new schema change
+
 ## Task Completion
 
 Before finishing an Android task:

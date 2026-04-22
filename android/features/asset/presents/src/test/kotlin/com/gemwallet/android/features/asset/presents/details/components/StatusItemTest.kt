@@ -56,9 +56,11 @@ class StatusItemTest {
         assertEquals(R.string.asset_verification_suspicious, AssetVerification.Suspicious.labelRes())
         assertEquals(R.drawable.suspicious, AssetVerification.Suspicious.badgeIconRes())
         assertSame(InfoSheetEntity.AssetStatusSuspiciousInfo, AssetVerification.Suspicious.infoSheetEntity())
+        assertEquals(R.drawable.suspicious, InfoSheetEntity.AssetStatusSuspiciousInfo.icon)
 
         assertEquals(R.string.asset_verification_unverified, AssetVerification.Unverified.labelRes())
         assertEquals(R.drawable.unverified, AssetVerification.Unverified.badgeIconRes())
         assertSame(InfoSheetEntity.AssetStatusUnverifiedInfo, AssetVerification.Unverified.infoSheetEntity())
+        assertEquals(R.drawable.unverified, InfoSheetEntity.AssetStatusUnverifiedInfo.icon)
     }
 }

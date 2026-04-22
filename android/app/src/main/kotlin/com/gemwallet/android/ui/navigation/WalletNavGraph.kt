@@ -77,6 +77,7 @@ import com.gemwallet.android.ui.navigation.routes.navigateToSecurityReminderScre
 import com.gemwallet.android.ui.navigation.routes.navigateToNotifications
 import com.gemwallet.android.ui.navigation.routes.navigateToPreferences
 import com.gemwallet.android.ui.navigation.routes.navigateToPriceAlertsScreen
+import com.gemwallet.android.ui.navigation.routes.navigateToReceiveNftChains
 import com.gemwallet.android.ui.navigation.routes.navigateToReceiveScreen
 import com.gemwallet.android.ui.navigation.routes.navigateToRecipientInput
 import com.gemwallet.android.ui.navigation.routes.navigateToReferralScreen
@@ -221,7 +222,8 @@ fun WalletNavGraph(
             cancelAction = onCancel,
             collectionIdAction = navController::navigateToNftCollection,
             assetIdAction = navController::navigateToNftAsset,
-            onRecipient = navController::navigateToRecipientInput
+            onRecipient = navController::navigateToRecipientInput,
+            onReceive = { navController.navigateToReceiveNftChains() },
         )
 
         fiatScreen(

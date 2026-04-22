@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ui.components.QrCodeRequest
+import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.features.add_asset.viewmodels.AddAssetViewModel
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
@@ -35,9 +35,9 @@ fun AddAssetScree(
     }
 
     AnimatedContent(
-        targetState = uiState.scene,
+        targetState = uiState.scene == AddAssetUIState.Scene.SelectChain,
         transitionSpec = {
-            if (uiState.scene != AddAssetUIState.Scene.Form) {
+            if (targetState) {
                 slideIntoContainer(
                     towards = AnimatedContentTransitionScope.SlideDirection.Left,
                     animationSpec = tween(350)
@@ -56,33 +56,32 @@ fun AddAssetScree(
             }
         },
         label = "phrase"
-    ) {
-        when (it) {
-            AddAssetUIState.Scene.Form -> {
-                AddAssetScene(
-                    searchState = searchState,
-                    addressState = viewModel.addressState,
-                    network = network.asset(),
-                    token = token,
-                    explorerLink = explorerLink,
-                    onCancel = onCancel,
-                    onScan = viewModel::onQrScan,
-                    onAddAsset = { viewModel.addAsset(onFinish) },
-                    onChainSelect = if ((availableChains?.size ?: 0) > 1) viewModel::selectChain else null,
-                )
-            }
-            AddAssetUIState.Scene.QrScanner -> {
-                QrCodeRequest(
-                    onResult = viewModel::setQrData,
-                    onCancel = viewModel::cancelScan
-                )
-            }
-            AddAssetUIState.Scene.SelectChain -> SelectChain(
+    ) { isSelectChain ->
+        if (isSelectChain) {
+            SelectChain(
                 chains = chains,
                 chainFilter = viewModel.chainFilter,
                 onSelect = viewModel::setChain,
                 onCancel = viewModel::cancelSelectChain,
             )
+        } else {
+            AddAssetScene(
+                searchState = searchState,
+                addressState = viewModel.addressState,
+                network = network.asset(),
+                token = token,
+                explorerLink = explorerLink,
+                onCancel = onCancel,
+                onScan = viewModel::onQrScan,
+                onAddAsset = { viewModel.addAsset(onFinish) },
+                onChainSelect = if ((availableChains?.size ?: 0) > 1) viewModel::selectChain else null,
+            )
         }
     }
+
+    QrCodeScannerModal(
+        isVisible = uiState.scene == AddAssetUIState.Scene.QrScanner,
+        onDismissRequest = viewModel::cancelScan,
+        onResult = viewModel::setQrData,
+    )
 }

@@ -2,8 +2,8 @@
 
 import Foundation
 import GemAPI
-import Primitives
 import PriceService
+import Primitives
 import StoreTestKit
 
 public struct GemAPIPortfolioServiceMock: GemAPIPortfolioService {

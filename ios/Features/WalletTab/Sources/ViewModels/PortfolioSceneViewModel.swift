@@ -37,7 +37,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         wallet: Wallet,
         service: PortfolioDataService,
         preferences: ObservablePreferences,
-        defaultType: PortfolioType = .wallet
+        defaultType: PortfolioType = .wallet,
     ) {
         self.wallet = wallet
         self.service = service

@@ -33,9 +33,9 @@ data class FeeRateUIModel(
 
     val emoji: String
         get() = when (priority) {
-            FeePriority.Slow -> "\uD83D\uDC22"
+            FeePriority.Slow -> "\u23F1\uFE0F"
             FeePriority.Normal -> "\uD83D\uDC8E"
-            FeePriority.Fast -> "\uD83D\uDE80"
+            FeePriority.Fast -> "\u26A1\uFE0F"
         }
 
     private val feeAmount: BigInteger?
