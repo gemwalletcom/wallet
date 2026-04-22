@@ -30,7 +30,7 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.QrCodeRequest
+import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.keyboardAsState
 import com.gemwallet.android.ui.components.screen.Scene
@@ -54,17 +54,6 @@ fun RecipientScreen(
 
     var scan by remember { mutableStateOf(QrScanField.None) }
 
-    if (scan != QrScanField.None) {
-        QrCodeRequest(
-            { scan = QrScanField.None },
-            {
-                viewModel.setQrData(scan, it, confirmAction)
-                scan = QrScanField.None
-            }
-        )
-        return
-    }
-
     val currentType = type ?: return
     RecipientScreen(
         type = currentType,
@@ -78,6 +67,15 @@ fun RecipientScreen(
         onQrScan = { scan = it },
         onNext = { viewModel.onNext(it, amountAction, confirmAction) },
         onCancel = cancelAction,
+    )
+
+    QrCodeScannerModal(
+        isVisible = scan != QrScanField.None,
+        onDismissRequest = { scan = QrScanField.None },
+        onResult = {
+            viewModel.setQrData(scan, it, confirmAction)
+            scan = QrScanField.None
+        },
     )
 }
 
