@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha20
 import com.gemwallet.android.ui.theme.sheetCornerSize
@@ -30,7 +31,8 @@ fun ModalBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(),
     containerColor: Color = MaterialTheme.colorScheme.surface,
     shape: Shape = RoundedCornerShape(topStart = sheetCornerSize, topEnd = sheetCornerSize),
-    dragHandle: @Composable () -> Unit = { Box { Spacer16() } },
+    title: String? = null,
+    dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
     content: @Composable ColumnScope.() -> Unit,
 ) {
     androidx.compose.material3.ModalBottomSheet(
@@ -40,8 +42,8 @@ fun ModalBottomSheet(
         scrimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha20),
         shape = shape,
         containerColor = containerColor,
-        dragHandle = dragHandle,
-        content = content
+        dragHandle = if (title != null) null else dragHandle,
+        content = { SheetContent(onDismissRequest, title, content) },
     )
 }
 
@@ -54,7 +56,8 @@ fun ModalBottomSheet(
     skipPartiallyExpanded: Boolean = false,
     containerColor: Color = MaterialTheme.colorScheme.surface,
     shape: Shape = RoundedCornerShape(topStart = sheetCornerSize, topEnd = sheetCornerSize),
-    dragHandle: @Composable () -> Unit = { Box { Spacer16() } },
+    title: String? = null,
+    dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var showSheet by remember { mutableStateOf(false) }
@@ -93,8 +96,20 @@ fun ModalBottomSheet(
             scrimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha20),
             shape = shape,
             containerColor = containerColor,
-            dragHandle = dragHandle,
-            content = content,
+            dragHandle = if (title != null) null else dragHandle,
+            content = { SheetContent(onDismissRequest, title, content) },
         )
     }
+}
+
+@Composable
+private fun ColumnScope.SheetContent(
+    onDismissRequest: () -> Unit,
+    title: String?,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    if (title != null) {
+        DialogBar(onDismissRequest = onDismissRequest, title = title)
+    }
+    content()
 }

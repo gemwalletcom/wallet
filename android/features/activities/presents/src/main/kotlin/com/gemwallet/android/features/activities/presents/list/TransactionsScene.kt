@@ -83,14 +83,18 @@ internal fun TransactionsScene(
                 )
             }
         ) {
-            if (transactions.isEmpty() && !loading) {
+            if (transactions.isEmpty()) {
                 val hasFilters = chainsFilter.isNotEmpty() || typeFilter.isNotEmpty()
                 val type = if (hasFilters) {
                     EmptyContentType.SearchActivity { onClearChainsFilter(); onClearTypesFilter() }
                 } else {
                     EmptyContentType.Activity(onReceive = onReceive, onBuy = onBuy)
                 }
-                EmptyContentView(type = type, modifier = Modifier.fillMaxSize())
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    item {
+                        EmptyContentView(type = type, modifier = Modifier.fillParentMaxSize())
+                    }
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),

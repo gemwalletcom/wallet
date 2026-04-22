@@ -40,11 +40,12 @@ fun NavController.navigateToNftAsset(assetId: String) {
 fun NavGraphBuilder.nftCollection(
     cancelAction: CancelAction,
     onRecipient: (AssetId, String) -> Unit,
+    onReceive: () -> Unit,
     collectionIdAction: NftCollectionIdAction,
     assetIdAction: NftAssetIdAction,
 ) {
     composable<NftCollectionRoute> {
-        NftListScene(cancelAction, collectionIdAction, assetIdAction)
+        NftListScene(cancelAction, collectionIdAction, assetIdAction, onReceive = onReceive)
     }
 
     composable<NftUnverifiedCollectionsRoute> {
