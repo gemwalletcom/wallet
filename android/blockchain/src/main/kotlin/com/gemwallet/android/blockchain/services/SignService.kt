@@ -315,7 +315,8 @@ class SignService : SignClient {
             ChainType.HyperCore,
             ChainType.Near,
             ChainType.Algorand,
-            ChainType.Stellar -> true
+            ChainType.Stellar,
+            ChainType.Ton -> true
             else -> false
         }
     }
