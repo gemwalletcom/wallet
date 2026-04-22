@@ -32,6 +32,7 @@ object ListItemDefaults {
     val plainMinHeight: Dp = 56.dp
     val defaultMinHeight: Dp = 72.dp
     val iconMinHeight: Dp = listItemIconSize + paddingMiddle * 2
+    val contentSpacing: Dp = paddingMiddle
 }
 
 @Composable
@@ -48,8 +49,8 @@ fun ListItem(
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val sidePadding = adaptivePadding(default = paddingDefault, compact = paddingSmall)
-    val contentSpacing = paddingMiddle
-    val trailingEndPadding = trailingContentEndPadding ?: defaultTrailingContentEndPadding(sidePadding)
+    val contentSpacing = ListItemDefaults.contentSpacing
+    val trailingEndPadding = trailingContentEndPadding ?: contentSpacing
     val resolvedMinHeight = minHeight.takeOrElse {
         if (subtitle != null) ListItemDefaults.defaultMinHeight else ListItemDefaults.plainMinHeight
     }
@@ -93,10 +94,6 @@ fun ListItem(
             }
         }
     }
-}
-
-internal fun defaultTrailingContentEndPadding(sidePadding: Dp): Dp {
-    return sidePadding.coerceAtLeast(paddingDefault)
 }
 
 @Preview

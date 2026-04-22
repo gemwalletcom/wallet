@@ -4,9 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,11 +48,6 @@ fun SubheaderItem(title: String, onClick: () -> Unit) {
             color = MaterialTheme.colorScheme.secondary,
         )
         Spacer4()
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-            contentDescription = null,
-            modifier = Modifier.size(tinyIconSize),
-            tint = MaterialTheme.colorScheme.secondary,
-        )
+        ChevronIcon(modifier = Modifier.size(tinyIconSize))
     }
 }
