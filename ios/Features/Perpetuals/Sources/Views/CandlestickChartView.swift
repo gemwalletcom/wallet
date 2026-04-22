@@ -102,7 +102,7 @@ struct CandlestickChartView: View {
             }
         }
         .chartYAxis {
-            AxisMarks(position: .trailing, values: .automatic(desiredCount: ChartBounds.desiredTickCount)) { value in
+            AxisMarks(position: .trailing, values: bounds.axisTicks) { value in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
                 AxisTick(stroke: StrokeStyle(lineWidth: ChartGridStyle.lineWidth))
