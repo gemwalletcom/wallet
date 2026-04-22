@@ -11,10 +11,12 @@ import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.claimAllAvailable
 import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toGemStakeChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
@@ -43,6 +45,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.DocsUrl
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -65,6 +68,10 @@ class StakeViewModel @Inject constructor(
 
     val assetInfo = assetId
         .flatMapLatest { assetsRepository.getAssetInfo(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val stakeInfoUrl = assetInfo
+        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.toGemStakeChain())) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val session = sessionRepository.session()

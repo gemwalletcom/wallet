@@ -23,15 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.asset.lockTime
-import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.toGemStakeChain
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ui.open
@@ -58,7 +55,6 @@ import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import uniffi.gemstone.Config
-import uniffi.gemstone.DocsUrl
 
 @Composable
 fun StakeScene(
@@ -67,6 +63,7 @@ fun StakeScene(
     actions: List<StakeAction>,
     isStakeEnabled: Boolean,
     delegations: List<Delegation>,
+    stakeInfoUrl: String?,
     amountAction: AmountTransactionAction,
     onRefresh: () -> Unit,
     onRewards: () -> Unit,
@@ -81,11 +78,9 @@ fun StakeScene(
         title = stringResource(id = R.string.transfer_stake_title),
         onClose = onCancel,
         actions = {
-            assetInfo.stakeChain?.let { stakeChain ->
-                IconButton(onClick = {
-                    uriHandler.open(context, AppUrl.docs(DocsUrl.Staking(stakeChain.toGemStakeChain())))
-                }) {
-                    Icon(imageVector = Icons.Outlined.Info, contentDescription = "stake_info")
+            stakeInfoUrl?.let { url ->
+                IconButton(onClick = { uriHandler.open(context, url) }) {
+                    Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
                 }
             }
         },
