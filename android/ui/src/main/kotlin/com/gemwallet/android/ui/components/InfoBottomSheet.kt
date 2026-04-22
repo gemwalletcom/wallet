@@ -135,14 +135,14 @@ sealed class InfoSheetEntity(
     )
 
     object AssetStatusSuspiciousInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
+        icon = R.drawable.suspicious,
         title = R.string.asset_verification_suspicious,
         description = R.string.info_asset_status_suspicious_description,
         infoUrl = { AppUrl.docs(DocsUrl.TokenVerification) },
     )
 
     object AssetStatusUnverifiedInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
+        icon = R.drawable.unverified,
         title = R.string.asset_verification_unverified,
         description = R.string.info_asset_status_unverified_description,
         infoUrl = { AppUrl.docs(DocsUrl.TokenVerification) },

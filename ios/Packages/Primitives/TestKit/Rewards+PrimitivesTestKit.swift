@@ -12,7 +12,7 @@ public extension Rewards {
         status: RewardStatus = .verified,
         verifyAfter: Date? = .none,
         redemptionOptions: [RewardRedemptionOption] = [],
-        disableReason: String? = nil
+        disableReason: String? = nil,
     ) -> Rewards {
         Rewards(
             code: code,

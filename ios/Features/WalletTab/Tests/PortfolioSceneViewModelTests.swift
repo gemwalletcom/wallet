@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
-import PreferencesTestKit
 import Testing
 import WalletTabTestKit
 
@@ -23,7 +23,7 @@ struct PortfolioSceneViewModelTests {
     }
 
     @Test
-    func testNavigationTitleChangesWithType() {
+    func navigationTitleChangesWithType() {
         let model = PortfolioSceneViewModel.mock()
         let walletTitle = model.navigationTitle
 
@@ -69,7 +69,7 @@ struct PortfolioSceneViewModelTests {
     }
 
     @Test
-    func testOnTypeChangedSkipsFetchWhenCached() {
+    func onTypeChangedSkipsFetchWhenCached() {
         let model = PortfolioSceneViewModel.mock()
         model.state.perpetual = .data(.mockPerpetual())
         model.state.selectedType = .perpetuals
@@ -80,7 +80,7 @@ struct PortfolioSceneViewModelTests {
     }
 
     @Test
-    func testOnTypeChangedFetchesWhenNotCached() {
+    func onTypeChangedFetchesWhenNotCached() {
         let model = PortfolioSceneViewModel.mock()
         model.state.selectedType = .perpetuals
 

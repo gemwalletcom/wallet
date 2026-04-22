@@ -2,8 +2,8 @@
 
 import Foundation
 import PerpetualService
-import Primitives
 import PriceService
+import Primitives
 
 enum PortfolioDataInput: Sendable {
     case wallet(walletId: WalletId, period: ChartPeriod, currencyCode: String)
@@ -18,7 +18,7 @@ public struct PortfolioDataService: Sendable {
     public init(
         portfolioService: PortfolioService,
         perpetualService: any PerpetualServiceable,
-        priceService: PriceService
+        priceService: PriceService,
     ) {
         self.portfolioService = portfolioService
         self.perpetualService = perpetualService

@@ -137,7 +137,7 @@ public struct RewardsScene: View {
                     featureItem(emoji: "🎉", text: Localized.Rewards.GetRewards.title)
                 }
 
-                if code != nil && !model.isUnverified {
+                if code != nil, !model.isUnverified {
                     Button {
                         model.isPresentingSheet = .share
                     } label: {

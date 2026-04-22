@@ -21,13 +21,13 @@ struct ImportWalletSceneViewModelTests {
         let walletA = try await service.loadOrCreateWallet(
             name: "Wallet A",
             type: .single(words: LocalKeystore.words, chain: .ethereum),
-            source: .import
+            source: .import,
         ).wallet
 
         let walletB = try await service.loadOrCreateWallet(
             name: "Wallet B",
-            type: .single(words: try service.createWallet(), chain: .ethereum),
-            source: .import
+            type: .single(words: service.createWallet(), chain: .ethereum),
+            source: .import,
         ).wallet
         try await service.setCurrent(wallet: walletB)
 
@@ -37,7 +37,7 @@ struct ImportWalletSceneViewModelTests {
             walletService: service,
             nameService: MockNameService(),
             type: .chain(.ethereum),
-            onComplete: nil
+            onComplete: nil,
         )
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()

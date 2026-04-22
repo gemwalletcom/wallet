@@ -3,23 +3,23 @@ package com.gemwallet.android.features.asset.presents.details.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
-import com.gemwallet.android.AppUrl
-import uniffi.gemstone.DocsUrl
 
 internal fun LazyListScope.status(asset: Asset, rank: Int) {
     val verification = assetVerification(asset, rank) ?: return
@@ -31,20 +31,17 @@ internal fun LazyListScope.status(asset: Asset, rank: Int) {
 
 @Composable
 private fun StatusItem(verification: AssetVerification) {
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
+    val infoSheetEntity = verification.infoSheetEntity()
+    var showInfoSheet by remember { mutableStateOf(false) }
 
     PropertyItem(
         modifier = Modifier.clickable {
-            uriHandler.open(
-                context,
-                AppUrl.docs(DocsUrl.TokenVerification)
-            )
+            showInfoSheet = true
         },
         title = {
             PropertyTitleText(
                 text = R.string.transaction_status,
-                info = verification.infoSheetEntity()
+                info = infoSheetEntity
             )
         },
         data = {
@@ -58,6 +55,12 @@ private fun StatusItem(verification: AssetVerification) {
         },
         listPosition = ListPosition.Single,
     )
+
+    if (showInfoSheet) {
+        InfoBottomSheet(item = infoSheetEntity) {
+            showInfoSheet = false
+        }
+    }
 }
 
 internal fun assetVerification(asset: Asset, rank: Int): AssetVerification? {
