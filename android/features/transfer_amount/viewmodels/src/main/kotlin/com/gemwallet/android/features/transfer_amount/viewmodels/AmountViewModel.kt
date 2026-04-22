@@ -18,6 +18,7 @@ import com.gemwallet.android.domains.transaction.TransactionBalanceContext
 import com.gemwallet.android.domains.transaction.balance
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.math.parseNumber
+import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -44,9 +45,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -233,6 +236,38 @@ class AmountViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
+    init {
+        combine(
+            snapshotFlow { amount },
+            amountInputType,
+            assetInfo,
+            params,
+            combine(delegation, resource) { d, r -> d to r },
+        ) { input, inputType, asset, amountParams, (delegation, resource) ->
+            ValidationInputs(input, inputType, asset, amountParams, delegation, resource)
+        }
+        .mapLatest { validate(it) }
+        .onEach { errorUIState.value = it }
+        .launchIn(viewModelScope)
+    }
+
+    private suspend fun validate(inputs: ValidationInputs): AmountError {
+        if (inputs.amount.isEmpty()) return AmountError.None
+        if (inputs.amount.parseNumberOrNull()?.signum() == 0) return AmountError.None
+        val assetInfo = inputs.assetInfo ?: return AmountError.None
+        val params = inputs.params ?: return AmountError.None
+        return try {
+            val asset = assetInfo.asset
+            val price = assetInfo.price?.price?.price ?: 0.0
+            AmountValidation.validateAmount(asset, inputs.amount, getMinAmount(params.txType, asset.id.chain))
+            val cryptoAmount = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
+            checkBalance(assetInfo, params, inputs.delegation, inputs.resource, cryptoAmount)
+            AmountError.None
+        } catch (err: Throwable) {
+            err as? AmountError ?: AmountError.None
+        }
+    }
+
     fun setDelegatorValidator(validatorId: String?) {
         selectedValidatorId.update { validatorId }
     }
@@ -313,14 +348,15 @@ class AmountViewModel @Inject constructor(
         val inputType = amountInputType.value
 
         val minimumValue = getMinAmount(params.txType, asset.id.chain)
-        validateAmount(asset, rawAmount, minimumValue)
+        AmountValidation.validateAmount(asset, rawAmount, minimumValue)
 
         val amount = inputType.getAmount(rawAmount, decimals, price)
-        validateBalance(assetInfo, params, delegation, resource.value, amount)
+        val balance = checkBalance(assetInfo, params, delegation, resource.value, amount)
 
         errorUIState.update { AmountError.None }
 
-        val builder = ConfirmParams.Builder(asset, owner, amount.atomicValue, maxAmount.value)
+        val isMax = maxAmount.value || amount.atomicValue == balance
+        val builder = ConfirmParams.Builder(asset, owner, amount.atomicValue, isMax)
         val nextParams = when (params.txType) {
             TransactionType.Transfer -> builder.transfer(destination!!, memo)
             TransactionType.EarnDeposit,
@@ -354,7 +390,7 @@ class AmountViewModel @Inject constructor(
         return try {
             when (inputDirection) {
                 AmountInputType.Crypto -> {
-                    validateAmount(asset, inputAmount, BigInteger.ZERO)
+                    AmountValidation.validateAmount(asset, inputAmount, BigInteger.ZERO)
                     val amount = inputAmount.parseNumber()
                     val decimals = asset.decimals
                     val unit = Crypto(amount, decimals).convert(decimals, price)
@@ -363,7 +399,7 @@ class AmountViewModel @Inject constructor(
                 AmountInputType.Fiat -> {
                     val value = inputAmount.parseNumber()
                     val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
-                    validateAmount(asset, crypto.toString(), BigInteger.ZERO)
+                    AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
                     asset.format(crypto, dynamicPlace = true)
                 }
             }
@@ -379,42 +415,22 @@ class AmountViewModel @Inject constructor(
         }
     }
 
-    private fun validateAmount(asset: Asset, amount: String, minValue: BigInteger) {
-        if (amount.isEmpty()) {
-            throw AmountError.Required
-        }
-        try {
-            amount.parseNumber()
-        } catch (_: Throwable) {
-            throw AmountError.IncorrectAmount
-        }
-        val crypto = Crypto(amount.parseNumber(), asset.decimals)
-        if (BigInteger.ZERO != minValue && crypto.atomicValue < minValue) {
-            throw AmountError.MinimumValue(asset.format(Crypto(minValue), decimalPlace = 2))
-        }
-    }
-
-    private suspend fun validateBalance(
+    private suspend fun checkBalance(
         assetInfo: AssetInfo,
         params: AmountParams,
         delegation: Delegation?,
         resource: Resource?,
-        amount: Crypto
-    ) {
-        if (amount.atomicValue == BigInteger.ZERO) {
-            throw AmountError.ZeroAmount
-        }
-        val availableAmount = Crypto(
-            transactionBalanceService.getBalance(
-                assetInfo = assetInfo,
-                params = params,
-                delegation = delegation,
-                resource = resource,
-            )
+        amount: Crypto,
+    ): BigInteger {
+        val balance = transactionBalanceService.getBalance(
+            assetInfo = assetInfo,
+            params = params,
+            delegation = delegation,
+            resource = resource,
         )
-        if (amount.atomicValue > availableAmount.atomicValue) {
-            throw  AmountError.InsufficientBalance(assetInfo.asset.name)
-        }
+        val availableBalance = balance.toBigDecimal().movePointLeft(assetInfo.asset.decimals)
+        AmountValidation.validateBalance(assetInfo, amount, availableBalance)
+        return balance
     }
 
     private fun getMinAmount(txType: TransactionType, chain: Chain): BigInteger {
@@ -446,6 +462,15 @@ class AmountViewModel @Inject constructor(
 private data class BalanceRequest(
     val params: AmountParams?,
     val assetInfo: AssetInfo?,
+    val delegation: Delegation?,
+    val resource: Resource,
+)
+
+private data class ValidationInputs(
+    val amount: String,
+    val inputType: AmountInputType,
+    val assetInfo: AssetInfo?,
+    val params: AmountParams?,
     val delegation: Delegation?,
     val resource: Resource,
 )

@@ -116,10 +116,10 @@ class PerpetualAmountViewModel @Inject constructor(
         val decimals = asset.decimals
         val price = assetInfo.price?.price?.price ?: 0.0
         val inputType = amountInputType.value
-        validateAmount(asset, rawAmount, BigInteger.ZERO)
+        AmountValidation.validateAmount(asset, rawAmount, BigInteger.ZERO)
 
         val amount = inputType.getAmount(rawAmount, decimals, price)
-        validateBalance(assetInfo, amount)
+        AmountValidation.validateBalance(assetInfo, amount, availableBalance.value)
 
         amountError.update { AmountError.None }
 
