@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
+import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.AccountsDao
@@ -19,12 +20,14 @@ object WalletsModule {
     fun provideWalletsRepository(
         walletsDao: WalletsDao,
         accountsDao: AccountsDao,
+        addressesRepository: AddressesRepository,
         createAccountOperator: CreateAccountOperator,
         walletIdGenerator: WalletIdGenerator,
     ): WalletsRepository {
         return WalletsRepositoryImpl(
             walletsDao = walletsDao,
             accountsDao = accountsDao,
+            addressesRepository = addressesRepository,
             createAccount = createAccountOperator,
             walletIdGenerator = walletIdGenerator,
         )

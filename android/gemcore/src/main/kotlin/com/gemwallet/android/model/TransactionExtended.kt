@@ -4,6 +4,7 @@
 
 package com.gemwallet.android.model
 
+import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Price
 import kotlinx.serialization.Serializable
@@ -15,6 +16,8 @@ data class TransactionExtended (
     val feeAsset: Asset,
     val price: Price? = null,
     val feePrice: Price? = null,
-    val assets: List<Asset>
+    val assets: List<Asset>,
+    val fromAddress: AddressName? = null,
+    val toAddress: AddressName? = null,
 )
 

@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.wallets
 import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.cases.wallet.ImportError
+import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.WalletsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -25,6 +26,7 @@ import javax.inject.Singleton
 class WalletsRepositoryImpl @Inject constructor(
     private val walletsDao: WalletsDao,
     private val accountsDao: AccountsDao,
+    private val addressesRepository: AddressesRepository,
     private val createAccount: CreateAccountOperator,
     private val walletIdGenerator: WalletIdGenerator,
 ) : WalletsRepository {
@@ -124,6 +126,7 @@ class WalletsRepositoryImpl @Inject constructor(
     private suspend fun putWallet(wallet: Wallet): Wallet = withContext(Dispatchers.IO) {
         walletsDao.insert(wallet.toRecord())
         accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id) })
+        addressesRepository.saveWalletAddresses(wallet)
         wallet
     }
 }

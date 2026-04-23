@@ -5,6 +5,7 @@ import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.cases.addresses.SaveAddressNames
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
@@ -38,6 +39,7 @@ object TransactionModule {
         walletPreferencesFactory: WalletPreferencesFactory,
         gemDeviceApiClient: GemDeviceApiClient,
         saveTransactions: SaveTransactions,
+        saveAddressNames: SaveAddressNames,
         prefetchAssets: PrefetchAssets,
         ensureWalletAssets: EnsureWalletAssets,
     ): SyncTransactions {
@@ -45,6 +47,7 @@ object TransactionModule {
             walletPreferencesFactory = walletPreferencesFactory,
             gemDeviceApiClient = gemDeviceApiClient,
             saveTransactions = saveTransactions,
+            saveAddressNames = saveAddressNames,
             prefetchAssets = prefetchAssets,
             ensureWalletAssets = ensureWalletAssets,
         )

@@ -19,6 +19,7 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
 import com.gemwallet.android.domains.asset.chain
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
@@ -197,7 +198,7 @@ class TransactionDetailsAggregateImpl(
         }
         TransactionType.SmartContractCall -> destinationAddress { address, explorerLink ->
             when (data.transaction.getWalletConnectOutputAction()) {
-                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(address, explorerLink)
+                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(data = address, explorerLink = explorerLink)
                 TransferDataOutputAction.Sign,
                 null -> TransactionDetailsValue.Destination.Contract(address, explorerLink)
             }
@@ -210,8 +211,18 @@ class TransactionDetailsAggregateImpl(
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(data.transaction.to, recipientExplorerLink)
-            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(data.transaction.from, senderExplorerLink)
+            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(
+                data = data.transaction.to,
+                name = data.toAddress?.name,
+                addressType = data.toAddress?.type,
+                explorerLink = recipientExplorerLink,
+            )
+            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(
+                data = data.transaction.from,
+                name = data.fromAddress?.name,
+                addressType = data.fromAddress?.type,
+                explorerLink = senderExplorerLink,
+            )
         }
     }
 
