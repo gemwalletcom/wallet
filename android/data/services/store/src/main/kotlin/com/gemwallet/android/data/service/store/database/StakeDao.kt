@@ -9,6 +9,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbDelegationBa
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationValidator
 import com.gemwallet.android.data.service.store.database.entities.RoomDelegation
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.DelegationState
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -92,10 +93,10 @@ abstract class StakeDao {
                 " " +
         "FROM stake_delegation_base as base " +
                 "INNER JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
-                "WHERE base.delegation_id=:delegationId AND validator.id=:validatorId"
+                "WHERE base.delegation_id=:delegationId AND validator.id=:validatorId AND base.state=:state"
     )
 
-    abstract fun getDelegation(validatorId: String, delegationId: String): Flow<RoomDelegation?>
+    abstract fun getDelegation(validatorId: String, delegationId: String, state: DelegationState): Flow<RoomDelegation?>
 
     @Transaction
     open suspend fun update(

@@ -46,6 +46,7 @@ class TransactionBalanceService @Inject constructor(
         val currentDelegation = stakeRepository.getDelegation(
             validatorId = delegation.base.validatorId,
             delegationId = delegation.base.delegationId,
+            state = delegation.base.state,
         ).firstOrNull() ?: delegation
         return TransactionBalanceContext(
             delegationBalance = currentDelegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO,

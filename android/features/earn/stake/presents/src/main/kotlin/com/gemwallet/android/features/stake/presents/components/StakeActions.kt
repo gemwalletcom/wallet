@@ -22,6 +22,9 @@ internal fun LazyListScope.stakeActions(
     amountAction: AmountTransactionAction,
     onRewards: () -> Unit
 ) {
+    if (actions.isEmpty()) {
+        return
+    }
     item {
         SubheaderItem(R.string.common_manage)
     }

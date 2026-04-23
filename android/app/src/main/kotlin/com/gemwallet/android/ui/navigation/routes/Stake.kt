@@ -11,26 +11,27 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.features.earn.delegation.presents.DelegationScene
 import com.gemwallet.android.features.stake.presents.StakeScreen
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.DelegationState
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class StakeRoute(val assetId: String)
 
 @Serializable
-data class DelegationRoute(val validatorId: String, val delegationId: String)
+data class DelegationRoute(val validatorId: String, val delegationId: String, val state: String)
 
 fun NavController.navigateToStake(assetId: AssetId, navOptions: NavOptions? = null) {
     navigate(StakeRoute(assetId.toIdentifier()), navOptions ?: navOptions { launchSingleTop = true })
 }
 
-fun NavController.navigateToDelegation(validatorId: String, delegationId: String) {
-    navigate(DelegationRoute(validatorId, delegationId), navOptions = navOptions { launchSingleTop = true })
+fun NavController.navigateToDelegation(validatorId: String, delegationId: String, state: DelegationState) {
+    navigate(DelegationRoute(validatorId, delegationId, state.name), navOptions = navOptions { launchSingleTop = true })
 }
 
 fun NavGraphBuilder.stake(
     onAmount: AmountTransactionAction,
     onConfirm: (ConfirmParams) -> Unit,
-    onDelegation: (String, String) -> Unit,
+    onDelegation: (String, String, DelegationState) -> Unit,
     onCancel: () -> Unit,
 ) {
     composable<StakeRoute> { entry ->

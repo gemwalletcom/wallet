@@ -10,6 +10,7 @@ import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockAssetMonad
+import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
 import io.mockk.every
@@ -75,7 +76,7 @@ class TransactionBalanceServiceTest {
             validatorId = "validator-1",
         )
         every {
-            stakeRepository.getDelegation("validator-1", "delegation-1")
+            stakeRepository.getDelegation("validator-1", "delegation-1", DelegationState.Active)
         } returns flowOf(
             mockDelegation(
                 assetId = asset.id,
@@ -110,7 +111,7 @@ class TransactionBalanceServiceTest {
             validatorId = "validator-1",
         )
         every {
-            stakeRepository.getDelegation("validator-1", "delegation-1")
+            stakeRepository.getDelegation("validator-1", "delegation-1", DelegationState.Active)
         } returns flowOf(
             mockDelegation(
                 assetId = asset.id,

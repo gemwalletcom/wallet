@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
 import javax.inject.Inject
@@ -51,11 +52,13 @@ class DelegationViewModel @Inject constructor(
 
     val validatorId = savedStateHandle.getStateFlow<String?>("validatorId", null).filterNotNull()
     val delegationId = savedStateHandle.getStateFlow<String?>("delegationId", null).filterNotNull()
+    val state = savedStateHandle.getStateFlow<String?>("state", null).filterNotNull()
+        .map { DelegationState.valueOf(it) }
 
-    val delegation = combine(validatorId, delegationId) { validatorId, delegationId -> Pair(validatorId, delegationId) }
+    val delegation = combine(validatorId, delegationId, state) { validatorId, delegationId, state -> Triple(validatorId, delegationId, state) }
         .flatMapLatest {
-            val (validatorId, delegationId) = it
-            stakeRepository.getDelegation(delegationId = delegationId, validatorId = validatorId)
+            val (validatorId, delegationId, state) = it
+            stakeRepository.getDelegation(delegationId = delegationId, validatorId = validatorId, state = state)
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -221,7 +224,8 @@ class DelegationViewModel @Inject constructor(
             assetId = assetInfo.value?.asset?.id!!,
             txType = type,
             validatorId = delegation.value?.validator?.id,
-            delegationId = delegation.value?.base?.delegationId!!
+            delegationId = delegation.value?.base?.delegationId!!,
+            delegationState = delegation.value?.base?.state,
         )
     }
 }

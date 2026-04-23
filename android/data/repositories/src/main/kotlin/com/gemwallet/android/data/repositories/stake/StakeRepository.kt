@@ -10,6 +10,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
+import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -87,8 +88,8 @@ class StakeRepository(
             .map { items -> items.mapNotNull { it.toModel() } }
     }
 
-    fun getDelegation(validatorId: String, delegationId: String = ""): Flow<Delegation?> {
-        return stakeDao.getDelegation(validatorId = validatorId, delegationId = delegationId)
+    fun getDelegation(validatorId: String, delegationId: String, state: DelegationState): Flow<Delegation?> {
+        return stakeDao.getDelegation(validatorId = validatorId, delegationId = delegationId, state = state)
             .map { it?.toModel() }
     }
 
