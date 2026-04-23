@@ -32,13 +32,13 @@ list_devices() {
 }
 
 default_avd_name() {
-  [[ -f "${DEVICES_FILE}" ]] || return 1
+  [[ -f "${DEVICES_FILE}" ]] || return 0
   awk -F: '!/^#/ && NF { print $1; exit }' "${DEVICES_FILE}"
 }
 
 api_for_avd_name() {
   local avd_name="$1"
-  [[ -f "${DEVICES_FILE}" ]] || return 1
+  [[ -f "${DEVICES_FILE}" ]] || return 0
   awk -F: -v avd_name="${avd_name}" '$1 == avd_name { print $2; exit }' "${DEVICES_FILE}"
 }
 
@@ -127,26 +127,13 @@ provision() {
 
 setup() {
   local avd_name
-  local api
-  local image
-  local image_dir
   local boot_checks=$((BOOT_TIMEOUT_SECONDS / 2))
 
   avd_name="$(resolve_avd_name)"
   [[ -n "${avd_name}" ]] || { echo "ANDROID_AVD_NAME is not set" >&2; exit 1; }
 
-  api="$(resolve_api "${avd_name}")"
-  [[ -n "${api}" ]] || { echo "ANDROID_API is not set for ${avd_name}" >&2; exit 1; }
-
-  image="system-images;android-${api};google_apis;${ARCH}"
-  image_dir="${SDK_ROOT}/system-images/android-${api}/google_apis/${ARCH}"
-
   require_tool "${EMULATOR}" "Android emulator"
   require_tool "${ADB}" "Android adb"
-  [[ -d "${image_dir}" ]] || {
-    echo "System image ${image} is missing under ${SDK_ROOT}. Run '$0 provision' first." >&2
-    exit 1
-  }
   "${EMULATOR}" -list-avds | grep -Fxq "${avd_name}" || {
     echo "AVD ${avd_name} is missing under ${SDK_ROOT}. Run '$0 provision' first." >&2
     exit 1
@@ -155,7 +142,9 @@ setup() {
   "${ADB}" emu kill 2>/dev/null || true
   sleep 2
 
-  "${EMULATOR}" -avd "${avd_name}" -no-window -no-audio &
+  local emu_args=(-avd "${avd_name}" -no-audio)
+  [[ "${ANDROID_EMULATOR_HEADLESS:-}" == "true" ]] && emu_args+=(-no-window)
+  "${EMULATOR}" "${emu_args[@]}" &
   EMU_PID=$!
   sleep 5
   if ! kill -0 "${EMU_PID}" 2>/dev/null; then
