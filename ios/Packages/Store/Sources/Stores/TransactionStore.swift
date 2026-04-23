@@ -24,10 +24,30 @@ public struct TransactionStore: Sendable {
         }
     }
 
+    public func getTransactionWallet(id: String) throws -> TransactionWallet? {
+        try db.read { db in
+            try TransactionRecord
+                .including(required: TransactionRecord.wallet)
+                .filter(TransactionRecord.Columns.transactionId == id)
+                .asRequest(of: WalletTransactionInfo.self)
+                .fetchOne(db)?
+                .transactionWallet
+        }
+    }
+
     public func getTransactions(state: TransactionState) throws -> [Transaction] {
         try db.read { db in
             try TransactionRecord
                 .filter(TransactionRecord.Columns.state == state.rawValue)
+                .fetchAll(db)
+                .compactMap { $0.mapToTransaction() }
+        }
+    }
+
+    public func getTransactions(states: [TransactionState]) throws -> [Transaction] {
+        try db.read { db in
+            try TransactionRecord
+                .filter(states.map(\.rawValue).contains(TransactionRecord.Columns.state))
                 .fetchAll(db)
                 .compactMap { $0.mapToTransaction() }
         }
