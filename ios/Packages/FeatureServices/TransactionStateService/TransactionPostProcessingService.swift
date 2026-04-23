@@ -2,34 +2,29 @@
 
 import BalanceService
 import EarnService
-import Foundation
 import NFTService
 import Primitives
 import StakeService
-import Store
 
-struct TransactionPostProcessingService: Sendable {
-    private let transactionStore: TransactionStore
+public struct TransactionPostProcessingService: Sendable {
     private let balanceUpdater: any BalanceUpdater
     private let stakeService: StakeService
     private let earnService: EarnService
     private let nftService: NFTService
 
-    init(
-        transactionStore: TransactionStore,
+    public init(
         balanceUpdater: any BalanceUpdater,
         stakeService: StakeService,
         earnService: EarnService,
         nftService: NFTService,
     ) {
-        self.transactionStore = transactionStore
         self.balanceUpdater = balanceUpdater
         self.stakeService = stakeService
         self.earnService = earnService
         self.nftService = nftService
     }
 
-    func process(wallet: Wallet, transaction: Transaction) async throws {
+    public func process(wallet: Wallet, transaction: Transaction) async throws {
         Task {
             await balanceUpdater.updateBalance(
                 for: wallet,

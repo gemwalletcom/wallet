@@ -1,77 +1,38 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
-import ChainService
-import EarnService
-import Foundation
-import protocol Gemstone.GemSwapperProtocol
-import NFTService
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import GemstonePrimitives
 import Primitives
-import StakeService
 import Store
 
 public struct TransactionStateService: Sendable {
+    private let service: GemTransactionStateServiceProtocol
     private let transactionStore: TransactionStore
-    private let stateService: TransactionStateProvider
-    private let swapResultProvider: SwapResultProvider
-    private let postProcessingService: TransactionPostProcessingService
-    private let runner: JobRunner = .init()
 
     public init(
+        service: GemTransactionStateServiceProtocol,
         transactionStore: TransactionStore,
-        swapper: any GemSwapperProtocol,
-        stakeService: StakeService,
-        earnService: EarnService,
-        nftService: NFTService,
-        chainServiceFactory: any ChainServiceFactorable,
-        balanceUpdater: any BalanceUpdater,
     ) {
+        self.service = service
         self.transactionStore = transactionStore
-        self.stateService = TransactionStateProvider(
-            transactionStore: transactionStore,
-            chainServiceFactory: chainServiceFactory,
-        )
-        self.swapResultProvider = SwapResultProvider(swapper: swapper)
-        self.postProcessingService = TransactionPostProcessingService(
-            transactionStore: transactionStore,
-            balanceUpdater: balanceUpdater,
-            stakeService: stakeService,
-            earnService: earnService,
-            nftService: nftService,
-        )
     }
 
     public func setup() {
-        if let walletsTransactions = try? transactionStore.getTransactionWallets(states: [.pending, .inTransit]) {
-            runUpdate(for: walletsTransactions)
+        if let transactions = try? transactionStore.getTransactions(states: [.pending, .inTransit]) {
+            monitor(transactions)
         }
     }
 
     public func addTransactions(wallet: Wallet, transactions: [Transaction]) throws {
-        try transactionStore.addTransactions(
-            walletId: wallet.walletId,
-            transactions: transactions,
-        )
-        runUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
+        try transactionStore.addTransactions(walletId: wallet.walletId, transactions: transactions)
+        monitor(transactions)
     }
 }
 
 // MARK: - Private
 
-extension TransactionStateService {
-    private func runUpdate(for transactionWallets: [TransactionWallet]) {
-        let jobs = transactionWallets.map {
-            TransactionStateUpdateJob(
-                transactionWallet: $0,
-                stateService: stateService,
-                swapResultProvider: swapResultProvider,
-                postProcessingService: postProcessingService,
-            )
-        }
-        Task {
-            for job in jobs {
-                await runner.addJob(job: job)
-            }
-        }
+private extension TransactionStateService {
+    func monitor(_ transactions: [Transaction]) {
+        Task { await service.monitor(inputs: transactions.map { $0.map() }) }
     }
 }

@@ -138,7 +138,6 @@ struct ServicesFactory {
             stakeService: stakeService,
             earnService: earnService,
             nftService: nftService,
-            chainFactory: chainServiceFactory,
             balanceService: balanceService,
         )
 
@@ -506,18 +505,22 @@ extension ServicesFactory {
         stakeService: StakeService,
         earnService: EarnService,
         nftService: NFTService,
-        chainFactory: ChainServiceFactory,
         balanceService: BalanceService,
     ) -> TransactionStateService {
-        TransactionStateService(
+        let processor = TransactionStateProcessor(
             transactionStore: transactionStore,
-            swapper: GemSwapper(rpcProvider: nativeProvider),
-            stakeService: stakeService,
-            earnService: earnService,
-            nftService: nftService,
-            chainServiceFactory: chainFactory,
-            balanceUpdater: balanceService,
+            postProcessingService: TransactionPostProcessingService(
+                balanceUpdater: balanceService,
+                stakeService: stakeService,
+                earnService: earnService,
+                nftService: nftService,
+            ),
         )
+        let service = GemTransactionStateService(
+            rpcProvider: nativeProvider,
+            listener: GemTransactionUpdateListener(processor: processor),
+        )
+        return TransactionStateService(service: service, transactionStore: transactionStore)
     }
 
     private static func makeBannerService(
