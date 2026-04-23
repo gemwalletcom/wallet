@@ -201,8 +201,6 @@ class AmountViewModel @Inject constructor(
         assetInfo ?: return@combine null
 
         when (params.txType) {
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRedelegate,
             TransactionType.StakeWithdraw -> {
                 val balance = Crypto(delegation?.base?.balance?.toBigIntegerOrNull() ?: BigInteger.ZERO)
                 val value = balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString()

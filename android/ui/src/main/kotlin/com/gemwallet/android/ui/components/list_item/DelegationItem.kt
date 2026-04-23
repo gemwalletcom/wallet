@@ -1,18 +1,13 @@
 package com.gemwallet.android.ui.components.list_item
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.Constants
 import com.gemwallet.android.ui.R
@@ -20,11 +15,9 @@ import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.models.DelegationBalanceInfoUIModel
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Spacer2
-import com.gemwallet.android.ui.theme.alpha10
-import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.Delegation
+import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationState.Activating
 import com.wallet.core.primitives.DelegationState.Active
 import com.wallet.core.primitives.DelegationState.AwaitingWithdrawal
@@ -50,61 +43,23 @@ fun DelegationItem(
             )
         },
         title = {
-            val color = when (delegation.base.state) {
-                Active -> MaterialTheme.colorScheme.tertiary
-                Pending,
-                Activating,
-                Deactivating -> pendingColor
-                AwaitingWithdrawal,
-                Inactive -> MaterialTheme.colorScheme.error
-            }
-            ListItemTitleText(
-                text = delegation.validator.name,
-                titleBadge = {
-                    Row(
-                        Modifier
-                            .padding(start = 5.dp)
-                            .background(
-                                color = color.copy(alpha = alpha10),
-                                shape = RoundedCornerShape(6.dp)
-                            ),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(
-                                start = 5.dp,
-                                top = 2.dp,
-                                end = paddingHalfSmall,
-                                bottom = 2.dp
-                            ),
-                            text = when (delegation.base.state) {
-                                Active -> stringResource(if (delegation.validator.isActive) R.string.stake_active else R.string.stake_inactive)
-                                Pending -> stringResource(id = R.string.stake_pending)
-                                Inactive -> stringResource(id = R.string.stake_inactive)
-                                Activating -> stringResource(id = R.string.stake_activating)
-                                Deactivating -> stringResource(id = R.string.stake_deactivating)
-                                AwaitingWithdrawal -> stringResource(id = R.string.stake_awaiting_withdrawal)
-                            },
-                            color = color,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
-            )
+            ListItemTitleText(text = delegation.validator.name)
         },
         subtitle = {
-            when (delegation.base.state) {
-                Pending,
-                Activating,
-                Deactivating -> completedAt.takeIf { it.isNotEmpty() && it != "0"}?.let {
-                    Spacer2()
-                    ListItemSupportText(completedAt)
+            val stateColor = delegation.base.state.color()
+            val stateText = delegation.stateText()
+            Column {
+                ListItemSupportText(stateText, color = stateColor)
+                when (delegation.base.state) {
+                    Pending,
+                    Activating,
+                    Deactivating -> completedAt.takeIf { it.isNotEmpty() && it != "0" }?.let {
+                        ListItemSupportText(it)
+                    }
+                    Active,
+                    Inactive,
+                    AwaitingWithdrawal -> Unit
                 }
-                Active,
-                Inactive,
-                AwaitingWithdrawal -> null
             }
         },
         trailing = {
@@ -119,3 +74,25 @@ fun DelegationItem(
         }
     )
 }
+
+@Composable
+private fun DelegationState.color() = when (this) {
+    Active -> MaterialTheme.colorScheme.tertiary
+    Pending,
+    Activating,
+    Deactivating -> pendingColor
+    AwaitingWithdrawal,
+    Inactive -> MaterialTheme.colorScheme.error
+}
+
+@Composable
+private fun Delegation.stateText(): String = stringResource(
+    when (base.state) {
+        Active -> if (validator.isActive) R.string.stake_active else R.string.stake_inactive
+        Pending -> R.string.stake_pending
+        Inactive -> R.string.stake_inactive
+        Activating -> R.string.stake_activating
+        Deactivating -> R.string.stake_deactivating
+        AwaitingWithdrawal -> R.string.stake_awaiting_withdrawal
+    }
+)

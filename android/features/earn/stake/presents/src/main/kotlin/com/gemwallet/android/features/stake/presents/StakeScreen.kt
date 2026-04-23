@@ -24,6 +24,7 @@ fun StakeScreen(
     val delegations by viewModel.delegations.collectAsStateWithLifecycle()
     val isStakeEnabled by viewModel.isStakeEnabled.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
+    val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
 
     if (assetInfo == null) {
         LoadingScene(
@@ -37,10 +38,11 @@ fun StakeScreen(
             delegations = delegations,
             actions = actions,
             isStakeEnabled = isStakeEnabled,
+            stakeInfoUrl = stakeInfoUrl,
             onRefresh = viewModel::onRefresh,
             amountAction = amountAction,
             onRewards = { viewModel.onRewards(amountAction, onConfirm) },
-            onDelegation = onDelegation,
+            onDelegation = { delegation -> viewModel.onDelegation(delegation, onDelegation, onConfirm) },
             onCancel = onCancel
         )
     }

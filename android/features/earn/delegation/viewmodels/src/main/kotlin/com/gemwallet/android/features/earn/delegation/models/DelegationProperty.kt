@@ -4,7 +4,7 @@ import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.DelegationValidator
 
 sealed interface DelegationProperty {
-    class Name(val data: String) : DelegationProperty
+    class Name(val data: String, val url: String?) : DelegationProperty
 
     class Apr(val data: DelegationValidator) : DelegationProperty
 

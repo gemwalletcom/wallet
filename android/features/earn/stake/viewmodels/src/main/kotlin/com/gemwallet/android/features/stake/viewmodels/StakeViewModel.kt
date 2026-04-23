@@ -11,10 +11,12 @@ import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.claimAllAvailable
 import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toGemStakeChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
@@ -24,6 +26,8 @@ import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.stake.models.StakeAction
+import com.wallet.core.primitives.Delegation
+import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +45,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.DocsUrl
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -63,6 +68,10 @@ class StakeViewModel @Inject constructor(
 
     val assetInfo = assetId
         .flatMapLatest { assetsRepository.getAssetInfo(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val stakeInfoUrl = assetInfo
+        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.toGemStakeChain())) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val session = sessionRepository.session()
@@ -142,6 +151,23 @@ class StakeViewModel @Inject constructor(
 
     fun onRefresh() {
         sync.update { true }
+    }
+
+    fun onDelegation(
+        delegation: Delegation,
+        onOpenDetail: (String, String) -> Unit,
+        onConfirm: ConfirmTransactionAction,
+    ) {
+        if (delegation.base.state != DelegationState.AwaitingWithdrawal) {
+            onOpenDetail(delegation.validator.id, delegation.base.delegationId)
+            return
+        }
+        val assetInfo = assetInfo.value ?: return
+        val from = assetInfo.owner ?: return
+        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
+        val params = ConfirmParams.Builder(assetInfo.asset, from, balance.atomicValue, false)
+            .withdraw(delegation)
+        onConfirm(params)
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
