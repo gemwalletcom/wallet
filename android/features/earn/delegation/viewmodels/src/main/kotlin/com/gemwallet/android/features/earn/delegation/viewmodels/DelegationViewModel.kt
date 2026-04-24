@@ -171,14 +171,14 @@ class DelegationViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onStake(call: AmountTransactionAction) {
-        call(buildStake(TransactionType.StakeDelegate))
+        buildStake(TransactionType.StakeDelegate)?.let { call(it) }
     }
 
     fun onUnstake(amountCall: AmountTransactionAction, confirmCall: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
         if (assetInfo.chain.changeAmountOnUnstake) {
-            amountCall(buildStake(TransactionType.StakeUndelegate))
+            buildStake(TransactionType.StakeUndelegate)?.let { amountCall(it) }
             return
         }
         val from = assetInfo.owner ?: return
@@ -189,7 +189,7 @@ class DelegationViewModel @Inject constructor(
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
-        call(buildStake(TransactionType.StakeRedelegate))
+        buildStake(TransactionType.StakeRedelegate)?.let { call(it) }
     }
 
     fun onWithdraw(call: ConfirmTransactionAction) {
@@ -216,12 +216,14 @@ class DelegationViewModel @Inject constructor(
         )
     }
 
-    private fun buildStake(type: TransactionType): AmountParams {
+    private fun buildStake(type: TransactionType): AmountParams? {
+        val assetId = assetInfo.value?.asset?.id ?: return null
+        val delegation = delegation.value ?: return null
         return AmountParams.buildStake(
-            assetId = assetInfo.value?.asset?.id!!,
+            assetId = assetId,
             txType = type,
-            validatorId = delegation.value?.validator?.id,
-            delegationId = delegation.value?.base?.delegationId!!
+            validatorId = delegation.validator.id,
+            delegationId = delegation.base.delegationId,
         )
     }
 }
