@@ -21,8 +21,7 @@ public struct ChartDateFormatter: Sendable {
 
     public func string(for date: Date, period: ChartPeriod) -> String {
         switch period {
-        case .hour: date.formatted(dateTime.hour().minute())
-        case .day: relative.string(from: date)
+        case .hour, .day: relative.string(from: date)
         case .week, .month: date.formatted(dateTime.month(.abbreviated).day().hour().minute())
         case .year, .all: date.formatted(dateTime.year().month(.abbreviated).day())
         }
