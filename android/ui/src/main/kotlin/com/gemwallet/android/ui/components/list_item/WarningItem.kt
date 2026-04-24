@@ -20,6 +20,7 @@ import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.alpha50
 
 @Composable
 fun WarningItem(
@@ -30,39 +31,45 @@ fun WarningItem(
     onClick: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .listItem(position)
             .fillMaxWidth()
             .defaultPadding()
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                modifier = Modifier.size(smallIconSize),
-                imageVector = Icons.Outlined.Warning,
-                contentDescription = null,
-                tint = color,
-            )
-            Spacer8()
-            Text(
-                text = title,
-                color = color,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        message?.takeIf { it.isNotBlank() }?.let {
-            Spacer4()
+        Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                trailing?.invoke()
+                Icon(
+                    modifier = Modifier.size(smallIconSize),
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = color,
+                )
+                Spacer8()
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
+                    text = title,
+                    color = color,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
+            message?.takeIf { it.isNotBlank() }?.let {
+                Spacer4()
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    trailing?.invoke()
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            }
+        }
+        if (onClick != null) {
+            ChevronIcon(tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50))
         }
     }
 }
