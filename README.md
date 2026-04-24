@@ -88,6 +88,13 @@ just android test
 
 Platform-specific commands remain available through the [`ios`](ios/justfile) and [`android`](android/justfile) just modules.
 
+## Security
+
+Gem Wallet is self-custodial, and keeping user funds safe is our highest priority. See the [Security Overview](https://gemwallet.com/security/) for our practices around key material, signing, and secure storage.
+
+- [Bug Bounty Program](https://gemwallet.com/security/bug-bounty/) — report vulnerabilities and earn rewards for responsible disclosure
+- [CertiK Security Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf) — latest third-party audit report
+
 ## Contributing
 
 - Browse [GitHub Issues](https://github.com/gemwalletcom/wallet/issues)
