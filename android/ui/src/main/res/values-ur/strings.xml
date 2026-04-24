@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">کم سے کم رقم استعمال کریں۔</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">آپ کی پوزیشنیں یہاں ظاہر ہوں گی۔</string>
-  <string name="earn.state.empty.description">اپنی پہلی جمع کروائیں۔ %@</string>
+  <string name="earn.state.empty.description">اپنی پہلی جمع کروائیں۔ %s</string>
   <string name="contacts.title">رابطے</string>
   <string name="contacts.contact">رابطہ کریں۔</string>
   <string name="contacts.addresses">پتے</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">یہ پرس پہلے ہی درآمد کیا جا چکا ہے۔</string>
   <string name="rewards.unverified.title">انعامات ابھی فعال نہیں ہیں۔</string>
   <string name="rewards.unverified.description">جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔</string>
+  <string name="errors.network_error">نیٹ ورک کی خرابی: %s</string>
+  <string name="errors.network_offline">انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔</string>
 </resources>

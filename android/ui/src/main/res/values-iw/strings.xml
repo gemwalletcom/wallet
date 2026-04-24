@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">השתמש בסכום מינימלי</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">המיקומים שלך יופיעו כאן</string>
-  <string name="earn.state.empty.description">הפקד את הראשון שלך %@</string>
+  <string name="earn.state.empty.description">הפקד את הראשון שלך %s</string>
   <string name="contacts.title">אנשי קשר</string>
   <string name="contacts.contact">מַגָע</string>
   <string name="contacts.addresses">כתובות</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">הרשאות</string>
   <string name="wallet_connect.permissions.view_balance">צפה ביתרה ובפעילות שלך</string>
   <string name="wallet_connect.permissions.approval_requests">שלח בקשות אישור</string>
-  <string name="wallet.import.already_imported_message">ארנק זה כבר יובא</string>
+  <string name="wallet.import.already_imported_message">ארנק זה כבר יובא.</string>
   <string name="rewards.unverified.title">הפרסים עדיין לא פעילים.</string>
   <string name="rewards.unverified.description">הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.</string>
+  <string name="errors.network_error">שגיאת רשת: %s</string>
+  <string name="errors.network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
 </resources>

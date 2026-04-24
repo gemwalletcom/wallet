@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">使用最低金额</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">您的持仓将显示在此处。</string>
-  <string name="earn.state.empty.description">存入您的第一笔款项 %@</string>
+  <string name="earn.state.empty.description">存入您的第一笔款项 %s</string>
   <string name="contacts.title">联系方式</string>
   <string name="contacts.contact">接触</string>
   <string name="contacts.addresses">地址</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">这个钱包已经进口了。</string>
   <string name="rewards.unverified.title">奖励尚未激活。</string>
   <string name="rewards.unverified.description">您使用应用程序的次数越多，奖励就会自动激活。</string>
+  <string name="errors.network_error">网络错误： %s</string>
+  <string name="errors.network_offline">网络连接似乎已断开。</string>
 </resources>

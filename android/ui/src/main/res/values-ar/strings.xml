@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">استخدم الحد الأدنى من الكمية</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">ستظهر وظائفك هنا</string>
-  <string name="earn.state.empty.description">أودع أول مبلغ لك %@</string>
+  <string name="earn.state.empty.description">أودع أول مبلغ لك %s</string>
   <string name="contacts.title">جهات الاتصال</string>
   <string name="contacts.contact">اتصال</string>
   <string name="contacts.addresses">العناوين</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">الأذونات</string>
   <string name="wallet_connect.permissions.view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect.permissions.approval_requests">إرسال طلبات الموافقة</string>
-  <string name="wallet.import.already_imported_message">تم استيراد هذه المحفظة بالفعل</string>
+  <string name="wallet.import.already_imported_message">تم استيراد هذه المحفظة بالفعل.</string>
   <string name="rewards.unverified.title">المكافآت غير مفعلة بعد.</string>
   <string name="rewards.unverified.description">يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.</string>
+  <string name="errors.network_error">خطأ في الشبكة: %s</string>
+  <string name="errors.network_offline">يبدو أن الاتصال بالإنترنت غير متاح.</string>
 </resources>

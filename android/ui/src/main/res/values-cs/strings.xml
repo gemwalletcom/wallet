@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Použijte minimální množství</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Vaše pozice se zde zobrazí</string>
-  <string name="earn.state.empty.description">Vložte svůj první vklad %@</string>
+  <string name="earn.state.empty.description">Vložte svůj první vklad %s</string>
   <string name="contacts.title">Kontakty</string>
   <string name="contacts.contact">Kontakt</string>
   <string name="contacts.addresses">Adresy</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Oprávnění</string>
   <string name="wallet_connect.permissions.view_balance">Zobrazení zůstatku a aktivity</string>
   <string name="wallet_connect.permissions.approval_requests">Odeslat žádosti o schválení</string>
-  <string name="wallet.import.already_imported_message">Tato peněženka již byla importována</string>
+  <string name="wallet.import.already_imported_message">Tato peněženka již byla importována.</string>
   <string name="rewards.unverified.title">Odměny zatím nejsou aktivní.</string>
   <string name="rewards.unverified.description">Odměny se aktivují automaticky, jakmile aplikaci používáte více.</string>
+  <string name="errors.network_error">Chyba sítě: %s</string>
+  <string name="errors.network_offline">Zdá se, že je internetové připojení offline.</string>
 </resources>

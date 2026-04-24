@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Gamitin ang Minimum na Halaga</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Lalabas dito ang iyong mga posisyon</string>
-  <string name="earn.state.empty.description">Ideposito ang iyong unang %@</string>
+  <string name="earn.state.empty.description">Ideposito ang iyong unang %s</string>
   <string name="contacts.title">Mga Kontak</string>
   <string name="contacts.contact">Makipag-ugnayan</string>
   <string name="contacts.addresses">Mga Address</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Mga Pahintulot</string>
   <string name="wallet_connect.permissions.view_balance">Tingnan ang iyong balanse at aktibidad</string>
   <string name="wallet_connect.permissions.approval_requests">Magpadala ng mga kahilingan sa pag-apruba</string>
-  <string name="wallet.import.already_imported_message">Na-import na ang wallet na ito</string>
+  <string name="wallet.import.already_imported_message">Na-import na ang wallet na ito.</string>
   <string name="rewards.unverified.title">Hindi pa aktibo ang mga gantimpala.</string>
   <string name="rewards.unverified.description">Awtomatikong naa-activate ang mga reward habang mas madalas mong ginagamit ang app.</string>
+  <string name="errors.network_error">Error sa network: %s</string>
+  <string name="errors.network_offline">Mukhang offline ang koneksyon sa internet.</string>
 </resources>

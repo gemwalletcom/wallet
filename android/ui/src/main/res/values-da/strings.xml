@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Brug minimumsbeløb</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Dine stillinger vil blive vist her</string>
-  <string name="earn.state.empty.description">Indbetal din første %@</string>
+  <string name="earn.state.empty.description">Indbetal din første %s</string>
   <string name="contacts.title">Kontakter</string>
   <string name="contacts.contact">Kontakte</string>
   <string name="contacts.addresses">Adresser</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Tilladelser</string>
   <string name="wallet_connect.permissions.view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect.permissions.approval_requests">Send godkendelsesanmodninger</string>
-  <string name="wallet.import.already_imported_message">Denne tegnebog er allerede blevet importeret</string>
+  <string name="wallet.import.already_imported_message">Denne tegnebog er allerede blevet importeret.</string>
   <string name="rewards.unverified.title">Belønninger er endnu ikke aktive.</string>
   <string name="rewards.unverified.description">Belønninger aktiveres automatisk, når du bruger appen mere.</string>
+  <string name="errors.network_error">Netværksfejl: %s</string>
+  <string name="errors.network_offline">Internetforbindelsen ser ud til at være offline.</string>
 </resources>

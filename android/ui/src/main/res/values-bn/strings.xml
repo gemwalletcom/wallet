@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">সর্বনিম্ন পরিমাণ ব্যবহার করুন</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">আপনার অবস্থানগুলি এখানে প্রদর্শিত হবে</string>
-  <string name="earn.state.empty.description">আপনার প্রথম জমা দিন %@</string>
+  <string name="earn.state.empty.description">আপনার প্রথম জমা দিন %s</string>
   <string name="contacts.title">পরিচিতি</string>
   <string name="contacts.contact">যোগাযোগ</string>
   <string name="contacts.addresses">ঠিকানা</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">অনুমতি</string>
   <string name="wallet_connect.permissions.view_balance">আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন</string>
   <string name="wallet_connect.permissions.approval_requests">অনুমোদনের অনুরোধ পাঠান</string>
-  <string name="wallet.import.already_imported_message">এই ওয়ালেটটি ইতিমধ্যে আমদানি করা হয়েছে।</string>
+  <string name="wallet.import.already_imported_message">এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।</string>
   <string name="rewards.unverified.title">পুরস্কারগুলো এখনও সক্রিয় হয়নি।</string>
   <string name="rewards.unverified.description">আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</string>
+  <string name="errors.network_error">নেটওয়ার্ক ত্রুটি: %s</string>
+  <string name="errors.network_offline">ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।</string>
 </resources>

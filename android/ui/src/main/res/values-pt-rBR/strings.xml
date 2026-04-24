@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Use o valor mínimo</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Suas posições aparecerão aqui.</string>
-  <string name="earn.state.empty.description">Faça seu primeiro depósito %@</string>
+  <string name="earn.state.empty.description">Faça seu primeiro depósito %s</string>
   <string name="contacts.title">Contatos</string>
   <string name="contacts.contact">Contato</string>
   <string name="contacts.addresses">Endereços</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">Esta carteira já foi importada.</string>
   <string name="rewards.unverified.title">As recompensas ainda não estão ativas.</string>
   <string name="rewards.unverified.description">As recompensas são ativadas automaticamente conforme você usa o aplicativo com mais frequência.</string>
+  <string name="errors.network_error">Erro de rede: %s</string>
+  <string name="errors.network_offline">A conexão com a internet parece estar offline.</string>
 </resources>

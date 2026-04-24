@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Sử dụng số lượng tối thiểu</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Vị trí của bạn sẽ hiển thị ở đây</string>
-  <string name="earn.state.empty.description">Gửi khoản tiền đầu tiên của bạn %@</string>
+  <string name="earn.state.empty.description">Gửi khoản tiền đầu tiên của bạn %s</string>
   <string name="contacts.title">Liên hệ</string>
   <string name="contacts.contact">Liên hệ</string>
   <string name="contacts.addresses">Địa chỉ</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">Ví này đã được nhập khẩu.</string>
   <string name="rewards.unverified.title">Phần thưởng chưa được kích hoạt.</string>
   <string name="rewards.unverified.description">Phần thưởng sẽ tự động được kích hoạt khi bạn sử dụng ứng dụng nhiều hơn.</string>
+  <string name="errors.network_error">Lỗi mạng: %s</string>
+  <string name="errors.network_offline">Kết nối Internet dường như đang bị ngắt.</string>
 </resources>

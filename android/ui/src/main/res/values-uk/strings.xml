@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Використовуйте мінімальну суму</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Ваші позиції з\'являться тут</string>
-  <string name="earn.state.empty.description">Внесіть свій перший депозит %@</string>
+  <string name="earn.state.empty.description">Внесіть свій перший депозит %s</string>
   <string name="contacts.title">Контакти</string>
   <string name="contacts.contact">Контакти</string>
   <string name="contacts.addresses">Адреси</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Дозволи</string>
   <string name="wallet_connect.permissions.view_balance">Перегляд вашого балансу та активності</string>
   <string name="wallet_connect.permissions.approval_requests">Надсилати запити на схвалення</string>
-  <string name="wallet.import.already_imported_message">Цей гаманець вже імпортовано</string>
+  <string name="wallet.import.already_imported_message">Цей гаманець вже імпортовано.</string>
   <string name="rewards.unverified.title">Нагороди ще не активні.</string>
   <string name="rewards.unverified.description">Винагороди активуються автоматично, коли ви більше користуєтеся додатком.</string>
+  <string name="errors.network_error">Помилка мережі: %s</string>
+  <string name="errors.network_offline">Здається, підключення до Інтернету відсутнє.</string>
 </resources>

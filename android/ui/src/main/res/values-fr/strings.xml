@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Utiliser le montant minimum</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Vos positions apparaîtront ici</string>
-  <string name="earn.state.empty.description">Déposez votre premier %@</string>
+  <string name="earn.state.empty.description">Déposez votre premier %s</string>
   <string name="contacts.title">Contacts</string>
   <string name="contacts.contact">Contact</string>
   <string name="contacts.addresses">Adresses</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Autorisations</string>
   <string name="wallet_connect.permissions.view_balance">Consultez votre solde et votre activité</string>
   <string name="wallet_connect.permissions.approval_requests">Envoyer les demandes d\'approbation</string>
-  <string name="wallet.import.already_imported_message">Ce portefeuille a déjà été importé</string>
+  <string name="wallet.import.already_imported_message">Ce portefeuille a déjà été importé.</string>
   <string name="rewards.unverified.title">Récompenses non encore actives.</string>
   <string name="rewards.unverified.description">Les récompenses s\'activent automatiquement à mesure que vous utilisez l\'application.</string>
+  <string name="errors.network_error">Erreur réseau : %s</string>
+  <string name="errors.network_offline">La connexion Internet semble être hors ligne.</string>
 </resources>

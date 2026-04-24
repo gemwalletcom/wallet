@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Mindestmenge verwenden</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Ihre Positionen werden hier angezeigt.</string>
-  <string name="earn.state.empty.description">Zahlen Sie Ihre erste %@</string>
+  <string name="earn.state.empty.description">Zahlen Sie Ihre erste %s</string>
   <string name="contacts.title">Kontakte</string>
   <string name="contacts.contact">Kontakt</string>
   <string name="contacts.addresses">Adressen</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Berechtigungen</string>
   <string name="wallet_connect.permissions.view_balance">Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein.</string>
   <string name="wallet_connect.permissions.approval_requests">Genehmigungsanfragen senden</string>
-  <string name="wallet.import.already_imported_message">Diese Geldbörse wurde bereits importiert</string>
+  <string name="wallet.import.already_imported_message">Diese Brieftasche wurde bereits importiert.</string>
   <string name="rewards.unverified.title">Prämien noch nicht aktiv.</string>
   <string name="rewards.unverified.description">Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.</string>
+  <string name="errors.network_error">Netzwerkfehler: %s</string>
+  <string name="errors.network_offline">Die Internetverbindung scheint unterbrochen zu sein.</string>
 </resources>

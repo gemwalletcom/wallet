@@ -60,6 +60,7 @@ let package = Package(
                 "PrimitivesComponents",
                 "PrimitivesComponentsTestKit",
                 "GemstonePrimitives",
+                "Formatters",
             ],
         ),
     ],

@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Tumia Kiasi cha Chini Zaidi</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Nafasi zako zitaonekana hapa</string>
-  <string name="earn.state.empty.description">Weka pesa zako kwanza %@</string>
+  <string name="earn.state.empty.description">Weka pesa zako kwanza %s</string>
   <string name="contacts.title">Anwani</string>
   <string name="contacts.contact">Mawasiliano</string>
   <string name="contacts.addresses">Anwani</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Ruhusa</string>
   <string name="wallet_connect.permissions.view_balance">Tazama salio na shughuli zako</string>
   <string name="wallet_connect.permissions.approval_requests">Tuma maombi ya idhini</string>
-  <string name="wallet.import.already_imported_message">Pochi hii tayari imeingizwa</string>
+  <string name="wallet.import.already_imported_message">Pochi hii tayari imeingizwa.</string>
   <string name="rewards.unverified.title">Zawadi hazijaanza kutumika bado.</string>
   <string name="rewards.unverified.description">Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.</string>
+  <string name="errors.network_error">Hitilafu ya mtandao: %s</string>
+  <string name="errors.network_offline">Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.</string>
 </resources>

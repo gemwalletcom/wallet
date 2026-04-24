@@ -16,6 +16,7 @@ public struct ChartHeaderViewModel {
     public let type: ChartValueType
 
     private let formatter: CurrencyFormatter
+    private let dateFormatter: ChartDateFormatter
 
     public init(
         period: ChartPeriod,
@@ -24,6 +25,7 @@ public struct ChartHeaderViewModel {
         priceChangePercentage: Double,
         headerValue: Double? = nil,
         formatter: CurrencyFormatter,
+        dateFormatter: ChartDateFormatter = ChartDateFormatter(),
         type: ChartValueType = .price,
     ) {
         self.period = period
@@ -33,6 +35,7 @@ public struct ChartHeaderViewModel {
         self.headerValue = headerValue
         self.type = type
         self.formatter = formatter
+        self.dateFormatter = dateFormatter
     }
 
     private var valueChange: PriceChangeViewModel? {
@@ -40,17 +43,7 @@ public struct ChartHeaderViewModel {
     }
 
     public var dateText: String? {
-        guard let date else { return nil }
-        switch period {
-        case .hour:
-            return date.formatted(.dateTime.hour().minute())
-        case .day:
-            return date.formatted(.dateTime.weekday(.abbreviated).hour().minute())
-        case .week, .month:
-            return date.formatted(.dateTime.month(.abbreviated).day().hour().minute())
-        case .year, .all:
-            return date.formatted(.dateTime.year().month(.abbreviated).day())
-        }
+        date.map { dateFormatter.string(for: $0, period: period) }
     }
 
     public var headerValueText: String? {

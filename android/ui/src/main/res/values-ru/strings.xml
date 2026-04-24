@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Использовать минимальное количество</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Ваши вакансии будут отображаться здесь.</string>
-  <string name="earn.state.empty.description">Внесите свой первый депозит %@</string>
+  <string name="earn.state.empty.description">Внесите свой первый депозит %s</string>
   <string name="contacts.title">Контакты</string>
   <string name="contacts.contact">Контакт</string>
   <string name="contacts.addresses">Адреса</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">Этот кошелек уже импортирован.</string>
   <string name="rewards.unverified.title">Награды пока неактивны.</string>
   <string name="rewards.unverified.description">Награды активируются автоматически по мере более частого использования приложения.</string>
+  <string name="errors.network_error">Сетевая ошибка: %s</string>
+  <string name="errors.network_offline">По всей видимости, интернет-соединение отсутствует.</string>
 </resources>

@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">न्यूनतम राशि का प्रयोग करें</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">आपके पद यहां दिखाई देंगे</string>
-  <string name="earn.state.empty.description">अपनी पहली राशि जमा करें %@</string>
+  <string name="earn.state.empty.description">अपनी पहली राशि जमा करें %s</string>
   <string name="contacts.title">संपर्क</string>
   <string name="contacts.contact">संपर्क</string>
   <string name="contacts.addresses">पतों</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">अनुमतियां</string>
   <string name="wallet_connect.permissions.view_balance">अपना बैलेंस और गतिविधि देखें</string>
   <string name="wallet_connect.permissions.approval_requests">अनुमोदन अनुरोध भेजें</string>
-  <string name="wallet.import.already_imported_message">यह बटुआ पहले ही आयात किया जा चुका है</string>
+  <string name="wallet.import.already_imported_message">यह बटुआ पहले ही आयात किया जा चुका है।</string>
   <string name="rewards.unverified.title">पुरस्कार अभी सक्रिय नहीं हैं।</string>
   <string name="rewards.unverified.description">जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।</string>
+  <string name="errors.network_error">नेटवर्क त्रुटि: %s</string>
+  <string name="errors.network_offline">इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।</string>
 </resources>

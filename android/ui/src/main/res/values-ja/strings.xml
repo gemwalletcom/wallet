@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">最小量を使用する</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">あなたのポジションはここに表示されます</string>
-  <string name="earn.state.empty.description">最初の入金 %@</string>
+  <string name="earn.state.empty.description">最初の入金 %s</string>
   <string name="contacts.title">連絡先</string>
   <string name="contacts.contact">接触</string>
   <string name="contacts.addresses">住所</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">権限</string>
   <string name="wallet_connect.permissions.view_balance">残高とアクティビティを確認する</string>
   <string name="wallet_connect.permissions.approval_requests">承認依頼を送信する</string>
-  <string name="wallet.import.already_imported_message">このウォレットは既にインポート済みです</string>
+  <string name="wallet.import.already_imported_message">このウォレットは既にインポート済みです。</string>
   <string name="rewards.unverified.title">特典はまだ有効になっていません。</string>
   <string name="rewards.unverified.description">アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。</string>
+  <string name="errors.network_error">ネットワークエラー: %s</string>
+  <string name="errors.network_offline">インターネット接続が切断されているようです。</string>
 </resources>

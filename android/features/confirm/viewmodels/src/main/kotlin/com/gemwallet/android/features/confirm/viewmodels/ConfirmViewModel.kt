@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.GemPlatformErrors
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -134,12 +133,7 @@ class ConfirmViewModel @Inject constructor(
             signerPreload.preload(params = request, feePriority = feePriority)
         } catch (err: Throwable) {
             state.update {
-                ConfirmState.Error(
-                    when (err.message?.contains(GemPlatformErrors.Dust.message)) {
-                        true -> ConfirmError.DustThreshold(owner.chain)
-                        else -> ConfirmError.PreloadError
-                    }
-                )
+                ConfirmState.Error(err.toPreloadConfirmError(owner.chain))
             }
             return@combine null
         }
@@ -309,10 +303,8 @@ class ConfirmViewModel @Inject constructor(
             viewModelScope.launch(Dispatchers.Main) {
                 finishAction(assetId = assetInfo.id(), hash = result.txHash, route = result.finishRoute)
             }
-        } catch (err: ConfirmError) {
-            state.update { ConfirmState.BroadcastError(err) }
         } catch (err: Throwable) {
-            state.update { ConfirmState.BroadcastError(ConfirmError.BroadcastError(err.message ?: "Unknown error")) }
+            state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }
         }
     }
 

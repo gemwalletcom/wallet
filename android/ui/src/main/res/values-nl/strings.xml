@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Gebruik de minimale hoeveelheid</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Uw posities verschijnen hier.</string>
-  <string name="earn.state.empty.description">Stort uw eerste %@</string>
+  <string name="earn.state.empty.description">Stort uw eerste %s</string>
   <string name="contacts.title">Contacten</string>
   <string name="contacts.contact">Contact</string>
   <string name="contacts.addresses">Adressen</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">Deze portemonnee is al geïmporteerd.</string>
   <string name="rewards.unverified.title">Beloningen nog niet actief.</string>
   <string name="rewards.unverified.description">Je beloningen worden automatisch geactiveerd naarmate je de app meer gebruikt.</string>
+  <string name="errors.network_error">Netwerkfout: %s</string>
+  <string name="errors.network_offline">De internetverbinding lijkt offline te zijn.</string>
 </resources>

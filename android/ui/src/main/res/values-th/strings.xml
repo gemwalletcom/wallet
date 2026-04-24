@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">ใช้ในปริมาณน้อยที่สุด</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">ตำแหน่งของคุณจะปรากฏที่นี่</string>
-  <string name="earn.state.empty.description">ฝากเงินครั้งแรกของคุณ %@</string>
+  <string name="earn.state.empty.description">ฝากเงินครั้งแรกของคุณ %s</string>
   <string name="contacts.title">การติดต่อ</string>
   <string name="contacts.contact">ติดต่อ</string>
   <string name="contacts.addresses">ที่อยู่</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
   <string name="rewards.unverified.title">ระบบรางวัลยังไม่เปิดใช้งาน</string>
   <string name="rewards.unverified.description">รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น</string>
+  <string name="errors.network_error">เกิดข้อผิดพลาดเครือข่าย: %s</string>
+  <string name="errors.network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
 </resources>

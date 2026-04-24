@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Minimum Tutarı Kullanın</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Pozisyonlarınız burada görünecektir.</string>
-  <string name="earn.state.empty.description">İlk para yatırma işleminizi gerçekleştirin. %@</string>
+  <string name="earn.state.empty.description">İlk para yatırma işleminizi gerçekleştirin. %s</string>
   <string name="contacts.title">İletişim</string>
   <string name="contacts.contact">Temas etmek</string>
   <string name="contacts.addresses">Adresler</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">Bu cüzdan zaten içe aktarıldı.</string>
   <string name="rewards.unverified.title">Ödüller henüz aktif değil.</string>
   <string name="rewards.unverified.description">Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.</string>
+  <string name="errors.network_error">Ağ hatası: %s</string>
+  <string name="errors.network_offline">İnternet bağlantısı kesilmiş gibi görünüyor.</string>
 </resources>

@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Gunakan Jumlah Minimum</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Posisi Anda akan muncul di sini.</string>
-  <string name="earn.state.empty.description">Setorkan pertama Anda %@</string>
+  <string name="earn.state.empty.description">Setorkan pertama Anda %s</string>
   <string name="contacts.title">Kontak</string>
   <string name="contacts.contact">Kontak</string>
   <string name="contacts.addresses">Alamat</string>
@@ -586,4 +586,6 @@
   <string name="wallet.import.already_imported_message">Dompet ini sudah diimpor.</string>
   <string name="rewards.unverified.title">Hadiah belum aktif.</string>
   <string name="rewards.unverified.description">Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.</string>
+  <string name="errors.network_error">Kesalahan jaringan: %s</string>
+  <string name="errors.network_offline">Koneksi internet tampaknya sedang offline.</string>
 </resources>

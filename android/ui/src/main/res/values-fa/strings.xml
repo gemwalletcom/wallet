@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">از حداقل مقدار استفاده کنید</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">موقعیت‌های شما اینجا نمایش داده می‌شوند</string>
-  <string name="earn.state.empty.description">اولین واریز خود را انجام دهید %@</string>
+  <string name="earn.state.empty.description">اولین واریز خود را انجام دهید %s</string>
   <string name="contacts.title">مخاطبین</string>
   <string name="contacts.contact">تماس</string>
   <string name="contacts.addresses">آدرس‌ها</string>
@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">مجوزها</string>
   <string name="wallet_connect.permissions.view_balance">مشاهده موجودی و فعالیت خود</string>
   <string name="wallet_connect.permissions.approval_requests">ارسال درخواست‌های تأیید</string>
-  <string name="wallet.import.already_imported_message">این کیف پول قبلاً وارد شده است</string>
+  <string name="wallet.import.already_imported_message">این کیف پول قبلاً وارد شده است.</string>
   <string name="rewards.unverified.title">هنوز بخش جوایز فعال نشده است.</string>
   <string name="rewards.unverified.description">با استفاده بیشتر از برنامه، جوایز به طور خودکار فعال می‌شوند.</string>
+  <string name="errors.network_error">خطای شبکه: %s</string>
+  <string name="errors.network_offline">به نظر می‌رسد اتصال اینترنت آفلاین است.</string>
 </resources>

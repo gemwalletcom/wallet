@@ -583,7 +583,9 @@
   <string name="wallet_connect.permissions.title">Permissions</string>
   <string name="wallet_connect.permissions.view_balance">View your balance and activity</string>
   <string name="wallet_connect.permissions.approval_requests">Send approval requests</string>
-  <string name="wallet.import.already_imported_message">This wallet has already been imported</string>
+  <string name="wallet.import.already_imported_message">This wallet has already been imported.</string>
   <string name="rewards.unverified.title">Rewards not active yet.</string>
   <string name="rewards.unverified.description">Rewards activate automatically as you use the app more.</string>
+  <string name="errors.network_error">Network error: %s</string>
+  <string name="errors.network_offline">The Internet connection appears to be offline.</string>
 </resources>
