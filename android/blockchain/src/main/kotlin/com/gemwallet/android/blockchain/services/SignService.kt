@@ -305,7 +305,7 @@ class SignService : SignClient {
             finalAmount = finalAmount,
             fee = fee,
         )
-        return listOf(getSigner(params).signWithdrawal(data, privateKey).toByteArray())
+        return getSigner(params).signStake(data, privateKey).map { it.toByteArray() }
     }
     override fun supported(chain: Chain): Boolean {
         return when (chain.toChainType()) {
