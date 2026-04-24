@@ -562,6 +562,6 @@
 "wallet_connect.permissions.title" = "Autorisations";
 "wallet_connect.permissions.view_balance" = "Consultez votre solde et votre activité";
 "wallet_connect.permissions.approval_requests" = "Envoyer les demandes d'approbation";
-"wallet.import.already_imported_message" = "Ce portefeuille a déjà été importé";
+"wallet.import.already_imported_message" = "Ce portefeuille a déjà été importé.";
 "rewards.unverified.title" = "Récompenses non encore actives.";
 "rewards.unverified.description" = "Les récompenses s'activent automatiquement à mesure que vous utilisez l'application.";

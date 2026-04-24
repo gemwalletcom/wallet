@@ -1597,8 +1597,8 @@ public enum Localized {
       public static let action = Localized.tr("Localizable", "wallet.import.action", fallback: "Import")
       /// Address or Name
       public static let addressField = Localized.tr("Localizable", "wallet.import.address_field", fallback: "Address or Name")
-      /// This wallet has already been imported
-      public static let alreadyImportedMessage = Localized.tr("Localizable", "wallet.import.already_imported_message", fallback: "This wallet has already been imported")
+      /// This wallet has already been imported.
+      public static let alreadyImportedMessage = Localized.tr("Localizable", "wallet.import.already_imported_message", fallback: "This wallet has already been imported.")
       /// Contract or Token ID
       public static let contractAddressField = Localized.tr("Localizable", "wallet.import.contract_address_field", fallback: "Contract or Token ID")
       /// Import Wallet
