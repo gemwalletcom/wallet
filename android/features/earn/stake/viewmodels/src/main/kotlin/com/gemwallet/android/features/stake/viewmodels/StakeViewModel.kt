@@ -156,11 +156,11 @@ class StakeViewModel @Inject constructor(
 
     fun onDelegation(
         delegation: Delegation,
-        onOpenDetail: (String, String, DelegationState) -> Unit,
+        onOpenDetail: (String, String) -> Unit,
         onConfirm: ConfirmTransactionAction,
     ) {
         if (walletType.value?.isViewOnly == true || delegation.base.state != DelegationState.AwaitingWithdrawal) {
-            onOpenDetail(delegation.validator.id, delegation.base.delegationId, delegation.base.state)
+            onOpenDetail(delegation.validator.id, delegation.base.delegationId)
             return
         }
         val assetInfo = assetInfo.value ?: return

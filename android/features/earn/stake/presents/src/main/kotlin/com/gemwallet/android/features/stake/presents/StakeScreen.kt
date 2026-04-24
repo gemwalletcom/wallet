@@ -10,13 +10,12 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.stake.viewmodels.StakeViewModel
-import com.wallet.core.primitives.DelegationState
 
 @Composable
 fun StakeScreen(
     amountAction: AmountTransactionAction,
     onConfirm: ConfirmTransactionAction,
-    onDelegation: (String, String, DelegationState) -> Unit,
+    onDelegation: (String, String) -> Unit,
     onCancel: () -> Unit,
     viewModel: StakeViewModel = hiltViewModel()
 ) {

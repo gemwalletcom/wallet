@@ -114,9 +114,7 @@ class AmountViewModel @Inject constructor(
             TransactionType.StakeRedelegate,
             TransactionType.StakeWithdraw -> {
                 val validatorId = params.validatorId ?: return@flatMapLatest flowOf(null)
-                val delegationId = params.delegationId ?: return@flatMapLatest flowOf(null)
-                val state = params.delegationState ?: return@flatMapLatest flowOf(null)
-                stakeRepository.getDelegation(validatorId, delegationId, state)
+                stakeRepository.getDelegation(validatorId, params.delegationId ?: "")
             }
             TransactionType.StakeRewards -> {
                 val owner = assetInfo?.owner?.address ?: return@flatMapLatest flowOf(null)

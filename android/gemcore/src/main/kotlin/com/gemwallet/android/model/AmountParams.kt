@@ -4,7 +4,6 @@ import com.gemwallet.android.ext.urlDecode
 import com.gemwallet.android.ext.urlEncode
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
 import kotlinx.serialization.Serializable
@@ -18,7 +17,6 @@ data class AmountParams(
     val memo: String? = null,
     val validatorId: String? = null, // TODO: Separate to special subtype
     val delegationId: String? = null, // TODO: Separate to special subtype
-    val delegationState: DelegationState? = null, // TODO: Separate to special subtype
     val perpetualId: String? = null, // TODO: Separate to special subtype
     val perpetualDirection: PerpetualDirection? = null, // TODO: Separate to special subtype
 ) {
@@ -50,13 +48,11 @@ data class AmountParams(
             txType: TransactionType,
             validatorId: String? = null,
             delegationId: String? = null,
-            delegationState: DelegationState? = null,
         ): AmountParams = AmountParams(
             assetId = assetId,
             txType = txType,
             delegationId = delegationId,
             validatorId = validatorId,
-            delegationState = delegationState,
         )
 
         fun buildPerpetualOpenPosition(
