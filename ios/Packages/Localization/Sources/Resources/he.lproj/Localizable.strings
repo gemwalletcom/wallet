@@ -562,6 +562,6 @@
 "wallet_connect.permissions.title" = "הרשאות";
 "wallet_connect.permissions.view_balance" = "צפה ביתרה ובפעילות שלך";
 "wallet_connect.permissions.approval_requests" = "שלח בקשות אישור";
-"wallet.import.already_imported_message" = "ארנק זה כבר יובא";
+"wallet.import.already_imported_message" = "ארנק זה כבר יובא.";
 "rewards.unverified.title" = "הפרסים עדיין לא פעילים.";
 "rewards.unverified.description" = "הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.";
