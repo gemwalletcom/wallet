@@ -61,34 +61,41 @@ class TransactionDataAggregateImpl(
 
     override val asset: Asset = data.asset
 
-    private val counterpartyAddress: AddressName? = when (data.transaction.direction) {
-        TransactionDirection.Incoming -> data.fromAddress
-        TransactionDirection.Outgoing,
-        TransactionDirection.SelfTransfer -> data.toAddress
+    private val participantAddressName: AddressName? = when (data.transaction.type) {
+        TransactionType.StakeDelegate,
+        TransactionType.StakeUndelegate,
+        TransactionType.StakeRedelegate,
+        TransactionType.EarnDeposit,
+        TransactionType.EarnWithdraw -> data.toAddress
+        else -> when (data.transaction.direction) {
+            TransactionDirection.Incoming -> data.fromAddress
+            TransactionDirection.Outgoing,
+            TransactionDirection.SelfTransfer -> data.toAddress
+        }
     }
 
-    override val addressName: String? = counterpartyAddress?.name
+    override val addressName: String? = participantAddressName?.name
 
-    override val addressType: AddressType? = counterpartyAddress?.type
+    override val addressType: AddressType? = participantAddressName?.type
 
     override val address: String get() = when (data.transaction.type) {
         TransactionType.TransferNFT,
-        TransactionType.Transfer -> when (data.transaction.direction) {
+        TransactionType.Transfer,
+        TransactionType.TokenApproval,
+        TransactionType.SmartContractCall -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
             TransactionDirection.Outgoing -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
             TransactionDirection.Incoming -> AddressFormatter(data.transaction.from, chain = data.transaction.assetId.chain).value()
         }
-        TransactionType.Swap,
-        TransactionType.TokenApproval,
         TransactionType.StakeDelegate,
         TransactionType.StakeUndelegate,
         TransactionType.StakeRedelegate,
-        TransactionType.StakeWithdraw,
-        TransactionType.EarnWithdraw,
         TransactionType.EarnDeposit,
+        TransactionType.EarnWithdraw -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
+        TransactionType.Swap,
+        TransactionType.StakeWithdraw,
         TransactionType.AssetActivation,
         TransactionType.StakeRewards,
-        TransactionType.SmartContractCall,
         TransactionType.PerpetualOpenPosition,
         TransactionType.StakeFreeze,
         TransactionType.StakeUnfreeze,

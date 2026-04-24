@@ -4,7 +4,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
@@ -51,15 +50,15 @@ fun DbAddress.toDTO(): AddressName = AddressName(
     status = status,
 )
 
-fun Account.toAddressRecord(wallet: Wallet): DbAddress = DbAddress(
-    chain = chain,
-    address = address,
-    walletId = wallet.id,
-    name = wallet.name,
-    type = AddressType.InternalWallet,
-    status = VerificationStatus.Verified,
-)
-
 fun List<AddressName>.toRecord(): List<DbAddress> = map { it.toRecord() }
 
-fun Wallet.toAddressRecords(): List<DbAddress> = accounts.map { it.toAddressRecord(this) }
+fun Wallet.toAddressRecords(): List<DbAddress> = accounts.map { account ->
+    DbAddress(
+        chain = account.chain,
+        address = account.address,
+        walletId = id,
+        name = name,
+        type = AddressType.InternalWallet,
+        status = VerificationStatus.Verified,
+    )
+}

@@ -56,9 +56,21 @@ sealed interface TransactionDetailsValue {
             override val addressType: AddressType? = null,
             override val explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, name, addressType, explorerLink)
-        class Contract(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink = explorerLink)
-        class Validator(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink = explorerLink)
-        class ProviderAddress(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink = explorerLink)
+        class Contract(
+            data: String,
+            override val name: String? = null,
+            override val explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name = name, explorerLink = explorerLink)
+        class Validator(
+            data: String,
+            override val name: String? = null,
+            override val explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name = name, explorerLink = explorerLink)
+        class ProviderAddress(
+            data: String,
+            override val name: String? = null,
+            override val explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name = name, explorerLink = explorerLink)
         class Provider(name: String) : Destination(name)
     }
 

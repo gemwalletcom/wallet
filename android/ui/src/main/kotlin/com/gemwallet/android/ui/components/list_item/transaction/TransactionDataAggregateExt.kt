@@ -34,7 +34,9 @@ fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 @Composable
 fun TransactionDataAggregate.formatAddress(): String? = when (type) {
     TransactionType.TransferNFT,
-    TransactionType.Transfer -> {
+    TransactionType.Transfer,
+    TransactionType.TokenApproval,
+    TransactionType.SmartContractCall -> {
         val displayAddress = addressName ?: address
         when (direction) {
             TransactionDirection.SelfTransfer,
@@ -42,17 +44,19 @@ fun TransactionDataAggregate.formatAddress(): String? = when (type) {
             TransactionDirection.Incoming -> "${stringResource(id = R.string.transfer_from)} $displayAddress"
         }
     }
-    TransactionType.Swap,
-    TransactionType.TokenApproval,
     TransactionType.StakeDelegate,
-    TransactionType.StakeUndelegate,
     TransactionType.StakeRedelegate,
+    TransactionType.EarnDeposit -> (addressName ?: address)
+        .takeIf { it.isNotEmpty() }
+        ?.let { "${stringResource(id = R.string.transfer_to)} $it" }
+    TransactionType.StakeUndelegate,
+    TransactionType.EarnWithdraw -> (addressName ?: address)
+        .takeIf { it.isNotEmpty() }
+        ?.let { "${stringResource(id = R.string.transfer_from)} $it" }
+    TransactionType.Swap,
     TransactionType.StakeWithdraw,
     TransactionType.AssetActivation,
     TransactionType.StakeRewards,
-    TransactionType.EarnDeposit,
-    TransactionType.EarnWithdraw,
-    TransactionType.SmartContractCall,
     TransactionType.PerpetualOpenPosition,
     TransactionType.StakeFreeze,
     TransactionType.StakeUnfreeze,

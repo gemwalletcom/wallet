@@ -190,22 +190,22 @@ class TransactionDetailsAggregateImpl(
         TransactionType.StakeUnfreeze,
         TransactionType.PerpetualModifyPosition,
         TransactionType.StakeWithdraw -> null
-        TransactionType.TokenApproval -> destinationAddress { address, explorerLink ->
-            TransactionDetailsValue.Destination.Contract(address, explorerLink)
+        TransactionType.TokenApproval -> destinationAddress { address, name, explorerLink ->
+            TransactionDetailsValue.Destination.Contract(address, name, explorerLink)
         }
-        TransactionType.StakeDelegate -> destinationAddress { address, explorerLink ->
-            TransactionDetailsValue.Destination.Validator(address, explorerLink)
+        TransactionType.StakeDelegate -> destinationAddress { address, name, explorerLink ->
+            TransactionDetailsValue.Destination.Validator(address, name, explorerLink)
         }
-        TransactionType.SmartContractCall -> destinationAddress { address, explorerLink ->
+        TransactionType.SmartContractCall -> destinationAddress { address, name, explorerLink ->
             when (data.transaction.getWalletConnectOutputAction()) {
-                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(data = address, explorerLink = explorerLink)
+                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(data = address, name = name, explorerLink = explorerLink)
                 TransferDataOutputAction.Sign,
-                null -> TransactionDetailsValue.Destination.Contract(address, explorerLink)
+                null -> TransactionDetailsValue.Destination.Contract(address, name, explorerLink)
             }
         }
         TransactionType.EarnWithdraw,
-        TransactionType.EarnDeposit -> destinationAddress { address, explorerLink ->
-            TransactionDetailsValue.Destination.ProviderAddress(address, explorerLink)
+        TransactionType.EarnDeposit -> destinationAddress { address, name, explorerLink ->
+            TransactionDetailsValue.Destination.ProviderAddress(address, name, explorerLink)
         }
         TransactionType.Swap -> this@TransactionDetailsAggregateImpl.swapProvider?.let { TransactionDetailsValue.Destination.Provider(it) }
         TransactionType.Transfer,
@@ -248,6 +248,13 @@ class TransactionDetailsAggregateImpl(
             TransactionDirection.SelfTransfer -> data.transaction.to
         }
 
+    private val participantAddressName: String?
+        get() = when (data.transaction.direction) {
+            TransactionDirection.Incoming -> data.fromAddress?.name
+            TransactionDirection.Outgoing,
+            TransactionDirection.SelfTransfer -> data.toAddress?.name
+        }
+
     private val participantExplorerLink: BlockExplorerLink?
         get() = when (participantAddress) {
             data.transaction.from -> senderExplorerLink
@@ -256,8 +263,8 @@ class TransactionDetailsAggregateImpl(
         }
 
     private inline fun destinationAddress(
-        build: (address: String, explorerLink: BlockExplorerLink?) -> TransactionDetailsValue.Destination,
+        build: (address: String, name: String?, explorerLink: BlockExplorerLink?) -> TransactionDetailsValue.Destination,
     ): TransactionDetailsValue.Destination? = participantAddress
         .takeIf { it.isNotEmpty() }
-        ?.let { build(it, participantExplorerLink) }
+        ?.let { build(it, participantAddressName, participantExplorerLink) }
 }

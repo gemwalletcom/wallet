@@ -32,6 +32,6 @@ object Migration_70_71 : Migration(70, 71) {
         )
 
         db.execSQL("DROP VIEW IF EXISTS `$EXTENDED_TXS_VIEW_NAME`")
-        db.execSQL("CREATE VIEW `$EXTENDED_TXS_VIEW_NAME` AS $EXTENDED_TXS_VIEW_SQL")
+        db.execSQL("CREATE VIEW `$EXTENDED_TXS_VIEW_NAME` AS ${EXTENDED_TXS_VIEW_SQL.trim()}")
     }
 }
