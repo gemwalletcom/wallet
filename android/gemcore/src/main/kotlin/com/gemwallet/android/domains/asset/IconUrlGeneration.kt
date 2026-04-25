@@ -110,4 +110,4 @@ fun NFTAsset.getImageUrl(): String = nftImageUrl(id)
 
 fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId)
 
-private fun nftImageUrl(assetId: String): String = "${Constants.API_URL}/v1/nft/assets/$assetId/image_preview"
+private fun nftImageUrl(assetId: String): String = "${Constants.NFT_ASSETS_URL}/v1/asset/$assetId/preview"
