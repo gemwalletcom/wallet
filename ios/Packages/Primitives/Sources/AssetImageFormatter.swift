@@ -17,7 +17,7 @@ public struct AssetImageFormatter: Sendable {
     }
 
     public func getNFTUrl(for assetId: String) -> URL {
-        URL(string: "\(Constants.nftAssetsURL.absoluteString)/asset/\(assetId)/preview")!
+        URL(string: "\(Constants.nftAssetsURL.absoluteString)/assets/\(assetId)/preview")!
     }
 
     public func getValidatorUrl(chain: Chain, id: String) -> URL {
