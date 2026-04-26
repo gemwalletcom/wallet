@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.ConfirmParams
+import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.DelegationValidator
@@ -18,7 +19,11 @@ sealed interface ConfirmProperty {
         class PerpetualOper(val providerName: String) : Destination(providerName)
 
         companion object {
-            fun map(params: ConfirmParams, validator: DelegationValidator?): Destination? = when (params) {
+            fun map(
+                params: ConfirmParams,
+                validator: DelegationValidator?,
+                addressName: AddressName? = null,
+            ): Destination? = when (params) {
                 is ConfirmParams.Activate,
                 is ConfirmParams.Stake.Freeze,
                 is ConfirmParams.Stake.Unfreeze,
@@ -37,7 +42,7 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.NftParams,
                 is ConfirmParams.TransferParams.Token,
                 is ConfirmParams.TransferParams.Native -> params.destination()?.let {
-                    Transfer(domain = it.name, address = it.address)
+                    Transfer(domain = it.name ?: addressName?.name, address = it.address)
                 } ?: throw ConfirmError.RecipientEmpty
                 is ConfirmParams.TransferParams.Generic -> Generic(params.name)
             }

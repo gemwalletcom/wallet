@@ -12,6 +12,8 @@ import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
+import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -36,27 +38,14 @@ class GetTransactionsImpl(
     ): Flow<List<TransactionDataAggregate>> = transactionsRepository.getTransactions()
         .map { transactions ->
             transactions.filter { tx ->
-                val byChain = if (filterByChains.isEmpty()) {
-                    true
-                } else {
-                    val txChains = (tx.assets + listOf(tx.asset, tx.feeAsset)).map { it.chain }.toSet()
-                    filterByChains.containsAll(txChains)
-                }
-                val byType = if (filterByType.isEmpty()) {
-                    true
-                } else {
-                    filterByType.contains(tx.transaction.type)
-                }
-                byChain && byType
-            }
-        }
-        .map { txs -> txs.filter { state == null || it.transaction.state == state } }
-        .map { items ->
-            items.filter {
-                val swapMetadata = it.transaction.getSwapMetadata()
-                assetId == null || it.asset.id == assetId
-                        || swapMetadata?.toAsset == assetId
-                        || swapMetadata?.fromAsset == assetId
+                val byChain = filterByChains.isEmpty() ||
+                    filterByChains.containsAll((tx.assets + listOf(tx.asset, tx.feeAsset)).map { it.chain }.toSet())
+                val byType = filterByType.isEmpty() || filterByType.contains(tx.transaction.type)
+                val byState = state == null || tx.transaction.state == state
+                val byAssetId = assetId == null || tx.asset.id == assetId ||
+                    tx.transaction.getSwapMetadata()?.toAsset == assetId ||
+                    tx.transaction.getSwapMetadata()?.fromAsset == assetId
+                byChain && byType && byState && byAssetId
             }
         }
         .map { items -> items.map { TransactionDataAggregateImpl(it) } }
@@ -65,31 +54,48 @@ class GetTransactionsImpl(
 
 @Stable
 class TransactionDataAggregateImpl(
-    private val data: TransactionExtended
+    private val data: TransactionExtended,
 ) : TransactionDataAggregate {
 
     override val id: String = data.transaction.id.identifier
 
     override val asset: Asset = data.asset
 
+    private val participantAddressName: AddressName? = when (data.transaction.type) {
+        TransactionType.StakeDelegate,
+        TransactionType.StakeUndelegate,
+        TransactionType.StakeRedelegate,
+        TransactionType.EarnDeposit,
+        TransactionType.EarnWithdraw -> data.toAddress
+        else -> when (data.transaction.direction) {
+            TransactionDirection.Incoming -> data.fromAddress
+            TransactionDirection.Outgoing,
+            TransactionDirection.SelfTransfer -> data.toAddress
+        }
+    }
+
+    override val addressName: String? = participantAddressName?.name
+
+    override val addressType: AddressType? = participantAddressName?.type
+
     override val address: String get() = when (data.transaction.type) {
         TransactionType.TransferNFT,
-        TransactionType.Transfer -> when (data.transaction.direction) {
+        TransactionType.Transfer,
+        TransactionType.TokenApproval,
+        TransactionType.SmartContractCall -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
             TransactionDirection.Outgoing -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
             TransactionDirection.Incoming -> AddressFormatter(data.transaction.from, chain = data.transaction.assetId.chain).value()
         }
-        TransactionType.Swap,
-        TransactionType.TokenApproval,
         TransactionType.StakeDelegate,
         TransactionType.StakeUndelegate,
         TransactionType.StakeRedelegate,
-        TransactionType.StakeWithdraw,
-        TransactionType.EarnWithdraw,
         TransactionType.EarnDeposit,
+        TransactionType.EarnWithdraw -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
+        TransactionType.Swap,
+        TransactionType.StakeWithdraw,
         TransactionType.AssetActivation,
         TransactionType.StakeRewards,
-        TransactionType.SmartContractCall,
         TransactionType.PerpetualOpenPosition,
         TransactionType.StakeFreeze,
         TransactionType.StakeUnfreeze,
@@ -168,5 +174,4 @@ class TransactionDataAggregateImpl(
         decimalPlace = 2,
         dynamicPlace = true,
     )
-
 }

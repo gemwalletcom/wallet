@@ -11,6 +11,7 @@ import com.gemwallet.android.application.wallet.coordinators.ToggleWalletPin
 import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
+import com.gemwallet.android.cases.addresses.RenameWalletAddresses
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.coordinators.wallet.DeleteWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
@@ -58,8 +59,9 @@ object WalletModule {
     @Singleton
     fun provideSetWalletName(
         walletsRepository: WalletsRepository,
+        renameWalletAddresses: RenameWalletAddresses,
     ): SetWalletName {
-        return SetWalletNameImpl(walletsRepository)
+        return SetWalletNameImpl(walletsRepository, renameWalletAddresses)
     }
     
     @Provides
