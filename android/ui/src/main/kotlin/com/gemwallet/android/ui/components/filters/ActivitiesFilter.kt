@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
@@ -15,8 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
@@ -27,7 +30,6 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.TransactionTypeFilter
-import com.gemwallet.android.ui.theme.listItemIconSize
 import com.wallet.core.primitives.Chain
 
 @Composable
@@ -60,7 +62,7 @@ fun TransactionsFilter(
                             text = R.string.settings_networks_title,
                             trailing = {
                                 Image(
-                                    modifier = Modifier.size(listItemIconSize),
+                                    modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)),
                                     painter = painterResource(R.drawable.settings_networks),
                                     contentDescription = "networks filter"
                                 )
@@ -88,9 +90,9 @@ fun TransactionsFilter(
                             text = R.string.filter_types,
                             trailing = {
                                 Icon(
-                                    modifier = Modifier.size(listItemIconSize),
+                                    modifier = Modifier.size(32.dp),
                                     imageVector = Icons.AutoMirrored.Default.Article,
-                                    contentDescription = "networks filter"
+                                    contentDescription = "types filter"
                                 )
                             }
                         )
