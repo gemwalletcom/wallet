@@ -330,9 +330,10 @@ extension WalletConnectorService {
             events: events.map(\.rawValue),
             accounts: supportedAccounts,
         )
+        let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
         let sessionProperties = walletConnect.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
-            chains: chains.map(\.id),
+            caip2Chains: caip2Chains,
         )
 
         return try await WalletKit.instance.approve(
