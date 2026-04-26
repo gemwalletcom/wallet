@@ -10,10 +10,13 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.cases.QuoteRequester
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestKey
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestParams
+import com.gemwallet.android.features.swap.viewmodels.models.QuoteUiState
 import com.gemwallet.android.features.swap.viewmodels.models.QuotesState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.features.swap.viewmodels.models.TransferDataUiState
+import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Session
@@ -124,6 +127,15 @@ class SwapViewModelTest {
         quoteRequester = quoteRequester,
         savedStateHandle = savedStateHandle,
     )
+
+    @Test
+    fun `isSwapButtonVisible is false with no input and true once quote is loading`() {
+        val noInput = createSwapUiState(QuoteUiState.NoInput, TransferDataUiState.Idle, null)
+        assertEquals(false, noInput.isSwapButtonVisible)
+
+        val loading = createSwapUiState(QuoteUiState.Loading(mockk()), TransferDataUiState.Idle, null)
+        assertEquals(true, loading.isSwapButtonVisible)
+    }
 
     @Test
     fun `onSelect updates pay asset from empty state`() = runTest(testDispatcher) {
