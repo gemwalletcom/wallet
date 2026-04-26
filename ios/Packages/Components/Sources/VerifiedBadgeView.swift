@@ -4,11 +4,15 @@ import Style
 import SwiftUI
 
 public struct VerifiedBadgeView: View {
-    public init() {}
+    private let font: Font
+
+    public init(font: Font = .callout) {
+        self.font = font
+    }
 
     public var body: some View {
         Images.System.checkmarkSealFill
-            .font(.callout)
+            .font(font)
             .foregroundStyle(Colors.whiteSolid, Colors.blue)
     }
 }
