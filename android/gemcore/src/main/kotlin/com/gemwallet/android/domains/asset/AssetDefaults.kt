@@ -12,7 +12,7 @@ import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.assetDefaultRank
 
-private const val DEFAULT_TOKEN_RANK = 15
+const val DEFAULT_TOKEN_RANK = 15
 
 val Chain.defaultAssetRank: Int
     get() = assetDefaultRank(string)

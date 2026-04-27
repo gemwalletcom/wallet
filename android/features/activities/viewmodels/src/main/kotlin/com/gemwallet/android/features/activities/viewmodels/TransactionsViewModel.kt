@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.domains.asset.DEFAULT_TOKEN_RANK
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
@@ -50,7 +52,13 @@ class TransactionsViewModel @Inject constructor(
         Pair(chains, types.fold(emptyList<TransactionType>(), { acc, filter -> acc + filter.types }))
     }
     .flatMapLatest { (chains, types) ->
-        getTransactions.getTransactions(filterByChains = chains, filterByType = types)
+        getTransactions.getTransactions(
+            filters = listOf(
+                TransactionsRequestFilter.Chains(chains),
+                TransactionsRequestFilter.Types(types),
+                TransactionsRequestFilter.AssetRankGreaterThan(DEFAULT_TOKEN_RANK),
+            ),
+        )
     }
     .onEach {
         _state.update { false }

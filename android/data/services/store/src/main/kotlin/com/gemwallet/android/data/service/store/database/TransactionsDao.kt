@@ -4,17 +4,18 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.data.service.store.database.entities.DbAccount
+import com.gemwallet.android.data.service.store.database.entities.DbAsset
+import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.wallet.core.primitives.TransactionState
 import kotlinx.coroutines.flow.Flow
-
-const val SESSION_REQUEST = """SELECT accounts.address FROM accounts, session
-    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1"""
-const val SESSION_CHAINS_REQUEST = """SELECT UPPER(accounts.chain) FROM accounts, session
-    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1"""
-const val CURRENT_WALLET_REQUEST = """SELECT wallet_id FROM session WHERE session.id = 1"""
 
 @Dao
 interface TransactionsDao {
@@ -27,18 +28,28 @@ interface TransactionsDao {
 
     @Query("SELECT * FROM transactions WHERE state = :state")
     fun getByState(state: TransactionState): List<DbTransaction>
-    
-    @Query("SELECT * FROM extended_txs ORDER BY createdAt DESC")
-    fun getExtendedTransactions(): Flow<List<DbTransactionExtended>>
+
+    @RawQuery(
+        observedEntities = [
+            DbTransaction::class,
+            DbAsset::class,
+            DbPrice::class,
+            DbTxSwapMetadata::class,
+            DbAccount::class,
+            DbSession::class,
+        ]
+    )
+    fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
+
+    fun getExtendedTransactions(
+        filters: List<TransactionsRequestFilter> = emptyList(),
+    ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(filters).toSupportSQLiteQuery())
 
     @Query("SELECT * FROM extended_txs WHERE state = :state ORDER BY createdAt DESC")
     fun getExtendedTransactions(state: TransactionState): Flow<List<DbTransactionExtended>>
 
     @Query("SELECT COUNT(*) FROM extended_txs WHERE state = 'Pending' ORDER BY createdAt DESC")
     fun getPendingCount(): Flow<Int?>
-
-    @Query("SELECT * FROM extended_txs WHERE id IN (:ids) ORDER BY createdAt DESC")
-    fun getExtendedTransactions(ids: List<String>): Flow<List<DbTransactionExtended>>
 
     @Query("SELECT * FROM extended_txs WHERE id = :id")
     fun getExtendedTransaction(id: String): Flow<DbTransactionExtended?>

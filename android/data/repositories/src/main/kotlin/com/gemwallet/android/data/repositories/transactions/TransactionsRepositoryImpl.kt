@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.transactions
 import android.text.format.DateUtils
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.blockchain.model.ServiceUnavailable
 import com.gemwallet.android.blockchain.model.TransactionStateRequest
 import com.gemwallet.android.blockchain.services.TransactionStatusService
@@ -72,8 +73,8 @@ class TransactionsRepositoryImpl(
         return transactionsDao.getPendingCount()
     }
 
-    override fun getTransactions(): Flow<List<TransactionExtended>> {
-        return transactionsDao.getExtendedTransactions()
+    override fun getTransactions(filters: List<TransactionsRequestFilter>): Flow<List<TransactionExtended>> {
+        return transactionsDao.getExtendedTransactions(filters)
             .mapNotNull { items -> items.toDTO() }
     }
 

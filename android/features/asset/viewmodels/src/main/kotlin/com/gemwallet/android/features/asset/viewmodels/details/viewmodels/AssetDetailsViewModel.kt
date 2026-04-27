@@ -8,6 +8,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
@@ -129,7 +130,9 @@ class AssetDetailsViewModel @Inject constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    val transactions = assetId.flatMapLatest { getTransactions.getTransactions(it) }
+    val transactions = assetId.filterNotNull().flatMapLatest {
+        getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(it)))
+    }
         .map { it.toImmutableList() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
