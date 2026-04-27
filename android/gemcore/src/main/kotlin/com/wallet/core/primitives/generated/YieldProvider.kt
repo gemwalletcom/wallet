@@ -11,5 +11,7 @@ import kotlinx.serialization.SerialName
 enum class YieldProvider(val string: String) {
 	@SerialName("yo")
 	Yo("yo"),
+	@SerialName("tonstakers")
+	Tonstakers("tonstakers"),
 }
 

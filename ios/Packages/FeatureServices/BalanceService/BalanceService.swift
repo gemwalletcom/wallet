@@ -60,6 +60,9 @@ extension BalanceService: BalanceUpdater {
                     group.addTask {
                         await updateCoinStakeBalance(walletId: walletId, asset: chain.assetId, address: address)
                     }
+                    group.addTask {
+                        await updateEarnBalance(walletId: walletId, chain: chain, address: address, tokenIds: [])
+                    }
                 }
 
                 // token balance

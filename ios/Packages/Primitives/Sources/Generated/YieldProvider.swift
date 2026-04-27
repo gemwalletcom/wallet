@@ -6,4 +6,5 @@ import Foundation
 
 public enum YieldProvider: String, Codable, CaseIterable, Equatable, Sendable {
 	case yo
+	case tonstakers
 }
