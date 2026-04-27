@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
+import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.components.list_item.energyItem
@@ -38,6 +39,8 @@ import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +71,11 @@ internal fun AssetDetailsScene(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val snackBar = remember { SnackbarHostState() }
+    val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
+        { onSwap(uiState.asset.id, if (uiState.asset.type == AssetType.NATIVE) null else uiState.asset.id.chain.asset().id) }
+    } else {
+        null
+    }
 
     Scene(
         titleContent = {
@@ -115,7 +123,7 @@ internal fun AssetDetailsScene(
                         onTransfer = onTransfer,
                         onReceive = onReceive,
                         onBuy = onBuy,
-                        onSwap = onSwap
+                        onSwap = swapAction,
                     )
                 }
                 item { BannerItem(uiState.assetInfo, onStake, onConfirm) }
@@ -150,7 +158,7 @@ internal fun AssetDetailsScene(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
                         onBuy = if (uiState.isBuyEnabled) { { onBuy(uiState.asset.id) } } else null,
-                        onSwap = if (!uiState.isBuyEnabled && uiState.isSwapEnabled) { { onSwap(uiState.asset.id, null) } } else null,
+                        onSwap = if (!uiState.isBuyEnabled) swapAction else null,
                     )
                 }
                 transactionsList(transactions, onTransaction)
