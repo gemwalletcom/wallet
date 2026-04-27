@@ -38,6 +38,7 @@ import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,6 +150,7 @@ internal fun AssetDetailsScene(
                     EmptyTransactionsItem(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
+                        isViewOnly = uiState.accountInfoUIModel.walletType == WalletType.View,
                         onBuy = if (uiState.isBuyEnabled) { { onBuy(uiState.asset.id) } } else null,
                         onSwap = if (!uiState.isBuyEnabled && uiState.isSwapEnabled) { { onSwap(uiState.asset.id, null) } } else null,
                     )
