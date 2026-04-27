@@ -13,6 +13,7 @@ internal fun EmptyTransactionsItem(
     size: Int,
     symbol: String,
     modifier: Modifier = Modifier,
+    isViewOnly: Boolean = false,
     onBuy: (() -> Unit)? = null,
     onSwap: (() -> Unit)? = null,
 ) {
@@ -20,7 +21,7 @@ internal fun EmptyTransactionsItem(
         return
     }
     EmptyContentView(
-        type = EmptyContentType.Asset(symbol = symbol, onBuy = onBuy, onSwap = onSwap),
+        type = EmptyContentType.Asset(symbol = symbol, onBuy = onBuy, onSwap = onSwap, isViewOnly = isViewOnly),
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = paddingLarge),
