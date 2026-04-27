@@ -33,6 +33,7 @@ fun FormDialog(
     onDismiss: () -> Unit,
     onClear: (() -> Unit)? = null,
     doneAction: @Composable (() -> Unit)? = null,
+    bottomAction: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = fullScreen)
@@ -47,7 +48,14 @@ fun FormDialog(
                     .normalPadding(),
             ) {
                 Box(modifier = Modifier.weight(0.5f)) {
-                    (doneAction)?.let {
+                    if (onClear != null) {
+                        TextButton(
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            onClick = onClear,
+                        ) {
+                            Text(stringResource(R.string.filter_clear))
+                        }
+                    } else if (doneAction != null) {
                         TextButton(
                             modifier = Modifier.align(Alignment.CenterStart),
                             onClick = onDismiss,
@@ -55,16 +63,6 @@ fun FormDialog(
                             Text(stringResource(R.string.common_cancel))
                         }
                     }
-                        ?:
-                    (onClear)?.let {
-                        TextButton(
-                            modifier = Modifier.align(Alignment.CenterStart),
-                            onClick = it,
-                        ) {
-                            Text(stringResource(R.string.filter_clear))
-                        }
-                    }
-
                 }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -101,7 +99,14 @@ fun FormDialog(
         },
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            content()
+            if (bottomAction == null) {
+                content()
+            } else {
+                Column(modifier = Modifier.weight(1f)) {
+                    content()
+                }
+                Box(modifier = Modifier.normalPadding()) { bottomAction() }
+            }
         }
     }
 }

@@ -71,24 +71,12 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
-    fun onChainFilter(chain: Chain) {
-        chainsFilter.update {
-            val chains = it.toMutableList()
-            if (!chains.remove(chain)) {
-                chains.add(chain)
-            }
-            chains.toList()
-        }
+    fun applyChainsFilter(chains: List<Chain>) {
+        chainsFilter.update { chains }
     }
 
-    fun onTypeFilter(type: TransactionTypeFilter) {
-        typeFilter.update {
-            val types = it.toMutableList()
-            if (!types.remove(type)) {
-                types.add(type)
-            }
-            types.toList()
-        }
+    fun applyTypesFilter(types: List<TransactionTypeFilter>) {
+        typeFilter.update { types }
     }
 
     fun clearChainsFilter() {
