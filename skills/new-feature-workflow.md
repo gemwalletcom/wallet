@@ -57,6 +57,8 @@ Read `android/AGENTS.md`. Work in `android/`.
 just build           # builds both platforms end-to-end
 ```
 
+For pure Core-only changes, run the Core checks, regenerate bindings/models, and verify at least one platform. If the change includes iOS or Android app code, generated app output, or platform-specific behavior, verify both platforms.
+
 ## Rules
 
 - Always start from Core and work outward — do not stub mobile code before the Rust types exist

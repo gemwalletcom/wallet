@@ -26,7 +26,7 @@ Read the relevant platform guide(s) before editing code in that area:
 - [Android](android/AGENTS.md) — Kotlin, Compose, Hilt, Gradle workflow
 - [Core](core/AGENTS.md) — Rust crates, UniFFI/TypeShare, clippy, defensive programming
 
-If a task spans multiple platforms, read every affected guide. If you touch `core/`, treat it as a cross-platform change and verify both apps.
+If a task spans multiple platforms, read every affected guide. If you touch only `core/`, treat it as shared code: regenerate bindings/models and verify at least one platform. If the change also touches app code, generated app output, or platform-specific behavior, verify both iOS and Android.
 
 ## Security
 
@@ -49,7 +49,7 @@ Before finishing a task:
 2. Run the relevant test suites
 3. Run the relevant linters and formatters when code changed
 4. Review security impact for changes affecting secrets, signing, auth, transactions, or wallet recovery
-5. If `core/` changed, regenerate bindings/models and verify both apps
+5. If only `core/` changed, regenerate bindings/models and verify at least one platform; if app code or generated app output changed, verify both iOS and Android
 6. Remove dead code, keep imports clean, and follow platform patterns
 
 Do not close a task based only on reasoning, `git diff`, or file inspection. Run real verification commands for the changed area. If verification is blocked by unrelated repo state, report the exact command you ran and the blocking failure explicitly.

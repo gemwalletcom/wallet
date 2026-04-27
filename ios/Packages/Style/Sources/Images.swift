@@ -89,6 +89,7 @@ public enum Images {
 
     public enum EarnProviders {
         public static let yo = Image(.yo)
+        public static let tonstakers = Image(.tonstakers)
     }
 
     public enum Fiat {

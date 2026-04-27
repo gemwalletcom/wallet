@@ -55,6 +55,7 @@ public struct ValidatorViewModel {
         case .earn:
             switch YieldProvider(rawValue: validator.id) {
             case .yo: Images.EarnProviders.yo
+            case .tonstakers: Images.EarnProviders.tonstakers
             case .none: nil
             }
         }
