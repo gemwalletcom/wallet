@@ -47,9 +47,10 @@ public struct PerpetualScene: View {
                     .frame(height: 320)
 
                     PeriodSelectorView(selectedPeriod: $model.currentPeriod)
+                        .padding(.horizontal, Spacing.medium)
                 }
             }
-            .cleanListRow()
+            .fullWidthSection()
 
             ForEach(model.positionViewModels) { position in
                 Section {

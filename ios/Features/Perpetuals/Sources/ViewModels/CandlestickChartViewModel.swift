@@ -13,7 +13,7 @@ struct CandlestickChartViewModel {
         static let labelOverlapPriceFraction = 0.06
         static let labelOverlapSpacing: CGFloat = 115
         static let xAxisTickCount = 6
-        static let yAxisTickCount = 5
+        static let yAxisTickCount = 4
     }
 
     let candles: [ChartCandleStick]

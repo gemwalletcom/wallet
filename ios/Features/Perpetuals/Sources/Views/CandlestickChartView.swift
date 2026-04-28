@@ -35,6 +35,7 @@ struct CandlestickChartView: View {
         VStack {
             priceHeader
             chart
+                .padding(.bottom, Spacing.small)
         }
     }
 
