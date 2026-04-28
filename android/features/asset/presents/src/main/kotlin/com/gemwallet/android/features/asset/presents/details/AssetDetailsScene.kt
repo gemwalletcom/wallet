@@ -157,6 +157,7 @@ internal fun AssetDetailsScene(
                     EmptyTransactionsItem(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
+                        isViewOnly = uiState.accountInfoUIModel.walletType == WalletType.View,
                         onBuy = if (uiState.isBuyEnabled) { { onBuy(uiState.asset.id) } } else null,
                         onSwap = if (!uiState.isBuyEnabled) swapAction else null,
                     )

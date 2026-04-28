@@ -62,7 +62,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import uniffi.gemstone.Explorer
 import javax.inject.Inject
 
@@ -202,8 +201,9 @@ class AssetDetailsViewModel @Inject constructor(
     fun pin() = viewModelScope.launch(Dispatchers.IO) {
         val wallet = session.value?.wallet ?: return@launch
         val assetInfo = model.value?.assetInfo ?: return@launch
-        add(wallet, assetInfo.id())
-        assetsRepository.togglePin(wallet.id, assetInfo.id())
+        val assetId = assetInfo.id()
+        wallet.getAccount(assetId) ?: return@launch
+        assetsRepository.togglePin(wallet.id, assetId)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {
@@ -214,10 +214,9 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     private suspend fun add(wallet: Wallet, assetId: AssetId) {
-        val account = wallet.getAccount(assetId) ?: return
+        wallet.getAccount(assetId) ?: return
         assetsRepository.switchVisibility(
             walletId = wallet.id,
-            owner = account,
             assetId = assetId,
             true
         )

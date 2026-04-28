@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,11 +75,10 @@ import com.gemwallet.android.ui.theme.actionIconSize
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
-import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.alpha50
-import com.gemwallet.android.ui.theme.alpha90
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space10
 import com.wallet.core.primitives.Asset
@@ -276,9 +276,13 @@ private fun AssetWatchOnly() {
         enabled = true,
         colors = ButtonDefaults
             .buttonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha50),
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha10)
-            )
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                containerColor = MaterialTheme.colorScheme.background,
+            ),
+        contentPadding = PaddingValues(
+            horizontal = paddingDefault,
+            vertical = paddingMiddle,
+        ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -286,13 +290,14 @@ private fun AssetWatchOnly() {
             Icon(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
             )
             Spacer8()
             Text(
                 text = stringResource(id = R.string.wallet_watch_tooltip_title),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.W400,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Spacer8()
             IconButton(
@@ -304,7 +309,6 @@ private fun AssetWatchOnly() {
                 Icon(
                     imageVector = Icons.Outlined.Info,
                     contentDescription = stringResource(R.string.common_learn_more),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
                 )
             }
         }

@@ -49,14 +49,16 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     }
 
     public func getWallets(for proposal: Session.Proposal) throws -> [Wallet] {
-        let requiredChains = proposal.requiredChains
-        let optionalChains = proposal.optionalChains
+        guard let requiredChains = proposal.supportedRequiredChains else { return [] }
+        let optionalChains = proposal.supportedOptionalChains
 
         return try walletSessionService.getWallets()
             .filter {
                 guard !$0.isViewOnly else { return false }
 
-                let walletChains = $0.accounts.map(\.chain).asSet()
+                let walletChains = $0.accounts.map(\.chain).filter { $0 != .bitcoin }.asSet()
+                guard walletChains.isNotEmpty else { return false }
+
                 if requiredChains.isNotEmpty {
                     return walletChains.isSuperset(of: requiredChains)
                 }
@@ -137,26 +139,13 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
         )
     }
 
-    private func buildBitcoinTransferData(chain: Chain, transaction: String) throws -> TransferData {
-        let transfer = try JSONDecoder().decode(WCBitcoinTransfer.self, from: transaction.encodedData())
-        return TransferData(
-            type: .transfer(chain.asset),
-            recipientData: RecipientData(
-                recipient: Recipient(name: .none, address: transfer.recipientAddress, memo: transfer.memo),
-                amount: .none,
-            ),
-            value: BigInt(stringLiteral: transfer.amount),
-            canChangeValue: false,
-        )
-    }
-
     public func signTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
         let wallet = try getWallet(id: session.wallet.walletId)
 
         switch transaction {
-        case .ethereum, .bitcoin:
+        case .ethereum:
             throw AnyError("Not supported")
         case let .solana(transaction, outputType),
              let .sui(transaction, outputType),
@@ -235,9 +224,6 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
                 outputAction: .send,
             )
             return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
-        case let .bitcoin(transaction, _):
-            let transferData = try buildBitcoinTransferData(chain: chain, transaction: transaction)
-            return try await walletConnectorInteractor.sendTransaction(transferData: WCTransferData(tranferData: transferData, wallet: wallet, simulation: simulation))
         }
     }
 
@@ -279,17 +265,27 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
 }
 
 extension Session.Proposal {
-    var requiredChains: Set<Chain> {
-        requiredNamespaces.values
+    var supportedRequiredChains: Set<Chain>? {
+        requiredNamespaces.fullySupportedChains
+    }
+
+    var supportedOptionalChains: Set<Chain> {
+        optionalNamespaces?.supportedChains ?? []
+    }
+}
+
+private extension [String: ProposalNamespace] {
+    var fullySupportedChains: Set<Chain>? {
+        let blockchains = values.flatMap { $0.chains ?? [] }
+        let chains = blockchains.compactMap(\.chain)
+        guard chains.count == blockchains.count else { return .none }
+        return chains.asSet()
+    }
+
+    var supportedChains: Set<Chain> {
+        values
             .flatMap { $0.chains ?? [] }
             .compactMap(\.chain)
             .asSet()
-    }
-
-    var optionalChains: Set<Chain> {
-        optionalNamespaces?.values
-            .flatMap { $0.chains ?? [] }
-            .compactMap(\.chain)
-            .asSet() ?? []
     }
 }

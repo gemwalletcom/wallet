@@ -130,13 +130,13 @@ open class BaseAssetSelectViewModel(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
 
     val pinned = assets.map { items: List<AssetItemUIModel> ->
-        items.filter { it.metadata?.isPinned == true }.toImmutableList()
+        items.filter { it.metadata?.isPinned == true && it.metadata?.isBalanceEnabled == true }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
 
     val unpinned = assets.map { items: List<AssetItemUIModel> ->
-        items.filter { it.metadata?.isPinned != true }.toImmutableList()
+        items.filter { it.metadata?.isPinned != true || it.metadata?.isBalanceEnabled != true }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetItemUIModel>().toImmutableList())
@@ -168,14 +168,13 @@ open class BaseAssetSelectViewModel(
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {
         val session = session.value ?: return@launch
-        val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        switchAssetVisibility(session.wallet.id, account, assetId, visible)
+        session.wallet.getAccount(assetId.chain) ?: return@launch
+        switchAssetVisibility(session.wallet.id, assetId, visible)
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch {
         val session = session.value ?: return@launch
-        val account = session.wallet.getAccount(assetId.chain) ?: return@launch
-        switchAssetVisibility(session.wallet.id, account, assetId, true)
+        session.wallet.getAccount(assetId.chain) ?: return@launch
         toggleAssetPin(session.wallet.id, assetId)
     }
 

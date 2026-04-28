@@ -3,6 +3,7 @@ package com.gemwallet.android.data.service.store.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AssetBalance
@@ -11,16 +12,28 @@ import com.wallet.core.primitives.BalanceMetadata
 
 @Entity(
     tableName = "balances",
-    primaryKeys = ["asset_id", "wallet_id", "account_address"],
+    primaryKeys = ["asset_id", "wallet_id"],
+    indices = [Index("wallet_id")],
     foreignKeys = [
-        ForeignKey(DbAsset::class, ["id"], ["asset_id"], onDelete = ForeignKey.Companion.CASCADE),
-        ForeignKey(DbWallet::class, ["id"], ["wallet_id"], onDelete = ForeignKey.Companion.CASCADE),
+        ForeignKey(
+            entity = DbAsset::class,
+            parentColumns = ["id"],
+            childColumns = ["asset_id"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = DbWallet::class,
+            parentColumns = ["id"],
+            childColumns = ["wallet_id"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
     ],
 )
 data class DbBalance(
     @ColumnInfo("asset_id") val assetId: String,
     @ColumnInfo("wallet_id") val walletId: String,
-    @ColumnInfo("account_address") val accountAddress: String,
 
     var available: String = "0",
     @ColumnInfo("available_amount") var availableAmount: Double = 0.0,
@@ -45,6 +58,9 @@ data class DbBalance(
 
     @ColumnInfo("total_amount") var totalAmount: Double = 0.0,
     @ColumnInfo("is_active") var isActive: Boolean = true,
+    @ColumnInfo("is_pinned") var isPinned: Boolean = false,
+    @ColumnInfo("is_visible") var isVisible: Boolean = false,
+    @ColumnInfo("list_position") var listPosition: Int = 0,
     @ColumnInfo("votes", defaultValue = "0") var votes: Long = 0L,
     @ColumnInfo("energy_available", defaultValue = "0") var energyAvailable: Long = 0L,
     @ColumnInfo("energy_total", defaultValue = "0") var energyTotal: Long = 0L,
@@ -85,4 +101,3 @@ fun DbBalance.toDTO(): AssetBalance? {
         )
     )
 }
-

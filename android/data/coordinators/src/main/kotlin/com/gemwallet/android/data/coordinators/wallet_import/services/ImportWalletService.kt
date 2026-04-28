@@ -59,8 +59,8 @@ class ImportWalletService(
                 val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull()
                 val assetsToImport = assets?.map { it.asset }
                     ?.mapNotNull { asset ->
-                        val account = wallet.getAccount(asset.chain)?.address ?: return@mapNotNull null
-                        account to asset
+                        wallet.getAccount(asset.chain) ?: return@mapNotNull null
+                        asset
                     } ?: emptyList()
                 assetsRepository.add(
                     walletId = wallet.id,

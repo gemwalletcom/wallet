@@ -239,24 +239,6 @@ private fun WalletConnectTransaction.map(
             amount = BigInteger.ZERO,
             isSendable = isSendable,
         )
-        is WalletConnectTransaction.Bitcoin -> Generic(
-            requestId = request.requestId.toString(),
-            asset = asset,
-            from = request.account,
-            memo = data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = "",
-            inputType = when (outputType) {
-                TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-                TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-            },
-            destination = DestinationAddress(""),
-            amount = BigInteger.ZERO,
-            isSendable = isSendable,
-        )
         is WalletConnectTransaction.Ton -> Generic(
             requestId = request.requestId.toString(),
             asset = asset,

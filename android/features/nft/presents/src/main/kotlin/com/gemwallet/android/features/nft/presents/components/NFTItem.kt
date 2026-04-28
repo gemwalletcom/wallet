@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.nft.presents.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -38,16 +37,23 @@ fun NFTItem(
     assetIdAction: NftAssetIdAction,
 ) {
     Card(
+        onClick = { model.onClick(collectionIdAction, assetIdAction) },
         modifier = Modifier
-            .clickable(onClick = { model.onClick(collectionIdAction, assetIdAction) })
-            .padding(start = paddingSmall, bottom = paddingDefault, end = paddingSmall),
-        colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.surface),
+            .fillMaxWidth()
+            .padding(bottom = paddingDefault),
+        shape = RoundedCornerShape(paddingDefault + paddingSmall),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Column {
-            Box {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(paddingSmall),
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 NftImage(
                     source = model.toImageSource(),
                     modifier = Modifier
+                        .fillMaxWidth()
                         .aspectRatio(1f)
                         .clip(RoundedCornerShape(paddingDefault)),
                 )
@@ -64,9 +70,7 @@ fun NFTItem(
             NftTitle(
                 name = model.name,
                 status = model.collection.status,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = paddingSmall),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }

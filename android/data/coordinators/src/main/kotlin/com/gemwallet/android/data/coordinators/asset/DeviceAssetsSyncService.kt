@@ -57,8 +57,8 @@ class DeviceAssetsSyncService @Inject constructor(
 
     private suspend fun enableAssets(wallet: Wallet, assetIds: Collection<AssetId>) {
         assetIds.forEach { assetId ->
-            val account = wallet.getAccount(assetId) ?: return@forEach
-            assetsRepository.switchVisibility(wallet.id, account, assetId, true)
+            wallet.getAccount(assetId) ?: return@forEach
+            assetsRepository.switchVisibility(wallet.id, assetId, true)
         }
     }
 

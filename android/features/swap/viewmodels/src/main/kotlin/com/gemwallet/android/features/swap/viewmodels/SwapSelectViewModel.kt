@@ -156,7 +156,6 @@ class SwapSelectSearch(
                     }
             }
         }
-        .map { items -> items.distinctBy { it.asset.id.toIdentifier() } }
     }
 
     private fun getOppositeAssetId(type: SwapItemType?, payId: AssetId?, receiveId: AssetId?) =  when (type) {

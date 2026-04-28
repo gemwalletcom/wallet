@@ -21,7 +21,7 @@ class SyncAssetInfoImpl(
 ) : SyncAssetInfo {
 
     override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet): Unit = withContext(Dispatchers.IO) {
-        val account = wallet.getAccount(assetId) ?: return@withContext
+        wallet.getAccount(assetId) ?: return@withContext
 
         streamSubscriptionService.addAssetIds(listOf(assetId))
 
@@ -29,7 +29,6 @@ class SyncAssetInfoImpl(
             async {
                 ensureWalletAsset(
                     walletId = wallet.id,
-                    accountAddress = account.address,
                     assetId = assetId,
                 )
             }
@@ -43,13 +42,11 @@ class SyncAssetInfoImpl(
 
     private suspend fun ensureWalletAsset(
         walletId: String,
-        accountAddress: String,
         assetId: AssetId,
     ) = assetsRepository.getAssetInfo(assetId).firstOrNull()
         ?: assetsRepository.getTokenInfo(assetId).firstOrNull()?.also { asset ->
             assetsRepository.linkAssetToWallet(
                 walletId = walletId,
-                accountAddress = accountAddress,
                 assetId = asset.asset.id,
                 visible = asset.metadata?.isBalanceEnabled ?: true,
             )

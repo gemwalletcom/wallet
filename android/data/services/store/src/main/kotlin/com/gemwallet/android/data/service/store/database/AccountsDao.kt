@@ -12,10 +12,10 @@ interface AccountsDao {
     @Query("SELECT * FROM accounts WHERE wallet_id = :walletId")
     suspend fun getByWalletId(walletId: String): List<DbAccount>
 
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(account: DbAccount)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(account: List<DbAccount>)
 
     @Delete

@@ -26,7 +26,7 @@ fun SelectionCheckmark(
         Box(
             modifier = Modifier
                 .size(size / 1.5f)
-                .background(MaterialTheme.colorScheme.background, CircleShape),
+                .background(MaterialTheme.colorScheme.onPrimary, CircleShape),
         )
         Icon(
             modifier = Modifier.size(size),

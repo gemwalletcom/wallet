@@ -15,10 +15,9 @@ class AddCustomTokenImpl(
 
     override suspend fun invoke(chain: Chain, assetId: AssetId) {
         val session = sessionRepository.session().firstOrNull() ?: return
-        val owner = session.wallet.getAccount(chain) ?: return
+        session.wallet.getAccount(chain) ?: return
         assetsRepository.switchVisibility(
             walletId = session.wallet.id,
-            owner = owner,
             assetId = assetId,
             visibility = true,
         )

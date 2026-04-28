@@ -7,6 +7,7 @@ import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.available
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,6 @@ class CheckAccountsService @Inject constructor(
                 return@forEach
             }
 
-            val availableChains = nativeAssets.map { it.id.chain }.toSet()
             val accountChains = wallet.accounts.map { it.chain }.toSet()
             val newChains = Chain.available().filterNot(accountChains::contains)
 
@@ -57,7 +57,9 @@ class CheckAccountsService @Inject constructor(
                 return@forEach
             }
 
-            if (availableChains != accountChains) {
+            val nativeAssetIds = nativeAssets.map { it.id }.toSet()
+            val missingNativeAssetIds = accountChains.map { AssetId(it) }.filterNot(nativeAssetIds::contains)
+            if (missingNativeAssetIds.isNotEmpty()) {
                 assetsRepository.invalidateDefault(wallet)
             }
         }
