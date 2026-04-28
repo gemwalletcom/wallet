@@ -9,8 +9,12 @@ import Style
 import SwiftUI
 
 struct CandlestickChartViewModel {
-    private static let labelOverlapPriceFraction = 0.06
-    private static let labelOverlapSpacing: CGFloat = 115
+    enum Constants {
+        static let labelOverlapPriceFraction = 0.06
+        static let labelOverlapSpacing: CGFloat = 115
+        static let xAxisTickCount = 6
+        static let yAxisTickCount = 5
+    }
 
     let candles: [ChartCandleStick]
 
@@ -22,7 +26,7 @@ struct CandlestickChartViewModel {
         candles: [ChartCandleStick],
         period: ChartPeriod = .day,
         lines: [ChartLineViewModel] = [],
-        formatter: CurrencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
+        formatter: CurrencyFormatter,
     ) {
         self.candles = candles
         self.lines = lines
@@ -30,41 +34,54 @@ struct CandlestickChartViewModel {
         self.formatter = formatter
     }
 
-    private var bounds: ChartBounds {
-        ChartBounds(candles: candles, lines: lines)
-    }
-
     var xAxisRange: ClosedRange<Date> {
         (candles.first?.date ?? Date()) ... (candles.last?.date ?? Date())
     }
 
     var yAxisRange: ClosedRange<Double> {
-        bounds.minPrice ... bounds.maxPrice
+        let linePrices = visibleLines.map(\.price)
+        let lowest = min(candleMin, linePrices.min() ?? candleMin)
+        let highest = max(candleMax, linePrices.max() ?? candleMax)
+        let padding = (highest - lowest) * 0.05
+        let lowerBound = max(lowest - padding, lowest * 0.95)
+        return lowerBound ... (highest + padding)
     }
 
     var visibleLines: [ChartLineViewModel] {
-        bounds.visibleLines
+        let buffer = (candleMax - candleMin) * 0.5
+        return lines
+            .filter { $0.price >= candleMin - buffer && $0.price <= candleMax + buffer }
+            .sorted { $0.price < $1.price }
     }
 
-    var priceAxisFormat: FloatingPointFormatStyle<Double> {
-        bounds.axisFormat
+    var yAxisTicks: [Double] {
+        guard candleMax > candleMin else { return [candleMin, candleMax] }
+        let step = (candleMax - candleMin) / Double(Constants.yAxisTickCount - 1)
+        return (0 ..< Constants.yAxisTickCount).map { candleMin + Double($0) * step }
+    }
+
+    private var candleMin: Double { candles.map(\.low).min() ?? 0 }
+    private var candleMax: Double { candles.map(\.high).max() ?? 1 }
+
+    func formattedPrice(_ price: Double) -> String {
+        formatter.string(double: price, symbol: nil)
     }
 
     var lineLabelOffsets: [CGFloat] {
-        let bounds = bounds
-        let visible = bounds.visibleLines
-        let threshold = (bounds.maxPrice - bounds.minPrice) * Self.labelOverlapPriceFraction
+        let visible = visibleLines
+        let range = yAxisRange
+        let threshold = (range.upperBound - range.lowerBound) * Constants.labelOverlapPriceFraction
         return visible.indices.reduce(into: [CGFloat]()) { offsets, index in
             let previous = offsets.last ?? 0
             let overlapsPrevious = index > 0 && abs(visible[index].price - visible[index - 1].price) < threshold
-            offsets.append(overlapsPrevious ? previous + Self.labelOverlapSpacing : previous)
+            offsets.append(overlapsPrevious ? previous + Constants.labelOverlapSpacing : previous)
         }
     }
 
     var currentPrice: Double? { candles.last?.close }
     var currentPriceColor: Color { candles.last.map(candleColor(for:)) ?? Colors.gray }
 
-    func headerModel(selectedCandle: ChartCandleStick?) -> ChartHeaderViewModel? {
+    func headerModel(for selectedCandle: ChartCandleStick?) -> ChartHeaderViewModel? {
         guard let target = selectedCandle ?? candles.last, let base = candles.first?.close else { return nil }
         return ChartHeaderViewModel(
             period: period,

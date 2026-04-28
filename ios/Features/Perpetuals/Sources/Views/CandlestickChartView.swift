@@ -40,7 +40,7 @@ struct CandlestickChartView: View {
 
     private var priceHeader: some View {
         VStack {
-            if let headerModel = model.headerModel(selectedCandle: selectedCandle) {
+            if let headerModel = model.headerModel(for: selectedCandle) {
                 ChartHeaderView(model: headerModel)
             }
         }
@@ -77,20 +77,20 @@ struct CandlestickChartView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(position: .bottom, values: .automatic(desiredCount: 6)) { _ in
+            AxisMarks(position: .bottom, values: .automatic(desiredCount: CandlestickChartViewModel.Constants.xAxisTickCount)) { _ in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
             }
         }
         .chartYAxis {
-            AxisMarks(position: .trailing, values: .automatic(desiredCount: ChartBounds.desiredTickCount)) { value in
+            AxisMarks(position: .trailing, values: model.yAxisTicks) { value in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
                 AxisTick(stroke: StrokeStyle(lineWidth: ChartGridStyle.lineWidth))
                     .foregroundStyle(ChartGridStyle.color)
                 AxisValueLabel {
                     if let price = value.as(Double.self) {
-                        Text(price, format: model.priceAxisFormat)
+                        Text(model.formattedPrice(price))
                             .font(.caption2)
                             .foregroundStyle(Colors.gray)
                             .padding(.horizontal, .extraSmall)
@@ -101,7 +101,7 @@ struct CandlestickChartView: View {
                 AxisMarks(position: .trailing, values: [currentPrice]) { value in
                     AxisValueLabel {
                         if let price = value.as(Double.self) {
-                            Text(price, format: model.priceAxisFormat)
+                            Text(model.formattedPrice(price))
                                 .font(.caption2)
                                 .foregroundStyle(Colors.whiteSolid)
                                 .padding(.horizontal, .extraSmall)

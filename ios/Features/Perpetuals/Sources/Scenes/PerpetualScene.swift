@@ -1,4 +1,5 @@
 import Components
+import Formatters
 import InfoSheet
 import Localization
 import PerpetualService
@@ -26,7 +27,15 @@ public struct PerpetualScene: View {
                         case .loading: LoadingView()
                         case let .data(data):
                             CandlestickChartView(
-                                model: CandlestickChartViewModel(candles: data, period: model.currentPeriod, lines: model.chartLineModels)
+                                model: CandlestickChartViewModel(
+                                    candles: data,
+                                    period: model.currentPeriod,
+                                    lines: model.chartLineModels,
+                                    formatter: CurrencyFormatter(
+                                        type: .currency,
+                                        currencyCode: Currency.usd.rawValue,
+                                    ),
+                                )
                             )
                         case let .error(error):
                             StateEmptyView(
