@@ -24,7 +24,10 @@ public struct PerpetualScene: View {
                         switch model.state {
                         case .noData: StateEmptyView.noData()
                         case .loading: LoadingView()
-                        case let .data(data): CandlestickChartView(data: data, period: model.currentPeriod, lineModels: model.chartLineModels)
+                        case let .data(data):
+                            CandlestickChartView(
+                                model: CandlestickChartViewModel(candles: data, period: model.currentPeriod, lines: model.chartLineModels)
+                            )
                         case let .error(error):
                             StateEmptyView(
                                 title: error.networkOrNoDataDescription,
