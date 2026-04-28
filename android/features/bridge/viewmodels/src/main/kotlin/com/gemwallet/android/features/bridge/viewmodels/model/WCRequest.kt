@@ -7,6 +7,8 @@ import com.gemwallet.android.math.hexToBigInteger
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
 import com.gemwallet.android.model.DestinationAddress
+import com.gemwallet.android.ui.models.PayloadField
+import com.gemwallet.android.ui.models.withExplorerLinks
 import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
@@ -14,7 +16,6 @@ import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import uniffi.gemstone.MessageSigner
 import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
-import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationResult
 import uniffi.gemstone.TransferDataOutputType
 import uniffi.gemstone.WalletConnect
@@ -49,6 +50,7 @@ sealed class WCRequest(
         appMetadata: WalletConnectionSessionAppMetadata,
         val action: WalletConnectAction.SignMessage,
         val simulation: SimulationResult,
+        private val explorerName: String?,
     ) : WCRequest(sessionRequest, account, appMetadata) {
 
         private val signer by lazy {
@@ -66,11 +68,19 @@ sealed class WCRequest(
         val plainMessage: String
             get() = signer.getOrNull()?.plainPreview() ?: action.data
 
-        val primaryPayloadFields: List<SimulationPayloadField>
-            get() = payloadPreview?.primary?.map { it.toPrimitives() }.orEmpty()
+        val primaryPayloadFields: List<PayloadField> by lazy {
+            payloadPreview?.primary
+                ?.map { it.toPrimitives() }
+                .orEmpty()
+                .withExplorerLinks(chain, explorerName)
+        }
 
-        val secondaryPayloadFields: List<SimulationPayloadField>
-            get() = payloadPreview?.secondary?.map { it.toPrimitives() }.orEmpty()
+        val secondaryPayloadFields: List<PayloadField> by lazy {
+            payloadPreview?.secondary
+                ?.map { it.toPrimitives() }
+                .orEmpty()
+                .withExplorerLinks(chain, explorerName)
+        }
 
         val hasPayload: Boolean
             get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
