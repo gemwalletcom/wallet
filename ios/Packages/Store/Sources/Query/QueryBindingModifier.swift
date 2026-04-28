@@ -10,7 +10,7 @@ struct QueryBindingModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onAppear {
+            .onChange(of: queries.map { ObjectIdentifier($0) }, initial: true) {
                 for query in queries {
                     query.bind(dbQueue: database.dbQueue)
                 }

@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.blockchain.services.PerpetualService
-import com.gemwallet.android.data.repositories.BuildConfig
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.Chain

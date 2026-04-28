@@ -7,7 +7,6 @@ import com.gemwallet.android.blockchain.clients.cosmos.CosmosSignClient
 import com.gemwallet.android.blockchain.clients.polkadot.PolkadotSignClient
 import com.gemwallet.android.blockchain.clients.solana.SolanaSignClient
 import com.gemwallet.android.blockchain.clients.sui.SuiSignClient
-import com.gemwallet.android.blockchain.clients.ton.TonSignClient
 import com.gemwallet.android.blockchain.clients.tron.TronSignClient
 import com.gemwallet.android.blockchain.clients.xrp.XrpSignClient
 import com.gemwallet.android.blockchain.services.BroadcastService
@@ -61,7 +60,6 @@ object DataModule {
                 ChainType.Bitcoin -> BitcoinSignClient(it)
                 ChainType.Solana -> SolanaSignClient(it, assetsRepository)
                 ChainType.Cosmos -> CosmosSignClient(it)
-                ChainType.Ton -> TonSignClient(it)
                 ChainType.Tron -> TronSignClient(it)
 
                 ChainType.Xrp -> XrpSignClient(it)
@@ -73,7 +71,8 @@ object DataModule {
                 ChainType.HyperCore,
                 ChainType.Near,
                 ChainType.Algorand,
-                ChainType.Stellar -> return@mapNotNull null
+                ChainType.Stellar,
+                ChainType.Ton -> return@mapNotNull null
             }
         } + listOf(SignService()),
     )

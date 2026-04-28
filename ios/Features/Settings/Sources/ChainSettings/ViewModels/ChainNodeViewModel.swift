@@ -52,18 +52,11 @@ struct ChainNodeViewModel: Sendable {
     }
 
     var titleTagType: TitleTagType {
-        switch statusState {
-        case .result, .error: .none
-        case .none: .progressView(scale: 1.24)
-        }
+        nodeStatusModel.titleTagType
     }
 
     var titleTagStyle: TextStyle {
-        TextStyle(
-            font: .footnote.weight(.medium),
-            color: nodeStatusModel.color,
-            background: nodeStatusModel.background,
-        )
+        nodeStatusModel.titleTagStyle
     }
 
     private var nodeStatusModel: NodeStatusStateViewModel {

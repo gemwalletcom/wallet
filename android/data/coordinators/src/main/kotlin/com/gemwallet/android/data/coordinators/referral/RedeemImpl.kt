@@ -41,9 +41,9 @@ class RedeemImpl(
         )
         sessionRepository.session().firstOrNull()?.let {
             val assetId = option.asset?.id ?: return@let
-            val account = it.wallet.getAccount(assetId.chain) ?: return@let
+            it.wallet.getAccount(assetId.chain) ?: return@let
             tokensRepository.search(assetId, it.currency)
-            assetsRepository.switchVisibility(it.wallet.id, account, assetId, true)
+            assetsRepository.switchVisibility(it.wallet.id, assetId, true)
         }
         return result
     }

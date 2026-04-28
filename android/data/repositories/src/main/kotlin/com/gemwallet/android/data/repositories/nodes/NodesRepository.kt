@@ -15,7 +15,6 @@ import com.gemwallet.android.cases.nodes.toNode
 import com.gemwallet.android.data.service.store.ConfigStore
 import com.gemwallet.android.data.service.store.database.NodesDao
 import com.gemwallet.android.data.service.store.database.entities.DbNode
-import com.gemwallet.android.ext.findByString
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.hash
 import com.gemwallet.android.model.Transaction
@@ -23,20 +22,17 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import com.wallet.core.primitives.NodeState
-import uniffi.gemstone.GemExplorerInput
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
 import uniffi.gemstone.Explorer
+import uniffi.gemstone.GemExplorerInput
 
 class NodesRepository(
     private val nodesDao: NodesDao,
     private val configStore: ConfigStore,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
     private val config: Config = Config(),
 ) : SetCurrentNodeCase,
     GetCurrentNodeCase,
@@ -48,19 +44,15 @@ class NodesRepository(
     DeleteNodeCase
 {
 
-    init {
-        scope.launch { sync() }
-    }
-
     override suspend fun getNodes(chain: Chain): Flow<List<Node>> = withContext(Dispatchers.IO) {
         val gemNodes = getGemNodes(chain)
-        val configNodeUrls = configNodeUrls(chain)
+        val configNodes = configNodes(chain)
 
         nodesDao.getNodes(chain).map { nodes ->
             mergeNodes(
                 gemNodes = gemNodes,
+                configNodes = configNodes,
                 storedNodes = nodes.map { Node(it.url, it.status, it.priority) },
-                configNodeUrls = configNodeUrls,
             )
         }
     }
@@ -150,21 +142,6 @@ class NodesRepository(
         )
     }
 
-    private suspend fun sync() {
-        val nodes = config.getNodes().mapNotNull { entry ->
-            entry.value.mapNotNull {
-                val node = it.toNode()
-                DbNode(
-                    chain = Chain.findByString(entry.key) ?: return@mapNotNull null,
-                    url = node.url,
-                    status = node.status,
-                    priority = node.priority,
-                )
-            }
-        }.flatten()
-        nodesDao.addNodes(nodes)
-    }
-
     private fun canDelete(chain: Chain, url: String): Boolean {
         return canDeleteNode(
             url = url,
@@ -173,11 +150,15 @@ class NodesRepository(
         )
     }
 
-    private fun configNodeUrls(chain: Chain): Set<String> {
+    private fun configNodes(chain: Chain): List<Node> {
         return config
             .getNodes()[chain.string]
             .orEmpty()
-            .mapTo(linkedSetOf()) { it.url }
+            .map { it.toNode() }
+    }
+
+    private fun configNodeUrls(chain: Chain): Set<String> {
+        return configNodes(chain).mapTo(linkedSetOf(), Node::url)
     }
 
     private enum class ConfigKey(val string: String) {
@@ -189,14 +170,11 @@ class NodesRepository(
 
 internal fun mergeNodes(
     gemNodes: List<Node>,
+    configNodes: List<Node>,
     storedNodes: List<Node>,
-    configNodeUrls: Set<String>,
 ): List<Node> {
-    val configNodeOrder = configNodeUrls.withIndex().associate { it.value to it.index }
-    val configNodes = storedNodes
-        .filter { it.url in configNodeUrls }
-        .sortedBy { configNodeOrder[it.url] ?: Int.MAX_VALUE }
-    val customNodes = storedNodes.filterNot { it.url in configNodeUrls }
+    val defaultNodeUrls = (gemNodes + configNodes).mapTo(linkedSetOf(), Node::url)
+    val customNodes = storedNodes.filterNot { it.url in defaultNodeUrls }
 
     return (gemNodes + configNodes + customNodes).distinctBy(Node::url)
 }

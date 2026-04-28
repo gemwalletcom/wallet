@@ -25,12 +25,20 @@ build:
     @./gradlew assembleGoogleDebug
 
 run: build
+    @just _run-adb emulator
+
+run-device: build
+    @just _run-adb device
+
+_run-adb TARGET:
     #!/usr/bin/env bash
     set -euo pipefail
-    DEVICE=$(adb devices | awk '$2=="device" {print $1; exit}')
-    if [ -z "$DEVICE" ]; then
-        echo "No connected device found"
-        exit 1
+    if [ "{{TARGET}}" = "emulator" ]; then
+        DEVICE=$(adb devices | awk '$2=="device" && $1 ~ /^emulator-/ {print $1; exit}')
+        [ -z "$DEVICE" ] && { echo "No emulator found (try 'just start-emulator')"; exit 1; }
+    else
+        DEVICE=$(adb devices | awk '$2=="device" && $1 !~ /^emulator-/ {print $1; exit}')
+        [ -z "$DEVICE" ] && { echo "No physical device found"; exit 1; }
     fi
     APK=$(find app/build/outputs/apk/google/debug -name '*.apk' | head -1)
     echo "==> Installing on $DEVICE..."

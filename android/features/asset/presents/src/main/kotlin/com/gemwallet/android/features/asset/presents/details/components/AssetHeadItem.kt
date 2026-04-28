@@ -1,13 +1,11 @@
 package com.gemwallet.android.features.asset.presents.details.components
 
 import androidx.compose.runtime.Composable
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.WalletType
 
 @Composable
@@ -17,7 +15,7 @@ internal fun AssetHeadItem(
     onTransfer: AssetIdAction,
     onReceive: (AssetId) -> Unit,
     onBuy: (AssetId) -> Unit,
-    onSwap: (AssetId, AssetId?) -> Unit,
+    onSwap: (() -> Unit)?,
 ) {
     AmountListHead(
         amount = uiState.accountInfoUIModel.totalBalance,
@@ -35,18 +33,7 @@ internal fun AssetHeadItem(
             } else {
                 null
             },
-            onSwap = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
-                {
-                    val toAssetId = if (uiState.asset.type == AssetType.NATIVE) {
-                        null
-                    } else {
-                        uiState.asset.id.chain.asset().id
-                    }
-                    onSwap(uiState.asset.id, toAssetId)
-                }
-            } else {
-                null
-            },
+            onSwap = onSwap,
         )
     }
 }

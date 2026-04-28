@@ -5,8 +5,6 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import com.gemwallet.android.data.service.store.database.NftChainConverters
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAttribute
@@ -26,7 +24,6 @@ import com.wallet.core.primitives.VerificationStatus
     ],
     indices = [Index("chain")],
 )
-@TypeConverters(NftChainConverters::class)
 data class DbNFTCollection(
     @PrimaryKey val id: String,
     val name: String,
@@ -60,7 +57,6 @@ data class DbNFTCollection(
     ],
     indices = [Index("collection_id"), Index("chain")],
 )
-@TypeConverters(NftChainConverters::class)
 data class DbNFTAsset(
     @PrimaryKey val id: String,
     @ColumnInfo("collection_id") val collectionId: String,

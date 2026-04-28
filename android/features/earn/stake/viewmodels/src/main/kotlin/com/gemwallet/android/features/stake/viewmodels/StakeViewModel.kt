@@ -30,6 +30,7 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ext.isViewOnly
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -158,7 +159,7 @@ class StakeViewModel @Inject constructor(
         onOpenDetail: (String, String) -> Unit,
         onConfirm: ConfirmTransactionAction,
     ) {
-        if (delegation.base.state != DelegationState.AwaitingWithdrawal) {
+        if (walletType.value?.isViewOnly == true || delegation.base.state != DelegationState.AwaitingWithdrawal) {
             onOpenDetail(delegation.validator.id, delegation.base.delegationId)
             return
         }

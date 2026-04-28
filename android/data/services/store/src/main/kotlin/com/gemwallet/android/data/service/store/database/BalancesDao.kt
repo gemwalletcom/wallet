@@ -21,8 +21,8 @@ interface BalancesDao {
     @Update
     fun update(balance: DbBalance)
 
-    @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND account_address = :accountAddresses AND asset_id = :assetId")
-    fun getByAccount(walletId: String, accountAddresses: String, assetId: String): DbBalance?
+    @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
+    fun getByAsset(walletId: String, assetId: String): DbBalance?
 
     @Query("""
         UPDATE balances SET
@@ -33,11 +33,10 @@ interface BalancesDao {
             total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount,
             updated_at = :updatedAt,
             is_active = :isActive
-        WHERE wallet_id = :walletId AND account_address = :address AND asset_id = :assetId
+        WHERE wallet_id = :walletId AND asset_id = :assetId
     """)
     fun updateCoinBalance(
         walletId: String,
-        address: String,
         assetId: String,
         available: String,
         availableAmount: Double,
@@ -54,11 +53,10 @@ interface BalancesDao {
             total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount,
             updated_at = :updatedAt,
             is_active = :isActive
-        WHERE wallet_id = :walletId AND account_address = :address AND asset_id = :assetId
+        WHERE wallet_id = :walletId AND asset_id = :assetId
     """)
     fun updateTokenBalance(
         walletId: String,
-        address: String,
         assetId: String,
         available: String,
         availableAmount: Double,
@@ -85,11 +83,10 @@ interface BalancesDao {
             bandwidth_total = :bandwidthTotal,
             total_amount = available_amount + :frozenAmount + :lockedAmount + :stakedAmount + :pendingAmount + :rewardsAmount,
             updated_at = :updatedAt
-        WHERE wallet_id = :walletId AND account_address = :address AND asset_id = :assetId
+        WHERE wallet_id = :walletId AND asset_id = :assetId
     """)
     fun updateStakeBalance(
         walletId: String,
-        address: String,
         assetId: String,
         staked: String,
         stakedAmount: Double,

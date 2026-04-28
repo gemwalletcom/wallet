@@ -12,34 +12,40 @@ setup-git:
 
 build:
     @echo "==> Building iOS app"
-    @cd ios && just build
+    @just ios build
     @echo "==> Building Android app"
-    @cd android && just build
+    @just android build
+
+run-ios:
+    @just ios run
+
+run-android:
+    @just android run
 
 test:
     @echo "==> Test iOS app"
-    @cd ios && just test
+    @just ios test
     @echo "==> Test Android app"
-    @cd android && just test
+    @just android test
 
 test-integration:
     @echo "==> Test iOS app integration"
-    @cd ios && just test-integration
+    @just ios test-integration
     @echo "==> Test Android app integration"
-    @cd android && just test-integration
+    @just android test-integration
 
 generate: generate-models generate-stone
 
 generate-models:
-    @cd ios && just generate-models
-    @cd android && just generate-models
+    @just ios generate-models
+    @just android generate-models
 
 generate-stone:
-    @cd ios && just generate-stone
+    @just ios generate-stone
 
 localize:
-    @cd ios && just localize
-    @cd android && just localize
+    @just ios localize
+    @just android localize
 
 bump TARGET="patch":
     @bash ./scripts/bump.sh {{TARGET}}

@@ -33,11 +33,10 @@ class EnsureWalletAssetsImpl(
 
         val syncedAssetIds = missingAssetIds.mapNotNull { assetId ->
             val asset = assets[assetId]?.asset ?: return@mapNotNull null
-            val accountAddress = wallet.getAccount(asset.id.chain)?.address ?: return@mapNotNull null
+            wallet.getAccount(asset.id.chain) ?: return@mapNotNull null
 
             assetsRepository.add(
                 walletId = wallet.id,
-                accountAddress = accountAddress,
                 asset = asset,
                 visible = true,
             )

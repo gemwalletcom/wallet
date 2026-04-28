@@ -69,7 +69,7 @@ class TransactionsRepositoryImpl(
     }
 
     override fun getPendingTransactionsCount(): Flow<Int?> {
-        return transactionsDao.getPendingCount()
+        return transactionsDao.getTransactionsCount(TransactionState.Pending)
     }
 
     override fun getTransactions(): Flow<List<TransactionExtended>> {
@@ -91,12 +91,12 @@ class TransactionsRepositoryImpl(
     }
 
     private suspend fun updateTransaction(txs: List<DbTransactionExtended>) = withContext(Dispatchers.IO) {
-        val data = txs.mapNotNull { it.toDTO()?.transaction?.toRecord(it.walletId) }
+        val data = txs.mapNotNull { it.toDTO()?.transaction?.toRecord(it.transaction.walletId) }
         transactionsDao.insert(data)
     }
 
     override suspend fun clearPending() {
-        transactionsDao.removePendingTransactions()
+        transactionsDao.deleteByState(TransactionState.Pending)
     }
 
     override suspend fun createTransaction(
@@ -158,9 +158,9 @@ class TransactionsRepositoryImpl(
         scope.launch {
             transactionsDao.getExtendedTransactions(TransactionState.Pending).collect { items ->
                 items.forEach { item ->
-                    if (!pendingTransactionJobs.containsKey(item.id)) {
+                    if (!pendingTransactionJobs.containsKey(item.transaction.id)) {
                         val job = handlePendingTransaction(item)
-                        pendingTransactionJobs.put(item.id, job)
+                        pendingTransactionJobs.put(item.transaction.id, job)
                     }
                 }
             }
@@ -168,34 +168,40 @@ class TransactionsRepositoryImpl(
     }
 
     private fun handlePendingTransaction(tx: DbTransactionExtended) = scope.launch {
-        var iteration = 0L
-        val assetId = tx.assetId.toAssetId() ?: return@launch
-        val chainConfig = Config().getChainConfig(assetId.chain.string)
-        val delay = chainConfig.blockTime.toLong()
-        val timeout = chainConfig.transactionTimeout.toLong()
+        val jobKey = tx.transaction.id
+        try {
+            var iteration = 0L
+            var currentTx = tx
+            val assetId = currentTx.transaction.assetId.toAssetId() ?: return@launch
+            val chainConfig = Config().getChainConfig(assetId.chain.string)
+            val delay = chainConfig.blockTime.toLong()
+            val timeout = chainConfig.transactionTimeout.toLong()
 
-        while (true) {
-            transactionCheckDelay(delay, iteration)
-            iteration++
+            while (true) {
+                transactionCheckDelay(delay, iteration)
+                iteration++
 
-            val tx = checkTx(tx)?.let { newTx ->
-                if (newTx.id != tx.id) {
-                    transactionsDao.delete(tx.id)
+                currentTx = checkTx(currentTx)?.let { newTx ->
+                    if (newTx.transaction.id != currentTx.transaction.id) {
+                        transactionsDao.delete(currentTx.transaction.id, currentTx.transaction.walletId)
+                    }
+                    updateTransaction(listOf(newTx))
+                    newTx
+                } ?: currentTx
+
+                if (currentTx.transaction.createdAt < System.currentTimeMillis() - timeout) {
+                    currentTx = currentTx.copy(transaction = currentTx.transaction.copy(state = TransactionState.Failed))
+                    updateTransaction(listOf(currentTx))
+                    break
                 }
-                updateTransaction(listOf(newTx))
-                newTx
-            } ?: tx
-
-            if (tx.createdAt < System.currentTimeMillis() - timeout) {
-                updateTransaction(listOf(tx.copy(state = TransactionState.Failed)))
-                break
+                if (currentTx.transaction.state != TransactionState.Pending) {
+                    break
+                }
             }
-            if (tx.state != TransactionState.Pending) {
-                break
-            }
+            currentTx.toDTO()?.let { changedTransactions.tryEmit(listOf(it)) }
+        } finally {
+            pendingTransactionJobs.remove(jobKey)
         }
-        tx.toDTO()?.let { changedTransactions.tryEmit(listOf(it)) }
-        pendingTransactionJobs.remove(tx.id)
     }
 
     private suspend fun transactionCheckDelay(delay: Long, iteration: Long) {
@@ -211,32 +217,34 @@ class TransactionsRepositoryImpl(
     }
 
     private suspend fun checkTx(tx: DbTransactionExtended): DbTransactionExtended? {
-        val assetId = tx.assetId.toAssetId() ?: return null
+        val assetId = tx.transaction.assetId.toAssetId() ?: return null
         val request = TransactionStateRequest(
             chain = assetId.chain,
-            sender = tx.owner,
-            hash = tx.hash,
-            block = tx.blockNumber,
+            sender = tx.transaction.owner,
+            hash = tx.transaction.hash,
+            block = tx.transaction.blockNumber,
         )
         val state = try {
-            transactionStatusService.getStatus(request) ?: TransactionChanges(tx.state)
+            transactionStatusService.getStatus(request) ?: TransactionChanges(tx.transaction.state)
         } catch (_: ServiceUnavailable) {
-            return tx.copy(updatedAt = System.currentTimeMillis())
+            return tx.copy(transaction = tx.transaction.copy(updatedAt = System.currentTimeMillis()))
         } catch (_: Throwable) {
-            TransactionChanges(tx.state)
+            TransactionChanges(tx.transaction.state)
         }
-        return if (state.state != tx.state) {
+        return if (state.state != tx.transaction.state) {
             val newTx = tx.copy(
-                id = if (state.hashChanges != null) {
-                    "${assetId.chain.string}_${state.hashChanges!!.new}"
-                } else {
-                    tx.id
-                },
-                state = state.state,
-                hash = if (state.hashChanges != null) state.hashChanges!!.new else tx.hash,
+                transaction = tx.transaction.copy(
+                    id = if (state.hashChanges != null) {
+                        "${assetId.chain.string}_${state.hashChanges!!.new}"
+                    } else {
+                        tx.transaction.id
+                    },
+                    state = state.state,
+                    hash = if (state.hashChanges != null) state.hashChanges!!.new else tx.transaction.hash,
+                )
             )
             when {
-                state.fee != null -> newTx.copy(fee = state.fee.toString())
+                state.fee != null -> newTx.copy(transaction = newTx.transaction.copy(fee = state.fee.toString()))
                 else -> newTx
             }
         } else {

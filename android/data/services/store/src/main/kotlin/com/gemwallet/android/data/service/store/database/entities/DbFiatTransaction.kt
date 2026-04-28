@@ -3,6 +3,7 @@ package com.gemwallet.android.data.service.store.database.entities
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.Relation
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.FiatProviderName
@@ -19,6 +20,7 @@ import com.wallet.core.primitives.FiatTransactionStatus
         ForeignKey(DbWallet::class, ["id"], ["walletId"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
         ForeignKey(DbAsset::class, ["id"], ["assetId"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
     ],
+    indices = [Index("walletId"), Index("assetId")],
 )
 data class DbFiatTransaction(
     val id: String,

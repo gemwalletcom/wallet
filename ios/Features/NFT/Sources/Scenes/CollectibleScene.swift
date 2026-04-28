@@ -39,7 +39,7 @@ public struct CollectibleScene: View {
                     Text(model.title)
                         .font(.headline)
                     if model.isVerified {
-                        VerifiedBadgeView()
+                        VerifiedBadgeView(font: .subheadline)
                     }
                 }
             }

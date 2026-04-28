@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Formatters
-import Localization
 import Primitives
 import Style
-import SwiftUI
 
 struct NodeStatusStateViewModel: Sendable {
     let nodeStatus: NodeStatusState
@@ -18,34 +17,28 @@ struct NodeStatusStateViewModel: Sendable {
     }
 
     var latencyText: String? {
+        statusTag.text
+    }
+
+    var titleTagType: TitleTagType {
+        statusTag.type
+    }
+
+    var titleTagStyle: TextStyle {
+        statusTag.style
+    }
+
+    private var statusTag: LatencyStatusViewModel {
         switch nodeStatus {
         case let .result(nodeStatus):
             if nodeStatus.latestBlockNumber > 0 {
-                return LatencyViewModel(latency: nodeStatus.latency).title
+                return LatencyStatusViewModel(state: .latency(nodeStatus.latency))
             }
-            return Localized.Errors.error
+            return LatencyStatusViewModel(state: .error)
         case .error:
-            return Localized.Errors.error
+            return LatencyStatusViewModel(state: .error)
         case .none:
-            return ""
-        }
-    }
-
-    var color: Color {
-        switch nodeStatus {
-        case .error: Colors.red
-        case .none: Colors.gray
-        case let .result(nodeStatus):
-            nodeStatus.latestBlockNumber.isZero ? Colors.red : LatencyViewModel(latency: nodeStatus.latency).color
-        }
-    }
-
-    var background: Color {
-        switch nodeStatus {
-        case .error: Colors.red.opacity(.light)
-        case .none: .clear
-        case let .result(nodeStatus):
-            nodeStatus.latestBlockNumber.isZero ? Colors.red.opacity(.light) : LatencyViewModel(latency: nodeStatus.latency).background
+            return LatencyStatusViewModel(state: .loading)
         }
     }
 }

@@ -122,9 +122,9 @@ struct RecipientSceneViewModelTests {
 
     @Test
     func nftAssetImage() {
-        let nftAsset = NFTAsset.mock(id: "ethereum_0x123_1")
+        let nftAsset = NFTAsset.mock(id: "ethereum_0x123::1")
         let image = RecipientSceneViewModel.mock().nftAssetImage(for: nftAsset)
-        #expect(image.imageURL?.absoluteString.contains("ethereum_0x123_1") == true)
+        #expect(image.imageURL?.absoluteString.contains("ethereum_0x123::1") == true)
     }
 }
 

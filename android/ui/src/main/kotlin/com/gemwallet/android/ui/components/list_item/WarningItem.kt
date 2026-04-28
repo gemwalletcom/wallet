@@ -29,14 +29,13 @@ fun WarningItem(
     color: Color,
     position: ListPosition,
     onClick: (() -> Unit)? = null,
-    trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
             .listItem(position)
             .fillMaxWidth()
-            .defaultPadding()
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .defaultPadding(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -58,14 +57,11 @@ fun WarningItem(
             }
             message?.takeIf { it.isNotBlank() }?.let {
                 Spacer4()
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    trailing?.invoke()
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                }
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
             }
         }
         if (onClick != null) {

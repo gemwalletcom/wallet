@@ -7,6 +7,7 @@ import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProper
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
+import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
@@ -64,6 +65,7 @@ class ConfirmViewModel @Inject constructor(
     private val validateBalance: ValidateBalance,
     private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
+    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -98,7 +100,9 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val walletConnectReview = combine(walletConnectSimulationState, walletConnectHeaderAssetInfo, request) { simulation, headerAssetInfo, params ->
-        val review = simulation?.toWalletConnectReview() ?: WalletConnectReview()
+        val chain = params?.assetId?.chain
+        val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
+        val review = simulation?.toWalletConnectReview(chain, explorerName) ?: WalletConnectReview()
         val headerAssetId = simulation?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null

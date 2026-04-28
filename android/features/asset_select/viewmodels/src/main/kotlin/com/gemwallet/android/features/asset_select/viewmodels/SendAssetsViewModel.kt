@@ -9,7 +9,6 @@ import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentA
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -64,9 +63,7 @@ class SendSelectSearch(
                     searchSelectAssets(query, tag?.let(::listOf) ?: emptyList())
                 }
 
-                source.map { items ->
-                    filter(items).distinctBy { it.asset.id.toIdentifier() }
-                }
+                source.map(::filter)
             }
     }
 

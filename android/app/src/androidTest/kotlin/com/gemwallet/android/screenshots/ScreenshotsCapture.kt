@@ -164,36 +164,45 @@ class ScreenshotsCapture {
         // Wait for the app to appear
         device.wait(Until.hasObject(By.pkg(BASIC_PACKAGE).depth(0)), LAUNCH_TIMEOUT)
 
-        device.wait(Until.hasObject(By.res("import")), LAUNCH_TIMEOUT * 5)
-        device.findObject(By.res("import")).click()
+        val importButton = device.wait(Until.findObject(By.res("import")), LAUNCH_TIMEOUT * 5)
+        if (importButton == null) {
+            if (device.wait(Until.hasObject(By.res("assetsManageAction")), SCREEN_TIMEOUT) == true) {
+                return
+            }
+            throw AssertionError("Expected UI object 'import' to appear")
+        }
+        importButton.click()
         runBlocking { delay(SCREEN_TIMEOUT) }
 
         // Accept terms if shown
         if (device.wait(Until.hasObject(By.res("term_1")), SCREEN_TIMEOUT * 2) == true) {
-            device.findObject(By.res("term_1")).click()
-            device.findObject(By.res("term_2")).click()
-            device.findObject(By.res("term_3")).click()
+            waitForObject("term_1").click()
+            waitForObject("term_2").click()
+            waitForObject("term_3").click()
             runBlocking { delay(SCREEN_TIMEOUT / 2) }
-            device.findObject(By.res("main_action")).click()
+            waitForObject("main_action").click()
             runBlocking { delay(SCREEN_TIMEOUT) }
         }
 
-        device.wait(Until.hasObject(By.res("multicoin_item")), LAUNCH_TIMEOUT)
-        device.findObject(By.res("multicoin_item")).click()
+        waitForObject("multicoin_item").click()
         runBlocking { delay(SCREEN_TIMEOUT) }
 
         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboardManager.setPrimaryClip(ClipData.newPlainText("phrase", BuildConfig.TEST_PHRASE))
         runBlocking { delay(SCREEN_TIMEOUT) }
-        device.findObject(By.res("paste")).click()
+        waitForObject("paste").click()
         runBlocking { delay(SCREEN_TIMEOUT / 2) }
-        device.findObject(By.res("main_action")).click()
+        waitForObject("main_action").click()
         runBlocking { delay(SCREEN_TIMEOUT * 15) }
 
         // Dismiss setup wallet name screen if shown
         if (device.wait(Until.hasObject(By.res("main_action")), SCREEN_TIMEOUT * 2) == true) {
-            device.findObject(By.res("main_action")).click()
+            waitForObject("main_action").click()
             runBlocking { delay(SCREEN_TIMEOUT) }
         }
     }
+
+    private fun waitForObject(resourceName: String, timeout: Long = LAUNCH_TIMEOUT) =
+        device.wait(Until.findObject(By.res(resourceName)), timeout)
+            ?: throw AssertionError("Expected UI object '$resourceName' to appear")
 }

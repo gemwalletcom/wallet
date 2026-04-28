@@ -2,10 +2,13 @@ package com.gemwallet.android.ui.components.list_item
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -67,7 +70,8 @@ fun SubheaderItem(title: String, onClick: () -> Unit) {
 }
 
 object ChevronIconDefaults {
-    val trailingEdgeNudge: Dp = 6.dp
+    val horizontalPaddingTrim: Dp = 2.dp
+    val horizontalNudge: Dp = 4.dp
     val leadingSpacing: Dp = 0.dp
     val size: Dp = compactIconSize + 4.dp
 }
@@ -78,12 +82,20 @@ fun ChevronIcon(
     size: Dp = ChevronIconDefaults.size,
     tint: Color = MaterialTheme.colorScheme.secondary,
 ) {
-    Icon(
-        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-        contentDescription = null,
+    val width = size - ChevronIconDefaults.horizontalPaddingTrim - ChevronIconDefaults.horizontalPaddingTrim
+    Box(
         modifier = modifier
-            .offset(x = ChevronIconDefaults.trailingEdgeNudge)
-            .size(size),
-        tint = tint,
-    )
+            .width(width)
+            .height(size),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            modifier = Modifier
+                .offset(x = ChevronIconDefaults.horizontalNudge)
+                .requiredSize(size),
+            tint = tint,
+        )
+    }
 }
