@@ -79,7 +79,6 @@ struct QRScannerScene: View {
         .onChange(of: model.imageState, onChangeImageState)
     }
 
-    @ViewBuilder
     private func photosPicker(
         @ViewBuilder label: @Sendable @escaping () -> some View,
     ) -> some View {

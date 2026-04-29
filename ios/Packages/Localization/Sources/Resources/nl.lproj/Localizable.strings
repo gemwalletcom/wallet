@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Deze portemonnee is al geïmporteerd.";
 "rewards.unverified.title" = "Beloningen nog niet actief.";
 "rewards.unverified.description" = "Je beloningen worden automatisch geactiveerd naarmate je de app meer gebruikt.";
+"common.refresh" = "Vernieuwen";

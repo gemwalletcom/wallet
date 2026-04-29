@@ -7,12 +7,9 @@ struct AppIconViewModel: Identifiable, Hashable {
     let icon: AppIcon
     let isSelected: Bool
 
-    init(icon: AppIcon, isSelected: Bool) {
-        self.icon = icon
-        self.isSelected = isSelected
+    var id: String {
+        icon.id
     }
-
-    var id: String { icon.id }
 
     var displayName: String {
         switch icon {

@@ -54,9 +54,21 @@ class GetWalletSummaryImplTest {
             changePercentage = 2.84,
         )
 
-        assertEquals("\$140.56", value.valueFormatted)
+        assertEquals("+\$140.56", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
         assertEquals(PriceState.Up, value.state)
+    }
+
+    @Test
+    fun buildWalletSummaryDisplayState_formatsSmallValuesWithTwoDecimals() {
+        val state = buildWalletSummaryDisplayState(
+            currency = Currency.USD,
+            totalValue = BigDecimal("0.1041"),
+            totalChangedValue = BigDecimal("0.1041"),
+        )
+
+        assertEquals("\$0.10", state.totalValue)
+        assertEquals("+\$0.10", state.changedValue?.valueFormatted)
     }
 
     @Test

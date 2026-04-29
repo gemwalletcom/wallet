@@ -21,7 +21,11 @@ public struct AprViewModel: Sendable {
         return TextValue(text: text, style: TextStyle(font: .callout, color: Colors.green))
     }
 
-    public var text: String { Localized.Stake.apr(subtitle.text) }
+    public var text: String {
+        Localized.Stake.apr(subtitle.text)
+    }
 
-    public var showApr: Bool { !apr.isZero }
+    public var showApr: Bool {
+        !apr.isZero
+    }
 }

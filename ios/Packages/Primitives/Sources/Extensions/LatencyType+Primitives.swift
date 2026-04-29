@@ -16,7 +16,9 @@ public extension LatencyType {
 }
 
 public extension Latency {
-    var type: LatencyType { latency_type }
+    var type: LatencyType {
+        latency_type
+    }
 
     static func from(duration: Double) -> Latency {
         Latency(

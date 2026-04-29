@@ -31,9 +31,18 @@ data class NFTImages (
 )
 
 @Serializable
+enum class NFTAttributeType(val string: String) {
+	@SerialName("string")
+	String("string"),
+	@SerialName("timestamp")
+	Timestamp("timestamp"),
+}
+
+@Serializable
 data class NFTAttribute (
 	val name: String,
 	val value: String,
+	val valueType: NFTAttributeType? = null,
 	val percentage: Double? = null
 )
 

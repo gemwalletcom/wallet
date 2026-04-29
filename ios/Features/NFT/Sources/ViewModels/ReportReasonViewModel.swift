@@ -7,7 +7,9 @@ import Primitives
 struct ReportReasonViewModel: Identifiable, Hashable {
     let reason: ReportReason
 
-    var id: String { reason.id }
+    var id: String {
+        reason.id
+    }
 
     var title: String {
         switch reason {

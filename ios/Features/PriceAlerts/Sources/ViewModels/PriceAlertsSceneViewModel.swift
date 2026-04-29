@@ -16,7 +16,9 @@ public final class PriceAlertsSceneViewModel: Sendable {
     private let priceAlertService: PriceAlertService
 
     public let query: ObservableQuery<PriceAlertsRequest>
-    var priceAlerts: [PriceAlertData] { query.value }
+    var priceAlerts: [PriceAlertData] {
+        query.value
+    }
 
     public init(
         preferences: ObservablePreferences = .default,
@@ -27,8 +29,13 @@ public final class PriceAlertsSceneViewModel: Sendable {
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
-    var title: String { Localized.Settings.PriceAlerts.title }
-    var enableTitle: String { Localized.Settings.enableValue("") }
+    var title: String {
+        Localized.Settings.PriceAlerts.title
+    }
+
+    var enableTitle: String {
+        Localized.Settings.enableValue("")
+    }
 
     var isPriceAlertsEnabled: Bool {
         get {

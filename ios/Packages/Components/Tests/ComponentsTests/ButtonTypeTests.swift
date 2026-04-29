@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Components
 import Style
 import Testing
-
-@testable import Components
 
 struct ButtonTypeTests {
     @Test

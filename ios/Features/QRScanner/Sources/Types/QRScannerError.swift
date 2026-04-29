@@ -2,7 +2,7 @@
 
 import Foundation
 
-enum QRScannerError: Error, Sendable {
+enum QRScannerError: Error {
     case notSupported
     case permissionsNotGranted
     case decoding

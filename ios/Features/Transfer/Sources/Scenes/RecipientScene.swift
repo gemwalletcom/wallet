@@ -11,7 +11,9 @@ public struct RecipientScene: View {
     public enum Field: Int, Hashable, Identifiable {
         case address
         case memo
-        public var id: String { String(rawValue) }
+        public var id: String {
+            String(rawValue)
+        }
     }
 
     @FocusState private var focusedField: Field?

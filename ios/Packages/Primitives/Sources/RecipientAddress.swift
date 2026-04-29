@@ -15,5 +15,7 @@ public struct RecipientAddress: Hashable, Sendable {
 }
 
 extension RecipientAddress: Identifiable {
-    public var id: String { String("\(name)\(address)") }
+    public var id: String {
+        String("\(name)\(address)")
+    }
 }

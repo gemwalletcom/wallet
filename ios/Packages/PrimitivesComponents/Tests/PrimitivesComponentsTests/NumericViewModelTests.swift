@@ -3,11 +3,10 @@
 import BigInt
 import Formatters
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Style
 import Testing
-
-@testable import PrimitivesComponents
 
 struct NumericViewModelTests {
     let asset = Asset.mock()

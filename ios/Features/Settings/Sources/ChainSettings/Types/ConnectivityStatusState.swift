@@ -2,7 +2,7 @@
 
 import Primitives
 
-enum ConnectivityStatusState: Sendable {
+enum ConnectivityStatusState {
     case result(Latency)
     case error
     case none

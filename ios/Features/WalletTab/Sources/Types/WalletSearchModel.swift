@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 import PrimitivesComponents
 
-enum WalletSearchMode: Sendable {
+enum WalletSearchMode {
     case initial
     case tagBrowsing
     case searching
@@ -47,7 +47,9 @@ struct WalletSearchModel {
 // MARK: - Limits
 
 extension WalletSearchModel {
-    var perpetualsLimit: Int { Limits.perpetuals }
+    var perpetualsLimit: Int {
+        Limits.perpetuals
+    }
 
     static func initialFetchLimit(isPerpetualEnabled: Bool) -> Int {
         if isPerpetualEnabled {

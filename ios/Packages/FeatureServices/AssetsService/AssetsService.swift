@@ -29,7 +29,7 @@ public final class AssetsService: Sendable {
         self.assetsProvider = assetsProvider
     }
 
-    // Used to add new custom assets
+    /// Used to add new custom assets
     public func addNewAsset(walletId: WalletId, asset: Asset) throws {
         try addAssets(assets: [asset.defaultBasic])
         try addBalanceIfMissing(walletId: walletId, assetId: asset.id)
@@ -145,7 +145,7 @@ public final class AssetsService: Sendable {
     // search
 
     public func searchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {
-        let assets = try await withThrowingTaskGroup(of: [AssetBasic]?.self) { group in
+        try await withThrowingTaskGroup(of: [AssetBasic]?.self) { group in
             var assets = [AssetBasic]()
 
             group.addTask {
@@ -162,7 +162,6 @@ public final class AssetsService: Sendable {
             }
             return assets
         }
-        return assets
     }
 
     func searchAPIAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {

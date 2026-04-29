@@ -90,3 +90,51 @@ public struct UpdateEarnBalance {
         self.balance = balance
     }
 }
+
+extension UpdateBalanceValue: CustomStringConvertible {
+    public var description: String {
+        value
+    }
+}
+
+extension UpdateBalanceType: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case let .coin(balance): balance.description
+        case let .token(balance): balance.description
+        case let .stake(balance): balance.description
+        case let .perpetual(balance): balance.description
+        case let .earn(balance): balance.description
+        }
+    }
+}
+
+extension UpdateCoinBalance: CustomStringConvertible {
+    public var description: String {
+        "coin(available: \(available), reserved: \(reserved), pendingUnconfirmed: \(pendingUnconfirmed))"
+    }
+}
+
+extension UpdateTokenBalance: CustomStringConvertible {
+    public var description: String {
+        "token(available: \(available))"
+    }
+}
+
+extension UpdateStakeBalance: CustomStringConvertible {
+    public var description: String {
+        "stake(staked: \(staked), pending: \(pending), frozen: \(frozen), locked: \(locked), rewards: \(rewards))"
+    }
+}
+
+extension UpdatePerpetualBalance: CustomStringConvertible {
+    public var description: String {
+        "perpetual(available: \(available), reserved: \(reserved), withdrawable: \(withdrawable))"
+    }
+}
+
+extension UpdateEarnBalance: CustomStringConvertible {
+    public var description: String {
+        "earn(balance: \(balance))"
+    }
+}

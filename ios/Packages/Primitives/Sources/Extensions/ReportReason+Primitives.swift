@@ -3,5 +3,7 @@
 import Foundation
 
 extension ReportReason: Identifiable {
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 }

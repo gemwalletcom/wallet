@@ -28,7 +28,9 @@ public struct FeeRateViewModel: Identifiable {
         self.symbol = symbol
     }
 
-    public var id: String { feeRate.priority.rawValue }
+    public var id: String {
+        feeRate.priority.rawValue
+    }
 
     public var emoji: String {
         switch feeRate.priority {

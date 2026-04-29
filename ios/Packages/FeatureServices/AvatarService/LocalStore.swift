@@ -2,8 +2,11 @@
 
 import Foundation
 
-struct LocalStore: Sendable {
-    private var fileManager: FileManager { FileManager.default }
+struct LocalStore {
+    private var fileManager: FileManager {
+        FileManager.default
+    }
+
     private let documentDirectory = URL.documentsDirectory
 
     // MARK: - Public methods

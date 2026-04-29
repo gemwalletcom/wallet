@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-
 @testable import Components
+import Testing
 
 @MainActor
 struct NavigationPathStateTests {

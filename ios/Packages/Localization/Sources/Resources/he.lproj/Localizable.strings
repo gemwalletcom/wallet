@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "ארנק זה כבר יובא.";
 "rewards.unverified.title" = "הפרסים עדיין לא פעילים.";
 "rewards.unverified.description" = "הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.";
+"common.refresh" = "לְרַעֲנֵן";

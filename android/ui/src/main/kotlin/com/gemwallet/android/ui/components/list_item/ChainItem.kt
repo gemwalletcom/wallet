@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -9,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
@@ -26,7 +24,8 @@ fun ChainItem(
 ) {
     val modifier = onClick?.let { modifier.clickable(onClick = it) } ?: modifier
     ListItem(
-        modifier = modifier.heightIn(64.dp),
+        modifier = modifier,
+        minHeight = ListItemDefaults.iconMinHeight,
         listPosition = listPosition,
         leading = @Composable {
             IconWithBadge(

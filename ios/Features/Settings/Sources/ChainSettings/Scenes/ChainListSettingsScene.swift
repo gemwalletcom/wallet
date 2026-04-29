@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -19,18 +18,15 @@ public struct ChainListSettingsScene: View {
     public var body: some View {
         List {
             Section {
-                ForEach(model.connectivityModels) { item in
+                NavigationLink(value: Scenes.ServiceStatus()) {
                     ListItemView(
-                        title: item.title,
-                        titleTag: item.titleTag,
-                        titleTagStyle: item.titleTagStyle,
-                        titleTagType: item.titleTagType,
-                        titleExtra: item.subtitle,
+                        title: Localized.Transaction.status,
+                        imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)),
                     )
                 }
             }
 
-            Section(model.chainsTitle) {
+            Section("Chains") {
                 ForEach(filteredChains) { chain in
                     NavigationLink(value: Scenes.ChainSettings(chain: chain)) {
                         ChainView(model: ChainViewModel(chain: chain))
@@ -55,13 +51,7 @@ public struct ChainListSettingsScene: View {
                 .background(UIColor.systemGroupedBackground.color)
             }
         }
-        .refreshable {
-            await model.fetchConnectivity()
-        }
-        .taskOnce {
-            Task { await model.fetchConnectivity() }
-        }
-        .navigationTitle(model.title)
+        .navigationTitle(Localized.Settings.Networks.title)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -70,12 +60,6 @@ public struct ChainListSettingsScene: View {
 
 extension ChainListSettingsScene {
     private var filteredChains: [Chain] {
-        guard !searchQuery.isEmpty else {
-            return model.chains
-        }
-
-        return model.chains.filter {
-            model.filter($0, query: searchQuery)
-        }
+        model.filterChains(for: searchQuery)
     }
 }

@@ -8,9 +8,17 @@ struct FiatCurrencyInputConfig: CurrencyInputConfigurable {
     var secondaryText: String
     var currencySymbol: String
 
-    var currencyPosition: CurrencyTextField.CurrencyPosition { .leading }
-    var placeholder: String { .zero }
-    var keyboardType: UIKeyboardType { .decimalPad }
+    var currencyPosition: CurrencyTextField.CurrencyPosition {
+        .leading
+    }
+
+    var placeholder: String {
+        .zero
+    }
+
+    var keyboardType: UIKeyboardType {
+        .decimalPad
+    }
 
     var sanitizer: ((String) -> String)? {
         { input in

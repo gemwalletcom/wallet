@@ -19,7 +19,7 @@ struct Locale_PrimitivesTests {
     }
 
     @Test
-    func testAppstoreLanguageIdentifier() throws {
+    func testAppstoreLanguageIdentifier() {
         #expect(Locale.US.appstoreLanguageIdentifier() == "en-US")
         #expect(Locale.UK.appstoreLanguageIdentifier() == "en-GB")
         #expect(Locale.FR.appstoreLanguageIdentifier() == "fr-CA")

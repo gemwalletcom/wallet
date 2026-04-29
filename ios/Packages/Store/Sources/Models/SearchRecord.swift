@@ -4,7 +4,7 @@ import Foundation
 import GRDB
 import Primitives
 
-struct SearchRecord: Codable, PersistableRecord, FetchableRecord, TableRecord, Sendable {
+struct SearchRecord: Codable, PersistableRecord, FetchableRecord, TableRecord {
     static let databaseTableName = "search"
 
     enum Columns {

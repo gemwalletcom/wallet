@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "这个钱包已经进口了。";
 "rewards.unverified.title" = "奖励尚未激活。";
 "rewards.unverified.description" = "您使用应用程序的次数越多，奖励就会自动激活。";
+"common.refresh" = "刷新";

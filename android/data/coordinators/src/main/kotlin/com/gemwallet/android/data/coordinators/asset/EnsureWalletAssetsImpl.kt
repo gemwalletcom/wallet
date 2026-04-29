@@ -31,16 +31,17 @@ class EnsureWalletAssetsImpl(
             ?.associateBy { it.asset.id }
             ?: emptyMap()
 
-        val syncedAssetIds = missingAssetIds.mapNotNull { assetId ->
-            val asset = assets[assetId]?.asset ?: return@mapNotNull null
-            wallet.getAccount(asset.id.chain) ?: return@mapNotNull null
+        val syncedAssetIds = mutableListOf<AssetId>()
+        for (assetId in missingAssetIds) {
+            val asset = assets[assetId]?.asset ?: continue
+            wallet.getAccount(asset.id.chain) ?: continue
 
-            assetsRepository.add(
+            assetsRepository.linkAssetToWallet(
                 walletId = wallet.id,
-                asset = asset,
+                assetId = asset.id,
                 visible = true,
             )
-            asset.id
+            syncedAssetIds += asset.id
         }
 
         if (syncedAssetIds.isNotEmpty()) {

@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น</string>
   <string name="errors.network_error">เกิดข้อผิดพลาดเครือข่าย: %s</string>
   <string name="errors.network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
+  <string name="common.refresh">รีเฟรช</string>
 </resources>

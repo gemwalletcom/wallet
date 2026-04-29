@@ -24,9 +24,18 @@ struct PriceAlertItemViewModel: ListAssetItemViewable {
         }
     }
 
-    var name: String { data.asset.name }
-    var symbol: String? { data.asset.symbol }
-    var rightView: ListAssetItemRightView { .none }
+    var name: String {
+        data.asset.name
+    }
+
+    var symbol: String? {
+        data.asset.symbol
+    }
+
+    var rightView: ListAssetItemRightView {
+        .none
+    }
+
     var action: ((ListAssetItemAction) -> Void)?
 
     var assetImage: AssetImage {

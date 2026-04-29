@@ -3,14 +3,13 @@
 import DeviceServiceTestKit
 import Foundation
 import GemAPITestKit
+@testable import PriceAlertService
 import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-
-@testable import PriceAlertService
 
 struct PriceAlertServiceTests {
     @Test

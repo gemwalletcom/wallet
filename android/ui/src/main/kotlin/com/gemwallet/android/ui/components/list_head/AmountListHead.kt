@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -85,6 +86,8 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
 
+private val headerChangeTextHeight = 24.dp
+
 @Composable
 fun AmountListHead(
     amount: String,
@@ -138,22 +141,25 @@ fun AmountListHead(
                 }
                 changedValue?.let { value ->
                     val highlightColor = changeState.color()
+                    val changeTextStyle = MaterialTheme.typography.titleMedium.copy(
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
                     Row(
+                        modifier = Modifier.height(headerChangeTextHeight),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
                         Text(
                             text = hideToggle.mask(value),
                             color = highlightColor,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W400,
+                            style = changeTextStyle,
                         )
                         if (!hidden && !changedPercentages.isNullOrBlank()) {
                             Text(
                                 text = "($changedPercentages)",
                                 color = highlightColor,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.W400,
+                                style = changeTextStyle,
                             )
                         }
                     }

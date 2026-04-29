@@ -18,7 +18,9 @@ public struct AddressTextValidator: TextValidator {
         }
     }
 
-    public var id: String { asset.id.identifier }
+    public var id: String {
+        asset.id.identifier
+    }
 }
 
 public extension TextValidator where Self == AddressTextValidator {

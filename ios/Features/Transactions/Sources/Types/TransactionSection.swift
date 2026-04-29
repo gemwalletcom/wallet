@@ -13,7 +13,9 @@ public enum TransactionSectionType: String, Identifiable, Equatable {
     case fee
     case explorer
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 }
 
 public enum TransactionItem: Identifiable, Equatable, Sendable {
@@ -30,7 +32,9 @@ public enum TransactionItem: Identifiable, Equatable, Sendable {
     case fee
     case explorerLink
 
-    public var id: Self { self }
+    public var id: Self {
+        self
+    }
 }
 
 public enum TransactionItemModel {

@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import Preferences
 import PreferencesTestKit
 import Primitives
 import Testing
-
-@testable import Preferences
 
 struct ExplorerPreferencesTests {
     private let preferences: any ExplorerPreferencesStorable = ExplorerPreferences.mock()

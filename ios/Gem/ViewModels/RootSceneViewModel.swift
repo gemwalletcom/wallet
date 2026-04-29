@@ -39,7 +39,9 @@ final class RootSceneViewModel {
     let avatarService: AvatarService
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
-    var currentWallet: Wallet? { walletService.currentWallet }
+    var currentWallet: Wallet? {
+        walletService.currentWallet
+    }
 
     var updateVersionAlertMessage: AlertMessage?
 

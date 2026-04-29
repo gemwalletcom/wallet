@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "این کیف پول قبلاً وارد شده است.";
 "rewards.unverified.title" = "هنوز بخش جوایز فعال نشده است.";
 "rewards.unverified.description" = "با استفاده بیشتر از برنامه، جوایز به طور خودکار فعال می‌شوند.";
+"common.refresh" = "تازه کردن";

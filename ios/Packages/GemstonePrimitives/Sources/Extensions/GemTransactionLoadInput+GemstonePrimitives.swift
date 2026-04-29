@@ -7,7 +7,7 @@ import Primitives
 public extension GemTransactionLoadInput {
     static func map(signerInput: Primitives.SignerInput) throws -> GemTransactionLoadInput {
         try GemTransactionLoadInput(
-            inputType: signerInput.type.withGasLimit(signerInput.fee.gasLimit.description).map(),
+            inputType: signerInput.type.map(),
             senderAddress: signerInput.senderAddress,
             destinationAddress: signerInput.destinationAddress,
             value: signerInput.value.description,

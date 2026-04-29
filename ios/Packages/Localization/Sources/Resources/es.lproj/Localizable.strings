@@ -538,7 +538,7 @@
 "swap.use_minimum_amount" = "Utilice la cantidad mínima";
 "common.earn" = "Earn";
 "earn.state.empty.title" = "Tus posiciones aparecerán aquí";
-"earn.state.empty.description" = "Deposite su primer %@";
+"earn.state.empty.description" = "Deposita tu primer %@";
 "contacts.title" = "Contactos";
 "contacts.contact" = "Contacto";
 "contacts.addresses" = "Direcciones";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Esta cartera ya ha sido importada.";
 "rewards.unverified.title" = "Las recompensas aún no están activas.";
 "rewards.unverified.description" = "Las recompensas se activan automáticamente a medida que usas más la aplicación.";
+"common.refresh" = "Refrescar";

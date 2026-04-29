@@ -35,13 +35,33 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         }
     }
 
-    var asset: Asset { provider.asset }
-    var title: String { provider.title }
-    var amountType: AmountType { provider.amountType }
-    var minimumValue: BigInt { provider.minimumValue }
-    var canChangeValue: Bool { provider.canChangeValue }
-    var showsAssetBalance: Bool { provider.showsAssetBalance }
-    var reserveForFee: BigInt { provider.reserveForFee }
+    var asset: Asset {
+        provider.asset
+    }
+
+    var title: String {
+        provider.title
+    }
+
+    var amountType: AmountType {
+        provider.amountType
+    }
+
+    var minimumValue: BigInt {
+        provider.minimumValue
+    }
+
+    var canChangeValue: Bool {
+        provider.canChangeValue
+    }
+
+    var showsAssetBalance: Bool {
+        provider.showsAssetBalance
+    }
+
+    var reserveForFee: BigInt {
+        provider.reserveForFee
+    }
 
     func availableValue(from assetData: AssetData) -> BigInt {
         provider.availableValue(from: assetData)

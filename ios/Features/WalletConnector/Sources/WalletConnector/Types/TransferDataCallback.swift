@@ -16,5 +16,7 @@ public final class TransferDataCallback<T: Identifiable & Sendable>: Sendable, I
         self.delegate = delegate
     }
 
-    public var id: any Hashable { payload.id }
+    public var id: any Hashable {
+        payload.id
+    }
 }

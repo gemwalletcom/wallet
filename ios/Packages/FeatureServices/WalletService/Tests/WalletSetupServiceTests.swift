@@ -3,10 +3,9 @@
 import BalanceServiceTestKit
 import Primitives
 import PrimitivesTestKit
+@testable import Store
 import StoreTestKit
 import Testing
-
-@testable import Store
 @testable import WalletService
 
 struct WalletSetupServiceTests {

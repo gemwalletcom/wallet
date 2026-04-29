@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">I premi si attivano automaticamente man mano che utilizzi l\'app.</string>
   <string name="errors.network_error">Errore di rete: %s</string>
   <string name="errors.network_offline">La connessione Internet risulta offline.</string>
+  <string name="common.refresh">Rinfrescato</string>
 </resources>

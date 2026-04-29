@@ -46,11 +46,21 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         .earn(action)
     }
 
-    var minimumValue: BigInt { .zero }
-    var canChangeValue: Bool { true }
-    var reserveForFee: BigInt { .zero }
+    var minimumValue: BigInt {
+        .zero
+    }
 
-    func shouldReserveFee(from _: AssetData) -> Bool { false }
+    var canChangeValue: Bool {
+        true
+    }
+
+    var reserveForFee: BigInt {
+        .zero
+    }
+
+    func shouldReserveFee(from _: AssetData) -> Bool {
+        false
+    }
 
     func availableValue(from assetData: AssetData) -> BigInt {
         switch action {

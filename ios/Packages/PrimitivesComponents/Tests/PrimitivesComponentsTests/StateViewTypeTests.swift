@@ -2,9 +2,8 @@
 
 import Components
 import Foundation
-import Testing
-
 @testable import PrimitivesComponents
+import Testing
 
 struct StateViewTypeTests {
     @Test

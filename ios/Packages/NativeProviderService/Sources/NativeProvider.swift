@@ -51,10 +51,6 @@ public actor NativeProvider {
 struct StaticNode: NodeURLFetchable {
     let url: URL
 
-    init(url: URL) {
-        self.url = url
-    }
-
     func node(for _: Primitives.Chain) -> URL {
         url
     }

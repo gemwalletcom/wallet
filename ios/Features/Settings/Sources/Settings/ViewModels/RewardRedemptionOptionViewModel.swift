@@ -11,7 +11,9 @@ import PrimitivesComponents
 struct RewardRedemptionOptionViewModel: Identifiable {
     let option: RewardRedemptionOption
 
-    var id: String { option.id }
+    var id: String {
+        option.id
+    }
 
     var title: String {
         switch option.redemptionType {

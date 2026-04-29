@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import NodeService
 import NodeServiceTestKit
 import Primitives
 import Store
 import StoreTestKit
 import Testing
-
-@testable import NodeService
 
 struct NodeServiceTests {
     @Test

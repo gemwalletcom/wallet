@@ -27,7 +27,7 @@ let ReturnData = String(kSecReturnData)
 /** Value Type Key Constants */
 let ValueData = String(kSecValueData)
 
-/** Other Constants */
+/*  Other Constants */
 
 @available(iOS 9.0, OSX 10.11, watchOS 2.0, tvOS 9.0, *)
 let UseAuthenticationContext = String(kSecUseAuthenticationContext)

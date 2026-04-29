@@ -4,7 +4,7 @@ import ChainService
 import Foundation
 import Primitives
 
-struct BalanceFetcher: Sendable {
+struct BalanceFetcher {
     private let chainServiceFactory: any ChainServiceFactorable
 
     init(chainServiceFactory: any ChainServiceFactorable) {

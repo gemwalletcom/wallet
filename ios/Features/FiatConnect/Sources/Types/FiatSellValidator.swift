@@ -34,5 +34,7 @@ struct FiatSellValidator: ValueValidator {
         }
     }
 
-    var id: String { "FiatSellValidator" }
+    var id: String {
+        "FiatSellValidator"
+    }
 }

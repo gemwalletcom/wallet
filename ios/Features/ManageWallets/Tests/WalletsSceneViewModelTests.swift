@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import ManageWallets
 import Primitives
 import PrimitivesTestKit
+@testable import Store
 import StoreTestKit
 import SwiftUI
 import Testing
 import WalletService
 import WalletServiceTestKit
-
-@testable import ManageWallets
-@testable import Store
 
 @MainActor
 struct WalletsSceneViewModelTests {

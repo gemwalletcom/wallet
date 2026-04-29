@@ -7,7 +7,7 @@ import Localization
 import Primitives
 import Style
 
-struct AddNodeResultViewModel: Sendable {
+struct AddNodeResultViewModel {
     static let valueFormatter = ValueFormatter.full_US
 
     private let addNodeResult: AddNodeResult
@@ -16,9 +16,13 @@ struct AddNodeResultViewModel: Sendable {
         self.addNodeResult = addNodeResult
     }
 
-    var url: URL { addNodeResult.url }
+    var url: URL {
+        addNodeResult.url
+    }
 
-    var isInSync: Bool { addNodeResult.isInSync }
+    var isInSync: Bool {
+        addNodeResult.isInSync
+    }
 
     var chainIdField: ListItemField {
         ListItemField(title: Localized.Nodes.ImportNode.chainId, value: addNodeResult.chainID)

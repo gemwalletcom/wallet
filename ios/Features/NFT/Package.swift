@@ -25,6 +25,7 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "ChainServices", path: "../../Packages/ChainServices"),
+        .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
     ],
     targets: [
@@ -44,6 +45,7 @@ let package = Package(
                 "GemstonePrimitives",
                 .product(name: "ExplorerService", package: "ChainServices"),
                 .product(name: "AvatarService", package: "FeatureServices"),
+                "Formatters",
                 "InfoSheet",
             ],
             path: "Sources",
@@ -57,6 +59,7 @@ let package = Package(
                 .product(name: "NFTServiceTestKit", package: "FeatureServices"),
                 "NFT",
                 "PrimitivesComponents",
+                "Formatters",
                 .product(name: "AvatarService", package: "FeatureServices"),
                 "Store",
             ],

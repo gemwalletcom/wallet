@@ -33,13 +33,25 @@ final class AddNodeSceneViewModel {
         addNodeService = AddNodeService(nodeStore: nodeService.nodeStore)
     }
 
-    var title: String { Localized.Nodes.ImportNode.title }
+    var title: String {
+        Localized.Nodes.ImportNode.title
+    }
 
-    var actionButtonTitle: String { Localized.Wallet.Import.action }
-    var inputFieldTitle: String { Localized.Common.url }
+    var actionButtonTitle: String {
+        Localized.Wallet.Import.action
+    }
 
-    var errorTitle: String { Localized.Errors.errorOccured }
-    var chainModel: ChainViewModel { ChainViewModel(chain: chain) }
+    var inputFieldTitle: String {
+        Localized.Common.url
+    }
+
+    var errorTitle: String {
+        Localized.Errors.errorOccured
+    }
+
+    var chainModel: ChainViewModel {
+        ChainViewModel(chain: chain)
+    }
 
     var warningModel: ListItemModel {
         ListItemModel(

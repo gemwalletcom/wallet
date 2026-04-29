@@ -14,7 +14,9 @@ public struct PerpetualRecipientData: Codable, Equatable, Hashable, Sendable {
 }
 
 extension PerpetualRecipientData: Identifiable {
-    public var id: String { positionAction.id }
+    public var id: String {
+        positionAction.id
+    }
 }
 
 public enum PerpetualPositionAction: Codable, Equatable, Hashable, Sendable, Identifiable {

@@ -8,7 +8,10 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
 
     public init() {}
 
-    public func setup() async { isSetup = true }
+    public func setup() async {
+        isSetup = true
+    }
+
     public func pair(uri _: String) async throws {}
     public func disconnect(sessionId _: String) async throws {}
     public nonisolated func configure() throws {}

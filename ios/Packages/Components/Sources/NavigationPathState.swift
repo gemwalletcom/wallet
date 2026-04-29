@@ -17,8 +17,13 @@ public final class NavigationPathState {
         )
     }
 
-    public var count: Int { path.count }
-    public var isEmpty: Bool { path.isEmpty }
+    public var count: Int {
+        path.count
+    }
+
+    public var isEmpty: Bool {
+        path.isEmpty
+    }
 
     public init() {}
 

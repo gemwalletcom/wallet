@@ -1,18 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import Primitives
 
-struct ConnectivityEndpoint: Identifiable, Sendable {
+struct ConnectivityEndpoint: Identifiable {
     let name: String
     let flag: String?
     let url: URL
 
     static let defaultEndpoints: [ConnectivityEndpoint] = [
         ConnectivityEndpoint(name: "API", flag: "🇺🇸", url: Constants.apiURL),
-        ConnectivityEndpoint(name: "Nodes", flag: "🇺🇸", url: Constants.nodesURL),
-        ConnectivityEndpoint(name: "Nodes", flag: "🇯🇵", url: Constants.nodesAsiaURL),
-        ConnectivityEndpoint(name: "Nodes", flag: "🇪🇺", url: Constants.nodesEuropeURL),
+        ConnectivityEndpoint(name: Localized.Nodes.gemWalletNode, flag: "🇺🇸", url: Constants.nodesURL),
+        ConnectivityEndpoint(name: Localized.Nodes.gemWalletNode, flag: "🇯🇵", url: Constants.nodesAsiaURL),
+        ConnectivityEndpoint(name: Localized.Nodes.gemWalletNode, flag: "🇪🇺", url: Constants.nodesEuropeURL),
     ]
 
     var id: String {
@@ -20,7 +21,7 @@ struct ConnectivityEndpoint: Identifiable, Sendable {
     }
 
     var title: String {
-        [name, flag].compactMap { $0 }.joined(separator: " ")
+        [name, flag].compactMap(\.self).joined(separator: " ")
     }
 
     var host: String {

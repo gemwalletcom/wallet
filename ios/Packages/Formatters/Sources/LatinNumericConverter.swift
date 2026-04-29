@@ -2,7 +2,7 @@
 
 import Foundation
 
-// Converts every Unicode decimal digit (General-Category “Nd”) to ASCII 0-9.
+/// Converts every Unicode decimal digit (General-Category “Nd”) to ASCII 0-9.
 enum LatinNumericConverter {
     // Arabic punctuation we normalise explicitly
     private static let arabicDecimal: UnicodeScalar = "٫" // U+066B

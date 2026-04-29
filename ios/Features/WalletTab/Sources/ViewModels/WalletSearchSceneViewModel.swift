@@ -36,8 +36,13 @@ public final class WalletSearchSceneViewModel: Sendable {
     public let searchQuery: ObservableQuery<WalletSearchRequest>
     public let recentsQuery: ObservableQuery<RecentActivityRequest>
 
-    var searchResult: WalletSearchResult { searchQuery.value }
-    var recents: [RecentAsset] { recentsQuery.value }
+    var searchResult: WalletSearchResult {
+        searchQuery.value
+    }
+
+    var recents: [RecentAsset] {
+        recentsQuery.value
+    }
 
     var isPresentingToastMessage: ToastMessage?
     var isSearching: Bool = false
@@ -90,29 +95,81 @@ public final class WalletSearchSceneViewModel: Sendable {
         )
     }
 
-    var isPerpetualEnabled: Bool { preferences.isPerpetualEnabled }
+    var isPerpetualEnabled: Bool {
+        preferences.isPerpetualEnabled
+    }
 
-    var perpetualsTitle: String { Localized.Perpetuals.title }
-    var assetsTitle: String { Localized.Assets.title }
+    var perpetualsTitle: String {
+        Localized.Perpetuals.title
+    }
 
-    var sections: WalletSearchSections { .from(searchResult) }
-    var recentModels: [AssetViewModel] { recents.map { AssetViewModel(asset: $0.asset) } }
-    var currencyCode: String { preferences.preferences.currency }
+    var assetsTitle: String {
+        Localized.Assets.title
+    }
 
-    var showTags: Bool { searchModel.searchableQuery.isEmpty }
-    var showRecents: Bool { searchModel.searchableQuery.isEmpty && recents.isNotEmpty }
-    var showPerpetuals: Bool { sections.perpetuals.isNotEmpty && preferences.isPerpetualEnabled }
-    var showLoading: Bool { state.isLoading && showEmpty }
-    var showEmpty: Bool { !showRecents && !showPinned && !showAssets && !showPerpetuals }
-    var showPinned: Bool { sections.pinnedAssets.isNotEmpty || showPinnedPerpetuals }
-    var showPinnedPerpetuals: Bool { sections.pinnedPerpetuals.isNotEmpty && preferences.isPerpetualEnabled }
-    var showAssets: Bool { sections.assets.isNotEmpty }
-    var showAddToken: Bool { wallet.hasTokenSupport }
+    var sections: WalletSearchSections {
+        .from(searchResult)
+    }
 
-    var previewAssets: [AssetData] { Array(sections.assets.prefix(assetsPreviewLimit)) }
-    var previewPerpetuals: [PerpetualData] { Array(sections.perpetuals.prefix(searchModel.perpetualsLimit)) }
-    var hasMoreAssets: Bool { searchResult.assets.count > assetsPreviewLimit }
-    var hasMorePerpetuals: Bool { searchResult.perpetuals.count > searchModel.perpetualsLimit }
+    var recentModels: [AssetViewModel] {
+        recents.map { AssetViewModel(asset: $0.asset) }
+    }
+
+    var currencyCode: String {
+        preferences.preferences.currency
+    }
+
+    var showTags: Bool {
+        searchModel.searchableQuery.isEmpty
+    }
+
+    var showRecents: Bool {
+        searchModel.searchableQuery.isEmpty && recents.isNotEmpty
+    }
+
+    var showPerpetuals: Bool {
+        sections.perpetuals.isNotEmpty && preferences.isPerpetualEnabled
+    }
+
+    var showLoading: Bool {
+        state.isLoading && showEmpty
+    }
+
+    var showEmpty: Bool {
+        !showRecents && !showPinned && !showAssets && !showPerpetuals
+    }
+
+    var showPinned: Bool {
+        sections.pinnedAssets.isNotEmpty || showPinnedPerpetuals
+    }
+
+    var showPinnedPerpetuals: Bool {
+        sections.pinnedPerpetuals.isNotEmpty && preferences.isPerpetualEnabled
+    }
+
+    var showAssets: Bool {
+        sections.assets.isNotEmpty
+    }
+
+    var showAddToken: Bool {
+        wallet.hasTokenSupport
+    }
+
+    var previewAssets: [AssetData] {
+        Array(sections.assets.prefix(assetsPreviewLimit))
+    }
+
+    var previewPerpetuals: [PerpetualData] {
+        Array(sections.perpetuals.prefix(searchModel.perpetualsLimit))
+    }
+
+    var hasMoreAssets: Bool {
+        searchResult.assets.count > assetsPreviewLimit
+    }
+
+    var hasMorePerpetuals: Bool {
+        searchResult.perpetuals.count > searchModel.perpetualsLimit
+    }
 
     var recentsModel: RecentsSceneViewModel {
         RecentsSceneViewModel(

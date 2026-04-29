@@ -2,6 +2,7 @@
 
 import BalanceServiceTestKit
 import BigInt
+@testable import FiatConnect
 import FiatService
 import FiatServiceTestKit
 import Formatters
@@ -9,8 +10,6 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import FiatConnect
 
 @MainActor
 final class FiatSceneViewModelTests {

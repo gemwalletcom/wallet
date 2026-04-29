@@ -21,14 +21,6 @@ struct SwapAmountView: View {
     let from: SwapAmountField
     let to: SwapAmountField
 
-    init(
-        from: SwapAmountField,
-        to: SwapAmountField,
-    ) {
-        self.from = from
-        self.to = to
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             SwapAmountSingleView(field: from)

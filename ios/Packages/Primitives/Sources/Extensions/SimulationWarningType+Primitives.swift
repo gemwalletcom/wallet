@@ -4,7 +4,7 @@ public extension SimulationWarningType {
         return ApprovalValue(value: rawValue ?? "0", isUnlimited: rawValue == nil)
     }
 
-    private var approvalRawValue: Optional<String?> {
+    private var approvalRawValue: String?? {
         switch self {
         case let .tokenApproval(approval): .some(approval.value)
         case let .permitApproval(approval): .some(approval.value)

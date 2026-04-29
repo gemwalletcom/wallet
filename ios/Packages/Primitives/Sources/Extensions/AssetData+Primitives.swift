@@ -2,7 +2,9 @@ import BigInt
 import Foundation
 
 extension AssetData: Identifiable {
-    public var id: String { asset.id.identifier }
+    public var id: String {
+        asset.id.identifier
+    }
 }
 
 public extension AssetData {

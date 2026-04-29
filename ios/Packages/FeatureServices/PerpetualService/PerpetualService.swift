@@ -84,15 +84,18 @@ public struct PerpetualService: PerpetualServiceable {
         let perpetuals = try store.getPerpetuals().map(\.assetId)
         try balanceStore.addMissingBalances(walletId: walletId, assetIds: perpetuals, isEnabled: false)
 
+        let balanceType = try UpdateBalanceType.perpetual(UpdatePerpetualBalance(
+            available: perpetualBalanceValue(balance.available),
+            reserved: perpetualBalanceValue(balance.reserved),
+            withdrawable: perpetualBalanceValue(balance.withdrawable),
+        ))
+        debugLog("update balance: \(usd.id.identifier): \(balanceType)")
+
         try balanceStore.updateBalances(
             [
                 UpdateBalance(
                     assetId: usd.id,
-                    type: .perpetual(UpdatePerpetualBalance(
-                        available: perpetualBalanceValue(balance.available),
-                        reserved: perpetualBalanceValue(balance.reserved),
-                        withdrawable: perpetualBalanceValue(balance.withdrawable),
-                    )),
+                    type: balanceType,
                     updatedAt: .now,
                     isActive: true,
                 ),

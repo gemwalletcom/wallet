@@ -21,15 +21,8 @@ public struct DatabaseAccess: Sendable {
     }
 }
 
-private struct DatabaseQueueKey: EnvironmentKey {
-    static let defaultValue: DatabaseAccess = .notConfigured
-}
-
 public extension EnvironmentValues {
-    var database: DatabaseAccess {
-        get { self[DatabaseQueueKey.self] }
-        set { self[DatabaseQueueKey.self] = newValue }
-    }
+    @Entry var database: DatabaseAccess = .notConfigured
 }
 
 public extension View {

@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Denne tegnebog er allerede blevet importeret.";
 "rewards.unverified.title" = "Belønninger er endnu ikke aktive.";
 "rewards.unverified.description" = "Belønninger aktiveres automatisk, når du bruger appen mere.";
+"common.refresh" = "Opfriske";

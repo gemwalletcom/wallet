@@ -1,8 +1,8 @@
+internal import func Gemstone.encodePrivateKey
 import Foundation
 import GemstonePrimitives
 import Primitives
 import WalletCore
-internal import func Gemstone.encodePrivateKey
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {
     private let walletKeyStore: WalletKeyStore

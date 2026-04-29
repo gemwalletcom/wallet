@@ -21,5 +21,7 @@ public extension View {
 }
 
 extension URL: @retroactive Identifiable {
-    public var id: String { absoluteString }
+    public var id: String {
+        absoluteString
+    }
 }

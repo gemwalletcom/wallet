@@ -4,7 +4,7 @@ import Foundation
 import GRDB
 import Primitives
 
-struct MarketStore: Sendable {
+struct MarketStore {
     let db: DatabaseQueue
 
     init(db: DB) {

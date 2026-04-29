@@ -175,7 +175,7 @@ interface AssetsDao {
     fun update(asset: DbAsset)
 
     @Update(entity = DbAsset::class)
-    suspend fun updateBasicAsset(asset: DbAssetBasicUpdate)
+    suspend fun updateBasicAssets(assets: List<DbAssetBasicUpdate>)
 
     @Query("UPDATE asset SET rank = :rank WHERE id = :assetId AND rank = 0")
     suspend fun updateAssetRank(assetId: String, rank: Int)

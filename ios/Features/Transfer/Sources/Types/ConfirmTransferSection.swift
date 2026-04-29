@@ -15,7 +15,9 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case fee
     case error
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }
 
 public enum ConfirmTransferItem: Identifiable, Equatable, Sendable {
@@ -31,7 +33,9 @@ public enum ConfirmTransferItem: Identifiable, Equatable, Sendable {
     case networkFee
     case error
 
-    public var id: Self { self }
+    public var id: Self {
+        self
+    }
 }
 
 public enum ConfirmTransferItemModel {
@@ -52,7 +56,9 @@ public enum ConfirmTransferItemModel {
 }
 
 extension ConfirmTransferItemModel: ItemModelProvidable {
-    public var itemModel: ConfirmTransferItemModel { self }
+    public var itemModel: ConfirmTransferItemModel {
+        self
+    }
 }
 
 extension ListSection where T == ConfirmTransferItem {

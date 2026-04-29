@@ -8,9 +8,13 @@ public protocol TextValidator: Sendable, Identifiable {
 
 public extension TextValidator {
     /// `validator.silent` → a silent version that always throws `SilentValidationError`
-    var silent: some TextValidator { SilentTextValidator(validator: self) }
+    var silent: some TextValidator {
+        SilentTextValidator(validator: self)
+    }
 
-    var isSilent: Bool { self is SilentValidatable }
+    var isSilent: Bool {
+        self is SilentValidatable
+    }
 }
 
 // MARK: - Silent
@@ -23,5 +27,7 @@ private struct SilentTextValidator<V: TextValidator>: TextValidator, SilentValid
         catch { throw SilentValidationError() }
     }
 
-    var id: V.ID { validator.id }
+    var id: V.ID {
+        validator.id
+    }
 }

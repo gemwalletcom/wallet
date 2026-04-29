@@ -10,6 +10,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecordPriority
+import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
@@ -67,7 +68,13 @@ class TokensRepository (
     }
 
     private suspend fun updateAssets(assets: List<AssetBasic>, currency: Currency) {
-        runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
+        if (assets.isEmpty()) {
+            return
+        }
+        runCatching {
+            assetsDao.insert(assets.map { it.toRecord() })
+            assetsDao.updateBasicAssets(assets.map { it.toUpdateRecord() })
+        }
         runCatching {
             val rate = pricesDao.getRates(currency).firstOrNull() ?: return@runCatching
             val prices = assets.toPriceRecord(rate.toDTO())

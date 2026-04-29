@@ -21,7 +21,6 @@ public extension View {
         }
     }
 
-    @ViewBuilder
     func `if`(
         _ condition: Bool,
         content: (Self) -> some View,

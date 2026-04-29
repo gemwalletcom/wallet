@@ -59,3 +59,11 @@ fun MainActionButton(
         content()
     }
 }
+
+@Composable
+fun secondaryActionButtonColors(): ButtonColors {
+    return ButtonDefaults.buttonColors().copy(
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    )
+}

@@ -6,44 +6,44 @@ import Testing
 
 struct LatinNumericConverterTests {
     @Test
-    func arabicIndicDigits() throws {
+    func arabicIndicDigits() {
         #expect(LatinNumericConverter.toLatinDigits("٤٥٦") == "456")
     }
 
     @Test
-    func extendedArabicDigits() throws {
+    func extendedArabicDigits() {
         #expect(LatinNumericConverter.toLatinDigits("۹۸۷") == "987")
     }
 
     @Test
-    func arabicDecimalSeparator() throws {
+    func arabicDecimalSeparator() {
         #expect(LatinNumericConverter.toLatinDigits("١٢٣٫٤٥") == "123.45")
     }
 
     @Test
-    func arabicThousandsSeparator() throws {
+    func arabicThousandsSeparator() {
         #expect(LatinNumericConverter.toLatinDigits("١٢٬٣٤٥") == "12345")
     }
 
     @Test
-    func arabicFullExample() throws {
+    func arabicFullExample() {
         let input = "١٢٬٣٤٥٬٦٧٨٫٩٠١٢٣"
         let expected = "12345678.90123"
         #expect(LatinNumericConverter.toLatinDigits(input) == expected)
     }
 
     @Test
-    func arabicDigitsWithSuffix() throws {
+    func arabicDigitsWithSuffix() {
         #expect(LatinNumericConverter.toLatinDigits("٤٥٦BTC") == "456BTC")
     }
 
     @Test
-    func latinDigitsWithArabicDecimal() throws {
+    func latinDigitsWithArabicDecimal() {
         #expect(LatinNumericConverter.toLatinDigits("123٫45") == "123.45")
     }
 
     @Test
-    func emptyString() throws {
+    func emptyString() {
         #expect(LatinNumericConverter.toLatinDigits("") == "")
     }
 }

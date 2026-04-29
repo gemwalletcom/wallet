@@ -85,7 +85,9 @@ extension PriceRecord: CreateTable {
 }
 
 extension PriceRecord: Identifiable {
-    var id: String { assetId.identifier }
+    var id: String {
+        assetId.identifier
+    }
 }
 
 extension AssetPrice {

@@ -1,16 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Keystore
-import Primitives
-import Signer
-
 import class Gemstone.Config
 import struct Gemstone.Permit2ApprovalData
 import struct Gemstone.Permit2Data
 import func Gemstone.permit2DataToEip712Json
 import struct Gemstone.Permit2Detail
 import struct Gemstone.PermitSingle
+import Keystore
+import Primitives
+import Signer
 
 protocol Permit2DataProvidable: Sendable {
     func getPermit2Data(

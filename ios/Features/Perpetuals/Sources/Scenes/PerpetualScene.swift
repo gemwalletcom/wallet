@@ -1,4 +1,5 @@
 import Components
+import Formatters
 import InfoSheet
 import Localization
 import PerpetualService
@@ -24,7 +25,18 @@ public struct PerpetualScene: View {
                         switch model.state {
                         case .noData: StateEmptyView.noData()
                         case .loading: LoadingView()
-                        case let .data(data): CandlestickChartView(data: data, period: model.currentPeriod, lineModels: model.chartLineModels)
+                        case let .data(data):
+                            CandlestickChartView(
+                                model: CandlestickChartViewModel(
+                                    candles: data,
+                                    period: model.currentPeriod,
+                                    lines: model.chartLineModels,
+                                    formatter: CurrencyFormatter(
+                                        type: .currency,
+                                        currencyCode: Currency.usd.rawValue,
+                                    ),
+                                ),
+                            )
                         case let .error(error):
                             StateEmptyView(
                                 title: error.networkOrNoDataDescription,
@@ -35,9 +47,10 @@ public struct PerpetualScene: View {
                     .frame(height: 320)
 
                     PeriodSelectorView(selectedPeriod: $model.currentPeriod)
+                        .padding(.horizontal, Spacing.medium)
                 }
             }
-            .cleanListRow()
+            .fullWidthSection()
 
             ForEach(model.positionViewModels) { position in
                 Section {

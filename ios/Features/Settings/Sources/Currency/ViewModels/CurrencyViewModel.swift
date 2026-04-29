@@ -4,11 +4,16 @@ import Foundation
 import Primitives
 import Style
 
-struct CurrencyViewModel: Sendable {
+struct CurrencyViewModel {
     let currency: Currency
 
-    var flag: String? { Emoji.Flags.flagsByIdentifier[id] }
-    var nativeCurrency: Locale.Currency? { Locale.Currency(id) }
+    var flag: String? {
+        Emoji.Flags.flagsByIdentifier[id]
+    }
+
+    var nativeCurrency: Locale.Currency? {
+        Locale.Currency(id)
+    }
 
     var title: String {
         let localizedName = Locale.current.localizedString(forCurrencyCode: id) ?? .empty
@@ -24,5 +29,7 @@ struct CurrencyViewModel: Sendable {
 // MARK: - Identifiable
 
 extension CurrencyViewModel: Identifiable {
-    var id: String { currency.rawValue }
+    var id: String {
+        currency.rawValue
+    }
 }

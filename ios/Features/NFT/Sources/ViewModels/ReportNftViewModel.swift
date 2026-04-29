@@ -27,8 +27,13 @@ public final class ReportNftViewModel {
         self.onComplete = onComplete
     }
 
-    var title: String { Localized.Nft.Report.reportButtonTitle }
-    var progressMessage: String { Localized.Common.loading }
+    var title: String {
+        Localized.Nft.Report.reportButtonTitle
+    }
+
+    var progressMessage: String {
+        Localized.Common.loading
+    }
 
     func submitReport(reason: String) {
         state = .loading

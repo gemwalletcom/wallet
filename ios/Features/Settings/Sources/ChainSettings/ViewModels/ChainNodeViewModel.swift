@@ -7,7 +7,7 @@ import Localization
 import Primitives
 import Style
 
-struct ChainNodeViewModel: Sendable {
+struct ChainNodeViewModel {
     let chainNode: ChainNode
 
     private let statusState: NodeStatusState
@@ -67,7 +67,9 @@ struct ChainNodeViewModel: Sendable {
 // MARK: - Identifiable
 
 extension ChainNodeViewModel: Identifiable {
-    var id: String { chainNode.id }
+    var id: String {
+        chainNode.id
+    }
 }
 
 // MARK: - Models extensions

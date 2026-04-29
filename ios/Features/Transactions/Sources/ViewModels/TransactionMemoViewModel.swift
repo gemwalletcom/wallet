@@ -5,7 +5,7 @@ import Foundation
 import Primitives
 import PrimitivesComponents
 
-struct TransactionMemoViewModel: Sendable {
+struct TransactionMemoViewModel {
     private let transaction: Transaction
 
     init(transaction: Transaction) {

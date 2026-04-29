@@ -82,17 +82,17 @@ struct SolanaSignerTests {
     }
 
     @Test
-    func signSolanaMessage() {
-        let keyData = Base58.decodeNoCheck(string: "G282j1ejo5LbL4DqBR4G5i9EQZk1FPZa2ZR4VE9x6JaHqfie3nrrgcGL6UXLfXrappiPnWSWK5F1kz3Xduoy57H")!
+    func signSolanaMessage() throws {
+        let keyData = try #require(Base58.decodeNoCheck(string: "G282j1ejo5LbL4DqBR4G5i9EQZk1FPZa2ZR4VE9x6JaHqfie3nrrgcGL6UXLfXrappiPnWSWK5F1kz3Xduoy57H"))
         let key = PrivateKey(data: keyData[0 ..< 32])!
         let pubKey = key.getPublicKeyEd25519()
 
         #expect(pubKey.data == keyData[32...])
 
         let message = "hello world"
-        let dataMessage = message.data(using: .utf8)!
+        let dataMessage = try #require(message.data(using: .utf8))
 
-        let sig = key.sign(digest: dataMessage, curve: .ed25519)!
+        let sig = try #require(key.sign(digest: dataMessage, curve: .ed25519))
         let b58Sig = Base58.encodeNoCheck(data: sig)
 
         #expect(pubKey.verify(signature: sig, message: dataMessage))

@@ -6,7 +6,7 @@ import Foundation
 import Localization
 import Primitives
 
-struct TransactionPriceViewModel: Sendable {
+struct TransactionPriceViewModel {
     private let metadata: TransactionPerpetualMetadata?
 
     init(metadata: TransactionPerpetualMetadata?) {

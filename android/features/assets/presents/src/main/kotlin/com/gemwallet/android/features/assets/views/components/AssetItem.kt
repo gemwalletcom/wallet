@@ -27,7 +27,7 @@ internal fun AssetItem(
         assetId = item.id,
         address = item.accountAddress,
         isPinned = group == AssetsGroupType.Pined,
-        isEnabled = true,
+        isBalanceEnabled = true,
         longPressed = longPressState,
         actions = actions,
         onClick = { onAssetClick(item.id) },

@@ -2,9 +2,8 @@
 
 import BigInt
 import Foundation
-import Primitives
-
 import struct Gemstone.SwapperQuote
+import Primitives
 
 public protocol SwapQuotesProvidable: Sendable {
     func supportedAssets(for assetId: AssetId) -> ([Primitives.Chain], [Primitives.AssetId])

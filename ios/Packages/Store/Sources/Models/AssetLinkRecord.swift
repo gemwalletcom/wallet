@@ -21,7 +21,9 @@ struct AssetLinkRecord: Codable, FetchableRecord, PersistableRecord {
 }
 
 extension AssetLinkRecord: Identifiable {
-    var id: String { assetId.identifier }
+    var id: String {
+        assetId.identifier
+    }
 }
 
 extension AssetLinkRecord: CreateTable {

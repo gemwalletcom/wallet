@@ -326,11 +326,21 @@ public struct TransactionViewModel: Sendable {
         )
     }
 
-    public var transactionHashCopyValue: CopyValue { .plain(transaction.transaction.id.hash) }
-    public var explorerContext: ExplorerContextData { ExplorerContextData(copyValue: transactionHashCopyValue, explorerLink: transactionLink) }
+    public var transactionHashCopyValue: CopyValue {
+        .plain(transaction.transaction.id.hash)
+    }
 
-    private var addressLink: BlockExplorerLink { explorerService.addressUrl(chain: assetId.chain, address: participant) }
-    private var assetId: AssetId { transaction.transaction.assetId }
+    public var explorerContext: ExplorerContextData {
+        ExplorerContextData(copyValue: transactionHashCopyValue, explorerLink: transactionLink)
+    }
+
+    private var addressLink: BlockExplorerLink {
+        explorerService.addressUrl(chain: assetId.chain, address: participant)
+    }
+
+    private var assetId: AssetId {
+        transaction.transaction.assetId
+    }
 
     public func getAddressName(address: String) -> AddressName? {
         if address == transaction.transaction.from {

@@ -44,5 +44,7 @@ struct MarketValueViewModel {
 }
 
 extension [MarketValueViewModel] {
-    func withValues() -> Self { filter { $0.subtitle?.isEmpty == false } }
+    func withValues() -> Self {
+        filter { $0.subtitle?.isEmpty == false }
+    }
 }

@@ -6,7 +6,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 
-struct TransactionNetworkViewModel: Sendable {
+struct TransactionNetworkViewModel {
     private let chain: Chain
 
     init(chain: Chain) {

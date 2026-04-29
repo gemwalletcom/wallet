@@ -27,11 +27,25 @@ public struct Fee: Sendable {
         self.options = options
     }
 
-    public var gasPrice: BigInt { gasPriceType.gasPrice }
-    public var priorityFee: BigInt { gasPriceType.priorityFee }
-    public var unitPrice: BigInt { gasPriceType.unitPrice }
-    public var totalFee: BigInt { fee + optionsFee }
-    public var optionsFee: BigInt { options.map(\.value).reduce(0, +) }
+    public var gasPrice: BigInt {
+        gasPriceType.gasPrice
+    }
+
+    public var priorityFee: BigInt {
+        gasPriceType.priorityFee
+    }
+
+    public var unitPrice: BigInt {
+        gasPriceType.unitPrice
+    }
+
+    public var totalFee: BigInt {
+        fee + optionsFee
+    }
+
+    public var optionsFee: BigInt {
+        options.map(\.value).reduce(0, +)
+    }
 
     public func withOptions(_ options: FeeOptionMap) -> Fee {
         Fee(

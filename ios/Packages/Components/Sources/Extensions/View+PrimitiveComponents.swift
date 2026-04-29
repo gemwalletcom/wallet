@@ -17,7 +17,6 @@ public extension View {
         }
     }
 
-    @ViewBuilder
     func enabled(_ value: Bool) -> some View {
         disabled(!value)
     }

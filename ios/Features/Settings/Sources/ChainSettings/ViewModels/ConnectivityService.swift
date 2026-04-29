@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-struct ConnectivityService: Sendable {
+struct ConnectivityService {
     private let session: URLSession
 
     init(
@@ -14,7 +14,7 @@ struct ConnectivityService: Sendable {
 
     func status(for endpoint: ConnectivityEndpoint) async -> ConnectivityStatusState {
         do {
-            let latency = try await httpLatency(for: endpoint.url)
+            let latency = try await endpointLatency(for: endpoint.url)
             return .result(latency)
         } catch {
             return .error
@@ -25,7 +25,7 @@ struct ConnectivityService: Sendable {
 // MARK: - Private
 
 extension ConnectivityService {
-    private func httpLatency(for url: URL) async throws -> Latency {
+    private func endpointLatency(for url: URL) async throws -> Latency {
         try await measureLatency {
             var request = URLRequest(
                 url: url,

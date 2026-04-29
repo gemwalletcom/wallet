@@ -67,7 +67,8 @@ class RecipientViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.getStateFlow(assetIdArg, "")
         .mapNotNull { it.toAssetId() }
-    private val nftAssetId: StateFlow<String?> = savedStateHandle.getStateFlow(nftAssetIdArg, null)
+    private val nftAssetId = savedStateHandle.getStateFlow<String?>(nftAssetIdArg, null)
+        .map { it?.toAssetId() }
 
     val type: StateFlow<RecipientType?> = combine(
         assetId.flatMapLatest { getRecipientAssetInfo(it) }.flowOn(Dispatchers.IO),
@@ -76,7 +77,7 @@ class RecipientViewModel @Inject constructor(
     ).flatMapLatest { (assetInfo, nftId) ->
         when {
             assetInfo == null -> flowOf(null)
-            nftId.isNullOrEmpty() -> flowOf(RecipientType.Asset(assetInfo))
+            nftId == null -> flowOf(RecipientType.Asset(assetInfo))
             else -> getAssetNft.getAssetNft(nftId).map { data ->
                 data.assets.firstOrNull()?.let { RecipientType.Nft(assetInfo, it) }
             }

@@ -5,7 +5,6 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
-
 @testable import Validators
 
 struct MinimumAccountReserveValidatorTests {

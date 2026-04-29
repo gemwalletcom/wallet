@@ -16,7 +16,9 @@ public struct AssetTagViewModel: TagItemViewable {
         self.isSelected = isSelected
     }
 
-    public var id: String { tag.id }
+    public var id: String {
+        tag.id
+    }
 
     public var title: String {
         switch tag {

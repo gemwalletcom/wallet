@@ -58,7 +58,9 @@ extension SearchableListView {
 
 #Preview {
     enum Fruit: String, Identifiable, CaseIterable {
-        var id: Self { self }
+        var id: Self {
+            self
+        }
 
         case grape
         case honeydew
@@ -67,8 +69,8 @@ extension SearchableListView {
         case mango
     }
     return SearchableListView(
-        items: Fruit.allCases)
-    { fruit, query in
+        items: Fruit.allCases,
+    ) { fruit, query in
         fruit.rawValue.localizedCaseInsensitiveContains(query)
     } content: { name in
         Text(name.rawValue.uppercased())

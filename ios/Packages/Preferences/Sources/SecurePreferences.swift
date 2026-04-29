@@ -7,7 +7,7 @@ import Primitives
 
 public final class SecurePreferences: Sendable {
     public enum Keys: String, CaseIterable {
-        // Deprecated. Use devicePublicKey
+        /// Deprecated. Use devicePublicKey
         case deviceId
 
         case deviceToken

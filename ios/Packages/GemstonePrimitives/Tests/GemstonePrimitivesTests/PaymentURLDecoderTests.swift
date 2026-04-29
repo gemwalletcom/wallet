@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.PaymentWrapper
-import Testing
-
 @testable import GemstonePrimitives
+import Testing
 
 final class PaymentURLDecoderTests {
     @Test

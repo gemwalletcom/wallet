@@ -1,7 +1,9 @@
 import Foundation
 
 extension AssetId: Identifiable {
-    public var id: String { identifier }
+    public var id: String {
+        identifier
+    }
 }
 
 public extension AssetId {

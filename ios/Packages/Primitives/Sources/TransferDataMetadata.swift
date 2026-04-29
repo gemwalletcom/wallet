@@ -28,9 +28,19 @@ public struct TransferDataMetadata: Sendable, Hashable {
 }
 
 public extension TransferDataMetadata {
-    var available: BigInt { assetBalance.available }
-    var feeAvailable: BigInt { assetFeeBalance.available }
+    var available: BigInt {
+        assetBalance.available
+    }
 
-    var assetPrice: Price? { assetPrices[assetId] }
-    var feePrice: Price? { assetPrices[feeAssetId] }
+    var feeAvailable: BigInt {
+        assetFeeBalance.available
+    }
+
+    var assetPrice: Price? {
+        assetPrices[assetId]
+    }
+
+    var feePrice: Price? {
+        assetPrices[feeAssetId]
+    }
 }

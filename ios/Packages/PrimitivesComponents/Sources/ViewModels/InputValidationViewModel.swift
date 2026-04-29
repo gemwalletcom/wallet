@@ -33,8 +33,13 @@ public final class InputValidationViewModel {
 // MARK: - Public
 
 public extension InputValidationViewModel {
-    var isValid: Bool { error == nil }
-    var isInvalid: Bool { error != nil }
+    var isValid: Bool {
+        error == nil
+    }
+
+    var isInvalid: Bool {
+        error != nil
+    }
 
     func validate() -> (any Error)? {
         do {

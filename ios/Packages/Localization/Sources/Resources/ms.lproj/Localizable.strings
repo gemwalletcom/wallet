@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Tiada data tersedia";
-"errors.dust_threshold_short" = "Rangkaian menganggap jumlah habuk ini — bayarannya lebih tinggi daripada jumlah itu sendiri.";
+"errors.dust_threshold_short" = "Rangkaian menganggap jumlah habuk ini - bayarannya lebih tinggi daripada jumlah itu sendiri.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Dompet ini telah pun diimport.";
 "rewards.unverified.title" = "Ganjaran belum aktif lagi.";
 "rewards.unverified.description" = "Ganjaran diaktifkan secara automatik apabila anda menggunakan aplikasi dengan lebih kerap.";
+"common.refresh" = "Segarkan semula";

@@ -4,7 +4,7 @@ import Foundation
 
 public let defaultAbbreviationThreshold: Decimal = 10000.0
 
-struct AbbreviatedFormatter: Sendable {
+struct AbbreviatedFormatter {
     private let locale: Locale
     private let threshold: Decimal
 

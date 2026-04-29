@@ -8,7 +8,9 @@ extension LockPeriod: CaseIterable {
 }
 
 extension LockPeriod: Identifiable {
-    public var id: Self { self }
+    public var id: Self {
+        self
+    }
 }
 
 public extension LockPeriod {

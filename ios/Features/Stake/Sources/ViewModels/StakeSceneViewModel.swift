@@ -30,9 +30,17 @@ public final class StakeSceneViewModel {
     public let validatorsQuery: ObservableQuery<ValidatorsRequest>
     public let assetQuery: ObservableQuery<AssetRequest>
 
-    public var delegations: [Delegation] { delegationsQuery.value }
-    public var validators: [DelegationValidator] { validatorsQuery.value }
-    public var assetData: AssetData { assetQuery.value }
+    public var delegations: [Delegation] {
+        delegationsQuery.value
+    }
+
+    public var validators: [DelegationValidator] {
+        validatorsQuery.value
+    }
+
+    public var assetData: AssetData {
+        assetQuery.value
+    }
 
     public var isPresentingInfoSheet: InfoSheetType? = .none
 
@@ -55,18 +63,30 @@ public final class StakeSceneViewModel {
         AppUrl.docs(.staking(chain.map()))
     }
 
-    var title: String { Localized.Transfer.Stake.title }
+    var title: String {
+        Localized.Transfer.Stake.title
+    }
 
-    var stakeTitle: String { Localized.Transfer.Stake.title }
-    var rewardsTitle: String { Localized.Transfer.ClaimRewards.title }
-    var delegationsTitle: String { Localized.Stake.delegations }
+    var stakeTitle: String {
+        Localized.Transfer.Stake.title
+    }
+
+    var rewardsTitle: String {
+        Localized.Transfer.ClaimRewards.title
+    }
+
+    var delegationsTitle: String {
+        Localized.Stake.delegations
+    }
 
     var stakeAprModel: AprViewModel {
         let apr = (try? stakeService.stakeApr(assetId: chain.chain.assetId)) ?? .zero
         return AprViewModel(apr: apr)
     }
 
-    var resourcesTitle: String { Localized.Asset.resources }
+    var resourcesTitle: String {
+        Localized.Asset.resources
+    }
 
     var energyField: ListItemField {
         ListItemField(title: ResourceViewModel(resource: .energy).title, value: balanceModel.energyText)
@@ -76,8 +96,13 @@ public final class StakeSceneViewModel {
         ListItemField(title: ResourceViewModel(resource: .bandwidth).title, value: balanceModel.bandwidthText)
     }
 
-    var freezeTitle: String { Localized.Transfer.Freeze.title }
-    var unfreezeTitle: String { Localized.Transfer.Unfreeze.title }
+    var freezeTitle: String {
+        Localized.Transfer.Freeze.title
+    }
+
+    var unfreezeTitle: String {
+        Localized.Transfer.Unfreeze.title
+    }
 
     var lockTimeField: ListItemField {
         let now = Date.now
@@ -199,8 +224,14 @@ public final class StakeSceneViewModel {
         destination(type: .unfreeze(resource: .bandwidth))
     }
 
-    var showFreeze: Bool { chain == .tron }
-    var showUnfreeze: Bool { balanceModel.hasStakingResources }
+    var showFreeze: Bool {
+        chain == .tron
+    }
+
+    var showUnfreeze: Bool {
+        balanceModel.hasStakingResources
+    }
+
     var showStake: Bool {
         if showFreeze {
             return balanceModel.hasStakingResources
@@ -208,8 +239,13 @@ public final class StakeSceneViewModel {
         return true
     }
 
-    var isStakeEnabled: Bool { validators.isNotEmpty }
-    var showTronResources: Bool { balanceModel.hasStakingResources }
+    var isStakeEnabled: Bool {
+        validators.isNotEmpty
+    }
+
+    var showTronResources: Bool {
+        balanceModel.hasStakingResources
+    }
 }
 
 // MARK: - Business Logic

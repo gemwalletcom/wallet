@@ -5,6 +5,7 @@ import Primitives
 
 public enum CurrencyFormatterType: Sendable, Hashable {
     case currency
+    case fiat
     case abbreviated
     case percent
     case percentSignLess
@@ -76,7 +77,7 @@ public struct CurrencyFormatter: Sendable, Hashable {
 
     public var symbol: String {
         switch type {
-        case .currency, .abbreviated: formatter.currencySymbol
+        case .currency, .fiat, .abbreviated: formatter.currencySymbol
         case .percent, .percentSignLess: percentFormatter.percentSymbol
         }
     }
@@ -84,6 +85,7 @@ public struct CurrencyFormatter: Sendable, Hashable {
     public func string(_ number: Double) -> String {
         switch type {
         case .currency: currencyString(number)
+        case .fiat: currencyString(number, numberFormatter: formatter)
         case .percent: percentFormatter.string(from: NSNumber(value: number / 100))!
         case .percentSignLess: percentSignLessFormatter.string(from: NSNumber(value: number / 100))!
         case .abbreviated: abbreviatedString(number)
@@ -93,6 +95,7 @@ public struct CurrencyFormatter: Sendable, Hashable {
     public func string(double: Double, symbol: String? = nil) -> String {
         switch type {
         case .abbreviated: abbreviatedStringSymbol(double, symbol: symbol)
+        case .fiat: stringSymbol(double, symbol: symbol, numberFormatter: formatter)
         case .currency, .percent, .percentSignLess: stringSymbol(double, symbol: symbol)
         }
     }
@@ -129,16 +132,20 @@ public struct CurrencyFormatter: Sendable, Hashable {
         return stringSymbol(double, symbol: symbol)
     }
 
-    private func stringSymbol(_ double: Double, symbol: String?) -> String {
-        let formatter = formatter(for: double)
+    private func stringSymbol(
+        _ double: Double,
+        symbol: String?,
+        numberFormatter: NumberFormatter? = nil,
+    ) -> String {
+        let formatter = numberFormatter ?? formatter(for: double)
         formatter.currencySymbol = ""
 
         let value = (formatter.string(from: NSNumber(value: double)) ?? "").trimmingCharacters(in: .whitespaces)
         return combined(value: value, symbol: symbol)
     }
 
-    private func currencyString(_ double: Double) -> String {
-        formatter(for: double).string(from: NSNumber(value: double))!
+    private func currencyString(_ double: Double, numberFormatter: NumberFormatter? = nil) -> String {
+        (numberFormatter ?? formatter(for: double)).string(from: NSNumber(value: double))!
     }
 
     private func formatter(for value: Double) -> NumberFormatter {

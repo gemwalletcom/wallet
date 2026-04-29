@@ -16,12 +16,22 @@ public struct ConnectionSceneViewModel: Sendable {
         Localized.WalletConnect.Connection.title
     }
 
-    var disconnectTitle: String { Localized.WalletConnect.disconnect }
+    var disconnectTitle: String {
+        Localized.WalletConnect.disconnect
+    }
 
-    var walletField: String { Localized.Common.wallet }
-    var walletText: String { model.connection.wallet.name }
+    var walletField: String {
+        Localized.Common.wallet
+    }
 
-    var dateField: String { Localized.Transaction.date }
+    var walletText: String {
+        model.connection.wallet.name
+    }
+
+    var dateField: String {
+        Localized.Transaction.date
+    }
+
     var dateText: String {
         Self.dateFormatter.string(from: model.connection.session.createdAt)
     }

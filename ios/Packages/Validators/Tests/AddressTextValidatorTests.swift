@@ -3,7 +3,6 @@
 import Foundation
 import PrimitivesTestKit
 import Testing
-
 @testable import Validators
 
 struct AddressTextValidatorTests {

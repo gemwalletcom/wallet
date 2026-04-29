@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Bu cüzdan zaten içe aktarıldı.";
 "rewards.unverified.title" = "Ödüller henüz aktif değil.";
 "rewards.unverified.description" = "Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.";
+"common.refresh" = "Yenile";

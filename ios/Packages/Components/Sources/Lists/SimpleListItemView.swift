@@ -19,13 +19,33 @@ public protocol SimpleListItemViewable {
 }
 
 public extension SimpleListItemViewable {
-    var titleStyle: TextStyle { .body }
-    var imageSize: CGFloat { .image.medium }
-    var cornerRadius: CGFloat { imageSize / 2 }
-    var subtitle: String? { .none }
-    var subtitleExtra: String? { .none }
-    var subtitleStyle: TextStyle { .calloutSecondary }
-    var subtitleStyleExtra: TextStyle { .calloutSecondary }
+    var titleStyle: TextStyle {
+        .body
+    }
+
+    var imageSize: CGFloat {
+        .image.medium
+    }
+
+    var cornerRadius: CGFloat {
+        imageSize / 2
+    }
+
+    var subtitle: String? {
+        .none
+    }
+
+    var subtitleExtra: String? {
+        .none
+    }
+
+    var subtitleStyle: TextStyle {
+        .calloutSecondary
+    }
+
+    var subtitleStyleExtra: TextStyle {
+        .calloutSecondary
+    }
 }
 
 public struct SimpleListItemView: View {

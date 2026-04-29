@@ -22,6 +22,7 @@ import com.gemwallet.android.data.service.store.database.entities.toMarketRecord
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.calculateAvailabilityChanges
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
@@ -291,7 +292,7 @@ class AssetsRepository @Inject constructor(
                     add(wallet.id, asset, false)
                     val balances = updateBalances.updateBalances(wallet.id, account, emptyList()).firstOrNull()
                     if ((balances?.totalAmount ?: 0.0) > 0.0) {
-                        setVisibility(wallet.id, asset.id, true)
+                        linkAssetToWallet(wallet.id, asset.id, true)
                     }
                 }
             }
@@ -318,7 +319,7 @@ class AssetsRepository @Inject constructor(
         if (isVisible == visibility) {
             return@withContext
         }
-        setVisibility(walletId, assetId, visibility)
+        linkAssetToWallet(walletId, assetId, visibility)
         if (visibility) {
             updateBalances(assetId)
         }
@@ -355,7 +356,10 @@ class AssetsRepository @Inject constructor(
         if (assets.isEmpty()) {
             return@withContext
         }
-        runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
+        runCatching {
+            assetsDao.insert(assets.map { it.toRecord() })
+            assetsDao.updateBasicAssets(assets.map { it.toUpdateRecord() })
+        }
             .onFailure { Log.e(TAG, "Failed to insert ${assets.size} assets", it) }
     }
 
@@ -365,14 +369,8 @@ class AssetsRepository @Inject constructor(
         visible: Boolean,
     ) = withContext(Dispatchers.IO) {
         assetsDao.setWalletAssetVisibility(walletId, assetId.toIdentifier(), visible)
-    }
-
-    suspend fun add(walletId: String, assets: List<Asset>, visible: Boolean) {
-        assets.forEach { asset ->
-            insertLocalAsset(walletId, asset, visible)
-        }
-        if (visible && assets.isNotEmpty()) {
-            streamSubscriptionService.addAssetIds(assets.map { it.id })
+        if (visible) {
+            streamSubscriptionService.addAssetIds(listOf(assetId))
         }
     }
 
@@ -404,7 +402,7 @@ class AssetsRepository @Inject constructor(
         val assetIdIdentifier = assetId.toIdentifier()
         // REPLACE would cascade-delete balances/accounts; insert-or-update keeps the asset row stable.
         assetsDao.insert(record)
-        assetsDao.updateBasicAsset(record.toBasicUpdateRecord())
+        assetsDao.updateBasicAssets(listOf(record.toBasicUpdateRecord()))
         assetsDao.setWalletAssetVisibility(walletId, assetIdIdentifier, visible)
     }
 
@@ -448,14 +446,6 @@ class AssetsRepository @Inject constructor(
 
     private fun Account.isVisibleByDefault(type: WalletType): Boolean {
         return visibleByDefault.contains(chain) || type != WalletType.Multicoin
-    }
-
-    private suspend fun setVisibility(walletId: String, assetId: AssetId, visibility: Boolean) = withContext(Dispatchers.IO) {
-        assetsDao.setWalletAssetVisibility(walletId, assetId.toIdentifier(), visibility)
-
-        if (visibility) {
-            streamSubscriptionService.addAssetIds(listOf(assetId))
-        }
     }
 
     private suspend fun syncSwapSupportChains() {

@@ -43,7 +43,9 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
         return [Localized.PriceAlerts.SetAlert.currentPrice, formatter.string(price)].joined(separator: " ")
     }
 
-    var keyboardType: UIKeyboardType { .decimalPad }
+    var keyboardType: UIKeyboardType {
+        .decimalPad
+    }
 
     var actionStyle: CurrencyInputActionStyle? {
         guard let actionButtonImage else { return nil }

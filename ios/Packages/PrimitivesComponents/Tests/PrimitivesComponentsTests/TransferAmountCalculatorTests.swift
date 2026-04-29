@@ -2,10 +2,9 @@
 
 import BigInt
 import Primitives
+@testable import PrimitivesComponents
 import Testing
 import Validators
-
-@testable import PrimitivesComponents
 
 struct TransferAmountCalculatorTests {
     let coinAsset = Asset(.ethereum)

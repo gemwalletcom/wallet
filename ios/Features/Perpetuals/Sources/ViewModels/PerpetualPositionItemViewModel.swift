@@ -17,8 +17,13 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable {
         self.model = model
     }
 
-    var name: String { model.symbolText }
-    var symbol: String? { nil }
+    var name: String {
+        model.symbolText
+    }
+
+    var symbol: String? {
+        nil
+    }
 
     var assetImage: AssetImage {
         model.assetImage
@@ -48,5 +53,7 @@ struct PerpetualPositionItemViewModel: ListAssetItemViewable {
 }
 
 extension PerpetualPositionItemViewModel: Identifiable {
-    var id: String { model.id }
+    var id: String {
+        model.id
+    }
 }

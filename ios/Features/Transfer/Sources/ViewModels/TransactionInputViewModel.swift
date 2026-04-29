@@ -59,9 +59,17 @@ public struct TransactionInputViewModel: Sendable {
         )
     }
 
-    var networkFeeText: String? { infoModel.feeDisplay?.amount.text ?? "-" }
-    var networkFeeFiatText: String? { infoModel.feeDisplay?.fiat?.text }
-    var networkFeeAmount: BigInt? { transactionData?.fee.fee }
+    var networkFeeText: String? {
+        infoModel.feeDisplay?.amount.text ?? "-"
+    }
+
+    var networkFeeFiatText: String? {
+        infoModel.feeDisplay?.fiat?.text
+    }
+
+    var networkFeeAmount: BigInt? {
+        transactionData?.fee.fee
+    }
 
     var headerType: TransactionHeaderType {
         TransactionHeaderTypeBuilder.build(

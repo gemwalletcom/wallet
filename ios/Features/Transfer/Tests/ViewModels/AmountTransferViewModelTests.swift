@@ -4,7 +4,6 @@ import BigInt
 import Primitives
 import PrimitivesTestKit
 import Testing
-
 @testable import Transfer
 
 struct AmountTransferViewModelTests {

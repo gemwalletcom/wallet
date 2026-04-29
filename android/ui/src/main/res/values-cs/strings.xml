@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Použijte minimální množství</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Vaše pozice se zde zobrazí</string>
-  <string name="earn.state.empty.description">Vložte svůj první vklad %s</string>
+  <string name="earn.state.empty.description">Vložte svůj první %s</string>
   <string name="contacts.title">Kontakty</string>
   <string name="contacts.contact">Kontakt</string>
   <string name="contacts.addresses">Adresy</string>
@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Odměny se aktivují automaticky, jakmile aplikaci používáte více.</string>
   <string name="errors.network_error">Chyba sítě: %s</string>
   <string name="errors.network_offline">Zdá se, že je internetové připojení offline.</string>
+  <string name="common.refresh">Obnovit</string>
 </resources>

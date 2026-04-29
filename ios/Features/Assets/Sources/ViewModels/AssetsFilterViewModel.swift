@@ -18,7 +18,9 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
         chainsFilter = model
     }
 
-    public var isAnyFilterSpecified: Bool { chainsFilter.isAnySelected || hasBalance }
+    public var isAnyFilterSpecified: Bool {
+        chainsFilter.isAnySelected || hasBalance
+    }
 
     var filters: [AssetsRequestFilter] {
         guard isAnyFilterSpecified else { return defaultFilters }
@@ -72,11 +74,21 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
         }
     }
 
-    var title: String { Localized.Filter.title }
-    var clear: String { Localized.Filter.clear }
+    var title: String {
+        Localized.Filter.title
+    }
 
-    var hasBalanceImageStyle: ListItemImageStyle? { .settings(assetImage: .image(Images.Filters.balance)) }
-    var hasBalanceTitle: String { Localized.Filter.hasBalance }
+    var clear: String {
+        Localized.Filter.clear
+    }
+
+    var hasBalanceImageStyle: ListItemImageStyle? {
+        .settings(assetImage: .image(Images.Filters.balance))
+    }
+
+    var hasBalanceTitle: String {
+        Localized.Filter.hasBalance
+    }
 
     var networksModel: NetworkSelectorViewModel {
         NetworkSelectorViewModel(

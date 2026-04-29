@@ -4,7 +4,7 @@ import BigInt
 import Foundation
 import Primitives
 
-struct MinimumAccountReserveValidator<V>: ValueValidator where V: ValueValidatable & SignedNumeric {
+struct MinimumAccountReserveValidator<V: ValueValidatable & SignedNumeric>: ValueValidator {
     private let available: V
     private let requiredReserve: V
     private let asset: Asset
@@ -30,5 +30,7 @@ struct MinimumAccountReserveValidator<V>: ValueValidator where V: ValueValidatab
         }
     }
 
-    var id: String { "MinAccountReserveValidator<\(asset.symbol)>" }
+    var id: String {
+        "MinAccountReserveValidator<\(asset.symbol)>"
+    }
 }

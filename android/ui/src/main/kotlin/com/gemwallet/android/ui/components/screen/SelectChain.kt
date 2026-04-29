@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.screen
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -24,6 +25,7 @@ fun SelectChain(
     listState: LazyListState = rememberLazyListState(),
     title: String = stringResource(id = R.string.settings_networks_title),
     trailing: (@Composable (Chain) -> Unit)? = null,
+    listHeader: LazyListScope.() -> Unit = {},
     onSelect: (Chain) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -35,6 +37,7 @@ fun SelectChain(
             item {
                 SearchBar(query = chainFilter)
             }
+            listHeader()
             if (chains.isEmpty()) {
                 item {
                     EmptyContentView(

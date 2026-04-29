@@ -306,7 +306,7 @@ private fun AssetSelectRow(
         assetId = item.asset.id,
         address = item.owner,
         isPinned = item.metadata?.isPinned == true,
-        isEnabled = item.metadata?.isEnabled == true,
+        isBalanceEnabled = item.metadata?.isBalanceEnabled == true,
         longPressed = longPressedAsset,
         actions = contextActions,
         onClick = { onSelect?.invoke(item.asset.id) },

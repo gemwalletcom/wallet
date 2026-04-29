@@ -36,8 +36,13 @@ public final class NotificationsViewModel {
         Localized.Settings.Notifications.title
     }
 
-    var priceAlertsTitle: String { Localized.Settings.PriceAlerts.title }
-    var priceAlertsImage: AssetImage { AssetImage.image(Images.Settings.priceAlerts) }
+    var priceAlertsTitle: String {
+        Localized.Settings.PriceAlerts.title
+    }
+
+    var priceAlertsImage: AssetImage {
+        AssetImage.image(Images.Settings.priceAlerts)
+    }
 }
 
 // MARK: - Business Logic

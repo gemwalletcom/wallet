@@ -14,5 +14,7 @@ public protocol HeaderViewModel {
 }
 
 public extension HeaderViewModel {
-    var subtitleImage: Image? { nil }
+    var subtitleImage: Image? {
+        nil
+    }
 }

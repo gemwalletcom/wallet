@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 import Store
 
-struct WalletSearchSections: Equatable, Sendable {
+struct WalletSearchSections: Equatable {
     let pinnedAssets: [AssetData]
     let assets: [AssetData]
 

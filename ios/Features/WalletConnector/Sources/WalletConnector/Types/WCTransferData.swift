@@ -14,5 +14,7 @@ public struct WCTransferData: Identifiable, Sendable {
         self.simulation = simulation
     }
 
-    public var id: String { wallet.id }
+    public var id: String {
+        wallet.id
+    }
 }

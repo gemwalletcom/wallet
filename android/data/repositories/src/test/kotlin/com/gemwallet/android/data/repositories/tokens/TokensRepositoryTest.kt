@@ -5,8 +5,9 @@ import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
+import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetPriority
+import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.wallet.core.primitives.AssetTag
@@ -74,7 +75,8 @@ class TokensRepositoryTest {
     @Test
     fun searchByAssetIds_usesSearchAssetsGetAssets() = runTest {
         val asset = mockAsset()
-        val assetBasic = mockAssetBasic(asset = asset)
+        val assetBasic = mockAssetBasic(asset = asset, rank = 100)
+        val updates = slot<List<DbAssetBasicUpdate>>()
         coEvery { searchAssets.getAssets(listOf(asset.id)) } returns listOf(assetBasic)
         every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
 
@@ -85,5 +87,7 @@ class TokensRepositoryTest {
 
         assertTrue(result)
         coVerify { searchAssets.getAssets(listOf(asset.id)) }
+        coVerify { assetsDao.updateBasicAssets(capture(updates)) }
+        assertEquals(100, updates.captured.single().rank)
     }
 }

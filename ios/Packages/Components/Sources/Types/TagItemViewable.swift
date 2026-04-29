@@ -17,5 +17,7 @@ public protocol TagItemViewable: TagItem {
 }
 
 public extension TagItemViewable {
-    var viewOpacity: CGFloat { isSelected ? 1.0 : .medium }
+    var viewOpacity: CGFloat {
+        isSelected ? 1.0 : .medium
+    }
 }

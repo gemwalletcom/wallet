@@ -31,8 +31,13 @@ public final class SelectAssetViewModel {
 
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let recentsQuery: ObservableQuery<RecentActivityRequest>
-    var assets: [AssetData] { assetsQuery.value }
-    var recents: [RecentAsset] { recentsQuery.value }
+    var assets: [AssetData] {
+        assetsQuery.value
+    }
+
+    var recents: [RecentAsset] {
+        recentsQuery.value
+    }
 
     var isSearching: Bool = false
     var isDismissSearch: Bool = false
@@ -128,11 +133,21 @@ public final class SelectAssetViewModel {
         sections.assets.isNotEmpty
     }
 
-    var popularImage: Image { Images.System.starFill }
-    var popularTitle: String { Localized.Common.popular }
+    var popularImage: Image {
+        Images.System.starFill
+    }
 
-    var pinnedImage: Image { Images.System.pin }
-    var pinnedTitle: String { Localized.Common.pinned }
+    var popularTitle: String {
+        Localized.Common.popular
+    }
+
+    var pinnedImage: Image {
+        Images.System.pin
+    }
+
+    var pinnedTitle: String {
+        Localized.Common.pinned
+    }
 
     var assetsTitle: String {
         switch selectType {

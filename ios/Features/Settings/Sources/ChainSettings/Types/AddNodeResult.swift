@@ -4,7 +4,7 @@ import BigInt
 import Foundation
 import Primitives
 
-struct AddNodeResult: Sendable {
+struct AddNodeResult {
     let url: URL
     let chainID: String
     let blockNumber: BigInt

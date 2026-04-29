@@ -6,8 +6,8 @@ import Primitives
 import Style
 import SwiftUI
 
-struct LatencyStatusViewModel: Sendable {
-    enum State: Sendable {
+struct LatencyStatusViewModel {
+    enum State {
         case latency(Latency)
         case error
         case loading

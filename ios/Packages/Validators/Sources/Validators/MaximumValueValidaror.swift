@@ -5,7 +5,7 @@ import Primitives
 
 // TODO: - localize when implement e.g buy, sell
 
-struct MaximumValueValidator<V>: ValueValidator where V: ValueValidatable {
+struct MaximumValueValidator<V: ValueValidatable>: ValueValidator {
     private let maximumValue: V
     private let maximumValueText: String
 
@@ -20,5 +20,7 @@ struct MaximumValueValidator<V>: ValueValidator where V: ValueValidatable {
         }
     }
 
-    var id: String { "MaximumValueValidator<\(V.self)>" }
+    var id: String {
+        "MaximumValueValidator<\(V.self)>"
+    }
 }

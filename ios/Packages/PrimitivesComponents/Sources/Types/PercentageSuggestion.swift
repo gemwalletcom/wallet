@@ -6,8 +6,13 @@ public struct PercentageSuggestion: SuggestionViewable {
     public let id: Int
     public let value: Int
 
-    public var title: String { "\(value)%" }
-    public var inputValue: String { String(value) }
+    public var title: String {
+        "\(value)%"
+    }
+
+    public var inputValue: String {
+        String(value)
+    }
 
     public init(value: Int) {
         id = value

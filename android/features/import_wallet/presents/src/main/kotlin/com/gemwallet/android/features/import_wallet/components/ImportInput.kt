@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Icon
@@ -45,6 +44,7 @@ import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
@@ -142,11 +142,8 @@ internal fun ImportInput(
                     Spacer(modifier = Modifier.size(8.dp))
                 }
                 if (uiState.isResolve) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Name is resolved",
-                        tint = MaterialTheme.colorScheme.tertiary,
+                    SelectionCheckmark(
+                        color = MaterialTheme.colorScheme.tertiary,
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                 }

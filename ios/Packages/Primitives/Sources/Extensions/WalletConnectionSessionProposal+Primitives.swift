@@ -3,5 +3,7 @@
 import Foundation
 
 extension WalletConnectionSessionProposal: Identifiable {
-    public var id: String { metadata.url }
+    public var id: String {
+        metadata.url
+    }
 }

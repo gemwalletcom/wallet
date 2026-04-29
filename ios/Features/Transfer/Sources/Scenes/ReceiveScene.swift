@@ -90,7 +90,6 @@ public struct ReceiveScene: View {
 // MARK: - UI Components
 
 extension ReceiveScene {
-    @ViewBuilder
     private func qrCodeView(image: UIImage) -> some View {
         Image(uiImage: image)
             .resizable()

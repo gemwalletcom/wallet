@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-public struct BalanceValueValidator<V>: ValueValidator where V: ValueValidatable {
+public struct BalanceValueValidator<V: ValueValidatable>: ValueValidator {
     private let available: V
     private let asset: Asset
 
@@ -18,5 +18,7 @@ public struct BalanceValueValidator<V>: ValueValidator where V: ValueValidatable
         }
     }
 
-    public var id: String { "BalanceValidator<\(asset.symbol)>" }
+    public var id: String {
+        "BalanceValidator<\(asset.symbol)>"
+    }
 }

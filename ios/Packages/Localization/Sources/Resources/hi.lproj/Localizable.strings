@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "यह बटुआ पहले ही आयात किया जा चुका है।";
 "rewards.unverified.title" = "पुरस्कार अभी सक्रिय नहीं हैं।";
 "rewards.unverified.description" = "जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।";
+"common.refresh" = "ताज़ा करना";

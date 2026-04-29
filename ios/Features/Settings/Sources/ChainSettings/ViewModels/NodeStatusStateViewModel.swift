@@ -5,7 +5,7 @@ import Formatters
 import Primitives
 import Style
 
-struct NodeStatusStateViewModel: Sendable {
+struct NodeStatusStateViewModel {
     let nodeStatus: NodeStatusState
 
     func latestBlockText(title: String, formatter: ValueFormatter) -> String {

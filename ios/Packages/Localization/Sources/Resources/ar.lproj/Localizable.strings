@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "تم استيراد هذه المحفظة بالفعل.";
 "rewards.unverified.title" = "المكافآت غير مفعلة بعد.";
 "rewards.unverified.description" = "يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.";
+"common.refresh" = "ينعش";

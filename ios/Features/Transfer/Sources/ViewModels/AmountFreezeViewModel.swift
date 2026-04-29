@@ -51,7 +51,9 @@ public final class AmountFreezeViewModel: AmountDataProvidable {
         }
     }
 
-    var canChangeValue: Bool { true }
+    var canChangeValue: Bool {
+        true
+    }
 
     var reserveForFee: BigInt {
         switch action {

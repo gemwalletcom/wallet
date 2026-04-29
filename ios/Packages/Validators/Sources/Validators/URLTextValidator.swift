@@ -15,9 +15,13 @@ public struct URLTextValidator: TextValidator {
         }
     }
 
-    public var id: String { "url" }
+    public var id: String {
+        "url"
+    }
 }
 
 public extension TextValidator where Self == URLTextValidator {
-    static var url: Self { .init() }
+    static var url: Self {
+        .init()
+    }
 }

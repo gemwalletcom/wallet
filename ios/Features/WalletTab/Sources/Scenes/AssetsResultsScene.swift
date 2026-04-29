@@ -38,7 +38,6 @@ public struct AssetsResultsScene: View {
         .toast(message: $model.isPresentingToastMessage)
     }
 
-    @ViewBuilder
     private func assetItems(for items: [AssetData]) -> some View {
         AssetItemsView(
             items: items,

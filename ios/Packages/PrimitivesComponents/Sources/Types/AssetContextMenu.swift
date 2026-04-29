@@ -13,11 +13,6 @@ public enum AssetContextMenu {
         onAddToWallet: VoidAction = nil,
     ) -> [ContextMenuItemType] {
         [
-            .copy(
-                title: Localized.Wallet.copyAddress,
-                value: assetData.account.address,
-                onCopy: onCopy,
-            ),
             .pin(
                 isPinned: assetData.metadata.isPinned,
                 onPin: onPin,
@@ -30,6 +25,11 @@ public enum AssetContextMenu {
                     action: action,
                 ) : nil
             } ?? nil,
+            .copy(
+                title: Localized.Wallet.copyAddress,
+                value: assetData.account.address,
+                onCopy: onCopy,
+            ),
         ].compactMap(\.self)
     }
 }

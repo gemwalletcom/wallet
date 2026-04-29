@@ -19,8 +19,13 @@ struct OpenPositionItemViewModel: ListAssetItemViewable {
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
     }
 
-    var name: String { data.symbol }
-    var symbol: String? { nil }
+    var name: String {
+        data.symbol
+    }
+
+    var symbol: String? {
+        nil
+    }
 
     var assetImage: AssetImage {
         AssetIdViewModel(assetId: data.assetId).assetImage

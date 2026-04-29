@@ -18,5 +18,7 @@ public struct ResourceViewModel: Hashable, Identifiable {
         }
     }
 
-    public var id: Resource { resource }
+    public var id: Resource {
+        resource
+    }
 }

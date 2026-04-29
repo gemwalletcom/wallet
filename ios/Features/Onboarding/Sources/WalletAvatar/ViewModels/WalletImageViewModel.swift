@@ -18,7 +18,7 @@ public final class WalletImageViewModel: Sendable {
         case wallet
     }
 
-    struct NFTAssetImageItem: Identifiable, Sendable {
+    struct NFTAssetImageItem: Identifiable {
         let id: String
         let assetImage: AssetImage
     }
@@ -30,8 +30,13 @@ public final class WalletImageViewModel: Sendable {
     public let walletQuery: ObservableQuery<WalletRequest>
     public let nftQuery: ObservableQuery<NFTRequest>
 
-    public var dbWallet: Wallet? { walletQuery.value }
-    public var nftDataList: [NFTData] { nftQuery.value }
+    public var dbWallet: Wallet? {
+        walletQuery.value
+    }
+
+    public var nftDataList: [NFTData] {
+        nftQuery.value
+    }
 
     let emojiViewSize: Sizing = .image.extraLarge
     let emojiList: [EmojiValue] = Array(Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) })

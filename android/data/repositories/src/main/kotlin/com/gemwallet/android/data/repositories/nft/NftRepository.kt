@@ -4,12 +4,15 @@ import android.net.http.HttpException
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.cases.nft.NftError
+import com.gemwallet.android.cases.nft.RefreshNftAsset
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.service.store.database.NftDao
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTCollection
 import com.wallet.core.primitives.NFTData
@@ -27,7 +30,7 @@ import okio.IOException
 class NftRepository(
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val nftDao: NftDao,
-) : SyncNfts, GetListNftCase, GetAssetNft {
+) : SyncNfts, GetListNftCase, GetAssetNft, RefreshNftAsset {
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun syncNfts(wallet: Wallet) {
@@ -78,6 +81,11 @@ class NftRepository(
         )
     }
 
+    @Throws(HttpException::class, IOException::class)
+    override suspend fun refreshNftAsset(wallet: Wallet, assetId: AssetId) {
+        gemDeviceApiClient.refreshNftAsset(wallet.id, assetId.toIdentifier())
+    }
+
     override fun getListNft(collectionId: String?): Flow<List<NFTData>> {
         return combine(
             nftDao.getCollection(),
@@ -92,7 +100,7 @@ class NftRepository(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Throws(NftError::class)
-    override fun getAssetNft(id: String): Flow<NFTData> = nftDao.getAsset(id).flatMapLatest { assetEntity ->
+    override fun getAssetNft(assetId: AssetId): Flow<NFTData> = nftDao.getAsset(assetId.toIdentifier()).flatMapLatest { assetEntity ->
         assetEntity ?: throw NftError.NotFoundAsset
 
         nftDao.getCollection(assetEntity.collectionId).map { collection ->

@@ -9,11 +9,27 @@ struct AutocloseField {
     let isValid: Bool
     let orderId: UInt64?
 
-    var hasChanged: Bool { price != originalPrice }
-    var isCleared: Bool { originalPrice != nil && price == nil }
-    var hasExisting: Bool { originalPrice != nil }
+    var hasChanged: Bool {
+        price != originalPrice
+    }
 
-    var shouldSet: Bool { isValid && hasChanged }
-    var shouldUpdate: Bool { shouldSet || isCleared }
-    var shouldCancel: Bool { isCleared || (shouldSet && hasExisting) }
+    var isCleared: Bool {
+        originalPrice != nil && price == nil
+    }
+
+    var hasExisting: Bool {
+        originalPrice != nil
+    }
+
+    var shouldSet: Bool {
+        isValid && hasChanged
+    }
+
+    var shouldUpdate: Bool {
+        shouldSet || isCleared
+    }
+
+    var shouldCancel: Bool {
+        isCleared || (shouldSet && hasExisting)
+    }
 }

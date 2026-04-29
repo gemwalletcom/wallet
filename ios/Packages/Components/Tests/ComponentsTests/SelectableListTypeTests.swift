@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Components
 import Foundation
 import Testing
 
-@testable import Components
-
-struct TestItem: Identifiable, Equatable, Sendable {
+struct TestItem: Identifiable, Equatable {
     let id: Int
 
     init(_ id: Int) {
@@ -13,8 +12,8 @@ struct TestItem: Identifiable, Equatable, Sendable {
     }
 }
 
-@Test()
-func selectableListTypeItemTests() async throws {
+@Test
+func selectableListTypeItemTests() {
     let items = [TestItem(1), TestItem(2)]
     #expect(SelectableListType.plain(items).items == items)
 

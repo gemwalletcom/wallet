@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "یہ پرس پہلے ہی درآمد کیا جا چکا ہے۔";
 "rewards.unverified.title" = "انعامات ابھی فعال نہیں ہیں۔";
 "rewards.unverified.description" = "جب آپ ایپ کو زیادہ استعمال کرتے ہیں تو انعامات خود بخود فعال ہوجاتے ہیں۔";
+"common.refresh" = "ریفریش کریں۔";
