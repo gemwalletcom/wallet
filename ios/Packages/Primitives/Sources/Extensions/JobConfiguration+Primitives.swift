@@ -10,8 +10,4 @@ public extension JobConfiguration {
     var maxInterval: Duration {
         .milliseconds(Int(maxIntervalMs))
     }
-
-    func nextInterval(after current: Duration) -> Duration {
-        max(initialInterval, min(current * Double(stepFactor), maxInterval))
-    }
 }

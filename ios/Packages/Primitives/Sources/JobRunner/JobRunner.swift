@@ -26,6 +26,10 @@ public actor JobRunner {
     public func stopAll() {
         tasks.keys.forEach(cancelJob)
     }
+
+    func getNextInterval(after current: Duration, config: JobConfiguration) -> Duration {
+        max(config.initialInterval, min(current * Double(config.stepFactor), config.maxInterval))
+    }
 }
 
 // MARK: - Private
@@ -54,7 +58,7 @@ extension JobRunner {
                 if clock.now < sleepUntil {
                     try? await clock.sleep(until: sleepUntil)
                 }
-                interval = job.configuration.nextInterval(after: interval)
+                interval = getNextInterval(after: interval, config: job.configuration)
             }
         }
     }
