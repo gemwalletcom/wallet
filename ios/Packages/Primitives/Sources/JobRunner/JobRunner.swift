@@ -27,7 +27,7 @@ public actor JobRunner {
         tasks.keys.forEach(cancelJob)
     }
 
-    func getNextInterval(after current: Duration, config: JobConfiguration) -> Duration {
+    static func getNextInterval(after current: Duration, config: JobConfiguration) -> Duration {
         max(config.initialInterval, min(current * Double(config.stepFactor), config.maxInterval))
     }
 }
@@ -58,7 +58,7 @@ extension JobRunner {
                 if clock.now < sleepUntil {
                     try? await clock.sleep(until: sleepUntil)
                 }
-                interval = getNextInterval(after: interval, config: job.configuration)
+                interval = Self.getNextInterval(after: interval, config: job.configuration)
             }
         }
     }
