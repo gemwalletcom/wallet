@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.stream
 import android.util.Log
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.data.repositories.network.NetworkMonitor
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.serializer.StreamEventSerializer
@@ -23,16 +24,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.encodeToString
 
 class StreamObserverService(
+    private val networkMonitor: NetworkMonitor,
     private val sessionRepository: SessionRepository,
     private val syncAssets: SyncAssets,
     private val deviceRequestSigner: DeviceRequestSigner,
@@ -43,7 +46,7 @@ class StreamObserverService(
 ) {
     private var connectionJob: Job? = null
     private var currentWalletId: String? = null
-    private var reconnectAttempt = 0
+    @Volatile private var reconnectAttempt = 0
 
     private val client = HttpClient(CIO) {
         install(WebSockets) {
@@ -51,7 +54,17 @@ class StreamObserverService(
         }
     }
 
+    private val reconnectTrigger = Channel<Unit>(Channel.CONFLATED)
+
     init {
+        scope.launch {
+            networkMonitor.isOnline.collect { online ->
+                if (online) {
+                    reconnectAttempt = 0
+                    reconnectTrigger.trySend(Unit)
+                }
+            }
+        }
         scope.launch {
             sessionRepository.session().collectLatest { session ->
                 val walletId = session?.wallet?.id
@@ -82,6 +95,8 @@ class StreamObserverService(
                 return@launch
             }
 
+            while (reconnectTrigger.tryReceive().isSuccess) Unit
+
             while (isActive) {
                 try {
                     client.wss(
@@ -92,13 +107,15 @@ class StreamObserverService(
                         request = { addDeviceAuthHeaders() },
                     ) {
                         reconnectAttempt = 0
+                        while (reconnectTrigger.tryReceive().isSuccess) Unit
                         observeConnection()
                     }
                 } catch (err: Throwable) {
                     Log.e(TAG, "Connection error", err)
                 }
-                delay(reconnection.reconnectAfterMs(reconnectAttempt))
-                reconnectAttempt++
+                val delayMs = reconnection.reconnectAfterMs(reconnectAttempt)
+                val woken = withTimeoutOrNull(delayMs) { reconnectTrigger.receive() }
+                if (woken == null) reconnectAttempt++
             }
         }
     }

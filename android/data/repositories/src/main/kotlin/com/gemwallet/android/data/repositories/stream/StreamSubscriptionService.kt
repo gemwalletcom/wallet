@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class StreamSubscriptionService(
     private val assetsDao: AssetsDao,
@@ -24,7 +26,8 @@ class StreamSubscriptionService(
     val messageFlow: SharedFlow<StreamMessage> = _messageFlow
 
     private val subscribedAssetIds = mutableSetOf<AssetId>()
-    private var currentWalletId: String? = null
+    private val mutex = Mutex()
+    @Volatile private var currentWalletId: String? = null
 
     fun setupAssets(walletId: String) {
         currentWalletId = walletId
@@ -35,8 +38,10 @@ class StreamSubscriptionService(
         val walletId = currentWalletId ?: return@launch
         try {
             val assets = observableAssets(walletId)
-            subscribedAssetIds.clear()
-            subscribedAssetIds.addAll(assets)
+            mutex.withLock {
+                subscribedAssetIds.clear()
+                subscribedAssetIds.addAll(assets)
+            }
             _messageFlow.emit(
                 StreamMessage.SubscribePrices(data = StreamMessagePrices(assets = assets))
             )
@@ -54,7 +59,9 @@ class StreamSubscriptionService(
     }
 
     fun addAssetIds(ids: List<AssetId>) = scope.launch {
-        val newIds = ids.filter { subscribedAssetIds.add(it) }
+        val newIds = mutex.withLock {
+            ids.filter { subscribedAssetIds.add(it) }
+        }
         if (newIds.isNotEmpty()) {
             _messageFlow.emit(
                 StreamMessage.AddPrices(data = StreamMessagePrices(assets = newIds))

@@ -13,6 +13,7 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
+import com.gemwallet.android.data.repositories.network.NetworkMonitor
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamEventHandler
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
@@ -24,9 +25,11 @@ import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
 import javax.inject.Singleton
@@ -128,13 +131,21 @@ object AssetsModule {
 
     @Provides
     @Singleton
+    fun provideNetworkMonitor(
+        @ApplicationContext context: Context,
+    ): NetworkMonitor = NetworkMonitor(context = context)
+
+    @Provides
+    @Singleton
     fun provideStreamObserverService(
+        networkMonitor: NetworkMonitor,
         sessionRepository: SessionRepository,
         syncAssets: SyncAssets,
         deviceRequestSigner: DeviceRequestSigner,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
     ): StreamObserverService = StreamObserverService(
+        networkMonitor = networkMonitor,
         sessionRepository = sessionRepository,
         syncAssets = syncAssets,
         deviceRequestSigner = deviceRequestSigner,
