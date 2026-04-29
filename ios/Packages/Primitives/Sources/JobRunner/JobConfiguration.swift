@@ -2,24 +2,22 @@
 
 import Foundation
 
-public enum JobConfiguration: Sendable {
-    // Always wait the same fixed `Duration` between attempts.
-    case fixed(
-        duration: Duration,
-        timeLimit: Duration? = nil,
-    )
+public struct JobConfiguration: Sendable {
+    public let initialInterval: Duration
+    public let maxInterval: Duration
+    public let stepFactor: Double
 
-    // Exponential back-off
-    case adaptive(
-        configuration: AdaptiveConfiguration,
-        timeLimit: Duration? = nil,
-    )
+    public init(
+        initialInterval: Duration,
+        maxInterval: Duration,
+        stepFactor: Double,
+    ) {
+        self.initialInterval = min(initialInterval, maxInterval)
+        self.maxInterval = maxInterval
+        self.stepFactor = stepFactor
+    }
 
-    // auto-complete by time
-    var timeLimit: Duration? {
-        switch self {
-        case let .fixed(_, time): time
-        case let .adaptive(_, time): time
-        }
+    func nextInterval(after current: Duration) -> Duration {
+        max(initialInterval, min(current * stepFactor, maxInterval))
     }
 }

@@ -14,23 +14,24 @@ struct TransactionStateUpdateJob: Job {
     private let postProcessingService: TransactionPostProcessingService
     private let minInitialInterval: Duration = .seconds(5)
 
-    var id: String { transaction.id.identifier }
+    var id: String {
+        transaction.id.identifier
+    }
 
     var configuration: JobConfiguration {
-        .adaptive(
-            configuration: AdaptiveConfiguration(
-                initialInterval: min(
-                    .milliseconds(transaction.assetId.chain.blockTime),
-                    minInitialInterval,
-                ),
-                maxInterval: minInitialInterval * 3,
-                stepFactor: 1.1,
+        JobConfiguration(
+            initialInterval: min(
+                .milliseconds(transaction.assetId.chain.blockTime),
+                minInitialInterval,
             ),
-            timeLimit: .none,
+            maxInterval: minInitialInterval * 3,
+            stepFactor: 1.1,
         )
     }
 
-    private var transaction: Transaction { transactionWallet.transaction }
+    private var transaction: Transaction {
+        transactionWallet.transaction
+    }
 
     init(
         transactionWallet: TransactionWallet,
