@@ -5,6 +5,24 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Build Gemstone"
+               scriptText = "mkdir -p &quot;${PROJECT_DIR}/build&quot;&#10;set -o pipefail&#10;&quot;${SRCROOT}/scripts/generate-stone.sh&quot; 2&gt;&amp;1 | tee &quot;${PROJECT_DIR}/build/generate-stone.log&quot;&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "C30952AF299C39D70004C0F9"
+                     BuildableName = "Gem.app"
+                     BlueprintName = "Gem"
+                     ReferencedContainer = "container:Gem.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
