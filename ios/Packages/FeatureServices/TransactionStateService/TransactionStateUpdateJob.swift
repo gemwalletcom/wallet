@@ -12,7 +12,7 @@ struct TransactionStateUpdateJob: Job {
     private let stateService: TransactionStateProvider
     private let swapResultProvider: SwapResultProvider
     private let postProcessingService: TransactionPostProcessingService
-    private let minInitialInterval: Duration = .seconds(5)
+    private let minInitialIntervalMs: UInt32 = 5_000
 
     var id: String {
         transaction.id.identifier
@@ -20,11 +20,8 @@ struct TransactionStateUpdateJob: Job {
 
     var configuration: JobConfiguration {
         JobConfiguration(
-            initialInterval: min(
-                .milliseconds(transaction.assetId.chain.blockTime),
-                minInitialInterval,
-            ),
-            maxInterval: minInitialInterval * 3,
+            initialIntervalMs: min(transaction.assetId.chain.blockTime, minInitialIntervalMs),
+            maxIntervalMs: minInitialIntervalMs * 3,
             stepFactor: 1.1,
         )
     }
