@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -20,6 +21,7 @@ class DeviceAssetsSyncService @Inject constructor(
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val prefetchAssets: PrefetchAssets,
     private val ensureWalletAssets: EnsureWalletAssets,
+    private val enableAsset: EnableAsset,
     private val assetsRepository: AssetsRepository,
     private val walletsRepository: WalletsRepository,
 ) {
@@ -56,10 +58,9 @@ class DeviceAssetsSyncService @Inject constructor(
     }
 
     private suspend fun enableAssets(wallet: Wallet, assetIds: Collection<AssetId>) {
-        assetIds.forEach { assetId ->
-            wallet.getAccount(assetId) ?: return@forEach
-            assetsRepository.switchVisibility(wallet.id, assetId, true)
-        }
+        val accounts = assetIds.filter { wallet.getAccount(it) != null }
+        if (accounts.isEmpty()) return
+        enableAsset(wallet.id, accounts)
     }
 
     private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000

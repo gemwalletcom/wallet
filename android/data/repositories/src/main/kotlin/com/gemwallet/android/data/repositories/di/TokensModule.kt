@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.di
 import com.gemwallet.android.application.assets.coordinators.SearchAssets
 import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.repositories.tokens.TokensRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
@@ -38,4 +39,8 @@ object TokensModule {
     @Provides
     @Singleton
     fun provideSearchTokensCase(tokensRepository: TokensRepository): SearchTokensCase = tokensRepository
+
+    @Provides
+    @Singleton
+    fun provideSyncAssetPrices(tokensRepository: TokensRepository): SyncAssetPrices = tokensRepository
 }

@@ -3,6 +3,7 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
@@ -71,6 +72,7 @@ class AssetDetailsViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
     private val assetsRepository: AssetsRepository,
+    private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
     private val priceAlertsStateCoordinator: PriceAlertsStateCoordinator,
@@ -215,11 +217,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private suspend fun add(wallet: Wallet, assetId: AssetId) {
         wallet.getAccount(assetId) ?: return
-        assetsRepository.switchVisibility(
-            walletId = wallet.id,
-            assetId = assetId,
-            true
-        )
+        enableAsset(wallet.id, assetId)
     }
 
     private data class Model(

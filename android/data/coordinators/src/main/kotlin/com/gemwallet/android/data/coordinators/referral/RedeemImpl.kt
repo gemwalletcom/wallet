@@ -1,10 +1,9 @@
 package com.gemwallet.android.data.coordinators.referral
 
 import com.gemwallet.android.application.GetAuthPayload
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.referral.coordinators.Redeem
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.tokens.TokensRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
@@ -22,8 +21,7 @@ class RedeemImpl(
     private val sessionRepository: SessionRepository,
     private val gemDeviceApiClient: GemDeviceApiClient,
     private val getAuthPayload: GetAuthPayload,
-    private val tokensRepository: TokensRepository,
-    private val assetsRepository: AssetsRepository,
+    private val enableAsset: EnableAsset,
 ) : Redeem {
 
     override suspend fun redeem(wallet: Wallet, rewards: Rewards, option: RewardRedemptionOption): RedemptionResult {
@@ -39,11 +37,10 @@ class RedeemImpl(
                 data = RedemptionRequest(option.id)
             )
         )
-        sessionRepository.session().firstOrNull()?.let {
+        sessionRepository.session().firstOrNull()?.let { session ->
             val assetId = option.asset?.id ?: return@let
-            it.wallet.getAccount(assetId.chain) ?: return@let
-            tokensRepository.search(assetId, it.currency)
-            assetsRepository.switchVisibility(it.wallet.id, assetId, true)
+            session.wallet.getAccount(assetId.chain) ?: return@let
+            enableAsset(session.wallet.id, assetId)
         }
         return result
     }

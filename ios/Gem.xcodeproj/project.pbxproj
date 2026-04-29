@@ -795,7 +795,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C30952D5299C39D80004C0F9 /* Build configuration list for PBXNativeTarget "Gem" */;
 			buildPhases = (
-				D8GEMST0NE2025040800001 /* Build Gemstone */,
 				C30952AC299C39D70004C0F9 /* Sources */,
 				C30952AD299C39D70004C0F9 /* Frameworks */,
 				C30952AE299C39D70004C0F9 /* Resources */,
@@ -1128,24 +1127,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		D8GEMST0NE2025040800001 /* Build Gemstone */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Build Gemstone";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/bash;
-			shellScript = "\"$SRCROOT/scripts/generate-stone.sh\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C30952AC299C39D70004C0F9 /* Sources */ = {
