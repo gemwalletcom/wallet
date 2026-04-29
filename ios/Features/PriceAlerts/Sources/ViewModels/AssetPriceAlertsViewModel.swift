@@ -19,7 +19,9 @@ public final class AssetPriceAlertsViewModel: Sendable {
 
     public let query: ObservableQuery<PriceAlertsRequest>
     public let priceQuery: ObservableQuery<PriceRequest>
-    var priceAlerts: [PriceAlertData] { query.value }
+    var priceAlerts: [PriceAlertData] {
+        query.value
+    }
 
     var isPresentingSetPriceAlert: Bool = false
     var isPresentingToastMessage: ToastMessage?
@@ -36,7 +38,9 @@ public final class AssetPriceAlertsViewModel: Sendable {
         priceQuery = ObservableQuery(PriceRequest(assetId: asset.id), initialValue: nil)
     }
 
-    var title: String { Localized.Settings.PriceAlerts.title }
+    var title: String {
+        Localized.Settings.PriceAlerts.title
+    }
 
     var autoAlertItemModel: PriceAlertItemViewModel {
         PriceAlertItemViewModel(data: PriceAlertData(

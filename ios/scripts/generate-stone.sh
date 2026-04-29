@@ -51,8 +51,8 @@ echo "note: Gemstone sources changed — rebuilding XCFramework (${BUILD_MODE:-d
 
 pushd "$STONE_DIR" > /dev/null
 BUILD_MODE=$BUILD_MODE IPHONEOS_DEPLOYMENT_TARGET=$(read_deployment_target) just build-ios
-rm -rf "$PACKAGES_DIR"
-cp -Rf target/spm "$PACKAGES_DIR"
+mkdir -p "$PACKAGES_DIR"
+ditto target/spm "$PACKAGES_DIR"
 popd > /dev/null
 
 echo "$current_hash" > "$HASH_FILE"

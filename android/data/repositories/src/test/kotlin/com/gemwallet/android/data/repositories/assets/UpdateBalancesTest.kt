@@ -4,18 +4,24 @@ import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -39,7 +45,7 @@ class UpdateBalancesTest {
         val walletId = "wallet-1"
         val account = mockAccount(chain = Chain.Ethereum)
 
-        every { balancesDao.getByAccount(walletId, account.address, account.chain.string) } returns null
+        every { balancesDao.getByAsset(walletId, account.chain.string) } returns null
         coEvery { balancesService.getNativeBalances(account) } returns null
         coEvery { balancesService.getStakeBalances(account) } returns null
 
@@ -48,7 +54,7 @@ class UpdateBalancesTest {
         assertTrue(result.isEmpty())
         verify(exactly = 0) { balancesDao.insertIgnore(any()) }
         verify(exactly = 0) {
-            balancesDao.updateCoinBalance(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            balancesDao.updateCoinBalance(any(), any(), any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -59,7 +65,6 @@ class UpdateBalancesTest {
         val existing = DbBalance(
             assetId = account.chain.string,
             walletId = walletId,
-            accountAddress = account.address,
             available = "1000000000000000000",
             availableAmount = 1.0,
             updatedAt = 1L,
@@ -67,7 +72,7 @@ class UpdateBalancesTest {
 
         mockkStatic("com.gemwallet.android.ext.ChainKt")
         every { Chain.Ethereum.asset() } returns mockAssetEthereum()
-        every { balancesDao.getByAccount(walletId, account.address, account.chain.string) } returns existing
+        every { balancesDao.getByAsset(walletId, account.chain.string) } returns existing
         coEvery { balancesService.getNativeBalances(account) } returns null
         coEvery { balancesService.getStakeBalances(account) } returns null
 
@@ -77,7 +82,36 @@ class UpdateBalancesTest {
         assertEquals("1000000000000000000", result.single().balance.available)
         verify(exactly = 0) { balancesDao.insertIgnore(any()) }
         verify(exactly = 0) {
-            balancesDao.updateCoinBalance(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            balancesDao.updateCoinBalance(any(), any(), any(), any(), any(), any(), any(), any())
         }
+    }
+
+    @Test
+    fun `token refresh creates hidden balance row`() = runTest {
+        val walletId = "wallet-1"
+        val account = mockAccount(chain = Chain.Ethereum)
+        val token = mockAsset(
+            chain = Chain.Ethereum,
+            tokenId = "0xtoken",
+            name = "Token",
+            symbol = "TOK",
+            decimals = 18,
+            type = AssetType.ERC20,
+        )
+        val inserted = slot<DbBalance>()
+
+        every { balancesDao.getByAsset(walletId, account.chain.string) } returns null
+        coEvery { balancesService.getNativeBalances(account) } returns null
+        coEvery { balancesService.getStakeBalances(account) } returns null
+        coEvery { balancesService.getTokensBalances(account, listOf(token)) } returns listOf(
+            AssetBalance.create(token, available = "1000000000000000000")
+        )
+
+        subject.updateBalances(walletId, account, listOf(token))
+
+        verify { balancesDao.insertIgnore(capture(inserted)) }
+        assertEquals(token.id.toIdentifier(), inserted.captured.assetId)
+        assertEquals(walletId, inserted.captured.walletId)
+        assertFalse(inserted.captured.isVisible)
     }
 }

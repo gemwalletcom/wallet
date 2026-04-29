@@ -13,7 +13,9 @@ public protocol StateButtonViewable: Sendable {
 }
 
 public extension StateButtonViewable {
-    var infoText: String? { nil }
+    var infoText: String? {
+        nil
+    }
 }
 
 public struct StateButton: View {

@@ -13,7 +13,7 @@ class HideAssetImpl(
 
     override suspend fun invoke(assetId: AssetId) {
         val session = sessionRepository.session().value ?: return
-        val account = session.wallet.getAccount(assetId.chain) ?: return
-        assetsRepository.switchVisibility(session.wallet.id, account, assetId, false)
+        session.wallet.getAccount(assetId.chain) ?: return
+        assetsRepository.switchVisibility(session.wallet.id, assetId, false)
     }
 }

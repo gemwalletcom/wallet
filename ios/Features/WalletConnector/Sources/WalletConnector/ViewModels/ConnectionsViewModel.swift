@@ -17,7 +17,9 @@ public final class ConnectionsViewModel {
     let walletConnectorPresenter: WalletConnectorPresenter?
 
     public let query: ObservableQuery<ConnectionsRequest>
-    var connections: [WalletConnection] { query.value }
+    var connections: [WalletConnection] {
+        query.value
+    }
 
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
@@ -32,11 +34,25 @@ public final class ConnectionsViewModel {
         query = ObservableQuery(ConnectionsRequest(), initialValue: [])
     }
 
-    var title: String { Localized.WalletConnect.title }
-    var disconnectTitle: String { Localized.WalletConnect.disconnect }
-    var pasteButtonTitle: String { Localized.Common.paste }
-    var scanQRCodeButtonTitle: String { Localized.Wallet.scanQrCode }
-    var docsUrl: URL { AppUrl.docs(.walletConnect) }
+    var title: String {
+        Localized.WalletConnect.title
+    }
+
+    var disconnectTitle: String {
+        Localized.WalletConnect.disconnect
+    }
+
+    var pasteButtonTitle: String {
+        Localized.Common.paste
+    }
+
+    var scanQRCodeButtonTitle: String {
+        Localized.Wallet.scanQrCode
+    }
+
+    var docsUrl: URL {
+        AppUrl.docs(.walletConnect)
+    }
 
     var sections: [ListSection<WalletConnection>] {
         let grouped = Dictionary(grouping: connections, by: { $0.wallet })

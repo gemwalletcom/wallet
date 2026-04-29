@@ -29,7 +29,10 @@ public final class AmountSceneViewModel {
     public let provider: AmountDataProvider
 
     public let assetQuery: ObservableQuery<AssetRequest>
-    var assetData: AssetData { assetQuery.value }
+    var assetData: AssetData {
+        assetQuery.value
+    }
+
     public var transferState: StateViewType<TransferData> = .noData
     var amountInputModel: InputValidationViewModel
     public var isPresentingSheet: AmountSheetType?
@@ -60,14 +63,33 @@ public final class AmountSceneViewModel {
         }
     }
 
-    public var asset: Asset { provider.asset }
-    var title: String { provider.title }
-    var canChangeValue: Bool { provider.canChangeValue }
-    var isInputDisabled: Bool { !canChangeValue }
-    var isBalanceViewEnabled: Bool { provider.showsAssetBalance }
+    public var asset: Asset {
+        provider.asset
+    }
 
-    var assetImage: AssetImage { AssetViewModel(asset: asset).assetImage }
-    var assetName: String { asset.name }
+    var title: String {
+        provider.title
+    }
+
+    var canChangeValue: Bool {
+        provider.canChangeValue
+    }
+
+    var isInputDisabled: Bool {
+        !canChangeValue
+    }
+
+    var isBalanceViewEnabled: Bool {
+        provider.showsAssetBalance
+    }
+
+    var assetImage: AssetImage {
+        AssetViewModel(asset: asset).assetImage
+    }
+
+    var assetName: String {
+        asset.name
+    }
 
     var balanceText: String {
         ValueFormatter(style: .medium).string(
@@ -87,9 +109,17 @@ public final class AmountSceneViewModel {
         return Localized.Transfer.reservedFees(formatter.string(provider.reserveForFee, asset: asset))
     }
 
-    var maxTitle: String { Localized.Transfer.max }
-    public var continueTitle: String { Localized.Common.continue }
-    public var isNextEnabled: Bool { actionButtonState == .normal }
+    var maxTitle: String {
+        Localized.Transfer.max
+    }
+
+    public var continueTitle: String {
+        Localized.Common.continue
+    }
+
+    public var isNextEnabled: Bool {
+        actionButtonState == .normal
+    }
 
     var inputConfig: any CurrencyInputConfigurable {
         AmountInputConfig(
@@ -105,7 +135,9 @@ public final class AmountSceneViewModel {
 }
 
 extension AmountSceneViewModel {
-    var shouldFocusOnAppear: Bool { canChangeValue }
+    var shouldFocusOnAppear: Bool {
+        canChangeValue
+    }
 
     func onAppear() {
         if !canChangeValue {

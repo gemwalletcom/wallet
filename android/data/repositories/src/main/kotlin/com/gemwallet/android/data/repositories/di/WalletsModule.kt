@@ -6,6 +6,8 @@ import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.AccountsDao
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.WalletsDao
 import dagger.Module
 import dagger.Provides
@@ -21,17 +23,20 @@ object WalletsModule {
         walletsDao: WalletsDao,
         accountsDao: AccountsDao,
         addressesRepository: AddressesRepository,
+        assetsDao: AssetsDao,
         createAccountOperator: CreateAccountOperator,
         walletIdGenerator: WalletIdGenerator,
+        transactionRunner: StoreTransactionRunner,
     ): WalletsRepository {
         return WalletsRepositoryImpl(
             walletsDao = walletsDao,
             accountsDao = accountsDao,
             addressesRepository = addressesRepository,
+            assetsDao = assetsDao,
             createAccount = createAccountOperator,
             walletIdGenerator = walletIdGenerator,
+            transactionRunner = transactionRunner,
         )
     }
 
 }
-

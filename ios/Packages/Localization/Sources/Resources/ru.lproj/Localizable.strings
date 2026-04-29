@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Данные отсутствуют.";
-"errors.dust_threshold_short" = "Эту сумму сеть считает пылью — комиссия выше самой суммы.";
+"errors.dust_threshold_short" = "Эту сумму сеть считает пылью - комиссия выше самой суммы.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Этот кошелек уже импортирован.";
 "rewards.unverified.title" = "Награды пока неактивны.";
 "rewards.unverified.description" = "Награды активируются автоматически по мере более частого использования приложения.";
+"common.refresh" = "Обновить";

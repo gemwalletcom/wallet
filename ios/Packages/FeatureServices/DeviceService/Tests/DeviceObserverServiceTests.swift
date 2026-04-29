@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import DeviceService
 import DeviceServiceTestKit
 import Preferences
 import PreferencesTestKit
 import StoreTestKit
 import Testing
-
-@testable import DeviceService
 
 struct DeviceObserverServiceTests {
     @Test

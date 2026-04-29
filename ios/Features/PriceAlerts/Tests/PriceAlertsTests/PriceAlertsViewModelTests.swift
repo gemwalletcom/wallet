@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import PriceAlerts
 import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import PriceAlerts
 
 struct PriceAlertsViewModelTests {
     @Test @MainActor

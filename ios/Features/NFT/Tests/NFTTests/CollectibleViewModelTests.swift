@@ -1,6 +1,8 @@
 import AvatarService
 import ExplorerService
+import Formatters
 import Foundation
+@testable import NFT
 import NFTServiceTestKit
 import Primitives
 import PrimitivesComponents
@@ -9,8 +11,6 @@ import Store
 import StoreTestKit
 import Testing
 import WalletServiceTestKit
-
-@testable import NFT
 
 @MainActor
 struct CollectibleViewModelTests {
@@ -62,6 +62,26 @@ struct CollectibleViewModelTests {
             NFTAttribute(name: "Color", value: "Blue", percentage: nil),
         ])))
         #expect(withAttributesModel.showAttributes == true)
+    }
+
+    @Test
+    func attributeValueFormatting() throws {
+        let formatter = try RelativeDateFormatter(
+            locale: Locale(identifier: "en_US_POSIX"),
+            timeZone: #require(TimeZone(secondsFromGMT: 0)),
+        )
+
+        let date = NFTAttributeViewModel(
+            attribute: NFTAttribute(name: "Created Date", value: "1662714817", valueType: .timestamp, percentage: nil),
+            relativeDateFormatter: formatter,
+        )
+        let string = NFTAttributeViewModel(
+            attribute: NFTAttribute(name: "Length", value: "9", valueType: .string, percentage: nil),
+            relativeDateFormatter: formatter,
+        )
+
+        #expect(date.value == formatter.string(fromTimestampValue: "1662714817"))
+        #expect(string.value == "9")
     }
 
     @Test

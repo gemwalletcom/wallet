@@ -9,7 +9,9 @@ public struct AutocloseEstimator {
     public let direction: PerpetualDirection
     public let leverage: UInt8
 
-    public var hasSize: Bool { positionSize > 0 }
+    public var hasSize: Bool {
+        positionSize > 0
+    }
 
     public init(entryPrice: Double, positionSize: Double, direction: PerpetualDirection, leverage: UInt8) {
         self.entryPrice = entryPrice

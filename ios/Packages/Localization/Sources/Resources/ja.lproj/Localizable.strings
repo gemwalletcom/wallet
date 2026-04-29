@@ -538,7 +538,7 @@
 "swap.use_minimum_amount" = "最小量を使用する";
 "common.earn" = "Earn";
 "earn.state.empty.title" = "あなたのポジションはここに表示されます";
-"earn.state.empty.description" = "最初の入金 %@";
+"earn.state.empty.description" = "初回入金 %@";
 "contacts.title" = "連絡先";
 "contacts.contact" = "接触";
 "contacts.addresses" = "住所";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "このウォレットは既にインポート済みです。";
 "rewards.unverified.title" = "特典はまだ有効になっていません。";
 "rewards.unverified.description" = "アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。";
+"common.refresh" = "更新";

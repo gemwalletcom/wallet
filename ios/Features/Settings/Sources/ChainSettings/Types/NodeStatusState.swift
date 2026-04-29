@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-enum NodeStatusState: Sendable {
+enum NodeStatusState {
     case result(NodeStatus)
     case error(error: any Error)
     case none

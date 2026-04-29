@@ -3,9 +3,8 @@ import struct Gemstone.SignMessage
 import Primitives
 import PrimitivesTestKit
 import Testing
-import WalletConnectorService
-
 @testable import WalletConnector
+import WalletConnectorService
 
 struct WalletConnectorPresenterTests {
     @Test

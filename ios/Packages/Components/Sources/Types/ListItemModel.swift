@@ -10,10 +10,12 @@ public enum TitleTagType {
 }
 
 public enum ListItemViewPlaceholderType: Identifiable, CaseIterable {
-    // items supports placeholder progress view
+    /// items supports placeholder progress view
     case subtitle // right corner of cell
 
-    public var id: Self { self }
+    public var id: Self {
+        self
+    }
 }
 
 public struct ListItemModel {
@@ -95,13 +97,30 @@ public struct ListItemModel {
         self.infoAction = infoAction
     }
 
-    public var titleTextValue: TextValue? { title.map { TextValue(text: $0, style: titleStyle, lineLimit: titleLineLimit) } }
-    public var titleExtraTextValue: TextValue? { titleExtra.map { TextValue(text: $0, style: titleStyleExtra, lineLimit: titleExtraLineLimit) } }
-    public var titleTagTextValue: TextValue? { titleTag.map { TextValue(text: $0, style: titleTagStyle, lineLimit: titleTagLineLimit) } }
-    public var subtitleTextValue: TextValue? { subtitle.map { TextValue(text: $0, style: subtitleStyle, lineLimit: subtitleLineLimit) } }
-    public var subtitleExtraTextValue: TextValue? { subtitleExtra.map { TextValue(text: $0, style: subtitleStyleExtra, lineLimit: subtitleExtraLineLimit) } }
+    public var titleTextValue: TextValue? {
+        title.map { TextValue(text: $0, style: titleStyle, lineLimit: titleLineLimit) }
+    }
 
-    public var titleView: TextValue? { titleTextValue }
+    public var titleExtraTextValue: TextValue? {
+        titleExtra.map { TextValue(text: $0, style: titleStyleExtra, lineLimit: titleExtraLineLimit) }
+    }
+
+    public var titleTagTextValue: TextValue? {
+        titleTag.map { TextValue(text: $0, style: titleTagStyle, lineLimit: titleTagLineLimit) }
+    }
+
+    public var subtitleTextValue: TextValue? {
+        subtitle.map { TextValue(text: $0, style: subtitleStyle, lineLimit: subtitleLineLimit) }
+    }
+
+    public var subtitleExtraTextValue: TextValue? {
+        subtitleExtra.map { TextValue(text: $0, style: subtitleStyleExtra, lineLimit: subtitleExtraLineLimit) }
+    }
+
+    public var titleView: TextValue? {
+        titleTextValue
+    }
+
     public var subtitleView: TextValue? {
         showPlaceholderProgress(for: .subtitle, value: subtitleTextValue) ? nil : subtitleTextValue
     }
@@ -118,13 +137,21 @@ public struct ListItemModel {
         }
     }
 
-    public var imageAlignment: VerticalAlignment { imageStyle?.alignment ?? .center }
+    public var imageAlignment: VerticalAlignment {
+        imageStyle?.alignment ?? .center
+    }
 
-    public var loadingTintColor: Color { subtitleTextValue?.style.color ?? Colors.gray }
+    public var loadingTintColor: Color {
+        subtitleTextValue?.style.color ?? Colors.gray
+    }
 
-    public var hasSubtitlePlaceholder: Bool { showPlaceholderProgress(for: .subtitle, value: subtitleTextValue) }
+    public var hasSubtitlePlaceholder: Bool {
+        showPlaceholderProgress(for: .subtitle, value: subtitleTextValue)
+    }
 
-    public func showPlaceholderProgress(for type: ListItemViewPlaceholderType, value: Any?) -> Bool { placeholders.contains(type) && value == nil }
+    public func showPlaceholderProgress(for type: ListItemViewPlaceholderType, value: Any?) -> Bool {
+        placeholders.contains(type) && value == nil
+    }
 }
 
 // MARK: - Factory Methods

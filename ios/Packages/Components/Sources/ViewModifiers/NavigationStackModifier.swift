@@ -10,8 +10,8 @@ public extension Binding where Value == Bool {
             set: { newValue in
                 guard newValue == false else { return }
 
-                /// We only handle `false` booleans to set our optional to `nil`
-                /// as we can't handle `true` for restoring the previous value.
+                // We only handle `false` booleans to set our optional to `nil`
+                // as we can't handle `true` for restoring the previous value.
                 bindingOptional.wrappedValue = nil
             },
         )

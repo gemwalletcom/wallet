@@ -7,6 +7,7 @@ import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProper
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
+import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
@@ -16,7 +17,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.GemPlatformErrors
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -65,6 +65,7 @@ class ConfirmViewModel @Inject constructor(
     private val validateBalance: ValidateBalance,
     private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
+    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -99,7 +100,9 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val walletConnectReview = combine(walletConnectSimulationState, walletConnectHeaderAssetInfo, request) { simulation, headerAssetInfo, params ->
-        val review = simulation?.toWalletConnectReview() ?: WalletConnectReview()
+        val chain = params?.assetId?.chain
+        val explorerName = chain?.let { getCurrentBlockExplorer.getCurrentBlockExplorer(it) }
+        val review = simulation?.toWalletConnectReview(chain, explorerName) ?: WalletConnectReview()
         val headerAssetId = simulation?.header?.assetId
         val asset = when {
             headerAssetId == null || params == null -> null
@@ -134,12 +137,7 @@ class ConfirmViewModel @Inject constructor(
             signerPreload.preload(params = request, feePriority = feePriority)
         } catch (err: Throwable) {
             state.update {
-                ConfirmState.Error(
-                    when (err.message?.contains(GemPlatformErrors.Dust.message)) {
-                        true -> ConfirmError.DustThreshold(owner.chain)
-                        else -> ConfirmError.PreloadError
-                    }
-                )
+                ConfirmState.Error(err.toPreloadConfirmError(owner.chain))
             }
             return@combine null
         }
@@ -309,10 +307,8 @@ class ConfirmViewModel @Inject constructor(
             viewModelScope.launch(Dispatchers.Main) {
                 finishAction(assetId = assetInfo.id(), hash = result.txHash, route = result.finishRoute)
             }
-        } catch (err: ConfirmError) {
-            state.update { ConfirmState.BroadcastError(err) }
         } catch (err: Throwable) {
-            state.update { ConfirmState.BroadcastError(ConfirmError.BroadcastError(err.message ?: "Unknown error")) }
+            state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }
         }
     }
 

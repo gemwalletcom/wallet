@@ -315,6 +315,8 @@ public enum Localized {
     public static let provider = Localized.tr("Localizable", "common.provider", fallback: "Provider")
     /// Recommended
     public static let recommended = Localized.tr("Localizable", "common.recommended", fallback: "Recommended")
+    /// Refresh
+    public static let refresh = Localized.tr("Localizable", "common.refresh", fallback: "Refresh")
     /// Save
     public static let save = Localized.tr("Localizable", "common.save", fallback: "Save")
     /// Secret Phrase
@@ -401,8 +403,8 @@ public enum Localized {
     public static func dustThreshold(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.dust_threshold", String(describing: p1), fallback: "The transaction failed because the amount is too small to meet the %@ network’s minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.")
     }
-    /// The network considers this amount dust — the fee is higher than the amount itself.
-    public static let dustThresholdShort = Localized.tr("Localizable", "errors.dust_threshold_short", fallback: "The network considers this amount dust — the fee is higher than the amount itself.")
+    /// The network considers this amount dust - the fee is higher than the amount itself.
+    public static let dustThresholdShort = Localized.tr("Localizable", "errors.dust_threshold_short", fallback: "The network considers this amount dust - the fee is higher than the amount itself.")
     /// Error
     public static let error = Localized.tr("Localizable", "errors.error", fallback: "Error")
     /// An error occurred!

@@ -3,10 +3,9 @@
 
     <style name="Theme.Wallet" parent="Theme.Material3.DayNight.NoActionBar" />
 
-    <style name="Theme.Wallet.Starting" parent="Theme.SplashScreen.IconBackground">
+    <style name="Theme.Wallet.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_gem_foreground</item>
-        <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_screen</item>
         <item name="postSplashScreenTheme">@style/Theme.Wallet</item>
     </style>
 </resources>

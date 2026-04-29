@@ -6,7 +6,7 @@ import Testing
 
 struct URLDecoderTest {
     @Test
-    func decoderUrl() async throws {
+    func decoderUrl() throws {
         let decoder = URLDecoder()
 
         #expect(try decoder.decode("cloudflare-eth.com") == URL(string: "https://cloudflare-eth.com"))

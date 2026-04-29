@@ -11,8 +11,15 @@ public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
         self.assetAddress = assetAddress
     }
 
-    public var id: String { type.id }
+    public var id: String {
+        type.id
+    }
 
-    public var asset: Asset { assetAddress.asset }
-    public var address: String { assetAddress.address }
+    public var asset: Asset {
+        assetAddress.asset
+    }
+
+    public var address: String {
+        assetAddress.address
+    }
 }

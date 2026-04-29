@@ -70,9 +70,17 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         selectedState.value?.availablePeriods ?? [.day, .week, .month, .year, .all]
     }
 
-    var statistics: [PortfolioStatistic] { selectedState.value?.statistics ?? [] }
-    var statisticsTitle: String { Localized.Common.info }
-    var showChartTypePicker: Bool { state.selectedType == .perpetuals }
+    var statistics: [PortfolioStatistic] {
+        selectedState.value?.statistics ?? []
+    }
+
+    var statisticsTitle: String {
+        Localized.Common.info
+    }
+
+    var showChartTypePicker: Bool {
+        state.selectedType == .perpetuals
+    }
 }
 
 // MARK: - Business Logic
@@ -176,7 +184,10 @@ extension PortfolioSceneViewModel {
         return ListItemModel(title: Localized.Perpetual.marginUsage, subtitle: "\(value) (\(percent))")
     }
 
-    private var currencyCode: String { preferences.preferences.currency }
+    private var currencyCode: String {
+        preferences.preferences.currency
+    }
+
     private var chartFormatter: CurrencyFormatter {
         state.selectedType == .perpetuals ? perpetualFormatter : currencyFormatter
     }

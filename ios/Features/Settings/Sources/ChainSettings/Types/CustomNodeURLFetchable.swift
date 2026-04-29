@@ -12,5 +12,7 @@ struct CustomNodeURLFetchable: NodeURLFetchable {
         self.requestInterceptor = requestInterceptor
     }
 
-    func node(for _: Chain) -> URL { url }
+    func node(for _: Chain) -> URL {
+        url
+    }
 }

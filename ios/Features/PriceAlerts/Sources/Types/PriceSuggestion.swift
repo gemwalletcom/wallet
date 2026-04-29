@@ -11,5 +11,7 @@ struct PriceSuggestion: SuggestionViewable {
         value.formatted(.number.grouping(.never))
     }
 
-    var id: String { "\(title)_\(inputValue)" }
+    var id: String {
+        "\(title)_\(inputValue)"
+    }
 }

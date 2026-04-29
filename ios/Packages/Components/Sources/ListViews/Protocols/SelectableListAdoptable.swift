@@ -31,8 +31,13 @@ public extension SelectableListAdoptable {
         }
     }
 
-    var emptyStateTitle: String? { nil }
-    var errorTitle: String? { nil }
+    var emptyStateTitle: String? {
+        nil
+    }
+
+    var errorTitle: String? {
+        nil
+    }
 
     mutating func toggle(item: Item) {
         if shouldResetOnToggle {

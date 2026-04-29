@@ -387,8 +387,8 @@ class SwapViewModel @Inject constructor(
 
     private fun updateBalance(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val session = sessionRepository.session().firstOrNull() ?: return@launch
-        val account = session.wallet.getAccount(id.chain) ?: return@launch
-        assetsRepository.switchVisibility(session.wallet.id, account, id, true)
+        session.wallet.getAccount(id.chain) ?: return@launch
+        assetsRepository.switchVisibility(session.wallet.id, id, true)
     }
 
     private fun onQuoteRequestParamsChanged(params: QuoteRequestParams?) {

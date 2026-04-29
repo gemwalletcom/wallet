@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 71,
-    "identityHash": "625fd7654b7585ae7bc58f14b180f572",
+    "identityHash": "aa6fb483cee8a6b1a347cdf40c9c53ff",
     "entities": [
       {
         "tableName": "wallets",
@@ -107,77 +107,6 @@
             "derivation_path"
           ]
         }
-      },
-      {
-        "tableName": "addresses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chain` TEXT NOT NULL, `address` TEXT NOT NULL, `wallet_id` TEXT, `name` TEXT NOT NULL, `type` TEXT, `status` TEXT NOT NULL, PRIMARY KEY(`chain`, `address`), FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
-        "fields": [
-          {
-            "fieldPath": "chain",
-            "columnName": "chain",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "address",
-            "columnName": "address",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "walletId",
-            "columnName": "wallet_id",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "type",
-            "columnName": "type",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "status",
-            "columnName": "status",
-            "affinity": "TEXT",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "chain",
-            "address"
-          ]
-        },
-        "indices": [
-          {
-            "name": "index_addresses_wallet_id",
-            "unique": false,
-            "columnNames": [
-              "wallet_id"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_addresses_wallet_id` ON `${TABLE_NAME}` (`wallet_id`)"
-          }
-        ],
-        "foreignKeys": [
-          {
-            "table": "wallets",
-            "onDelete": "CASCADE",
-            "onUpdate": "CASCADE",
-            "columns": [
-              "wallet_id"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
       },
       {
         "tableName": "asset",
@@ -2161,15 +2090,11 @@
       {
         "viewName": "asset_info",
         "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT DISTINCT\n            asset.id as id,\n            asset.name as name,\n            asset.symbol as symbol,\n            asset.decimals as decimals,\n            asset.type as type,\n            asset.is_buy_enabled as isBuyEnabled,\n            asset.is_sell_enabled as isSellEnabled,\n            asset.is_swap_enabled as isSwapEnabled,\n            asset.is_stake_enabled as isStakeEnabled,\n            asset.staking_apr as stakingApr,\n            asset.rank as assetRank,\n            asset.chain as chain,\n            accounts.address as address,\n            accounts.derivation_path as derivationPath,\n            accounts.extendedPublicKey as extendedPublicKey,\n            asset_config.is_pinned AS pinned,\n            asset_config.is_visible AS visible,\n            asset_config.list_position AS listPosition,\n            session.id AS sessionId,\n            prices.currency AS priceCurrency,\n            wallets.id as walletId,\n            wallets.type AS walletType,\n            wallets.name AS walletName,\n            prices.value AS priceValue,\n            prices.day_changed AS priceDayChanges,\n            balances.available AS balanceAvailable,\n            balances.available_amount AS balanceAvailableAmount,\n            balances.frozen AS balanceFrozen,\n            balances.frozen_amount AS balanceFrozenAmount,\n            balances.locked AS balanceLocked,\n            balances.locked_amount AS balanceLockedAmount,\n            balances.staked AS balanceStaked,\n            balances.staked_amount AS balanceStakedAmount,\n            balances.pending AS balancePending,\n            balances.pending_amount AS balancePendingAmount,\n            balances.rewards AS balanceRewards,\n            balances.rewards_amount AS balanceRewardsAmount,\n            balances.reserved AS balanceReserved,\n            balances.reserved_amount AS balanceReservedAmount,\n            balances.total_amount AS balanceTotalAmount,\n            (balances.total_amount * prices.value) AS balanceFiatTotalAmount,\n            balances.updated_at AS balanceUpdatedAt,\n            balances.is_active AS assetIsActive,\n            balances.votes AS votes,\n            balances.energy_available as energyAvailable,\n            balances.energy_total as energyTotal,\n            balances.bandwidth_available as bandwidthAvailable, \n            balances.bandwidth_total as bandwidthTotal\n        FROM asset\n        LEFT JOIN asset_wallet ON asset.id = asset_wallet.asset_id\n        LEFT JOIN session ON asset_wallet.wallet_id = session.wallet_id\n        LEFT JOIN wallets ON wallets.id = session.wallet_id\n        LEFT JOIN accounts ON asset_wallet.account_address = accounts.address AND wallets.id = accounts.wallet_id AND asset.\"chain\" = accounts.\"chain\"\n        LEFT JOIN balances ON asset_wallet.account_address = balances.account_address AND asset_wallet.asset_id = balances.asset_id AND wallets.id = balances.wallet_id\n        LEFT JOIN prices ON asset.id = prices.asset_id AND prices.currency = (SELECT currency FROM session WHERE id = 1)\n        LEFT JOIN asset_config ON asset_wallet.asset_id = asset_config.asset_id AND wallets.id = asset_config.wallet_id"
-      },
-      {
-        "viewName": "extended_txs",
-        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT\n        DISTINCT tx.id,\n        tx.hash,\n        tx.assetId,\n        tx.feeAssetId,\n        tx.owner,\n        tx.recipient,\n        tx.contract,\n        tx.state,\n        tx.type,\n        tx.blockNumber,\n        tx.sequence,\n        tx.fee,\n        tx.value,\n        tx.payload,\n        tx.metadata,\n        tx.direction,\n        tx.createdAt,\n        tx.updatedAt,\n        tx.walletId,\n        asset.decimals as assetDecimals,\n        asset.name as assetName,\n        asset.type as assetType,\n        asset.symbol as assetSymbol,\n        feeAsset.decimals as feeDecimals,\n        feeAsset.name as feeName,\n        feeAsset.type as feeType,\n        feeAsset.symbol as feeSymbol,\n        prices.value as assetPrice,\n        prices.day_changed as assetPriceChanged,\n        feePrices.value as feePrice,\n        feePrices.day_changed as feePriceChanged,\n        from_asset.id as assetIdFrom,\n        from_asset.name as assetNameFrom,\n        from_asset.symbol as assetSymbolFrom,\n        from_asset.decimals as assetDecimalsFrom,\n        from_asset.type as assetTypeFrom,\n        to_asset.id as assetIdTo,\n        to_asset.name as assetNameTo,\n        to_asset.symbol as assetSymbolTo,\n        to_asset.decimals as assetDecimalsTo,\n        to_asset.type as assetTypeTo,\n        from_addr.name as fromName,\n        from_addr.type as fromType,\n        from_addr.status as fromStatus,\n        to_addr.name as toName,\n        to_addr.type as toType,\n        to_addr.status as toStatus\n    FROM transactions as tx\n        INNER JOIN asset ON tx.assetId = asset.id\n        INNER JOIN asset as feeAsset ON tx.feeAssetId = feeAsset.id\n        LEFT JOIN prices ON tx.assetId = prices.asset_id\n        LEFT JOIN prices as feePrices ON tx.feeAssetId = feePrices.asset_id\n        LEFT JOIN tx_swap_metadata as swap ON tx.id = swap.tx_id\n        LEFT JOIN asset as from_asset ON swap.from_asset_id = from_asset.id\n        LEFT JOIN asset as to_asset ON swap.to_asset_id = to_asset.id\n        LEFT JOIN addresses as from_addr ON from_addr.chain = asset.chain AND from_addr.address = tx.owner\n        LEFT JOIN addresses as to_addr ON to_addr.chain = asset.chain AND to_addr.address = tx.recipient\n        WHERE (tx.owner IN (SELECT accounts.address FROM accounts, session\n    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1) OR tx.recipient in (SELECT accounts.address FROM accounts, session\n    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1))\n            AND tx.walletId in (SELECT wallet_id FROM session WHERE session.id = 1)\n            AND UPPER(tx.feeAssetId) IN (SELECT UPPER(accounts.chain) FROM accounts, session\n    WHERE accounts.wallet_id = session.wallet_id AND session.id = 1)\n        GROUP BY tx.id"
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '625fd7654b7585ae7bc58f14b180f572')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'aa6fb483cee8a6b1a347cdf40c9c53ff')"
     ]
   }
 }

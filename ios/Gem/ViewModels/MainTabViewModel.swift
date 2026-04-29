@@ -13,7 +13,10 @@ final class MainTabViewModel {
     var wallet: Wallet
     let transactionsQuery: ObservableQuery<TransactionsCountRequest>
 
-    var transactions: Int { transactionsQuery.value }
+    var transactions: Int {
+        transactionsQuery.value
+    }
+
     var isPresentingToastMessage: ToastMessage?
 
     init(wallet: Wallet) {
@@ -21,7 +24,9 @@ final class MainTabViewModel {
         transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.walletId, state: .pending), initialValue: 0)
     }
 
-    var walletId: WalletId { wallet.walletId }
+    var walletId: WalletId {
+        wallet.walletId
+    }
 
     func onChangeWallet(_ _: Wallet?, _ newWallet: Wallet?) {
         guard let newWallet else { return }

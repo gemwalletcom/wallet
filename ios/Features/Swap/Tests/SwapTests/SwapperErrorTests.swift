@@ -3,9 +3,8 @@
 import enum Gemstone.SwapperError
 import Primitives
 import PrimitivesTestKit
-import Testing
-
 @testable import Swap
+import Testing
 
 struct SwapperErrorTests {
     @Test

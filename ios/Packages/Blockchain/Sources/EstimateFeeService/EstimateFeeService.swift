@@ -4,7 +4,7 @@ import Foundation
 import Gemstone
 import Primitives
 
-struct EstimateFeeService: Sendable {
+struct EstimateFeeService {
     init() {}
 
     func provider(chain: Primitives.Chain) throws -> any GemGatewayEstimateFee {

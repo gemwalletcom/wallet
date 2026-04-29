@@ -8,7 +8,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct TransactionPnlViewModel: Sendable {
+struct TransactionPnlViewModel {
     private let metadata: TransactionPerpetualMetadata?
 
     init(metadata: TransactionPerpetualMetadata?) {

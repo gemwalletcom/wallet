@@ -50,12 +50,12 @@ fun rememberAssetContextMenuItems(
     assetId: AssetId,
     address: String?,
     isPinned: Boolean,
-    isEnabled: Boolean,
+    isBalanceEnabled: Boolean,
     actions: AssetContextActions,
 ): List<AssetContextMenuItem> {
     val context = LocalContext.current
     val clipboard = LocalClipboard.current.nativeClipboard
-    return remember(assetId, address, isPinned, isEnabled, actions) {
+    return remember(assetId, address, isPinned, isBalanceEnabled, actions) {
         if (actions.isEmpty) return@remember emptyList()
         listOfNotNull(
             actions.onTogglePin?.let { cb ->
@@ -68,13 +68,6 @@ fun rememberAssetContextMenuItems(
                     onClick = { cb(assetId) },
                 )
             },
-            address?.takeUnless(String::isEmpty)?.let { addr ->
-                AssetContextMenuItem(
-                    titleRes = R.string.wallet_copy_address,
-                    icon = { Icon(Icons.Default.ContentCopy, null) },
-                    onClick = { clipboard.setPlainText(context, addr) },
-                )
-            },
             actions.onHide?.let { cb ->
                 AssetContextMenuItem(
                     titleRes = R.string.common_hide,
@@ -82,11 +75,18 @@ fun rememberAssetContextMenuItems(
                     onClick = { cb(assetId) },
                 )
             },
-            actions.onAddToWallet?.takeUnless { isEnabled }?.let { cb ->
+            actions.onAddToWallet?.takeUnless { isBalanceEnabled }?.let { cb ->
                 AssetContextMenuItem(
                     titleRes = R.string.asset_add_to_wallet,
                     icon = { Icon(Icons.Default.AddCircleOutline, null) },
                     onClick = { cb(assetId) },
+                )
+            },
+            address?.takeUnless(String::isEmpty)?.let { addr ->
+                AssetContextMenuItem(
+                    titleRes = R.string.wallet_copy_address,
+                    icon = { Icon(Icons.Default.ContentCopy, null) },
+                    onClick = { clipboard.setPlainText(context, addr) },
                 )
             },
         )
@@ -140,14 +140,14 @@ fun AssetContextMenuRow(
     assetId: AssetId,
     address: String?,
     isPinned: Boolean,
-    isEnabled: Boolean,
+    isBalanceEnabled: Boolean,
     longPressed: MutableState<AssetId?>,
     actions: AssetContextActions,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable (Modifier) -> Unit,
 ) {
-    val items = rememberAssetContextMenuItems(assetId, address, isPinned, isEnabled, actions)
+    val items = rememberAssetContextMenuItems(assetId, address, isPinned, isBalanceEnabled, actions)
     AssetMenuRow(
         modifier = modifier,
         items = items,

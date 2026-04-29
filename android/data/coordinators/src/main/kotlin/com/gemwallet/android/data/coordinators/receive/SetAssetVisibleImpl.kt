@@ -14,7 +14,7 @@ class SetAssetVisibleImpl(
 
     override suspend fun invoke(assetId: AssetId) {
         val session = sessionRepository.session().firstOrNull() ?: return
-        val account = session.wallet.getAccount(assetId.chain) ?: return
-        assetsRepository.switchVisibility(session.wallet.id, account, assetId, true)
+        session.wallet.getAccount(assetId.chain) ?: return
+        assetsRepository.switchVisibility(session.wallet.id, assetId, true)
     }
 }

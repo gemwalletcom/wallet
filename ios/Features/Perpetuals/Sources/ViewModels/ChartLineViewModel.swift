@@ -10,8 +10,13 @@ struct ChartLineViewModel: Identifiable {
     let line: ChartLine
     let formatter: CurrencyFormatter
 
-    var id: String { "\(line.type)_\(line.price)" }
-    var price: Double { line.price }
+    var id: String {
+        "\(line.type)_\(line.price)"
+    }
+
+    var price: Double {
+        line.price
+    }
 
     var label: String {
         let typeLabel: String = switch line.type {

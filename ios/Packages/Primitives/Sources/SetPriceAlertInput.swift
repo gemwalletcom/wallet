@@ -3,7 +3,10 @@
 import Foundation
 
 public struct SetPriceAlertInput: Identifiable, Sendable {
-    public var id: String { asset.id.identifier }
+    public var id: String {
+        asset.id.identifier
+    }
+
     public let asset: Asset
     public let price: Double?
 

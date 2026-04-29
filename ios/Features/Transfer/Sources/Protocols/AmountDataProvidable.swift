@@ -21,7 +21,9 @@ protocol AmountDataProvidable {
 }
 
 extension AmountDataProvidable {
-    var showsAssetBalance: Bool { canChangeValue }
+    var showsAssetBalance: Bool {
+        canChangeValue
+    }
 
     func maxValue(from assetData: AssetData) -> BigInt {
         shouldReserveFee(from: assetData) ? max(.zero, availableValue(from: assetData) - reserveForFee) : availableValue(from: assetData)

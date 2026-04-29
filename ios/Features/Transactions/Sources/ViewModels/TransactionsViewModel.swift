@@ -23,7 +23,10 @@ public final class TransactionsViewModel {
 
     public private(set) var wallet: Wallet
 
-    public var transactions: [TransactionExtended] { filterModel.query.value }
+    public var transactions: [TransactionExtended] {
+        filterModel.query.value
+    }
+
     public var filterModel: TransactionsFilterViewModel
 
     public var isPresentingSheet: TransactionsSheetType?
@@ -44,10 +47,21 @@ public final class TransactionsViewModel {
         self.preferences = preferences
     }
 
-    public var title: String { Localized.Activity.title }
-    public var currentWallet: Wallet? { walletService.currentWallet }
-    public var walletId: WalletId { wallet.walletId }
-    public var currency: String { preferences.currency }
+    public var title: String {
+        Localized.Activity.title
+    }
+
+    public var currentWallet: Wallet? {
+        walletService.currentWallet
+    }
+
+    public var walletId: WalletId {
+        wallet.walletId
+    }
+
+    public var currency: String {
+        preferences.currency
+    }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
         if !filterModel.isAnyFilterSpecified {

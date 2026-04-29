@@ -9,7 +9,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 
-struct MarketsViewModel: Sendable {
+struct MarketsViewModel {
     let markets: Markets
 
     private let currencyFormatter: CurrencyFormatter

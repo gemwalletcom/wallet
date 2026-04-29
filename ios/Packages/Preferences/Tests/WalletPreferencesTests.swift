@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Preferences
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import Preferences
 
 struct WalletPreferencesTests {
     private let preferences: WalletPreferences = .mock()

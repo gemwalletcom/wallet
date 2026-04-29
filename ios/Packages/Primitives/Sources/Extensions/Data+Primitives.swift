@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Data {
-    // from https://github.com/trustwallet/wallet-core/blob/master/swift/Sources/Extensions/Data%2BHex.swift#L11
+    /// from https://github.com/trustwallet/wallet-core/blob/master/swift/Sources/Extensions/Data%2BHex.swift#L11
     init?(fromHex hex: String) {
         let string: String = if hex.hasPrefix("0x") {
             String(hex.dropFirst(2))

@@ -8,7 +8,10 @@ public struct AssetImageView: View {
 
     private let size: CGFloat
     private let assetImage: AssetImage
-    private var cornerRadius: CGFloat { style?.cornerRadius ?? size / 2 }
+    private var cornerRadius: CGFloat {
+        style?.cornerRadius ?? size / 2
+    }
+
     private let style: Style?
 
     public init(

@@ -3,9 +3,8 @@
 import Foundation
 import Primitives
 import PrimitivesTestKit
-import Testing
-
 @testable import Swap
+import Testing
 
 struct PriceImpactViewModelTests {
     @Test

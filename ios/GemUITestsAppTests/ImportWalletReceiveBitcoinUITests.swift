@@ -9,7 +9,7 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testImportMultiCoinWalletAndVerifyBitcoinAddress() throws {
+    func testImportMultiCoinWalletAndVerifyBitcoinAddress() {
         let app = XCUIApplication()
         setupPermissionHandler()
         app.launch()

@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import Perpetuals
 import Primitives
 import PrimitivesTestKit
-
-@testable import Perpetuals
 
 extension AutocloseType {
     static func mockModify(

@@ -3,5 +3,7 @@
 import Foundation
 
 extension WCPairingProposal: Identifiable {
-    public var id: String { pairingId }
+    public var id: String {
+        pairingId
+    }
 }

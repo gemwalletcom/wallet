@@ -1,6 +1,9 @@
+internal import func Gemstone.supportsPrivateKeyImport
 import Components
 import Foundation
 import GemstonePrimitives
+import enum Keystore.KeystoreImportType
+import enum Keystore.Mnemonic
 import Localization
 import NameService
 import Primitives
@@ -8,9 +11,6 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import WalletService
-internal import func Gemstone.supportsPrivateKeyImport
-import enum Keystore.KeystoreImportType
-import enum Keystore.Mnemonic
 
 @Observable
 @MainActor
@@ -53,11 +53,25 @@ final class ImportWalletSceneViewModel {
         }
     }
 
-    var pasteButtonTitle: String { Localized.Common.paste }
-    var pasteButtonImage: Image { Images.System.paste }
-    var qrButtonTitle: String { Localized.Wallet.scan }
-    var qrButtonImage: Image { Images.System.qrCodeViewfinder }
-    var alertTitle: String { Localized.Errors.validation("") }
+    var pasteButtonTitle: String {
+        Localized.Common.paste
+    }
+
+    var pasteButtonImage: Image {
+        Images.System.paste
+    }
+
+    var qrButtonTitle: String {
+        Localized.Wallet.scan
+    }
+
+    var qrButtonImage: Image {
+        Images.System.qrCodeViewfinder
+    }
+
+    var alertTitle: String {
+        Localized.Errors.validation("")
+    }
 
     var chain: Chain? {
         switch type {
@@ -66,7 +80,10 @@ final class ImportWalletSceneViewModel {
         }
     }
 
-    var showImportTypes: Bool { importTypes.count > 1 }
+    var showImportTypes: Bool {
+        importTypes.count > 1
+    }
+
     var importTypes: [WalletImportType] {
         switch type {
         case .multicoin:

@@ -68,7 +68,6 @@ public struct SimulationPayloadDetailsScene: View {
         .listSectionSpacing(.compact)
     }
 
-    @ViewBuilder
     private func fieldsView(_ fields: [SimulationPayloadField]) -> some View {
         SimulationPayloadFieldsContent(
             fields: fields,

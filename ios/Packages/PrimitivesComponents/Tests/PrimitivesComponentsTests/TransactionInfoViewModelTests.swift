@@ -2,10 +2,9 @@
 
 import BigInt
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 struct TransactionInfoModelTests {
     let asset = Asset.mock()
@@ -72,7 +71,7 @@ struct TransactionInfoModelTests {
     }
 
     @Test
-    func feeDisplay() {
+    func feeDisplay() throws {
         let model = TransactionInfoViewModel(
             currency: "USD",
             asset: asset,
@@ -85,12 +84,12 @@ struct TransactionInfoModelTests {
         )
 
         #expect(model.feeDisplay != nil)
-        #expect(model.feeDisplay!.amount.text.contains(feeAsset.symbol))
-        #expect(model.feeDisplay!.amount.text == "0.1 BTC")
+        #expect(try #require(model.feeDisplay?.amount.text.contains(feeAsset.symbol)))
+        #expect(model.feeDisplay?.amount.text == "0.1 BTC")
     }
 
     @Test
-    func feeDisplayFiat() {
+    func feeDisplayFiat() throws {
         let model = TransactionInfoViewModel(
             currency: "USD",
             asset: asset,
@@ -103,8 +102,8 @@ struct TransactionInfoModelTests {
         )
 
         #expect(model.feeDisplay != nil)
-        #expect(model.feeDisplay!.fiat != nil)
-        #expect(model.feeDisplay!.fiat!.text == "$0.05")
+        #expect(try #require(model.feeDisplay?.fiat) != nil)
+        #expect(model.feeDisplay?.fiat?.text == "$0.05")
     }
 
     @Test

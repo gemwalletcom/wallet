@@ -57,7 +57,7 @@ public enum StakeConfig {
 }
 
 public enum ChainConfig {
-    // store in memory for fast access
+    /// store in memory for fast access
     private static let chainConfigs: [Primitives.Chain: Gemstone.ChainConfig] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
         result[chain] = Config.shared.getChainConfig(chain: chain.rawValue)
     }

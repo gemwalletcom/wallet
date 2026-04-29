@@ -4,7 +4,9 @@ import Foundation
 import SwiftUI
 
 public struct AlertMessage: Identifiable, Sendable {
-    public var id: String { (title ?? "") + message + actions.map(\.title).joined() }
+    public var id: String {
+        (title ?? "") + message + actions.map(\.title).joined()
+    }
 
     public let title: String?
     public let message: String

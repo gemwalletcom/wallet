@@ -19,8 +19,10 @@ import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.SessionDao
 import com.gemwallet.android.data.service.store.database.StakeDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.WalletsDao
 import dagger.Module
@@ -70,11 +72,17 @@ object DatabaseModule {
         .addMigrations(Migration_68_69)
         .addMigrations(Migration_69_70)
         .addMigrations(Migration_70_71)
+        .addMigrations(Migration_71_72)
+        .addMigrations(Migration_72_73)
         .build()
 
     @Singleton
     @Provides
     fun provideWalletsDao(db: GemDatabase): WalletsDao = db.walletsDao()
+
+    @Singleton
+    @Provides
+    fun provideStoreTransactionRunner(runner: RoomStoreTransactionRunner): StoreTransactionRunner = runner
 
     @Singleton
     @Provides

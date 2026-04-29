@@ -3,10 +3,9 @@
 import Foundation
 import Primitives
 import PrimitivesTestKit
+@testable import Stake
 import StakeTestKit
 import Testing
-
-@testable import Stake
 
 struct DelegationSceneViewModelTests {
     @Test

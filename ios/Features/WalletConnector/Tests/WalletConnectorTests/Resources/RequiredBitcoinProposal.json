@@ -1,0 +1,65 @@
+{
+  "id": "required-bitcoin-test",
+  "pairingTopic": "required-bitcoin-topic",
+  "proposer": {
+    "name": "RequiredBitcoinApp",
+    "description": "App requiring Bitcoin",
+    "url": "https://bitcoin-required.app",
+    "icons": ["https://bitcoin-required.app/icon.png"],
+    "redirect": {
+      "native": "bitcoinrequired://open",
+      "universal": "https://bitcoin-required.app/deeplink",
+      "linkMode": true
+    }
+  },
+  "requiredNamespaces": {
+    "bip122": {
+      "chains": [
+        "bip122:000000000019d6689c085ae165831e93"
+      ],
+      "methods": ["signMessage", "sendTransfer"],
+      "events": ["accountsChanged"]
+    }
+  },
+  "optionalNamespaces": {},
+  "sessionProperties": {
+    "theme": "dark",
+    "version": "1.0.0"
+  },
+  "proposal": {
+    "relays": [
+      {
+        "protocol": "waku",
+        "data": "relayData"
+      }
+    ],
+    "proposer": {
+      "publicKey": "requiredBitcoinPublicKey",
+      "metadata": {
+        "name": "RequiredBitcoinApp",
+        "description": "App requiring Bitcoin",
+        "url": "https://bitcoin-required.app",
+        "icons": ["https://bitcoin-required.app/icon.png"],
+        "redirect": {
+          "native": "bitcoinrequired://open",
+          "universal": "https://bitcoin-required.app/deeplink",
+          "linkMode": true
+        }
+      }
+    },
+    "requiredNamespaces": {
+      "bip122": {
+        "chains": [
+          "bip122:000000000019d6689c085ae165831e93"
+        ],
+        "methods": ["signMessage", "sendTransfer"],
+        "events": ["accountsChanged"]
+      }
+    },
+    "optionalNamespaces": {},
+    "sessionProperties": {
+      "theme": "dark"
+    },
+    "expiryTimestamp": 1700000000
+  }
+}

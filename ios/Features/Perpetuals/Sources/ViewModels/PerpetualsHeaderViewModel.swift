@@ -26,15 +26,26 @@ struct PerpetualsHeaderViewModel {
 }
 
 extension PerpetualsHeaderViewModel: HeaderViewModel {
-    var isWatchWallet: Bool { walletType == .view }
-    var title: String { currencyFormatter.string(balance.total) }
-    var assetImage: AssetImage? { .none }
+    var isWatchWallet: Bool {
+        walletType == .view
+    }
+
+    var title: String {
+        currencyFormatter.string(balance.total)
+    }
+
+    var assetImage: AssetImage? {
+        .none
+    }
+
     var subtitle: String? {
         Localized.Wallet
             .availableBalance(currencyFormatter.string(balance.available))
     }
 
-    var subtitleColor: Color { Colors.gray }
+    var subtitleColor: Color {
+        Colors.gray
+    }
 
     var buttons: [HeaderButton] {
         [

@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Nu sunt disponibile date";
-"errors.dust_threshold_short" = "Rețeaua consideră această cantitate drept praf — taxa este mai mare decât suma în sine.";
+"errors.dust_threshold_short" = "Rețeaua consideră această cantitate drept praf - taxa este mai mare decât suma în sine.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -538,7 +538,7 @@
 "swap.use_minimum_amount" = "Utilizați suma minimă";
 "common.earn" = "Earn";
 "earn.state.empty.title" = "Pozițiile dumneavoastră vor apărea aici";
-"earn.state.empty.description" = "Depuneți prima %@";
+"earn.state.empty.description" = "Depuneți prima dvs. depunere %@";
 "contacts.title" = "Contacte";
 "contacts.contact" = "Contact";
 "contacts.addresses" = "Adrese";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Acest portofel a fost deja importat.";
 "rewards.unverified.title" = "Recompensele nu sunt încă active.";
 "rewards.unverified.description" = "Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.";
+"common.refresh" = "Reîmprospăta";

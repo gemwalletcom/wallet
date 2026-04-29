@@ -16,10 +16,13 @@ import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Test
 
 class CheckAccountsServiceTest {
@@ -38,6 +41,11 @@ class CheckAccountsServiceTest {
         createAccountOperator = createAccountOperator,
         syncSubscription = syncSubscription,
     )
+
+    @After
+    fun tearDown() {
+        unmockkAll()
+    }
 
     @Test
     fun invoke_repairsMissingNativeAssetsWithoutCreatingNewAccounts() = runBlocking {
@@ -66,6 +74,36 @@ class CheckAccountsServiceTest {
         verify(exactly = 1) { walletsRepository.getAll() }
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
+        verify(exactly = 0) { passwordStore.getPassword(any()) }
+        verify(exactly = 0) { createAccountOperator(any(), any(), any()) }
+        coVerify(exactly = 0) { loadPrivateDataOperator(any(), any()) }
+        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
+        coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
+        coVerify(exactly = 0) { syncSubscription.syncSubscription(any()) }
+    }
+
+    @Test
+    fun invoke_doesNotRepairWhenExpectedNativeAssetsExist() = runBlocking {
+        mockkStatic("com.gemwallet.android.ext.ChainKt")
+        every { Chain.available() } returns setOf(Chain.Solana)
+
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Solana)),
+        )
+        val nativeAssets = listOf(
+            mockAsset(chain = Chain.Solana),
+            mockAsset(chain = Chain.Ethereum),
+        )
+
+        every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
+        coJustRun { assetsRepository.updateNativeAssetRanks() }
+        coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
+
+        subject()
+
+        coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
+        verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
         verify(exactly = 0) { passwordStore.getPassword(any()) }
         verify(exactly = 0) { createAccountOperator(any(), any(), any()) }
         coVerify(exactly = 0) { loadPrivateDataOperator(any(), any()) }

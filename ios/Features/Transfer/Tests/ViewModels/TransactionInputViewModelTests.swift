@@ -5,9 +5,8 @@ import Preferences
 import Primitives
 import PrimitivesTestKit
 import Testing
-import Validators
-
 @testable import Transfer
+import Validators
 
 struct TransactionInputViewModelTests {
     @Test

@@ -27,12 +27,29 @@ public struct ConnectionProposalViewModel {
         )
     }
 
-    var title: String { Localized.WalletConnect.Connect.title }
-    var buttonTitle: String { Localized.Transfer.confirm }
-    var walletTitle: String { Localized.Common.wallet }
-    var appTitle: String { Localized.WalletConnect.app }
-    var connectionTitle: String { Localized.WalletConnect.Connection.title }
-    var connectionText: String { Localized.WalletConnect.brandName }
+    var title: String {
+        Localized.WalletConnect.Connect.title
+    }
+
+    var buttonTitle: String {
+        Localized.Transfer.confirm
+    }
+
+    var walletTitle: String {
+        Localized.Common.wallet
+    }
+
+    var appTitle: String {
+        Localized.WalletConnect.app
+    }
+
+    var connectionTitle: String {
+        Localized.WalletConnect.Connection.title
+    }
+
+    var connectionText: String {
+        Localized.WalletConnect.brandName
+    }
 
     var walletName: String {
         walletSelectorModel.selectedItems.first?.name ?? .empty
@@ -85,7 +102,9 @@ public struct ConnectionProposalViewModel {
         .image(verificationImage)
     }
 
-    var permissionsTitle: String { Localized.WalletConnect.Permissions.title }
+    var permissionsTitle: String {
+        Localized.WalletConnect.Permissions.title
+    }
 
     var permissions: [ListItemModel] {
         [

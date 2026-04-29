@@ -65,7 +65,6 @@ public struct WalletSearchScene: View {
         }
     }
 
-    @ViewBuilder
     private var content: some View {
         List {
             if model.showTags {
@@ -140,7 +139,6 @@ public struct WalletSearchScene: View {
         .listSectionSpacing(.compact)
     }
 
-    @ViewBuilder
     private func assetItems(for items: [AssetData]) -> some View {
         AssetItemsView(
             items: items,
@@ -150,7 +148,6 @@ public struct WalletSearchScene: View {
         )
     }
 
-    @ViewBuilder
     private func perpetualItems(for items: [PerpetualData]) -> some View {
         ForEach(items) { perpetualData in
             PerpetualListItem(

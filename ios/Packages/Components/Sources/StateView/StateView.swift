@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-
 import SwiftUI
 
 struct StateView<Content: View, T: Hashable & Sendable>: View {

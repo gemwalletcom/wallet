@@ -20,7 +20,9 @@ struct SellOperation: FiatOperation {
         maximumAmount: 10000,
     )
 
-    var defaultAmount: Int { config.defaultAmount }
+    var defaultAmount: Int {
+        config.defaultAmount
+    }
 
     var emptyAmountTitle: String {
         Localized.Input.enterAmountTo(Localized.Wallet.sell)

@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "No data available";
-"errors.dust_threshold_short" = "The network considers this amount dust — the fee is higher than the amount itself.";
+"errors.dust_threshold_short" = "The network considers this amount dust - the fee is higher than the amount itself.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "An riga an shigo da wannan walat ɗin.";
 "rewards.unverified.title" = "Ladabi bai yi aiki ba tukuna.";
 "rewards.unverified.description" = "Lada yana kunna ta atomatik yayin da kake amfani da app ɗin sosai.";
+"common.refresh" = "Sabuntawa";

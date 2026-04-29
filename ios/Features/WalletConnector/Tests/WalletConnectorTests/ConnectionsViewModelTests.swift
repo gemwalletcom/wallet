@@ -5,12 +5,11 @@ import ConnectionsServiceTestKit
 import Foundation
 import Primitives
 import PrimitivesTestKit
+@testable import Store
 import StoreTestKit
 import Testing
-import WalletConnectorServiceTestKit
-
-@testable import Store
 @testable import WalletConnector
+import WalletConnectorServiceTestKit
 
 struct ConnectionsViewModelTests {
     @Test @MainActor

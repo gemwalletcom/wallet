@@ -13,14 +13,14 @@ struct FiatQuoteViewModelTests {
     let frFormatter = CurrencyFormatter(locale: .FR, currencyCode: Currency.usd.rawValue)
 
     @Test
-    func buyAmount() async throws {
+    func buyAmount() {
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(), formatter: usFormatter).amountText == "0.00 BTC")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 10.123, cryptoAmount: 15.12), formatter: usFormatter).amountText == "15.12 BTC")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 10, cryptoAmount: 15), formatter: usFormatter).amountText == "15.00 BTC")
     }
 
     @Test
-    func sellAmount() async throws {
+    func sellAmount() {
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(type: .sell), formatter: usFormatter).amountText == "0.00 BTC")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 10.123, cryptoAmount: 15.12, type: .sell), formatter: usFormatter).amountText == "15.12 BTC")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 10, cryptoAmount: 15, type: .sell), formatter: usFormatter).amountText == "15.00 BTC")

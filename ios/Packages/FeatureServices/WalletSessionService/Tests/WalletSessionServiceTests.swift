@@ -3,9 +3,8 @@
 import Primitives
 import PrimitivesTestKit
 import Testing
-import WalletSessionServiceTestKit
-
 @testable import WalletSessionService
+import WalletSessionServiceTestKit
 
 struct WalletSessionServiceTests {
     @Test

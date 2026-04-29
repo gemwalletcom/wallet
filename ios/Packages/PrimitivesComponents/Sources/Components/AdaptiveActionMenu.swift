@@ -35,5 +35,7 @@ public struct AdaptiveActionMenu<Label: View>: View {
         }
     }
 
-    private var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    private var isPad: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad
+    }
 }

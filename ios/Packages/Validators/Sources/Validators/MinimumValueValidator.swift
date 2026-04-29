@@ -4,7 +4,7 @@ import BigInt
 import Foundation
 import Primitives
 
-public struct MinimumValueValidator<V>: ValueValidator where V: ValueValidatable {
+public struct MinimumValueValidator<V: ValueValidatable>: ValueValidator {
     private let minimumValue: V
     private let asset: Asset
 
@@ -26,5 +26,7 @@ public struct MinimumValueValidator<V>: ValueValidator where V: ValueValidatable
         }
     }
 
-    public var id: String { "MinimumValueValidator<\(V.self)>" }
+    public var id: String {
+        "MinimumValueValidator<\(V.self)>"
+    }
 }

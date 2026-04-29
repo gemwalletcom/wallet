@@ -42,7 +42,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func headerItemModel() async {
+    func headerItemModel() {
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(type: .transfer(.mockEthereum())),
         )
@@ -56,7 +56,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func appItemModel() async {
+    func appItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
         let appItem = model.itemModel(for: .app) as? ConfirmAppViewModel
 
@@ -79,7 +79,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func title() async {
+    func title() {
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mock()))).title == Localized.Transfer.Send.title)
         // #expect(ConfirmTransferViewModel.mock(data: .mock(type: .transferNft(.mock()))).title == Localized.Transfer.Send.title)
         #expect(ConfirmTransferSceneViewModel.mock(data: .mock(type: .swap(.mock(), .mock(), .mock()))).title == Localized.Wallet.swap)
@@ -88,7 +88,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func senderItemModel() async {
+    func senderItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
         let senderItem = model.itemModel(for: .sender) as? ConfirmSenderViewModel
 
@@ -100,7 +100,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientItemModel() async {
+    func recipientItemModel() {
         let address = "0x1234567890123456789012345678901234567890"
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(
             type: .transfer(.mock()),
@@ -117,7 +117,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientNameItemModel() async {
+    func recipientNameItemModel() {
         let db = DB.mockAssets()
         let address = "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw"
         let model = ConfirmTransferSceneViewModel.mock(
@@ -167,7 +167,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func networkItemModel() async {
+    func networkItemModel() {
         let ethModel = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockEthereum())))
         let ethNetworkItem = ethModel.itemModel(for: .network) as? ConfirmNetworkViewModel
 
@@ -206,7 +206,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func networkFeeItemModel() async {
+    func networkFeeItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
 
         model.state = .error(AnyError("test"))
@@ -231,7 +231,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func memoItemModel() async {
+    func memoItemModel() {
         let modelWithMemo = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mock(id: .mockSolana())),
@@ -260,7 +260,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func swapDetailsItemModel() async {
+    func swapDetailsItemModel() {
         let swapModel = ConfirmTransferSceneViewModel.mock(
             data: .mock(type: .swap(.mockEthereum(), .mockEthereumUSDT(), .mock())),
         )
@@ -285,7 +285,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func errorItemModel() async {
+    func errorItemModel() {
         let model = ConfirmTransferSceneViewModel.mock()
         model.state = .error(AnyError("Test error"))
 

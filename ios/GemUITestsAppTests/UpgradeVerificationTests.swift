@@ -9,7 +9,7 @@ final class UpgradeVerificationTests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testWalletSurvivedUpgrade() throws {
+    func testWalletSurvivedUpgrade() {
         let app = XCUIApplication()
         setupPermissionHandler()
         app.launch()

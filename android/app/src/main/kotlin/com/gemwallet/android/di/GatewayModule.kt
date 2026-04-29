@@ -8,6 +8,8 @@ import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.data.repositories.config.SecurityGemPreferences
 import com.gemwallet.android.data.repositories.config.SharedGemPreferences
 import com.gemwallet.android.data.services.gemapi.NativeProvider
+import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
+import com.gemwallet.android.ui.R as UiR
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,8 +33,17 @@ object GatewayModule {
         getCurrentNodeCase: GetCurrentNodeCase,
         setCurrentNodeCase: SetCurrentNodeCase,
         okHttpClient: OkHttpClient,
+        @ApplicationContext context: Context,
     ): AlienProvider {
-        return NativeProvider(getNodesCase, getCurrentNodeCase, setCurrentNodeCase, okHttpClient)
+        return NativeProvider(
+            getNodesCase = getNodesCase,
+            getCurrentNodeCase = getCurrentNodeCase,
+            setCurrentNodeCase = setCurrentNodeCase,
+            httpClient = okHttpClient,
+            config = NativeProviderConfig(
+                networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
+            ),
+        )
     }
 
     @Provides

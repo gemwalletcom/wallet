@@ -2,7 +2,7 @@
 
 import Foundation
 
-struct NumberInputNormalizer: Sendable {
+enum NumberInputNormalizer {
     /// Symbol used as our standard decimal separator in the final output.
     private static let dot = "."
 

@@ -6,7 +6,7 @@ import Stake
 import Testing
 
 struct StakeRecommendedValidatorsTests {
-    @Test func testValidatorsSet() async throws {
+    @Test func testValidatorsSet() {
         let model = StakeRecommendedValidators()
 
         #expect(model.validatorsSet(chain: .bitcoin).isEmpty)

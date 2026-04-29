@@ -4,7 +4,7 @@ import Foundation
 import Localization
 import Primitives
 
-enum ScanTransactionError: Error, Equatable, Sendable {
+enum ScanTransactionError: Error, Equatable {
     case malicious
     case memoRequired(symbol: String)
 }

@@ -3,19 +3,19 @@
 import Foundation
 
 public enum JobConfiguration: Sendable {
-    // Always wait the same fixed `Duration` between attempts.
+    /// Always wait the same fixed `Duration` between attempts.
     case fixed(
         duration: Duration,
         timeLimit: Duration? = nil,
     )
 
-    // Exponential back-off
+    /// Exponential back-off
     case adaptive(
         configuration: AdaptiveConfiguration,
         timeLimit: Duration? = nil,
     )
 
-    // auto-complete by time
+    /// auto-complete by time
     var timeLimit: Duration? {
         switch self {
         case let .fixed(_, time): time

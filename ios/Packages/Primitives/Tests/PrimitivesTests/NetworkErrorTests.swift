@@ -4,10 +4,9 @@ import Foundation
 import Primitives
 import Testing
 
-@Suite
 struct NetworkErrorTests {
     @Test
-    func networkErrors() throws {
+    func networkErrors() {
         let networkErrorCodes: [Int] = [
             NSURLErrorNotConnectedToInternet,
             NSURLErrorCannotFindHost,

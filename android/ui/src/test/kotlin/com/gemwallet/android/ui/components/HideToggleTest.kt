@@ -20,7 +20,7 @@ class HideToggleTest {
 
         assertEquals("\$1,234.56", (null as HideToggle?).mask("\$1,234.56"))
         assertEquals("\$1,234.56", visible.mask("\$1,234.56"))
-        assertEquals("✱✱✱✱✱✱", hidden.mask("\$1,234.56"))
+        assertEquals("✱✱✱✱✱", hidden.mask("\$1,234.56"))
         assertEquals(hidden.mask("\$1.00"), hidden.mask("\$9,999,999.99"))
     }
 }

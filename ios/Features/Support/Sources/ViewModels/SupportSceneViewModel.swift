@@ -26,8 +26,13 @@ public final class SupportSceneViewModel: Sendable {
         self.deviceId = deviceId
     }
 
-    var title: String { Localized.Settings.support }
-    var helpCenterURL: URL { AppUrl.docs(.start) }
+    var title: String {
+        Localized.Settings.support
+    }
+
+    var helpCenterURL: URL {
+        AppUrl.docs(.start)
+    }
 
     var chatwootModel: ChatwootWebViewModel {
         ChatwootWebViewModel(

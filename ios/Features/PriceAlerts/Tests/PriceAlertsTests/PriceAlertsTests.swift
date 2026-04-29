@@ -1,14 +1,13 @@
+@testable import PriceAlerts
 import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
 
-@testable import PriceAlerts
-
 @MainActor
 struct SetPriceAlertViewModelTests {
     @Test
-    func priceAlertDirection_up() async throws {
+    func priceAlertDirection_up() {
         let viewModel = SetPriceAlertViewModel.mock()
         viewModel.state.amount = "200.00"
         viewModel.setAlertDirection(for: .mock(price: 150))
@@ -24,7 +23,7 @@ struct SetPriceAlertViewModelTests {
     }
 
     @Test
-    func priceAlertDirection_down() async throws {
+    func priceAlertDirection_down() {
         let viewModel = SetPriceAlertViewModel.mock()
 
         viewModel.state.amount = "200.00"
@@ -41,7 +40,7 @@ struct SetPriceAlertViewModelTests {
     }
 
     @Test
-    func priceAlertDirection_none() async throws {
+    func priceAlertDirection_none() {
         let viewModel = SetPriceAlertViewModel.mock()
         viewModel.setAlertDirection(for: nil)
         #expect(viewModel.state.alertDirection == nil)

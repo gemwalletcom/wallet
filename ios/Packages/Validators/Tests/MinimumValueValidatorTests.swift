@@ -4,7 +4,6 @@ import BigInt
 import Foundation
 import Primitives
 import Testing
-
 @testable import Validators
 
 struct MinimumValueValidatorTests {

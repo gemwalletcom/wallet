@@ -5,9 +5,13 @@ import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.data.repositories.addresses.AddressesRepository
 import com.gemwallet.android.data.service.store.database.AccountsDao
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.WalletsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.domains.asset.defaultBasic
+import com.gemwallet.android.ext.asset
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -27,8 +31,10 @@ class WalletsRepositoryImpl @Inject constructor(
     private val walletsDao: WalletsDao,
     private val accountsDao: AccountsDao,
     private val addressesRepository: AddressesRepository,
+    private val assetsDao: AssetsDao,
     private val createAccount: CreateAccountOperator,
     private val walletIdGenerator: WalletIdGenerator,
+    private val transactionRunner: StoreTransactionRunner,
 ) : WalletsRepository {
 
     override suspend fun getNextWalletNumber(): Int {
@@ -104,7 +110,14 @@ class WalletsRepositoryImpl @Inject constructor(
         walletsDao.update(wallet.toRecord())
     }
 
-    override suspend fun updateAccounts(wallet: Wallet) {
+    override suspend fun updateAccounts(wallet: Wallet) = withContext(Dispatchers.IO) {
+        transactionRunner.run {
+            insertAccountsWithNativeAssets(wallet)
+        }
+    }
+
+    private suspend fun insertAccountsWithNativeAssets(wallet: Wallet) {
+        insertNativeAssets(wallet.accounts)
         accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id) })
     }
 
@@ -124,9 +137,21 @@ class WalletsRepositoryImpl @Inject constructor(
     }
 
     private suspend fun putWallet(wallet: Wallet): Wallet = withContext(Dispatchers.IO) {
-        walletsDao.insert(wallet.toRecord())
-        accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id) })
-        addressesRepository.saveWalletAddresses(wallet)
-        wallet
+        transactionRunner.run {
+            walletsDao.insert(wallet.toRecord())
+            insertAccountsWithNativeAssets(wallet)
+            addressesRepository.saveWalletAddresses(wallet)
+            wallet
+        }
+    }
+
+    private suspend fun insertNativeAssets(accounts: List<Account>) {
+        val records = accounts
+            .map { it.chain.asset().defaultBasic.toRecord() }
+            .distinctBy { it.id }
+        if (records.isEmpty()) {
+            return
+        }
+        assetsDao.insert(records)
     }
 }

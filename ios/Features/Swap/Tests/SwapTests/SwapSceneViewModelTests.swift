@@ -29,7 +29,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func additionalInfoVisibility() async {
+    func additionalInfoVisibility() {
         let model = SwapSceneViewModel.mock()
 
         model.swapState.quotes = .loading
@@ -63,7 +63,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func loadingFlagsSeparateQuoteAndTransferDataStates() async {
+    func loadingFlagsSeparateQuoteAndTransferDataStates() {
         let model = SwapSceneViewModel.mock()
 
         model.swapState.quotes = .loading
@@ -81,7 +81,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func fetchDoesNotRunWhileTransferDataLoading() async throws {
+    func fetchDoesNotRunWhileTransferDataLoading() async {
         let model = await model()
         let previousToValue = model.toValue
         let previousQuote = model.selectedSwapQuote
@@ -95,7 +95,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func quoteChangingActionsClearTransferStateAndDisableProviderSelection() async throws {
+    func quoteChangingActionsClearTransferStateAndDisableProviderSelection() async {
         let model = await model()
 
         model.swapState.quotes = .data([.mock(), .mock(toValue: "260000000000")])
@@ -153,7 +153,7 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func clearingInputResetsQuoteImmediately() async throws {
+    func clearingInputResetsQuoteImmediately() async {
         let model = await model()
 
         #expect(model.toValue.isNotEmpty)

@@ -13,7 +13,9 @@ public enum TransactionFilterType: Int, CaseIterable, Sendable {
 }
 
 extension TransactionFilterType: Identifiable {
-    public var id: String { rawValue.description }
+    public var id: String {
+        rawValue.description
+    }
 }
 
 extension TransactionFilterType: Comparable {

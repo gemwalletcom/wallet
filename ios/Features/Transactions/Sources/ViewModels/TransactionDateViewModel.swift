@@ -5,7 +5,7 @@ import Foundation
 import Localization
 import PrimitivesComponents
 
-struct TransactionDateViewModel: Sendable {
+struct TransactionDateViewModel {
     private let date: Date
 
     init(date: Date) {

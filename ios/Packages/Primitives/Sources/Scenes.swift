@@ -35,6 +35,10 @@ public enum Scenes {
         public init() {}
     }
 
+    public struct ServiceStatus: Hashable, Codable {
+        public init() {}
+    }
+
     public struct AboutUs: Hashable, Codable {
         public init() {}
     }

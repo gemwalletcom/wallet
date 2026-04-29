@@ -7,10 +7,9 @@ import struct Gemstone.SwapperQuote
 import Preferences
 import Primitives
 import PrimitivesTestKit
+@testable import Swap
 import SwapServiceTestKit
 import Testing
-
-@testable import Swap
 
 @MainActor
 struct SwapDetailsViewModelTests {

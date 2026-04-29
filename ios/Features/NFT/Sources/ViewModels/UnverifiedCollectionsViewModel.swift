@@ -12,7 +12,9 @@ import SwiftUI
 @MainActor
 public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable {
     public let query: ObservableQuery<NFTRequest>
-    public var nftDataList: [NFTData] { query.value }
+    public var nftDataList: [NFTData] {
+        query.value
+    }
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 
@@ -23,7 +25,9 @@ public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable
         query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .unverified), initialValue: [])
     }
 
-    public var title: String { Localized.Asset.Verification.unverified }
+    public var title: String {
+        Localized.Asset.Verification.unverified
+    }
 
     public var content: CollectionsContent {
         CollectionsContent(items: nftDataList.map { buildGridItem(from: $0) })

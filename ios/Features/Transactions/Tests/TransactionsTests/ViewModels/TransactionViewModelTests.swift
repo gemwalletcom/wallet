@@ -4,7 +4,6 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
 @testable import Transactions
 
 final class TransactionViewModelTests {

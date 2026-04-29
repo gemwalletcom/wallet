@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Assets
 import AssetsServiceTestKit
 import BalanceServiceTestKit
 import BannerServiceTestKit
@@ -8,12 +9,10 @@ import PriceAlertServiceTestKit
 import PriceServiceTestKit
 import Primitives
 import PrimitivesTestKit
+@testable import Store
 import SwiftUI
 import Testing
 import TransactionsServiceTestKit
-
-@testable import Assets
-@testable import Store
 
 @MainActor
 struct AssetSceneViewModelTests {

@@ -58,6 +58,7 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsCon
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
+import com.gemwallet.android.ui.localizedDescription
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -330,6 +331,7 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, chainTitle)
     is ConfirmError.InsufficientFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, chain.asset().name)
     is ConfirmError.BroadcastError -> "${stringResource(R.string.errors_transfer_error)}: ${this.details}"
+    is ConfirmError.NetworkError -> error.localizedDescription()
     is ConfirmError.SignFail -> stringResource(R.string.errors_transfer_error)
     is ConfirmError.RecipientEmpty -> "${stringResource(R.string.errors_transfer_error)}: recipient can't be empty"
     is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)

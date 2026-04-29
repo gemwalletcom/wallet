@@ -57,8 +57,8 @@ class PerpetualAmountViewModel @Inject constructor(
             val session = sessionRepository.session().firstOrNull() ?: return@onEach
             val assetId = getAssetId(it?.asset?.chain ?: return@onEach)
             tokenRepository.search(assetId, session.currency)
-            val owner = session.wallet.getAccount(assetId.chain) ?: return@onEach
-            assetsRepository.switchVisibility(session.wallet.id, owner, assetId, false)
+            session.wallet.getAccount(assetId.chain) ?: return@onEach
+            assetsRepository.switchVisibility(session.wallet.id, assetId, false)
         }
         .onEach { perpetual -> leverage.update { min(perpetual?.maxLeverage ?: 0, 5) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

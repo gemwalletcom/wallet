@@ -224,9 +224,15 @@ fun AssetBalance.reservedFormatted(
 
 fun AssetBalance.totalFormatted(
     decimalPlace: Int = 6,
-    dynamicPlace: Boolean = false,
+    dynamicPlace: Boolean = true,
 ): String {
-    return format(totalAmount, decimalPlace, SignMode.NoPLus, dynamicPlace, 0, true)
+    return asset.format(
+        crypto = balance.getTotalAmount(),
+        decimalPlace = decimalPlace,
+        showSign = SignMode.NoPLus,
+        dynamicPlace = dynamicPlace,
+        zeroFraction = 0,
+    )
 }
 
 fun AssetBalance.totalStakeFormatted(

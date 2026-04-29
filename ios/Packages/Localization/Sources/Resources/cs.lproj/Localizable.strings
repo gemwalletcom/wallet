@@ -538,7 +538,7 @@
 "swap.use_minimum_amount" = "Použijte minimální množství";
 "common.earn" = "Earn";
 "earn.state.empty.title" = "Vaše pozice se zde zobrazí";
-"earn.state.empty.description" = "Vložte svůj první vklad %@";
+"earn.state.empty.description" = "Vložte svůj první %@";
 "contacts.title" = "Kontakty";
 "contacts.contact" = "Kontakt";
 "contacts.addresses" = "Adresy";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Tato peněženka již byla importována.";
 "rewards.unverified.title" = "Odměny zatím nejsou aktivní.";
 "rewards.unverified.description" = "Odměny se aktivují automaticky, jakmile aplikaci používáte více.";
+"common.refresh" = "Obnovit";

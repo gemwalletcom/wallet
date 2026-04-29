@@ -4,9 +4,8 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
-import TransferTestKit
-
 @testable import Transfer
+import TransferTestKit
 
 struct ScanTransactionValidatorTests {
     @Test

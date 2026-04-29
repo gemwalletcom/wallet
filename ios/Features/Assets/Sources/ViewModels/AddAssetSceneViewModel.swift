@@ -26,17 +26,41 @@ public final class AddAssetSceneViewModel {
         input = AddAssetInput(chains: wallet.chainsWithTokens)
     }
 
-    var title: String { Localized.Wallet.AddToken.title }
-    var networkTitle: String { Localized.Transfer.network }
-    var errorTitle: String { Localized.Errors.errorOccured }
-    var actionButtonTitle: String { Localized.Wallet.Import.action }
-    var addressTitleField: String { Localized.Wallet.Import.contractAddressField }
+    var title: String {
+        Localized.Wallet.AddToken.title
+    }
 
-    var pasteImage: Image { Images.System.paste }
-    var qrImage: Image { Images.System.qrCodeViewfinder }
-    var errorSystemImage: String { SystemImage.errorOccurred }
+    var networkTitle: String {
+        Localized.Transfer.network
+    }
 
-    var chains: [Chain] { input.chains }
+    var errorTitle: String {
+        Localized.Errors.errorOccured
+    }
+
+    var actionButtonTitle: String {
+        Localized.Wallet.Import.action
+    }
+
+    var addressTitleField: String {
+        Localized.Wallet.Import.contractAddressField
+    }
+
+    var pasteImage: Image {
+        Images.System.paste
+    }
+
+    var qrImage: Image {
+        Images.System.qrCodeViewfinder
+    }
+
+    var errorSystemImage: String {
+        SystemImage.errorOccurred
+    }
+
+    var chains: [Chain] {
+        input.chains
+    }
 
     var addressBinding: Binding<String> {
         Binding(

@@ -14,8 +14,8 @@ interface AddressesDao {
     suspend fun insert(addresses: List<DbAddress>)
 
     @Query("SELECT * FROM addresses WHERE chain = :chain AND address = :address LIMIT 1")
-    suspend fun getByChainAndAddress(chain: Chain, address: String): DbAddress?
+    suspend fun get(chain: Chain, address: String): DbAddress?
 
     @Query("UPDATE addresses SET name = :name WHERE wallet_id = :walletId")
-    suspend fun updateNameByWalletId(walletId: String, name: String)
+    suspend fun updateName(walletId: String, name: String)
 }

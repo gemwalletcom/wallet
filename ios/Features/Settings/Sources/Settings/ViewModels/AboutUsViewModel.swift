@@ -25,18 +25,38 @@ public final class AboutUsViewModel: Sendable {
         self.releaseService = releaseService
     }
 
-    var title: String { Localized.Settings.aboutus }
+    var title: String {
+        Localized.Settings.aboutus
+    }
 
-    var termsOfServiceTitle: String { Localized.Settings.termsOfServices }
-    var termsOfServiceURL: URL { AppUrl.page(.termsOfService) }
+    var termsOfServiceTitle: String {
+        Localized.Settings.termsOfServices
+    }
 
-    var privacyPolicyTitle: String { Localized.Settings.privacyPolicy }
-    var privacyPolicyURL: URL { AppUrl.page(.privacyPolicy) }
+    var termsOfServiceURL: URL {
+        AppUrl.page(.termsOfService)
+    }
 
-    var websiteTitle: String { Localized.Settings.website }
-    var websiteURL: URL { AppUrl.page(.website) }
+    var privacyPolicyTitle: String {
+        Localized.Settings.privacyPolicy
+    }
 
-    var versionTextTitle: String { Localized.Settings.version }
+    var privacyPolicyURL: URL {
+        AppUrl.page(.privacyPolicy)
+    }
+
+    var websiteTitle: String {
+        Localized.Settings.website
+    }
+
+    var websiteURL: URL {
+        AppUrl.page(.website)
+    }
+
+    var versionTextTitle: String {
+        Localized.Settings.version
+    }
+
     var versionTextValue: String {
         let version = Bundle.main.releaseVersionNumber
         let number = Bundle.main.buildVersionNumber
@@ -51,7 +71,9 @@ public final class AboutUsViewModel: Sendable {
         }
     }
 
-    var contextDeveloperImage: String { SystemImage.info }
+    var contextDeveloperImage: String {
+        SystemImage.info
+    }
 
     var contextMenuItems: [ContextMenuItemType] {
         [
@@ -87,7 +109,9 @@ public final class AboutUsViewModel: Sendable {
         return SocialLinksViewModel(assetLinks: assetLinks)
     }
 
-    var communityTitle: String { Localized.Settings.community }
+    var communityTitle: String {
+        Localized.Settings.community
+    }
 }
 
 extension AboutUsViewModel {

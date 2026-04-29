@@ -18,6 +18,7 @@ public enum SystemImage {
     public static let network = "network"
     public static let globe = "globe"
     public static let share = "square.and.arrow.up"
+    public static let refresh = "arrow.clockwise"
     public static let lock = "lock"
     public static let delete = "trash"
     public static let checkmark = "checkmark"
@@ -57,7 +58,7 @@ public enum SystemImage {
     public static let chartLineUptrendXyaxis = "chart.line.uptrend.xyaxis"
     public static let checkmarkSealFill = "checkmark.seal.fill"
 
-    // specific to Gem style
+    /// specific to Gem style
     public static let errorOccurred = exclamationmarkTriangleFill
 }
 

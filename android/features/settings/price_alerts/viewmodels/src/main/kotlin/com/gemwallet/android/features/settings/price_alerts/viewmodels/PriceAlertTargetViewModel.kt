@@ -91,7 +91,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val percentageSuggestions: StateFlow<List<Int>> = currentPriceValue.map { price ->
-        priceAlertFormatter.percentageSuggestions(price).map { it.toInt() }
+        priceAlertFormatter.percentageSuggestions(price)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, listOf(5, 10, 15))
 
     val error: StateFlow<PriceAlertTargetError?> = snapshotFlow { value.text }.map {

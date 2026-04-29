@@ -57,8 +57,14 @@ public final class SwapDetailsViewModel {
 
     // MARK: - Provider
 
-    var providerText: String { providerViewModel.providerText }
-    var providerImage: AssetImage { providerViewModel.providerImage }
+    var providerText: String {
+        providerViewModel.providerText
+    }
+
+    var providerImage: AssetImage {
+        providerViewModel.providerImage
+    }
+
     var selectedProviderItem: SwapProviderItem {
         SwapProviderItem(
             asset: toAssetPrice.asset,
@@ -69,7 +75,10 @@ public final class SwapDetailsViewModel {
         )
     }
 
-    var allowSelectProvider: Bool { isProviderSelectionEnabled && state.value.or([]).count > 1 }
+    var allowSelectProvider: Bool {
+        isProviderSelectionEnabled && state.value.or([]).count > 1
+    }
+
     var swapProvidersViewModel: SwapProvidersViewModel {
         SwapProvidersViewModel(state: state.map { .plain(swapProviderItems($0)) })
     }
@@ -88,7 +97,10 @@ public final class SwapDetailsViewModel {
 
     // MARK: - Rate
 
-    var rateTitle: String { Localized.Buy.rate }
+    var rateTitle: String {
+        Localized.Buy.rate
+    }
+
     var rateText: String? {
         try? rateFormatter.rate(
             fromAsset: fromAssetPrice.asset,
@@ -127,7 +139,10 @@ public final class SwapDetailsViewModel {
 
     // MARK: - Slippage
 
-    var slippageValue: UInt32 { selectedQuote.slippageBps / 100 }
+    var slippageValue: UInt32 {
+        selectedQuote.slippageBps / 100
+    }
+
     var slippageField: ListItemField {
         ListItemField(title: Localized.Swap.slippage, value: percentSignLessFormatter.string(Double(slippageValue).rounded(toPlaces: 2)))
     }
@@ -141,7 +156,9 @@ public final class SwapDetailsViewModel {
         )
     }
 
-    var fromAsset: Asset { fromAssetPrice.asset }
+    var fromAsset: Asset {
+        fromAssetPrice.asset
+    }
 
     // MARK: - Private methods
 

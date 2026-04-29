@@ -114,6 +114,4 @@ public enum WalletConnectionMethods: String, Codable, CaseIterable, Sendable {
 	case tronSignMessage = "tron_signMessage"
 	case tronSignTransaction = "tron_signTransaction"
 	case tronSendTransaction = "tron_sendTransaction"
-	case btcSendTransfer = "sendTransfer"
-	case btcSignMessage = "signMessage"
 }

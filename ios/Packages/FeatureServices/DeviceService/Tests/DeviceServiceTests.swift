@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import DeviceService
 import Foundation
 import GemAPI
 import GemAPITestKit
@@ -9,8 +10,6 @@ import Primitives
 import PrimitivesTestKit
 import StoreTestKit
 import Testing
-
-@testable import DeviceService
 
 struct DeviceServiceTests {
     @Test

@@ -26,7 +26,9 @@ public final class SetPriceAlertViewModel {
     var state: SetPriceAlertViewModelState
 
     public let assetQuery: ObservableQuery<AssetRequest>
-    var assetData: AssetData { assetQuery.value }
+    var assetData: AssetData {
+        assetQuery.value
+    }
 
     public init(
         walletId: WalletId,

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -30,7 +31,7 @@ fun DialogBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = paddingSmall, vertical = paddingSmall),
+                .padding(start = paddingSmall, top = paddingSmall, end = paddingSmall, bottom = 0.dp),
             contentAlignment = Alignment.Center,
         ) {
             Box(

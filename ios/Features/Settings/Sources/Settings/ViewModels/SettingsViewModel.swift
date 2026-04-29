@@ -33,43 +33,104 @@ public final class SettingsViewModel {
         observablePreferences.isDeveloperEnabled
     }
 
-    var title: String { Localized.Settings.title }
+    var title: String {
+        Localized.Settings.title
+    }
 
-    var walletsTitle: String { Localized.Wallets.title }
+    var walletsTitle: String {
+        Localized.Wallets.title
+    }
+
     var walletsValue: String {
         let count = (try? walletSessionService.walletsCount()) ?? .zero
         return "\(count)"
     }
 
-    var walletsImage: AssetImage { AssetImage.image(Images.Settings.wallets) }
+    var walletsImage: AssetImage {
+        AssetImage.image(Images.Settings.wallets)
+    }
 
-    var securityTitle: String { Localized.Settings.security }
-    var securityImage: AssetImage { AssetImage.image(Images.Settings.security) }
+    var securityTitle: String {
+        Localized.Settings.security
+    }
 
-    var notificationsTitle: String { Localized.Settings.Notifications.title }
-    var notificationsImage: AssetImage { AssetImage.image(Images.Settings.notifications) }
+    var securityImage: AssetImage {
+        AssetImage.image(Images.Settings.security)
+    }
 
-    var preferencesTitle: String { Localized.Settings.Preferences.title }
-    var preferencesImage: AssetImage { AssetImage.image(Images.Settings.preferences) }
+    var notificationsTitle: String {
+        Localized.Settings.Notifications.title
+    }
 
-    var walletConnectTitle: String { Localized.WalletConnect.title }
-    var walletConnectImage: AssetImage { AssetImage.image(Images.Settings.walletConnect) }
+    var notificationsImage: AssetImage {
+        AssetImage.image(Images.Settings.notifications)
+    }
 
-    var rewardsTitle: String { Localized.Rewards.title }
-    var rewardsImage: AssetImage { AssetImage.image(Images.Settings.gem) }
-    var showsRewards: Bool { walletSessionService.hasMulticoinWallet() }
+    var preferencesTitle: String {
+        Localized.Settings.Preferences.title
+    }
 
-    var aboutUsTitle: String { Localized.Settings.aboutus }
-    var aboutUsImage: AssetImage { AssetImage.image(Images.Settings.aboutUs) }
+    var preferencesImage: AssetImage {
+        AssetImage.image(Images.Settings.preferences)
+    }
 
-    var helpCenterTitle: String { Localized.Settings.helpCenter }
-    var helpCenterImage: AssetImage { AssetImage.image(Images.Settings.helpCenter) }
-    var helpCenterURL: URL { AppUrl.docs(.start) }
+    var walletConnectTitle: String {
+        Localized.WalletConnect.title
+    }
 
-    var supportTitle: String { Localized.Settings.support }
-    var supportImage: AssetImage { AssetImage.image(Images.Settings.support) }
-    var supportURL: URL { AppUrl.page(.support) }
+    var walletConnectImage: AssetImage {
+        AssetImage.image(Images.Settings.walletConnect)
+    }
 
-    var developerModeTitle: String { Localized.Settings.developer }
-    var developerModeImage: AssetImage { AssetImage.image(Images.Settings.developer) }
+    var rewardsTitle: String {
+        Localized.Rewards.title
+    }
+
+    var rewardsImage: AssetImage {
+        AssetImage.image(Images.Settings.gem)
+    }
+
+    var showsRewards: Bool {
+        walletSessionService.hasMulticoinWallet()
+    }
+
+    var aboutUsTitle: String {
+        Localized.Settings.aboutus
+    }
+
+    var aboutUsImage: AssetImage {
+        AssetImage.image(Images.Settings.aboutUs)
+    }
+
+    var helpCenterTitle: String {
+        Localized.Settings.helpCenter
+    }
+
+    var helpCenterImage: AssetImage {
+        AssetImage.image(Images.Settings.helpCenter)
+    }
+
+    var helpCenterURL: URL {
+        AppUrl.docs(.start)
+    }
+
+    var supportTitle: String {
+        Localized.Settings.support
+    }
+
+    var supportImage: AssetImage {
+        AssetImage.image(Images.Settings.support)
+    }
+
+    var supportURL: URL {
+        AppUrl.page(.support)
+    }
+
+    var developerModeTitle: String {
+        Localized.Settings.developer
+    }
+
+    var developerModeImage: AssetImage {
+        AssetImage.image(Images.Settings.developer)
+    }
 }

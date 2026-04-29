@@ -3,11 +3,10 @@
 import BigInt
 import Foundation
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 @MainActor
 struct NetworkFeeSceneViewModelTests {
@@ -50,38 +49,38 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func fiatValueForNativeFeeType() {
+    func fiatValueForNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(chain: .solana)
         let rate = FeeRate(priority: .normal, gasPriceType: .solana(gasPrice: 5000, priorityFee: 0, unitPrice: 0))
         let price = Price(price: 150.0, priceChangePercentage24h: 0, updatedAt: Date())
 
         model.update(rates: [rate], feeAssetPrice: price)
 
-        let feeRateVM = model.feeRatesViewModels.first!
+        let feeRateVM = try #require(model.feeRatesViewModels.first)
 
         #expect(model.fiatValueForRate(feeRateVM) != nil)
     }
 
     @Test
-    func fiatValueNilForNonNativeFeeType() {
+    func fiatValueNilForNonNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(chain: .ethereum)
         let price = Price(price: 3000.0, priceChangePercentage24h: 0, updatedAt: Date())
 
         model.update(rates: [.defaultRate()], feeAssetPrice: price)
 
-        let feeRateVM = model.feeRatesViewModels.first!
+        let feeRateVM = try #require(model.feeRatesViewModels.first)
 
         #expect(model.fiatValueForRate(feeRateVM) == nil)
     }
 
     @Test
-    func fiatValueNilWithoutPriceData() {
+    func fiatValueNilWithoutPriceData() throws {
         let model = NetworkFeeSceneViewModel.mock(chain: .solana)
         let rate = FeeRate(priority: .normal, gasPriceType: .solana(gasPrice: 5000, priorityFee: 0, unitPrice: 0))
 
         model.update(rates: [rate], feeAssetPrice: nil)
 
-        let feeRateVM = model.feeRatesViewModels.first!
+        let feeRateVM = try #require(model.feeRatesViewModels.first)
 
         #expect(model.fiatValueForRate(feeRateVM) == nil)
     }

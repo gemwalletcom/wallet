@@ -11,7 +11,10 @@ public struct ChainViewModel: Sendable {
         self.chain = chain
     }
 
-    public var title: String { Asset(chain).name }
+    public var title: String {
+        Asset(chain).name
+    }
+
     public var image: Image {
         ChainImage(chain: chain).placeholder
     }
@@ -20,7 +23,9 @@ public struct ChainViewModel: Sendable {
 // MARK: - Identifiable
 
 extension ChainViewModel: Identifiable {
-    public var id: String { chain.rawValue }
+    public var id: String {
+        chain.rawValue
+    }
 }
 
 // MARK: - SimpleListItemViewable

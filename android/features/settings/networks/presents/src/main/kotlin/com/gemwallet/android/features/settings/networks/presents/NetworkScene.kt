@@ -72,15 +72,15 @@ fun NetworkScene(
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
-            isRefreshing = false,
+            isRefreshing = state.isRefreshing,
             onRefresh = onRefresh,
             state = pullToRefreshState,
             enabled = true,
             indicator = {
-                if (pullToRefreshState.distanceFraction > 0f) {
+                if (pullToRefreshState.distanceFraction > 0f || state.isRefreshing) {
                     Indicator(
                         modifier = Modifier.align(Alignment.TopCenter),
-                        isRefreshing = false,
+                        isRefreshing = state.isRefreshing,
                         state = pullToRefreshState,
                         containerColor = MaterialTheme.colorScheme.background,
                     )

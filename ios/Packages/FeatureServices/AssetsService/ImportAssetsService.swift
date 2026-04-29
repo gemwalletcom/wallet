@@ -25,7 +25,7 @@ public struct ImportAssetsService: Sendable {
         self.preferences = preferences
     }
 
-    // sync
+    /// sync
     public func migrate() throws {
         let releaseVersion = Bundle.main.buildVersionNumber
 

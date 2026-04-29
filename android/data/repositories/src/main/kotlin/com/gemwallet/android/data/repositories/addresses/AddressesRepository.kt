@@ -22,11 +22,11 @@ class AddressesRepository(
 
     override suspend fun getAddressName(chain: Chain, address: String): AddressName? {
         if (address.isEmpty()) return null
-        return addressesDao.getByChainAndAddress(chain, address)?.toDTO()
+        return addressesDao.get(chain, address)?.toDTO()
     }
 
     override suspend fun renameWalletAddresses(walletId: String, name: String) {
-        addressesDao.updateNameByWalletId(walletId, name)
+        addressesDao.updateName(walletId, name)
     }
 
     suspend fun saveWalletAddresses(wallet: Wallet) {

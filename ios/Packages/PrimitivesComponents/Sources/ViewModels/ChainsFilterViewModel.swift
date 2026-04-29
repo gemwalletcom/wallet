@@ -17,6 +17,11 @@ public struct ChainsFilterViewModel: Sendable, Equatable {
         )
     }
 
-    public var isAnySelected: Bool { !selectedChains.isEmpty }
-    public var isEmpty: Bool { allChains.isEmpty }
+    public var isAnySelected: Bool {
+        !selectedChains.isEmpty
+    }
+
+    public var isEmpty: Bool {
+        allChains.isEmpty
+    }
 }

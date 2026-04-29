@@ -7,5 +7,7 @@ public enum ButtonState: Hashable, Sendable {
     case loading(showProgress: Bool = true)
     case disabled
 
-    public var showProgress: Bool { self == .loading(showProgress: true) }
+    public var showProgress: Bool {
+        self == .loading(showProgress: true)
+    }
 }

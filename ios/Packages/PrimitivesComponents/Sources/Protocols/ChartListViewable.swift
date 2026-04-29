@@ -13,5 +13,7 @@ public protocol ChartListViewable: AnyObject, Observable {
 }
 
 public extension ChartListViewable {
-    var periods: [ChartPeriod] { [.hour, .day, .week, .month, .year, .all] }
+    var periods: [ChartPeriod] {
+        [.hour, .day, .week, .month, .year, .all]
+    }
 }

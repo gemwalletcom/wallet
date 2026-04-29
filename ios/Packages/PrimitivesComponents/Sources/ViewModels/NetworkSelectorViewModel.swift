@@ -9,7 +9,10 @@ import SwiftUI
 
 public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public var selectionType: SelectionType
-    public var isSearchable: Bool { true }
+    public var isSearchable: Bool {
+        true
+    }
+
     public let state: StateViewType<SelectableListType<Chain>>
 
     public var selectedItems: Set<Chain>
@@ -24,12 +27,29 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         self.selectedItems = Set(selectedItems)
     }
 
-    public var title: String { Localized.Settings.Networks.title }
-    public var cancelButtonTitle: String { Localized.Common.cancel }
-    public var clearButtonTitle: String { Localized.Filter.clear }
-    public var doneButtonTitle: String { Localized.Common.done }
-    public var noResultsTitle: String? { Localized.Common.noResultsFound }
-    public var confirmButtonTitle: String { Localized.Transfer.confirm }
+    public var title: String {
+        Localized.Settings.Networks.title
+    }
+
+    public var cancelButtonTitle: String {
+        Localized.Common.cancel
+    }
+
+    public var clearButtonTitle: String {
+        Localized.Filter.clear
+    }
+
+    public var doneButtonTitle: String {
+        Localized.Common.done
+    }
+
+    public var noResultsTitle: String? {
+        Localized.Common.noResultsFound
+    }
+
+    public var confirmButtonTitle: String {
+        Localized.Transfer.confirm
+    }
 }
 
 extension NetworkSelectorViewModel: ItemFilterable {

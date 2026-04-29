@@ -48,5 +48,7 @@ public struct InfoSheetModel: Sendable {
         self.descriptionStyle = descriptionStyle
     }
 
-    var shouldShowButton: Bool { button != nil }
+    var shouldShowButton: Bool {
+        button != nil
+    }
 }

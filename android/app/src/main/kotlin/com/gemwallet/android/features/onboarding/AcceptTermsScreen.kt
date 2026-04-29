@@ -140,7 +140,7 @@ private fun LazyListScope.termItem(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (isUnderstand) {
-                        SelectionCheckmark(size = compactIconSize)
+                        SelectionCheckmark()
                     } else {
                         Icon(
                             modifier = Modifier.size(compactIconSize),

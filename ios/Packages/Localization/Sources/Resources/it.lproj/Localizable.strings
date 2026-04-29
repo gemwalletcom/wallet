@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Questo portafoglio è già stato importato.";
 "rewards.unverified.title" = "Premi non ancora attivi.";
 "rewards.unverified.description" = "I premi si attivano automaticamente man mano che utilizzi l'app.";
+"common.refresh" = "Rinfrescato";

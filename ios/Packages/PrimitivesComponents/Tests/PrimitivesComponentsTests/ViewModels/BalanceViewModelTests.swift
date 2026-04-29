@@ -3,11 +3,10 @@
 import BigInt
 import Foundation
 import Primitives
-import PrimitivesTestKit
-import Testing
-
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
+import PrimitivesTestKit
+import Testing
 
 struct BalanceViewModelTests {
     @Test

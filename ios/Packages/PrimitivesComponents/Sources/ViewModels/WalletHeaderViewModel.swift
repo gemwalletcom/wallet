@@ -21,7 +21,7 @@ public struct WalletHeaderViewModel {
         self.walletType = walletType
         self.totalValue = totalValue
         self.bannerEventsViewModel = bannerEventsViewModel
-        let formatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
+        let formatter = CurrencyFormatter(type: .fiat, currencyCode: currencyCode)
         totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter)
     }
 }
@@ -29,16 +29,27 @@ public struct WalletHeaderViewModel {
 // MARK: - HeaderViewModel
 
 extension WalletHeaderViewModel: HeaderViewModel {
-    public var isWatchWallet: Bool { walletType == .view }
-    public var title: String { totalValueViewModel.title }
-    public var assetImage: AssetImage? { .none }
+    public var isWatchWallet: Bool {
+        walletType == .view
+    }
+
+    public var title: String {
+        totalValueViewModel.title
+    }
+
+    public var assetImage: AssetImage? {
+        .none
+    }
+
     public var subtitle: String? {
         guard let amount = totalValueViewModel.pnlAmountText else { return nil }
         guard let percentage = totalValueViewModel.pnlPercentageText else { return amount }
         return "\(amount) (\(percentage))"
     }
 
-    public var subtitleColor: Color { totalValueViewModel.pnlColor }
+    public var subtitleColor: Color {
+        totalValueViewModel.pnlColor
+    }
 
     public var subtitleImage: Image? {
         Image(systemName: SystemImage.chartLineUptrendXyaxis)

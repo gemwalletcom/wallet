@@ -6,7 +6,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct LatencyViewModel: Sendable {
+struct LatencyViewModel {
     private let latency: Latency
 
     init(latency: Latency) {

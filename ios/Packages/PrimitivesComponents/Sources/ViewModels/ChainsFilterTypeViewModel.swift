@@ -28,5 +28,7 @@ public struct ChainsFilterTypeViewModel: FilterTypeRepresentable {
         Localized.Settings.Networks.title
     }
 
-    public var image: AssetImage { AssetImage.image(Images.Settings.networks) }
+    public var image: AssetImage {
+        AssetImage.image(Images.Settings.networks)
+    }
 }

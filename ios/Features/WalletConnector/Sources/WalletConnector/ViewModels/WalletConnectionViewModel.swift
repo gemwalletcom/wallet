@@ -7,10 +7,6 @@ import PrimitivesComponents
 public struct WalletConnectionViewModel: Sendable {
     let connection: WalletConnection
 
-    init(connection: WalletConnection) {
-        self.connection = connection
-    }
-
     var nameText: String {
         connection.session.metadata.shortName
     }

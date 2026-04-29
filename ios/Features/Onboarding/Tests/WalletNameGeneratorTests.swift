@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import Onboarding
 import Primitives
 import Testing
 import WalletService
 import WalletServiceTestKit
-
-@testable import Onboarding
 
 struct WalletNameGeneratorTests {
     @Test

@@ -15,7 +15,9 @@ public struct RequiredTextValidator: TextValidator {
         }
     }
 
-    public var id: String { requireName }
+    public var id: String {
+        requireName
+    }
 }
 
 public extension TextValidator where Self == RequiredTextValidator {

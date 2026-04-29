@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "이 지갑은 이미 가져왔습니다.";
 "rewards.unverified.title" = "보상 프로그램이 아직 활성화되지 않았습니다.";
 "rewards.unverified.description" = "앱을 더 많이 사용할수록 보상이 자동으로 활성화됩니다.";
+"common.refresh" = "새로 고치다";

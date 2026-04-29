@@ -2,9 +2,8 @@
 
 import Primitives
 import PrimitivesTestKit
-import Testing
-
 @testable import Swap
+import Testing
 
 struct SwapPairSelectorViewModelTests {
     @Test

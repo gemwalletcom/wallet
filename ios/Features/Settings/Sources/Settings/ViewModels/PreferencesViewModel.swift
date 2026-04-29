@@ -26,17 +26,38 @@ public final class PreferencesViewModel {
         self.preferences = preferences
     }
 
-    var title: String { Localized.Settings.Preferences.title }
+    var title: String {
+        Localized.Settings.Preferences.title
+    }
 
-    var appIconTitle: String { Localized.Settings.Preferences.appIcon }
-    var appIconImage: AssetImage { AssetImage.image(Images.Settings.gem) }
-    var supportsAlternateIcons: Bool { UIApplication.shared.supportsAlternateIcons }
+    var appIconTitle: String {
+        Localized.Settings.Preferences.appIcon
+    }
 
-    var currencyTitle: String { Localized.Settings.currency }
-    var currencyValue: String { currencyModel.selectedCurrencyValue }
-    var currencyImage: AssetImage { AssetImage.image(Images.Settings.currency) }
+    var appIconImage: AssetImage {
+        AssetImage.image(Images.Settings.gem)
+    }
 
-    var languageTitle: String { Localized.Settings.language }
+    var supportsAlternateIcons: Bool {
+        UIApplication.shared.supportsAlternateIcons
+    }
+
+    var currencyTitle: String {
+        Localized.Settings.currency
+    }
+
+    var currencyValue: String {
+        currencyModel.selectedCurrencyValue
+    }
+
+    var currencyImage: AssetImage {
+        AssetImage.image(Images.Settings.currency)
+    }
+
+    var languageTitle: String {
+        Localized.Settings.language
+    }
+
     var languageValue: String {
         guard let code = Locale.current.language.languageCode?.identifier else {
             return ""
@@ -44,30 +65,55 @@ public final class PreferencesViewModel {
         return Locale.current.localizedString(forLanguageCode: code)?.capitalized ?? ""
     }
 
-    var languageImage: AssetImage { AssetImage.image(Images.Settings.language) }
+    var languageImage: AssetImage {
+        AssetImage.image(Images.Settings.language)
+    }
 
-    var networksTitle: String { Localized.Settings.Networks.title }
-    var networksImage: AssetImage { AssetImage.image(Images.Settings.networks) }
+    var networksTitle: String {
+        Localized.Settings.Networks.title
+    }
 
-    var contactsTitle: String { Localized.Contacts.title }
-    var contactsImage: AssetImage { AssetImage.image(Images.Settings.contacts) }
+    var networksImage: AssetImage {
+        AssetImage.image(Images.Settings.networks)
+    }
+
+    var contactsTitle: String {
+        Localized.Contacts.title
+    }
+
+    var contactsImage: AssetImage {
+        AssetImage.image(Images.Settings.contacts)
+    }
 
     var isPerpetualEnabled: Bool {
         get { preferences.isPerpetualEnabled }
         set { preferences.isPerpetualEnabled = newValue }
     }
 
-    var perpetualsTitle: String { Localized.Perpetuals.title }
-    var perpetualsImage: AssetImage { AssetImage.image(Images.Settings.perpetuals) }
+    var perpetualsTitle: String {
+        Localized.Perpetuals.title
+    }
+
+    var perpetualsImage: AssetImage {
+        AssetImage.image(Images.Settings.perpetuals)
+    }
 
     var perpetualLeverage: LeverageOption {
         get { LeverageOption(value: preferences.perpetualLeverage) }
         set { preferences.perpetualLeverage = newValue.value }
     }
 
-    var defaultLeverageTitle: String { Localized.Settings.Preferences.defaultLeverage }
-    var defaultLeverageValue: String { "\(preferences.perpetualLeverage)x" }
-    var leverageOptions: [LeverageOption] { LeverageOption.allOptions }
+    var defaultLeverageTitle: String {
+        Localized.Settings.Preferences.defaultLeverage
+    }
+
+    var defaultLeverageValue: String {
+        "\(preferences.perpetualLeverage)x"
+    }
+
+    var leverageOptions: [LeverageOption] {
+        LeverageOption.allOptions
+    }
 }
 
 // MARK: - Actions

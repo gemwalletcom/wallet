@@ -15,5 +15,7 @@ final class TermItemViewModel: Identifiable {
         self.message = message
     }
 
-    var id: String { message }
+    var id: String {
+        message
+    }
 }

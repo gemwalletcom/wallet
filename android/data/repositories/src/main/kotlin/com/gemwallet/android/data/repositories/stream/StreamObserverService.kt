@@ -25,8 +25,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 
@@ -109,15 +111,16 @@ class StreamObserverService(
 
     private suspend fun DefaultClientWebSocketSession.observeConnection() {
         launch {
-            subscriptionService.messageFlow.collectLatest { message ->
-                try {
-                    send(jsonEncoder.encodeToString<StreamMessage>(message))
-                } catch (err: Throwable) {
-                    Log.e(TAG, "Send message error", err)
+            subscriptionService.messageFlow
+                .onSubscription { subscriptionService.resubscribe() }
+                .collect { message ->
+                    try {
+                        send(jsonEncoder.encodeToString<StreamMessage>(message))
+                    } catch (err: Throwable) {
+                        Log.e(TAG, "Send message error", err)
+                    }
                 }
-            }
         }
-        subscriptionService.resubscribe()
         for (frame in incoming) {
             if (frame is Frame.Text) {
                 val text = frame.readText()

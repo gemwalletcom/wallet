@@ -340,7 +340,7 @@ internal fun buildNodeRows(
     return nodes.map { node ->
         NodeRowUiModel(
             node = node,
-            host = node.url.hostOrUrl(),
+            host = displayHost(node.url),
             gemNodeFlag = getGemNodeRegion(node.url)?.flag,
             selected = node.url == currentNode.url,
             canDelete = node.url !in gemNodeUrls && node.url !in defaultNodeUrls,
@@ -358,9 +358,9 @@ internal fun NodeStatus?.toStatusState(): NodeStatusState = when {
     )
 }
 
-private fun String.hostOrUrl(): String {
-    return runCatching { URI(this).host }
+private fun displayHost(url: String): String {
+    return runCatching { URI(url).host }
         .getOrNull()
         ?.takeIf { it.isNotBlank() }
-        ?: removePrefix("https://").removePrefix("http://")
+        ?: url.removePrefix("https://").removePrefix("http://")
 }

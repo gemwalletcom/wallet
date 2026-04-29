@@ -5,10 +5,10 @@ import Primitives
 @preconcurrency import WalletCore
 
 internal import enum Formatters.MnemonicFormatter
-internal import WalletCorePrimitives
 internal import func Gemstone.decodePrivateKey
+internal import WalletCorePrimitives
 
-struct WalletKeyStore: Sendable {
+struct WalletKeyStore {
     private let keyStore: WalletCore.KeyStore
     private let directory: URL
 

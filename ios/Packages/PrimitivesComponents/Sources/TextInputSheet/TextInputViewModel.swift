@@ -16,5 +16,7 @@ public protocol TextInputViewModelProtocol: Observable, AnyObject {
 }
 
 public extension TextInputViewModelProtocol {
-    var footer: String? { nil }
+    var footer: String? {
+        nil
+    }
 }

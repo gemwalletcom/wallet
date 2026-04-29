@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Diese Brieftasche wurde bereits importiert.";
 "rewards.unverified.title" = "Prämien noch nicht aktiv.";
 "rewards.unverified.description" = "Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.";
+"common.refresh" = "Aktualisieren";

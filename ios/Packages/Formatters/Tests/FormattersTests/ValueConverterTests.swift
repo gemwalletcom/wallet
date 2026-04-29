@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Formatters
 import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import Formatters
 
 struct ValueConverterTests {
     let converter = ValueConverter()

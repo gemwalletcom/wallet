@@ -5,7 +5,7 @@ import PerpetualService
 import PriceService
 import Primitives
 
-enum PortfolioDataInput: Sendable {
+enum PortfolioDataInput {
     case wallet(walletId: WalletId, period: ChartPeriod, currencyCode: String)
     case perpetuals(period: ChartPeriod, address: String)
 }

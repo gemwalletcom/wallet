@@ -56,17 +56,16 @@ class ImportWalletService(
                 val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
 
                 searchTokensCase.search(tokenIds, currency)
-                val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull()
-                val assetsToImport = assets?.map { it.asset }
-                    ?.mapNotNull { asset ->
-                        val account = wallet.getAccount(asset.chain)?.address ?: return@mapNotNull null
-                        account to asset
-                    } ?: emptyList()
-                assetsRepository.add(
-                    walletId = wallet.id,
-                    assets = assetsToImport,
-                    visible = true,
-                )
+                val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull().orEmpty()
+                assets.forEach { assetInfo ->
+                    val asset = assetInfo.asset
+                    wallet.getAccount(asset.chain) ?: return@forEach
+                    assetsRepository.linkAssetToWallet(
+                        walletId = wallet.id,
+                        assetId = asset.id,
+                        visible = true,
+                    )
+                }
                 assetsRepository.sync()
                 syncTransactions.syncTransactions(wallet)
                 syncNfts.syncNfts(wallet)

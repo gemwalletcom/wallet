@@ -7,7 +7,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct FiatQuoteViewModel: Sendable {
+struct FiatQuoteViewModel {
     let quote: FiatQuote
     let selectedQuote: FiatQuote?
 
@@ -73,7 +73,9 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
         )
     }
 
-    var subtitle: String? { amountText }
+    var subtitle: String? {
+        amountText
+    }
 
     var subtitleExtra: String? {
         switch quote.type {

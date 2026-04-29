@@ -47,9 +47,14 @@ public final class ChainSettingsSceneViewModel {
         selectedExplorer = explorerService.get(chain: chain) ?? explorers.first
     }
 
-    var title: String { Asset(chain).name }
+    var title: String {
+        Asset(chain).name
+    }
 
-    var nodesTitle: String { Localized.Settings.Networks.source }
+    var nodesTitle: String {
+        Localized.Settings.Networks.source
+    }
+
     var nodesModels: [ChainNodeViewModel] {
         nodes.map { node in
             ChainNodeViewModel(
@@ -61,12 +66,21 @@ public final class ChainSettingsSceneViewModel {
         .sorted(by: { !canDelete(node: $0.chainNode) && canDelete(node: $1.chainNode) })
     }
 
-    var explorerTitle: String { Localized.Settings.Networks.explorer }
-    var deleteButtonTitle: String { Localized.Common.delete }
+    var explorerTitle: String {
+        Localized.Settings.Networks.explorer
+    }
 
-    func deleteConfirmationTitle(for nodeName: String) -> String { Localized.Common.deleteConfirmation(nodeName) }
+    var deleteButtonTitle: String {
+        Localized.Common.delete
+    }
 
-    func canDelete(node: ChainNode) -> Bool { !node.isGemNode && !defaultNodes.contains(where: { $0 == node }) }
+    func deleteConfirmationTitle(for nodeName: String) -> String {
+        Localized.Common.deleteConfirmation(nodeName)
+    }
+
+    func canDelete(node: ChainNode) -> Bool {
+        !node.isGemNode && !defaultNodes.contains(where: { $0 == node })
+    }
 }
 
 // MARK: - Actions

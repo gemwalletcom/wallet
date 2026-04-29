@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Brak dostępnych danych";
-"errors.dust_threshold_short" = "Sieć traktuje tę kwotę jako kurz — opłata jest wyższa od samej kwoty.";
+"errors.dust_threshold_short" = "Sieć traktuje tę kwotę jako kurz - opłata jest wyższa od samej kwoty.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Ten portfel został już zaimportowany.";
 "rewards.unverified.title" = "Nagrody nie są jeszcze aktywne.";
 "rewards.unverified.description" = "Nagrody aktywują się automatycznie w miarę jak częściej korzystasz z aplikacji.";
+"common.refresh" = "Odświeżać";

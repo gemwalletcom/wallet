@@ -16,7 +16,9 @@ public final class ContactsViewModel {
     let nameService: any NameServiceable
 
     public let query: ObservableQuery<ContactsRequest>
-    var contacts: [ContactData] { query.value }
+    var contacts: [ContactData] {
+        query.value
+    }
 
     var isPresentingAddContact = false
 
@@ -29,7 +31,9 @@ public final class ContactsViewModel {
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
 
-    var title: String { Localized.Contacts.title }
+    var title: String {
+        Localized.Contacts.title
+    }
 
     var emptyContent: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .contacts)

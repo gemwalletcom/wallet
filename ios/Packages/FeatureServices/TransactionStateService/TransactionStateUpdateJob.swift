@@ -14,7 +14,9 @@ struct TransactionStateUpdateJob: Job {
     private let postProcessingService: TransactionPostProcessingService
     private let minInitialInterval: Duration = .seconds(5)
 
-    var id: String { transaction.id.identifier }
+    var id: String {
+        transaction.id.identifier
+    }
 
     var configuration: JobConfiguration {
         .adaptive(
@@ -30,7 +32,9 @@ struct TransactionStateUpdateJob: Job {
         )
     }
 
-    private var transaction: Transaction { transactionWallet.transaction }
+    private var transaction: Transaction {
+        transactionWallet.transaction
+    }
 
     init(
         transactionWallet: TransactionWallet,

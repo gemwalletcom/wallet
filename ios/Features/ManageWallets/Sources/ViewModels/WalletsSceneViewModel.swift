@@ -28,8 +28,13 @@ public final class WalletsSceneViewModel {
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
     let walletsQuery: ObservableQuery<WalletsRequest>
 
-    var pinnedWallets: [Wallet] { pinnedWalletsQuery.value }
-    var wallets: [Wallet] { walletsQuery.value }
+    var pinnedWallets: [Wallet] {
+        pinnedWalletsQuery.value
+    }
+
+    var wallets: [Wallet] {
+        walletsQuery.value
+    }
 
     public init(
         navigationPath: Binding<NavigationPath>,

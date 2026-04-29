@@ -2,12 +2,11 @@
 
 import Keystore
 import KeystoreTestKit
+@testable import Onboarding
 import Preferences
 import StoreTestKit
 import Testing
 import WalletServiceTestKit
-
-@testable import Onboarding
 
 @MainActor
 struct CreateWalletModelTests {

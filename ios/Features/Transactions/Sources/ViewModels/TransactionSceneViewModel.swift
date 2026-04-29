@@ -18,7 +18,10 @@ public final class TransactionSceneViewModel {
     private let explorerService: ExplorerService
 
     public let query: ObservableQuery<TransactionRequest>
-    var transactionExtended: TransactionExtended { query.value }
+    var transactionExtended: TransactionExtended {
+        query.value
+    }
+
     var isPresentingTransactionSheet: TransactionSheetType?
 
     public init(
@@ -32,8 +35,13 @@ public final class TransactionSceneViewModel {
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.id), initialValue: transaction)
     }
 
-    var title: String { model.titleTextValue.text }
-    var explorerURL: URL { explorerViewModel.url }
+    var title: String {
+        model.titleTextValue.text
+    }
+
+    var explorerURL: URL {
+        explorerViewModel.url
+    }
 }
 
 // MAKR: - ListSectionProvideable

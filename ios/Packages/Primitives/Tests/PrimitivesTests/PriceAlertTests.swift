@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import Primitives
 
 final class PriceAlertTests {
     @Test func testId() {

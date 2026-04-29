@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Pochi hii tayari imeingizwa.";
 "rewards.unverified.title" = "Zawadi hazijaanza kutumika bado.";
 "rewards.unverified.description" = "Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.";
+"common.refresh" = "Onyesha upya";

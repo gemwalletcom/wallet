@@ -3,7 +3,10 @@
 import Foundation
 
 public struct KeyValueItem: Identifiable, Sendable {
-    public var id: String { [title, value].joined() }
+    public var id: String {
+        [title, value].joined()
+    }
+
     public let title: String
     public let value: String
 

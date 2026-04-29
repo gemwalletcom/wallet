@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
-
 @testable import Primitives
+import Testing
 
 @MainActor
 struct RetryIntervalCalculatorTests {
@@ -17,7 +16,7 @@ struct RetryIntervalCalculatorTests {
         ),
     )
     @Test
-    func fixedAlwaysReturnsSameInterval() async {
+    func fixedAlwaysReturnsSameInterval() {
         let result1 = RetryIntervalCalculator.nextInterval(
             config: fixedConfig,
             currentInterval: .seconds(2),
@@ -31,7 +30,7 @@ struct RetryIntervalCalculatorTests {
     }
 
     @Test
-    func adaptiveStepFactorGrowth() async {
+    func adaptiveStepFactorGrowth() {
         let result = RetryIntervalCalculator.nextInterval(
             config: adaptiveConfig,
             currentInterval: .seconds(5),
@@ -40,7 +39,7 @@ struct RetryIntervalCalculatorTests {
     }
 
     @Test
-    func adaptiveClampsToMax() async {
+    func adaptiveClampsToMax() {
         let result = RetryIntervalCalculator.nextInterval(
             config: adaptiveConfig,
             currentInterval: .seconds(7),
@@ -49,7 +48,7 @@ struct RetryIntervalCalculatorTests {
     }
 
     @Test
-    func adaptiveTwoStepGrowth() async {
+    func adaptiveTwoStepGrowth() {
         let first = RetryIntervalCalculator.nextInterval(
             config: adaptiveConfig,
             currentInterval: .seconds(5),
@@ -63,7 +62,7 @@ struct RetryIntervalCalculatorTests {
     }
 
     @Test
-    func initialIntervalNotHigherThenMaxInternal() async {
+    func initialIntervalNotHigherThenMaxInternal() {
         let adaptiveConfig = JobConfiguration.adaptive(
             configuration: AdaptiveConfiguration(
                 initialInterval: .seconds(50),

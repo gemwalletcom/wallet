@@ -3,11 +3,10 @@
 import BannerServiceTestKit
 import Primitives
 import PrimitivesTestKit
-import Testing
-import WalletTabTestKit
-
 @testable import Store
+import Testing
 @testable import WalletTab
+import WalletTabTestKit
 
 @MainActor
 struct WalletSceneViewModelTests {

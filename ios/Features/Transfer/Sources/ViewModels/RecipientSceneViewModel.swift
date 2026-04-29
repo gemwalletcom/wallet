@@ -38,7 +38,9 @@ public final class RecipientSceneViewModel {
     var amount: String = ""
 
     public let contactsQuery: ObservableQuery<ContactsRequest>
-    var contacts: [ContactData] { contactsQuery.value }
+    var contacts: [ContactData] {
+        contactsQuery.value
+    }
 
     public init(
         wallet: Wallet,
@@ -71,9 +73,14 @@ public final class RecipientSceneViewModel {
         contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
     }
 
-    var tittle: String { Localized.Transfer.Recipient.title }
+    var tittle: String {
+        Localized.Transfer.Recipient.title
+    }
+
     let recipientField = Localized.Transfer.Recipient.addressField
-    var memoField: String { Localized.Transfer.memo }
+    var memoField: String {
+        Localized.Transfer.memo
+    }
 
     func nftAssetImage(for nftAsset: NFTAsset) -> AssetImage {
         AssetImage(
@@ -84,13 +91,21 @@ public final class RecipientSceneViewModel {
         )
     }
 
-    var actionButtonTitle: String { Localized.Common.continue }
+    var actionButtonTitle: String {
+        Localized.Common.continue
+    }
+
     var actionButtonState: ButtonState {
         addressInputModel.isValid ? .normal : .disabled
     }
 
-    var showMemo: Bool { asset.chain.isMemoSupported }
-    var chain: Chain { asset.chain }
+    var showMemo: Bool {
+        asset.chain.isMemoSupported
+    }
+
+    var chain: Chain {
+        asset.chain
+    }
 
     var recipientSections: [ListItemValueSection<RecipientAddress>] {
         RecipientAddressType.allCases

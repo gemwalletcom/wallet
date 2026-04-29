@@ -86,7 +86,7 @@ struct ConfirmServiceTests {
     }
 
     @Test
-    func simulationStateIgnoresAddressNameLookupFailure() async throws {
+    func simulationStateIgnoresAddressNameLookupFailure() async {
         let service = ConfirmSimulationServiceFactory.create(
             addressNameService: .mock(
                 addressStore: .mock(),

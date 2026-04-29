@@ -17,8 +17,14 @@ struct PerpetualItemViewModel: ListAssetItemViewable {
         self.model = model
     }
 
-    var name: String { model.name }
-    var symbol: String? { .none }
+    var name: String {
+        model.name
+    }
+
+    var symbol: String? {
+        .none
+    }
+
     var action: ((ListAssetItemAction) -> Void)?
 
     var assetImage: AssetImage {

@@ -25,7 +25,7 @@ class EnsureWalletAssetsImplTest {
     )
 
     @Test
-    fun ensureWalletAssets_addsOnlyMissingWalletAssets() = runTest {
+    fun ensureWalletAssets_linksOnlyMissingWalletAssets() = runTest {
         val bitcoin = mockAsset()
         val ethereum = mockAssetEthereum()
         val ethereumAccount = mockAccount(chain = Chain.Ethereum, address = "0x-current")
@@ -42,10 +42,10 @@ class EnsureWalletAssetsImplTest {
 
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id, ethereum.id, ethereum.id))
 
-        coVerify {
+        coVerify { assetsRepository.linkAssetToWallet("wallet-1", ethereum.id, true) }
+        coVerify(exactly = 0) {
             assetsRepository.add(
                 walletId = "wallet-1",
-                accountAddress = "0x-current",
                 asset = ethereum,
                 visible = true,
             )
@@ -53,7 +53,6 @@ class EnsureWalletAssetsImplTest {
         coVerify(exactly = 0) {
             assetsRepository.add(
                 walletId = "wallet-1",
-                accountAddress = "bc1-current",
                 asset = bitcoin,
                 visible = true,
             )
@@ -74,7 +73,7 @@ class EnsureWalletAssetsImplTest {
 
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id))
 
-        coVerify(exactly = 0) { assetsRepository.add(any(), any(), any<com.wallet.core.primitives.Asset>(), any()) }
+        coVerify(exactly = 0) { assetsRepository.add(any(), any<com.wallet.core.primitives.Asset>(), any()) }
         coVerify(exactly = 0) { assetsRepository.updateBalances(any()) }
     }
 }

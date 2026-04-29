@@ -9,7 +9,10 @@ import Style
 public struct SelectWalletViewModel: SelectableListAdoptable {
     public typealias Item = Wallet
 
-    public var title: String { Localized.Wallets.title }
+    public var title: String {
+        Localized.Wallets.title
+    }
+
     public var state: StateViewType<SelectableListType<Wallet>>
     public var selectedItems: Set<Wallet>
     public var selectionType: SelectionType = .checkmark
@@ -45,7 +48,9 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
 }
 
 extension SelectWalletViewModel: SelectableListNavigationAdoptable {
-    public var doneTitle: String { Localized.Common.done }
+    public var doneTitle: String {
+        Localized.Common.done
+    }
 }
 
 extension Wallet: @retroactive SimpleListItemViewable {

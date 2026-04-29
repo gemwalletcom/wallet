@@ -26,6 +26,24 @@ public extension NFTType {
     }
 }
 
+public extension GemNftAttributeType {
+    func map() -> NFTAttributeType {
+        switch self {
+        case .string: .string
+        case .timestamp: .timestamp
+        }
+    }
+}
+
+public extension NFTAttributeType {
+    func map() -> GemNftAttributeType {
+        switch self {
+        case .string: .string
+        case .timestamp: .timestamp
+        }
+    }
+}
+
 public extension GemNftResource {
     func map() -> NFTResource {
         NFTResource(url: url, mimeType: mimeType)
@@ -52,13 +70,13 @@ public extension NFTImages {
 
 public extension GemNftAttribute {
     func map() -> NFTAttribute {
-        NFTAttribute(name: name, value: value, percentage: percentage)
+        NFTAttribute(name: name, value: value, valueType: valueType?.map(), percentage: percentage)
     }
 }
 
 public extension NFTAttribute {
     func map() -> GemNftAttribute {
-        GemNftAttribute(name: name, value: value, percentage: percentage)
+        GemNftAttribute(name: name, value: value, valueType: valueType?.map(), percentage: percentage)
     }
 }
 

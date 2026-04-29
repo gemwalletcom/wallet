@@ -7,7 +7,7 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 
-struct TransactionHeaderViewModel: Sendable {
+struct TransactionHeaderViewModel {
     private let transaction: TransactionExtended
     private let infoModel: TransactionInfoViewModel
 

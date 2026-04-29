@@ -31,7 +31,9 @@ public struct AmountValidator: FormattedValidator {
         self.validators = validators
     }
 
-    public var id: String { "AmountValidator<\(Formatted.self)>" }
+    public var id: String {
+        "AmountValidator<\(Formatted.self)>"
+    }
 
     public func format(_ text: String) throws -> BigInt {
         let canonical: String

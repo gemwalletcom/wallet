@@ -4,7 +4,7 @@ import Foundation
 import Primitives
 import WalletCore
 
-// https://github.com/trustwallet/wallet-core/blob/master/swift/Tests/Blockchains/THORChainTests.swift#L27
+/// https://github.com/trustwallet/wallet-core/blob/master/swift/Tests/Blockchains/THORChainTests.swift#L27
 struct CosmosSigner: Signable {
     func signTransfer(input: SignerInput, privateKey: Data) throws -> String {
         let chain = try CosmosChain.from(string: input.asset.chain.rawValue)

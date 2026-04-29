@@ -3,9 +3,8 @@
 import BigInt
 import Formatters
 import Primitives
-import Testing
-
 @testable import Swap
+import Testing
 
 struct SwapValueFormatterTests {
     let usFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(locale: .US, style: .full))

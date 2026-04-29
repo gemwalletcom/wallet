@@ -19,8 +19,13 @@ final class QRScannerSceneViewModel {
         self.resources = resources
     }
 
-    var overlayConfig: QRScannerDisplayConfiguration { .default }
-    var isScanning: Bool { scannerState == .scanning }
+    var overlayConfig: QRScannerDisplayConfiguration {
+        .default
+    }
+
+    var isScanning: Bool {
+        scannerState == .scanning
+    }
 }
 
 // MARK: - Business Logic

@@ -57,7 +57,7 @@ struct DeviceRequestSignerTests {
     func signSetsAuthorizationHeader() throws {
         let keyPair = DeviceKeyPair()
         let signer = try DeviceRequestSigner(privateKeyHex: keyPair.privateKeyHex)
-        var request = URLRequest(url: URL(string: "https://api.gemwallet.com/v2/devices")!)
+        var request = try URLRequest(url: #require(URL(string: "https://api.gemwallet.com/v2/devices")))
         request.httpMethod = "GET"
 
         try signer.sign(request: &request)
@@ -69,7 +69,7 @@ struct DeviceRequestSignerTests {
     @Test
     func signatureVerifiesWithPublicKey() throws {
         let (signer, keyPair) = try makeSigner()
-        var request = URLRequest(url: URL(string: "https://api.gemwallet.com/v2/devices")!)
+        var request = try URLRequest(url: #require(URL(string: "https://api.gemwallet.com/v2/devices")))
         request.httpMethod = "GET"
 
         try signer.sign(request: &request)
@@ -89,7 +89,7 @@ struct DeviceRequestSignerTests {
     @Test
     func signWithWalletId() throws {
         let (signer, _) = try makeSigner()
-        var request = URLRequest(url: URL(string: "https://api.gemwallet.com/v2/devices/rewards")!)
+        var request = try URLRequest(url: #require(URL(string: "https://api.gemwallet.com/v2/devices/rewards")))
         request.httpMethod = "GET"
 
         try signer.sign(request: &request, walletId: "multicoin_0xabc")
@@ -107,7 +107,7 @@ struct DeviceRequestSignerTests {
     @Test
     func signWithBody() throws {
         let (signer, _) = try makeSigner()
-        var request = URLRequest(url: URL(string: "https://api.gemwallet.com/v2/devices")!)
+        var request = try URLRequest(url: #require(URL(string: "https://api.gemwallet.com/v2/devices")))
         request.httpMethod = "POST"
         request.httpBody = Data("{\"test\":true}".utf8)
 

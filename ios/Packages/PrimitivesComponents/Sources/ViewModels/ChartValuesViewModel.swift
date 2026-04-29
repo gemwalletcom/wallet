@@ -37,9 +37,17 @@ public struct ChartValuesViewModel: Sendable {
         self.headerValue = headerValue
     }
 
-    var charts: [ChartDateValue] { values.charts }
-    var lowerBoundValueText: String { formatter.string(values.lowerBoundValue) }
-    var upperBoundValueText: String { formatter.string(values.upperBoundValue) }
+    var charts: [ChartDateValue] {
+        values.charts
+    }
+
+    var lowerBoundValueText: String {
+        formatter.string(values.lowerBoundValue)
+    }
+
+    var upperBoundValueText: String {
+        formatter.string(values.upperBoundValue)
+    }
 
     var chartHeaderViewModel: ChartHeaderViewModel? {
         guard let price else { return nil }

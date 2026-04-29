@@ -97,7 +97,6 @@ public struct RewardsScene: View {
         .alertSheet($model.isPresentingAlert)
     }
 
-    @ViewBuilder
     private func stateErrorView(error: Error) -> some View {
         Section {
             StateEmptyView(
@@ -174,7 +173,6 @@ public struct RewardsScene: View {
         }
     }
 
-    @ViewBuilder
     private func featureItem(emoji: String, text: String) -> some View {
         VStack(spacing: Spacing.extraSmall) {
             Text(emoji)
@@ -187,7 +185,6 @@ public struct RewardsScene: View {
         .frame(maxWidth: .infinity)
     }
 
-    @ViewBuilder
     private func redemptionOptionsSection(options: [RewardRedemptionOption]) -> some View {
         Section {
             ForEach(options.map { RewardRedemptionOptionViewModel(option: $0) }) { viewModel in
@@ -210,7 +207,6 @@ public struct RewardsScene: View {
         }
     }
 
-    @ViewBuilder
     private func infoSection(rewards: Rewards) -> some View {
         Section {
             if let code = rewards.code {
@@ -239,7 +235,6 @@ public struct RewardsScene: View {
         }
     }
 
-    @ViewBuilder
     private func disableReasonSection(reason: String) -> some View {
         Section {
             ListItemErrorView(

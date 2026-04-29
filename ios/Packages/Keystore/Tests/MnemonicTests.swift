@@ -39,8 +39,8 @@ final class MnemonicTests {
     }
 
     @Test
-    func isValidMnemonicWord() {
-        #expect(Mnemonic.isValidWord(validWords.first!))
+    func isValidMnemonicWord() throws {
+        #expect(try Mnemonic.isValidWord(#require(validWords.first)))
         #expect(!Mnemonic.isValidWord("test1"))
     }
 }

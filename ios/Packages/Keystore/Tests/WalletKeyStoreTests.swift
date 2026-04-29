@@ -64,7 +64,7 @@ final class WalletKeyStoreTests {
     }
 
     @Test func importStellarSecretKey() throws {
-        let wallet = HDWallet(mnemonic: words, passphrase: "")!
+        let wallet = try #require(HDWallet(mnemonic: words, passphrase: ""))
         let key = wallet.getKeyForCoin(coin: .stellar)
 
         #expect(key.data.hexString == "3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9")
@@ -81,7 +81,7 @@ final class WalletKeyStoreTests {
         #expect(address == "GADB4BDKTOE36L6QN2JLIPNNJ7EZPSY5BIVKWXLWYZLIPXNQWIRQQZKT")
     }
 
-    @Test func addImportWallet() async throws {
+    @Test func addImportWallet() throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(
             id: .multicoin(address: ethereumAddress),
@@ -95,7 +95,7 @@ final class WalletKeyStoreTests {
         #expect(newWallet.accounts.map(\.chain) == [.bitcoin, .ethereum])
     }
 
-    @Test func addCoinsMany() async throws {
+    @Test func addCoinsMany() throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
 
@@ -109,7 +109,7 @@ final class WalletKeyStoreTests {
         #expect(wallet.accounts.map(\.chain) == [.ethereum, .bitcoin])
     }
 
-    @Test func addCoinsEmptyChain() async throws {
+    @Test func addCoinsEmptyChain() throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
 
@@ -118,7 +118,7 @@ final class WalletKeyStoreTests {
         #expect(wallet.accounts.isEmpty)
     }
 
-    @Test func addCoinsSingleChain() async throws {
+    @Test func addCoinsSingleChain() throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .single(chain: .algorand, address: address(for: .algorand)), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
 
@@ -132,7 +132,7 @@ final class WalletKeyStoreTests {
         #expect(wallet.accounts.map(\.chain) == [.algorand])
     }
 
-    @Test func addCoinsWhenSolana() async throws {
+    @Test func addCoinsWhenSolana() throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
 
@@ -142,7 +142,7 @@ final class WalletKeyStoreTests {
         #expect(wallet.accounts.map(\.address) == ["9fb52fTJpTzYqV4be7u31TxxFfzs9ub9RehwLYuxhP6C"])
     }
 
-    @Test func addCoinsManyTries() async throws {
+    @Test func addCoinsManyTries() throws {
         let store = WalletKeyStore.mock()
         let newWallet = try store.importWallet(id: .multicoin(address: ethereumAddress), name: "", words: words.components(separatedBy: " "), chains: [], password: password, source: .create)
 

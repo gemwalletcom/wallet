@@ -67,11 +67,25 @@ public final class ManageContactAddressViewModel {
     }
 
     let title: String
-    var buttonTitle: String { Localized.Transfer.confirm }
-    var networkTitle: String { Localized.Transfer.network }
-    var memoTitle: String { Localized.Transfer.memo }
-    var chain: Chain { addressInputModel.chain }
-    var showMemo: Bool { chain.isMemoSupported }
+    var buttonTitle: String {
+        Localized.Transfer.confirm
+    }
+
+    var networkTitle: String {
+        Localized.Transfer.network
+    }
+
+    var memoTitle: String {
+        Localized.Transfer.memo
+    }
+
+    var chain: Chain {
+        addressInputModel.chain
+    }
+
+    var showMemo: Bool {
+        chain.isMemoSupported
+    }
 
     var networkSelectorModel: NetworkSelectorViewModel {
         NetworkSelectorViewModel(

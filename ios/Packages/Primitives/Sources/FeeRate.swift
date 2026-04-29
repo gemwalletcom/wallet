@@ -11,7 +11,9 @@ public struct FeeRate: Identifiable, Equatable, Hashable, Sendable {
         self.gasPriceType = gasPriceType
     }
 
-    public var id: String { priority.id }
+    public var id: String {
+        priority.id
+    }
 }
 
 public extension FeeRate {

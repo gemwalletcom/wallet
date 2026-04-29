@@ -31,7 +31,9 @@ public struct ConfirmAppViewModel: ItemModelProvidable {
         }
     }
 
-    var websiteTitle: String { Localized.Settings.website }
+    var websiteTitle: String {
+        Localized.Settings.website
+    }
 }
 
 // MARK: - ItemModelPrividable

@@ -16,7 +16,9 @@ public struct ListItemValue<T: Identifiable> {
 }
 
 extension ListItemValue: Identifiable {
-    public var id: T.ID { value.id }
+    public var id: T.ID {
+        value.id
+    }
 }
 
 // MARK: -
@@ -41,7 +43,9 @@ public struct ListItemValueSection<T: Identifiable> {
 }
 
 extension ListItemValueSection: Identifiable {
-    public var id: String { section }
+    public var id: String {
+        section
+    }
 }
 
 public struct ListItemValueSectionList<Item: Identifiable, Content: View>: View {

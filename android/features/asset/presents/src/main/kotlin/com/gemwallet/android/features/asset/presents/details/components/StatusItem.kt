@@ -1,13 +1,18 @@
 package com.gemwallet.android.features.asset.presents.details.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.R
@@ -17,7 +22,8 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
 
@@ -25,7 +31,6 @@ internal fun LazyListScope.status(asset: Asset, rank: Int) {
     val verification = assetVerification(asset, rank) ?: return
     item {
         StatusItem(verification)
-        Spacer16()
     }
 }
 
@@ -49,7 +54,9 @@ private fun StatusItem(verification: AssetVerification) {
                 stringResource(verification.labelRes()),
                 color = verification.color(),
                 badge = {
-                    DataBadgeChevron(verification.badgeIconRes())
+                    DataBadgeChevron {
+                        VerificationBadgeIcon(verification)
+                    }
                 }
             )
         },
@@ -60,6 +67,20 @@ private fun StatusItem(verification: AssetVerification) {
         InfoBottomSheet(item = infoSheetEntity) {
             showInfoSheet = false
         }
+    }
+}
+
+@Composable
+private fun VerificationBadgeIcon(verification: AssetVerification) {
+    Box(
+        modifier = Modifier.size(smallIconSize),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(verification.badgeIconRes()),
+            contentDescription = null,
+            modifier = Modifier.size(compactIconSize),
+        )
     }
 }
 

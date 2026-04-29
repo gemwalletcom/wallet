@@ -30,7 +30,6 @@ public extension View {
         }
     }
 
-    @ViewBuilder
     func liquidGlass(
         tint: Color? = nil,
         interactive: Bool = true,

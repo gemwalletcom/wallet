@@ -15,10 +15,21 @@ public final class AppIconSceneViewModel {
         currentIcon = AppIcon(UIApplication.shared.alternateIconName)
     }
 
-    var title: String { Localized.Settings.Preferences.appIcon }
-    var icons: [AppIconViewModel] { AppIcon.allCases.map { AppIconViewModel(icon: $0, isSelected: $0 == currentIcon) } }
-    var columns: [GridItem] { Array(repeating: GridItem(.flexible(), spacing: Spacing.medium), count: 3) }
-    var supportsAlternateIcons: Bool { UIApplication.shared.supportsAlternateIcons }
+    var title: String {
+        Localized.Settings.Preferences.appIcon
+    }
+
+    var icons: [AppIconViewModel] {
+        AppIcon.allCases.map { AppIconViewModel(icon: $0, isSelected: $0 == currentIcon) }
+    }
+
+    var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: Spacing.medium), count: 3)
+    }
+
+    var supportsAlternateIcons: Bool {
+        UIApplication.shared.supportsAlternateIcons
+    }
 
     func set(_ icon: AppIcon) async {
         guard icon != currentIcon else { return }

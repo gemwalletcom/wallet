@@ -40,7 +40,6 @@ public struct ContactsNavigationView: View {
             }
     }
 
-    @ViewBuilder
     func manageContact(for mode: ManageContactViewModel.Mode) -> some View {
         ManageContactScene(
             model: ManageContactViewModel(

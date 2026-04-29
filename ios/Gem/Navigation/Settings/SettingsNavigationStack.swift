@@ -119,6 +119,9 @@ struct SettingsNavigationStack: View {
             .navigationDestination(for: Scenes.Chains.self) { _ in
                 ChainListSettingsScene()
             }
+            .navigationDestination(for: Scenes.ServiceStatus.self) { _ in
+                ServiceStatusScene()
+            }
             .navigationDestination(for: Scenes.AboutUs.self) { _ in
                 AboutUsScene(
                     model: AboutUsViewModel(

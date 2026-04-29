@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "কোন তথ্য নেই";
-"errors.dust_threshold_short" = "নেটওয়ার্ক এই পরিমাণ ধুলো বিবেচনা করে — ফি পরিমাণের চেয়ে বেশি।";
+"errors.dust_threshold_short" = "নেটওয়ার্ক এই পরিমাণ ধুলো বিবেচনা করে - ফি পরিমাণের চেয়ে বেশি।";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -538,7 +538,7 @@
 "swap.use_minimum_amount" = "সর্বনিম্ন পরিমাণ ব্যবহার করুন";
 "common.earn" = "Earn";
 "earn.state.empty.title" = "আপনার অবস্থানগুলি এখানে প্রদর্শিত হবে";
-"earn.state.empty.description" = "আপনার প্রথম জমা দিন %@";
+"earn.state.empty.description" = "আপনার প্রথম আমানত জমা দিন %@";
 "contacts.title" = "পরিচিতি";
 "contacts.contact" = "যোগাযোগ";
 "contacts.addresses" = "ঠিকানা";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।";
 "rewards.unverified.title" = "পুরস্কারগুলো এখনও সক্রিয় হয়নি।";
 "rewards.unverified.description" = "আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।";
+"common.refresh" = "রিফ্রেশ";

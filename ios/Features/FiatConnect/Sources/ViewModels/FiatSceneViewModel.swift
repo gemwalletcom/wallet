@@ -31,7 +31,10 @@ public final class FiatSceneViewModel {
     private let valueFormatter = ValueFormatter(locale: .US, style: .medium)
 
     public let assetQuery: ObservableQuery<AssetRequest>
-    var assetData: AssetData { assetQuery.value }
+    var assetData: AssetData {
+        assetQuery.value
+    }
+
     var urlState: StateViewType<Void> = .noData
     var type: FiatQuoteType
     var isPresentingFiatProvider: Bool = false
@@ -130,7 +133,10 @@ public final class FiatSceneViewModel {
         FiatCurrencyInputConfig(secondaryText: currentViewModel.cryptoAmountValue, currencySymbol: currencyFormatter.symbol)
     }
 
-    var actionButtonTitle: String { Localized.Common.continue }
+    var actionButtonTitle: String {
+        Localized.Common.continue
+    }
+
     var actionButtonState: StateViewType<[FiatQuote]> {
         if selectedQuote == nil { return .noData }
         if urlState.isLoading { return .loading }
@@ -138,15 +144,41 @@ public final class FiatSceneViewModel {
         return quotesState
     }
 
-    var providerTitle: String { Localized.Common.provider }
-    var rateTitle: String { Localized.Buy.rate }
-    var errorTitle: String { Localized.Errors.errorOccured }
-    var emptyTitle: String { currentViewModel.emptyTitle }
-    var assetTitle: String { asset.name }
-    var typeAmountButtonTitle: String { Emoji.random }
-    var asset: Asset { assetAddress.asset }
-    var assetImage: AssetImage { AssetIdViewModel(assetId: asset.id).assetImage }
-    var suggestedAmounts: [Int] { Constants.suggestedAmounts }
+    var providerTitle: String {
+        Localized.Common.provider
+    }
+
+    var rateTitle: String {
+        Localized.Buy.rate
+    }
+
+    var errorTitle: String {
+        Localized.Errors.errorOccured
+    }
+
+    var emptyTitle: String {
+        currentViewModel.emptyTitle
+    }
+
+    var assetTitle: String {
+        asset.name
+    }
+
+    var typeAmountButtonTitle: String {
+        Emoji.random
+    }
+
+    var asset: Asset {
+        assetAddress.asset
+    }
+
+    var assetImage: AssetImage {
+        AssetIdViewModel(assetId: asset.id).assetImage
+    }
+
+    var suggestedAmounts: [Int] {
+        Constants.suggestedAmounts
+    }
 
     var showFiatTypePicker: Bool {
         assetData.balance.available > 0 && assetData.metadata.isSellEnabled
@@ -258,7 +290,9 @@ extension FiatSceneViewModel {
         }
     }
 
-    var walletId: WalletId { wallet.walletId }
+    var walletId: WalletId {
+        wallet.walletId
+    }
 
     private var balanceModel: BalanceViewModel {
         BalanceViewModel(asset: asset, balance: assetData.balance, formatter: valueFormatter)

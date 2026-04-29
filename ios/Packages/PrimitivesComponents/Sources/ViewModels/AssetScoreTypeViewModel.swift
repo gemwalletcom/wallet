@@ -2,11 +2,10 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
-
-import GemstonePrimitives
 
 public struct AssetScoreTypeViewModel {
     public let scoreType: AssetScoreType

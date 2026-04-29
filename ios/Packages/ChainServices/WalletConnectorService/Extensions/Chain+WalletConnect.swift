@@ -6,12 +6,12 @@ import Primitives
 import struct WalletConnectUtils.Blockchain
 
 extension Chain {
-    // CAIP-2 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
+    /// CAIP-2 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
     var namespace: String? {
         WalletConnect.shared.getNamespace(chain: id)
     }
 
-    // CAIP-20 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-20.md
+    /// CAIP-20 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-20.md
     var reference: String? {
         WalletConnect.shared.getReference(chain: id)
     }

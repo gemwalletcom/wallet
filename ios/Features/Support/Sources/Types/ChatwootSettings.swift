@@ -2,8 +2,8 @@
 
 import Foundation
 
-struct ChatwootSettings: Sendable {
-    enum DarkMode: String, Sendable {
+struct ChatwootSettings {
+    enum DarkMode: String {
         case auto
         case light
         case dark
@@ -14,20 +14,6 @@ struct ChatwootSettings: Sendable {
     let darkMode: DarkMode
     let enableEmojiPicker: Bool
     let enableEndConversation: Bool
-
-    init(
-        hideMessageBubble: Bool,
-        locale: Locale,
-        darkMode: DarkMode,
-        enableEmojiPicker: Bool,
-        enableEndConversation: Bool,
-    ) {
-        self.hideMessageBubble = hideMessageBubble
-        self.locale = locale
-        self.darkMode = darkMode
-        self.enableEmojiPicker = enableEmojiPicker
-        self.enableEndConversation = enableEndConversation
-    }
 }
 
 extension ChatwootSettings {

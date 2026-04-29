@@ -3,5 +3,7 @@
 import Foundation
 
 extension WalletConnection: Identifiable {
-    public var id: String { session.sessionId }
+    public var id: String {
+        session.sessionId
+    }
 }

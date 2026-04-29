@@ -44,7 +44,7 @@ public extension Wallet {
     }
 }
 
-// factory
+/// factory
 public extension Wallet {
     static func makeView(name: String, chain: Chain, address: String) -> Wallet {
         let id = WalletId.make(walletType: .view, chain: chain, address: address).id

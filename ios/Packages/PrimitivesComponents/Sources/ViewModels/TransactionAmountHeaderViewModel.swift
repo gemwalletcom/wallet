@@ -24,5 +24,7 @@ struct TransactionAmountHeaderViewModel: HeaderViewModel {
         display.fiat?.text
     }
 
-    var subtitleColor: Color { Colors.gray }
+    var subtitleColor: Color {
+        Colors.gray
+    }
 }

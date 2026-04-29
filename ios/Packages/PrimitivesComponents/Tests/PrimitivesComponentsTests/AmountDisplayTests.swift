@@ -3,10 +3,9 @@
 import BigInt
 import Formatters
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 struct AmountDisplayTests {
     let asset = Asset.mock()

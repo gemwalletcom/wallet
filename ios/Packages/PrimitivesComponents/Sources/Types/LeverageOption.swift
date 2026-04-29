@@ -12,8 +12,13 @@ public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
         self.value = value
     }
 
-    public var id: UInt8 { value }
-    public var displayText: String { "\(value)x" }
+    public var id: UInt8 {
+        value
+    }
+
+    public var displayText: String {
+        "\(value)x"
+    }
 
     public static func < (lhs: LeverageOption, rhs: LeverageOption) -> Bool {
         lhs.value < rhs.value

@@ -78,7 +78,6 @@ extension FiatScene {
         }
     }
 
-    @ViewBuilder
     private var providerSection: some View {
         Section {
             switch model.quotesState {
@@ -103,8 +102,6 @@ extension FiatScene {
                         view
                     }
                     ListItemView(title: model.rateTitle, subtitle: model.rateValue)
-                } else {
-                    EmptyView()
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: model.errorTitle, error: error)

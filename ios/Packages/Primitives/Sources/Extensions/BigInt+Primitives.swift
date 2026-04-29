@@ -40,7 +40,7 @@ public extension BigInt {
         String(self, radix: 16)
     }
 
-    // little endian byte order
+    /// little endian byte order
     func littleEndianOrder(bytes: Int) -> Data {
         // BigInt.serialize() returns a big endian array, so reverse it for little endian
         var byteArray = Array(serialize().reversed())
@@ -55,7 +55,7 @@ public extension BigInt {
         self >= lowerBound && self <= upperBound
     }
 
-    // 256 bit
+    /// 256 bit
     static let MAX_256 = BigInt(hex: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")!
 }
 

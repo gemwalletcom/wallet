@@ -53,9 +53,17 @@ public struct DelegationSceneViewModel {
         AprViewModel(apr: model.delegation.validator.apr)
     }
 
-    public var stateTitle: String { Localized.Transaction.status }
-    public var manageTitle: String { Localized.Common.manage }
-    public var rewardsTitle: String { Localized.Stake.rewards }
+    public var stateTitle: String {
+        Localized.Transaction.status
+    }
+
+    public var manageTitle: String {
+        Localized.Common.manage
+    }
+
+    public var rewardsTitle: String {
+        Localized.Stake.rewards
+    }
 
     public var stateModel: DelegationStateViewModel {
         DelegationStateViewModel(state: model.state)
@@ -193,7 +201,9 @@ extension DelegationSceneViewModel {
         )
     }
 
-    private var providerText: String { model.validatorText }
+    private var providerText: String {
+        model.validatorText
+    }
 
     private var providerType: StakeProviderType {
         model.delegation.validator.providerType

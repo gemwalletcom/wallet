@@ -29,9 +29,17 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
         self.onSuccess = onSuccess
     }
 
-    var title: String { Localized.Rewards.referralCode }
-    var placeholder: String { Localized.Rewards.referralCode }
-    var isActionDisabled: Bool { text.isEmpty }
+    var title: String {
+        Localized.Rewards.referralCode
+    }
+
+    var placeholder: String {
+        Localized.Rewards.referralCode
+    }
+
+    var isActionDisabled: Bool {
+        text.isEmpty
+    }
 
     func action() async {
         guard !text.isEmpty else { return }

@@ -17,7 +17,9 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     private let nftService: NFTService
 
     public let query: ObservableQuery<NFTRequest>
-    public var nftDataList: [NFTData] { query.value }
+    public var nftDataList: [NFTData] {
+        query.value
+    }
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 
@@ -34,7 +36,9 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
         query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .all), initialValue: [])
     }
 
-    public var title: String { Localized.Nft.collections }
+    public var title: String {
+        Localized.Nft.collections
+    }
 
     public var currentWallet: Wallet? {
         walletService.currentWallet

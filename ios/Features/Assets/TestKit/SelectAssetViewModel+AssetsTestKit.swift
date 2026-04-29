@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import ActivityServiceTestKit
+@testable import Assets
 import AssetsServiceTestKit
 import BalanceServiceTestKit
 import Components
@@ -8,8 +9,6 @@ import Foundation
 import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
-
-@testable import Assets
 @testable import Store
 
 public extension SelectAssetViewModel {

@@ -6,12 +6,9 @@ import androidx.room.TypeConverters
 import com.gemwallet.android.data.service.store.database.entities.DbAccount
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
-import com.gemwallet.android.data.service.store.database.entities.DbAssetConfig
-import com.gemwallet.android.data.service.store.database.entities.DbAssetInfo
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
 import com.gemwallet.android.data.service.store.database.entities.DbAssetPriority
-import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
@@ -33,12 +30,11 @@ import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
-import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 71,
+    version = 73,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -53,14 +49,12 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbDelegationBase::class,
         DbNode::class,
         DbSession::class,
-        DbAssetConfig::class,
         DbBanner::class,
         DbPriceAlert::class,
         DbNFTCollection::class,
         DbNFTAsset::class,
         DbNFTAssociation::class,
         DbAssetLink::class,
-        DbAssetWallet::class,
         DbAssetMarket::class,
         DbAssetPriority::class,
         DbFiatRate::class,
@@ -71,13 +65,9 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbPerpetualBalance::class,
         DbPerpetualMetadata::class,
         DbPerpetualPosition::class,
-    ],
-    views = [
-        DbAssetInfo::class,
-        DbTransactionExtended::class,
     ]
 )
-@TypeConverters(StoreConverters::class)
+@TypeConverters(StoreConverters::class, ChainConverters::class)
 abstract class GemDatabase : RoomDatabase() {
     abstract fun walletsDao(): WalletsDao
 

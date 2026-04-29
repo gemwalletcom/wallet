@@ -6,13 +6,14 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
-
 @testable import Validators
 
 struct AmountValidatorTests {
     private let asset = Asset.mockEthereumUSDT()
     private let formatter = ValueFormatter(style: .full)
-    private var decimals: Int { Int(asset.decimals) }
+    private var decimals: Int {
+        Int(asset.decimals)
+    }
 
     @Test
     func assetAmountSucceeds() throws {

@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-struct WalletSceneBannersViewModel: Sendable {
+struct WalletSceneBannersViewModel {
     let banners: [Banner]
     let totalFiatValue: Double
 

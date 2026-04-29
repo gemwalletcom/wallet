@@ -7,7 +7,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 
-struct TransactionProviderViewModel: Sendable {
+struct TransactionProviderViewModel {
     private let metadata: TransactionSwapMetadata?
 
     init(metadata: TransactionSwapMetadata?) {

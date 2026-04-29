@@ -7,10 +7,9 @@ import com.gemwallet.android.data.repositories.bridge.WalletConnectEvent
 import com.reown.walletkit.client.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
@@ -19,22 +18,19 @@ class WalletConnectViewModel @Inject constructor(
     bridgesRepository: BridgesRepository,
 ) : ViewModel() {
 
-    private val state = MutableStateFlow<WalletConnectIntent>(WalletConnectIntent.Idle)
-    private val bridgeEvents = bridgesRepository.bridgeEvents
-        .onEach { state.update { WalletConnectIntent.Idle } }
+    private val _uiState = MutableStateFlow<WalletConnectIntent>(WalletConnectIntent.Idle)
+    val uiState = _uiState.asStateFlow()
 
-
-    val uiState = state.combine(bridgeEvents) { state, event ->
-        if (state == WalletConnectIntent.Cancel) {
-            WalletConnectIntent.Idle
-        } else {
-            event.toUIState()
-        }
+    init {
+        bridgesRepository.bridgeEvents
+            .onEach { event ->
+                event.toUIState()?.let { intent -> _uiState.update { intent } }
+            }
+            .launchIn(viewModelScope)
     }
-    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), WalletConnectIntent.Idle)
 
     fun onCancel() {
-        state.update { WalletConnectIntent.Cancel }
+        _uiState.update { WalletConnectIntent.Idle }
     }
 }
 
@@ -55,21 +51,12 @@ sealed interface WalletConnectIntent {
     class ConnectionState(val error: String?) : WalletConnectIntent
 }
 
-private fun WalletConnectEvent.toUIState(): WalletConnectIntent {
-    val model = model
-    return when (model) {
+private fun WalletConnectEvent.toUIState(): WalletConnectIntent? {
+    return when (val model = model) {
         is Wallet.Model.SessionRequest -> WalletConnectIntent.SessionRequest(model, verifyContext)
-
         is Wallet.Model.SessionAuthenticate -> WalletConnectIntent.AuthRequest(model, verifyContext)
-
         is Wallet.Model.SessionDelete -> WalletConnectIntent.SessionDelete
         is Wallet.Model.SessionProposal -> WalletConnectIntent.SessionProposal(model, verifyContext)
-
-        is Wallet.Model.ConnectionState -> if (model.isAvailable) {
-            WalletConnectIntent.ConnectionState(null)
-        } else {
-            WalletConnectIntent.ConnectionState(error = "No Internet connection, please check your internet connection and try again")
-        }
-        else -> WalletConnectIntent.Idle
+        else -> null
     }
 }

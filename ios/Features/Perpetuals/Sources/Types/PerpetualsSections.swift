@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-struct PerpetualsSections: Hashable, Sendable {
+struct PerpetualsSections: Hashable {
     let pinned: [PerpetualData]
     let markets: [PerpetualData]
 }
