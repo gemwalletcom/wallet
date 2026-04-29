@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
@@ -17,6 +18,8 @@ import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.cases.tokens.SyncAssetPrices
+import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
@@ -96,10 +99,24 @@ object AssetModule {
 
     @Provides
     @Singleton
+    fun provideEnableAsset(
+        sessionRepository: SessionRepository,
+        syncAssetPrices: SyncAssetPrices,
+        assetsRepository: AssetsRepository,
+    ): EnableAsset = EnableAssetImpl(
+        sessionRepository = sessionRepository,
+        syncAssetPrices = syncAssetPrices,
+        assetsRepository = assetsRepository,
+    )
+
+    @Provides
+    @Singleton
     fun provideEnsureWalletAssets(
         assetsRepository: AssetsRepository,
+        enableAsset: EnableAsset,
     ): EnsureWalletAssets = EnsureWalletAssetsImpl(
         assetsRepository = assetsRepository,
+        enableAsset = enableAsset,
     )
 
     @Provides

@@ -7,6 +7,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.swap.SwapRepository
@@ -70,6 +71,7 @@ import javax.inject.Inject
 class SwapViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val assetsRepository: AssetsRepository,
+    private val enableAsset: EnableAsset,
     private val swapRepository: SwapRepository,
     quoteRequester: QuoteRequester,
     private val savedStateHandle: SavedStateHandle
@@ -388,7 +390,7 @@ class SwapViewModel @Inject constructor(
     private fun updateBalance(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val session = sessionRepository.session().firstOrNull() ?: return@launch
         session.wallet.getAccount(id.chain) ?: return@launch
-        assetsRepository.switchVisibility(session.wallet.id, id, true)
+        enableAsset(session.wallet.id, id)
     }
 
     private fun onQuoteRequestParamsChanged(params: QuoteRequestParams?) {
