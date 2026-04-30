@@ -74,6 +74,10 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).blockTime
     }
 
+    var transactionTimeoutSeconds: UInt32 {
+        ChainConfig.config(chain: self).transactionTimeout / 1000
+    }
+
     var transactionStateConfig: Primitives.JobConfiguration {
         Gemstone.transactionStateConfig(chain: rawValue).map()
     }
