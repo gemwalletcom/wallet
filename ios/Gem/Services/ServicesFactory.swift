@@ -132,13 +132,12 @@ struct ServicesFactory {
             walletStore: storeManager.walletStore,
             addressStore: storeManager.addressStore,
         )
-        let transactionStateService = Self.makeTransactionService(
+        let transactionStateScheduler = Self.makeTransactionService(
             transactionStore: storeManager.transactionStore,
-            nativeProvider: nativeProvider,
+            gatewayService: gatewayService,
             stakeService: stakeService,
             earnService: earnService,
             nftService: nftService,
-            chainFactory: chainServiceFactory,
             balanceService: balanceService,
         )
 
@@ -322,7 +321,7 @@ struct ServicesFactory {
             nameService: nameService,
             balanceService: balanceService,
             priceService: priceService,
-            transactionStateService: transactionStateService,
+            transactionStateScheduler: transactionStateScheduler,
             addressNameService: addressNameService,
             activityService: activityService,
             eventPresenterService: eventPresenterService,
@@ -346,7 +345,7 @@ struct ServicesFactory {
             priceService: priceService,
             stakeService: stakeService,
             transactionsService: transactionsService,
-            transactionStateService: transactionStateService,
+            transactionStateScheduler: transactionStateScheduler,
             walletService: walletService,
             walletSessionService: walletSessionService,
             assetsEnabler: assetsEnabler,
@@ -502,21 +501,27 @@ extension ServicesFactory {
 
     private static func makeTransactionService(
         transactionStore: TransactionStore,
-        nativeProvider: NativeProvider,
+        gatewayService: GatewayService,
         stakeService: StakeService,
         earnService: EarnService,
         nftService: NFTService,
-        chainFactory: ChainServiceFactory,
         balanceService: BalanceService,
-    ) -> TransactionStateService {
-        TransactionStateService(
+    ) -> TransactionStateScheduler {
+        let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
-            swapper: GemSwapper(rpcProvider: nativeProvider),
+            balanceUpdater: balanceService,
             stakeService: stakeService,
             earnService: earnService,
             nftService: nftService,
-            chainServiceFactory: chainFactory,
-            balanceUpdater: balanceService,
+        )
+        let service = TransactionStateService(
+            transactionStore: transactionStore,
+            gatewayService: gatewayService,
+            postProcessingService: postProcessingService,
+        )
+        return TransactionStateScheduler(
+            transactionStore: transactionStore,
+            service: service,
         )
     }
 

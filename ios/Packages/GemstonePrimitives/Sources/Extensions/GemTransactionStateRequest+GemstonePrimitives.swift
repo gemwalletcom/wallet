@@ -10,6 +10,7 @@ public extension TransactionStateRequest {
             senderAddress: senderAddress,
             createdAt: Int64(createdAt.timeIntervalSince1970),
             blockNumber: Int64(block),
+            swapProvider: try? swapProvider?.map(),
         )
     }
 }

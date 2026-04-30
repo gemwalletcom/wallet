@@ -19,20 +19,20 @@ public struct TransferExecutor: TransferExecutable {
     private let chainService: any ChainServiceable
     private let assetsEnabler: any AssetsEnabler
     private let balanceService: BalanceService
-    private let transactionStateService: TransactionStateService
+    private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         signer: any TransactionSigneable,
         chainService: any ChainServiceable,
         assetsEnabler: any AssetsEnabler,
         balanceService: BalanceService,
-        transactionStateService: TransactionStateService,
+        transactionStateScheduler: TransactionStateScheduler,
     ) {
         self.signer = signer
         self.chainService = chainService
         self.assetsEnabler = assetsEnabler
         self.balanceService = balanceService
-        self.transactionStateService = transactionStateService
+        self.transactionStateScheduler = transactionStateScheduler
     }
 
     public func execute(input: TransferConfirmationInput) async throws {
@@ -87,7 +87,7 @@ extension TransferExecutor {
             totalTransactions: totalTransactions,
         )
 
-        try transactionStateService.addTransactions(wallet: input.wallet, transactions: transactions)
+        try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: transactions)
         Task {
             do {
                 try balanceService.addAssetsBalancesIfMissing(assetIds: assetIds, wallet: input.wallet, isEnabled: true)

@@ -3,11 +3,8 @@
 import BalanceService
 import BalanceServiceTestKit
 import Blockchain
-import ChainService
-import ChainServiceTestKit
 import EarnService
 import Foundation
-import Gemstone
 import NativeProviderService
 import NFTService
 import NFTServiceTestKit
@@ -16,26 +13,31 @@ import StakeService
 import StakeServiceTestKit
 import Store
 import StoreTestKit
-import SwapServiceTestKit
 import TransactionStateService
 
-public extension TransactionStateService {
+public extension TransactionStateScheduler {
     static func mock(
         transactionStore: TransactionStore = .mock(),
-        swapper: any GemSwapperProtocol = GemSwapperMock(),
+        gatewayService: GatewayService = GatewayService(provider: NativeProvider(url: Constants.apiURL, requestInterceptor: EmptyRequestInterceptor())),
         stakeService: StakeService = .mock(),
         earnService: EarnService = .mock(),
         nftService: NFTService = .mock(),
-        chainServiceFactory: any ChainServiceFactorable = ChainServiceFactoryMock(),
-    ) -> TransactionStateService {
-        TransactionStateService(
+    ) -> TransactionStateScheduler {
+        let postProcessingService = TransactionPostProcessingService(
             transactionStore: transactionStore,
-            swapper: swapper,
+            balanceUpdater: .mock(),
             stakeService: stakeService,
             earnService: earnService,
             nftService: nftService,
-            chainServiceFactory: chainServiceFactory,
-            balanceUpdater: .mock(),
+        )
+        let service = TransactionStateService(
+            transactionStore: transactionStore,
+            gatewayService: gatewayService,
+            postProcessingService: postProcessingService,
+        )
+        return TransactionStateScheduler(
+            transactionStore: transactionStore,
+            service: service,
         )
     }
 }

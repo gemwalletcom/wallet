@@ -89,6 +89,7 @@ public struct SwapData: Codable, Equatable, Hashable, Sendable {
 
 public enum SwapStatus: String, Codable, Equatable, Hashable, Sendable {
 	case pending
+	case inTransit
 	case completed
 	case failed
 }

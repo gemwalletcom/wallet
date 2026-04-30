@@ -24,7 +24,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1", "hash2", "hash3"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -50,7 +50,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -76,7 +76,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(
@@ -103,7 +103,7 @@ struct TransferExecutorTests {
             chainService: ChainServiceMock.mock(broadcastResponses: ["hash"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
-            transactionStateService: .mock(transactionStore: transactionStore),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
         )
 
         let input = TransferConfirmationInput(

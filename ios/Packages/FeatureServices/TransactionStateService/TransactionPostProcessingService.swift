@@ -8,14 +8,14 @@ import Primitives
 import StakeService
 import Store
 
-struct TransactionPostProcessingService {
+public struct TransactionPostProcessingService: Sendable {
     private let transactionStore: TransactionStore
     private let balanceUpdater: any BalanceUpdater
     private let stakeService: StakeService
     private let earnService: EarnService
     private let nftService: NFTService
 
-    init(
+    public init(
         transactionStore: TransactionStore,
         balanceUpdater: any BalanceUpdater,
         stakeService: StakeService,

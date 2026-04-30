@@ -23,7 +23,7 @@ import WalletService
 @MainActor
 final class RootSceneViewModel {
     private let onstartWalletService: OnstartWalletService
-    private let transactionStateService: TransactionStateService
+    private let transactionStateScheduler: TransactionStateScheduler
     private let connectionsService: ConnectionsService
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
@@ -76,7 +76,7 @@ final class RootSceneViewModel {
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
         onstartWalletService: OnstartWalletService,
-        transactionStateService: TransactionStateService,
+        transactionStateScheduler: TransactionStateScheduler,
         connectionsService: ConnectionsService,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
@@ -93,7 +93,7 @@ final class RootSceneViewModel {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.onstartWalletService = onstartWalletService
-        self.transactionStateService = transactionStateService
+        self.transactionStateScheduler = transactionStateScheduler
         self.connectionsService = connectionsService
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
@@ -116,7 +116,7 @@ extension RootSceneViewModel {
         rateService.perform()
         Task { await checkForUpdate() }
         Task { try await deviceService.update() }
-        transactionStateService.setup()
+        transactionStateScheduler.setup()
         Task { await appLifecycleService.setup() }
     }
 
