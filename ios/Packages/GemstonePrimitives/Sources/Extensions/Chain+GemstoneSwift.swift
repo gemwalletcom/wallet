@@ -75,7 +75,7 @@ public extension Primitives.Chain {
     }
 
     var transactionStateConfig: Primitives.JobConfiguration {
-        Gemstone.transactionStateConfig(chain: self).map()
+        Gemstone.transactionStateConfig(chain: rawValue).map()
     }
 
     var defaultAssets: [Asset] {
