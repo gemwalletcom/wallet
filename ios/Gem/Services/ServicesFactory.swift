@@ -306,6 +306,7 @@ struct ServicesFactory {
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
             hyperliquidObserverService: hyperliquidObserverService,
+            perpetualService: perpetualService,
         )
 
         let viewModelFactory = ViewModelFactory(

@@ -16,6 +16,7 @@ public actor AppLifecycleService: Sendable {
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: StreamSubscriptionService
     private let hyperliquidObserverService: any PerpetualObservable
+    private let perpetualService: any PerpetualServiceable
 
     private var currentWallet: Wallet?
 
@@ -26,6 +27,7 @@ public actor AppLifecycleService: Sendable {
         streamObserverService: StreamObserverService,
         streamSubscriptionService: StreamSubscriptionService,
         hyperliquidObserverService: any PerpetualObservable,
+        perpetualService: any PerpetualServiceable,
     ) {
         self.preferences = preferences
         self.connectionsService = connectionsService
@@ -33,6 +35,7 @@ public actor AppLifecycleService: Sendable {
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
         self.hyperliquidObserverService = hyperliquidObserverService
+        self.perpetualService = perpetualService
     }
 
     public func setup() async {
@@ -51,6 +54,9 @@ public actor AppLifecycleService: Sendable {
     }
 
     public func updatePerpetualConnection() async {
+        if preferences.isPerpetualEnabled {
+            await updatePerpetualMarkets()
+        }
         await connectPerpetual()
     }
 
@@ -109,6 +115,17 @@ extension AppLifecycleService {
             await hyperliquidObserverService.setup(for: wallet)
         } else {
             await hyperliquidObserverService.disconnect()
+        }
+    }
+
+    private func updatePerpetualMarkets() async {
+        guard preferences.perpetualMarketsUpdatedAt.isOutdated(byHours: 1) else { return }
+
+        do {
+            try await perpetualService.updateMarkets()
+            preferences.perpetualMarketsUpdatedAt = .now
+        } catch {
+            debugLog("AppLifecycleService updatePerpetualMarkets error: \(error)")
         }
     }
 
