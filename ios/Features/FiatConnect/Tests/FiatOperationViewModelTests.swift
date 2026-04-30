@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+@testable import FiatConnect
 import Formatters
 import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
 import Validators
-
-@testable import FiatConnect
 
 @MainActor
 final class FiatOperationViewModelTests {

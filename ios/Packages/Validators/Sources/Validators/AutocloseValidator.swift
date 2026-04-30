@@ -40,5 +40,7 @@ public struct AutocloseValidator: TextValidator {
         }
     }
 
-    public var id: String { "AutocloseValidator" }
+    public var id: String {
+        "AutocloseValidator"
+    }
 }

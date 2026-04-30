@@ -40,7 +40,9 @@ public final class CurrencySceneViewModel {
         return currency.rawValue
     }
 
-    var title: String { Localized.Settings.currency }
+    var title: String {
+        Localized.Settings.currency
+    }
 
     var list: [ListItemValueSection<CurrencyViewModel>] {
         let recommendedVMs = recommendedCurrencies.map { CurrencyViewModel(currency: $0) }

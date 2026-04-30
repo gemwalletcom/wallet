@@ -7,7 +7,7 @@ import Localization
 import Primitives
 import Style
 
-struct ChainNodeViewModel: Sendable {
+struct ChainNodeViewModel {
     let chainNode: ChainNode
 
     private let statusState: NodeStatusState
@@ -52,18 +52,11 @@ struct ChainNodeViewModel: Sendable {
     }
 
     var titleTagType: TitleTagType {
-        switch statusState {
-        case .result, .error: .none
-        case .none: .progressView(scale: 1.24)
-        }
+        nodeStatusModel.titleTagType
     }
 
     var titleTagStyle: TextStyle {
-        TextStyle(
-            font: .footnote.weight(.medium),
-            color: nodeStatusModel.color,
-            background: nodeStatusModel.background,
-        )
+        nodeStatusModel.titleTagStyle
     }
 
     private var nodeStatusModel: NodeStatusStateViewModel {
@@ -74,7 +67,9 @@ struct ChainNodeViewModel: Sendable {
 // MARK: - Identifiable
 
 extension ChainNodeViewModel: Identifiable {
-    var id: String { chainNode.id }
+    var id: String {
+        chainNode.id
+    }
 }
 
 // MARK: - Models extensions

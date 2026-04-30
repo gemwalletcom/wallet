@@ -148,7 +148,9 @@ extension BalanceRecord: CreateTable {
 }
 
 extension BalanceRecord: Identifiable {
-    var id: String { assetId.identifier }
+    var id: String {
+        assetId.identifier
+    }
 }
 
 extension BalanceRecord {

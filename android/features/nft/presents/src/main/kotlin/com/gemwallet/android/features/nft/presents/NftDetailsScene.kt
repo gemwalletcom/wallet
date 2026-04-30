@@ -11,13 +11,24 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.AddressFormatter
@@ -45,6 +56,7 @@ import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.LinkType
 import com.wallet.core.primitives.NFTAttribute
+import kotlinx.coroutines.launch
 
 @Composable
 fun NFTDetailsScene(
@@ -55,11 +67,16 @@ fun NFTDetailsScene(
     val assetData by viewModel.nftAsset.collectAsStateWithLifecycle()
 
     val uriHandler = LocalUriHandler.current
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val refresh = stringResource(R.string.common_refresh)
+    val refreshFailed = stringResource(R.string.errors_error_occured)
 
     if (assetData == null) {
         return
     }
     val model = assetData!!
+    var isMenuExpanded by remember { mutableStateOf(false) }
     Scene(
         titleContent = {
             NftTitle(
@@ -69,13 +86,33 @@ fun NFTDetailsScene(
             )
         },
         actions = {
-            if (assetData?.asset?.chain == Chain.Ethereum) {
-                IconButton( { onRecipient(AssetId(model.asset.chain), model.asset.id) } ) {
+            if (model.asset.chain == Chain.Ethereum) {
+                IconButton(onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) }) {
                     Icon(Icons.Default.ArrowUpward, contentDescription = "Send nft")
                 }
             }
+            IconButton(onClick = { isMenuExpanded = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.wallet_more))
+            }
+            DropdownMenu(
+                expanded = isMenuExpanded,
+                onDismissRequest = { isMenuExpanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.common_refresh)) },
+                    leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
+                    onClick = {
+                        isMenuExpanded = false
+                        scope.launch {
+                            val isSuccess = viewModel.refresh()
+                            snackbar.showSnackbar(if (isSuccess) refresh else refreshFailed)
+                        }
+                    },
+                )
+            }
         },
         onClose = { cancelAction() },
+        snackbar = snackbar,
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
@@ -129,7 +166,7 @@ private fun LazyListScope.nftAttributes(attributes: List<NFTAttribute>) {
     item {
         SubheaderItem(R.string.nft_properties)
     }
-    itemsPositioned(attributes) { position, item ->
+    itemsPositioned(attributes.map(::NftAttributeUIModel)) { position, item ->
         PropertyItem(item.name, item.value, listPosition = position)
     }
 }

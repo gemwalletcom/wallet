@@ -5,5 +5,7 @@ import Foundation
 extension FiatTransaction: Identifiable {}
 
 extension FiatTransactionAssetData: Identifiable {
-    public var id: String { transaction.id }
+    public var id: String {
+        transaction.id
+    }
 }

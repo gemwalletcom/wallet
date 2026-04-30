@@ -6,7 +6,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 
-struct TransactionExplorerViewModel: Sendable {
+struct TransactionExplorerViewModel {
     private let transactionViewModel: TransactionViewModel
     private let explorerService: any ExplorerLinkFetchable
 

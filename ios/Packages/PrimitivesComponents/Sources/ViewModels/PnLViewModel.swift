@@ -26,7 +26,9 @@ public struct PnLViewModel {
         self.percentFormatter = percentFormatter
     }
 
-    public var title: String { Localized.Perpetual.pnl }
+    public var title: String {
+        Localized.Perpetual.pnl
+    }
 
     private var valueChange: PriceChangeViewModel {
         PriceChangeViewModel(value: pnl, currencyFormatter: currencyFormatter)
@@ -42,7 +44,11 @@ public struct PnLViewModel {
         return PriceChangeCalculator.calculate(.percentage(from: marginAmount, to: marginAmount + pnl))
     }
 
-    public var color: Color { valueChange.color }
+    public var color: Color {
+        valueChange.color
+    }
 
-    public var textStyle: TextStyle { valueChange.textStyle }
+    public var textStyle: TextStyle {
+        valueChange.textStyle
+    }
 }

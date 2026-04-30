@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+@testable import Contacts
 import ContactService
 import NameServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import StoreTestKit
 import Testing
-
-@testable import Contacts
 
 @MainActor
 struct ManageContactViewModelTests {

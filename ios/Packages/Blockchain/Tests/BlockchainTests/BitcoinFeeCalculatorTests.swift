@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+@testable import Blockchain
 import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
 import WalletCore
-
-@testable import Blockchain
 
 struct BitcoinServiceTests {
     let utxos: [UTXO] = [

@@ -4,12 +4,11 @@ import BalanceServiceTestKit
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
+@testable import Store
 import StoreTestKit
 import Testing
-import WalletTabTestKit
-
-@testable import Store
 @testable import WalletTab
+import WalletTabTestKit
 
 @MainActor
 struct WalletSearchSceneViewModelTests {

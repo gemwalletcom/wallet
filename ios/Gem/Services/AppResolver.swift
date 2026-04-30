@@ -2,7 +2,7 @@
 
 import Foundation
 
-struct AppResolver: Sendable {
+struct AppResolver {
     let storages: Storages
     let navigation: NavigationStateManager
     let services: Services

@@ -3,12 +3,11 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 import SwiftUI
-
-import GemstonePrimitives
 
 struct BannerViewModel {
     enum BannerViewType {
@@ -195,5 +194,7 @@ struct BannerViewModel {
 }
 
 extension BannerViewModel: Identifiable {
-    var id: String { banner.id }
+    var id: String {
+        banner.id
+    }
 }

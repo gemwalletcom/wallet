@@ -57,7 +57,6 @@ public struct WalletImageScene: View {
         .pickerStyle(.segmented)
     }
 
-    @ViewBuilder
     private var listView: some View {
         ScrollView {
             LazyVGrid(

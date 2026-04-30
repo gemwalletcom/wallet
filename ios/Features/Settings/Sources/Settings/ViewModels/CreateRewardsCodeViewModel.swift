@@ -27,10 +27,21 @@ final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
         self.onSuccess = onSuccess
     }
 
-    var title: String { Localized.Rewards.nickname }
-    var placeholder: String { Localized.Rewards.username }
-    var footer: String? { Localized.Rewards.CreateReferralCode.info }
-    var isActionDisabled: Bool { text.isEmpty }
+    var title: String {
+        Localized.Rewards.nickname
+    }
+
+    var placeholder: String {
+        Localized.Rewards.username
+    }
+
+    var footer: String? {
+        Localized.Rewards.CreateReferralCode.info
+    }
+
+    var isActionDisabled: Bool {
+        text.isEmpty
+    }
 
     func action() async {
         isLoading = true

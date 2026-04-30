@@ -3,9 +3,8 @@
 import enum Gemstone.SocialUrl
 import GemstonePrimitives
 import Primitives
-import Testing
-
 @testable import PrimitivesComponents
+import Testing
 
 struct DeepLinkViewModelTests {
     @Test

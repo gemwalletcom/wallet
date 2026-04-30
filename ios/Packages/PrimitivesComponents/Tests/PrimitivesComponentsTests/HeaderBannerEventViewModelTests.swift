@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-
 @testable import PrimitivesComponents
+import Testing
 
 struct HeaderBannerEventViewModelTests {
     @Test func isEnabled() {

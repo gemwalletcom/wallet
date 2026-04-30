@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import BannerService
 import BannerServiceTestKit
 import NotificationServiceTestKit
 import Primitives
 @testable import Store
 import StoreTestKit
 import Testing
-
-@testable import BannerService
 
 struct BannerServiceTests {
     @Test

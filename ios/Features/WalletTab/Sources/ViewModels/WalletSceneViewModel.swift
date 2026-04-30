@@ -33,10 +33,18 @@ public final class WalletSceneViewModel: Sendable {
     public let assetsQuery: ObservableQuery<AssetsRequest>
     public let bannersQuery: ObservableQuery<BannersRequest>
 
-    // db observed values
-    public var totalFiatValue: TotalFiatValue { totalFiatQuery.value }
-    public var assets: [AssetData] { assetsQuery.value }
-    public var banners: [Banner] { bannersQuery.value }
+    /// db observed values
+    public var totalFiatValue: TotalFiatValue {
+        totalFiatQuery.value
+    }
+
+    public var assets: [AssetData] {
+        assetsQuery.value
+    }
+
+    public var banners: [Banner] {
+        bannersQuery.value
+    }
 
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingSheet: WalletSheetType?
@@ -68,13 +76,25 @@ public final class WalletSceneViewModel: Sendable {
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
-    public var currentWallet: Wallet? { walletService.currentWallet }
+    public var currentWallet: Wallet? {
+        walletService.currentWallet
+    }
 
-    var manageTokenTitle: String { Localized.Wallet.manageTokenList }
-    var perpetualsTitle: String { Localized.Perpetuals.title }
+    var manageTokenTitle: String {
+        Localized.Wallet.manageTokenList
+    }
 
-    public var searchImage: Image { Images.System.search }
-    public var manageImage: Image { Images.Actions.manage }
+    var perpetualsTitle: String {
+        Localized.Perpetuals.title
+    }
+
+    public var searchImage: Image {
+        Images.System.search
+    }
+
+    public var manageImage: Image {
+        Images.Actions.manage
+    }
 
     var showPinnedSection: Bool {
         !sections.pinned.isEmpty

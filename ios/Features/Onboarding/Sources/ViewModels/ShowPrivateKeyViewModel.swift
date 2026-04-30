@@ -11,10 +11,6 @@ struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
     let text: String
     let continueAction: VoidAction = nil
 
-    init(text: String) {
-        self.text = text
-    }
-
     var calloutViewStyle: CalloutViewStyle? {
         .secretDataWarning()
     }

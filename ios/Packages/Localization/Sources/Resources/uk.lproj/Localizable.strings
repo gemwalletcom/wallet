@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Дані недоступні";
-"errors.dust_threshold_short" = "Мережа вважає цю кількість пилом — плата вища за саму суму.";
+"errors.dust_threshold_short" = "Мережа вважає цю кількість пилом - плата вища за саму суму.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Цей гаманець вже імпортовано.";
 "rewards.unverified.title" = "Нагороди ще не активні.";
 "rewards.unverified.description" = "Винагороди активуються автоматично, коли ви більше користуєтеся додатком.";
+"common.refresh" = "Оновити";

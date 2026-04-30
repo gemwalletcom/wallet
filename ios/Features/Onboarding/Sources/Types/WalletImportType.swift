@@ -5,7 +5,9 @@ import Localization
 import SwiftUI
 
 enum WalletImportType: String, Hashable, CaseIterable, Identifiable {
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     case phrase
     case address

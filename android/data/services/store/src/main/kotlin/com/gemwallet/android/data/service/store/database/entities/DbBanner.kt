@@ -2,6 +2,7 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
@@ -14,7 +15,10 @@ import com.wallet.core.primitives.Wallet
 @Entity(
     tableName = "banners",
     primaryKeys = ["wallet_id", "asset_id"],
-    indices = [Index("event"), Index("wallet_id")],
+    indices = [Index("event"), Index("wallet_id"), Index("chain")],
+    foreignKeys = [
+        ForeignKey(DbAsset::class, ["id"], ["chain"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
+    ],
 )
 data class DbBanner(
     @ColumnInfo("wallet_id") val walletId: String,

@@ -30,7 +30,9 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
         }
     }
 
-    public var systemImage: String { SystemImage.copy }
+    public var systemImage: String {
+        SystemImage.copy
+    }
 
     public var expirationTimeInternal: TimeInterval? {
         switch type {

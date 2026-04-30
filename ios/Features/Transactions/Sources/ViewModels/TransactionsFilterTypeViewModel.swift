@@ -25,6 +25,11 @@ public struct TransactionsFilterTypeViewModel: FilterTypeRepresentable {
         }
     }
 
-    public var title: String { Localized.Filter.types }
-    public var image: AssetImage { AssetImage.image(Images.System.textPageFill) }
+    public var title: String {
+        Localized.Filter.types
+    }
+
+    public var image: AssetImage {
+        AssetImage.image(Images.System.textPageFill)
+    }
 }

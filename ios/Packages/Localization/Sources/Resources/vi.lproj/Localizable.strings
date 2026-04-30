@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Không có dữ liệu có sẵn";
-"errors.dust_threshold_short" = "Mạng lưới coi số tiền này là bụi — mức phí còn cao hơn cả số tiền thực tế.";
+"errors.dust_threshold_short" = "Mạng lưới coi số tiền này là bụi - mức phí còn cao hơn cả số tiền thực tế.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Ví này đã được nhập khẩu.";
 "rewards.unverified.title" = "Phần thưởng chưa được kích hoạt.";
 "rewards.unverified.description" = "Phần thưởng sẽ tự động được kích hoạt khi bạn sử dụng ứng dụng nhiều hơn.";
+"common.refresh" = "Làm cho khỏe lại";

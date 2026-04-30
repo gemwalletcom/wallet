@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -74,16 +76,17 @@ import com.gemwallet.android.ui.theme.actionIconSize
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
-import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.alpha50
-import com.gemwallet.android.ui.theme.alpha90
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space10
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.WalletType
 import kotlin.math.floor
+
+private val headerChangeTextHeight = 24.dp
 
 @Composable
 fun AmountListHead(
@@ -138,22 +141,25 @@ fun AmountListHead(
                 }
                 changedValue?.let { value ->
                     val highlightColor = changeState.color()
+                    val changeTextStyle = MaterialTheme.typography.titleMedium.copy(
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
                     Row(
+                        modifier = Modifier.height(headerChangeTextHeight),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(space2),
                     ) {
                         Text(
                             text = hideToggle.mask(value),
                             color = highlightColor,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.W400,
+                            style = changeTextStyle,
                         )
                         if (!hidden && !changedPercentages.isNullOrBlank()) {
                             Text(
                                 text = "($changedPercentages)",
                                 color = highlightColor,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.W400,
+                                style = changeTextStyle,
                             )
                         }
                     }
@@ -276,9 +282,13 @@ private fun AssetWatchOnly() {
         enabled = true,
         colors = ButtonDefaults
             .buttonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha50),
-                containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha10)
-            )
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                containerColor = MaterialTheme.colorScheme.background,
+            ),
+        contentPadding = PaddingValues(
+            horizontal = paddingDefault,
+            vertical = paddingMiddle,
+        ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -286,13 +296,14 @@ private fun AssetWatchOnly() {
             Icon(
                 imageVector = Icons.Default.Visibility,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
             )
             Spacer8()
             Text(
                 text = stringResource(id = R.string.wallet_watch_tooltip_title),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.W400,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Spacer8()
             IconButton(
@@ -304,7 +315,6 @@ private fun AssetWatchOnly() {
                 Icon(
                     imageVector = Icons.Outlined.Info,
                     contentDescription = stringResource(R.string.common_learn_more),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha90),
                 )
             }
         }

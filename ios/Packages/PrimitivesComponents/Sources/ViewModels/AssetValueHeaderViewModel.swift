@@ -33,7 +33,11 @@ struct AssetValueHeaderViewModel: HeaderViewModel {
         }
     }
 
-    var subtitle: String? { nil }
+    var subtitle: String? {
+        nil
+    }
 
-    var subtitleColor: Color { Colors.gray }
+    var subtitleColor: Color {
+        Colors.gray
+    }
 }

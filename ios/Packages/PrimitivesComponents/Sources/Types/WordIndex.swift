@@ -13,7 +13,9 @@ public struct WordIndex: Hashable {
 }
 
 extension WordIndex: Identifiable {
-    public var id: String { String(index) }
+    public var id: String {
+        String(index)
+    }
 }
 
 public extension WordIndex {

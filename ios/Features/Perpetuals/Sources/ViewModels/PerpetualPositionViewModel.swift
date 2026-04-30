@@ -69,15 +69,26 @@ public struct PerpetualPositionViewModel {
         )
     }
 
-    public var pnlColor: Color { pnlViewModel.color }
-    public var pnlPercent: Double { pnlViewModel.percent }
-    public var pnlWithPercentText: String { pnlViewModel.text ?? "" }
+    public var pnlColor: Color {
+        pnlViewModel.color
+    }
+
+    public var pnlPercent: Double {
+        pnlViewModel.percent
+    }
+
+    public var pnlWithPercentText: String {
+        pnlViewModel.text ?? ""
+    }
 
     public var marginAmountText: String {
         currencyFormatter.string(data.position.marginAmount)
     }
 
-    var autocloseTitle: String { Localized.Perpetual.autoClose }
+    var autocloseTitle: String {
+        Localized.Perpetual.autoClose
+    }
+
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
             takeProfit: data.position.takeProfit?.price,
@@ -97,7 +108,9 @@ public struct PerpetualPositionViewModel {
         )
     }
 
-    public var fundingPaymentsColor: Color { fundingPaymentsModel.color }
+    public var fundingPaymentsColor: Color {
+        fundingPaymentsModel.color
+    }
 
     public var sizeField: ListItemField {
         ListItemField(title: Localized.Perpetual.size, value: currencyFormatter.string(data.position.sizeValue))
@@ -129,5 +142,7 @@ extension PerpetualPositionViewModel {
 }
 
 extension PerpetualPositionViewModel: Identifiable {
-    public var id: String { data.position.id }
+    public var id: String {
+        data.position.id
+    }
 }

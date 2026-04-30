@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components.filters
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,6 +10,8 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
+import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.filters.model.FilterType
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -27,7 +31,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.TransactionTypeFilter
-import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Chain
 
 @Composable
@@ -36,8 +40,8 @@ fun TransactionsFilter(
     chainsFilter: List<Chain>,
     typesFilter: List<TransactionTypeFilter>,
     onDismissRequest: () -> Unit,
-    onChainFilter: (Chain) -> Unit,
-    onTypeFilter: (TransactionTypeFilter) -> Unit,
+    onApplyChainsFilter: (List<Chain>) -> Unit,
+    onApplyTypesFilter: (List<TransactionTypeFilter>) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
 ) {
@@ -60,9 +64,9 @@ fun TransactionsFilter(
                             text = R.string.settings_networks_title,
                             trailing = {
                                 Image(
-                                    modifier = Modifier.size(listItemIconSize),
+                                    modifier = Modifier.size(iconSize),
                                     painter = painterResource(R.drawable.settings_networks),
-                                    contentDescription = "networks filter"
+                                    contentDescription = null,
                                 )
                             }
                         )
@@ -88,9 +92,9 @@ fun TransactionsFilter(
                             text = R.string.filter_types,
                             trailing = {
                                 Icon(
-                                    modifier = Modifier.size(listItemIconSize),
+                                    modifier = Modifier.size(iconSize),
                                     imageVector = Icons.AutoMirrored.Default.Article,
-                                    contentDescription = "networks filter"
+                                    contentDescription = null,
                                 )
                             }
                         )
@@ -114,27 +118,76 @@ fun TransactionsFilter(
     }
 
     when (showedSubFilter) {
-        FilterType.ByChains -> FormDialog(
-            title = stringResource(R.string.filter_title),
-            fullScreen = true,
+        FilterType.ByChains -> SubFilterDialog(
+            initialSelection = chainsFilter,
+            onDone = {
+                onApplyChainsFilter(it)
+                showedSubFilter = null
+            },
+            onConfirm = {
+                onApplyChainsFilter(it)
+                showedSubFilter = null
+                onDismissRequest()
+            },
             onDismiss = { showedSubFilter = null },
-            onClear = onClearChainsFilter.takeIf { chainsFilter.isNotEmpty() },
-        ) {
+        ) { selectedItems, onToggle ->
             val query = rememberTextFieldState()
             SearchBar(query)
-            LazyColumn(modifier = Modifier.Companion.fillMaxSize()) {
-                selectFilterChain(availableChains, chainsFilter, query.text.toString(), onChainFilter)
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                selectFilterChain(availableChains, selectedItems, query.text.toString(), onToggle)
             }
         }
-        FilterType.ByTypes -> FormDialog(
-            title = stringResource(R.string.filter_title),
+        FilterType.ByTypes -> SubFilterDialog(
+            initialSelection = typesFilter,
+            onDone = {
+                onApplyTypesFilter(it)
+                showedSubFilter = null
+            },
+            onConfirm = {
+                onApplyTypesFilter(it)
+                showedSubFilter = null
+                onDismissRequest()
+            },
             onDismiss = { showedSubFilter = null },
-            onClear = onClearTypesFilter.takeIf { typesFilter.isNotEmpty() },
-        ) {
-            LazyColumn(modifier = Modifier.Companion.fillMaxSize()) {
-                selectFilterTransactionType(typesFilter, onTypeFilter)
+        ) { selectedItems, onToggle ->
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                selectFilterTransactionType(selectedItems, onToggle)
             }
         }
         null -> {}
+    }
+}
+
+@Composable
+private fun <T> SubFilterDialog(
+    initialSelection: List<T>,
+    onDone: (List<T>) -> Unit,
+    onConfirm: (List<T>) -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable ColumnScope.(selectedItems: List<T>, onToggle: (T) -> Unit) -> Unit,
+) {
+    var selectedItems by remember { mutableStateOf(initialSelection) }
+    FormDialog(
+        title = stringResource(R.string.filter_title),
+        fullScreen = true,
+        onDismiss = onDismiss,
+        onClear = { selectedItems = emptyList() }.takeIf { selectedItems.isNotEmpty() },
+        doneAction = {
+            TextButton(onClick = { onDone(selectedItems) }) {
+                Text(stringResource(R.string.common_done))
+            }
+        },
+        bottomAction = {
+            MainActionButton(
+                title = stringResource(R.string.transfer_confirm),
+                onClick = { onConfirm(selectedItems) },
+            )
+        },
+    ) {
+        content(selectedItems) { item ->
+            selectedItems = selectedItems.toMutableList().apply {
+                if (!remove(item)) add(item)
+            }
+        }
     }
 }

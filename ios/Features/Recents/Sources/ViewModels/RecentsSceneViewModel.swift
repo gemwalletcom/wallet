@@ -19,7 +19,9 @@ public final class RecentsSceneViewModel {
 
     var searchQuery: String = ""
 
-    public var recentAssets: [RecentAsset] { query.value }
+    public var recentAssets: [RecentAsset] {
+        query.value
+    }
 
     public init(
         walletId: WalletId,
@@ -34,11 +36,21 @@ public final class RecentsSceneViewModel {
         self.onSelect = onSelect
     }
 
-    var title: String { Localized.RecentActivity.title }
-    var clearTitle: String { Localized.Filter.clear }
+    var title: String {
+        Localized.RecentActivity.title
+    }
 
-    var showEmpty: Bool { recentAssets.isEmpty || (!searchQuery.isEmpty && filteredAssets.isEmpty) }
-    var showClear: Bool { recentAssets.isNotEmpty }
+    var clearTitle: String {
+        Localized.Filter.clear
+    }
+
+    var showEmpty: Bool {
+        recentAssets.isEmpty || (!searchQuery.isEmpty && filteredAssets.isEmpty)
+    }
+
+    var showClear: Bool {
+        recentAssets.isNotEmpty
+    }
 
     var sections: [ListSection<RecentAsset>] {
         DateSectionBuilder(items: filteredAssets, dateKeyPath: \.createdAt).build()

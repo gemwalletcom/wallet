@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
 import com.gemwallet.android.domains.confirm.ConfirmProperty
+import com.gemwallet.android.ui.models.PayloadField
+import com.gemwallet.android.ui.models.withExplorerLinks
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.SimulationHeader
-import com.wallet.core.primitives.SimulationPayloadField
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationPayloadFieldDisplay
 import com.wallet.core.primitives.SimulationPayloadFieldKind
 import com.wallet.core.primitives.SimulationResult
@@ -12,21 +12,26 @@ import com.wallet.core.primitives.SimulationWarning
 
 data class WalletConnectReview(
     val warnings: List<SimulationWarning> = emptyList(),
-    val primaryPayloadFields: List<SimulationPayloadField> = emptyList(),
-    val secondaryPayloadFields: List<SimulationPayloadField> = emptyList(),
+    val primaryPayloadFields: List<PayloadField> = emptyList(),
+    val secondaryPayloadFields: List<PayloadField> = emptyList(),
     val headerAsset: Asset? = null,
     val headerValue: String? = null,
     val headerIsUnlimited: Boolean = false,
 )
 
-fun SimulationResult.toWalletConnectReview(): WalletConnectReview {
+fun SimulationResult.toWalletConnectReview(
+    chain: Chain? = null,
+    explorerName: String? = null,
+): WalletConnectReview {
     val hideValueField = header != null
     val filtered = payload.filterNot { hideValueField && it.kind == SimulationPayloadFieldKind.Value }
 
     return WalletConnectReview(
         warnings = warnings,
-        primaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Primary },
-        secondaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Secondary },
+        primaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Primary }
+            .withExplorerLinks(chain, explorerName),
+        secondaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Secondary }
+            .withExplorerLinks(chain, explorerName),
         headerValue = header?.value,
         headerIsUnlimited = header?.isUnlimited == true,
     )

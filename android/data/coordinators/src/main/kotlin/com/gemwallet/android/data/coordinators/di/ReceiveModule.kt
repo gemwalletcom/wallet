@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.receive.coordinators.GetReceiveAssetInfo
 import com.gemwallet.android.application.receive.coordinators.SetAssetVisible
 import com.gemwallet.android.data.coordinators.receive.GetReceiveAssetInfoImpl
@@ -29,8 +30,8 @@ object ReceiveModule {
     @Singleton
     fun provideSetAssetVisible(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
+        enableAsset: EnableAsset,
     ): SetAssetVisible {
-        return SetAssetVisibleImpl(sessionRepository, assetsRepository)
+        return SetAssetVisibleImpl(sessionRepository, enableAsset)
     }
 }

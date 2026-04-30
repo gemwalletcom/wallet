@@ -6,7 +6,7 @@ import Primitives
 
 internal import GemstonePrimitives
 
-struct GatewayChainService: Sendable {
+struct GatewayChainService {
     private let chain: Chain
     let gateway: GatewayService
 

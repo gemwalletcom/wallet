@@ -44,7 +44,9 @@ struct AssetDetailsInfoViewModel {
         return [market.allTimeHigh, market.allTimeLow].withValues()
     }
 
-    var showLinks: Bool { !priceData.links.isEmpty }
+    var showLinks: Bool {
+        !priceData.links.isEmpty
+    }
 
     var linksViewModel: SocialLinksViewModel {
         SocialLinksViewModel(assetLinks: priceData.links)

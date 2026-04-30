@@ -24,5 +24,7 @@ public extension Currency {
 }
 
 extension Currency: Identifiable {
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 }

@@ -29,14 +29,21 @@ public struct NFTImages: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
+public enum NFTAttributeType: String, Codable, Equatable, Hashable, Sendable {
+	case string
+	case timestamp
+}
+
 public struct NFTAttribute: Codable, Equatable, Hashable, Sendable {
 	public let name: String
 	public let value: String
+	public let valueType: NFTAttributeType?
 	public let percentage: Double?
 
-	public init(name: String, value: String, percentage: Double?) {
+	public init(name: String, value: String, valueType: NFTAttributeType?, percentage: Double?) {
 		self.name = name
 		self.value = value
+		self.valueType = valueType
 		self.percentage = percentage
 	}
 }

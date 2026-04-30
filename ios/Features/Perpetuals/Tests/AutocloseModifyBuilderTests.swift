@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-import Testing
-
 @testable import Perpetuals
 @testable import PerpetualsTestKit
+import Primitives
+import Testing
 
 struct AutocloseModifyBuilderTests {
     @Test

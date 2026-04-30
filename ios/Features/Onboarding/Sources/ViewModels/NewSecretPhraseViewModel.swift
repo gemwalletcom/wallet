@@ -32,8 +32,13 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
         }
     }
 
-    var title: String { Localized.Wallet.New.title }
-    var type: SecretPhraseDataType { .words(words: WordIndex.rows(for: words)) }
+    var title: String {
+        Localized.Wallet.New.title
+    }
+
+    var type: SecretPhraseDataType {
+        .words(words: WordIndex.rows(for: words))
+    }
 
     var copyModel: CopyTypeViewModel {
         CopyTypeViewModel(

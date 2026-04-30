@@ -14,7 +14,6 @@ struct WidgetContentView: View {
         self.showErrorMessage = showErrorMessage
     }
 
-    @ViewBuilder
     var body: some View {
         if viewModel.entry.error != nil {
             WidgetErrorView(error: viewModel.entry.error, showMessage: showErrorMessage)

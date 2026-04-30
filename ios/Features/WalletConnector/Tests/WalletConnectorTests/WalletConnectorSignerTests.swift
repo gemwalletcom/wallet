@@ -8,12 +8,11 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
+@testable import WalletConnector
 import WalletConnectorService
 import WalletConnectSign
 import WalletSessionService
 import WalletSessionServiceTestKit
-
-@testable import WalletConnector
 
 struct WalletConnectorSignerTests {
     @Test
@@ -45,7 +44,33 @@ struct WalletConnectorSignerTests {
 
         #expect(matchingWallets.count == 1)
         #expect(matchingWallets.first?.walletId == regularWallet.walletId)
-        #expect(emptyOptionalWallets.count == 2)
+        #expect(emptyOptionalWallets.count == 1)
+    }
+
+    @Test
+    func getWalletsRequiredBitcoinUnsupported() throws {
+        let ethWallet = Wallet.mock(id: "multicoin_0x1", accounts: [.mock(chain: .ethereum)])
+        let bitcoinWallet = Wallet.mock(id: "multicoin_0x2", accounts: [.mock(chain: .bitcoin)])
+
+        let signer = try WalletConnectorSigner.mock(wallets: [ethWallet, bitcoinWallet])
+
+        let wallets = try signer.getWallets(for: .requiredBitcoin())
+
+        #expect(wallets.isEmpty)
+    }
+
+    @Test
+    func supportedRequiredChains() throws {
+        let proposal = try Session.Proposal.requiredChains()
+
+        #expect(proposal.supportedRequiredChains == Set([.ethereum, .polygon]))
+    }
+
+    @Test
+    func supportedRequiredChainsUnsupported() throws {
+        let proposal = try Session.Proposal.requiredBitcoin()
+
+        #expect(proposal.supportedRequiredChains == nil)
     }
 
     @Test
@@ -217,6 +242,10 @@ extension Session.Proposal {
 
     static func requiredChainsNoMatch() throws -> Session.Proposal {
         try Bundle.decode(from: "RequiredChainsNoMatchProposal", withExtension: "json", in: .module)
+    }
+
+    static func requiredBitcoin() throws -> Session.Proposal {
+        try Bundle.decode(from: "RequiredBitcoinProposal", withExtension: "json", in: .module)
     }
 
     static func emptyOptionalChains() throws -> Session.Proposal {

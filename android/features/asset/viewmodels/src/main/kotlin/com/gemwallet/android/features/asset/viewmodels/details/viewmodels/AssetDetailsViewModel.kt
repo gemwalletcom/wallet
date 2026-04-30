@@ -3,6 +3,7 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
@@ -63,7 +64,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import uniffi.gemstone.Explorer
 import javax.inject.Inject
 
@@ -73,6 +73,7 @@ class AssetDetailsViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     savedStateHandle: SavedStateHandle,
     private val assetsRepository: AssetsRepository,
+    private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
     private val priceAlertsStateCoordinator: PriceAlertsStateCoordinator,
@@ -205,8 +206,9 @@ class AssetDetailsViewModel @Inject constructor(
     fun pin() = viewModelScope.launch(Dispatchers.IO) {
         val wallet = session.value?.wallet ?: return@launch
         val assetInfo = model.value?.assetInfo ?: return@launch
-        add(wallet, assetInfo.id())
-        assetsRepository.togglePin(wallet.id, assetInfo.id())
+        val assetId = assetInfo.id()
+        wallet.getAccount(assetId) ?: return@launch
+        assetsRepository.togglePin(wallet.id, assetId)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {
@@ -217,13 +219,8 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     private suspend fun add(wallet: Wallet, assetId: AssetId) {
-        val account = wallet.getAccount(assetId) ?: return
-        assetsRepository.switchVisibility(
-            walletId = wallet.id,
-            owner = account,
-            assetId = assetId,
-            true
-        )
+        wallet.getAccount(assetId) ?: return
+        enableAsset(wallet.id, assetId)
     }
 
     private data class Model(

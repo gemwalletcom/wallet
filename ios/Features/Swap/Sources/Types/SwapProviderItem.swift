@@ -2,12 +2,11 @@
 
 import Components
 import Formatters
+import struct Gemstone.SwapperQuote
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-
-import struct Gemstone.SwapperQuote
 
 public struct SwapProviderItem: Sendable {
     public let asset: Asset

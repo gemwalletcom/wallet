@@ -27,10 +27,21 @@ final class PerpetualsSceneViewModel {
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
     let recentsQuery: ObservableQuery<RecentActivityRequest>
 
-    var recents: [RecentAsset] { recentsQuery.value }
-    var positions: [PerpetualPositionData] { positionsQuery.value }
-    var perpetuals: [PerpetualData] { perpetualsQuery.value }
-    var walletBalance: WalletBalance { walletBalanceQuery.value }
+    var recents: [RecentAsset] {
+        recentsQuery.value
+    }
+
+    var positions: [PerpetualPositionData] {
+        positionsQuery.value
+    }
+
+    var perpetuals: [PerpetualData] {
+        perpetualsQuery.value
+    }
+
+    var walletBalance: WalletBalance {
+        walletBalanceQuery.value
+    }
 
     var isSearchPresented: Bool = false
     var searchQuery: String = .empty
@@ -63,24 +74,57 @@ final class PerpetualsSceneViewModel {
         recentsQuery = ObservableQuery(RecentActivityRequest(walletId: wallet.walletId, limit: 10, types: [.perpetual]), initialValue: [])
     }
 
-    var navigationTitle: String { Localized.Perpetuals.title }
-    var positionsSectionTitle: String { Localized.Perpetual.positions }
-    var marketsSectionTitle: String { Localized.Perpetuals.markets }
-    var pinnedSectionTitle: String { Localized.Common.pinned }
+    var navigationTitle: String {
+        Localized.Perpetuals.title
+    }
+
+    var positionsSectionTitle: String {
+        Localized.Perpetual.positions
+    }
+
+    var marketsSectionTitle: String {
+        Localized.Perpetuals.markets
+    }
+
+    var pinnedSectionTitle: String {
+        Localized.Common.pinned
+    }
+
     var noMarketsText: String? {
         !isSearching ? Localized.Perpetuals.EmptyState.noMarkets : Localized.Perpetuals.EmptyState.noMarketsFound
     }
 
-    var pinImage: Image { Images.System.pin }
-    var searchImage: Image { Images.System.search }
+    var pinImage: Image {
+        Images.System.pin
+    }
 
-    var showPositions: Bool { positions.isNotEmpty }
-    var showPinned: Bool { sections.pinned.isNotEmpty }
-    var showMarkets: Bool { !isSearching || sections.markets.isNotEmpty || positions.isEmpty }
-    var showRecents: Bool { isSearching && recents.isNotEmpty }
+    var searchImage: Image {
+        Images.System.search
+    }
 
-    var sections: PerpetualsSections { .from(perpetuals) }
-    var recentModels: [AssetViewModel] { recents.map { AssetViewModel(asset: $0.asset) } }
+    var showPositions: Bool {
+        positions.isNotEmpty
+    }
+
+    var showPinned: Bool {
+        sections.pinned.isNotEmpty
+    }
+
+    var showMarkets: Bool {
+        !isSearching || sections.markets.isNotEmpty || positions.isEmpty
+    }
+
+    var showRecents: Bool {
+        isSearching && recents.isNotEmpty
+    }
+
+    var sections: PerpetualsSections {
+        .from(perpetuals)
+    }
+
+    var recentModels: [AssetViewModel] {
+        recents.map { AssetViewModel(asset: $0.asset) }
+    }
 
     var headerViewModel: PerpetualsHeaderViewModel {
         PerpetualsHeaderViewModel(
@@ -94,7 +138,9 @@ final class PerpetualsSceneViewModel {
 
 extension PerpetualsSceneViewModel {
     func fetch() async {
-        await updateMarkets()
+        async let updateObserver: () = observerService.update(for: wallet)
+        async let refreshMarkets: () = updateMarkets()
+        _ = await (updateObserver, refreshMarkets)
     }
 
     func onAppear() async {

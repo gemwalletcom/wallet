@@ -21,6 +21,11 @@ public struct TransactionTypesFilterViewModel: Equatable {
         )
     }
 
-    public var isAnySelected: Bool { !selectedTypes.isEmpty }
-    public var isEmpty: Bool { allTransactionsTypes.isEmpty }
+    public var isAnySelected: Bool {
+        !selectedTypes.isEmpty
+    }
+
+    public var isEmpty: Bool {
+        allTransactionsTypes.isEmpty
+    }
 }

@@ -4,7 +4,6 @@ import Foundation
 import Localization
 import Primitives
 import Testing
-
 @testable import Validators
 
 struct FiatRangeValidatorTests {

@@ -32,4 +32,8 @@ public struct NFTService: Sendable {
         )
         try await apiService.reportNft(report: report)
     }
+
+    public func refreshAsset(wallet: Wallet, assetId: String) async throws {
+        try await apiService.refreshNftAsset(walletId: wallet.id, assetId: assetId)
+    }
 }

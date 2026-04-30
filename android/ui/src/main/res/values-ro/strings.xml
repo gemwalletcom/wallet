@@ -497,7 +497,7 @@
   <string name="banner.perpetuals.title">Trade Perpetuals on Hyperliquid</string>
   <string name="banner.perpetuals.description">Deposit, trade, and earn with Hyperliquid perpetuals</string>
   <string name="errors.no_data_available">Nu sunt disponibile date</string>
-  <string name="errors.dust_threshold_short">Rețeaua consideră această cantitate drept praf — taxa este mai mare decât suma în sine.</string>
+  <string name="errors.dust_threshold_short">Rețeaua consideră această cantitate drept praf - taxa este mai mare decât suma în sine.</string>
   <string name="charts.take_profit">TP</string>
   <string name="charts.stop_loss">SL</string>
   <string name="charts.entry">Entry</string>
@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">Utilizați suma minimă</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">Pozițiile dumneavoastră vor apărea aici</string>
-  <string name="earn.state.empty.description">Depuneți prima %s</string>
+  <string name="earn.state.empty.description">Depuneți prima dvs. depunere %s</string>
   <string name="contacts.title">Contacte</string>
   <string name="contacts.contact">Contact</string>
   <string name="contacts.addresses">Adrese</string>
@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.</string>
   <string name="errors.network_error">Eroare de rețea: %s</string>
   <string name="errors.network_offline">Conexiunea la internet pare să fie offline.</string>
+  <string name="common.refresh">Reîmprospăta</string>
 </resources>

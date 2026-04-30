@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import AppService
 import AppServiceTestKit
 import Foundation
 import Primitives
 import Testing
-
-@testable import AppService
 
 struct OnstartAsyncServiceTests {
     @Test

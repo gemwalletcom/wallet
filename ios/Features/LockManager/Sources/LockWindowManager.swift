@@ -12,8 +12,13 @@ public final class LockWindowManager: LockWindowManageable {
         self.lockModel = lockModel
     }
 
-    public var showLockScreen: Bool { lockModel.shouldShowLockScreen }
-    public var isPrivacyLockVisible: Bool { lockModel.isPrivacyLockVisible }
+    public var showLockScreen: Bool {
+        lockModel.shouldShowLockScreen
+    }
+
+    public var isPrivacyLockVisible: Bool {
+        lockModel.isPrivacyLockVisible
+    }
 
     public func setPhase(phase: ScenePhase) {
         guard lockModel.isAutoLockEnabled else {

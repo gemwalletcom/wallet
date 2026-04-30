@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Localization
+@testable import MarketInsight
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import MarketInsight
 
 struct AssetDetailsInfoViewModelTests {
     @Test

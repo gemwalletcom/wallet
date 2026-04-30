@@ -54,9 +54,17 @@ public final class TransactionsFilterViewModel {
         chainsFilter.isAnySelected || transactionTypesFilter.isAnySelected
     }
 
-    public var title: String { Localized.Filter.title }
-    public var clear: String { Localized.Filter.clear }
-    public var done: String { Localized.Common.done }
+    public var title: String {
+        Localized.Filter.title
+    }
+
+    public var clear: String {
+        Localized.Filter.clear
+    }
+
+    public var done: String {
+        Localized.Common.done
+    }
 
     public var networksModel: NetworkSelectorViewModel {
         NetworkSelectorViewModel(

@@ -3,14 +3,13 @@
 import Keystore
 import KeystoreTestKit
 import NameServiceTestKit
+@testable import Onboarding
 import Primitives
 import PrimitivesTestKit
 import StoreTestKit
 import Testing
 import WalletService
 import WalletServiceTestKit
-
-@testable import Onboarding
 
 @MainActor
 struct ImportWalletSceneViewModelTests {

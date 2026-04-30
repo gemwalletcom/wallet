@@ -28,10 +28,10 @@ struct SimulationPayloadFieldViewModelTests {
     }
 
     @Test
-    func timestampSubtitle() {
-        let formatter = RelativeDateFormatter(
+    func timestampSubtitle() throws {
+        let formatter = try RelativeDateFormatter(
             locale: Locale(identifier: "en_US_POSIX"),
-            timeZone: TimeZone(secondsFromGMT: 0)!,
+            timeZone: #require(TimeZone(secondsFromGMT: 0)),
         )
         let field = SimulationPayloadField.custom(
             label: "issuedAt",

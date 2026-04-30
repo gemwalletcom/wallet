@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">जैसे-जैसे आप ऐप का अधिक उपयोग करेंगे, पुरस्कार स्वचालित रूप से सक्रिय हो जाएंगे।</string>
   <string name="errors.network_error">नेटवर्क त्रुटि: %s</string>
   <string name="errors.network_offline">इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।</string>
+  <string name="common.refresh">ताज़ा करना</string>
 </resources>

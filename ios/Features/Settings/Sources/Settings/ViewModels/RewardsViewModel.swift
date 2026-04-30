@@ -53,21 +53,53 @@ public final class RewardsViewModel: Sendable {
 
     // MARK: - UI Properties
 
-    var title: String { Localized.Rewards.title }
-    var referralCountTitle: String { Localized.Rewards.referrals }
-    var pointsTitle: String { Localized.Rewards.points }
-    var errorTitle: String { Localized.Errors.errorOccured }
-    var invitedByTitle: String { Localized.Rewards.invitedBy }
-    var createCodeButtonTitle: String { Localized.Common.getStarted }
-    var myReferralCodeTitle: String { Localized.Rewards.myReferralCode }
-    var createCodeTitle: String { Localized.Rewards.InviteFriends.title }
+    var title: String {
+        Localized.Rewards.title
+    }
+
+    var referralCountTitle: String {
+        Localized.Rewards.referrals
+    }
+
+    var pointsTitle: String {
+        Localized.Rewards.points
+    }
+
+    var errorTitle: String {
+        Localized.Errors.errorOccured
+    }
+
+    var invitedByTitle: String {
+        Localized.Rewards.invitedBy
+    }
+
+    var createCodeButtonTitle: String {
+        Localized.Common.getStarted
+    }
+
+    var myReferralCodeTitle: String {
+        Localized.Rewards.myReferralCode
+    }
+
+    var createCodeTitle: String {
+        Localized.Rewards.InviteFriends.title
+    }
+
     var createCodeDescription: String {
         Localized.Rewards.InviteFriends.description(String(100).boldMarkdown())
     }
 
-    var activateCodeFooterTitle: String { Localized.Rewards.ActivateReferralCode.title }
-    var activateCodeFooterDescription: String { Localized.Rewards.ActivateReferralCode.description }
-    var statsSectionTitle: String { Localized.Common.info }
+    var activateCodeFooterTitle: String {
+        Localized.Rewards.ActivateReferralCode.title
+    }
+
+    var activateCodeFooterDescription: String {
+        Localized.Rewards.ActivateReferralCode.description
+    }
+
+    var statsSectionTitle: String {
+        Localized.Common.info
+    }
 
     var showsWalletSelector: Bool {
         wallets.count > 1

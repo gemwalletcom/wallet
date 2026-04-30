@@ -6,7 +6,9 @@ import Localization
 import Style
 
 struct SecurityReminderItem: Identifiable {
-    var id: String { [title, subtitle].joined() }
+    var id: String {
+        [title, subtitle].joined()
+    }
 
     let title: String
     let subtitle: String

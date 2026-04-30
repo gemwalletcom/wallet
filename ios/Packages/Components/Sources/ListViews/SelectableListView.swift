@@ -26,8 +26,6 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
         case .noData:
             if let title = model.emptyStateTitle {
                 StateEmptyView(title: title)
-            } else {
-                EmptyView()
             }
         case .loading:
             LoadingView()

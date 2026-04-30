@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว";
 "rewards.unverified.title" = "ระบบรางวัลยังไม่เปิดใช้งาน";
 "rewards.unverified.description" = "รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น";
+"common.refresh" = "รีเฟรช";

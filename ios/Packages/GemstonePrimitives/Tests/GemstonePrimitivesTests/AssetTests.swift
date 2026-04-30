@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import GemstonePrimitives
 import Primitives
 import Testing
-
-@testable import GemstonePrimitives
 
 final class AssetTests {
     let nativeAsset = Asset(.ethereum)

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-// For public use
+/// For public use
 enum UITestKitConstants {
     static let words = "insect select insane waste rate grit ranch uniform loan venture jump silent"
     static let words2 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"

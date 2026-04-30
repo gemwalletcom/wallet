@@ -7,7 +7,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct AssetHeaderViewModel: Sendable {
+struct AssetHeaderViewModel {
     let assetDataModel: AssetDataViewModel
     let walletModel: WalletViewModel
     let bannerEventsViewModel: HeaderBannerEventViewModel
@@ -33,7 +33,9 @@ extension AssetHeaderViewModel: HeaderViewModel {
         return assetDataModel.fiatBalanceText
     }
 
-    var subtitleColor: Color { Colors.gray }
+    var subtitleColor: Color {
+        Colors.gray
+    }
 
     var buttons: [HeaderButton] {
         let values: [(type: HeaderButtonType, isShown: Bool, isEnabled: Bool)] = [

@@ -65,7 +65,7 @@ public final class WalletPreferences: @unchecked Sendable {
         completeInitialLoadNFTs = true
     }
 
-    // transactions
+    /// transactions
     public func setTransactionsForAssetTimestamp(assetId: String, value: Int) {
         defaults.setValue(value, forKey: String(format: "%@_%@", Keys.transactionsForAsset, assetId))
     }

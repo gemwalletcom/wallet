@@ -11,7 +11,7 @@ let TestPrivateKey = Data(hexString: "1E9D38B5274152A78DFF1A86FA464CEADC1F4238CA
 
 struct SignerTests {
     @Test
-    func signMessage() async throws {
+    func signMessage() {
         let signer = Signer(wallet: .mock(), keystore: LocalKeystore.mock()).signer(for: .ethereum)
 
         #expect(type(of: signer) == ChainSigner.self)

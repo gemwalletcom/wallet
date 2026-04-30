@@ -11,8 +11,13 @@ public protocol ValueValidator<Formatted>: Identifiable, Sendable {
 
 public extension ValueValidator {
     /// `validator.silent` → a silent version that always throws `SilentValidationError`
-    var silent: some ValueValidator<Formatted> { SilentValueValidator(validator: self) }
-    var isSilent: Bool { self is SilentValidatable }
+    var silent: some ValueValidator<Formatted> {
+        SilentValueValidator(validator: self)
+    }
+
+    var isSilent: Bool {
+        self is SilentValidatable
+    }
 }
 
 // MARK: - Silent
@@ -27,7 +32,9 @@ private struct SilentValueValidator<V: ValueValidator>: ValueValidator, SilentVa
         catch { throw SilentValidationError() }
     }
 
-    var id: V.ID { validator.id }
+    var id: V.ID {
+        validator.id
+    }
 }
 
 extension Comparable where Self: SignedNumeric {

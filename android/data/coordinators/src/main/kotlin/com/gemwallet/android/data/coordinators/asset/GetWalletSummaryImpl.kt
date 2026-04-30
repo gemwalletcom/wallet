@@ -76,12 +76,12 @@ internal fun buildWalletSummaryDisplayState(
 ): WalletSummaryDisplayState {
     if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
         return WalletSummaryDisplayState(
-            totalValue = currency.format(BigDecimal.ZERO, dynamicPlace = true),
+            totalValue = currency.format(BigDecimal.ZERO),
             changedValue = null,
         )
     }
     return WalletSummaryDisplayState(
-        totalValue = currency.format(totalValue, dynamicPlace = true),
+        totalValue = currency.format(totalValue),
         changedValue = WalletSummaryEquivalentValue(
             currency = currency,
             value = totalChangedValue.toDouble(),
@@ -110,6 +110,13 @@ internal class WalletSummaryEquivalentValue(
     override val value: Double?,
     override val changePercentage: Double?,
 ) : EquivalentValue {
+    override val valueFormatted: String
+        get() {
+            val amount = value?.takeIf(Double::isFinite) ?: return ""
+            val formatted = currency.format(amount)
+            return if (amount > 0) "+$formatted" else formatted
+        }
+
     override val changePercentageFormatted: String
         get() = changePercentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 }

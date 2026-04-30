@@ -4,9 +4,8 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import Primitives
-
 import GemstonePrimitives
+import Primitives
 
 public struct TransactionInfoViewModel: Sendable {
     private let asset: Asset

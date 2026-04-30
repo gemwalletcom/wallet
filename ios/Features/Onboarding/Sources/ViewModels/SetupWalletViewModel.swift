@@ -17,7 +17,10 @@ public final class SetupWalletViewModel: Sendable {
     private let onCompleteAction: (Wallet) -> Void
 
     public let query: ObservableQuery<WalletRequest>
-    var wallet: Wallet? { query.value }
+    var wallet: Wallet? {
+        query.value
+    }
+
     var nameInput: String
 
     public init(

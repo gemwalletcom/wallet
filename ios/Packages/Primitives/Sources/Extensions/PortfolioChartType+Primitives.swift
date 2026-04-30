@@ -3,9 +3,13 @@
 import Foundation
 
 public extension PortfolioChartType {
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }
 
 public extension PortfolioType {
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 }

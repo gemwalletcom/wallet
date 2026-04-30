@@ -27,5 +27,7 @@ public struct SignMessagePayload: Sendable {
 }
 
 extension SignMessagePayload: Identifiable {
-    public var id: String { session.id }
+    public var id: String {
+        session.id
+    }
 }

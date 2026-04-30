@@ -24,7 +24,10 @@ public final class AssetsResultsSceneViewModel {
     let onSelectAssetAction: AssetAction
 
     public let searchQuery: ObservableQuery<WalletSearchRequest>
-    var searchResult: WalletSearchResult { searchQuery.value }
+    var searchResult: WalletSearchResult {
+        searchQuery.value
+    }
+
     var isPresentingToastMessage: ToastMessage?
 
     public init(
@@ -43,11 +46,25 @@ public final class AssetsResultsSceneViewModel {
         onSelectAssetAction = onSelectAsset
     }
 
-    var title: String { Localized.Assets.title }
-    var currencyCode: String { preferences.currency }
-    var sections: WalletSearchSections { .from(searchResult) }
-    var showPinned: Bool { sections.pinnedAssets.isNotEmpty }
-    var showAssets: Bool { sections.assets.isNotEmpty }
+    var title: String {
+        Localized.Assets.title
+    }
+
+    var currencyCode: String {
+        preferences.currency
+    }
+
+    var sections: WalletSearchSections {
+        .from(searchResult)
+    }
+
+    var showPinned: Bool {
+        sections.pinnedAssets.isNotEmpty
+    }
+
+    var showAssets: Bool {
+        sections.assets.isNotEmpty
+    }
 
     func contextMenuItems(for assetData: AssetData) -> [ContextMenuItemType] {
         AssetContextMenu.items(

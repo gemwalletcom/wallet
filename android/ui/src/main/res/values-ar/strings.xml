@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.</string>
   <string name="errors.network_error">خطأ في الشبكة: %s</string>
   <string name="errors.network_offline">يبدو أن الاتصال بالإنترنت غير متاح.</string>
+  <string name="common.refresh">ينعش</string>
 </resources>

@@ -173,7 +173,12 @@ private fun BadgedBox(
                     .background(badgeBackgroundColor, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                badge()
+                Box(
+                    modifier = Modifier.size(layout.contentSize),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    badge()
+                }
             }
         }
     }

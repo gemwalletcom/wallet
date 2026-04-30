@@ -18,14 +18,10 @@ struct PriceImpactViewModel {
     private let valueFormatter = ValueFormatter(style: .full)
     private let percentFormatter = CurrencyFormatter.percent
 
-    init(fromAssetPrice: AssetPriceValue, fromValue: String, toAssetPrice: AssetPriceValue, toValue: String) {
-        self.fromAssetPrice = fromAssetPrice
-        self.fromValue = fromValue
-        self.toAssetPrice = toAssetPrice
-        self.toValue = toValue
+    var showPriceImpactWarning: Bool {
+        isHighPriceImpact
     }
 
-    var showPriceImpactWarning: Bool { isHighPriceImpact }
     var highImpactWarningTitle: String {
         Localized.Swap.PriceImpactWarning.title
     }
@@ -35,7 +31,10 @@ struct PriceImpactViewModel {
         return Localized.Swap.PriceImpactWarning.description(priceImpactText, fromAssetPrice.asset.symbol)
     }
 
-    var priceImpactTitle: String { Localized.Swap.priceImpact }
+    var priceImpactTitle: String {
+        Localized.Swap.priceImpact
+    }
+
     var value: PriceImpactValue? {
         guard let swapPriceImpact else { return nil }
 

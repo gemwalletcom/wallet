@@ -84,17 +84,37 @@ public final class ConfirmTransferSceneViewModel {
         simulationState = simulationService.makeState(data: data, simulation: simulation)
     }
 
-    var title: String { dataModel.title }
+    var title: String {
+        dataModel.title
+    }
 
-    var websiteURL: URL? { dataModel.websiteURL }
-    var websiteTitle: String { Localized.Settings.website }
+    var websiteURL: URL? {
+        dataModel.websiteURL
+    }
 
-    var senderAddress: String { (try? wallet.account(for: dataModel.chain).address) ?? "" }
-    var senderCopyValue: CopyValue { .address(value: senderAddress, chain: dataModel.chain) }
-    var senderExplorerLink: BlockExplorerLink { senderLink }
-    var senderExplorerContext: ExplorerContextData { ExplorerContextData(copyValue: senderCopyValue, explorerLink: senderExplorerLink) }
+    var websiteTitle: String {
+        Localized.Settings.website
+    }
 
-    var progressMessage: String { Localized.Common.loading }
+    var senderAddress: String {
+        (try? wallet.account(for: dataModel.chain).address) ?? ""
+    }
+
+    var senderCopyValue: CopyValue {
+        .address(value: senderAddress, chain: dataModel.chain)
+    }
+
+    var senderExplorerLink: BlockExplorerLink {
+        senderLink
+    }
+
+    var senderExplorerContext: ExplorerContextData {
+        ExplorerContextData(copyValue: senderCopyValue, explorerLink: senderExplorerLink)
+    }
+
+    var progressMessage: String {
+        Localized.Common.loading
+    }
 
     var simulationWarnings: [SimulationWarning] {
         simulationState.warnings
@@ -472,9 +492,18 @@ extension ConfirmTransferSceneViewModel {
         )
     }
 
-    private var availableValue: BigInt { dataModel.availableValue(metadata: metadata) }
-    private var senderLink: BlockExplorerLink { confirmService.getExplorerLink(chain: dataModel.chain, address: senderAddress) }
-    private var feeAssetAddress: AssetAddress { AssetAddress(asset: dataModel.asset.feeAsset, address: senderAddress) }
+    private var availableValue: BigInt {
+        dataModel.availableValue(metadata: metadata)
+    }
+
+    private var senderLink: BlockExplorerLink {
+        confirmService.getExplorerLink(chain: dataModel.chain, address: senderAddress)
+    }
+
+    private var feeAssetAddress: AssetAddress {
+        AssetAddress(asset: dataModel.asset.feeAsset, address: senderAddress)
+    }
+
     private var confirmButtonIcon: Image? {
         guard !state.isError, state.value?.transferAmount?.isSuccess ?? false,
               let auth = try? confirmService.getPasswordAuthentication(),
@@ -483,5 +512,7 @@ extension ConfirmTransferSceneViewModel {
         return Image(systemName: systemName)
     }
 
-    private var dataModel: TransferDataViewModel { TransferDataViewModel(data: transferData) }
+    private var dataModel: TransferDataViewModel {
+        TransferDataViewModel(data: transferData)
+    }
 }

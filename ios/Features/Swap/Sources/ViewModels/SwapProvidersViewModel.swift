@@ -22,11 +22,21 @@ struct SwapProvidersViewModel: SelectableListAdoptable {
         self.selectionType = selectionType
     }
 
-    var emptyStateTitle: String? { Localized.Common.notAvailable }
-    var errorTitle: String? { Localized.Errors.errorOccured }
+    var emptyStateTitle: String? {
+        Localized.Common.notAvailable
+    }
+
+    var errorTitle: String? {
+        Localized.Errors.errorOccured
+    }
 }
 
 extension SwapProvidersViewModel: SelectableListNavigationAdoptable {
-    var title: String { Localized.Buy.Providers.title }
-    var doneTitle: String { Localized.Common.done }
+    var title: String {
+        Localized.Buy.Providers.title
+    }
+
+    var doneTitle: String {
+        Localized.Common.done
+    }
 }

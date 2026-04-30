@@ -497,7 +497,7 @@
   <string name="banner.perpetuals.title">Trade Perpetuals on Hyperliquid</string>
   <string name="banner.perpetuals.description">Deposit, trade, and earn with Hyperliquid perpetuals</string>
   <string name="errors.no_data_available">কোন তথ্য নেই</string>
-  <string name="errors.dust_threshold_short">নেটওয়ার্ক এই পরিমাণ ধুলো বিবেচনা করে — ফি পরিমাণের চেয়ে বেশি।</string>
+  <string name="errors.dust_threshold_short">নেটওয়ার্ক এই পরিমাণ ধুলো বিবেচনা করে - ফি পরিমাণের চেয়ে বেশি।</string>
   <string name="charts.take_profit">TP</string>
   <string name="charts.stop_loss">SL</string>
   <string name="charts.entry">Entry</string>
@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">সর্বনিম্ন পরিমাণ ব্যবহার করুন</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">আপনার অবস্থানগুলি এখানে প্রদর্শিত হবে</string>
-  <string name="earn.state.empty.description">আপনার প্রথম জমা দিন %s</string>
+  <string name="earn.state.empty.description">আপনার প্রথম আমানত জমা দিন %s</string>
   <string name="contacts.title">পরিচিতি</string>
   <string name="contacts.contact">যোগাযোগ</string>
   <string name="contacts.addresses">ঠিকানা</string>
@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</string>
   <string name="errors.network_error">নেটওয়ার্ক ত্রুটি: %s</string>
   <string name="errors.network_offline">ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।</string>
+  <string name="common.refresh">রিফ্রেশ</string>
 </resources>

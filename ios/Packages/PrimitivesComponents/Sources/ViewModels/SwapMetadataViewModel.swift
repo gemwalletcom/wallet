@@ -4,12 +4,8 @@ import BigInt
 import Foundation
 import Primitives
 
-struct SwapMetadataViewModel: Sendable {
+struct SwapMetadataViewModel {
     let metadata: TransactionExtendedMetadata
-
-    init(metadata: TransactionExtendedMetadata) {
-        self.metadata = metadata
-    }
 
     var headerInput: SwapHeaderInput? {
         guard

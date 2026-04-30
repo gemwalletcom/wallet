@@ -42,12 +42,29 @@ public final class AssetSceneViewModel: Sendable {
     public let bannersQuery: ObservableQuery<BannersRequest>
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
-    public var chainAssetData: ChainAssetData { assetQuery.value }
-    public var banners: [Banner] { bannersQuery.value }
-    public var transactions: [TransactionExtended] { transactionsQuery.value }
-    public var assetData: AssetData { chainAssetData.assetData }
-    private var asset: Asset { assetData.asset }
-    private var wallet: Wallet { walletModel.wallet }
+    public var chainAssetData: ChainAssetData {
+        assetQuery.value
+    }
+
+    public var banners: [Banner] {
+        bannersQuery.value
+    }
+
+    public var transactions: [TransactionExtended] {
+        transactionsQuery.value
+    }
+
+    public var assetData: AssetData {
+        chainAssetData.assetData
+    }
+
+    private var asset: Asset {
+        assetData.asset
+    }
+
+    private var wallet: Wallet {
+        walletModel.wallet
+    }
 
     public init(
         assetsEnabler: any AssetsEnabler,
@@ -81,15 +98,22 @@ public final class AssetSceneViewModel: Sendable {
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
-    public var title: String { assetModel.name }
+    public var title: String {
+        assetModel.name
+    }
 
-    var balancesTitle: String { Localized.Asset.balances }
+    var balancesTitle: String {
+        Localized.Asset.balances
+    }
 
     var networkField: ListItemField {
         ListItemField(title: Localized.Transfer.network, value: assetModel.networkFullName)
     }
 
-    var resourcesTitle: String { Localized.Asset.resources }
+    var resourcesTitle: String {
+        Localized.Asset.resources
+    }
+
     var energyField: ListItemField {
         ListItemField(title: ResourceViewModel(resource: .energy).title, value: feeAssetDataModel.energyText)
     }
@@ -98,18 +122,37 @@ public final class AssetSceneViewModel: Sendable {
         ListItemField(title: ResourceViewModel(resource: .bandwidth).title, value: feeAssetDataModel.bandwidthText)
     }
 
-    var canOpenNetwork: Bool { assetDataModel.asset.type != .native }
+    var canOpenNetwork: Bool {
+        assetDataModel.asset.type != .native
+    }
 
-    var showBalances: Bool { assetDataModel.showBalances || showProviderBalance(for: .earn) }
+    var showBalances: Bool {
+        assetDataModel.showBalances || showProviderBalance(for: .earn)
+    }
 
-    var showReservedBalance: Bool { assetDataModel.hasReservedBalance }
-    var showPendingUnconfirmedBalance: Bool { assetDataModel.hasPendingUnconfirmedBalance }
-    var showResources: Bool { assetDataModel.showResources }
+    var showReservedBalance: Bool {
+        assetDataModel.hasReservedBalance
+    }
 
-    var showTransactions: Bool { transactions.isNotEmpty }
-    var showManageToken: Bool { !assetData.metadata.isBalanceEnabled }
+    var showPendingUnconfirmedBalance: Bool {
+        assetDataModel.hasPendingUnconfirmedBalance
+    }
 
-    var canSign: Bool { wallet.canSign }
+    var showResources: Bool {
+        assetDataModel.showResources
+    }
+
+    var showTransactions: Bool {
+        transactions.isNotEmpty
+    }
+
+    var showManageToken: Bool {
+        !assetData.metadata.isBalanceEnabled
+    }
+
+    var canSign: Bool {
+        wallet.canSign
+    }
 
     var pinText: String {
         assetData.metadata.isPinned ? Localized.Common.unpin : Localized.Common.pin
@@ -135,7 +178,9 @@ public final class AssetSceneViewModel: Sendable {
         assetData.metadata.isBalanceEnabled ? SystemImage.minusCircle : SystemImage.plusCircle
     }
 
-    var reservedBalanceUrl: URL? { assetModel.asset.chain.accountActivationFeeUrl }
+    var reservedBalanceUrl: URL? {
+        assetModel.asset.chain.accountActivationFeeUrl
+    }
 
     var showEarnButton: Bool {
         #if DEBUG
@@ -184,14 +229,33 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    public var shareAssetUrl: URL { DeepLink.asset(assetDataModel.asset.id).url }
-    public var assetModel: AssetViewModel { AssetViewModel(asset: assetData.asset) }
-    public var walletModel: WalletViewModel { WalletViewModel(wallet: input.wallet) }
+    public var shareAssetUrl: URL {
+        DeepLink.asset(assetDataModel.asset.id).url
+    }
 
-    public var optionsImage: Image { Images.System.ellipsis }
-    public var priceAlertsSystemImage: String { assetData.isPriceAlertsEnabled ? SystemImage.bellFill : SystemImage.bell }
-    public var priceAlertsImage: Image { Image(systemName: priceAlertsSystemImage) }
-    public var showPriceAlerts: Bool { priceAlertsViewModel.hasPriceAlerts && assetDataModel.isPriceAvailable }
+    public var assetModel: AssetViewModel {
+        AssetViewModel(asset: assetData.asset)
+    }
+
+    public var walletModel: WalletViewModel {
+        WalletViewModel(wallet: input.wallet)
+    }
+
+    public var optionsImage: Image {
+        Images.System.ellipsis
+    }
+
+    public var priceAlertsSystemImage: String {
+        assetData.isPriceAlertsEnabled ? SystemImage.bellFill : SystemImage.bell
+    }
+
+    public var priceAlertsImage: Image {
+        Image(systemName: priceAlertsSystemImage)
+    }
+
+    public var showPriceAlerts: Bool {
+        priceAlertsViewModel.hasPriceAlerts && assetDataModel.isPriceAvailable
+    }
 
     public var menuItems: [ActionMenuItemType] {
         [.button(title: viewAddressOnTitle, systemImage: SystemImage.globe, action: { self.onSelect(url: self.addressExplorerUrl) }),
@@ -404,8 +468,14 @@ public extension AssetSceneViewModel {
 // MARK: - Private
 
 extension AssetSceneViewModel {
-    private var addressExplorerUrl: URL { addressLink.url }
-    private var viewAddressOnTitle: String { Localized.Asset.viewAddressOn(addressLink.name) }
+    private var addressExplorerUrl: URL {
+        addressLink.url
+    }
+
+    private var viewAddressOnTitle: String {
+        Localized.Asset.viewAddressOn(addressLink.name)
+    }
+
     private var viewTokenOnTitle: String? {
         if let link = tokenLink {
             return Localized.Asset.viewTokenOn(link.name)
@@ -413,7 +483,10 @@ extension AssetSceneViewModel {
         return .none
     }
 
-    private var tokenExplorerUrl: URL? { tokenLink?.url }
+    private var tokenExplorerUrl: URL? {
+        tokenLink?.url
+    }
+
     private var tokenLink: BlockExplorerLink? {
         guard let tokenId = assetModel.asset.tokenId else {
             return .none

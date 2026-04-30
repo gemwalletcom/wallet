@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -13,12 +14,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.theme.paddingDefault
 
 private const val BALANCE_MASK = "✱✱✱✱✱"
+private val balanceTextLineHeight = 44.sp
+private val balanceTextHeight = 52.dp
 
 data class HideToggle(
     val hidden: Boolean,
@@ -36,8 +41,19 @@ fun DisplayText(
     hideToggle: HideToggle? = null,
 ) {
     val hidden = hideToggle.isHidden
+    val balanceTextStyle = if (hidden) {
+        MaterialTheme.typography.headlineSmall.copy(lineHeight = balanceTextLineHeight)
+    } else {
+        MaterialTheme.typography.displaySmall.copy(
+            fontSize = 42.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = balanceTextLineHeight,
+        )
+    }
     Box(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(balanceTextHeight),
         contentAlignment = Alignment.Center,
     ) {
         val content: @Composable (Modifier) -> Unit = { innerModifier ->
@@ -46,8 +62,7 @@ fun DisplayText(
                 text = hideToggle.mask(text),
                 overflow = TextOverflow.MiddleEllipsis,
                 maxLines = 1,
-                style = (if (hidden) MaterialTheme.typography.headlineSmall
-                else MaterialTheme.typography.displaySmall).copy(lineHeight = 44.sp),
+                style = balanceTextStyle,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
             )

@@ -3,9 +3,8 @@
 import Foundation
 import Keystore
 import LocalAuthentication
-import Testing
-
 @testable import LockManager
+import Testing
 
 @MainActor
 struct LockSceneViewModelTests {

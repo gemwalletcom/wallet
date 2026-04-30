@@ -35,7 +35,7 @@ import WalletService
 import WalletSessionService
 
 extension AppResolver {
-    struct Services: Sendable {
+    struct Services {
         // Environment-level services
         let assetsService: AssetsService
         let balanceService: BalanceService

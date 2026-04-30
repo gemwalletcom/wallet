@@ -4,9 +4,8 @@ import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
-import WalletTabTestKit
-
 @testable import WalletTab
+import WalletTabTestKit
 
 @MainActor
 struct PortfolioSceneViewModelTests {

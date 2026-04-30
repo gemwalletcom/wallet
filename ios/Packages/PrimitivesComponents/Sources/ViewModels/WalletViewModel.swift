@@ -73,5 +73,7 @@ public struct WalletViewModel: Sendable {
 }
 
 extension WalletViewModel: Identifiable, Hashable {
-    public var id: String { wallet.id }
+    public var id: String {
+        wallet.id
+    }
 }

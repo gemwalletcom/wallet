@@ -30,7 +30,9 @@ public struct AutocloseViewModel {
         self.percentFormatter = percentFormatter
     }
 
-    public var priceTitle: String { Localized.Asset.price }
+    public var priceTitle: String {
+        Localized.Asset.price
+    }
 
     public var title: String {
         switch type {

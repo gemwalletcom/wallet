@@ -11,7 +11,9 @@ public enum AppIcon: String, CaseIterable, Identifiable, Sendable, Hashable {
         self = rawValue.flatMap { Self(rawValue: $0) } ?? .primary
     }
 
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 
     public var iconName: String? {
         switch self {

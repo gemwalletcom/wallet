@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
 import Testing
-
-@testable import Perpetuals
 
 struct AutocloseViewModelTests {
     @Test

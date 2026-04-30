@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Testing
-
 @testable import PriceAlerts
+import Testing
 
 struct PriceSuggestionTests {
     @Test

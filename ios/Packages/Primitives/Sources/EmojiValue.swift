@@ -13,5 +13,7 @@ public struct EmojiValue: Hashable {
 }
 
 extension EmojiValue: Identifiable {
-    public var id: String { emoji }
+    public var id: String {
+        emoji
+    }
 }

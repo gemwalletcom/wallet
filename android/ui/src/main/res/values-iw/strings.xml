@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">הפרסים מופעלים אוטומטית ככל שתשתמשו יותר באפליקציה.</string>
   <string name="errors.network_error">שגיאת רשת: %s</string>
   <string name="errors.network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
+  <string name="common.refresh">לְרַעֲנֵן</string>
 </resources>

@@ -13,5 +13,7 @@ public struct EmptyAction {
 }
 
 extension EmptyAction: Identifiable {
-    public var id: String { title }
+    public var id: String {
+        title
+    }
 }

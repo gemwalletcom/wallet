@@ -36,7 +36,6 @@ struct LockScreenScene: View {
 // MARK: - UI Components
 
 extension LockScreenScene {
-    @ViewBuilder
     private var unlockButton: some View {
         VStack(spacing: .medium) {
             if model.state == .lockedCanceled {
@@ -55,7 +54,6 @@ extension LockScreenScene {
         }
     }
 
-    @ViewBuilder
     var placeholderView: some View {
         LogoView()
             .background(Colors.white)

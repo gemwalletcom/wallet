@@ -7,7 +7,9 @@ import SwiftUI
 enum ActionMenuBuilder {
     static func buildBlock(
         _ components: ActionMenuItemType...,
-    ) -> [ActionMenuItemType] { components }
+    ) -> [ActionMenuItemType] {
+        components
+    }
 }
 
 public struct ActionMenu<Label: View>: View {

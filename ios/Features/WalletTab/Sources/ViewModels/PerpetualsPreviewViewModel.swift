@@ -13,8 +13,13 @@ final class PerpetualsPreviewViewModel {
     let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     let walletBalanceQuery: ObservableQuery<PerpetualWalletBalanceRequest>
 
-    var positions: [PerpetualPositionData] { positionsQuery.value }
-    var walletBalance: WalletBalance { walletBalanceQuery.value }
+    var positions: [PerpetualPositionData] {
+        positionsQuery.value
+    }
+
+    var walletBalance: WalletBalance {
+        walletBalanceQuery.value
+    }
 
     init(walletId: WalletId) {
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: walletId), initialValue: [])

@@ -109,9 +109,17 @@ public struct DelegationViewModel: Sendable {
         ValidatorViewModel(validator: delegation.validator, exploreService: exploreService)
     }
 
-    public var validatorText: String { validatorModel.name }
-    public var validatorImage: AssetImage { validatorModel.validatorImage }
-    public var validatorUrl: URL? { validatorModel.url }
+    public var validatorText: String {
+        validatorModel.name
+    }
+
+    public var validatorImage: AssetImage {
+        validatorModel.validatorImage
+    }
+
+    public var validatorUrl: URL? {
+        validatorModel.url
+    }
 
     public var completionDateText: String? {
         let now = Date.now
@@ -126,16 +134,35 @@ public struct DelegationViewModel: Sendable {
 }
 
 extension DelegationViewModel: Identifiable {
-    public var id: String { delegation.id }
+    public var id: String {
+        delegation.id
+    }
 }
 
 // MARK: - HeaderViewModel
 
 extension DelegationViewModel: HeaderViewModel {
-    public var isWatchWallet: Bool { false }
-    public var buttons: [HeaderButton] { [] }
-    public var assetImage: AssetImage? { validatorImage }
-    public var title: String { balanceText }
-    public var subtitle: String? { fiatValueText }
-    public var subtitleColor: Color { .secondary }
+    public var isWatchWallet: Bool {
+        false
+    }
+
+    public var buttons: [HeaderButton] {
+        []
+    }
+
+    public var assetImage: AssetImage? {
+        validatorImage
+    }
+
+    public var title: String {
+        balanceText
+    }
+
+    public var subtitle: String? {
+        fiatValueText
+    }
+
+    public var subtitleColor: Color {
+        .secondary
+    }
 }

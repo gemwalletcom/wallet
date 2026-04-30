@@ -93,5 +93,7 @@ public struct ChainImage: Sendable {
 // MARK: - Identifiable
 
 extension ChainImage: Identifiable {
-    public var id: String { chain.rawValue }
+    public var id: String {
+        chain.rawValue
+    }
 }

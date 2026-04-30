@@ -497,7 +497,7 @@
   <string name="banner.perpetuals.title">Trade Perpetuals on Hyperliquid</string>
   <string name="banner.perpetuals.description">Deposit, trade, and earn with Hyperliquid perpetuals</string>
   <string name="errors.no_data_available">Дані недоступні</string>
-  <string name="errors.dust_threshold_short">Мережа вважає цю кількість пилом — плата вища за саму суму.</string>
+  <string name="errors.dust_threshold_short">Мережа вважає цю кількість пилом - плата вища за саму суму.</string>
   <string name="charts.take_profit">TP</string>
   <string name="charts.stop_loss">SL</string>
   <string name="charts.entry">Entry</string>
@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Винагороди активуються автоматично, коли ви більше користуєтеся додатком.</string>
   <string name="errors.network_error">Помилка мережі: %s</string>
   <string name="errors.network_offline">Здається, підключення до Інтернету відсутнє.</string>
+  <string name="common.refresh">Оновити</string>
 </resources>

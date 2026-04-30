@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
+@testable import Preferences
 import PreferencesTestKit
 import Primitives
 import Testing
-
-import Foundation
-@testable import Preferences
 
 struct PreferencesTests {
     private let preferences: Preferences = .mock()
@@ -187,8 +186,8 @@ struct PreferencesTests {
     }
 
     @Test
-    func reinitializeReflectsExternalChanges() {
-        let testDefaults = UserDefaults(suiteName: "testReinitialize")!
+    func reinitializeReflectsExternalChanges() throws {
+        let testDefaults = try #require(UserDefaults(suiteName: "testReinitialize"))
         testDefaults.removePersistentDomain(forName: "testReinitialize")
 
         let preferences = Preferences(defaults: testDefaults)

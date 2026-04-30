@@ -25,7 +25,6 @@ public struct ListAssetItemView: View {
 // MARK: - Components
 
 extension ListAssetItemView {
-    @ViewBuilder
     private var primaryContent: some View {
         VStack(alignment: .leading, spacing: .tiny) {
             headerView

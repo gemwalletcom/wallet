@@ -5,8 +5,13 @@ import Foundation
 public typealias Interval = TimeInterval
 
 public extension Interval {
-    static func seconds(_ value: Int) -> Interval { Interval(value) }
-    static func minutes(_ value: Int) -> Interval { Interval(value) * 60 }
+    static func seconds(_ value: Int) -> Interval {
+        Interval(value)
+    }
+
+    static func minutes(_ value: Int) -> Interval {
+        Interval(value) * 60
+    }
 
     enum AnimationDuration {
         /// 0.15s

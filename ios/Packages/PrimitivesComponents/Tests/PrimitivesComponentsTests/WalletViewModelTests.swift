@@ -1,8 +1,7 @@
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 struct WalletViewModelTests {
     @Test

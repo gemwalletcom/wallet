@@ -1,8 +1,7 @@
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 struct WalletHeaderViewModelTests {
     @Test
@@ -17,6 +16,17 @@ struct WalletHeaderViewModelTests {
     }
 
     @Test
+    func titleSmallValue() {
+        let model = WalletHeaderViewModel(
+            walletType: .multicoin,
+            totalValue: .mock(value: 0.1041, pnlAmount: 0),
+            currencyCode: Currency.usd.rawValue,
+            bannerEventsViewModel: HeaderBannerEventViewModel(events: []),
+        )
+        #expect(model.title == "$0.10")
+    }
+
+    @Test
     func subtitle() {
         let model = WalletHeaderViewModel(
             walletType: .multicoin,
@@ -25,6 +35,17 @@ struct WalletHeaderViewModelTests {
             bannerEventsViewModel: HeaderBannerEventViewModel(events: []),
         )
         #expect(model.subtitle == "+$50.00 (5.00%)")
+    }
+
+    @Test
+    func subtitleSmallPnlAmount() {
+        let model = WalletHeaderViewModel(
+            walletType: .multicoin,
+            totalValue: .mock(value: 61.40, pnlAmount: 0.1041, pnlPercentage: 0.17),
+            currencyCode: Currency.usd.rawValue,
+            bannerEventsViewModel: HeaderBannerEventViewModel(events: []),
+        )
+        #expect(model.subtitle == "+$0.10 (0.17%)")
     }
 
     @Test

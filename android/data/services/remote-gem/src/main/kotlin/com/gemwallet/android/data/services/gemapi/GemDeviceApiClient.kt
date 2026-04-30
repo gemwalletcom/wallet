@@ -115,6 +115,9 @@ interface GemDeviceApiClient {
     @GET("/v2/devices/nft_assets")
     suspend fun getNFTs(@Header(WALLET_ID_HEADER)  walletId: String): List<NFTData>?
 
+    @POST("/v2/devices/nft_assets/{asset_id}/refresh")
+    suspend fun refreshNftAsset(@Header(WALLET_ID_HEADER) walletId: String, @Path("asset_id") assetId: String): Boolean
+
     // AUTH
     @GET("/v2/devices/auth/nonce")
     suspend fun getAuthNonce(): AuthNonce?

@@ -166,7 +166,7 @@ generate-swiftgen:
     @swiftgen config run --quiet
 
 generate-stone BUILD_MODE="":
-    @./scripts/generate-stone.sh {{BUILD_MODE}}
+    @./scripts/generate-stone.sh --force {{BUILD_MODE}}
 
 bump TARGET="patch":
     @cd .. && just bump {{TARGET}}

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -9,26 +8,58 @@ import Style
 import SwiftUI
 
 public struct ChainListSettingsScene: View {
-    private let model: ChainListSettingsViewModel
+    @State private var model: ChainListSettingsViewModel
+    @State private var searchQuery = ""
 
     public init(model: ChainListSettingsViewModel = ChainListSettingsViewModel()) {
-        self.model = model
+        _model = State(initialValue: model)
     }
 
     public var body: some View {
-        SearchableListView(
-            items: model.chains,
-            filter: model.filter(_:query:),
-            content: { chain in
-                NavigationLink(value: Scenes.ChainSettings(chain: chain)) {
-                    ChainView(model: ChainViewModel(chain: chain))
+        List {
+            Section {
+                NavigationLink(value: Scenes.ServiceStatus()) {
+                    ListItemView(
+                        title: Localized.Transaction.status,
+                        imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)),
+                    )
                 }
-            },
-            emptyContent: {
-                EmptyContentView(model: model.emptyContent)
-            },
+            }
+
+            Section("Chains") {
+                ForEach(filteredChains) { chain in
+                    NavigationLink(value: Scenes.ChainSettings(chain: chain)) {
+                        ChainView(model: ChainViewModel(chain: chain))
+                    }
+                }
+            }
+        }
+        .listRowInsets(.assetListRowInsets)
+        .listSectionSpacing(.compact)
+        .contentMargins(.top, .scene.top, for: .scrollContent)
+        .searchable(
+            text: $searchQuery,
+            placement: .navigationBarDrawer(displayMode: .always),
         )
-        .navigationTitle(model.title)
+        .autocorrectionDisabled(true)
+        .scrollDismissesKeyboard(.interactively)
+        .overlay {
+            if filteredChains.isEmpty {
+                ContentUnavailableView {
+                    EmptyContentView(model: model.emptyContent)
+                }
+                .background(UIColor.systemGroupedBackground.color)
+            }
+        }
+        .navigationTitle(Localized.Settings.Networks.title)
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Private
+
+extension ChainListSettingsScene {
+    private var filteredChains: [Chain] {
+        model.filterChains(for: searchQuery)
     }
 }

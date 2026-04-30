@@ -476,7 +476,7 @@
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "Walang available na data";
-"errors.dust_threshold_short" = "Isinasaalang-alang ng network ang halagang ito ng alikabok — ang bayad ay mas mataas kaysa sa halaga mismo.";
+"errors.dust_threshold_short" = "Isinasaalang-alang ng network ang halagang ito ng alikabok - ang bayad ay mas mataas kaysa sa halaga mismo.";
 "charts.take_profit" = "TP";
 "charts.stop_loss" = "SL";
 "charts.entry" = "Entry";
@@ -565,3 +565,4 @@
 "wallet.import.already_imported_message" = "Na-import na ang wallet na ito.";
 "rewards.unverified.title" = "Hindi pa aktibo ang mga gantimpala.";
 "rewards.unverified.description" = "Awtomatikong naa-activate ang mga reward habang mas madalas mong ginagamit ang app.";
+"common.refresh" = "I-refresh";

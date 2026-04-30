@@ -3,10 +3,9 @@
 import BigInt
 import Formatters
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 struct FeeUnitViewModelTests {
     let formatter = CurrencyFormatter(currencyCode: .empty)

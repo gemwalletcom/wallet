@@ -8,5 +8,7 @@ public protocol NodeURLFetchable: Sendable {
 }
 
 public extension NodeURLFetchable {
-    var requestInterceptor: any RequestInterceptable { EmptyRequestInterceptor() }
+    var requestInterceptor: any RequestInterceptable {
+        EmptyRequestInterceptor()
+    }
 }

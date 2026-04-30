@@ -4,35 +4,34 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesTestKit
+@testable import Stake
 import StakeService
 import StakeServiceTestKit
 import StakeTestKit
-import Testing
-
-@testable import Stake
 @testable import Store
+import Testing
 
 @MainActor
 struct StakeSceneViewModelTests {
     @Test
-    func aprValue() throws {
+    func aprValue() {
         #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: 13.5)).stakeAprModel.subtitle.text == "13.50%")
         #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: 0)).stakeAprModel.subtitle.text == .empty)
         #expect(StakeSceneViewModel.mock(stakeService: MockStakeService(stakeApr: .none)).stakeAprModel.subtitle.text == .empty)
     }
 
     @Test
-    func testLockTimeField() throws {
+    func testLockTimeField() {
         #expect(StakeSceneViewModel.mock(chain: .tron).lockTimeField.value.text == "14 days")
     }
 
     @Test
-    func minimumStakeAmount() throws {
+    func minimumStakeAmount() {
         #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField?.value.text == "1.00 TRX")
     }
 
     @Test
-    func showManage() throws {
+    func showManage() {
         #expect(StakeSceneViewModel.mock(wallet: .mock(type: .multicoin)).showManage == true)
         #expect(StakeSceneViewModel.mock(wallet: .mock(type: .view)).showManage == false)
     }

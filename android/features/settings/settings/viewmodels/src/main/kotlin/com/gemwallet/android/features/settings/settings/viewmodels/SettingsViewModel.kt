@@ -40,7 +40,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUIState.General())
 
     val isRewardsAvailable = walletsRepository.getAll().mapLatest { items -> items.any { it.type == WalletType.Multicoin } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val walletsCount = walletsRepository.getAll().mapLatest { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)

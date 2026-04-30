@@ -15,7 +15,10 @@ struct AmountInputConfig: CurrencyInputConfigurable {
     let secondaryText: String
     let onTapActionButton: (() -> Void)?
 
-    var placeholder: String { .zero }
+    var placeholder: String {
+        .zero
+    }
+
     var keyboardType: UIKeyboardType {
         switch sceneType {
         case .transfer, .deposit, .withdraw, .perpetual, .freeze, .unfreeze, .earn: .decimalPad

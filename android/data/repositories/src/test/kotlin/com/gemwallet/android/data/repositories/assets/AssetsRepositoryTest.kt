@@ -11,20 +11,18 @@ import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
-import com.gemwallet.android.data.service.store.database.entities.DbAssetConfig
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
-import com.gemwallet.android.data.service.store.database.entities.DbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.mockDbAsset
-import com.gemwallet.android.data.service.store.database.entities.mockDbAssetWallet
 import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInfo
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetLink
@@ -48,6 +46,7 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -194,7 +193,6 @@ class AssetsRepositoryTest {
     fun addApiAsset_insertsApiRank() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
-
         val asset = mockAssetSolana()
         val assetBasic = AssetBasic(
             asset = asset,
@@ -209,27 +207,91 @@ class AssetsRepositoryTest {
         val subject = createSubject()
         subject.add(
             walletId = "wallet-1",
-            accountAddress = "wallet-address",
             asset = assetBasic,
             visible = true,
         )
 
         val assetSlot = slot<DbAsset>()
-        val updateSlot = slot<DbAssetBasicUpdate>()
-        val linkSlot = slot<DbAssetWallet>()
-        val configSlot = slot<DbAssetConfig>()
+        val updateSlot = slot<List<DbAssetBasicUpdate>>()
 
-        coVerify { assetsDao.insert(capture(assetSlot), capture(linkSlot), capture(configSlot)) }
-        coVerify { assetsDao.updateBasicAsset(capture(updateSlot)) }
+        coVerify { assetsDao.insert(capture(assetSlot)) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = "wallet-1",
+                assetId = "solana",
+                isVisible = true,
+            )
+        }
+        coVerify { assetsDao.updateBasicAssets(capture(updateSlot)) }
+        val update = updateSlot.captured.single()
 
         assertEquals(321, assetSlot.captured.rank)
         assertEquals(false, assetSlot.captured.isSwapEnabled)
-        assertEquals(mockDbAssetWallet(assetId = asset.id, accountAddress = "wallet-address"), linkSlot.captured)
-        assertEquals(true, configSlot.captured.isVisible)
-        assertEquals(321, updateSlot.captured.rank)
-        assertEquals(false, updateSlot.captured.isSwapEnabled)
-        assertEquals(true, updateSlot.captured.isStakeEnabled)
-        assertEquals(4.2, updateSlot.captured.stakingApr ?: 0.0, 0.0)
+        assertEquals(321, update.rank)
+        assertEquals(false, update.isSwapEnabled)
+        assertEquals(true, update.isStakeEnabled)
+        assertEquals(4.2, update.stakingApr ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun addApiAssets_updatesExistingRowsWithApiRank() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolanaUSDC()
+        val assetBasic = AssetBasic(
+            asset = asset,
+            properties = mockAssetProperties(),
+            score = AssetScore(rank = 100),
+        )
+
+        val subject = createSubject()
+        subject.add(listOf(assetBasic))
+
+        val updates = slot<List<DbAssetBasicUpdate>>()
+        coVerify { assetsDao.insert(match<List<DbAsset>> { it.single().rank == 100 }) }
+        coVerify { assetsDao.updateBasicAssets(capture(updates)) }
+        assertEquals(100, updates.captured.single().rank)
+    }
+
+    @Test
+    fun linkAssetToWallet_visibleAssetSubscribesToPriceStream() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolanaUSDC()
+
+        val subject = createSubject()
+        subject.linkAssetToWallet("wallet-1", asset.id, true)
+
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = "wallet-1",
+                assetId = asset.id.toIdentifier(),
+                isVisible = true,
+            )
+        }
+        verify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+    }
+
+    @Test
+    fun linkAssetToWallet_hiddenAssetDoesNotSubscribeToPriceStream() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolanaUSDC()
+
+        val subject = createSubject()
+        subject.linkAssetToWallet("wallet-1", asset.id, false)
+
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = "wallet-1",
+                assetId = asset.id.toIdentifier(),
+                isVisible = false,
+            )
+        }
+        verify(exactly = 0) { streamSubscriptionService.addAssetIds(any()) }
     }
 
     @Test
@@ -242,18 +304,26 @@ class AssetsRepositoryTest {
         val subject = createSubject()
         subject.add(
             walletId = "wallet-1",
-            accountAddress = "wallet-address",
             asset = asset,
             visible = true,
         )
 
         val assetSlot = slot<DbAsset>()
-        coVerify { assetsDao.insert(capture(assetSlot), any(), any()) }
+        val updateSlot = slot<List<DbAssetBasicUpdate>>()
+        coVerify { assetsDao.insert(capture(assetSlot)) }
+        coVerify { assetsDao.updateBasicAssets(capture(updateSlot)) }
         coVerify(exactly = 0) { assetsDao.updateAssetRank(any(), any()) }
-        coVerify(exactly = 0) { assetsDao.updateBasicAsset(any()) }
+        coVerify {
+            assetsDao.setWalletAssetVisibility(
+                walletId = "wallet-1",
+                assetId = asset.id.toIdentifier(),
+                isVisible = true,
+            )
+        }
 
         assertEquals(15, assetSlot.captured.rank)
         assertEquals(asset.defaultBasic.score.rank, assetSlot.captured.rank)
+        assertEquals(15, updateSlot.captured.single().rank)
     }
 
     @Test
@@ -277,6 +347,37 @@ class AssetsRepositoryTest {
 
         coVerify { assetsDao.updateAssetRank("solana", 99) }
         coVerify { assetsDao.updateAssetRank("ethereum", 77) }
+    }
+
+    @Test
+    fun switchVisibility_hideUnlinkedAsset_doesNotCreateWalletAsset() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        every { assetsDao.getAssetInfo("solana", Chain.Solana) } returns flowOf(null)
+
+        val subject = createSubject()
+        subject.switchVisibility("wallet-1", AssetId(Chain.Solana), false)
+
+        coVerify(exactly = 0) { assetsDao.setWalletAssetVisibility(any(), any(), any()) }
+    }
+
+    @Test
+    fun switchVisibility_showUnlinkedAsset_linksOnce() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        every { assetsDao.getAssetInfo("solana", Chain.Solana) } returns flowOf(null)
+        every { assetsDao.getAssetsInfo(listOf("solana")) } returns flowOf(emptyList())
+
+        val subject = createSubject()
+        subject.switchVisibility("wallet-1", AssetId(Chain.Solana), true)
+
+        coVerify(exactly = 1) {
+            assetsDao.setWalletAssetVisibility(
+                walletId = "wallet-1",
+                assetId = "solana",
+                isVisible = true,
+            )
+        }
     }
 
     @Test
@@ -346,7 +447,7 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun getAssetsInfo_dedupesDuplicateAssetIdsFromStore() = runBlocking {
+    fun getAssetsInfo_returnsStoreRowsWithoutRepositoryDedupe() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
@@ -361,7 +462,7 @@ class AssetsRepositoryTest {
         val subject = createSubject()
         val result = subject.getAssetsInfo().first()
 
-        assertEquals(listOf(asset.id), result.map { it.asset.id })
+        assertEquals(listOf(asset.id, asset.id), result.map { it.asset.id })
     }
 
     @Test

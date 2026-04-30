@@ -25,7 +25,10 @@ public class LockSceneViewModel {
         state = service.isAuthenticationEnabled ? .locked : .unlocked
     }
 
-    var unlockTitle: String { Localized.Lock.unlock }
+    var unlockTitle: String {
+        Localized.Lock.unlock
+    }
+
     var unlockImage: String? {
         switch service.availableAuthentication {
         case .biometrics: SystemImage.faceid
@@ -34,15 +37,33 @@ public class LockSceneViewModel {
         }
     }
 
-    var isAutoLockEnabled: Bool { service.isAuthenticationEnabled }
-    var isLocked: Bool { state != .unlocked && isAutoLockEnabled }
-    var shouldLock: Bool { Date() > lastUnlockTime && isAutoLockEnabled }
-    var shouldShowLockScreen: Bool { isLocked || showPlaceholderPreview }
+    var isAutoLockEnabled: Bool {
+        service.isAuthenticationEnabled
+    }
 
-    var lockPeriod: LockPeriod { service.lockPeriod }
-    var isPrivacyLockEnabled: Bool { service.isPrivacyLockEnabled }
+    var isLocked: Bool {
+        state != .unlocked && isAutoLockEnabled
+    }
 
-    var privacyLockAlpha: CGFloat { isPrivacyLockVisible ? 1 : 0 }
+    var shouldLock: Bool {
+        Date() > lastUnlockTime && isAutoLockEnabled
+    }
+
+    var shouldShowLockScreen: Bool {
+        isLocked || showPlaceholderPreview
+    }
+
+    var lockPeriod: LockPeriod {
+        service.lockPeriod
+    }
+
+    var isPrivacyLockEnabled: Bool {
+        service.isPrivacyLockEnabled
+    }
+
+    var privacyLockAlpha: CGFloat {
+        isPrivacyLockVisible ? 1 : 0
+    }
 
     var isPrivacyLockVisible: Bool {
         guard isAutoLockEnabled else { return false }

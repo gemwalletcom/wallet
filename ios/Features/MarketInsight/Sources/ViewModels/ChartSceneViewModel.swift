@@ -28,16 +28,28 @@ public final class ChartSceneViewModel: ChartListViewable {
     public var selectedPeriod: ChartPeriod
 
     public let priceQuery: ObservableQuery<PriceRequest>
-    var priceData: PriceData? { priceQuery.value }
+    var priceData: PriceData? {
+        priceQuery.value
+    }
 
     var isPresentingInfoSheet: InfoSheetType?
     private let onSetPriceAlert: (Asset) -> Void
 
-    var title: String { assetModel.name }
+    var title: String {
+        assetModel.name
+    }
 
-    var priceAlertsViewModel: PriceAlertsViewModel { PriceAlertsViewModel(priceAlerts: priceData?.priceAlerts ?? []) }
-    var showPriceAlerts: Bool { priceAlertsViewModel.hasPriceAlerts && isPriceAvailable }
-    var isPriceAvailable: Bool { PriceViewModel(price: priceData?.price, currencyCode: preferences.currency).isPriceAvailable }
+    var priceAlertsViewModel: PriceAlertsViewModel {
+        PriceAlertsViewModel(priceAlerts: priceData?.priceAlerts ?? [])
+    }
+
+    var showPriceAlerts: Bool {
+        priceAlertsViewModel.hasPriceAlerts && isPriceAvailable
+    }
+
+    var isPriceAvailable: Bool {
+        PriceViewModel(price: priceData?.price, currencyCode: preferences.currency).isPriceAvailable
+    }
 
     public init(
         service: ChartService = ChartService(),

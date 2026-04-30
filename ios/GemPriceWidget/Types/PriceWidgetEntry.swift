@@ -5,7 +5,7 @@ import Primitives
 import Style
 import WidgetKit
 
-struct PriceWidgetEntry: TimelineEntry, Sendable {
+struct PriceWidgetEntry: TimelineEntry {
     let date: Date
     let coinPrices: [CoinPrice]
     let currency: String

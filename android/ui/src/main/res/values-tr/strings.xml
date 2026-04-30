@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Uygulamayı daha çok kullandıkça ödüller otomatik olarak etkinleşir.</string>
   <string name="errors.network_error">Ağ hatası: %s</string>
   <string name="errors.network_offline">İnternet bağlantısı kesilmiş gibi görünüyor.</string>
+  <string name="common.refresh">Yenile</string>
 </resources>

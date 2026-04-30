@@ -32,8 +32,13 @@ public final class NetworkFeeSceneViewModel {
         self.feeAmount = feeAmount
     }
 
-    public var title: String { Localized.Transfer.networkFee }
-    public var infoIcon: String { Localized.FeeRates.info }
+    public var title: String {
+        Localized.Transfer.networkFee
+    }
+
+    public var infoIcon: String {
+        Localized.FeeRates.info
+    }
 
     public var value: String? {
         feeAmount.map { display(for: $0).amount.text }

@@ -3,7 +3,9 @@
 import Foundation
 
 extension FeePriority: Identifiable {
-    public var id: String { rawValue }
+    public var id: String {
+        rawValue
+    }
 
     public var rank: Int {
         switch self {

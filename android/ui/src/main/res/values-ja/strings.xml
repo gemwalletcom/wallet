@@ -559,7 +559,7 @@
   <string name="swap.use_minimum_amount">最小量を使用する</string>
   <string name="common.earn">Earn</string>
   <string name="earn.state.empty.title">あなたのポジションはここに表示されます</string>
-  <string name="earn.state.empty.description">最初の入金 %s</string>
+  <string name="earn.state.empty.description">初回入金 %s</string>
   <string name="contacts.title">連絡先</string>
   <string name="contacts.contact">接触</string>
   <string name="contacts.addresses">住所</string>
@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。</string>
   <string name="errors.network_error">ネットワークエラー: %s</string>
   <string name="errors.network_offline">インターネット接続が切断されているようです。</string>
+  <string name="common.refresh">更新</string>
 </resources>

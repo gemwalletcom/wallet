@@ -497,7 +497,7 @@
   <string name="banner.perpetuals.title">Trade Perpetuals on Hyperliquid</string>
   <string name="banner.perpetuals.description">Deposit, trade, and earn with Hyperliquid perpetuals</string>
   <string name="errors.no_data_available">Brak dostępnych danych</string>
-  <string name="errors.dust_threshold_short">Sieć traktuje tę kwotę jako kurz — opłata jest wyższa od samej kwoty.</string>
+  <string name="errors.dust_threshold_short">Sieć traktuje tę kwotę jako kurz - opłata jest wyższa od samej kwoty.</string>
   <string name="charts.take_profit">TP</string>
   <string name="charts.stop_loss">SL</string>
   <string name="charts.entry">Entry</string>
@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Nagrody aktywują się automatycznie w miarę jak częściej korzystasz z aplikacji.</string>
   <string name="errors.network_error">Błąd sieciowy: %s</string>
   <string name="errors.network_offline">Połączenie internetowe wydaje się być niedostępne.</string>
+  <string name="common.refresh">Odświeżać</string>
 </resources>

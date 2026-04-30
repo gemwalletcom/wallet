@@ -1,13 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import FiatConnect
+@testable import FiatConnect
 import Primitives
 import PrimitivesTestKit
 import Testing
 import Validators
-
-@testable import FiatConnect
 
 struct FiatSellValidatorTests {
     @Test

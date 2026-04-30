@@ -10,8 +10,8 @@ import Store
 import UIKit
 import WalletService
 
-// OnstartService runs services before the app starts.
-// See OnstartAsyncService for any background tasks to run after start
+/// OnstartService runs services before the app starts.
+/// See OnstartAsyncService for any background tasks to run after start
 public struct OnstartService: Sendable {
     private let assetListService: any GemAPIAssetsListService
     private let assetsService: AssetsService

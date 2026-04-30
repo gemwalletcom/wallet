@@ -1,6 +1,6 @@
 import Primitives
 
-enum ImportWalletSceneResult: Sendable {
+enum ImportWalletSceneResult {
     case new(Wallet)
     case existing
 }

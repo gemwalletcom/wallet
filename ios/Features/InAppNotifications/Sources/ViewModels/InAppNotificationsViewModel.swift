@@ -16,7 +16,9 @@ public final class InAppNotificationsViewModel {
     private let wallet: Wallet
 
     public let query: ObservableQuery<InAppNotificationsRequest>
-    public var notifications: [Primitives.InAppNotification] { query.value }
+    public var notifications: [Primitives.InAppNotification] {
+        query.value
+    }
 
     public init(
         wallet: Wallet,
@@ -27,7 +29,9 @@ public final class InAppNotificationsViewModel {
         query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id), initialValue: [])
     }
 
-    public var title: String { Localized.Settings.Notifications.title }
+    public var title: String {
+        Localized.Settings.Notifications.title
+    }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .notifications)

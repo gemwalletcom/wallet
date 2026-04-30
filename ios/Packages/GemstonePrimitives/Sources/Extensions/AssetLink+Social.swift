@@ -10,7 +10,7 @@ public extension AssetLink {
 }
 
 extension AssetLink: @retroactive Comparable {
-    // Conforming to Comparable for sorting
+    /// Conforming to Comparable for sorting
     public static func < (lhs: AssetLink, rhs: AssetLink) -> Bool {
         if let lhsLink = lhs.linkType, let rhsLink = rhs.linkType {
             return lhsLink.order > rhsLink.order

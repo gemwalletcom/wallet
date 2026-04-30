@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import Assets
 import AssetsTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import Assets
 
 @MainActor
 struct SelectAssetViewModelTests {

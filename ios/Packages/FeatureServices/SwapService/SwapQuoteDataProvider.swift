@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Keystore
-import Primitives
-
 import struct Gemstone.GemSwapQuoteData
 import struct Gemstone.SwapperQuote
+import Keystore
+import Primitives
 
 public protocol SwapQuoteDataProvidable: Sendable {
     func fetchQuoteData(wallet: Wallet, quote: SwapperQuote) async throws -> GemSwapQuoteData

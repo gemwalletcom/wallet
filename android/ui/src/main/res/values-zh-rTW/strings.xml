@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">您使用應用程式的次數越多，獎勵就會自動啟動。</string>
   <string name="errors.network_error">網路錯誤： %s</string>
   <string name="errors.network_offline">網路連線似乎已斷開。</string>
+  <string name="common.refresh">重新整理</string>
 </resources>

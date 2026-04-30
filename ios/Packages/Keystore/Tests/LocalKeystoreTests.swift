@@ -1,9 +1,8 @@
+@testable import Keystore
 import KeystoreTestKit
 import Primitives
 import Testing
 import WalletCore
-
-@testable import Keystore
 
 struct LocalKeystoreTests {
     let chains: [Chain] = [.ethereum, .solana]
@@ -127,7 +126,7 @@ struct LocalKeystoreTests {
         )
 
         let text = "5A2EYggC6hiAAuRArnkAANGySDyqQUGrbBHXfKQD9DQ5XcSkReDswnRqb7x3KRrnie9qSL"
-        let hash = Base58.decodeNoCheck(string: text)!
+        let hash = try #require(Base58.decodeNoCheck(string: text))
         let signature = try await keystore.sign(hash: hash, wallet: wallet, chain: .solana)
         let encoded = Base58.encodeNoCheck(data: signature)
 

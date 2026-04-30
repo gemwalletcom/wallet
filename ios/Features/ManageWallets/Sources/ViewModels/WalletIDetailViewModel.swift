@@ -23,7 +23,9 @@ public final class WalletDetailViewModel {
     var isPresentingExportWallet: ExportWalletType?
 
     public let walletQuery: ObservableQuery<WalletRequest>
-    public var dbWallet: Wallet? { walletQuery.value }
+    public var dbWallet: Wallet? {
+        walletQuery.value
+    }
 
     public init(
         navigationPath: Binding<NavigationPath>,

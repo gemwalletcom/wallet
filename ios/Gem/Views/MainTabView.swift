@@ -131,7 +131,6 @@ struct MainTabView: View {
 // MARK: - UI Components
 
 extension MainTabView {
-    @ViewBuilder
     private func tabItem(_ title: String, _ image: Image) -> Label<Text, Image> {
         Label(
             title: { Text(title) },

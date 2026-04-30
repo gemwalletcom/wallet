@@ -30,5 +30,7 @@ public struct FiatRangeValidator<T: Comparable & Sendable>: ValueValidator {
         }
     }
 
-    public var id: String { "FiatRangeValidator" }
+    public var id: String {
+        "FiatRangeValidator"
+    }
 }

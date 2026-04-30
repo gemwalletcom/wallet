@@ -35,7 +35,6 @@ public struct ListItemErrorView: View {
         }
     }
 
-    @ViewBuilder
     private var errorContent: some View {
         HStack {
             VStack(alignment: .leading, spacing: .small) {

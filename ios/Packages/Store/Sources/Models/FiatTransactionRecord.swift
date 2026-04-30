@@ -4,7 +4,7 @@ import Foundation
 import GRDB
 import Primitives
 
-struct FiatTransactionRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
+struct FiatTransactionRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "fiat_transactions"
 
     enum Columns {

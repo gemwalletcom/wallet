@@ -118,7 +118,7 @@ struct SwapSignerTests {
         #expect(mockSigner.transferInputs.count == 1)
         #expect(mockSigner.tokenTransferInputs.isEmpty)
 
-        let transferInput = mockSigner.transferInputs.first!
+        let transferInput = try #require(mockSigner.transferInputs.first)
         #expect(transferInput.asset == fromAsset)
         if case let .transfer(asset) = transferInput.type {
             #expect(asset == fromAsset)
@@ -160,7 +160,7 @@ struct SwapSignerTests {
             privateKey: swapTestPrivateKey,
         )
 
-        let transferInput = mockSigner.transferInputs.first!
+        let transferInput = try #require(mockSigner.transferInputs.first)
         #expect(transferInput.value == swapData.quote.fromValueBigInt)
     }
 
@@ -193,7 +193,7 @@ struct SwapSignerTests {
             privateKey: swapTestPrivateKey,
         )
 
-        let transferInput = mockSigner.tokenTransferInputs.first!
+        let transferInput = try #require(mockSigner.tokenTransferInputs.first)
         #expect(transferInput.value == swapData.quote.fromValueBigInt)
     }
 

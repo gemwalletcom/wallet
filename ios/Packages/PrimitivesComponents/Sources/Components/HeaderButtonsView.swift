@@ -31,7 +31,6 @@ public struct HeaderButtonsView: View {
         }
     }
 
-    @ViewBuilder
     private func buttonView(for button: HeaderButton) -> some View {
         Group {
             switch button.viewType {

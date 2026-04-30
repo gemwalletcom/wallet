@@ -7,10 +7,6 @@ import Style
 struct KeystoreAuthenticationViewModel {
     let authentication: KeystoreAuthentication
 
-    init(authentication: KeystoreAuthentication) {
-        self.authentication = authentication
-    }
-
     var authenticationImage: String? {
         switch authentication {
         case .biometrics: SystemImage.faceid

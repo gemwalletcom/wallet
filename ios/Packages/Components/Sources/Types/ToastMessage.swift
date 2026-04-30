@@ -4,7 +4,9 @@ import Foundation
 import SwiftUI
 
 public struct ToastMessage: Identifiable {
-    public var id: String { title + image }
+    public var id: String {
+        title + image
+    }
 
     public let title: String
     public let image: String

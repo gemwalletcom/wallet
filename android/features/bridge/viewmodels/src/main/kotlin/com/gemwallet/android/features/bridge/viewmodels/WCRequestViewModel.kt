@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
+import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.getNamespace
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -43,6 +44,7 @@ class WCRequestViewModel @Inject constructor(
     private val passwordStore: PasswordStore,
     private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
     private val simulationService: com.gemwallet.android.blockchain.services.WalletConnectSimulationService,
+    private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
 ) : ViewModel() {
 
     private val walletConnect = WalletConnect()
@@ -115,6 +117,7 @@ class WCRequestViewModel @Inject constructor(
                         appMetadata = appMetadata,
                         action = action,
                         simulation = simulationService.simulateSignMessage(action.chain, action.signType, action.data, sessionDomain),
+                        explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain),
                     )
 
                     is WalletConnectAction.SendTransaction -> WCRequest.Transaction.SendTransaction(

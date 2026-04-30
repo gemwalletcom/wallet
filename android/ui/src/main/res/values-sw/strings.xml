@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.</string>
   <string name="errors.network_error">Hitilafu ya mtandao: %s</string>
   <string name="errors.network_offline">Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.</string>
+  <string name="common.refresh">Onyesha upya</string>
 </resources>

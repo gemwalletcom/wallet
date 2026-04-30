@@ -74,7 +74,6 @@ class SyncAssetInfoImplTest {
         coVerify {
             assetsRepository.linkAssetToWallet(
                 walletId = "wallet-1",
-                accountAddress = "bc1-current",
                 assetId = asset.id,
                 visible = true,
             )
@@ -82,7 +81,6 @@ class SyncAssetInfoImplTest {
         coVerify(exactly = 0) {
             assetsRepository.add(
                 walletId = any(),
-                accountAddress = any(),
                 asset = any<com.wallet.core.primitives.Asset>(),
                 visible = any(),
             )
@@ -112,7 +110,6 @@ class SyncAssetInfoImplTest {
         coVerify(exactly = 0) {
             assetsRepository.linkAssetToWallet(
                 walletId = any(),
-                accountAddress = any(),
                 assetId = any(),
                 visible = any(),
             )

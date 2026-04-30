@@ -37,10 +37,21 @@ public final class PerpetualSceneViewModel {
     public let perpetualTotalValueQuery: ObservableQuery<TotalValueRequest>
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
-    public var positions: [PerpetualPositionData] { positionsQuery.value }
-    public var perpetualData: PerpetualData { perpetualQuery.value }
-    public var perpetualTotalValue: TotalFiatValue { perpetualTotalValueQuery.value }
-    public var transactions: [TransactionExtended] { transactionsQuery.value }
+    public var positions: [PerpetualPositionData] {
+        positionsQuery.value
+    }
+
+    public var perpetualData: PerpetualData {
+        perpetualQuery.value
+    }
+
+    public var perpetualTotalValue: TotalFiatValue {
+        perpetualTotalValueQuery.value
+    }
+
+    public var transactions: [TransactionExtended] {
+        transactionsQuery.value
+    }
 
     public var state: StateViewType<[ChartCandleStick]> = .loading
     public var currentPeriod: ChartPeriod = .day
@@ -88,22 +99,61 @@ public final class PerpetualSceneViewModel {
         return name.isEmpty ? asset.symbol : name
     }
 
-    public var currency: String { preference.currency }
-    public var hasOpenPosition: Bool { !positionViewModels.isEmpty }
+    public var currency: String {
+        preference.currency
+    }
 
-    public var positionSectionTitle: String { Localized.Perpetual.position }
-    public var infoSectionTitle: String { Localized.Common.info }
-    public var transactionsSectionTitle: String { Localized.Activity.title }
-    public var closePositionTitle: String { Localized.Perpetual.closePosition }
-    public var modifyPositionTitle: String { Localized.Perpetual.modify }
-    public var increasePositionTitle: String { Localized.Perpetual.increasePosition }
-    public var reducePositionTitle: String { Localized.Perpetual.reducePosition }
-    public var longButtonTitle: String { Localized.Perpetual.long }
-    public var shortButtonTitle: String { Localized.Perpetual.short }
+    public var hasOpenPosition: Bool {
+        !positionViewModels.isEmpty
+    }
 
-    public var perpetual: Perpetual { perpetualData.perpetual }
-    public var perpetualViewModel: PerpetualViewModel { PerpetualViewModel(perpetual: perpetual) }
-    public var positionViewModels: [PerpetualPositionViewModel] { positions.map { PerpetualPositionViewModel($0) } }
+    public var positionSectionTitle: String {
+        Localized.Perpetual.position
+    }
+
+    public var infoSectionTitle: String {
+        Localized.Common.info
+    }
+
+    public var transactionsSectionTitle: String {
+        Localized.Activity.title
+    }
+
+    public var closePositionTitle: String {
+        Localized.Perpetual.closePosition
+    }
+
+    public var modifyPositionTitle: String {
+        Localized.Perpetual.modify
+    }
+
+    public var increasePositionTitle: String {
+        Localized.Perpetual.increasePosition
+    }
+
+    public var reducePositionTitle: String {
+        Localized.Perpetual.reducePosition
+    }
+
+    public var longButtonTitle: String {
+        Localized.Perpetual.long
+    }
+
+    public var shortButtonTitle: String {
+        Localized.Perpetual.short
+    }
+
+    public var perpetual: Perpetual {
+        perpetualData.perpetual
+    }
+
+    public var perpetualViewModel: PerpetualViewModel {
+        PerpetualViewModel(perpetual: perpetual)
+    }
+
+    public var positionViewModels: [PerpetualPositionViewModel] {
+        positions.map { PerpetualPositionViewModel($0) }
+    }
 
     var chartLineModels: [ChartLineViewModel] {
         guard let positionData = positions.first else { return [] }
@@ -124,7 +174,10 @@ public final class PerpetualSceneViewModel {
         }
     }
 
-    private var currentChartInterval: String { currentPeriod.hyperliquidInterval }
+    private var currentChartInterval: String {
+        currentPeriod.hyperliquidInterval
+    }
+
     private var currentCandleSubscription: GemPerpetualSubscription {
         .candle(symbol: perpetual.coin, interval: currentChartInterval)
     }

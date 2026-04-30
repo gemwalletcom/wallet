@@ -3,5 +3,7 @@
 import Foundation
 
 extension ContactData: Identifiable {
-    public var id: String { contact.id }
+    public var id: String {
+        contact.id
+    }
 }

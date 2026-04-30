@@ -4,9 +4,8 @@ import EarnServiceTestKit
 import FiatServiceTestKit
 import Primitives
 import PrimitivesTestKit
-import Testing
-
 @testable import Store
+import Testing
 @testable import Transfer
 
 @MainActor

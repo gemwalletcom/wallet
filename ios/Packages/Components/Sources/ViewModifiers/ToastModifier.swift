@@ -72,7 +72,9 @@ private struct OptionalMessageToastModifier: ViewModifier {
 // MARK: - View Modifier
 
 public extension View {
-    static var toastDuration: Double { 2 }
+    static var toastDuration: Double {
+        2
+    }
 
     func toast(
         isPresenting: Binding<Bool>,

@@ -6,10 +6,9 @@ import PreferencesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
+@testable import Store
 import Style
 import Testing
-
-@testable import Store
 @testable import Transactions
 
 @MainActor

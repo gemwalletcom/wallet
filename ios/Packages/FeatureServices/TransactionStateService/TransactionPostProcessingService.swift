@@ -8,7 +8,7 @@ import Primitives
 import StakeService
 import Store
 
-struct TransactionPostProcessingService: Sendable {
+struct TransactionPostProcessingService {
     private let transactionStore: TransactionStore
     private let balanceUpdater: any BalanceUpdater
     private let stakeService: StakeService

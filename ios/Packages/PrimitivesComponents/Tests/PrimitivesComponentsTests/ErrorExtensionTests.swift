@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Testing
-
 @testable import PrimitivesComponents
+import Testing
 
 struct ErrorExtensionTests {
     @Test

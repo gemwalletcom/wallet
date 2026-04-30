@@ -6,7 +6,7 @@ import Foundation
 import Primitives
 import Store
 
-struct TransactionStateProvider: Sendable {
+struct TransactionStateProvider {
     private let transactionStore: TransactionStore
     private let chainServiceFactory: any ChainServiceFactorable
 

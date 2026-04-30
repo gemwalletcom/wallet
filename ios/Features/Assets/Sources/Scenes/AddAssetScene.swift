@@ -58,7 +58,6 @@ public struct AddAssetScene: View {
 // MARK: - UI Components
 
 extension AddAssetScene {
-    @ViewBuilder
     private var addTokenList: some View {
         List {
             if let chain = model.input.chain {

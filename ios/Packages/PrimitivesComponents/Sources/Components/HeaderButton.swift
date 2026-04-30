@@ -33,7 +33,9 @@ public struct HeaderButton: Identifiable {
         self.viewType = viewType
     }
 
-    public var id: String { "\(type.rawValue)_\(viewType.id)" }
+    public var id: String {
+        "\(type.rawValue)_\(viewType.id)"
+    }
 
     public var title: String {
         switch type {

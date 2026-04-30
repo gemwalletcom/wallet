@@ -63,7 +63,9 @@ public final class ManageContactViewModel {
         }
     }
 
-    var title: String { Localized.Contacts.contact }
+    var title: String {
+        Localized.Contacts.contact
+    }
 
     var isAddMode: Bool {
         switch mode {
@@ -72,11 +74,25 @@ public final class ManageContactViewModel {
         }
     }
 
-    var buttonTitle: String { Localized.Common.save }
-    var nameTitle: String { Localized.Wallet.name }
-    var descriptionTitle: String { Localized.Common.description }
-    var contactSectionTitle: String { Localized.Contacts.contact }
-    var addressesSectionTitle: String { Localized.Contacts.addresses }
+    var buttonTitle: String {
+        Localized.Common.save
+    }
+
+    var nameTitle: String {
+        Localized.Wallet.name
+    }
+
+    var descriptionTitle: String {
+        Localized.Common.description
+    }
+
+    var contactSectionTitle: String {
+        Localized.Contacts.contact
+    }
+
+    var addressesSectionTitle: String {
+        Localized.Contacts.addresses
+    }
 
     var buttonState: ButtonState {
         guard nameInputModel.isValid,

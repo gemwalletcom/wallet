@@ -30,7 +30,11 @@ public struct SymbolViewModel: Sendable, AmountDisplayable {
         )
     }
 
-    public var fiat: TextValue? { nil }
+    public var fiat: TextValue? {
+        nil
+    }
 
-    public var assetImage: AssetImage? { image }
+    public var assetImage: AssetImage? {
+        image
+    }
 }

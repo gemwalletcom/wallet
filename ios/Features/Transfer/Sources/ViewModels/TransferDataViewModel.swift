@@ -9,18 +9,37 @@ import PrimitivesComponents
 struct TransferDataViewModel {
     let data: TransferData
 
-    init(data: TransferData) {
-        self.data = data
+    var type: TransferDataType {
+        data.type
     }
 
-    var type: TransferDataType { data.type }
-    var recipientData: RecipientData { data.recipientData }
-    var recipient: Recipient { recipientData.recipient }
-    var asset: Asset { data.type.asset }
-    var memo: String? { recipientData.recipient.memo }
-    var chain: Chain { data.chain }
-    var chainType: ChainType { chain.type }
-    var chainAsset: Asset { chain.asset }
+    var recipientData: RecipientData {
+        data.recipientData
+    }
+
+    var recipient: Recipient {
+        recipientData.recipient
+    }
+
+    var asset: Asset {
+        data.type.asset
+    }
+
+    var memo: String? {
+        recipientData.recipient.memo
+    }
+
+    var chain: Chain {
+        data.chain
+    }
+
+    var chainType: ChainType {
+        chain.type
+    }
+
+    var chainAsset: Asset {
+        chain.asset
+    }
 
     var title: String {
         switch type {

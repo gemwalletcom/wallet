@@ -2,10 +2,32 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 
-@Entity(tableName = "accounts", primaryKeys = ["wallet_id", "address", "chain", "derivation_path"])
+@Entity(
+    tableName = "accounts",
+    primaryKeys = ["wallet_id", "chain"],
+    foreignKeys = [
+        ForeignKey(
+            entity = DbAsset::class,
+            parentColumns = ["id"],
+            childColumns = ["chain"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = DbWallet::class,
+            parentColumns = ["id"],
+            childColumns = ["wallet_id"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("chain")],
+)
 data class DbAccount(
     @ColumnInfo(name = "wallet_id") val walletId: String,
     @ColumnInfo(name = "derivation_path") val derivationPath: String,

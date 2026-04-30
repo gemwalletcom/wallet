@@ -81,7 +81,16 @@ struct GemAPITests {
         #expect(GemDeviceAPI.getSubscriptions.walletId == nil)
         #expect(GemDeviceAPI.getAssetsList(walletId: "wallet", fromTimestamp: 0).walletId == "wallet")
         #expect(GemDeviceAPI.getTransactions(walletId: "wallet", assetId: nil, fromTimestamp: 0).walletId == "wallet")
+        #expect(GemDeviceAPI.refreshNftAsset(walletId: "wallet", assetId: "ethereum_0xabc::1").walletId == "wallet")
         #expect(GemDeviceAPI.getFiatQuoteUrl(walletId: "wallet", quoteId: "quote").walletId == "wallet")
+    }
+
+    @Test
+    func gemDeviceAPIRefreshNftAssetEscapesPathId() {
+        #expect(
+            GemDeviceAPI.refreshNftAsset(walletId: "wallet", assetId: "ton_collection/with/slash::token/1").path ==
+                "/v2/devices/nft_assets/ton_collection%2Fwith%2Fslash::token%2F1/refresh",
+        )
     }
 }
 

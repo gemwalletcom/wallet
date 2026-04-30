@@ -238,16 +238,7 @@ class SolanaSignClient(
     }
 
     private fun sign(input: Solana.SigningInput.Builder, fee: Fee.Solana): List<ByteArray> {
-        input.apply {
-            this.priorityFeeLimit = Solana.PriorityFeeLimit.newBuilder().apply {
-                this.limit = fee.limit.toInt()
-            }.build()
-            if (fee.minerFee > BigInteger.ZERO) {
-                this.priorityFeePrice = Solana.PriorityFeePrice.newBuilder().apply {
-                    this.price = fee.minerFee.toLong()
-                }.build()
-            }
-        }
+        applyPriorityFee(input, fee)
         val output = AnySigner.sign(input.build(), CoinType.SOLANA, Solana.SigningOutput.parser())
         val data = Base58.decodeNoCheck(output.encoded) ?: throw IllegalStateException("string is not Base58 encoding!")
         val base64 = Base64.encode(data)
@@ -275,6 +266,19 @@ class SolanaSignClient(
     }
 
     override fun supported(chain: Chain): Boolean = this.chain == chain
+
+    companion object {
+        internal fun applyPriorityFee(input: Solana.SigningInput.Builder, fee: Fee.Solana) {
+            input.priorityFeeLimit = Solana.PriorityFeeLimit.newBuilder().apply {
+                limit = fee.limit.toInt()
+            }.build()
+            if (fee.unitFee > BigInteger.ZERO) {
+                input.priorityFeePrice = Solana.PriorityFeePrice.newBuilder().apply {
+                    price = fee.unitFee.toLong()
+                }.build()
+            }
+        }
+    }
 }
 
 //public struct SolanaRawTxDecoder {

@@ -1,11 +1,14 @@
 package com.wallet
 
-import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.model.shouldUseCompactFormatter
+import com.gemwallet.android.model.totalFormatted
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -66,6 +69,14 @@ class TestFormat {
         assertEquals(false, shouldUseCompactFormatter(9_999.0))
         assertEquals(true, shouldUseCompactFormatter(10_000.0))
         assertEquals(true, shouldUseCompactFormatter(-10_000.0))
+    }
+
+    @Test
+    fun testAssetBalance_TotalFormattedTinyBalance() {
+        assertEquals(
+            "0.0000001 ETH",
+            AssetBalance.create(asset = mockAssetEthereum(), available = "100000000000").totalFormatted(),
+        )
     }
 
     @Test

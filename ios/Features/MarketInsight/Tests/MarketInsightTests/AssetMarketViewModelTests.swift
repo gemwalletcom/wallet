@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import MarketInsight
 import Primitives
 import PrimitivesTestKit
 import Testing
-
-@testable import MarketInsight
 
 struct AssetMarketViewModelTests {
     @Test

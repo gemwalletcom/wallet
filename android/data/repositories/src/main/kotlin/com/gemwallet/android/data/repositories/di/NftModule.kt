@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
+import com.gemwallet.android.cases.nft.RefreshNftAsset
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.repositories.nft.NftRepository
 import com.gemwallet.android.data.service.store.database.NftDao
@@ -33,4 +34,7 @@ class NftModule {
 
     @Provides
     fun provideGetAssetNftCase(nftRepository: NftRepository): GetAssetNft = nftRepository
+
+    @Provides
+    fun provideRefreshNftAsset(nftRepository: NftRepository): RefreshNftAsset = nftRepository
 }

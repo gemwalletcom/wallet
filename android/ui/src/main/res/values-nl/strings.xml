@@ -588,4 +588,5 @@
   <string name="rewards.unverified.description">Je beloningen worden automatisch geactiveerd naarmate je de app meer gebruikt.</string>
   <string name="errors.network_error">Netwerkfout: %s</string>
   <string name="errors.network_offline">De internetverbinding lijkt offline te zijn.</string>
+  <string name="common.refresh">Vernieuwen</string>
 </resources>

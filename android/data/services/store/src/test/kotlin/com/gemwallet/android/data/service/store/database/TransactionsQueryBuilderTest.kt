@@ -6,42 +6,39 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TransactionsQueryBuilderTest {
 
     @Test
-    fun emptyFilters_baseQueryWithLimitOnly() {
+    fun emptyFilters_baseQueryHasNoExtraConditions() {
         val q = buildExtendedTransactionsSql(filters = emptyList())
-        assertEquals(
-            "SELECT * FROM extended_txs ORDER BY createdAt DESC LIMIT ?",
-            q.sql,
-        )
+        assertTrue(q.sql.trimStart().startsWith("SELECT"))
+        assertTrue(q.sql.contains("FROM transactions as tx"))
+        assertTrue(q.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
         assertEquals(listOf<Any>(DEFAULT_TRANSACTIONS_LIMIT), q.args)
     }
 
     @Test
     fun emptyChainsOrTypes_areNoOps() {
+        val baseline = buildExtendedTransactionsSql(filters = emptyList()).sql
         val chainsOnly = buildExtendedTransactionsSql(
             filters = listOf(TransactionsRequestFilter.Chains(emptyList())),
-        )
+        ).sql
         val typesOnly = buildExtendedTransactionsSql(
             filters = listOf(TransactionsRequestFilter.Types(emptyList())),
-        )
-        assertFalse(chainsOnly.sql.contains("WHERE"))
-        assertFalse(typesOnly.sql.contains("WHERE"))
+        ).sql
+        assertEquals(baseline, chainsOnly)
+        assertEquals(baseline, typesOnly)
     }
 
     @Test
-    fun chainsFilter_buildsSubqueryWithEnumName() {
+    fun chainsFilter_buildsInClauseOnJoinedAsset() {
         val q = buildExtendedTransactionsSql(
             filters = listOf(TransactionsRequestFilter.Chains(listOf(Chain.Ethereum, Chain.Bitcoin))),
         )
-        assertTrue(
-            q.sql.contains("assetId IN (SELECT id FROM asset WHERE chain IN (?,?))"),
-        )
+        assertTrue(q.sql.contains("AND asset.chain IN (?,?)"))
         assertEquals("Ethereum", q.args[0])
         assertEquals("Bitcoin", q.args[1])
     }
@@ -51,17 +48,17 @@ class TransactionsQueryBuilderTest {
         val q = buildExtendedTransactionsSql(
             filters = listOf(TransactionsRequestFilter.Types(listOf(TransactionType.Transfer, TransactionType.Swap))),
         )
-        assertTrue(q.sql.contains("type IN (?,?)"))
+        assertTrue(q.sql.contains("AND tx.type IN (?,?)"))
         assertEquals("Transfer", q.args[0])
         assertEquals("Swap", q.args[1])
     }
 
     @Test
-    fun assetRankGreaterThan_buildsRankSubquery() {
+    fun assetRankGreaterThan_buildsInequalityOnJoinedAsset() {
         val q = buildExtendedTransactionsSql(
             filters = listOf(TransactionsRequestFilter.AssetRankGreaterThan(15)),
         )
-        assertTrue(q.sql.contains("assetId IN (SELECT id FROM asset WHERE rank > ?)"))
+        assertTrue(q.sql.contains("AND asset.rank > ?"))
         assertEquals(15, q.args[0])
     }
 
@@ -72,7 +69,7 @@ class TransactionsQueryBuilderTest {
             filters = listOf(TransactionsRequestFilter.Asset(assetId)),
         )
         assertTrue(
-            q.sql.contains("(assetId = ? OR assetIdFrom = ? OR assetIdTo = ?)"),
+            q.sql.contains("(tx.assetId = ? OR swap.from_asset_id = ? OR swap.to_asset_id = ?)"),
         )
         assertEquals("ethereum_0xABC", q.args[0])
         assertEquals("ethereum_0xABC", q.args[1])
@@ -84,12 +81,14 @@ class TransactionsQueryBuilderTest {
         val q = buildExtendedTransactionsSql(
             filters = listOf(TransactionsRequestFilter.State(TransactionState.Pending)),
         )
-        assertTrue(q.sql.contains("state = ?"))
+        assertTrue(q.sql.contains("AND tx.state = ?"))
         assertEquals("Pending", q.args[0])
     }
 
     @Test
-    fun multipleFilters_areAndCombinedInOrder() {
+    fun multipleFilters_addOneAndPerFilter() {
+        val baselineAndCount = " AND ".toRegex()
+            .findAll(buildExtendedTransactionsSql(filters = emptyList()).sql).count()
         val q = buildExtendedTransactionsSql(
             filters = listOf(
                 TransactionsRequestFilter.Chains(listOf(Chain.Ethereum)),
@@ -97,10 +96,8 @@ class TransactionsQueryBuilderTest {
                 TransactionsRequestFilter.AssetRankGreaterThan(15),
             ),
         )
-        val whereStart = q.sql.indexOf("WHERE ")
-        val orderStart = q.sql.indexOf("ORDER BY")
-        val whereClause = q.sql.substring(whereStart, orderStart)
-        assertEquals(2, " AND ".toRegex().findAll(whereClause).count())
+        val totalAndCount = " AND ".toRegex().findAll(q.sql).count()
+        assertEquals(3, totalAndCount - baselineAndCount)
         assertEquals("Ethereum", q.args[0])
         assertEquals("Transfer", q.args[1])
         assertEquals(15, q.args[2])

@@ -10,5 +10,7 @@ public extension Result {
         return false
     }
 
-    var isFailure: Bool { !isSuccess }
+    var isFailure: Bool {
+        !isSuccess
+    }
 }

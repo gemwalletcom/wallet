@@ -53,7 +53,6 @@ public struct ManageContactScene: View {
         }
     }
 
-    @ViewBuilder
     private func contactAddressScene(mode: ManageContactAddressViewModel.Mode) -> some View {
         ManageContactAddressScene(
             model: ManageContactAddressViewModel(

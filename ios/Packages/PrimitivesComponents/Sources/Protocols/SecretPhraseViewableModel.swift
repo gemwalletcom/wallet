@@ -2,9 +2,8 @@
 
 import Components
 import Foundation
-import Primitives
-
 import GemstonePrimitives
+import Primitives
 
 public protocol SecretPhraseViewableModel {
     var title: String { get }
@@ -16,5 +15,7 @@ public protocol SecretPhraseViewableModel {
 }
 
 public extension SecretPhraseViewableModel {
-    var docsUrl: URL { AppUrl.docs(.howToSecureSecretPhrase) }
+    var docsUrl: URL {
+        AppUrl.docs(.howToSecureSecretPhrase)
+    }
 }

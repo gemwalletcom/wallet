@@ -32,13 +32,21 @@ public final class AutocloseSceneViewModel {
         )
     }
 
-    public var title: String { Localized.Perpetual.autoClose }
+    public var title: String {
+        Localized.Perpetual.autoClose
+    }
+
     public var marketPriceField: ListItemField {
         ListItemField(title: Localized.Perpetual.marketPrice, value: currencyFormatter.string(marketPrice))
     }
 
-    public var takeProfitModel: AutocloseViewModel { autocloseModel(type: .takeProfit, price: takeProfitPrice) }
-    public var stopLossModel: AutocloseViewModel { autocloseModel(type: .stopLoss, price: stopLossPrice) }
+    public var takeProfitModel: AutocloseViewModel {
+        autocloseModel(type: .takeProfit, price: takeProfitPrice)
+    }
+
+    public var stopLossModel: AutocloseViewModel {
+        autocloseModel(type: .stopLoss, price: stopLossPrice)
+    }
 
     public var positionItemViewModel: any ListAssetItemViewable {
         switch type {
@@ -119,8 +127,13 @@ public extension AutocloseSceneViewModel {
 // MARK: - Private
 
 extension AutocloseSceneViewModel {
-    private var takeProfitPrice: Double? { currencyFormatter.double(from: input.takeProfit.text) }
-    private var stopLossPrice: Double? { currencyFormatter.double(from: input.stopLoss.text) }
+    private var takeProfitPrice: Double? {
+        currencyFormatter.double(from: input.takeProfit.text)
+    }
+
+    private var stopLossPrice: Double? {
+        currencyFormatter.double(from: input.stopLoss.text)
+    }
 
     private var position: PerpetualPositionData? {
         guard case let .modify(position, _) = type else { return nil }

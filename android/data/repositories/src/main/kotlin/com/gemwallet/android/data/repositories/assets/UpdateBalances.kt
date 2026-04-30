@@ -47,15 +47,14 @@ class UpdateBalances(
         val assetId = account.chain.string
 
         if (native == null && stake == null) {
-            return balancesDao.getByAccount(walletId, account.address, assetId)?.toDTO()
+            return balancesDao.getByAsset(walletId, assetId)?.toDTO()
         }
 
-        ensureRowExists(walletId, account.address, assetId, updatedAt)
+        ensureRowExists(walletId, assetId, updatedAt)
 
         native?.let {
             balancesDao.updateCoinBalance(
                 walletId = walletId,
-                address = account.address,
                 assetId = assetId,
                 available = it.balance.available,
                 availableAmount = it.balanceAmount.available,
@@ -69,7 +68,6 @@ class UpdateBalances(
         stake?.let {
             balancesDao.updateStakeBalance(
                 walletId = walletId,
-                address = account.address,
                 assetId = assetId,
                 staked = it.balance.staked,
                 stakedAmount = it.balanceAmount.staked,
@@ -90,7 +88,7 @@ class UpdateBalances(
             )
         }
 
-        return balancesDao.getByAccount(walletId, account.address, assetId)?.toDTO()
+        return balancesDao.getByAsset(walletId, assetId)?.toDTO()
     }
 
     private suspend fun updateTokensBalance(
@@ -103,10 +101,9 @@ class UpdateBalances(
         val balances = balancesService.getTokensBalances(account, tokens)
         for (balance in balances) {
             val assetId = balance.asset.id.toIdentifier()
-            ensureRowExists(walletId, account.address, assetId, updatedAt)
+            ensureRowExists(walletId, assetId, updatedAt)
             balancesDao.updateTokenBalance(
                 walletId = walletId,
-                address = account.address,
                 assetId = assetId,
                 available = balance.balance.available,
                 availableAmount = balance.balanceAmount.available,
@@ -117,9 +114,9 @@ class UpdateBalances(
         return balances
     }
 
-    private fun ensureRowExists(walletId: String, address: String, assetId: String, updatedAt: Long) {
+    private fun ensureRowExists(walletId: String, assetId: String, updatedAt: Long) {
         balancesDao.insertIgnore(
-            DbBalance(assetId = assetId, walletId = walletId, accountAddress = address, updatedAt = updatedAt)
+            DbBalance(assetId = assetId, walletId = walletId, isVisible = false, updatedAt = updatedAt)
         )
     }
 }

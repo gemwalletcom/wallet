@@ -11,20 +11,6 @@ public struct ChartValues: Sendable {
     public let lowerBoundDate: Date
     public let upperBoundDate: Date
 
-    init(
-        charts: [ChartDateValue],
-        lowerBoundValue: Double,
-        upperBoundValue: Double,
-        lowerBoundDate: Date,
-        upperBoundDate: Date,
-    ) {
-        self.charts = charts
-        self.lowerBoundValue = lowerBoundValue
-        self.upperBoundValue = upperBoundValue
-        self.lowerBoundDate = lowerBoundDate
-        self.upperBoundDate = upperBoundDate
-    }
-
     public static func from(charts: [ChartDateValue]) throws -> ChartValues {
         let values = charts.map(\.value)
         let dates = charts.map(\.date)
@@ -57,10 +43,23 @@ public struct ChartValues: Sendable {
         return [first, last.addingTimeInterval(padding)]
     }
 
-    public var hasVariation: Bool { lowerBoundValue != upperBoundValue }
+    public var hasVariation: Bool {
+        lowerBoundValue != upperBoundValue
+    }
 
-    public var firstValue: Double { charts.first?.value ?? 0 }
-    public var lastValue: Double { charts.last?.value ?? 0 }
-    public var firstNonZeroValue: Double? { charts.first(where: { $0.value != 0 })?.value }
-    public var baseValue: Double { firstNonZeroValue ?? firstValue }
+    public var firstValue: Double {
+        charts.first?.value ?? 0
+    }
+
+    public var lastValue: Double {
+        charts.last?.value ?? 0
+    }
+
+    public var firstNonZeroValue: Double? {
+        charts.first(where: { $0.value != 0 })?.value
+    }
+
+    public var baseValue: Double {
+        firstNonZeroValue ?? firstValue
+    }
 }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -131,7 +130,7 @@ private fun FeePriorityView(fee: FeeRateUIModel, isSelected: Boolean, position: 
 private fun EmojiCircle(emoji: String, size: Dp, isSelected: Boolean = false) {
     IconWithBadge(
         size = size,
-        badge = if (isSelected) {{ SelectionCheckmark(modifier = Modifier.fillMaxSize()) }} else null,
+        badge = if (isSelected) {{ SelectionCheckmark() }} else null,
     ) {
         Box(
             modifier = Modifier

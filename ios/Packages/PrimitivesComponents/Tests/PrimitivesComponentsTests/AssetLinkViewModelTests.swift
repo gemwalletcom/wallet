@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Primitives
+@testable import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
-
-@testable import PrimitivesComponents
 
 struct AssetLinkViewModelTests {
     @Test

@@ -23,9 +23,17 @@ public final class EarnSceneViewModel {
     public let positionsQuery: ObservableQuery<DelegationsRequest>
     public let providersQuery: ObservableQuery<ValidatorsRequest>
 
-    public var assetData: AssetData { assetQuery.value }
-    public var positions: [Delegation] { positionsQuery.value }
-    public var providers: [DelegationValidator] { providersQuery.value }
+    public var assetData: AssetData {
+        assetQuery.value
+    }
+
+    public var positions: [Delegation] {
+        positionsQuery.value
+    }
+
+    public var providers: [DelegationValidator] {
+        providersQuery.value
+    }
 
     public init(
         wallet: Wallet,
@@ -48,7 +56,9 @@ public final class EarnSceneViewModel {
         )
     }
 
-    var title: String { Localized.Common.earn }
+    var title: String {
+        Localized.Common.earn
+    }
 
     var assetModel: AssetViewModel {
         AssetViewModel(asset: asset)

@@ -35,9 +35,17 @@ public struct AssetDataViewModel: Sendable {
         self.currencyCode = currencyCode
     }
 
-    public var availableBalanceTitle: String { Localized.Asset.Balances.available }
-    public var reservedBalanceTitle: String { Localized.Asset.Balances.reserved }
-    public var pendingUnconfirmedBalanceTitle: String { Localized.Stake.pending }
+    public var availableBalanceTitle: String {
+        Localized.Asset.Balances.available
+    }
+
+    public var reservedBalanceTitle: String {
+        Localized.Asset.Balances.reserved
+    }
+
+    public var pendingUnconfirmedBalanceTitle: String {
+        Localized.Stake.pending
+    }
 
     // asset
 

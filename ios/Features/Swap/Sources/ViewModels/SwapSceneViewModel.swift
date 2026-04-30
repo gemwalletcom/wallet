@@ -33,8 +33,13 @@ public final class SwapSceneViewModel {
     public let fromAssetQuery: ObservableQuery<AssetRequestOptional>
     public let toAssetQuery: ObservableQuery<AssetRequestOptional>
 
-    var fromAsset: AssetData? { fromAssetQuery.value }
-    var toAsset: AssetData? { toAssetQuery.value }
+    var fromAsset: AssetData? {
+        fromAssetQuery.value
+    }
+
+    var toAsset: AssetData? {
+        toAssetQuery.value
+    }
 
     // UI states
     var isPresentingPriceImpactConfirmation: String?
@@ -75,10 +80,21 @@ public final class SwapSceneViewModel {
         self.onSwap = onSwap
     }
 
-    var title: String { Localized.Wallet.swap }
-    var swapFromTitle: String { Localized.Swap.youPay }
-    var swapToTitle: String { Localized.Swap.youReceive }
-    var errorTitle: String { Localized.Errors.errorOccured }
+    var title: String {
+        Localized.Wallet.swap
+    }
+
+    var swapFromTitle: String {
+        Localized.Swap.youPay
+    }
+
+    var swapToTitle: String {
+        Localized.Swap.youReceive
+    }
+
+    var errorTitle: String {
+        Localized.Errors.errorOccured
+    }
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
         guard let selectedSwapQuote, let fromAsset, let toAsset, let selectedQuote = try? selectedSwapQuote.map() else { return nil }

@@ -4,7 +4,7 @@ import Foundation
 import GRDB
 import Primitives
 
-struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
+struct AddressRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "addresses"
 
     enum Columns {
@@ -20,20 +20,6 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     let name: String
     let type: AddressType?
     let status: VerificationStatus
-
-    init(
-        chain: Chain,
-        address: String,
-        name: String,
-        type: AddressType?,
-        status: VerificationStatus,
-    ) {
-        self.chain = chain
-        self.address = address
-        self.name = name
-        self.type = type
-        self.status = status
-    }
 }
 
 extension AddressRecord: CreateTable {

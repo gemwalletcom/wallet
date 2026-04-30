@@ -5,7 +5,7 @@ import protocol Gemstone.GemSwapperProtocol
 import GemstonePrimitives
 import Primitives
 
-struct SwapResultProvider: Sendable {
+struct SwapResultProvider {
     private let swapper: any GemSwapperProtocol
 
     init(swapper: any GemSwapperProtocol) {

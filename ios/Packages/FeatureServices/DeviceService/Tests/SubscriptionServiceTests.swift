@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+@testable import DeviceService
 import Primitives
 import Testing
-
-@testable import DeviceService
 
 struct SubscriptionServiceTests {
     @Test

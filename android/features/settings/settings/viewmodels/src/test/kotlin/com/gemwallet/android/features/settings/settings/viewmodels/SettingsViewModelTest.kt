@@ -6,6 +6,9 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletType
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -18,6 +21,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -27,8 +32,9 @@ class SettingsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val userConfig = mockk<UserConfig>(relaxed = true)
+    private val wallets = MutableStateFlow<List<Wallet>>(emptyList())
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true) {
-        every { getAll() } returns MutableStateFlow(emptyList())
+        every { getAll() } returns wallets
     }
     private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
         every { session() } returns MutableStateFlow(null)
@@ -66,5 +72,26 @@ class SettingsViewModelTest {
 
         coVerify(exactly = 1) { userConfig.stopAskNotifications() }
         coVerify(exactly = 1) { switchPushEnabled.switchPushEnabled(false, emptyList()) }
+    }
+
+    @Test
+    fun `rewards hidden before wallets load`() = runTest(testDispatcher) {
+        assertFalse(viewModel.isRewardsAvailable.value)
+    }
+
+    @Test
+    fun `single wallet hides rewards`() = runTest(testDispatcher) {
+        wallets.value = listOf(mockWallet(type = WalletType.Single))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isRewardsAvailable.value)
+    }
+
+    @Test
+    fun `multicoin wallet shows rewards`() = runTest(testDispatcher) {
+        wallets.value = listOf(mockWallet(type = WalletType.Multicoin))
+        advanceUntilIdle()
+
+        assertTrue(viewModel.isRewardsAvailable.value)
     }
 }
