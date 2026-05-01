@@ -26,6 +26,10 @@ public actor JobRunner {
     public func stopAll() {
         tasks.keys.forEach(cancelJob)
     }
+
+    static func getNextInterval(after current: Duration, config: JobConfiguration) -> Duration {
+        max(config.initialInterval, min(current * Double(config.stepFactor), config.maxInterval))
+    }
 }
 
 // MARK: - Private
@@ -36,18 +40,9 @@ extension JobRunner {
     }
 
     private func runJob(_ job: Job) async {
-        var interval = RetryIntervalCalculator.initialInterval(for: job.configuration)
-        let jobStart = clock.now
-        let deadline = job.configuration.timeLimit.map { jobStart.advanced(by: $0) }
+        var interval = job.configuration.initialInterval
 
         while !Task.isCancelled {
-            if let limit = job.configuration.timeLimit,
-               jobStart.duration(to: clock.now) >= limit
-            {
-                debugLog("job \(job.id) completed by time limit")
-                return
-            }
-
             let attemptStart = clock.now
 
             switch await job.run() {
@@ -59,17 +54,11 @@ extension JobRunner {
                 }
                 return
             case .retry:
-                let nextAttempt = attemptStart.advanced(by: interval)
-                let sleepUntil = deadline.map { min(nextAttempt, $0) } ?? nextAttempt
-
+                let sleepUntil = attemptStart.advanced(by: interval)
                 if clock.now < sleepUntil {
                     try? await clock.sleep(until: sleepUntil)
                 }
-
-                interval = RetryIntervalCalculator.nextInterval(
-                    config: job.configuration,
-                    currentInterval: interval,
-                )
+                interval = Self.getNextInterval(after: interval, config: job.configuration)
             }
         }
     }
