@@ -2,11 +2,12 @@
 
 import Foundation
 import func Gemstone.assetDefaultRank
+import func Gemstone.defaultTokenRank
 import Primitives
 
 public extension AssetScore {
-    /// default score of an asset, not assigned
-    static let defaultScore = 15
+    /// default score of a token asset, not assigned
+    static var defaultScore: Int { Gemstone.defaultTokenRank().asInt }
 
     static func defaultScore(chain: Chain) -> AssetScore {
         AssetScore(

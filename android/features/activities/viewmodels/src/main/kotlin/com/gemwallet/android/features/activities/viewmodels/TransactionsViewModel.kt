@@ -7,7 +7,6 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.domains.asset.DEFAULT_TOKEN_RANK
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.defaultTokenRank
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,7 +56,7 @@ class TransactionsViewModel @Inject constructor(
             filters = listOf(
                 TransactionsRequestFilter.Chains(chains),
                 TransactionsRequestFilter.Types(types),
-                TransactionsRequestFilter.AssetRankGreaterThan(DEFAULT_TOKEN_RANK),
+                TransactionsRequestFilter.AssetRankGreaterThan(defaultTokenRank()),
             ),
         )
     }
