@@ -271,7 +271,7 @@ class AssetsRepositoryTest {
                 isVisible = true,
             )
         }
-        verify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 
     @Test
@@ -291,7 +291,7 @@ class AssetsRepositoryTest {
                 isVisible = false,
             )
         }
-        verify(exactly = 0) { streamSubscriptionService.addAssetIds(any()) }
+        coVerify(exactly = 0) { streamSubscriptionService.addAssetIds(any()) }
     }
 
     @Test
