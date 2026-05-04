@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
-import Primitives
-import Style
 import SwiftUI
 
 public struct AddressListItemView: View {
@@ -39,8 +36,8 @@ public struct AddressListItemView: View {
         ]
         if let onAddContact = model.onAddContact {
             items.append(.custom(
-                title: Localized.Contacts.addToContacts,
-                systemImage: SystemImage.personBadgePlus,
+                title: model.addToContactsTitle,
+                systemImage: model.addToContactsImage,
                 action: onAddContact,
             ))
         }

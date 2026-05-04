@@ -82,6 +82,14 @@ public struct AddressListItemViewModel {
         addressLink.url
     }
 
+    public var addToContactsTitle: String {
+        Localized.Contacts.addToContacts
+    }
+
+    public var addToContactsImage: String {
+        SystemImage.personBadgePlus
+    }
+
     public var canToggleAddress: Bool {
         guard let name = account.name, name.isNotEmpty else {
             return false
