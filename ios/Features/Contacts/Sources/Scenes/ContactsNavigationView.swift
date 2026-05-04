@@ -31,7 +31,7 @@ public struct ContactsNavigationView: View {
             }
             .sheet(isPresented: $model.isPresentingAddContact) {
                 NavigationStack {
-                    manageContact(for: .add)
+                    manageContact(for: .add())
                         .toolbarDismissItem(type: .close, placement: .cancellationAction)
                 }
             }

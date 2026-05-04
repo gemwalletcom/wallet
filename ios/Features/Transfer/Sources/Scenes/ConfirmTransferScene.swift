@@ -4,6 +4,7 @@ import Components
 import Localization
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import Swap
 import SwiftUI
@@ -34,6 +35,7 @@ public struct ConfirmTransferScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .activityIndicator(isLoading: model.confirmingState.isLoading, message: model.progressMessage)
         .alertSheet($model.isPresentingAlertMessage)
+        .bindQuery(model.recipientAddressNameQuery)
     }
 }
 

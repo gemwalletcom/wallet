@@ -28,10 +28,22 @@ public struct AddressListItemView: View {
                 showAddress.toggle()
             }
         }
-        .contextMenu([
+        .contextMenu(contextMenuItems)
+        .safariSheet(url: $isPresentingUrl)
+    }
+
+    private var contextMenuItems: [ContextMenuItemType] {
+        var items: [ContextMenuItemType] = [
             .copy(value: model.account.address),
             .url(title: model.addressExplorerText, onOpen: { isPresentingUrl = model.addressExplorerUrl }),
-        ])
-        .safariSheet(url: $isPresentingUrl)
+        ]
+        if let onAddContact = model.onAddContact {
+            items.append(.custom(
+                title: Localized.Contacts.addToContacts,
+                systemImage: SystemImage.personBadgePlus,
+                action: onAddContact,
+            ))
+        }
+        return items
     }
 }

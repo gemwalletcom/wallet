@@ -31,6 +31,7 @@ public struct AddressListItemViewModel {
     public let title: String
     public let account: SimpleAccount
     public let mode: Mode
+    public let onAddContact: VoidAction
     private let addressLink: BlockExplorerLink
 
     public init(
@@ -38,11 +39,13 @@ public struct AddressListItemViewModel {
         account: SimpleAccount,
         mode: Mode,
         addressLink: BlockExplorerLink,
+        onAddContact: VoidAction = nil,
     ) {
         self.title = title
         self.account = account
         self.mode = mode
         self.addressLink = addressLink
+        self.onAddContact = onAddContact
     }
 
     public var subtitle: String {
