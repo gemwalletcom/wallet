@@ -5,22 +5,22 @@ import GemstonePrimitives
 import Primitives
 
 struct TransactionStateJob: Job {
-    let transactionWallet: TransactionWallet
+    let wallet: TransactionWallet
     let service: TransactionStateService
 
     var id: String {
-        transactionWallet.transaction.id.identifier
+        wallet.transaction.id.identifier
     }
 
     var configuration: JobConfiguration {
-        transactionWallet.transaction.assetId.chain.transactionStateConfig
+        wallet.transaction.assetId.chain.transactionStateConfig
     }
 
     func run() async -> JobStatus {
-        await service.update(for: transactionWallet.transaction)
+        await service.update(for: wallet.transaction)
     }
 
     func onComplete() async throws {
-        try await service.process(transactionWallet)
+        try await service.process(wallet)
     }
 }

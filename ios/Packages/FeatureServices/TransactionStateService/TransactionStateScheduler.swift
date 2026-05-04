@@ -37,7 +37,7 @@ public struct TransactionStateScheduler: Sendable {
 extension TransactionStateScheduler {
     private func scheduleUpdate(for transactionWallets: [TransactionWallet]) {
         let jobs = transactionWallets.map {
-            TransactionStateJob(transactionWallet: $0, service: service)
+            TransactionStateJob(wallet: $0, service: service)
         }
         Task {
             for job in jobs {
