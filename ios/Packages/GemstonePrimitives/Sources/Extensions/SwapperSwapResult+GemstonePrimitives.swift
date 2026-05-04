@@ -17,7 +17,6 @@ public extension Gemstone.SwapperSwapStatus {
     func map() -> Primitives.SwapStatus {
         switch self {
         case .pending: .pending
-        case .inTransit: .inTransit
         case .completed: .completed
         case .failed: .failed
         }

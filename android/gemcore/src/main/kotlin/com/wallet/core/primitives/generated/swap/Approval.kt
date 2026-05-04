@@ -63,8 +63,6 @@ data class SwapData (
 enum class SwapStatus(val string: String) {
 	@SerialName("pending")
 	Pending("pending"),
-	@SerialName("inTransit")
-	InTransit("inTransit"),
 	@SerialName("completed")
 	Completed("completed"),
 	@SerialName("failed")
