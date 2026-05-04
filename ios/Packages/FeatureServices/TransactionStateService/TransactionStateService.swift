@@ -36,7 +36,7 @@ public struct TransactionStateService: Sendable {
             case .pending, .inTransit:
                 return .retry
             case .confirmed, .reverted, .failed:
-                try apply(stateChanges, for: transaction)
+                try update(stateChanges, for: transaction)
                 return .complete
             }
         } catch {
@@ -56,7 +56,7 @@ public struct TransactionStateService: Sendable {
 // MARK: - Private
 
 extension TransactionStateService {
-    private func apply(_ stateChanges: TransactionChanges, for transaction: Transaction) throws {
+    private func update(_ stateChanges: TransactionChanges, for transaction: Transaction) throws {
         let id = transaction.id.identifier
         _ = try transactionStore.updateState(id: id, state: stateChanges.state)
         for change in stateChanges.changes {
