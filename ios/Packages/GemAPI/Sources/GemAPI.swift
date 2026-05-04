@@ -44,7 +44,7 @@ public enum GemAPI: TargetType {
         case let .getCharts(assetId, _):
             return "/v1/charts/\(assetId.identifier)"
         case let .getAsset(id):
-            return "/v1/assets/\(id.identifier.replacingOccurrences(of: "/", with: "%2F"))"
+            return "/v1/assets/\(id.identifier)"
         case let .getAssets(_, currency):
             var path = "/v1/assets"
             if let currency {

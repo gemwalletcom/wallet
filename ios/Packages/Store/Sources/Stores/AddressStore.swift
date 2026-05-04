@@ -40,7 +40,7 @@ public struct AddressStore: Sendable {
                 .filter(AddressRecord.Columns.chain == chain.rawValue)
                 .filter(AddressRecord.Columns.address == address)
                 .fetchOne(db)?
-                .asPrimitive()
+                .mapToAddressName()
         }
     }
 }

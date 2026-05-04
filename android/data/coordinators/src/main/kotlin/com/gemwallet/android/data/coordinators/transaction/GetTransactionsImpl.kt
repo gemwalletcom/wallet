@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
@@ -13,8 +14,6 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -29,36 +28,8 @@ class GetTransactionsImpl(
 ) : GetTransactions {
 
     override fun getTransactions(
-        assetId: AssetId?,
-        state: TransactionState?,
-        filterByChains: List<Chain>,
-        filterByType: List<TransactionType>
-    ): Flow<List<TransactionDataAggregate>> = transactionsRepository.getTransactions()
-        .map { transactions ->
-            transactions.filter { tx ->
-                val byChain = if (filterByChains.isEmpty()) {
-                    true
-                } else {
-                    val txChains = (tx.assets + listOf(tx.asset, tx.feeAsset)).map { it.chain }.toSet()
-                    filterByChains.containsAll(txChains)
-                }
-                val byType = if (filterByType.isEmpty()) {
-                    true
-                } else {
-                    filterByType.contains(tx.transaction.type)
-                }
-                byChain && byType
-            }
-        }
-        .map { txs -> txs.filter { state == null || it.transaction.state == state } }
-        .map { items ->
-            items.filter {
-                val swapMetadata = it.transaction.getSwapMetadata()
-                assetId == null || it.asset.id == assetId
-                        || swapMetadata?.toAsset == assetId
-                        || swapMetadata?.fromAsset == assetId
-            }
-        }
+        filters: List<TransactionsRequestFilter>,
+    ): Flow<List<TransactionDataAggregate>> = transactionsRepository.getTransactions(filters)
         .map { items -> items.map { TransactionDataAggregateImpl(it) } }
         .flowOn(Dispatchers.IO)
 }

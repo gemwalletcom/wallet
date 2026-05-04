@@ -54,7 +54,20 @@ public struct ContactStore: Sendable {
     @discardableResult
     public func deleteContact(id: String) throws -> Bool {
         try db.write { db in
-            try ContactRecord.deleteOne(db, key: id)
+            let addressesByChain = try ContactAddressRecord
+                .filter(ContactAddressRecord.Columns.contactId == id)
+                .fetchAll(db)
+                .reduce(into: [Chain: [String]]()) { $0[$1.chain, default: []].append($1.address) }
+
+            for (chain, addresses) in addressesByChain {
+                try AddressRecord
+                    .filter(AddressRecord.Columns.chain == chain.rawValue)
+                    .filter(addresses.contains(AddressRecord.Columns.address))
+                    .filter(AddressRecord.Columns.type == AddressType.contact.rawValue)
+                    .deleteAll(db)
+            }
+
+            return try ContactRecord.deleteOne(db, key: id)
         }
     }
 }

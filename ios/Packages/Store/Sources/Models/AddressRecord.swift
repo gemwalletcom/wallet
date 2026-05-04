@@ -42,7 +42,7 @@ extension AddressRecord: CreateTable {
 }
 
 extension AddressRecord {
-    func asPrimitive() -> AddressName {
+    func mapToAddressName() -> AddressName {
         AddressName(
             chain: chain,
             address: address,

@@ -4,6 +4,13 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.sqlite.db.SupportSQLiteQuery
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.data.service.store.database.entities.DbAccount
+import com.gemwallet.android.data.service.store.database.entities.DbAsset
+import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
@@ -16,7 +23,7 @@ const val SESSION_CHAINS_REQUEST = """SELECT accounts.chain FROM accounts, sessi
     WHERE accounts.wallet_id = session.wallet_id AND session.id = 1"""
 const val CURRENT_WALLET_REQUEST = """SELECT wallet_id FROM session WHERE session.id = 1"""
 
-private const val EXTENDED_COLUMNS = """
+const val EXTENDED_COLUMNS = """
     tx.*,
     asset.id AS asset_id,
     asset.name AS asset_name,
@@ -44,7 +51,7 @@ private const val EXTENDED_COLUMNS = """
     to_asset.type AS to_asset_type
 """
 
-private const val EXTENDED_SOURCE = """
+const val EXTENDED_SOURCE = """
     FROM transactions as tx
     INNER JOIN asset ON tx.assetId = asset.id
     INNER JOIN asset as feeAsset ON tx.feeAssetId = feeAsset.id
@@ -67,8 +74,21 @@ interface TransactionsDao {
     @Query("DELETE FROM transactions WHERE id = :id AND walletId = :walletId")
     fun delete(id: String, walletId: String)
 
-    @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE ORDER BY tx.createdAt DESC")
-    fun getExtendedTransactions(): Flow<List<DbTransactionExtended>>
+    @RawQuery(
+        observedEntities = [
+            DbTransaction::class,
+            DbAsset::class,
+            DbPrice::class,
+            DbTxSwapMetadata::class,
+            DbAccount::class,
+            DbSession::class,
+        ]
+    )
+    fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
+
+    fun getExtendedTransactions(
+        filters: List<TransactionsRequestFilter> = emptyList(),
+    ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(filters).toSupportSQLiteQuery())
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.state = :state ORDER BY tx.createdAt DESC")
     fun getExtendedTransactions(state: TransactionState): Flow<List<DbTransactionExtended>>

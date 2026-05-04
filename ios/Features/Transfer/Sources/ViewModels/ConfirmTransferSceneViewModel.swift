@@ -10,6 +10,7 @@ import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
+import Store
 import Swap
 import SwiftUI
 import Validators
@@ -41,6 +42,8 @@ public final class ConfirmTransferSceneViewModel {
 
     public var isPresentingSheet: ConfirmTransferSheetType?
     public var isPresentingAlertMessage: AlertMessage?
+
+    public let recipientAddressNameQuery: ObservableQuery<AddressNameRequest>
 
     private let confirmService: ConfirmService
     private let simulationService: ConfirmSimulationService
@@ -78,6 +81,12 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: data.type.asset.feeAsset,
             priority: confirmService.defaultPriority(for: data.type),
             currency: Currency(rawValue: Preferences.standard.currency) ?? .usd,
+        )
+
+        let recipientAddress = data.recipientData.recipient.address
+        recipientAddressNameQuery = ObservableQuery(
+            AddressNameRequest(chain: data.chain, address: recipientAddress),
+            initialValue: try? confirmService.getAddressName(chain: data.chain, address: recipientAddress),
         )
 
         metadata = try? confirmService.getMetadata(wallet: wallet, data: data)
@@ -226,8 +235,9 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .recipient:
             ConfirmRecipientViewModel(
                 model: dataModel,
-                addressName: try? confirmService.getAddressName(chain: dataModel.chain, address: dataModel.recipient.address),
+                addressName: recipientAddressNameQuery.value,
                 addressLink: confirmService.getExplorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
+                onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:
             ConfirmMemoViewModel(type: transferData.type, recipientData: transferData.recipientData)
@@ -332,6 +342,10 @@ extension ConfirmTransferSceneViewModel {
 
     func onSelectPerpetualDetails(_ model: PerpetualDetailsViewModel) {
         isPresentingSheet = .perpetualDetails(model)
+    }
+
+    func onSelectAddRecipientToContacts() {
+        isPresentingSheet = .addContact(ChainRecipient(recipient: dataModel.recipient, chain: dataModel.chain))
     }
 
     func onChangeFeePriority() {

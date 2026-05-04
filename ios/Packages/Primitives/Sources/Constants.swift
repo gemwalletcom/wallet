@@ -15,7 +15,6 @@ public enum Constants {
 
     public static let apiURL = URL(string: "https://api.gemwallet.com")!
     public static let assetsURL = URL(string: "https://assets.gemwallet.com")!
-    public static let nftAssetsURL = URL(string: "https://assets.gemwallet.com/nft")!
 
     public static let nodesURL = URL(string: "https://gemnodes.com")!
     public static let nodesEuropeURL = URL(string: "https://eu.gemnodes.com")!
