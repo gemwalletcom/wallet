@@ -122,7 +122,7 @@ public enum GemDeviceAPI: TargetType {
         case .getDeviceNFTAssets:
             return "/v2/devices/nft_assets"
         case let .refreshNftAsset(_, assetId):
-            return "/v2/devices/nft_assets/\(assetId.replacingOccurrences(of: "/", with: "%2F"))/refresh"
+            return "/v2/devices/nft_assets/\(assetId)/refresh"
         case .reportNft:
             return "/v2/devices/nft/report"
         case .scanTransaction:

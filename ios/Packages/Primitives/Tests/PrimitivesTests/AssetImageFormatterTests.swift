@@ -20,7 +20,7 @@ final class AssetImageFormatterTests {
         #expect(
             formatter
                 .getNFTUrl(for: assetId)
-                .absoluteString == "\(Constants.nftAssetsURL.absoluteString)/assets/\(assetId)/preview",
+                .absoluteString == "\(Constants.assetsURL.absoluteString)/nft/assets/\(assetId)/preview",
         )
     }
 
