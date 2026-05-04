@@ -8,7 +8,7 @@ public extension TransactionStateRequest {
         GemTransactionStateRequest(
             id: id,
             senderAddress: senderAddress,
-            createdAt: Int64(createdAt.timeIntervalSince1970),
+            createdAt: createdAt.millisecondsSince1970,
             blockNumber: Int64(block),
             swapProvider: try? swapProvider?.map(),
         )
