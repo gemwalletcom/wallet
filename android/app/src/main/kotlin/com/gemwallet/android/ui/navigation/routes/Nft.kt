@@ -1,54 +1,46 @@
 package com.gemwallet.android.ui.navigation.routes
 
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.features.nft.presents.NFTDetailsScene
 import com.gemwallet.android.features.nft.presents.NftListScene
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
-val nftRoute = "nft"
+const val nftRoute = "nft"
 
 @Serializable
-data class NftCollectionRoute(val collectionId: String)
+data class NftCollectionRoute(val nftCollectionId: String) : NavKey
 
 @Serializable
-data class NftUnverifiedCollectionsRoute(val unverified: Boolean = true)
+data object NftUnverifiedCollectionsRoute : NavKey
 
 @Serializable
-data class NftAssetRoute(val assetId: String)
+data class NftAssetRoute(val nftAssetId: String) : NavKey
 
-fun NavController.navigateToNftCollection(collectionId: String) {
-    navigate(NftCollectionRoute(collectionId), navOptions { launchSingleTop = true })
-}
-
-fun NavController.navigateToNftUnverifiedCollections() {
-    navigate(NftUnverifiedCollectionsRoute(), navOptions { launchSingleTop = true })
-}
-
-fun NavController.navigateToNftAsset(assetId: String) {
-    navigate(NftAssetRoute(assetId), navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.nftCollection(
+fun EntryProviderScope<NavKey>.nftCollection(
     cancelAction: CancelAction,
     onRecipient: (AssetId, String) -> Unit,
     onReceive: () -> Unit,
     collectionIdAction: NftCollectionIdAction,
     assetIdAction: NftAssetIdAction,
 ) {
-    composable<NftCollectionRoute> {
+    entry<NftCollectionRoute>(
+        metadata = { key -> routeArguments(RouteArgument.NftCollectionId to key.nftCollectionId) },
+    ) {
         NftListScene(cancelAction, collectionIdAction, assetIdAction, onReceive = onReceive)
     }
 
-    composable<NftUnverifiedCollectionsRoute> {
+    entry<NftUnverifiedCollectionsRoute>(
+        metadata = { routeArguments(RouteArgument.Unverified to true) },
+    ) {
         NftListScene(
             cancelAction = cancelAction,
             collectionAction = collectionIdAction,
@@ -57,7 +49,9 @@ fun NavGraphBuilder.nftCollection(
         )
     }
 
-    composable<NftAssetRoute> {
+    entry<NftAssetRoute>(
+        metadata = { key -> routeArguments(RouteArgument.NftAssetId to key.nftAssetId) },
+    ) {
         NFTDetailsScene(cancelAction, onRecipient)
     }
 }

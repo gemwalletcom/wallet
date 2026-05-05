@@ -4,23 +4,26 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionDetailsViewModel @Inject constructor(
     private val getTransactionDetails: GetTransactionDetails,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val data = savedStateHandle.getStateFlow<String?>("txId", null)
-        .filterNotNull()
-        .flatMapLatest { getTransactionDetails.getTransactionDetails(it) }
+    private val transactionId = savedStateHandle.requireString(RouteArgument.TransactionId)
+
+    val data = getTransactionDetails.getTransactionDetails(transactionId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+}
+
+private fun SavedStateHandle.requireString(argument: RouteArgument): String {
+    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
+    return value
 }

@@ -4,6 +4,7 @@ import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
 import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
 import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
 import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.coordinators.add_asset.AddCustomTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.GetAvailableTokenChainsImpl
 import com.gemwallet.android.data.coordinators.add_asset.ObserveTokenImpl
@@ -49,8 +50,8 @@ object AddAssetModule {
     @Singleton
     fun provideAddCustomToken(
         sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
+        enableAsset: EnableAsset,
     ): AddCustomToken {
-        return AddCustomTokenImpl(sessionRepository, assetsRepository)
+        return AddCustomTokenImpl(sessionRepository, enableAsset)
     }
 }

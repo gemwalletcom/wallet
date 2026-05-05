@@ -6,9 +6,15 @@ import com.gemwallet.android.model.SignerParams
 import kotlinx.coroutines.CoroutineScope
 
 interface ConfirmTransaction {
+    enum class FinishRoute {
+        Asset,
+        Stake,
+        Swap,
+    }
+
     data class Result(
         val txHash: String,
-        val finishRoute: String,
+        val finishRoute: FinishRoute,
     )
 
     suspend operator fun invoke(

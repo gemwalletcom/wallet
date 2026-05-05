@@ -11,13 +11,14 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 
 @Composable
 internal fun ShowSecretDataProperty(
-    walletId: String,
+    walletId: WalletId,
     walletType: WalletType,
-    onClick: (String, WalletType) -> Unit,
+    onClick: (WalletId, WalletType) -> Unit,
 ) {
     if (walletType == WalletType.View) return
     val secretDataLabel = stringResource(walletType.descriptionRes)

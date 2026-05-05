@@ -1,21 +1,18 @@
 package com.gemwallet.android.flavors
 
 import com.gemwallet.android.cases.parseNotificationData
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.serializer.jsonEncoder
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockCoreTransaction
+import com.gemwallet.android.testkit.mockTransaction
+import com.gemwallet.android.testkit.mockTransactionId
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PushNotificationAsset
 import com.wallet.core.primitives.PushNotificationSwapAsset
 import com.wallet.core.primitives.PushNotificationTransaction
 import com.wallet.core.primitives.PushNotificationWalletAsset
-import com.wallet.core.primitives.Transaction
-import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionId
-import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.WalletId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -54,24 +51,24 @@ class FCMTest {
 
     @Test
     fun parseData_withValidTransactionData_returnsTransactionPayload() {
-        val transactionId = TransactionId(Chain.Bitcoin, "abc123")
+        val assetId = mockAssetId(Chain.Bitcoin)
+        val walletId = mockWalletId("wallet-1")
+        val transactionId = mockTransactionId(hash = "abc123")
+        val transaction = mockTransaction(
+            id = transactionId,
+            assetId = assetId,
+            from = "sender",
+            to = "receiver",
+            fee = "1000",
+            value = "100000000",
+            createdAt = 0,
+            blockNumber = null,
+        )
         val jsonData = jsonEncoder.encodeToString(
             PushNotificationTransaction(
-                walletId = "wallet-1",
-                assetId = "bitcoin",
-                transaction = Transaction(
-                    id = transactionId,
-                    assetId = AssetId(Chain.Bitcoin),
-                    from = "sender",
-                    to = "receiver",
-                    type = TransactionType.Transfer,
-                    state = TransactionState.Confirmed,
-                    fee = "1000",
-                    feeAssetId = AssetId(Chain.Bitcoin),
-                    value = "100000000",
-                    direction = TransactionDirection.Outgoing,
-                    createdAt = 0,
-                ),
+                walletId = walletId,
+                assetId = assetId,
+                transaction = mockCoreTransaction(transaction),
             )
         )
 
@@ -79,9 +76,9 @@ class FCMTest {
 
         assertEquals(
             PushNotificationData.Transaction(
-                walletId = "wallet-1",
-                assetId = "bitcoin",
-                transactionId = transactionId,
+                walletId = walletId,
+                assetId = assetId,
+                transaction = transaction,
             ),
             result,
         )
@@ -89,10 +86,11 @@ class FCMTest {
 
     @Test
     fun parseData_withValidAssetData_returnsAssetPayload() {
-        val jsonData = jsonEncoder.encodeToString(PushNotificationAsset(assetId = "ethereum"))
+        val assetId = mockAssetId(Chain.Ethereum)
+        val jsonData = jsonEncoder.encodeToString(PushNotificationAsset(assetId = assetId))
         val result = parseNotificationData("asset", jsonData)
 
-        assertEquals(PushNotificationData.Asset(assetId = "ethereum"), result)
+        assertEquals(PushNotificationData.Asset(assetId = assetId), result)
     }
 
     @Test
@@ -102,32 +100,42 @@ class FCMTest {
     }
 
     @Test
+    fun parseData_withSupportTypeAndNullData_returnsSupportPayload() {
+        val result = parseNotificationData("support", null)
+        assertEquals(PushNotificationData.Support, result)
+    }
+
+    @Test
     fun parseData_withPriceAlertType_returnsAssetPayload() {
-        val jsonData = jsonEncoder.encodeToString(PushNotificationAsset(assetId = "solana"))
+        val assetId = mockAssetId(Chain.Solana)
+        val jsonData = jsonEncoder.encodeToString(PushNotificationAsset(assetId = assetId))
         val result = parseNotificationData("priceAlert", jsonData)
-        assertEquals(PushNotificationData.Asset(assetId = "solana"), result)
+        assertEquals(PushNotificationData.Asset(assetId = assetId), result)
     }
 
     @Test
     fun parseData_withBuyAssetType_returnsAssetPayload() {
-        val jsonData = jsonEncoder.encodeToString(PushNotificationAsset(assetId = "base"))
+        val assetId = mockAssetId(Chain.Base)
+        val jsonData = jsonEncoder.encodeToString(PushNotificationAsset(assetId = assetId))
         val result = parseNotificationData("buyAsset", jsonData)
-        assertEquals(PushNotificationData.Asset(assetId = "base"), result)
+        assertEquals(PushNotificationData.BuyAsset(assetId = assetId), result)
     }
 
     @Test
     fun parseData_withSwapAssetType_returnsSwapPayload() {
+        val fromAssetId = mockAssetId(Chain.Ethereum)
+        val toAssetId = mockAssetId(Chain.Solana)
         val jsonData = jsonEncoder.encodeToString(
             PushNotificationSwapAsset(
-                fromAssetId = "ethereum",
-                toAssetId = "usdc",
+                fromAssetId = fromAssetId,
+                toAssetId = toAssetId,
             )
         )
         val result = parseNotificationData("swapAsset", jsonData)
         assertEquals(
             PushNotificationData.Swap(
-                fromAssetId = "ethereum",
-                toAssetId = "usdc",
+                fromAssetId = fromAssetId,
+                toAssetId = toAssetId,
             ),
             result,
         )
@@ -135,8 +143,8 @@ class FCMTest {
 
     @Test
     fun parseData_withStakeType_returnsStakePayload() {
-        val assetId = AssetId(Chain.Sui)
-        val walletId = WalletId("wallet-1")
+        val assetId = mockAssetId(Chain.Sui)
+        val walletId = mockWalletId("wallet-1")
         val jsonData = jsonEncoder.encodeToString(
             PushNotificationWalletAsset(
                 walletId = walletId,
@@ -148,7 +156,7 @@ class FCMTest {
 
         assertEquals(
             PushNotificationData.Stake(
-                assetId = assetId.toIdentifier(),
+                assetId = assetId,
                 walletId = walletId,
             ),
             result,
@@ -187,6 +195,15 @@ class FCMTest {
     fun parseData_withAssetMissingFields_returnsNull() {
         val incompleteJson = """{"someOtherField":"value"}"""
         val result = parseNotificationData("asset", incompleteJson)
+        assertNull(result)
+    }
+
+    @Test
+    fun parseData_withInvalidAssetId_returnsNull() {
+        val result = parseNotificationData(
+            "asset",
+            """{"assetId":"unknown"}""",
+        )
         assertNull(result)
     }
 }

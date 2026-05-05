@@ -7,7 +7,7 @@ import com.wallet.core.primitives.FeePriority
 import java.math.BigInteger
 
 fun mockFeeSolana(
-    feeAssetId: AssetId = AssetId(Chain.Solana),
+    feeAssetId: AssetId = mockAssetId(chain = Chain.Solana),
     priority: FeePriority = FeePriority.Normal,
     amount: BigInteger = BigInteger.valueOf(7_500),
     minerFee: BigInteger = BigInteger.valueOf(2_500),

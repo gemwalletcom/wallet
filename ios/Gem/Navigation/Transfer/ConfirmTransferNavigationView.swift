@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Contacts
 import FiatConnect
 import InfoSheet
 import Perpetuals
+import Primitives
 import PrimitivesComponents
 import Style
 import Swap
@@ -12,6 +14,8 @@ import Transfer
 
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
+    @Environment(\.contactService) private var contactService
+    @Environment(\.nameService) private var nameService
 
     @State var model: ConfirmTransferSceneViewModel
 
@@ -57,6 +61,17 @@ struct ConfirmTransferNavigationView: View {
                         PerpetualDetailsView(model: model)
                             .presentationDetentsForCurrentDeviceSize(expandable: true)
                             .presentationBackground(Colors.grayBackground)
+                    }
+                case let .addContact(input):
+                    NavigationStack {
+                        ManageContactScene(
+                            model: ManageContactViewModel(
+                                service: contactService,
+                                nameService: nameService,
+                                mode: .add(input),
+                            ),
+                        )
+                        .toolbarDismissItem(type: .close, placement: .cancellationAction)
                     }
                 }
             }

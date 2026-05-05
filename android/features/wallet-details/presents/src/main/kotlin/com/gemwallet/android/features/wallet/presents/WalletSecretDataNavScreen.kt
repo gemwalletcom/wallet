@@ -82,7 +82,6 @@ fun WalletSecretDataNavScreen(
     Scene(
         title = stringResource(id = content.titleRes),
         padding = sceneContentPaddingValues(),
-        backHandle = true,
         onClose = onCancel,
     ) {
         val warningHorizontalPadding = adaptivePadding(default = paddingDefault, compact = paddingMiddle)

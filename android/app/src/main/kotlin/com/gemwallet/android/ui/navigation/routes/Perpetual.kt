@@ -1,42 +1,35 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.features.perpetual.views.market.PerpetualMarketNavScreen
 import com.gemwallet.android.features.perpetual.views.position.PerpetualPositionNavScreen
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.navigation.routeArguments
 import kotlinx.serialization.Serializable
 
 @Serializable
-object PerpetualRoute
+data object PerpetualRoute : NavKey
 
 @Serializable
-data class PerpetualPositionRoute(val perpetualId: String)
+data class PerpetualPositionRoute(val perpetualId: String) : NavKey
 
-fun NavController.navigateToPerpetualsScreen(navOptions: NavOptions? = null) {
-    navigate(PerpetualRoute, navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavController.navigateToPerpetualDetailsScreen(perpetualId: String, navOptions: NavOptions? = null) {
-    navigate(PerpetualPositionRoute(perpetualId), navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.perpetualScreen(
+fun EntryProviderScope<NavKey>.perpetualScreen(
     onCancel: () -> Unit,
     onOpenPerpetualDetails: (String) -> Unit,
     onOpenPerpetualPosition: (AmountParams) -> Unit,
 ) {
-    composable<PerpetualRoute> {
+    entry<PerpetualRoute> {
         PerpetualMarketNavScreen(
             onOpenPerpetualDetails = onOpenPerpetualDetails,
             onCancel = onCancel
         )
     }
 
-    composable<PerpetualPositionRoute> {
+    entry<PerpetualPositionRoute>(
+        metadata = { key -> routeArguments(RouteArgument.PerpetualId to key.perpetualId) },
+    ) {
         PerpetualPositionNavScreen(
             onOpenPosition = onOpenPerpetualPosition,
             onClose = onCancel

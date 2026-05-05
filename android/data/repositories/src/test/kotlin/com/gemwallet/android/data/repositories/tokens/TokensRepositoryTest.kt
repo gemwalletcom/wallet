@@ -8,8 +8,11 @@ import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetPriority
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
+import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -89,5 +92,41 @@ class TokensRepositoryTest {
         coVerify { searchAssets.getAssets(listOf(asset.id)) }
         coVerify { assetsDao.updateBasicAssets(capture(updates)) }
         assertEquals(100, updates.captured.single().rank)
+    }
+
+    @Test
+    fun syncAssetPrices_fetchesOnlyAssetsMissingFromCache() = runTest {
+        val cached = mockAsset()
+        val missing = mockAssetEthereum()
+        val missingBasic = mockAssetBasic(asset = missing)
+        coEvery {
+            pricesDao.getByAssets(listOf(cached.id.toIdentifier(), missing.id.toIdentifier()))
+        } returns listOf(DbPrice(assetId = cached.id.toIdentifier(), currency = Currency.USD.string))
+        coEvery { searchAssets.getAssets(listOf(missing.id)) } returns listOf(missingBasic)
+        every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
+
+        subject(listOf(cached.id, missing.id), Currency.USD)
+
+        coVerify(exactly = 1) { searchAssets.getAssets(listOf(missing.id)) }
+    }
+
+    @Test
+    fun syncAssetPrices_skipsApiCallWhenAllCached() = runTest {
+        val asset = mockAsset()
+        coEvery {
+            pricesDao.getByAssets(listOf(asset.id.toIdentifier()))
+        } returns listOf(DbPrice(assetId = asset.id.toIdentifier(), currency = Currency.USD.string))
+
+        subject(listOf(asset.id), Currency.USD)
+
+        coVerify(exactly = 0) { searchAssets.getAssets(any()) }
+    }
+
+    @Test
+    fun syncAssetPrices_emptyList_isNoOp() = runTest {
+        subject(emptyList(), Currency.USD)
+
+        coVerify(exactly = 0) { pricesDao.getByAssets(any()) }
+        coVerify(exactly = 0) { searchAssets.getAssets(any()) }
     }
 }

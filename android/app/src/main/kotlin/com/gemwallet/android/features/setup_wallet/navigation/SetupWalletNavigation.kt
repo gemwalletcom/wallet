@@ -1,24 +1,23 @@
 package com.gemwallet.android.features.setup_wallet.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.gemwallet.android.features.setup_wallet.viewmodels.SetupWalletViewModel
 import com.gemwallet.android.features.setup_wallet.views.SetupWalletScreen
+import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SetupWalletRoute(val walletId: String)
+data class SetupWalletRoute(val walletId: WalletId) : NavKey
 
-fun NavController.navigateToSetupWalletScreen(walletId: String, navOptions: NavOptions? = null) {
-    navigate(SetupWalletRoute(walletId), navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.setupWalletScreen(
+fun EntryProviderScope<NavKey>.setupWalletScreen(
     onComplete: () -> Unit,
 ) {
-    composable<SetupWalletRoute> {
-        SetupWalletScreen(onComplete = onComplete)
+    entry<SetupWalletRoute> { key ->
+        val viewModel = hiltViewModel<SetupWalletViewModel, SetupWalletViewModel.Factory>(
+            creationCallback = { factory -> factory.create(key.walletId) }
+        )
+        SetupWalletScreen(onComplete = onComplete, viewModel = viewModel)
     }
 }

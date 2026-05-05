@@ -1,31 +1,24 @@
 package com.gemwallet.android.features.asset_select.presents.navigation
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset_select.presents.views.AssetsManageScreen
 import com.gemwallet.android.features.asset_select.presents.views.AssetsSearchScreen
 import com.wallet.core.primitives.AssetId
+import kotlinx.serialization.Serializable
 
-const val assetsManageRoute = "manage_assets"
-const val assetsSearchRoute = "search_assets"
+@Serializable
+data object AssetsManageRoute : NavKey
 
-fun NavController.navigateToAssetsManageScreen(navOptions: NavOptions? = null) {
-    navigate(assetsManageRoute, navOptions ?: navOptions { launchSingleTop = true })
-}
+@Serializable
+data object AssetsSearchRoute : NavKey
 
-fun NavController.navigateToAssetsSearchScreen(navOptions: NavOptions? = null) {
-    navigate(assetsSearchRoute, navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.assetsManageScreen(
+fun EntryProviderScope<NavKey>.assetsManageScreen(
     onAddAsset: () -> Unit,
     onAssetClick: (AssetId) -> Unit,
     onCancel: () -> Unit,
 ) {
-    composable(assetsManageRoute) {
+    entry<AssetsManageRoute> {
         AssetsManageScreen(
             onAddAsset = onAddAsset,
             onAssetClick = onAssetClick,
@@ -33,7 +26,7 @@ fun NavGraphBuilder.assetsManageScreen(
         )
     }
 
-    composable(assetsSearchRoute) {
+    entry<AssetsSearchRoute> {
         AssetsSearchScreen(
             onAddAsset = onAddAsset,
             onAssetClick = onAssetClick,

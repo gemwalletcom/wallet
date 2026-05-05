@@ -1,76 +1,90 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.ConfirmParams
+import androidx.compose.runtime.Composable
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.gemwallet.android.features.swap.views.SwapScreen
 import com.gemwallet.android.features.swap.views.SwapSelectScreen
+import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.navigation.WalletNavigator
+import com.gemwallet.android.ui.navigation.fromAssetIdArgument
+import com.gemwallet.android.ui.navigation.routeArguments
+import com.gemwallet.android.ui.navigation.toAssetIdArgument
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SwapRoute(val from: String?, val to: String?)
+data object SwapRoute : NavKey
+
+@Serializable
+data class SwapPairRoute(val from: AssetId, val to: AssetId?) : NavKey
 
 @Serializable
 data class SwapSelectRoute(
-    val select: SwapItemType,
-    val payAssetId: String?,
-    val receiveAssetId: String?,
-)
+    val itemType: SwapItemType,
+    val payAssetId: AssetId?,
+    val receiveAssetId: AssetId?,
+) : NavKey
 
-fun NavController.navigateToSwapSelect(select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
-    val route = SwapSelectRoute(select, payAssetId?.toIdentifier(), receiveAssetId?.toIdentifier())
-    navigate(
-        route = route,
-        navOptions = navOptions { launchSingleTop = true },
-    )
-}
-
-fun NavController.navigateToSwap(from: AssetId? = null, to: AssetId? = null) {
-    val route = SwapRoute(from?.toIdentifier(), to?.toIdentifier())
-    navigate(
-        route = route,
-        navOptions = navOptions { launchSingleTop = true },
-    )
-}
-
-fun NavGraphBuilder.swapSelect(navController: NavController, onCancel: () -> Unit) {
-    composable<SwapSelectRoute> {
+fun EntryProviderScope<NavKey>.swapSelect(navigator: WalletNavigator, onCancel: () -> Unit) {
+    entry<SwapSelectRoute>(
+        metadata = { key ->
+            routeArguments(
+                RouteArgument.SwapItemType to key.itemType,
+                fromAssetIdArgument(key.payAssetId),
+                toAssetIdArgument(key.receiveAssetId),
+            )
+        },
+    ) {
         SwapSelectScreen(
             onCancel,
-            { select, pay, receive ->
-                navController.previousBackStackEntry?.savedStateHandle?.let {
-                    it.set("from", pay?.toIdentifier())
-                    it.set("to", receive?.toIdentifier())
-                    it.set("select", select)
-                }
-                navController.popBackStack()
-            }
+            navigator::finishSwapSelect,
         )
     }
 }
 
-fun NavGraphBuilder.swap(
+fun EntryProviderScope<NavKey>.swap(
+    navigator: WalletNavigator,
     onConfirm: (ConfirmParams) -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
     onCancel: () -> Unit,
 ) {
-    composable<SwapRoute> { entry ->
-        SwapScreen(
-            payId = entry.savedStateHandle.get<String?>("from")?.toAssetId(),
-            receiveId = entry.savedStateHandle.get<String?>("to")?.toAssetId(),
-            select = entry.savedStateHandle.get("select"),
-            onSelectionConsumed = {
-                entry.savedStateHandle["select"] = null as SwapItemType?
-            },
-            onConfirm = onConfirm,
-            onSelect = onSelect,
-            onCancel = onCancel,
-        )
+    entry<SwapRoute> {
+        swapScreenContent(navigator, SwapRoute, from = null, to = null, onConfirm, onSelect, onCancel)
     }
+
+    entry<SwapPairRoute>(
+        metadata = { key ->
+            routeArguments(
+                fromAssetIdArgument(key.from),
+                toAssetIdArgument(key.to),
+            )
+        },
+    ) { key ->
+        swapScreenContent(navigator, key, key.from, key.to, onConfirm, onSelect, onCancel)
+    }
+}
+
+@Composable
+private fun swapScreenContent(
+    navigator: WalletNavigator,
+    route: NavKey,
+    from: AssetId?,
+    to: AssetId?,
+    onConfirm: (ConfirmParams) -> Unit,
+    onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
+    onCancel: () -> Unit,
+) {
+    val selection = navigator.swapSelection(route)
+    SwapScreen(
+        payId = selection?.payAssetId ?: from,
+        receiveId = selection?.receiveAssetId ?: to,
+        select = selection?.itemType,
+        onSelectionConsumed = { navigator.clearSwapSelection(route) },
+        onConfirm = onConfirm,
+        onSelect = onSelect,
+        onCancel = onCancel,
+    )
 }

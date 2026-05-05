@@ -43,7 +43,6 @@ fun SwapSelectScreen(
         when (select) {
             SwapItemType.Pay -> onSelect(SwapItemType.Pay, assetId, receiveId)
             SwapItemType.Receive -> onSelect(SwapItemType.Receive, payId, assetId)
-            null -> {}
         }
     }
 
@@ -51,7 +50,6 @@ fun SwapSelectScreen(
         title = when (select) {
             SwapItemType.Pay -> stringResource(id = R.string.swap_you_pay)
             SwapItemType.Receive -> stringResource(id = R.string.swap_you_receive)
-            null -> ""
         },
         titleBadge = { null },
         query = viewModel.queryState,

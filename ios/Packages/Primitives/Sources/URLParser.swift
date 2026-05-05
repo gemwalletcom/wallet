@@ -7,8 +7,6 @@ enum URLParserError: Error {
 }
 
 public enum URLParser {
-    private static let localePrefixPattern = "^[a-z]{2}(-[a-z]{2})?$"
-
     public static func from(url: URL) throws -> URLAction {
         if let walletConnectAction = try parseWalletConnect(url: url) {
             return .walletConnect(walletConnectAction)
@@ -42,8 +40,6 @@ public enum URLParser {
         if url.scheme == "gem", let host = url.host() {
             urlComponents = [host] + urlComponents
         }
-
-        urlComponents = Self.strippingLocalePrefix(from: urlComponents)
 
         if url.host() == DeepLink.host || url.scheme == "gem" {
             guard let path = urlComponents.first,
@@ -88,16 +84,6 @@ public enum URLParser {
         case .sell: return .sell(assetId, amount: amount)
         default: throw URLParserError.invalidURL(url)
         }
-    }
-
-    private static func strippingLocalePrefix(from components: [String]) -> [String] {
-        guard let first = components.first,
-              first.range(of: localePrefixPattern, options: .regularExpression) != nil,
-              DeepLink.PathComponent(rawValue: first) == nil
-        else {
-            return components
-        }
-        return Array(components.dropFirst())
     }
 }
 

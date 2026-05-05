@@ -19,16 +19,21 @@ fun PerpetualPositionNavScreen(
     val period by viewModel.period.collectAsStateWithLifecycle()
 
     PerpetualPositionScene(
-        perpetual = perpetual ?: return,
+        perpetual = perpetual,
         position = position,
         chartData = chart,
         period = period,
         onClose = onClose,
         onChartPeriodSelect = viewModel::period,
         onOpenPosition = { direction ->
-            perpetual?.let {
-                onOpenPosition(AmountParams.buildPerpetualOpenPosition(it.asset.id, it.id, direction))
-            }
+            val currentPerpetual = perpetual ?: return@PerpetualPositionScene
+            onOpenPosition(
+                AmountParams.buildPerpetualOpenPosition(
+                    currentPerpetual.asset.id,
+                    currentPerpetual.id,
+                    direction,
+                )
+            )
         }
     )
 }

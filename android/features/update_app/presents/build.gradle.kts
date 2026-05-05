@@ -56,7 +56,7 @@ dependencies {
     implementation(project(":features:update_app:viewmodels"))
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)

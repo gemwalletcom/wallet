@@ -1,62 +1,40 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
-import androidx.navigation.navOptions
-import com.gemwallet.android.ext.toIdentifier
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.ui.navigation.clearToastMessage
-import com.gemwallet.android.ui.navigation.getToastMessage
+import com.gemwallet.android.ui.navigation.assetIdArgument
+import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.presents.chart.AssetChartScene
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsScreen
 import com.wallet.core.primitives.AssetId
-import kotlinx.serialization.SerialName
+import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
 
-const val assetRouteUri = "gem://asset"
+const val assetsRoute = "assets"
 
 @Serializable
-data class AssetRoute(
-    @SerialName("assetId") val assetId: String
-)
+data class AssetRoute(val assetId: AssetId) : NavKey
 
 @Serializable
-data class AssetChartRoute(val assetId: String)
+data class AssetChartRoute(val assetId: AssetId) : NavKey
 
-fun NavController.navigateToAssetScreen(assetId: AssetId, navOptions: NavOptions? = null) {
-    val route = AssetRoute(assetId.toIdentifier())
-    navigate(route, navOptions  ?: navOptions {
-        popUpTo(route) { inclusive = true }
-    })
-}
-
-fun NavController.navigateToAssetChartScreen(assetId: AssetId, navOptions: NavOptions? = null) {
-    navigate(AssetChartRoute(assetId.toIdentifier()), navOptions ?: navOptions {
-        launchSingleTop = true
-    })
-}
-
-fun NavGraphBuilder.assetScreen(
+fun EntryProviderScope<NavKey>.assetScreen(
     onCancel: () -> Unit,
     onTransfer: AssetIdAction,
     onReceive: (AssetId) -> Unit,
     onBuy: (AssetId) -> Unit,
-    onSwap: (AssetId?, AssetId?) -> Unit,
-    onTransaction: (txId: String) -> Unit,
+    onSwap: (AssetId, AssetId?) -> Unit,
+    onTransaction: (TransactionId) -> Unit,
     onChart: (AssetId) -> Unit,
     openNetwork: AssetIdAction,
     onStake: (AssetId) -> Unit,
     onConfirm: (ConfirmParams) -> Unit,
     onPriceAlerts: (AssetId) -> Unit,
 ) {
-    composable<AssetRoute>(
-        deepLinks = listOf(
-            navDeepLink<AssetRoute>(basePath = assetRouteUri)
-        )
+    entry<AssetRoute>(
+        metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
         AssetDetailsScreen(
             onCancel = onCancel,
@@ -74,17 +52,21 @@ fun NavGraphBuilder.assetScreen(
     }
 }
 
-fun NavGraphBuilder.assetChartScreen(
+fun EntryProviderScope<NavKey>.assetChartScreen(
     onPriceAlerts: (AssetId) -> Unit,
     onAddPriceAlertTarget: (AssetId) -> Unit,
+    toastMessage: (AssetChartRoute) -> String?,
+    onToastShown: (AssetChartRoute) -> Unit,
     onCancel: () -> Unit,
 ) {
-    composable<AssetChartRoute> { backStackEntry ->
+    entry<AssetChartRoute>(
+        metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
+    ) { key ->
         AssetChartScene(
             onPriceAlerts = onPriceAlerts,
             onAddPriceAlertTarget = onAddPriceAlertTarget,
-            toastMessage = backStackEntry.getToastMessage(),
-            onToastShown = backStackEntry::clearToastMessage,
+            toastMessage = toastMessage(key),
+            onToastShown = { onToastShown(key) },
             onCancel = onCancel,
         )
     }

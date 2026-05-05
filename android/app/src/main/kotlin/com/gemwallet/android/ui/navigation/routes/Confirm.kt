@@ -1,40 +1,29 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
+import com.gemwallet.android.ui.navigation.paramsArgument
+import com.gemwallet.android.ui.navigation.routeArguments
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ConfirmRoute(
-    val txType: String,
-    val data: String,
-)
+data class ConfirmRoute(val params: String) : NavKey
 
-fun NavController.navigateToConfirmScreen(params: ConfirmParams) {
-    val route = ConfirmRoute(
-        txType = params.getTxType().string,
-        data = params.pack() ?: return,
-    )
-    navigate(
-        route = route,
-        navOptions = navOptions { launchSingleTop = true },
-    )
-}
-
-fun NavGraphBuilder.confirm(
+fun EntryProviderScope<NavKey>.confirm(
     finishAction: FinishConfirmAction,
     onBuy: AssetIdAction,
     cancelAction: CancelAction,
 ) {
-    composable<ConfirmRoute> { entry ->
+    entry<ConfirmRoute>(
+        metadata = { key -> routeArguments(paramsArgument(key.params)) },
+    ) { key ->
         ConfirmScreen(
+            params = ConfirmParams.unpack(key.params),
             cancelAction = cancelAction,
             onBuy = onBuy,
             finishAction = finishAction,

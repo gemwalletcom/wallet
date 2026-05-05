@@ -5,9 +5,9 @@
 import Foundation
 
 public struct PushNotificationAsset: Codable, Equatable, Sendable {
-	public let assetId: String
+	public let assetId: AssetId
 
-	public init(assetId: String) {
+	public init(assetId: AssetId) {
 		self.assetId = assetId
 	}
 }
@@ -46,21 +46,21 @@ public struct PushNotificationSupport: Codable, Equatable, Sendable {
 }
 
 public struct PushNotificationSwapAsset: Codable, Equatable, Sendable {
-	public let fromAssetId: String
-	public let toAssetId: String
+	public let fromAssetId: AssetId
+	public let toAssetId: AssetId
 
-	public init(fromAssetId: String, toAssetId: String) {
+	public init(fromAssetId: AssetId, toAssetId: AssetId) {
 		self.fromAssetId = fromAssetId
 		self.toAssetId = toAssetId
 	}
 }
 
 public struct PushNotificationTransaction: Codable, Equatable, Sendable {
-	public let walletId: String
-	public let assetId: String
+	public let walletId: WalletId
+	public let assetId: AssetId
 	public let transaction: Transaction
 
-	public init(walletId: String, assetId: String, transaction: Transaction) {
+	public init(walletId: WalletId, assetId: AssetId, transaction: Transaction) {
 		self.walletId = walletId
 		self.assetId = assetId
 		self.transaction = transaction

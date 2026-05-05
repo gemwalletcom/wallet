@@ -7,6 +7,7 @@ import com.gemwallet.android.application.nft.coordinators.GetNftCollections
 import com.gemwallet.android.application.nft.coordinators.SyncNftCollections
 import com.gemwallet.android.cases.nft.NftError
 import com.gemwallet.android.ui.models.NftItemUIModel
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.VerificationStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,9 +27,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-val collectionIdArg = "collectionId"
-val unverifiedArg = "unverified"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -54,28 +52,28 @@ class NftListViewModels @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val collectionId = savedStateHandle.getStateFlow<String?>(collectionIdArg, null)
+    val nftCollectionId = savedStateHandle.getStateFlow<String?>(RouteArgument.NftCollectionId.key, null)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val unverified = savedStateHandle.getStateFlow(unverifiedArg, false)
+    val unverified = savedStateHandle.getStateFlow(RouteArgument.Unverified.key, false)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val nftData: StateFlow<List<NFTData>> = collectionId
+    private val nftData: StateFlow<List<NFTData>> = nftCollectionId
         .onEach { loadState.emit(it == null) }
-        .flatMapLatest { collectionId ->
-            getNftCollections(collectionId).map { data -> data.filter { it.assets.isNotEmpty() } }
+        .flatMapLatest { nftCollectionId ->
+            getNftCollections(nftCollectionId).map { data -> data.filter { it.assets.isNotEmpty() } }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val collections = combine(nftData, collectionId, unverified) { data, collectionId, unverified ->
+    val collections = combine(nftData, nftCollectionId, unverified) { data, nftCollectionId, unverified ->
         val filtered = when {
-            collectionId != null -> data
+            nftCollectionId != null -> data
             unverified -> data.filter { it.collection.status != VerificationStatus.Verified }
             else -> data.filter { it.collection.status == VerificationStatus.Verified }
         }
         filtered.flatMap { nftData ->
             val isSingleAsset = nftData.assets.size == 1
-            if (collectionId != null || isSingleAsset) {
+            if (nftCollectionId != null || isSingleAsset) {
                 nftData.assets.map { NftItemUIModel(nftData.collection, it) }
             } else {
                 listOf(NftItemUIModel(nftData.collection, null, nftData.assets.size))

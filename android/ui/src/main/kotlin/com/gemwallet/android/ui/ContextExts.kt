@@ -9,7 +9,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import com.gemwallet.android.cases.security.AuthRequester
 import com.gemwallet.android.model.AuthRequest
-import kotlin.system.exitProcess
 
 fun Context.findActivity(): Activity? {
     var context = this
@@ -22,8 +21,7 @@ fun Context.findActivity(): Activity? {
 }
 
 fun Context.requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
-    val activity = findActivity() as? AuthRequester
-    activity?.requestAuth(auth, onSuccess) ?: exitProcess(0)
+    (findActivity() as? AuthRequester)?.requestAuth(auth, onSuccess)
 }
 
 @Composable

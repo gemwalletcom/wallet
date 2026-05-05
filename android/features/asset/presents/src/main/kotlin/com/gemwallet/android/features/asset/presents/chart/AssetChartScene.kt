@@ -80,7 +80,6 @@ fun AssetChartScene(
 
     Scene(
         title = title,
-        backHandle = true,
         onClose = onCancel,
         snackbar = snackbar,
     ) {

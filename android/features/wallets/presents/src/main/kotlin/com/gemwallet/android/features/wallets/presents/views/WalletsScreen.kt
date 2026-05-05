@@ -14,13 +14,14 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.features.wallets.viewmodels.WalletsViewModel
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 
 @Composable
 fun WalletsScreen(
     onCreateWallet: () -> Unit,
     onImportWallet: () -> Unit,
-    onEditWallet: (String) -> Unit,
+    onEditWallet: (WalletId) -> Unit,
     onSelectWallet: () -> Unit,
     onBoard: () -> Unit,
     onCancel: () -> Unit,
@@ -31,7 +32,7 @@ fun WalletsScreen(
         wallets.toWalletSections()
     }
 
-    var deleteWalletId by remember { mutableStateOf("") }
+    var deleteWalletId by remember { mutableStateOf<WalletId?>(null) }
 
     WalletsScene(
         pinnedWallets = walletSections.pinnedWallets,
@@ -50,16 +51,15 @@ fun WalletsScreen(
         onCancel = onCancel,
     )
 
-    if (deleteWalletId.isNotEmpty()) {
+    deleteWalletId?.let { pendingDeleteWalletId ->
         ConfirmWalletDeleteDialog(
-            walletName = walletSections.allWallets.firstOrNull { it.id == deleteWalletId }?.name ?: "",
+            walletName = walletSections.allWallets.firstOrNull { it.id == pendingDeleteWalletId.id }?.name ?: "",
             onConfirm = {
-                val walletId = deleteWalletId
-                deleteWalletId = ""
-                viewModel.deleteWallet(walletId = walletId, onBoard)
+                deleteWalletId = null
+                viewModel.deleteWallet(walletId = pendingDeleteWalletId, onBoard)
             }
         ) {
-            deleteWalletId = ""
+            deleteWalletId = null
         }
     }
 }

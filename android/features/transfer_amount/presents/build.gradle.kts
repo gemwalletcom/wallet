@@ -57,7 +57,7 @@ dependencies {
     implementation(project(":features:transfer_amount:viewmodels"))
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
 
     debugImplementation(libs.androidx.ui.tooling)

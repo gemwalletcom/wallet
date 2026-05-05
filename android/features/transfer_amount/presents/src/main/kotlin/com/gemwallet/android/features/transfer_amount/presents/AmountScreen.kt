@@ -2,9 +2,6 @@ package com.gemwallet.android.features.transfer_amount.presents
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +12,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
@@ -54,30 +52,14 @@ fun AmountScreen(
     AnimatedContent(
         isSelectValidator,
         transitionSpec = {
-            if (isSelectValidator) {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                )
-            } else {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                )
-            }
+            navigationSlideTransition(forward = targetState)
         },
         label = "stake"
     ) { state ->
         when (state) {
             true -> {
                 val asset = assetInfo?.asset ?: return@AnimatedContent
-                val source = when (params?.txType) {
+                val source = when (params.txType) {
                     TransactionType.StakeRewards -> ValidatorsSource.Rewards(
                         assetId = asset.id,
                         owner = assetInfo?.owner?.address ?: return@AnimatedContent,
@@ -100,7 +82,7 @@ fun AmountScreen(
                 asset = assetInfo?.asset ?: return@AnimatedContent,
                 currency = assetInfo?.price?.currency ?: Currency.USD,
                 amountInputType = amountInputType,
-                txType = params?.txType ?: return@AnimatedContent,
+                txType = params.txType,
                 validatorState = validatorState,
                 error = error,
                 equivalent = equivalent,

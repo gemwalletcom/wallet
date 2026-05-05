@@ -1,10 +1,8 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NodeUrlValidationTest {
@@ -13,6 +11,7 @@ class NodeUrlValidationTest {
     fun `parse accepts http and https urls with a host`() {
         assertNotNull(NodeUrlParser.parse("https://rpc.example.com"))
         assertNotNull(NodeUrlParser.parse("http://127.0.0.1:8545"))
+        assertEquals("HTTPS://rpc.example.com", NodeUrlParser.parse("HTTPS://rpc.example.com"))
     }
 
     @Test

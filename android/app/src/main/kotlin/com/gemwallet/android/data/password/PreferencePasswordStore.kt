@@ -16,13 +16,13 @@ class PreferencePasswordStore(
     val random = SecureRandom()
 
     @SuppressLint("ApplySharedPref")
-    override fun createPassword(walletId: String): String {
-        val key = ByteArray(32)
-        random.nextBytes(key)
+    override fun createPassword(key: String): String {
+        val password = ByteArray(32)
+        random.nextBytes(password)
         getStore().edit(commit = true) {
-            putString(walletId, key.toHexString())
+            putString(key, password.toHexString())
         }
-        return key.toHexString()
+        return password.toHexString()
     }
 
     override fun removePassword(key: String): Boolean =

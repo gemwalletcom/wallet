@@ -7,10 +7,9 @@ import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,6 +77,6 @@ class AssetChartViewModel internal constructor(
         getCurrentBlockExplorer = getCurrentBlockExplorer,
         getPriceAlerts = getPriceAlerts,
         sessionRepository = sessionRepository,
-        assetId = checkNotNull(savedStateHandle.get<String>(assetIdArg)?.toAssetId()),
+        assetId = savedStateHandle.requireAssetId(),
     )
 }

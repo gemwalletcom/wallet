@@ -7,7 +7,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +26,7 @@ import com.gemwallet.android.features.recipient.presents.components.walletsDesti
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
+import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
@@ -48,50 +48,61 @@ fun RecipientScreen(
     confirmAction: ConfirmTransactionAction,
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
-    val type by viewModel.type.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val hasMemo by viewModel.hasMemo.collectAsStateWithLifecycle()
     val wallets by viewModel.wallets.collectAsStateWithLifecycle()
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     val memoError by viewModel.memoErrorState.collectAsStateWithLifecycle()
+    val address by viewModel.address.collectAsStateWithLifecycle()
+    val memo by viewModel.memo.collectAsStateWithLifecycle()
 
     var scan by remember { mutableStateOf(QrScanField.None) }
 
-    val currentType = type ?: return
-    RecipientScreen(
-        type = currentType,
-        hasMemo = viewModel.hasMemo(),
-        addressState = viewModel.addressState, // TODO: Change it to textfieldstate
-        memoState = viewModel.memoState,
-        nameRecordState = viewModel.nameRecordState,
-        addressError = addressError,
-        memoError = memoError,
-        wallets = wallets,
-        onQrScan = { scan = it },
-        onNext = { viewModel.onNext(it, amountAction, confirmAction) },
-        onCancel = cancelAction,
-    )
+    when (val currentState = state) {
+        RecipientState.Loading -> Unit
+        is RecipientState.Ready -> {
+            RecipientScreen(
+                type = currentState.type,
+                hasMemo = hasMemo,
+                address = address,
+                memo = memo,
+                addressError = addressError,
+                memoError = memoError,
+                wallets = wallets,
+                onAddress = viewModel::onAddress,
+                onMemo = viewModel::onMemo,
+                onQrScan = { scan = it },
+                onNext = { viewModel.onNext(currentState.type, amountAction, confirmAction) },
+                onDestination = { viewModel.onDestination(currentState.type, it, amountAction, confirmAction) },
+                onCancel = cancelAction,
+            )
 
-    QrCodeScannerModal(
-        isVisible = scan != QrScanField.None,
-        onDismissRequest = { scan = QrScanField.None },
-        onResult = {
-            viewModel.setQrData(scan, it, confirmAction)
-            scan = QrScanField.None
-        },
-    )
+            QrCodeScannerModal(
+                isVisible = scan != QrScanField.None,
+                onDismissRequest = { scan = QrScanField.None },
+                onResult = {
+                    viewModel.setQrData(currentState.type, scan, it, confirmAction)
+                    scan = QrScanField.None
+                },
+            )
+        }
+    }
 }
 
 @Composable
 fun RecipientScreen(
     type: RecipientType,
     hasMemo: Boolean,
-    addressState: MutableState<String>,
-    memoState: MutableState<String>,
-    nameRecordState: MutableState<NameRecord?>,
+    address: String,
+    memo: String,
     addressError: RecipientError,
     memoError: RecipientError,
     wallets: List<Wallet>,
+    onAddress: (String, NameRecord?) -> Unit,
+    onMemo: (String) -> Unit,
     onQrScan: (QrScanField) -> Unit,
-    onNext: (DestinationAddress?) -> Unit,
+    onNext: () -> Unit,
+    onDestination: (DestinationAddress) -> Unit,
     onCancel: CancelAction,
 ) {
     val isKeyBoardOpen by keyboardAsState()
@@ -107,12 +118,12 @@ fun RecipientScreen(
             if (!isKeyBoardOpen || !isSmallScreen) {
                 MainActionButton(
                     title = stringResource(id = R.string.common_continue),
-                    onClick = { onNext(null) },
+                    onClick = onNext,
                 )
             }
         },
         actions = {
-            TextButton(onClick = { onNext(null) },
+            TextButton(onClick = onNext,
                 colors = ButtonDefaults.textButtonColors()
                     .copy(contentColor = MaterialTheme.colorScheme.primary)
             ) {
@@ -128,15 +139,16 @@ fun RecipientScreen(
             destinationView(
                 asset = type.assetInfo,
                 hasMemo = hasMemo,
-                addressState = addressState,
+                address = address,
                 addressError = addressError,
-                memoState = memoState,
+                memo = memo,
                 memoError = memoError,
-                nameRecordState = nameRecordState,
+                onAddress = onAddress,
+                onMemo = onMemo,
                 onQrScan = onQrScan,
             )
             walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
-                onNext(
+                onDestination(
                     DestinationAddress(
                         address = account.address,
                         name = wallet.name,

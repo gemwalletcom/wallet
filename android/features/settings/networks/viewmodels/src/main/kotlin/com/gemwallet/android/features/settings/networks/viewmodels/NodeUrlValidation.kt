@@ -9,15 +9,28 @@ internal object NodeUrlParser {
         }
 
         val hasExplicitScheme = "://" in input
-        val candidateUrl = if (hasExplicitScheme) input else "https://$input"
+        val candidateUrl = if (hasExplicitScheme) input else NodeUrlScheme.Https.url(input)
         val uri = runCatching { URI(candidateUrl) }.getOrNull()
-        val scheme = uri?.scheme?.lowercase()
+        val scheme = NodeUrlScheme.from(uri?.scheme)
         val host = uri?.host
 
         return candidateUrl.takeIf {
-            scheme in setOf("http", "https") &&
+            scheme != null &&
                 !host.isNullOrBlank() &&
                 (hasExplicitScheme || '.' in host)
+        }
+    }
+}
+
+private enum class NodeUrlScheme(val value: String) {
+    Http("http"),
+    Https("https");
+
+    fun url(host: String): String = "$value://$host"
+
+    companion object {
+        fun from(value: String?): NodeUrlScheme? = entries.firstOrNull {
+            it.value.equals(value, ignoreCase = true)
         }
     }
 }

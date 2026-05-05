@@ -2,9 +2,6 @@ package com.gemwallet.android.features.create_wallet.views
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,17 +35,19 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
+import com.wallet.core.primitives.WalletId
 
 @Composable
 fun CreateWalletScreen(
     onCancel: () -> Unit,
-    onCreated: (walletId: String?) -> Unit,
+    onCreated: (walletId: WalletId?) -> Unit,
 ) {
     DisableScreenShooting()
 
@@ -62,23 +61,7 @@ fun CreateWalletScreen(
     AnimatedContent(
         targetState = uiState.isShowSafeMessage,
         transitionSpec = {
-            if (uiState.isShowSafeMessage) {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                )
-            } else {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                )
-            }
+            navigationSlideTransition(forward = targetState)
         },
         label = "phrase"
     ) { state ->

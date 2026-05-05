@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
-import Primitives
-import Style
 import SwiftUI
 
 public struct AddressListItemView: View {
@@ -28,10 +25,22 @@ public struct AddressListItemView: View {
                 showAddress.toggle()
             }
         }
-        .contextMenu([
+        .contextMenu(contextMenuItems)
+        .safariSheet(url: $isPresentingUrl)
+    }
+
+    private var contextMenuItems: [ContextMenuItemType] {
+        var items: [ContextMenuItemType] = [
             .copy(value: model.account.address),
             .url(title: model.addressExplorerText, onOpen: { isPresentingUrl = model.addressExplorerUrl }),
-        ])
-        .safariSheet(url: $isPresentingUrl)
+        ]
+        if let onAddContact = model.onAddContact {
+            items.append(.custom(
+                title: model.addToContactsTitle,
+                systemImage: model.addToContactsImage,
+                action: onAddContact,
+            ))
+        }
+        return items
     }
 }

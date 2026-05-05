@@ -53,7 +53,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="gem" />
+                <data android:scheme="gem" android:host="wc" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -61,7 +61,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/join" />
+                <data android:scheme="https" android:host="gemwallet.com" android:path="/join" />
+                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/join/" />
+                <data android:scheme="https" android:host="gemwallet.com" android:path="/tokens" />
+                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/tokens/" />
             </intent-filter>
         </activity>
         <provider

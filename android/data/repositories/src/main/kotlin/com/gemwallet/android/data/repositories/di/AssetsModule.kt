@@ -14,6 +14,7 @@ import com.gemwallet.android.application.transactions.coordinators.SyncTransacti
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
 import com.gemwallet.android.data.repositories.stream.StreamEventHandler
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
@@ -140,6 +141,7 @@ object AssetsModule {
         deviceRequestSigner = deviceRequestSigner,
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,
+        reconnection = ExponentialReconnection(maxDelay = 30.0),
     )
 
     @Provides

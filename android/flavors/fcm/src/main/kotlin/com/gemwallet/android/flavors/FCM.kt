@@ -3,9 +3,8 @@ package com.gemwallet.android.flavors
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SetPushToken
 import com.gemwallet.android.cases.device.SyncDeviceInfo
-import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.cases.pushes.ShowSystemNotification
-import com.gemwallet.android.model.PushNotificationData
+import com.gemwallet.android.model.PushNotificationField
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,22 +35,11 @@ class FCM : FirebaseMessagingService() {
             return
         }
         scope.launch {
-            val rawType = message.data["type"]
-            val rawData = message.data["data"]
-            val data = parseNotificationData(rawType, rawData)
+            val type = message.data[PushNotificationField.Type.key]
+            val rawData = message.data[PushNotificationField.Data.key]
             val title = message.notification?.title
             val subtitle = message.notification?.body
-            val channelId = message.data["type"]
-            when (data) {
-                is PushNotificationData.Transaction -> showSystemNotification.showNotification(title, subtitle, channelId, data)
-                is PushNotificationData.Asset -> showSystemNotification.showNotification(title, subtitle, channelId, data)
-                is PushNotificationData.WalletAsset -> showSystemNotification.showNotification(title, subtitle, channelId, data)
-                is PushNotificationData.Reward -> showSystemNotification.showNotification(title, subtitle, channelId, data)
-                is PushNotificationData.Stake -> showSystemNotification.showNotification(title, subtitle, channelId, data)
-                is PushNotificationData.PushNotificationPayloadType,
-                is PushNotificationData.Swap,
-                null -> showSystemNotification.showNotification(title, subtitle, channelId)
-            }
+            showSystemNotification.showNotification(title, subtitle, type, rawData)
         }
     }
 

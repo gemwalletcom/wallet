@@ -2,14 +2,12 @@ package com.gemwallet.android.features.add_asset.views
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.features.add_asset.viewmodels.AddAssetViewModel
@@ -37,23 +35,7 @@ fun AddAssetScree(
     AnimatedContent(
         targetState = uiState.scene == AddAssetUIState.Scene.SelectChain,
         transitionSpec = {
-            if (targetState) {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                )
-            } else {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                )
-            }
+            navigationSlideTransition(forward = targetState)
         },
         label = "phrase"
     ) { isSelectChain ->

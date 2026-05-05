@@ -9,6 +9,7 @@ import com.gemwallet.android.application.referral.coordinators.Redeem
 import com.gemwallet.android.application.referral.coordinators.UseReferralCode
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.Wallet
@@ -40,7 +41,7 @@ class ReferralViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    val referralCode = savedStateHandle.getStateFlow<String?>("code", null)
+    val referralCode = savedStateHandle.getStateFlow<String?>(RouteArgument.Code.key, null)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val currentWallet = MutableStateFlow<Wallet?>(null)
@@ -147,6 +148,6 @@ class ReferralViewModel @Inject constructor(
     }
 
     fun cancelCode() {
-        savedStateHandle["code"] = null
+        savedStateHandle[RouteArgument.Code.key] = null
     }
 }

@@ -22,20 +22,23 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.WalletId
 
 internal fun LazyListScope.wallets(
     wallets: List<WalletDataAggregate>,
     longPressedWallet: MutableState<String>,
     isPinned: Boolean = false,
-    onEdit: (String) -> Unit,
-    onSelectWallet: (String) -> Unit,
-    onDeleteWallet: (String) -> Unit,
-    onTogglePin: (String) -> Unit,
+    onEdit: (WalletId) -> Unit,
+    onSelectWallet: (WalletId) -> Unit,
+    onDeleteWallet: (WalletId) -> Unit,
+    onTogglePin: (WalletId) -> Unit,
 ) {
     if (isPinned && wallets.isNotEmpty()) {
         pinnedHeader()
     }
     itemsIndexed(items = wallets, key = { _, item -> item.id }) { index, item ->
+        val walletId = WalletId(item.id)
+
         DropDownContextItem(
             isExpanded = longPressedWallet.value == item.id,
             onDismiss = { longPressedWallet.value = "" },
@@ -48,7 +51,7 @@ internal fun LazyListScope.wallets(
                     isCurrent = item.isCurrent,
                     type = item.type,
                     listPosition = ListPosition.getPosition(index, wallets.size),
-                    onEdit = onEdit,
+                    onEdit = { onEdit(walletId) },
                     modifier = it
                 )
             },
@@ -57,20 +60,20 @@ internal fun LazyListScope.wallets(
                     if (item.isPinned) R.string.common_unpin else R.string.common_pin,
                     if (item.isPinned) R.drawable.keep_off else Icons.Default.PushPin,
                 ) {
-                    onTogglePin(item.id)
+                    onTogglePin(walletId)
                     longPressedWallet.value = ""
                 }
                 WalletDropDownItem(R.string.common_wallet, Icons.Default.Settings) {
-                    onEdit(item.id)
+                    onEdit(walletId)
                     longPressedWallet.value = ""
                 }
                 WalletDropDownItem(R.string.common_delete, Icons.Default.Delete, MaterialTheme.colorScheme.error) {
-                    onDeleteWallet(item.id)
+                    onDeleteWallet(walletId)
                     longPressedWallet.value = ""
                 }
             },
             onLongClick = { longPressedWallet.value = item.id }
-        ) { onSelectWallet(item.id) }
+        ) { onSelectWallet(walletId) }
     }
 }
 

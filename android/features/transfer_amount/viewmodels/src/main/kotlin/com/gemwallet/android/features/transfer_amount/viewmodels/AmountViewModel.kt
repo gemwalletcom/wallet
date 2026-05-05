@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -48,7 +47,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -57,8 +55,6 @@ import uniffi.gemstone.Config
 import java.math.BigInteger
 import java.math.MathContext
 import javax.inject.Inject
-
-private const val paramsArg = "params"
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -69,10 +65,7 @@ class AmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val params = savedStateHandle
-        .getStateFlow(paramsArg, "")
-        .mapNotNull { AmountParams.unpack(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val params = MutableStateFlow(savedStateHandle.requireAmountParams())
 
     var amount by mutableStateOf("")
         private set
@@ -86,12 +79,12 @@ class AmountViewModel @Inject constructor(
     val resource = MutableStateFlow(Resource.Bandwidth)
 
     val assetInfo = params.flatMapLatest {
-        it?.assetId?.let { assetId -> assetsRepository.getAssetInfo(assetId).filterNotNull() } ?: emptyFlow()
+        assetsRepository.getAssetInfo(it.assetId).filterNotNull()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val reserveForFee = combine(params.filterNotNull(), assetInfo.filterNotNull(), maxAmount) { params, assetInfo, maxAmount ->
+    val reserveForFee = combine(params, assetInfo.filterNotNull(), maxAmount) { params, assetInfo, maxAmount ->
         if (!maxAmount) {
             return@combine null
         }
@@ -109,7 +102,7 @@ class AmountViewModel @Inject constructor(
     private val delegation: StateFlow<Delegation?> = combine(params, assetInfo, selectedValidatorId) { params, assetInfo, selectedId ->
         Triple(params, assetInfo, selectedId)
     }.flatMapLatest { (params, assetInfo, selectedId) ->
-        when (params?.txType) {
+        when (params.txType) {
             TransactionType.StakeUndelegate,
             TransactionType.StakeRedelegate,
             TransactionType.StakeWithdraw -> {
@@ -129,14 +122,13 @@ class AmountViewModel @Inject constructor(
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val recommendedValidator = params
-        .flatMapLatest { params ->
-            params?.assetId?.chain?.let { stakeRepository.getRecommended(params.assetId.chain) } ?: emptyFlow()
-        }
+    private val recommendedValidator = params.flatMapLatest {
+        stakeRepository.getRecommended(it.assetId.chain)
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val srcValidator = combine(params, delegation, recommendedValidator) { params, delegation, recommended ->
-        when (params?.txType) {
+        when (params.txType) {
             TransactionType.StakeWithdraw,
             TransactionType.StakeUndelegate,
             TransactionType.StakeRewards -> delegation?.validator
@@ -165,11 +157,10 @@ class AmountViewModel @Inject constructor(
         BalanceRequest(params, assetInfo, delegation, resource)
     }
     .mapLatest { request ->
-        val params = request.params ?: return@mapLatest null
         val assetInfo = request.assetInfo ?: return@mapLatest null
         transactionBalanceService.getContext(
             assetInfo = assetInfo,
-            params = params,
+            params = request.params,
             delegation = request.delegation,
             resource = request.resource,
         )
@@ -179,15 +170,12 @@ class AmountViewModel @Inject constructor(
 
     val availableBalance = combine(params, assetInfo, balanceContext) { params, assetInfo, balanceContext ->
         assetInfo ?: return@combine ""
-        val txType = params?.txType
-        val value = txType?.let {
-            Crypto(
-                assetInfo.balance(
-                    txType = it,
-                    context = balanceContext ?: TransactionBalanceContext(),
-                )
+        val value = Crypto(
+            assetInfo.balance(
+                txType = params.txType,
+                context = balanceContext ?: TransactionBalanceContext(),
             )
-        } ?: Crypto(BigInteger.ZERO)
+        )
         assetInfo.asset.format(value, 8)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
@@ -197,7 +185,6 @@ class AmountViewModel @Inject constructor(
         assetInfo,
         delegation
     ) { params, assetInfo, delegation ->
-        params ?: return@combine null
         assetInfo ?: return@combine null
 
         when (params.txType) {
@@ -253,13 +240,12 @@ class AmountViewModel @Inject constructor(
         if (inputs.amount.isEmpty()) return AmountError.None
         if (inputs.amount.parseNumberOrNull()?.signum() == 0) return AmountError.None
         val assetInfo = inputs.assetInfo ?: return AmountError.None
-        val params = inputs.params ?: return AmountError.None
         return try {
             val asset = assetInfo.asset
             val price = assetInfo.price?.price?.price ?: 0.0
-            AmountValidation.validateAmount(asset, inputs.amount, getMinAmount(params.txType, asset.id.chain))
+            AmountValidation.validateAmount(asset, inputs.amount, getMinAmount(inputs.params.txType, asset.id.chain))
             val cryptoAmount = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
-            checkBalance(assetInfo, params, inputs.delegation, inputs.resource, cryptoAmount)
+            checkBalance(assetInfo, inputs.params, inputs.delegation, inputs.resource, cryptoAmount)
             AmountError.None
         } catch (err: Throwable) {
             err as? AmountError ?: AmountError.None
@@ -277,7 +263,7 @@ class AmountViewModel @Inject constructor(
 
     fun onMaxAmount() = viewModelScope.launch {
         val assetInfo = this@AmountViewModel.assetInfo.value ?: return@launch
-        val params = params.value ?: return@launch
+        val params = params.value
         val txType = params.txType
         val reserveForFee = getReserveForFee(txType = txType, assetInfo.asset.chain)
         val baseBalance = transactionBalanceService.getBalance(
@@ -316,10 +302,9 @@ class AmountViewModel @Inject constructor(
     }
 
     fun onNext(onConfirm: (ConfirmParams) -> Unit) {
-        val params = params.value ?: return
         viewModelScope.launch {
             try {
-                onNext(params, amount, onConfirm)
+                onNext(params.value, amount, onConfirm)
             } catch (err: Throwable) {
                 when (err) {
                     is AmountError -> errorUIState.update { err }
@@ -458,7 +443,7 @@ class AmountViewModel @Inject constructor(
 }
 
 private data class BalanceRequest(
-    val params: AmountParams?,
+    val params: AmountParams,
     val assetInfo: AssetInfo?,
     val delegation: Delegation?,
     val resource: Resource,
@@ -468,7 +453,7 @@ private data class ValidationInputs(
     val amount: String,
     val inputType: AmountInputType,
     val assetInfo: AssetInfo?,
-    val params: AmountParams?,
+    val params: AmountParams,
     val delegation: Delegation?,
     val resource: Resource,
 )

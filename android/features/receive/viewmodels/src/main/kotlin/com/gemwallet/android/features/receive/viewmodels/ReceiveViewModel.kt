@@ -5,15 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.receive.coordinators.GetReceiveAssetInfo
 import com.gemwallet.android.application.receive.coordinators.SetAssetVisible
-import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,10 +26,9 @@ class ReceiveViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val assetId = savedStateHandle.getStateFlow("assetId", "").map { it.toAssetId() }
+    private val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
 
     val asset = assetId
-        .filterNotNull()
         .flatMapLatest { getReceiveAssetInfo(it) }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

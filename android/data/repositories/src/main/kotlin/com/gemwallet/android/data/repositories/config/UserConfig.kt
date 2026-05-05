@@ -107,7 +107,7 @@ class UserConfig(
         context.dataStore.edit { preferences ->
             val value = preferences[Key.IsWelcomeBannerHidden]?.let {
                 it.toMutableSet().apply { add(walletId) }
-            } ?: emptySet()
+            } ?: setOf(walletId)
 
             preferences[Key.IsWelcomeBannerHidden] = value
         }

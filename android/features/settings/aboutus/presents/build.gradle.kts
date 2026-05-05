@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
-    id("com.google.devtools.ksp")
 }
 
 android {
@@ -53,13 +52,6 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":ui-models"))
-    implementation(project(":features:settings:aboutus:viewmodels"))
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
-
-    implementation(libs.compose.navigation)
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)

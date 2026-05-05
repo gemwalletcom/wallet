@@ -3,6 +3,7 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.swap.SwapRepository
@@ -22,6 +23,7 @@ import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
@@ -94,6 +96,7 @@ class SwapViewModelTest {
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
     }
+    private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val swapRepository = mockk<SwapRepository>(relaxed = true)
     private val quoteRequester = mockk<QuoteRequester>(relaxed = true) {
         every { requestQuotes(any(), any(), any(), any(), any()) } returns emptyFlow()
@@ -120,9 +123,20 @@ class SwapViewModelTest {
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
         sessionRepository = sessionRepository,
         assetsRepository = assetsRepository,
+        enableAsset = enableAsset,
         swapRepository = swapRepository,
         quoteRequester = quoteRequester,
         savedStateHandle = savedStateHandle,
+    )
+
+    private fun swapSavedState(
+        from: String = solAsset.id.toIdentifier(),
+        to: String = usdcAsset.id.toIdentifier(),
+    ) = SavedStateHandle(
+        mapOf(
+            RouteArgument.FromAssetId.key to from,
+            RouteArgument.ToAssetId.key to to,
+        )
     )
 
     @Test
@@ -135,16 +149,14 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Pay, solAsset.id)
         advanceUntilIdle()
 
-        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>("from"))
-        assertNull(savedState.get<String?>("to"))
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertNull(savedState.get<String?>(RouteArgument.ToAssetId.key))
         assertEquals(solAsset.id, viewModel.payAsset.value?.id())
     }
 
     @Test
     fun `onSelect keeps opposite asset when pair differs`() = runTest(testDispatcher) {
-        val savedState = SavedStateHandle(
-            mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier())
-        )
+        val savedState = swapSavedState()
 
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
@@ -152,15 +164,13 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
         advanceUntilIdle()
 
-        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>("to"))
-        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>("from"))
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
     }
 
     @Test
     fun `selecting same asset for both pay and receive clears opposite`() = runTest(testDispatcher) {
-        val savedState = SavedStateHandle(
-            mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier())
-        )
+        val savedState = swapSavedState()
 
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
@@ -168,14 +178,15 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Receive, solAsset.id)
         advanceUntilIdle()
 
-        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>("to"))
-        assertNull("pay must be cleared when receive matches it", savedState.get<String?>("from"))
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+        assertNull("pay must be cleared when receive matches it", savedState.get<String?>(RouteArgument.FromAssetId.key))
     }
 
     @Test
     fun `selecting same pay asset clears receive`() = runTest(testDispatcher) {
-        val savedState = SavedStateHandle(
-            mapOf("from" to usdcAsset.id.toIdentifier(), "to" to solAsset.id.toIdentifier())
+        val savedState = swapSavedState(
+            from = usdcAsset.id.toIdentifier(),
+            to = solAsset.id.toIdentifier(),
         )
 
         val viewModel = createViewModel(savedState)
@@ -184,8 +195,8 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Pay, solAsset.id)
         advanceUntilIdle()
 
-        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>("from"))
-        assertNull(savedState.get<String?>("to"))
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertNull(savedState.get<String?>(RouteArgument.ToAssetId.key))
     }
 
     @Test
@@ -204,9 +215,7 @@ class SwapViewModelTest {
             mockQuoteData()
         }
 
-        val savedState = SavedStateHandle(
-            mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier())
-        )
+        val savedState = swapSavedState()
 
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
@@ -242,7 +251,7 @@ class SwapViewModelTest {
         coEvery { swapRepository.getQuoteData(any(), any()) } throws IllegalStateException("boom")
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 
@@ -268,7 +277,7 @@ class SwapViewModelTest {
         coEvery { swapRepository.getQuoteData(any(), any()) } throws IllegalStateException("boom")
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 
@@ -309,7 +318,7 @@ class SwapViewModelTest {
         }
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 
@@ -350,7 +359,7 @@ class SwapViewModelTest {
         } returns quotesFlow
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 
@@ -379,7 +388,7 @@ class SwapViewModelTest {
         }
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 
@@ -413,7 +422,7 @@ class SwapViewModelTest {
         }
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 
@@ -466,7 +475,7 @@ class SwapViewModelTest {
         }
 
         val viewModel = createViewModel(
-            SavedStateHandle(mapOf("from" to solAsset.id.toIdentifier(), "to" to usdcAsset.id.toIdentifier()))
+            swapSavedState()
         )
         advanceUntilIdle()
 

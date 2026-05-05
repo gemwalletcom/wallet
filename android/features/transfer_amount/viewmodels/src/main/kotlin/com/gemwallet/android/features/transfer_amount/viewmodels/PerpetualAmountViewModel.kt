@@ -49,7 +49,7 @@ class PerpetualAmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : AmountBaseViewModel(savedStateHandle) {
 
-    val perpetual = params.filterNotNull()
+    val perpetual = params
         .map { it.perpetualId }
         .filterNotNull()
         .flatMapLatest { getPerpetual.getPerpetual(it) }

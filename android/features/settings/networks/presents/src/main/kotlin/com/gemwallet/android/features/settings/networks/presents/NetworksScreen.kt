@@ -2,9 +2,6 @@ package com.gemwallet.android.features.settings.networks.presents
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.networks.viewmodels.NetworksViewModel
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 
 @Composable
 fun NetworksScreen(
@@ -41,23 +39,7 @@ fun NetworksScreen(
     AnimatedContent(
         targetState = screenState,
         transitionSpec = {
-            if (targetState != NetworksScreenState.Chains) {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350)
-                )
-            } else {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                ) togetherWith slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350)
-                )
-            }
+            navigationSlideTransition(forward = targetState != NetworksScreenState.Chains)
         },
         label = "networks"
     ) { target ->

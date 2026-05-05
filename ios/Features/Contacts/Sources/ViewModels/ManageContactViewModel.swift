@@ -16,7 +16,7 @@ import Validators
 @MainActor
 public final class ManageContactViewModel {
     public enum Mode {
-        case add
+        case add(ChainRecipient? = nil)
         case edit(ContactData)
 
         var contact: Contact? {
@@ -53,8 +53,11 @@ public final class ManageContactViewModel {
         )
 
         switch mode {
-        case .add:
+        case let .add(input):
             contactId = UUID().uuidString
+            addresses = input.map {
+                [ContactAddress.new(contactId: contactId, chain: $0.chain, address: $0.recipient.address, memo: $0.recipient.memo)]
+            } ?? []
         case let .edit(contactData):
             contactId = contactData.contact.id
             nameInputModel.text = contactData.contact.name

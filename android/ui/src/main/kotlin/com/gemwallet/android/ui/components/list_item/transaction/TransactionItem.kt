@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
@@ -157,7 +158,7 @@ fun PreviewTransactionItem() {
     MaterialTheme {
         TransactionItem(
             data = object : TransactionDataAggregate {
-                override val id = "preview-1"
+                override val id = TransactionId(Chain.Bitcoin, "preview-1")
                 override val asset = Asset(
                     id = AssetId(Chain.Bitcoin),
                     name = "Bitcoin",
@@ -185,7 +186,7 @@ fun PreviewSwapTransactionItem() {
     MaterialTheme {
         TransactionItem(
             data = object : TransactionDataAggregate {
-                override val id = "preview-2"
+                override val id = TransactionId(Chain.SmartChain, "preview-2")
                 override val asset = Asset(
                     id = AssetId(Chain.SmartChain),
                     name = "SmartChain",

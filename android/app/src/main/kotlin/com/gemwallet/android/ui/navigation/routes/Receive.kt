@@ -1,55 +1,42 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
-import com.gemwallet.android.ext.toIdentifier
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveScreen
 import com.gemwallet.android.features.receive.presents.ReceiveNftChainsScreen
 import com.gemwallet.android.features.receive.presents.ReceiveScreen
+import com.gemwallet.android.ui.navigation.assetIdArgument
+import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
 @Serializable
-class ReceiveRoute(val assetId: String)
+data class ReceiveRoute(val assetId: AssetId) : NavKey
 
 @Serializable
-class ReceiveSelectRoute
+data object ReceiveSelectRoute : NavKey
 
 @Serializable
-class ReceiveNftChainsRoute
+data object ReceiveNftChainsRoute : NavKey
 
-fun NavController.navigateToReceiveScreen(assetId: AssetId? = null, navOptions: NavOptions? = null) {
-    if (assetId == null) {
-        navigate(ReceiveSelectRoute(), navOptions ?: navOptions { launchSingleTop = true })
-    } else {
-        navigate(ReceiveRoute(assetId.toIdentifier()), navOptions ?: navOptions { launchSingleTop = true })
-    }
-
-}
-
-fun NavController.navigateToReceiveNftChains(navOptions: NavOptions? = null) {
-    navigate(ReceiveNftChainsRoute(), navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.receiveScreen(
+fun EntryProviderScope<NavKey>.receiveScreen(
     onCancel: () -> Unit,
     onReceive: (AssetId) -> Unit,
 ) {
-    composable<ReceiveRoute> {
+    entry<ReceiveRoute>(
+        metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
+    ) {
         ReceiveScreen(onCancel = onCancel)
     }
 
-    composable<ReceiveSelectRoute> {
+    entry<ReceiveSelectRoute> {
         SelectReceiveScreen(
             onCancel = onCancel,
-            onSelect = { onReceive(it) }
+            onSelect = onReceive,
         )
     }
 
-    composable<ReceiveNftChainsRoute> {
+    entry<ReceiveNftChainsRoute> {
         ReceiveNftChainsScreen(
             onCancel = onCancel,
             onSelect = { onReceive(AssetId(it)) },

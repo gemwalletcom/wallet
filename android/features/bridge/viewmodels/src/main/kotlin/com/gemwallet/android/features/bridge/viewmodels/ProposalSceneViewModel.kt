@@ -13,6 +13,7 @@ import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.reown.walletkit.client.Wallet
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -137,8 +138,8 @@ class ProposalSceneViewModel @Inject constructor(
         )
     }
 
-    fun onWalletSelected(walletId: String) {
-        _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
+    fun onWalletSelected(walletId: WalletId) {
+        _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId.id } }
     }
 
     fun reset() {

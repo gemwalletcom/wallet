@@ -12,8 +12,8 @@ class FiatOperationState(
     private val _amount = MutableStateFlow(defaultAmount)
     val amount: StateFlow<String> get() = _amount
 
-    private val _state = MutableStateFlow<FiatSceneState?>(null)
-    val state: StateFlow<FiatSceneState?> get() = _state
+    private val _state = MutableStateFlow<FiatSceneState>(FiatSceneState.Ready)
+    val state: StateFlow<FiatSceneState> get() = _state
 
     private val _quotes = MutableStateFlow<List<FiatQuote>>(emptyList())
     val quotes: StateFlow<List<FiatQuote>> get() = _quotes
@@ -25,7 +25,7 @@ class FiatOperationState(
         _amount.value = value
     }
 
-    fun updateState(value: FiatSceneState?) {
+    fun updateState(value: FiatSceneState) {
         _state.value = value
     }
 

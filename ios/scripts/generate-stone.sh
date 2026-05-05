@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Build the Gemstone XCFramework, skipping when Rust sources are unchanged.
-# Usage: generate-stone.sh [release]
+# Usage: generate-stone.sh [--force] [release]
 
 set -euo pipefail
 
@@ -15,7 +15,16 @@ STONE_DIR="$CORE_DIR/gemstone"
 PACKAGES_DIR="$IOS_DIR/Packages/Gemstone"
 XCFRAMEWORK="$PACKAGES_DIR/Sources/GemstoneFFI.xcframework"
 
-BUILD_MODE="${1:-${BUILD_MODE:-}}"
+FORCE=0
+POSITIONAL=()
+for arg in "$@"; do
+    case "$arg" in
+        --force) FORCE=1 ;;
+        *) POSITIONAL+=("$arg") ;;
+    esac
+done
+
+BUILD_MODE="${POSITIONAL[0]:-${BUILD_MODE:-}}"
 if [ -z "$BUILD_MODE" ] && [ "${CONFIGURATION:-Debug}" = "Release" ]; then
     BUILD_MODE="release"
 fi
@@ -35,7 +44,7 @@ HASH_FILE="$CACHE_DIR/sources-${BUILD_MODE:-debug}.hash"
 
 current_hash=$(compute_hash)
 
-if [ -f "$HASH_FILE" ] && [ -d "$XCFRAMEWORK" ]; then
+if [ "$FORCE" -eq 0 ] && [ -f "$HASH_FILE" ] && [ -d "$XCFRAMEWORK" ]; then
     cached_hash=$(cat "$HASH_FILE")
     if [ "$current_hash" = "$cached_hash" ]; then
         echo "note: Gemstone sources unchanged (${BUILD_MODE:-debug}) — skipping rebuild"
@@ -47,7 +56,11 @@ read_deployment_target() {
     echo -n $(/usr/libexec/PlistBuddy -c "Print" "$PROJ_PATH" | grep IPHONEOS_DEPLOYMENT_TARGET | awk -F ' = ' '{print $2}' | uniq)
 }
 
-echo "note: Gemstone sources changed — rebuilding XCFramework (${BUILD_MODE:-debug})..."
+if [ "$FORCE" -eq 1 ]; then
+    echo "note: Forcing Gemstone rebuild (${BUILD_MODE:-debug})..."
+else
+    echo "note: Gemstone sources changed — rebuilding XCFramework (${BUILD_MODE:-debug})..."
+fi
 
 pushd "$STONE_DIR" > /dev/null
 BUILD_MODE=$BUILD_MODE IPHONEOS_DEPLOYMENT_TARGET=$(read_deployment_target) just build-ios

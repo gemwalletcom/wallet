@@ -108,7 +108,8 @@ fun RequestScene(
                     walletConnectSimulation = request.simulation,
                     finishAction = { _, hash, _ -> viewModel.onTransactionResult(hash) },
                     onBuy = onBuy,
-                    cancelAction = viewModel::onReject
+                    cancelAction = viewModel::onReject,
+                    handleSystemBack = true,
                 )
             }
         }

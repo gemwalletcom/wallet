@@ -11,8 +11,7 @@ import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.assetDefaultRank
-
-private const val DEFAULT_TOKEN_RANK = 15
+import uniffi.gemstone.defaultTokenRank
 
 val Chain.defaultAssetRank: Int
     get() = assetDefaultRank(string)
@@ -39,6 +38,6 @@ private val AssetId.defaultScore: AssetScore
     get() = AssetScore(
         rank = when (type()) {
             AssetSubtype.NATIVE -> chain.defaultAssetRank
-            AssetSubtype.TOKEN -> DEFAULT_TOKEN_RANK
+            AssetSubtype.TOKEN -> defaultTokenRank()
         }
     )

@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.setup_wallet.viewmodels.SetupWalletViewModel
 import com.gemwallet.android.ui.R
@@ -33,8 +32,8 @@ import com.wallet.core.primitives.WalletSource
 @Composable
 fun SetupWalletScreen(
     onComplete: () -> Unit,
+    viewModel: SetupWalletViewModel,
 ) {
-    val viewModel: SetupWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val handleDone = { onComplete() }

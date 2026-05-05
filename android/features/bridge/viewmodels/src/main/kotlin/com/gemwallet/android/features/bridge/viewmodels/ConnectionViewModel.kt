@@ -4,25 +4,25 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
     private val bridgesRepository: BridgesRepository,
     savedState: SavedStateHandle
 ) : ViewModel() {
 
-    private val request = savedState.getStateFlow("connectionId", "")
+    private val connectionId = savedState.requireString(RouteArgument.ConnectionId)
 
-    val connection = request.flatMapLatest { bridgesRepository.getConnections(it) }
+    val connection = flow { emitAll(bridgesRepository.getConnections(connectionId)) }
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 
     fun disconnect(onSuccess: () -> Unit) {
@@ -36,4 +36,10 @@ class ConnectionViewModel @Inject constructor(
             }
         } ?: onSuccess()
     }
+}
+
+private fun SavedStateHandle.requireString(argument: RouteArgument): String {
+    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
+    return value
 }

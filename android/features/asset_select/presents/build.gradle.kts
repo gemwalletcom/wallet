@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
+    id("kotlinx-serialization")
     id("com.google.devtools.ksp")
 }
 
@@ -57,7 +58,8 @@ dependencies {
     implementation(project(":features:asset_select:viewmodels"))
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.navigation3.runtime)
     ksp(libs.hilt.compiler)
 
     debugImplementation(libs.androidx.ui.tooling)

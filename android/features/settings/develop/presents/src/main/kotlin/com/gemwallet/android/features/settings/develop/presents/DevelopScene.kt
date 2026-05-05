@@ -25,7 +25,6 @@ fun DevelopScene(
     Scene(
         title = stringResource(id = R.string.settings_developer),
         onClose = onCancel,
-        backHandle = true,
     ) {
         LazyColumn {
             item {

@@ -9,7 +9,6 @@ import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.pricealerts.direction
 import com.gemwallet.android.domains.pricealerts.formatAmount
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.domains.price.toPriceState
@@ -17,6 +16,8 @@ import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
@@ -27,7 +28,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -51,12 +51,9 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val value = TextFieldState()
 
-    val assetId = savedStateHandle.getStateFlow<String?>("assetId", null)
-        .filterNotNull()
-        .map { it.toAssetId() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
 
-    val assetInfo = assetId.filterNotNull().flatMapLatest { assetsRepository.getAssetInfo(it) }
+    val assetInfo = assetId.flatMapLatest { assetsRepository.getAssetInfo(it) }
     val currency = assetInfo.map { it?.price?.currency ?: Currency.USD }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
     val currentPrice = assetInfo.map { assetInfo ->
@@ -102,7 +99,7 @@ class PriceAlertTargetViewModel @Inject constructor(
             null
         }
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _direction = MutableStateFlow(PriceAlertDirection.Up)
     val direction: StateFlow<PriceAlertDirection> = _direction
@@ -130,7 +127,7 @@ class PriceAlertTargetViewModel @Inject constructor(
         val percentage = if (type == PriceAlertNotificationType.PricePercentChange) inputValue else null
         viewModelScope.launch(Dispatchers.IO) {
             includePriceAlert(
-                assetId = assetId.value ?: return@launch,
+                assetId = assetId.value,
                 currency = currency.value,
                 price = price,
                 percentage = percentage,
@@ -142,3 +139,4 @@ class PriceAlertTargetViewModel @Inject constructor(
     }
 
 }
+

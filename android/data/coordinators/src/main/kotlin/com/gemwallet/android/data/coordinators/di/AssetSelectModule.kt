@@ -7,6 +7,7 @@ import com.gemwallet.android.application.asset_select.coordinators.SearchSelectA
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoImpl
@@ -46,8 +47,9 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideSwitchAssetVisibility(
+        enableAsset: EnableAsset,
         assetsRepository: AssetsRepository,
-    ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(assetsRepository)
+    ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset, assetsRepository)
 
     @Provides
     @Singleton

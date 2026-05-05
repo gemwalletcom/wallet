@@ -17,18 +17,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
+import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
+import com.gemwallet.android.features.buy.viewmodels.models.BuyError
+import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
-import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
-import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
-import com.gemwallet.android.features.buy.viewmodels.models.BuyError
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatQuoteType
 
@@ -47,11 +49,15 @@ fun FiatNavScreen(
     val amount by viewModel.amount.collectAsStateWithLifecycle()
     val providers by viewModel.providers.collectAsStateWithLifecycle()
     val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle()
+    val showFiatTypePicker by viewModel.showFiatTypePicker.collectAsStateWithLifecycle()
 
     val uriHandler = LocalUriHandler.current
+    val currentAssetInfo = asset
+    val currentAsset = currentAssetInfo?.asset ?: return
 
     BuyScene(
-        asset = asset,
+        asset = currentAsset,
+        assetInfo = currentAssetInfo,
         state = state,
         type = type,
         providers = providers,
@@ -60,10 +66,17 @@ fun FiatNavScreen(
         fiatAmount = amount,
         suggestedAmounts = suggestedAmounts,
         urlLoading = urlLoading,
+        titleContent = {
+            FiatTitle(
+                asset = currentAsset,
+                type = type,
+                showFiatTypePicker = showFiatTypePicker,
+                onTypeClick = viewModel::setType,
+            )
+        },
         onAmount = viewModel::updateAmount,
         onLotSelect = viewModel::updateAmount,
         onProviderSelect = viewModel::setProvider,
-        onTypeClick = viewModel::setType,
         onFiatTransactions = onFiatTransactions,
         onBuy = {
             urlLoading.value = true
@@ -73,6 +86,34 @@ fun FiatNavScreen(
             }
         }
     )
+}
+
+@Composable
+private fun FiatTitle(
+    asset: Asset,
+    type: FiatQuoteType,
+    showFiatTypePicker: Boolean,
+    onTypeClick: (FiatQuoteType) -> Unit,
+) {
+    if (showFiatTypePicker) {
+        TabsBar(FiatQuoteType.entries, type, onTypeClick) { item ->
+            Text(
+                stringResource(
+                    when (item) {
+                        FiatQuoteType.Buy -> R.string.buy_title
+                        FiatQuoteType.Sell -> R.string.sell_title
+                    },
+                    "",
+                ),
+            )
+        }
+    } else {
+        Text(
+            text = stringResource(R.string.buy_title, asset.name),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }
 
 @Composable

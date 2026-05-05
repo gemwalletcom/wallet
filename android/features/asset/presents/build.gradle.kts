@@ -59,7 +59,7 @@ dependencies {
     implementation(project(":features:banner:presents"))
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.vico.m3)

@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.buy.viewmodels
 
 import android.text.format.DateUtils
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,16 +8,18 @@ import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.ext.tickerFlow
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.math.parseNumber
-import com.gemwallet.android.model.AssetData
-import com.gemwallet.android.model.Fiat
 import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
+import com.gemwallet.android.math.parseNumber
+import com.gemwallet.android.model.AssetData
+import com.gemwallet.android.model.Fiat
+import com.gemwallet.android.model.hasAvailable
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuoteType
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -64,7 +66,7 @@ class FiatViewModel @Inject constructor(
     private val currencySymbol = java.util.Currency.getInstance(currency.name).symbol
 
     val type = MutableStateFlow(FiatQuoteType.Buy)
-    val assetId = savedStateHandle.getStateFlow("assetId", "").mapNotNull { it.toAssetId() }
+    val assetId = MutableStateFlow(savedStateHandle.requireAssetId(RouteArgument.AssetId))
 
     val buyOperation = FiatOperationState(
         defaultAmount = DEFAULT_BUY_AMOUNT,
@@ -94,12 +96,27 @@ class FiatViewModel @Inject constructor(
     val assetInfoUIModel = assetData
         .mapNotNull { it }
         .map {
-            object : AssetInfoUIModel(it.toAssetInfo(), false, 2, 4) {
+            object : AssetInfoUIModel(
+                assetInfo = it.toAssetInfo(),
+                hideBalances = false,
+                fraction = 2,
+                maxFraction = 4,
+            ) {
                 override val cryptoAmount: Double
                     get() = assetInfo.balance.balanceAmount.available
             }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val showFiatTypePicker = assetData
+        .map { it?.showFiatTypePicker() == true }
+        .distinctUntilChanged()
+        .onEach { showFiatTypePicker ->
+            if (!showFiatTypePicker && type.value == FiatQuoteType.Sell) {
+                type.value = FiatQuoteType.Buy
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
         listOf(
@@ -109,12 +126,12 @@ class FiatViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val state: StateFlow<FiatSceneState?> = type.flatMapLatest {
+    val state: StateFlow<FiatSceneState> = type.flatMapLatest {
         when (it) {
             FiatQuoteType.Buy -> buyOperation.state
             FiatQuoteType.Sell -> sellOperation.state
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, FiatSceneState.Ready)
 
     private val ticker = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
@@ -167,9 +184,8 @@ class FiatViewModel @Inject constructor(
                 )
                 if (quotes.isEmpty()) throw Exception()
                 operation.updateQuotes(quotes.sortedByDescending { it.cryptoAmount })
-                operation.updateState(null)
-            } catch (err: Exception) {
-                Log.d("FIAT", "Err", err)
+                operation.updateState(FiatSceneState.Ready)
+            } catch (_: Exception) {
                 operation.updateState(FiatSceneState.Error(BuyError.QuoteNotAvailable))
                 operation.clearQuotes()
             }
@@ -218,7 +234,12 @@ class FiatViewModel @Inject constructor(
     }
 
     fun setType(type: FiatQuoteType) {
-        this.type.update { type }
+        this.type.update {
+            when (type) {
+                FiatQuoteType.Buy -> FiatQuoteType.Buy
+                FiatQuoteType.Sell -> FiatQuoteType.Sell.takeIf { showFiatTypePicker.value } ?: FiatQuoteType.Buy
+            }
+        }
     }
 
     private fun randomAmount(maxAmount: Double = 1000.0): Int {
@@ -248,3 +269,6 @@ class FiatViewModel @Inject constructor(
         const val DEFAULT_SELL_AMOUNT = "100"
     }
 }
+
+private fun AssetData.showFiatTypePicker() =
+    metadata?.isSellEnabled == true && balance.balance.hasAvailable()
