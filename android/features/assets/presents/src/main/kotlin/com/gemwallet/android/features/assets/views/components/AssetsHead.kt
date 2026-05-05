@@ -6,7 +6,6 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
-import com.wallet.core.primitives.AssetId
 
 @Composable
 internal fun AssetsHead(
@@ -14,7 +13,7 @@ internal fun AssetsHead(
     onSendClick: () -> Unit,
     onReceiveClick: () -> Unit,
     onBuyClick: () -> Unit,
-    onSwapClick: (AssetId?) -> Unit,
+    onSwapClick: () -> Unit,
     onHideBalances: () -> Unit,
 ) {
     walletSummary ?: return
@@ -36,9 +35,7 @@ internal fun AssetsHead(
                 onTransfer = onSendClick,
                 onReceive = onReceiveClick,
                 onBuy = onBuyClick,
-                onSwap = if (walletSummary.isSwapAvailable) {
-                    { onSwapClick(null) }
-                } else null
+                onSwap = if (walletSummary.isSwapAvailable) onSwapClick else null,
             )
         }
     )

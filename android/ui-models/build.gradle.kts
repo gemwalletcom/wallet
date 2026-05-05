@@ -46,6 +46,7 @@ android {
 
 dependencies {
     api(project(":gemcore"))
+    api(libs.lifecycle.viewmodel.savedstate)
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

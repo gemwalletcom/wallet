@@ -1,31 +1,20 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.referral.views.ReferralNavScreen
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.navigation.routeArguments
 import kotlinx.serialization.Serializable
 
-const val referralRouteUriHttp = "https://gemwallet.com/join"
-const val referralRouteUriGem = "gem://join"
-
 @Serializable
-data class Referral(val code: String? = null)
+data class ReferralRoute(val code: String? = null) : NavKey
 
-fun NavController.navigateToReferralScreen() {
-    navigate(Referral(), navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.referral(
+fun EntryProviderScope<NavKey>.referral(
     onClose: () -> Unit,
 ) {
-    composable<Referral>(
-        deepLinks = listOf(
-            navDeepLink<Referral>(basePath = referralRouteUriGem),
-            navDeepLink<Referral>(basePath = referralRouteUriHttp),
-        )
+    entry<ReferralRoute>(
+        metadata = { key -> routeArguments(RouteArgument.Code to key.code) },
     ) {
         ReferralNavScreen(onClose)
     }

@@ -191,6 +191,36 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
+    func changingReceiveAssetPreservesInputAmount() async {
+        let model = await model()
+        let oldAsset = model.toAsset
+
+        model.swapState.swapTransferData = .error(TestError())
+        model.fetchTrigger = nil
+        model.toAssetQuery.value = .mock(asset: .mockBNB())
+        model.onChangeToAsset(old: oldAsset, new: model.toAsset)
+
+        #expect(model.amountInputModel.text == "1")
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
+        #expect(model.swapState.swapTransferData.isNoData)
+        #expect(model.fetchTrigger?.isImmediate == true)
+    }
+
+    @Test
+    func changingPayAssetClearsInputAmount() async {
+        let model = await model()
+        let oldAsset = model.fromAsset
+
+        model.fromAssetQuery.value = .mock(asset: .mockBNB(), balance: .mock())
+        model.onChangeFromAsset(old: oldAsset, new: model.fromAsset)
+
+        #expect(model.amountInputModel.text.isEmpty)
+        #expect(model.toValue.isEmpty)
+        #expect(model.selectedSwapQuote == nil)
+    }
+
+    @Test
     func fetchTriggerIsImmediate() {
         let model = SwapSceneViewModel.mock()
 

@@ -15,6 +15,7 @@ import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -39,7 +40,7 @@ class TransactionDataAggregateImpl(
     private val data: TransactionExtended
 ) : TransactionDataAggregate {
 
-    override val id: String = data.transaction.id.identifier
+    override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
 

@@ -2,8 +2,11 @@ package com.gemwallet.android.testkit
 
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
+
+fun mockWalletId(id: String = "wallet-id") = WalletId(id)
 
 fun mockWallet(
     id: String = "wallet-id",

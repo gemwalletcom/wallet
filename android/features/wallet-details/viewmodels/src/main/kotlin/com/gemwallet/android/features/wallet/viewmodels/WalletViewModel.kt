@@ -8,15 +8,11 @@ import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val getWalletDetails: GetWalletDetails,
@@ -25,11 +21,9 @@ class WalletViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    val wallet = savedStateHandle.getStateFlow<String?>("walletId", null)
-        .flatMapLatest {
-            if (it == null) return@flatMapLatest flowOf(null)
-            getWalletDetails.getWallet(it)
-        }
+    private val walletId = savedStateHandle.requireWalletId()
+
+    val wallet = getWalletDetails.getWallet(walletId.id)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun setWalletName(name: String) = viewModelScope.launch(Dispatchers.IO) {

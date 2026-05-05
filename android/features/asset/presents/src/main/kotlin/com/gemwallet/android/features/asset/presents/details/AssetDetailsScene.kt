@@ -40,6 +40,7 @@ import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +57,7 @@ internal fun AssetDetailsScene(
     onReceive: (AssetId) -> Unit,
     onBuy: (AssetId) -> Unit,
     onSwap: (AssetId, AssetId?) -> Unit,
-    onTransaction: (txId: String) -> Unit,
+    onTransaction: (TransactionId) -> Unit,
     onChart: (AssetId) -> Unit,
     openNetwork: AssetIdAction,
     onStake: (AssetId) -> Unit,

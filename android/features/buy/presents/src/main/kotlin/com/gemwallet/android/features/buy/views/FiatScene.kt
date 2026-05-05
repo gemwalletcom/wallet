@@ -23,12 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
-import com.gemwallet.android.model.hasAvailable
+import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
+import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
+import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
@@ -49,9 +49,7 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
-import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
-import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuoteType
@@ -59,8 +57,9 @@ import com.wallet.core.primitives.FiatQuoteType
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BuyScene(
-    asset: AssetInfoUIModel?,
-    state: FiatSceneState?,
+    asset: Asset,
+    assetInfo: AssetInfoUIModel?,
+    state: FiatSceneState,
     type: FiatQuoteType,
     providers: List<BuyFiatProviderUIModel>,
     selectedProvider: BuyFiatProviderUIModel?,
@@ -68,43 +67,21 @@ fun BuyScene(
     suggestedAmounts: List<FiatSuggestion>,
     urlLoading: State<Boolean>,
     cancelAction: CancelAction,
+    titleContent: @Composable () -> Unit,
     onLotSelect: (FiatSuggestion) -> Unit,
     onAmount: (String) -> Unit,
     onProviderSelect: (FiatProvider) -> Unit,
-    onTypeClick: (FiatQuoteType) -> Unit,
     onFiatTransactions: () -> Unit,
     onBuy: () -> Unit
 ) {
-    asset ?: return
     val isShowProviders = remember { mutableStateOf(false) }
     val isCompactWidth = isCompactDimension(WindowDimension.Width)
     val assetRowSuggestions = visibleSuggestedAmountsInAssetRow(
         suggestedAmounts = suggestedAmounts,
         isCompactWidth = isCompactWidth,
     )
-
     Scene(
-        titleContent = {
-            if (asset.assetInfo.metadata?.isSellEnabled == true && asset.assetInfo.balance.balance.hasAvailable()) {
-                TabsBar(FiatQuoteType.entries, type, onTypeClick) { item ->
-                    Text(
-                        stringResource(
-                            when (item) {
-                                FiatQuoteType.Buy -> R.string.buy_title
-                                FiatQuoteType.Sell -> R.string.sell_title
-                            }, ""
-                        ),
-                    )
-                }
-            } else {
-                Text(
-                    modifier = Modifier,
-                    text = stringResource(R.string.buy_title, asset.asset.name),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        },
+        titleContent = titleContent,
         onClose = { cancelAction() },
         actions = {
             IconButton(onClick = onFiatTransactions) {
@@ -117,7 +94,7 @@ fun BuyScene(
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.common_continue),
-                enabled = state == null,
+                enabled = state == FiatSceneState.Ready && selectedProvider != null,
                 loading = urlLoading.value,
                 onClick = onBuy,
             )
@@ -138,7 +115,7 @@ fun BuyScene(
         AssetListItem(
             asset = asset,
             listPosition = ListPosition.Single,
-            support = { ListItemSupportText(asset.cryptoFormatted) },
+            support = { ListItemSupportText(assetInfo?.cryptoFormatted ?: " ") },
             trailing = assetRowSuggestions.takeIf { it.isNotEmpty() }?.let { suggestions ->
                 {
                     FiatSuggestionRow(
@@ -157,7 +134,7 @@ fun BuyScene(
                         .padding(20.dp),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.error,
-                    text = state.error?.mapError(type, asset.asset) ?: "",
+                    text = state.error?.mapError(type, asset) ?: "",
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -177,7 +154,7 @@ fun BuyScene(
                 }
             }
 
-            null -> if (selectedProvider != null) {
+            FiatSceneState.Ready -> if (selectedProvider != null) {
                 PropertyItem(
                     modifier = Modifier.clickable(enabled = providers.size > 1) { isShowProviders.value = true },
                     title = { PropertyTitleText(R.string.common_provider) },

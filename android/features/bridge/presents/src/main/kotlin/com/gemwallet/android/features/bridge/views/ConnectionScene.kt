@@ -30,7 +30,6 @@ fun ConnectionScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
-        backHandle = true,
         mainAction = {
             TextButton(
                 modifier = Modifier.fillMaxWidth(),

@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.list_item.transaction.transactionsLis
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransactionId
 
 @Composable
 internal fun TransactionsScene(
@@ -43,7 +44,7 @@ internal fun TransactionsScene(
     onRefresh: () -> Unit,
     onApplyChainsFilter: (List<Chain>) -> Unit,
     onApplyTypesFilter: (List<TransactionTypeFilter>) -> Unit,
-    onTransactionClick: (String) -> Unit,
+    onTransactionClick: (TransactionId) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
     onBuy: (() -> Unit)? = null,

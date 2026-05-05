@@ -77,6 +77,7 @@ fun ConfirmScreen(
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
     onBuy: AssetIdAction,
+    handleSystemBack: Boolean = false,
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -108,7 +109,7 @@ fun ConfirmScreen(
         }
     }
 
-    BackHandler(true) {
+    BackHandler(handleSystemBack) {
         cancelAction()
     }
 

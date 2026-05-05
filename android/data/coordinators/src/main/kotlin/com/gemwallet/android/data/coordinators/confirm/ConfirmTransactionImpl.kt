@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
+import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction.FinishRoute
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.SignClientProxy
@@ -49,7 +50,7 @@ class ConfirmTransactionImpl(
         if (signerParams.input is ConfirmParams.TransferParams.Generic) {
             if (!(signerParams.input as ConfirmParams.TransferParams.Generic).isSendable) {
                 val hash = String(signs.firstOrNull() ?: byteArrayOf())
-                return ConfirmTransaction.Result(txHash = hash, finishRoute = "")
+                return ConfirmTransaction.Result(txHash = hash, finishRoute = getFinishRoute(signerParams.input))
             }
         }
 
@@ -156,13 +157,13 @@ class ConfirmTransactionImpl(
         else -> null
     }
 
-    private fun getFinishRoute(input: ConfirmParams): String = when (input) {
-        is ConfirmParams.Stake -> "stake"
+    private fun getFinishRoute(input: ConfirmParams): FinishRoute = when (input) {
+        is ConfirmParams.Stake -> FinishRoute.Stake
         is ConfirmParams.SwapParams,
-        is ConfirmParams.TokenApprovalParams -> "swap"
+        is ConfirmParams.TokenApprovalParams -> FinishRoute.Swap
         is ConfirmParams.TransferParams,
         is ConfirmParams.Activate,
         is ConfirmParams.NftParams,
-        is ConfirmParams.PerpetualParams -> "asset"
+        is ConfirmParams.PerpetualParams -> FinishRoute.Asset
     }
 }

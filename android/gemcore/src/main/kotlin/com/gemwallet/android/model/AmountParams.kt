@@ -28,8 +28,10 @@ data class AmountParams(
 
     companion object {
         fun unpack(input: String): AmountParams? {
-            val json = String(Base64.getDecoder().decode(input.urlDecode()))
-            return jsonEncoder.decodeFromString<AmountParams>(json)
+            return runCatching {
+                val json = String(Base64.getDecoder().decode(input.urlDecode()))
+                jsonEncoder.decodeFromString<AmountParams>(json)
+            }.getOrNull()
         }
 
         fun buildTransfer(

@@ -59,7 +59,7 @@ dependencies {
     implementation(project(":features:recipient:presents"))
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)

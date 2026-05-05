@@ -27,7 +27,7 @@ fun mockDelegationValidator(
 )
 
 fun mockDelegation(
-    assetId: AssetId = AssetId(Chain.Bitcoin),
+    assetId: AssetId = mockAssetId(),
     state: DelegationState = DelegationState.Active,
     balance: String = "0",
     shares: String = balance,

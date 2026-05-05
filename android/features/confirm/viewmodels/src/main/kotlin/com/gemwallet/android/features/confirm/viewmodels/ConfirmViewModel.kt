@@ -19,6 +19,7 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.format
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
@@ -52,9 +53,6 @@ import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
 
-internal const val paramsArg = "data"
-internal const val txTypeArg = "tx_type"
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ConfirmViewModel @Inject constructor(
@@ -74,7 +72,7 @@ class ConfirmViewModel @Inject constructor(
     val feePriority = MutableStateFlow(FeePriority.Normal)
     private val walletConnectSimulationState = MutableStateFlow<SimulationResult?>(null)
 
-    private val request = savedStateHandle.getStateFlow<String?>(paramsArg, null)
+    private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .combine(restart) { request, _ -> request }
         .filterNotNull()
         .mapNotNull { paramsPack ->
@@ -263,11 +261,9 @@ class ConfirmViewModel @Inject constructor(
             state.update { ConfirmState.Prepare }
             walletConnectSimulationState.value = walletConnectSimulation
             // reset
-            savedStateHandle[txTypeArg] = null
-            savedStateHandle[paramsArg] = null
+            savedStateHandle[RouteArgument.Params.key] = null
             // load
-            savedStateHandle[txTypeArg] = params.getTxType().string
-            savedStateHandle[paramsArg] = params.pack()
+            savedStateHandle[RouteArgument.Params.key] = params.pack()
         }
     }
 

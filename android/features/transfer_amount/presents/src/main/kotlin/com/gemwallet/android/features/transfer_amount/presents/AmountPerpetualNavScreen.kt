@@ -38,17 +38,19 @@ fun AmountPerpetualNavScreen(
     val leverage by viewModel.leverage.collectAsStateWithLifecycle()
 
     var showLeverageSelect by remember { mutableStateOf(false) }
+    val currentAssetInfo = assetInfo ?: return
+    val currency = currentAssetInfo.price?.currency ?: return
 
     AmountScene(
-        title = when (params?.perpetualDirection) {
+        title = when (params.perpetualDirection) {
             PerpetualDirection.Short -> stringResource(R.string.perpetual_short)
             else -> stringResource(R.string.perpetual_long)
         },
         amount = viewModel.amount,
         amountInputType = amountInputType,
-        txType = params?.txType ?: return,
-        asset = assetInfo?.asset ?: return,
-        currency = assetInfo?.price?.currency ?: return,
+        txType = params.txType,
+        asset = currentAssetInfo.asset,
+        currency = currency,
         error = error,
         equivalent = equivalent,
         availableBalance = availableBalance,

@@ -27,13 +27,14 @@ import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 
 @Composable
 internal fun WalletScene(
     wallet: WalletDetailsAggregate?,
     onWalletName: (String) -> Unit,
-    onPhraseShow: (String, WalletType) -> Unit,
+    onPhraseShow: (WalletId, WalletType) -> Unit,
     onDelete: () -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -73,7 +74,7 @@ internal fun WalletScene(
                 singleLine = true,
             )
             ShowSecretDataProperty(
-                walletId = wallet.id,
+                walletId = WalletId(wallet.id),
                 walletType = wallet.type,
                 onClick = onPhraseShow,
             )

@@ -39,6 +39,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.toError
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.toModel
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
@@ -98,13 +99,13 @@ class SwapViewModel @Inject constructor(
             isEnabled && !isPaused && transferState !is TransferDataUiState.Loading
         }
 
-    val payAsset = savedStateHandle.getStateFlow<String?>("from", null)
+    val payAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
         .map { it?.toAssetId() }
         .onEach { id -> id?.let { updateBalance(it) } }
         .flatMapLatest { assetId -> assetId?.let { assetsRepository.getAssetInfo(it) } ?: flow { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val receiveAsset = savedStateHandle.getStateFlow<String?>("to", null)
+    val receiveAsset = savedStateHandle.getStateFlow<String?>(RouteArgument.ToAssetId.key, null)
         .map { it?.toAssetId() }
         .onEach { id -> id?.let { updateBalance(it) } }
         .flatMapLatest { assetId -> assetId?.let { assetsRepository.getAssetInfo(it) } ?: flow { emit(null) } }
@@ -238,16 +239,16 @@ class SwapViewModel @Inject constructor(
         when (type) {
             SwapItemType.Pay -> {
                 if (receiveAsset.value?.id() == assetId) {
-                    savedStateHandle["to"] = null
+                    savedStateHandle[RouteArgument.ToAssetId.key] = null
                 }
-                savedStateHandle["from"] = assetId.toIdentifier()
+                savedStateHandle[RouteArgument.FromAssetId.key] = assetId.toIdentifier()
                 payValue.clearText()
             }
             SwapItemType.Receive -> {
                 if (payAsset.value?.id() == assetId) {
-                    savedStateHandle["from"] = null
+                    savedStateHandle[RouteArgument.FromAssetId.key] = null
                 }
-                savedStateHandle["to"] = assetId.toIdentifier()
+                savedStateHandle[RouteArgument.ToAssetId.key] = assetId.toIdentifier()
             }
         }
     }
@@ -256,8 +257,8 @@ class SwapViewModel @Inject constructor(
         clearTransferQuoteState()
         val payAssetId = payAsset.value?.id()?.toIdentifier()
         val receiveAssetId = receiveAsset.value?.id()?.toIdentifier()
-        savedStateHandle["from"] = receiveAssetId
-        savedStateHandle["to"] = payAssetId
+        savedStateHandle[RouteArgument.FromAssetId.key] = receiveAssetId
+        savedStateHandle[RouteArgument.ToAssetId.key] = payAssetId
         payValue.clearText()
     }
 

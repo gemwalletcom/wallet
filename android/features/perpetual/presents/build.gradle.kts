@@ -57,9 +57,8 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
 
-    implementation(libs.compose.navigation)
 
     implementation(libs.vico.m3)
 

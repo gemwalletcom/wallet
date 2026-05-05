@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.components.list_item.availableIn
 import com.gemwallet.android.ui.models.RewardsInfoUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.earn.delegation.models.DelegationActions
 import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
@@ -31,6 +32,7 @@ import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uniffi.gemstone.Explorer
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -49,8 +51,8 @@ class DelegationViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    val validatorId = savedStateHandle.getStateFlow<String?>("validatorId", null).filterNotNull()
-    val delegationId = savedStateHandle.getStateFlow<String?>("delegationId", null).filterNotNull()
+    val validatorId = MutableStateFlow(savedStateHandle.requireString(RouteArgument.ValidatorId))
+    val delegationId = MutableStateFlow(savedStateHandle.requireString(RouteArgument.DelegationId))
 
     val delegation = combine(validatorId, delegationId) { validatorId, delegationId -> Pair(validatorId, delegationId) }
         .flatMapLatest {
@@ -226,4 +228,10 @@ class DelegationViewModel @Inject constructor(
             delegationId = delegation.base.delegationId,
         )
     }
+}
+
+private fun SavedStateHandle.requireString(argument: RouteArgument): String {
+    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
+    return value
 }

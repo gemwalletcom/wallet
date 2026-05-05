@@ -1,8 +1,8 @@
 package com.gemwallet.android.ui
 
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import android.content.Context
 import android.os.Build
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Row
@@ -10,30 +10,35 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
-import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletRulesScreen
 import com.gemwallet.android.ext.updateUrl
-import com.gemwallet.android.features.import_wallet.navigation.navigateToImportWalletScreen
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
-import com.gemwallet.android.features.onboarding.navigateToAcceptTerms
 import com.gemwallet.android.ui.navigation.WalletNavGraph
+import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
+import com.gemwallet.android.ui.models.actions.AssetIdAction
+import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.theme.Spacer16
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
 @Composable
 fun WalletApp(
-    navController: NavHostController = rememberNavController(),
+    pendingRoute: NavKey? = null,
+    onIntentConsumed: () -> Unit = {},
+    walletConnectOverlay: @Composable (AssetIdAction) -> Unit = {},
     viewModel: AppViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -41,29 +46,48 @@ fun WalletApp(
     val askNotifications by viewModel.askNotifications.collectAsStateWithLifecycle()
     val isTermsAccepted by viewModel.isTermsAccepted.collectAsStateWithLifecycle()
 
+    val start = startDestination ?: return
+    val currentTab = rememberSaveable { mutableStateOf(assetsRoute) }
+    val navigator = rememberWalletNavigationState(startDestination = start, currentTab = currentTab)
+    val onBuy = remember(navigator) { AssetIdAction { navigator.openBuy(it) } }
+    var confirmPendingNavigation by remember(pendingRoute) { mutableStateOf(false) }
+
+    LaunchedEffect(pendingRoute, navigator, confirmPendingNavigation) {
+        val route = pendingRoute ?: return@LaunchedEffect
+        if (confirmPendingNavigation) {
+            return@LaunchedEffect
+        }
+        if (navigator.openPendingNavigation(route)) {
+            onIntentConsumed()
+        } else if (navigator.needsPendingNavigationConfirmation()) {
+            confirmPendingNavigation = true
+        }
+    }
+
     WalletNavGraph(
-        navController = navController,
-        startDestination = startDestination ?: return,
+        navigator = navigator,
         onAcceptTerms = viewModel::acceptTerms,
         onboard = {
             OnboardScreen(
                 onCreateWallet = {
                     if (isTermsAccepted) {
-                        navController.navigateToCreateWalletRulesScreen()
+                        navigator.openCreateWalletRules()
                     } else {
-                        navController.navigateToAcceptTerms(AcceptTermsDestination.Create)
+                        navigator.openAcceptTerms(AcceptTermsDestination.Create)
                     }
                 },
                 onImportWallet = {
                     if (isTermsAccepted) {
-                        navController.navigateToImportWalletScreen()
+                        navigator.openImportWallet()
                     } else {
-                        navController.navigateToAcceptTerms(AcceptTermsDestination.Import)
+                        navigator.openAcceptTerms(AcceptTermsDestination.Import)
                     }
                 },
             )
         },
     )
+
+    walletConnectOverlay(onBuy)
     state.update?.let { update ->
         ShowUpdateDialog(
             version = update.version,
@@ -73,9 +97,12 @@ fun WalletApp(
         )
     }
 
-    if (state.intent == AppIntent.ShowReview) {
-        viewModel.onReviewOpen()
-        ReviewManager().open(LocalActivity.current ?: return)
+    val activity = LocalActivity.current
+    LaunchedEffect(state.intent, activity) {
+        if (state.intent == AppIntent.ShowReview && activity != null) {
+            viewModel.onReviewOpen()
+            ReviewManager().open(activity)
+        }
     }
 
     if (askNotifications) {
@@ -84,6 +111,44 @@ fun WalletApp(
             onDismiss = viewModel::laterAskNotifications,
         )
     }
+
+    if (confirmPendingNavigation && pendingRoute != null) {
+        OpenPendingNavigationDialog(
+            onOpen = {
+                confirmPendingNavigation = false
+                if (navigator.openPendingNavigation(pendingRoute, confirmed = true)) {
+                    onIntentConsumed()
+                }
+            },
+            onCancel = {
+                confirmPendingNavigation = false
+                onIntentConsumed()
+            },
+        )
+    }
+}
+
+@Composable
+private fun OpenPendingNavigationDialog(
+    onOpen: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        confirmButton = {
+            TextButton(onClick = onOpen) {
+                Text(text = stringResource(id = R.string.common_continue))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text(text = stringResource(id = R.string.common_cancel))
+            }
+        },
+        title = {
+            Text(text = stringResource(id = R.string.common_warning))
+        },
+    )
 }
 
 @Composable

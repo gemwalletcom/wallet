@@ -12,9 +12,10 @@ import com.gemwallet.android.model.AppUpdateInfo
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.VersionCheck
-import com.gemwallet.android.features.onboarding.OnboardingDest
+import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.ui.navigation.walletRootRoute
+import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.wallet.core.primitives.PlatformStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +47,7 @@ class AppViewModel @Inject constructor(
     private val state = MutableStateFlow(AppState())
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AppUIState())
-    private val startDestination = MutableStateFlow<String?>(null)
+    private val startDestination = MutableStateFlow<NavKey?>(null)
     val startDestinationState = startDestination.asStateFlow()
     private val walletReadyState = getWalletSummary.getWalletSummary()
         .map { it != null }
@@ -57,7 +58,7 @@ class AppViewModel @Inject constructor(
     ) { destination, isWalletReady ->
         when (destination) {
             null -> false
-            walletRootRoute -> isWalletReady
+            WalletRootRoute -> isWalletReady
             else -> true
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -182,18 +183,18 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getStartDestination(): String = withContext(Dispatchers.IO) {
+    private suspend fun getStartDestination(): NavKey = withContext(Dispatchers.IO) {
         if (sessionRepository.getCurrentWallet() != null) {
-            walletRootRoute
+            WalletRootRoute
         } else {
             val wallet = walletsRepository.getAll().firstOrNull()
                 ?.sortedWith(compareBy({ it.index }, { it.id }))
                 ?.firstOrNull()
             if (wallet != null) {
                 sessionRepository.setWallet(wallet)
-                walletRootRoute
+                WalletRootRoute
             } else {
-                OnboardingDest.route
+                OnboardingRoute
             }
         }
     }

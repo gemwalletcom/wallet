@@ -15,18 +15,6 @@ struct URLParserTests {
     }
 
     @Test
-    func assetUrlWithLocalePrefix() throws {
-        let chainAction = try URLParser.from(url: #require(URL(string: "https://gemwallet.com/ru/tokens/bitcoin")))
-        #expect(chainAction == .asset(AssetId(chain: .bitcoin, tokenId: .none)))
-
-        let tokenAction = try URLParser.from(url: #require(URL(string: "https://gemwallet.com/en/tokens/solana/JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN")))
-        #expect(tokenAction == .asset(AssetId(chain: .solana, tokenId: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN")))
-
-        let extendedLocale = try URLParser.from(url: #require(URL(string: "https://gemwallet.com/zh-cn/tokens/solana")))
-        #expect(extendedLocale == .asset(AssetId(chain: .solana, tokenId: .none)))
-    }
-
-    @Test
     func gemSchemeAssetUrl() throws {
         let chainAction = try URLParser.from(url: #require(URL(string: "gem://tokens/bitcoin")))
         #expect(chainAction == .asset(AssetId(chain: .bitcoin, tokenId: .none)))

@@ -10,10 +10,11 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.viewmodels.TransactionsViewModel
+import com.wallet.core.primitives.TransactionId
 
 @Composable
 fun TransactionsNavScreen(
-    onTransaction: (String) -> Unit,
+    onTransaction: (TransactionId) -> Unit,
     onBuy: (() -> Unit)? = null,
     onReceive: (() -> Unit)? = null,
     listState: LazyListState = rememberLazyListState(),

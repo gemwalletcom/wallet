@@ -54,6 +54,7 @@ import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.reown.walletkit.client.Wallet
+import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @Composable
@@ -116,7 +117,7 @@ private fun Proposal(
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     onReject: () -> Unit,
     onApprove: () -> Unit,
-    onWalletSelected: (String) -> Unit,
+    onWalletSelected: (WalletId) -> Unit,
 ) {
     var isShowSelectWallets by remember { mutableStateOf(false) }
 
@@ -200,7 +201,7 @@ private fun Proposal(
                     isCurrent = item.id == selectedWallet?.id,
                     listPosition = ListPosition.getPosition(index, availableWallets.size),
                     modifier = Modifier.clickable {
-                        onWalletSelected(item.id)
+                        onWalletSelected(WalletId(item.id))
                         isShowSelectWallets = false
                     }
                 )

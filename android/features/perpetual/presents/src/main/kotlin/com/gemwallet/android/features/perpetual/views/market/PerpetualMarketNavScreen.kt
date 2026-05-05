@@ -20,7 +20,7 @@ fun PerpetualMarketNavScreen(
 
     PerpetualMarketScene(
         sceneState = sceneState,
-        balance = balance ?: return,
+        balance = balance,
         unpinnedPerpetuals = unpinnedPerpetuals,
         pinnedPerpetuals = pinnedPerpetuals,
         positions = positions,

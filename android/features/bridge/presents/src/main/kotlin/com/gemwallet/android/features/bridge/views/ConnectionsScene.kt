@@ -68,7 +68,6 @@ fun ConnectionsScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
-        backHandle = true,
         snackbar = snackbar,
         actions = {
             IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.WalletConnect)) }) {

@@ -11,6 +11,7 @@ import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAle
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,7 +44,7 @@ class PriceAlertViewModel @Inject constructor(
 
     private val refreshState = MutableStateFlow(false)
 
-    val assetId = savedStateHandle.getStateFlow<String?>("assetId", null)
+    val assetId = savedStateHandle.getStateFlow<String?>(RouteArgument.AssetId.key, null)
         .mapLatest { it?.toAssetId() }
         .onEach { priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(it)) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -62,7 +63,7 @@ class PriceAlertViewModel @Inject constructor(
     val isRefreshing = refreshState.asStateFlow()
 
     init {
-        val initialAssetId = savedStateHandle.get<String?>("assetId")?.toAssetId()
+        val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 if (initialAssetId != null) {

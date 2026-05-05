@@ -9,7 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class PushNotificationAsset (
-	val assetId: String
+	val assetId: AssetId
 )
 
 @Serializable
@@ -51,14 +51,14 @@ object PushNotificationSupport
 
 @Serializable
 data class PushNotificationSwapAsset (
-	val fromAssetId: String,
-	val toAssetId: String
+	val fromAssetId: AssetId,
+	val toAssetId: AssetId
 )
 
 @Serializable
 data class PushNotificationTransaction (
-	val walletId: String,
-	val assetId: String,
+	val walletId: WalletId,
+	val assetId: AssetId,
 	val transaction: Transaction
 )
 

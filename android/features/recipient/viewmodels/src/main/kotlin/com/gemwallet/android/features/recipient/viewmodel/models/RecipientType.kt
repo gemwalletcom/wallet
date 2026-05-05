@@ -13,3 +13,8 @@ sealed interface RecipientType {
         val nftAsset: NFTAsset,
     ) : RecipientType
 }
+
+sealed interface RecipientState {
+    data object Loading : RecipientState
+    data class Ready(val type: RecipientType) : RecipientState
+}

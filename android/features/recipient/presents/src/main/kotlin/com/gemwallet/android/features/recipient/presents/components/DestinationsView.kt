@@ -2,7 +2,6 @@ package com.gemwallet.android.features.recipient.presents.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
@@ -14,33 +13,31 @@ import com.wallet.core.primitives.NameRecord
 fun LazyListScope.destinationView(
     asset: AssetInfo,
     hasMemo: Boolean,
-    addressState: MutableState<String>,
+    address: String,
     addressError: RecipientError,
-    memoState: MutableState<String>,
+    memo: String,
     memoError: RecipientError,
-    nameRecordState: MutableState<NameRecord?>,
+    onAddress: (String, NameRecord?) -> Unit,
+    onMemo: (String) -> Unit,
     onQrScan: (QrScanField) -> Unit,
 ) {
     item {
         Column {
             AddressChainField(
                 chain = asset.asset.chain,
-                value = addressState.value,
+                value = address,
                 label = stringResource(id = R.string.transfer_recipient_address_field),
                 error = recipientErrorString(error = addressError),
-                onValueChange = { input, nameRecord ->
-                    addressState.value = input
-                    nameRecordState.value = nameRecord
-                },
+                onValueChange = onAddress,
                 onQrScanner = { onQrScan(QrScanField.Address) }
             )
             if (hasMemo) {
                 MemoTextField(
-                    value = memoState.value,
+                    value = memo,
                     label = stringResource(id = R.string.transfer_memo),
-                    onValueChange = { memoState.value = it },
+                    onValueChange = onMemo,
                     error = memoError,
-                    onQrScanner = { onQrScan(QrScanField.Address) },
+                    onQrScanner = { onQrScan(QrScanField.Memo) },
                 )
             }
         }

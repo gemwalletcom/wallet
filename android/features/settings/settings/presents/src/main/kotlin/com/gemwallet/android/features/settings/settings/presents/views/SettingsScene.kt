@@ -48,7 +48,6 @@ fun SettingsScene(
     onWallets: () -> Unit,
     onAboutUs: () -> Unit,
     onNotifications: () -> Unit,
-    @Suppress("UNUSED_PARAMETER") onPriceAlerts: () -> Unit,
     onSupport: () -> Unit,
     onPreferences: () -> Unit,
     onPerpetual: () -> Unit,
@@ -182,7 +181,7 @@ fun SettingsScene(
     requestPushGrant?.let {
         PushRequest(
             onNotificationEnable = {
-            it()
+                it()
                 requestPushGrant = null
             }
         ) { requestPushGrant = null }

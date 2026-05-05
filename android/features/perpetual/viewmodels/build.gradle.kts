@@ -51,16 +51,13 @@ dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
     implementation(project(":data:repositories"))
-//    implementation(project(":data:coordinators"))
 
     implementation(libs.lifecycle.viewmodel.savedstate)
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.lifecycle.viewmodel.savedstate)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)

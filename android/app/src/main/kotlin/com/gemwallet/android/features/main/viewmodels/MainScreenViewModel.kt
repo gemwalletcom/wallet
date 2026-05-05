@@ -4,8 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.toEVM
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ext.isNftSupported
+import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,6 +31,15 @@ class MainScreenViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val collectionsAvailable = sessionRepository.session()
-        .mapLatest { session -> session?.wallet?.accounts?.any { it.chain.toEVM() != null || it.chain == Chain.Solana } ?: false }
+        .mapLatest { session -> session?.wallet?.isCollectionsAvailable() ?: false }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+}
+
+private fun Wallet.isCollectionsAvailable(): Boolean {
+    return when (type) {
+        WalletType.Multicoin -> true
+        WalletType.Single,
+        WalletType.PrivateKey,
+        WalletType.View -> accounts.firstOrNull()?.chain?.isNftSupported() ?: false
+    }
 }

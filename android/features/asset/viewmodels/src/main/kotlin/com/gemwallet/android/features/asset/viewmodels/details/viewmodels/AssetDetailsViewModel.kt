@@ -25,7 +25,6 @@ import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isStaked
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.availableFormatted
@@ -34,8 +33,8 @@ import com.gemwallet.android.model.getStackedAmount
 import com.gemwallet.android.model.reservedFormatted
 import com.gemwallet.android.model.totalFormatted
 import com.gemwallet.android.model.totalStakeFormatted
-import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
@@ -53,14 +52,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -91,20 +87,17 @@ class AssetDetailsViewModel @Inject constructor(
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val assetId = savedStateHandle.getStateFlow(assetIdArg, "").map { it.toAssetId() }
-        .distinctUntilChanged()
+    private val routeAssetId = savedStateHandle.requireAssetId()
+    private val assetId = MutableStateFlow(routeAssetId)
         .onEach { assetId ->
-            assetId ?: return@onEach
             val wallet = session.value?.wallet ?: return@onEach
             priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(assetId))
             syncAssetDetails(wallet, assetId, shouldRefreshPriceAlerts = true)
         }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, routeAssetId)
 
     private val assetInfo = assetId
-        .flatMapLatest { assetId ->
-            assetId?.let { id -> assetsRepository.getTokenInfo(id).mapNotNull { it } } ?: emptyFlow()
-        }
+        .flatMapLatest { assetsRepository.getTokenInfo(it).filterNotNull() }
 
     val isOperationEnabled = session.filterNotNull().flatMapLatest {
         hasMultiSign.hasMultiSign(it.wallet).mapLatest { !it }
@@ -126,12 +119,12 @@ class AssetDetailsViewModel @Inject constructor(
     val priceAlertEnabled = priceAlertsStateCoordinator.priceAlertState
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertsCount = assetId.filterNotNull()
+    val priceAlertsCount = assetId
         .flatMapLatest { getPriceAlerts(it) }
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    val transactions = assetId.filterNotNull().flatMapLatest {
+    val transactions = assetId.flatMapLatest {
         getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(it)))
     }
         .map { it.toImmutableList() }
@@ -142,9 +135,8 @@ class AssetDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun refresh() {
-        val assetId = assetId.value ?: return
         val wallet = session.value?.wallet ?: return
-        syncAssetDetails(wallet, assetId, showLoading = true, shouldRefreshPriceAlerts = true)
+        syncAssetDetails(wallet, assetId.value, showLoading = true, shouldRefreshPriceAlerts = true)
     }
 
     private fun syncAssetDetails(

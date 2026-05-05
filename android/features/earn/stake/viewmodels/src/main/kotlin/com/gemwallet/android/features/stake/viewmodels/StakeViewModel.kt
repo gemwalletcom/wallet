@@ -25,6 +25,7 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.stake.models.StakeAction
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
@@ -50,8 +51,6 @@ import uniffi.gemstone.DocsUrl
 import java.math.BigInteger
 import javax.inject.Inject
 
-private const val assetIdArg = "assetId"
-
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StakeViewModel @Inject constructor(
@@ -60,10 +59,10 @@ class StakeViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
-    private val initialAssetId = stateHandle.get<String>(assetIdArg)?.toAssetId()
+    private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
         ?: error("Missing assetId")
 
-    private val assetId = stateHandle.getStateFlow(assetIdArg, initialAssetId.toIdentifier())
+    private val assetId = stateHandle.getStateFlow(RouteArgument.AssetId.key, initialAssetId.toIdentifier())
         .map { it.toAssetId() ?: initialAssetId }
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialAssetId)
 

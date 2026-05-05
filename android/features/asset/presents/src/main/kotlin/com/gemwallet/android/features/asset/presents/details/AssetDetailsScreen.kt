@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.TransactionId
 
 @Composable
 fun AssetDetailsScreen(
@@ -20,7 +21,7 @@ fun AssetDetailsScreen(
     onReceive: (AssetId) -> Unit,
     onBuy: (AssetId) -> Unit,
     onSwap: (AssetId, AssetId?) -> Unit,
-    onTransaction: (txId: String) -> Unit,
+    onTransaction: (TransactionId) -> Unit,
     onChart: (AssetId) -> Unit,
     openNetwork: AssetIdAction,
     onStake: (AssetId) -> Unit,

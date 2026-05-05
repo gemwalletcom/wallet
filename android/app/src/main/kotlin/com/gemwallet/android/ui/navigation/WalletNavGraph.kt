@@ -1,101 +1,41 @@
 package com.gemwallet.android.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import androidx.navigation.navOptions
-import androidx.navigation.navigation
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
-import com.gemwallet.android.features.asset_select.presents.navigation.navigateToAssetsManageScreen
-import com.gemwallet.android.features.asset_select.presents.navigation.navigateToAssetsSearchScreen
-import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
-import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletRulesScreen
-import com.gemwallet.android.features.create_wallet.navigation.navigateToCreateWalletScreen
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberDecoratedNavEntries
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.Scene
+import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
+import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
-import com.gemwallet.android.features.import_wallet.navigation.importWalletRoute
-import com.gemwallet.android.features.import_wallet.navigation.navigateToImportWalletScreen
-import com.gemwallet.android.features.onboarding.AcceptTermsDestination
-import com.gemwallet.android.features.onboarding.OnboardingDest
+import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.onboarding.acceptTermsScreen
-import com.gemwallet.android.features.setup_wallet.navigation.navigateToSetupWalletScreen
-import com.gemwallet.android.features.setup_wallet.navigation.setupWalletScreen
 import com.gemwallet.android.features.main.views.MainScreen
-import com.gemwallet.android.ui.components.animation.enterTransition
-import com.gemwallet.android.ui.components.animation.exitTransition
-import com.gemwallet.android.ui.components.animation.popEnterTransition
-import com.gemwallet.android.ui.components.animation.popExitTransition
-import com.gemwallet.android.ui.models.navigation.assetRoutePath
-import com.gemwallet.android.ui.models.navigation.assetsRoute
-import com.gemwallet.android.ui.models.navigation.stakeRoute
-import com.gemwallet.android.ui.models.navigation.swapRoute
-import com.gemwallet.android.ui.navigation.routes.AssetRoute
-import com.gemwallet.android.ui.navigation.routes.SendSelect
-import com.gemwallet.android.ui.navigation.routes.Transfer
-import com.gemwallet.android.ui.navigation.routes.activitiesScreen
+import com.gemwallet.android.features.setup_wallet.navigation.setupWalletScreen
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetChartScreen
 import com.gemwallet.android.ui.navigation.routes.assetScreen
-import com.gemwallet.android.ui.navigation.routes.assetsScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.confirm
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToAboutUsScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToAddAssetScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToAddPriceAlertTargetScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToAmountScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToAssetChartScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToAssetScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToBridgeScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToBridgesScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToBuyScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToFiatTransactions
-import com.gemwallet.android.ui.navigation.routes.navigateToConfirmScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToCurrenciesScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToDelegation
-import com.gemwallet.android.ui.navigation.routes.navigateToDevelopScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToNetworksScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToNftAsset
-import com.gemwallet.android.ui.navigation.routes.navigateToNftCollection
-import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualDetailsScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToPerpetualsScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToPhraseScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToSecurityReminderScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToNotifications
-import com.gemwallet.android.ui.navigation.routes.navigateToPreferences
-import com.gemwallet.android.ui.navigation.routes.navigateToPriceAlertsScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToReceiveNftChains
-import com.gemwallet.android.ui.navigation.routes.navigateToReceiveScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToRecipientInput
-import com.gemwallet.android.ui.navigation.routes.navigateToReferralScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToSecurityScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToSendScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToStake
-import com.gemwallet.android.ui.navigation.routes.navigateToSupport
-import com.gemwallet.android.ui.navigation.routes.navigateToSwap
-import com.gemwallet.android.ui.navigation.routes.navigateToSwapSelect
-import com.gemwallet.android.ui.navigation.routes.navigateToTransactionScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToWalletScreen
-import com.gemwallet.android.ui.navigation.routes.navigateToWalletsScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipientInput
 import com.gemwallet.android.ui.navigation.routes.referral
-import com.gemwallet.android.ui.navigation.routes.settingsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
 import com.gemwallet.android.ui.navigation.routes.swap
@@ -103,361 +43,233 @@ import com.gemwallet.android.ui.navigation.routes.swapSelect
 import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.walletScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
-import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.WalletId
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun WalletNavGraph(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
-    startDestination: String,
+    navigator: WalletNavigator,
     onboard: @Composable () -> Unit,
     onAcceptTerms: () -> Unit,
 ) {
-    val onCancel: () -> Unit = { navController.navigateUp() }
-    val currentTab = remember { mutableStateOf(assetsRoute) }
+    val onCancel: () -> Unit = navigator::pop
 
-    NavHost(
-        modifier = modifier
-            .semantics { testTagsAsResourceId = true },
-        navController = navController,
-        startDestination = startDestination,
-        enterTransition = enterTransition,
-        exitTransition = exitTransition,
-        popEnterTransition = popEnterTransition,
-        popExitTransition = popExitTransition,
-    ) {
-        composable(
-            route = walletRootRoute,
-            arguments = listOf(
-                navArgument(walletResetArg) {
-                    type = NavType.BoolType
-                    defaultValue = false
-                }
-            )
-        ) {
-            val reset = it.arguments?.getBoolean(walletResetArg) == true
-            if (reset) {
-                currentTab.value = assetsRoute
+    val entryProvider = remember(navigator, onboard, onAcceptTerms) {
+        entryProvider<NavKey> {
+            entry<WalletRootRoute> {
+                MainScreen(navigator = navigator, currentTab = navigator.currentTab)
             }
-            MainScreen(navController = navController, currentTab = currentTab)
-        }
 
-        assetsScreen(
-            onShowWallets = navController::navigateToWalletsScreen,
-            onManage = navController::navigateToAssetsManageScreen,
-            onSearch = navController::navigateToAssetsSearchScreen,
-            onSendClick = navController::navigateToRecipientInput,
-            onReceiveClick = navController::navigateToReceiveScreen,
-            onBuyClick = navController::navigateToBuyScreen,
-            onSwapClick = navController::navigateToSwap,
-            onAssetClick = navController::navigateToAssetScreen,
-        )
+            entry<OnboardingRoute> {
+                onboard()
+            }
 
-        assetScreen(
-            onCancel = onCancel,
-            onTransfer = navController::navigateToRecipientInput,
-            onReceive = navController::navigateToReceiveScreen,
-            onBuy = navController::navigateToBuyScreen,
-            onSwap = navController::navigateToSwap,
-            onTransaction = navController::navigateToTransactionScreen,
-            onChart = navController::navigateToAssetChartScreen,
-            openNetwork = navController::navigateToAssetScreen,
-            onStake = navController::navigateToStake,
-            onConfirm = navController::navigateToConfirmScreen,
-            onPriceAlerts = navController::navigateToPriceAlertsScreen
-        )
+            assetsManageScreen(
+                onAddAsset = navigator::openAddAsset,
+                onAssetClick = navigator::openAsset,
+                onCancel = onCancel,
+            )
 
-        assetChartScreen(
-            onPriceAlerts = navController::navigateToPriceAlertsScreen,
-            onAddPriceAlertTarget = navController::navigateToAddPriceAlertTargetScreen,
-            onCancel = onCancel,
-        )
+            assetScreen(
+                onCancel = onCancel,
+                onTransfer = navigator::openRecipient,
+                onReceive = navigator::openReceive,
+                onBuy = navigator::openBuy,
+                onSwap = navigator::openSwap,
+                onTransaction = navigator::openTransaction,
+                onChart = navigator::openAssetChart,
+                openNetwork = navigator::openAsset,
+                onStake = navigator::openStake,
+                onConfirm = navigator::openConfirm,
+                onPriceAlerts = navigator::openPriceAlerts,
+            )
 
-        assetsManageScreen(
-            onAddAsset = navController::navigateToAddAssetScreen,
-            onAssetClick = navController::navigateToAssetScreen,
-            onCancel = onCancel,
-        )
+            assetChartScreen(
+                onPriceAlerts = navigator::openPriceAlerts,
+                onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
+                toastMessage = navigator::toastMessage,
+                onToastShown = navigator::clearToastMessage,
+                onCancel = onCancel,
+            )
 
-        navigation<Transfer>(startDestination = SendSelect) {
             swap(
-                onConfirm = navController::navigateToConfirmScreen,
-                onSelect = navController::navigateToSwapSelect,
+                navigator = navigator,
+                onConfirm = navigator::openConfirm,
+                onSelect = navigator::openSwapSelect,
                 onCancel = onCancel,
             )
-
-            swapSelect(
-                navController = navController,
-                onCancel = onCancel,
-            )
+            swapSelect(navigator = navigator, onCancel = onCancel)
 
             recipientInput(
                 cancelAction = onCancel,
-                recipientAction = navController::navigateToRecipientInput,
-                amountAction = navController::navigateToAmountScreen,
-                confirmAction = navController::navigateToConfirmScreen,
+                recipientAction = navigator::openRecipient,
+                amountAction = navigator::openAmount,
+                confirmAction = navigator::openConfirm,
             )
 
             amount(
                 onCancel = onCancel,
-                onSend = navController::navigateToSendScreen,
-                onConfirm = navController::navigateToConfirmScreen,
+                onConfirm = navigator::openConfirm,
             )
 
             confirm(
-                finishAction = { assetId, hash, route ->
-                    when (route) {
-                        assetRoutePath -> NavigateAfterConfirm.Transfer(assetId).navigate(navController)
-                        stakeRoute -> NavigateAfterConfirm.Stake(assetId).navigate(navController)
-                        swapRoute -> NavigateAfterConfirm.Swap(assetId).navigate(navController)
+                finishAction = { assetId, _, route -> navigator.finishConfirm(assetId, route) },
+                onBuy = navigator::openBuy,
+                cancelAction = onCancel,
+            )
+
+            nftCollection(
+                cancelAction = onCancel,
+                collectionIdAction = navigator::openNftCollection,
+                assetIdAction = navigator::openNftAsset,
+                onRecipient = navigator::openNftRecipient,
+                onReceive = navigator::openReceiveNftChains,
+            )
+
+            fiatScreen(
+                cancelAction = onCancel,
+                onBuy = navigator::openBuy,
+                onFiatTransactions = navigator::openFiatTransactions,
+            )
+
+            receiveScreen(
+                onCancel = onCancel,
+                onReceive = navigator::openReceive,
+            )
+
+            walletsScreen(
+                onCreateWallet = navigator::openCreateWalletRules,
+                onImportWallet = navigator::openImportWallet,
+                onEditWallet = navigator::openWallet,
+                onSelectWallet = navigator::resetToWallet,
+                onBoard = navigator::resetToOnboarding,
+                onCancel = onCancel,
+            )
+
+            walletScreen(
+                onCancel = onCancel,
+                onBoard = navigator::resetToOnboarding,
+                onSecurityReminder = navigator::openWalletSecurityReminder,
+                onSecurityReminderAccepted = navigator::finishWalletSecurityReminder,
+            )
+
+            stake(
+                onAmount = navigator::openAmount,
+                onConfirm = navigator::openConfirm,
+                onDelegation = navigator::openDelegation,
+                onCancel = onCancel,
+            )
+
+            addAssetScreen(
+                onCancel = onCancel,
+                onFinish = navigator::resetToWallet,
+            )
+
+            transactionDetailsScreen(onCancel = onCancel)
+
+            bridgesScreen(
+                onConnection = navigator::openBridgeConnectionDetails,
+                onCancel = onCancel,
+            )
+
+            settingsScreen(
+                onCurrencies = navigator::openCurrencies,
+                onNetworks = navigator::openNetworks,
+                onPriceAlerts = { navigator.openPriceAlerts() },
+                onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
+                onPriceAlertTargetComplete = navigator::popWithToast,
+                onChart = navigator::openAssetChart,
+                onPerpetual = navigator::openPerpetuals,
+                toastMessage = navigator::toastMessage,
+                onToastShown = navigator::clearToastMessage,
+                onCancel = onCancel,
+            )
+
+            acceptTermsScreen(
+                onCancel = onCancel,
+                onAccept = { destination ->
+                    onAcceptTerms()
+                    navigator.finishAcceptTerms(destination)
+                },
+            )
+
+            createWalletScreen(
+                onCreateWallet = navigator::openCreateWallet,
+                onCancel = onCancel,
+                onCreated = { walletId ->
+                    if (walletId != null) {
+                        navigator.openSetupWallet(walletId)
+                    } else {
+                        navigator.resetToWallet()
                     }
                 },
-                onBuy = navController::navigateToBuyScreen,
-                cancelAction = onCancel
             )
+
+            importWalletScreen(
+                onCancel = onCancel,
+                onImported = { result ->
+                    when (result) {
+                        is WalletImportResult.New -> navigator.openSetupWallet(WalletId(result.wallet.id))
+                        is WalletImportResult.Existing -> navigator.resetToWallet()
+                    }
+                },
+                onSelectType = navigator::openImportWallet,
+            )
+
+            setupWalletScreen(onComplete = navigator::resetToWallet)
+
+            perpetualScreen(
+                onOpenPerpetualDetails = navigator::openPerpetualDetails,
+                onOpenPerpetualPosition = navigator::openAmount,
+                onCancel = onCancel
+            )
+
+            referral(onClose = onCancel)
         }
-
-        nftCollection(
-            cancelAction = onCancel,
-            collectionIdAction = navController::navigateToNftCollection,
-            assetIdAction = navController::navigateToNftAsset,
-            onRecipient = navController::navigateToRecipientInput,
-            onReceive = { navController.navigateToReceiveNftChains() },
-        )
-
-        fiatScreen(
-            cancelAction = onCancel,
-            onBuy = navController::navigateToBuyScreen,
-            onFiatTransactions = navController::navigateToFiatTransactions,
-        )
-
-        receiveScreen(
-            onCancel = onCancel,
-            onReceive = navController::navigateToReceiveScreen,
-        )
-
-        walletsScreen(
-            onCreateWallet = navController::navigateToCreateWalletRulesScreen,
-            onImportWallet = navController::navigateToImportWalletScreen,
-            onEditWallet = navController::navigateToWalletScreen,
-            onSelectWallet = {
-                navController.navigateToRoot()
-                currentTab.value = assetsRoute
-            },
-            onBoard = {
-                navController.navigate(OnboardingDest.route) {
-                    popUpTo(0) {
-                        inclusive = true
-                    }
-                }
-            },
-            onCancel = onCancel
-        )
-
-        walletScreen(
-            onCancel = onCancel,
-            onBoard = {
-                navController.navigate(OnboardingDest.route) {
-                    popUpTo(0) {
-                        inclusive = true
-                    }
-                }
-            },
-            onSecurityReminder = navController::navigateToSecurityReminderScreen,
-            onPhraseShow = navController::navigateToPhraseScreen,
-        )
-
-        stake(
-            onAmount = navController::navigateToAmountScreen,
-            onConfirm = navController::navigateToConfirmScreen,
-            onDelegation = navController::navigateToDelegation,
-            onCancel = onCancel,
-        )
-
-        addAssetScreen(
-            onCancel = onCancel,
-            onFinish = {
-                navController.navigateToRoot()
-                currentTab.value = assetsRoute
-            }
-        )
-
-        activitiesScreen(onTransaction = navController::navigateToTransactionScreen)
-
-        transactionDetailsScreen(onCancel = onCancel)
-
-        navigation(
-            startDestination = settingsRoute,
-            route = "settings-group"
-        ) {
-        }
-        bridgesScreen(
-            onConnection = navController::navigateToBridgeScreen,
-            onCancel = onCancel,
-        )
-
-        settingsScreen(
-            onSecurity = navController::navigateToSecurityScreen,
-            onCurrencies = navController::navigateToCurrenciesScreen,
-            onBridges = navController::navigateToBridgesScreen,
-            onDevelop = navController::navigateToDevelopScreen,
-            onWallets = navController::navigateToWalletsScreen,
-            onAboutUs = navController::navigateToAboutUsScreen,
-            onNetworks = navController::navigateToNetworksScreen,
-            onChart = navController::navigateToAssetChartScreen,
-            onNotifications = navController::navigateToNotifications,
-            onPriceAlerts = navController::navigateToPriceAlertsScreen,
-            onAddPriceAlertTarget = navController::navigateToAddPriceAlertTargetScreen,
-            onPriceAlertTargetComplete = { message ->
-                navController.popBackWithResult(NavigationResult.TOAST_MESSAGE, message)
-            },
-            onSupport = navController::navigateToSupport,
-            onPerpetual = navController::navigateToPerpetualsScreen,
-            onReferral = navController::navigateToReferralScreen,
-            onPreferences = navController::navigateToPreferences,
-            onCancel = onCancel,
-        )
-
-        composable(OnboardingDest.route) {
-            onboard()
-        }
-
-        acceptTermsScreen(
-            onCancel = { navController.navigateUp() },
-            onAccept = { destination ->
-                onAcceptTerms()
-                when (destination) {
-                    AcceptTermsDestination.Create -> navController.navigateToCreateWalletRulesScreen(
-                        navOptions { popUpTo(OnboardingDest.route) }
-                    )
-                    AcceptTermsDestination.Import -> navController.navigateToImportWalletScreen(
-                        navOptions = navOptions { popUpTo(OnboardingDest.route) }
-                    )
-                }
-            },
-        )
-
-        createWalletScreen(
-            onAcceptRules = navController::navigateToCreateWalletRulesScreen,
-            onCreateWallet = navController::navigateToCreateWalletScreen,
-            onCancel = onCancel,
-            onCreated = { walletId ->
-                if (walletId != null) {
-                    navController.navigateToSetupWalletScreen(
-                        walletId,
-                        navOptions { popUpTo(OnboardingDest.route) }
-                    )
-                } else {
-                    try {
-                        navController.navigateToRoot()
-                    } catch (_: Throwable) {
-                        navController.navigate(
-                            route = walletRootRoute,
-                            navOptions = navOptions {
-                                popUpTo(0) {
-                                    inclusive = true
-                                }
-                            }
-                        )
-                    }
-                    currentTab.value = assetsRoute
-                }
-            },
-        )
-
-        importWalletScreen(
-            onCancel = onCancel,
-            onImported = { result ->
-                when (result) {
-                    is WalletImportResult.New -> navController.navigateToSetupWalletScreen(
-                        result.wallet.id,
-                        navOptions { popUpTo(OnboardingDest.route) }
-                    )
-                    is WalletImportResult.Existing -> {
-                        navController.navigateToRoot()
-                        currentTab.value = assetsRoute
-                    }
-                }
-            },
-            onSelectType = navController::navigateToImportWalletScreen,
-        )
-
-        setupWalletScreen(
-            onComplete = {
-                navController.navigateToRoot()
-                currentTab.value = assetsRoute
-            },
-        )
-
-        perpetualScreen(
-            onOpenPerpetualDetails = navController::navigateToPerpetualDetailsScreen,
-            onOpenPerpetualPosition = navController::navigateToAmountScreen,
-            onCancel = onCancel
-        )
-
-        referral(
-            onClose = onCancel,
-        )
     }
-}
+    val entries = rememberWalletNavEntries(navigator.backStack, entryProvider)
+    val decoratedEntries = rememberDecoratedNavEntries(
+        entries = entries,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberRouteArgumentsViewModelStoreNavEntryDecorator(),
+        ),
+    )
 
-fun NavController.navigateToRoot() {
-    navigate(
-        route = "$walletRootRoute?$walletResetArg=true",
-        navOptions = navOptions {
-            popUpTo(0) {
-                inclusive = true
-            }
-        }
+    NavDisplay(
+        entries = decoratedEntries,
+        modifier = modifier.semantics { testTagsAsResourceId = true },
+        onBack = { navigator.pop() },
+        transitionSpec = slideLeftTransition,
+        popTransitionSpec = slideRightTransition,
+        predictivePopTransitionSpec = { slideRightTransition() },
     )
 }
 
-sealed interface NavigateAfterConfirm {
-    fun navigate(navController: NavController)
-
-    class Transfer(private val assetId: AssetId) : NavigateAfterConfirm {
-
-        override fun navigate(navController: NavController) {
-            navController.navigateToAssetScreen(
-                assetId,
-                navOptions {
-                    launchSingleTop = true
-                    popUpTo(Transfer) {
-                        inclusive = true
-                    }
-                }
-            )
+@Composable
+private fun rememberWalletNavEntries(
+    backStack: List<NavKey>,
+    entryProvider: (NavKey) -> NavEntry<NavKey>,
+): List<NavEntry<NavKey>> {
+    val keys = backStack.toList()
+    return remember(keys, entryProvider) {
+        val occurrences = mutableMapOf<Any, Int>()
+        keys.map { key ->
+            val entry = entryProvider(key)
+            val occurrence = occurrences.getOrDefault(entry.contentKey, 0)
+            occurrences[entry.contentKey] = occurrence + 1
+            entry.withOccurrenceContentKey(key, occurrence)
         }
     }
+}
 
-    class Stake(private val assetId: AssetId) : NavigateAfterConfirm {
+private typealias WalletNavTransition = AnimatedContentTransitionScope<Scene<NavKey>>.() -> ContentTransform
 
-        override fun navigate(navController: NavController) {
-            navController.navigateToAssetScreen(
-                assetId,
-                navOptions {
-                    launchSingleTop = true
-                    popUpTo(AssetRoute(assetId.toIdentifier())) {
-                        inclusive = true
-                    }
-                }
-            )
-        }
-    }
+private val slideLeftTransition: WalletNavTransition = {
+    navigationSlideTransition(AnimatedContentTransitionScope.SlideDirection.Left)
+}
 
-    class Swap(private val assetId: AssetId) : NavigateAfterConfirm {
-
-        override fun navigate(navController: NavController) {
-            navController.navigateToAssetScreen(
-                assetId,
-                navOptions {
-                    launchSingleTop = true
-                    popUpTo(Transfer) {
-                        inclusive = true
-                    }
-                }
-            )
-        }
-    }
+private val slideRightTransition: WalletNavTransition = {
+    navigationSlideTransition(AnimatedContentTransitionScope.SlideDirection.Right)
 }

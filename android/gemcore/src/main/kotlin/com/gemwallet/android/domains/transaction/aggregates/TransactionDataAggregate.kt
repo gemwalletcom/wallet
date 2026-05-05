@@ -2,11 +2,12 @@ package com.gemwallet.android.domains.transaction.aggregates
 
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 
 interface TransactionDataAggregate {
-    val id: String
+    val id: TransactionId
     val asset: Asset
     val address: String
     val value: String

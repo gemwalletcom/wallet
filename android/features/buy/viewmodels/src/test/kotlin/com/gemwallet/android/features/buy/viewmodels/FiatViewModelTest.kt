@@ -6,12 +6,15 @@ import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
 import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
+import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
@@ -30,6 +33,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -48,11 +54,29 @@ class FiatViewModelTest {
     private val getBuyQuotes = mockk<GetBuyQuotes>(relaxed = true) {
         coEvery {
             invoke(
+                walletId = any(),
+                asset = any(),
+                type = any(),
+                fiatCurrency = any(),
+                amount = any(),
+            )
+        } returns listOf(mockFiatQuote())
+        coEvery {
+            invoke(
                 walletId = walletId,
                 asset = asset,
                 type = any(),
                 fiatCurrency = Currency.USD.string,
                 amount = 50.0,
+            )
+        } returns listOf(mockFiatQuote())
+        coEvery {
+            invoke(
+                walletId = walletId,
+                asset = asset,
+                type = FiatQuoteType.Sell,
+                fiatCurrency = Currency.USD.string,
+                amount = 100.0,
             )
         } returns listOf(mockFiatQuote())
     }
@@ -118,17 +142,71 @@ class FiatViewModelTest {
         }
     }
 
+    @Test
+    fun `fiat type picker requires enabled metadata and available balance`() = runTest(testDispatcher) {
+        assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+            assertFalse(viewModel.showFiatTypePicker.value)
+
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "0")
+            runCurrent()
+            assertFalse(viewModel.showFiatTypePicker.value)
+
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
+            runCurrent()
+            assertTrue(viewModel.showFiatTypePicker.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `sell type is only selected when sell is available`() = runTest(testDispatcher) {
+        assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = "1")
+        val viewModel = createViewModel()
+
+        try {
+            runCurrent()
+            viewModel.setType(FiatQuoteType.Sell)
+            assertEquals(FiatQuoteType.Buy, viewModel.type.value)
+
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "1")
+            runCurrent()
+            viewModel.setType(FiatQuoteType.Sell)
+            assertEquals(FiatQuoteType.Sell, viewModel.type.value)
+
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
+            runCurrent()
+            assertEquals(FiatQuoteType.Buy, viewModel.type.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
     private fun createViewModel() = FiatViewModel(
         getBuyQuotes = getBuyQuotes,
         getBuyQuoteUrl = getBuyQuoteUrl,
         getBuyAssetInfo = getBuyAssetInfo,
         savedStateHandle = SavedStateHandle(
-            mapOf("assetId" to asset.id.toIdentifier())
+            mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())
         ),
     )
 
-    private fun assetData(price: Double) = mockAssetData(
+    private fun assetData(
+        price: Double,
+        isSellEnabled: Boolean = false,
+        available: String = "0",
+    ) = mockAssetData(
         asset = asset,
         wallet = wallet,
+        balance = AssetBalance.create(asset, available = available),
+        metadata = mockAssetMetaData(isSellEnabled = isSellEnabled),
     ).copy(price = mockAssetPriceInfo(price = price))
+
+    private companion object {
+        const val OneBitcoin = "100000000"
+    }
 }

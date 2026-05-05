@@ -1,34 +1,39 @@
 package com.gemwallet.android.model
 
-import com.wallet.core.primitives.PushNotificationTypes
-import com.wallet.core.primitives.TransactionId
+import com.gemwallet.android.model.Transaction as AppTransaction
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
+enum class PushNotificationField(val key: String) {
+    Data("data"),
+    Type("type"),
+}
+
 sealed interface PushNotificationData {
 
-    data class Asset(val assetId: String): PushNotificationData
+    data class Asset(val assetId: AssetId) : PushNotificationData
 
-    data class WalletAsset(val assetId: String, val walletId: WalletId): PushNotificationData
+    data class BuyAsset(val assetId: AssetId) : PushNotificationData
 
-    data class Stake(val assetId: String, val walletId: WalletId): PushNotificationData
+    data class WalletAsset(val assetId: AssetId, val walletId: WalletId) : PushNotificationData
 
-    data class PushNotificationPayloadType (
-        val type: PushNotificationTypes,
+    data class Stake(val assetId: AssetId, val walletId: WalletId) : PushNotificationData
+
+    @Serializable
+    data class Swap(
+        val fromAssetId: AssetId,
+        val toAssetId: AssetId,
     ) : PushNotificationData
 
     @Serializable
-    data class Swap (
-        val fromAssetId: String,
-        val toAssetId: String,
-    ): PushNotificationData
-
-    @Serializable
-    data class Transaction (
-        val walletId: String,
-        val assetId: String,
-        val transactionId: TransactionId,
-    ): PushNotificationData
+    data class Transaction(
+        val walletId: WalletId,
+        val assetId: AssetId,
+        val transaction: AppTransaction,
+    ) : PushNotificationData
 
     object Reward : PushNotificationData
+
+    object Support : PushNotificationData
 }

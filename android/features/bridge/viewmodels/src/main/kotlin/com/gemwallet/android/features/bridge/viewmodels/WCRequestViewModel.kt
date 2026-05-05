@@ -193,9 +193,10 @@ class WCRequestViewModel @Inject constructor(
     }
 
     fun onSign() {
-        val request = (state.value.request as? WCRequest.SignMessage) ?: return
-        val wallet = state.value.wallet ?: return
-        val chain = state.value.chain ?: return
+        val snapshot = state.value
+        val request = (snapshot.request as? WCRequest.SignMessage) ?: return
+        val wallet = snapshot.wallet ?: return
+        val chain = snapshot.chain ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
             val password = passwordStore.getPassword(wallet.id)

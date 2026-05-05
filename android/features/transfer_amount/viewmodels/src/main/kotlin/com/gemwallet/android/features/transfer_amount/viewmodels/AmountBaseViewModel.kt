@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -31,19 +30,14 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
 
-private const val paramsArg = "params"
-
 @OptIn(ExperimentalCoroutinesApi::class)
 abstract class AmountBaseViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    val params = savedStateHandle
-        .getStateFlow(paramsArg, "")
-        .mapNotNull { AmountParams.unpack(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val params = MutableStateFlow(savedStateHandle.requireAmountParams())
 
-    val txType = params.mapLatest { it?.txType }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val txType = params.mapLatest { it.txType }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, params.value.txType)
 
     var amount by mutableStateOf("")
         private set
@@ -98,10 +92,9 @@ abstract class AmountBaseViewModel(
     }
 
     fun onNext(onConfirm: (ConfirmParams) -> Unit) {
-        val params = params.value ?: return
         viewModelScope.launch {
             try {
-                onNext(params, amount, onConfirm)
+                onNext(params.value, amount, onConfirm)
             } catch (err: Throwable) {
                 when (err) {
                     is AmountError -> amountError.update { err }

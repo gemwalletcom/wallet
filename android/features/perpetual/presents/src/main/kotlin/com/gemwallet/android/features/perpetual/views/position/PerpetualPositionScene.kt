@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.features.perpetual.views.components.CandleChart
@@ -26,7 +28,7 @@ import com.wallet.core.primitives.PerpetualProvider
 
 @Composable
 fun PerpetualPositionScene(
-    perpetual: PerpetualDetailsDataAggregate,
+    perpetual: PerpetualDetailsDataAggregate?,
     position: PerpetualPositionDetailsDataAggregate?,
     chartData: List<ChartCandleStick>,
     period: ChartPeriod,
@@ -35,7 +37,7 @@ fun PerpetualPositionScene(
     onClose: () -> Unit,
 ) {
     Scene(
-        title = perpetual.name,
+        title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
         onClose = onClose,
     ) {
         LazyColumn(
@@ -52,13 +54,15 @@ fun PerpetualPositionScene(
             )
             positionProperties(position)
             item {
-                if (position == null) {
-                    PerpetualActions(onOpenPosition)
-                } else {
-                    PerpetualPositionActions({}) {}
+                if (perpetual != null) {
+                    if (position == null) {
+                        PerpetualActions(onOpenPosition)
+                    } else {
+                        PerpetualPositionActions({}) {}
+                    }
                 }
             }
-            perpetualInfo(perpetual)
+            perpetual?.let { perpetualInfo(it) }
         }
     }
 }

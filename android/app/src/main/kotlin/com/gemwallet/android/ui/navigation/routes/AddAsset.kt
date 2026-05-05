@@ -1,25 +1,18 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.add_asset.views.AddAssetScree
 import kotlinx.serialization.Serializable
 
 @Serializable
-object AddAssetRoute
+data object AddAssetRoute : NavKey
 
-fun NavController.navigateToAddAssetScreen(navOptions: NavOptions? = null) {
-    navigate(AddAssetRoute, navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.addAssetScreen(
+fun EntryProviderScope<NavKey>.addAssetScreen(
     onCancel: () -> Unit,
     onFinish: () -> Unit,
 ) {
-    composable<AddAssetRoute> {
+    entry<AddAssetRoute> {
         AddAssetScree(onCancel = onCancel, onFinish = onFinish)
     }
 }

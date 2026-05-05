@@ -6,10 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.features.asset.viewmodels.assetIdArg
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValue
@@ -111,7 +110,7 @@ class ChartViewModel internal constructor(
         assetsRepository = assetsRepository,
         sessionRepository = sessionRepository,
         getAssetChartData = getAssetChartData,
-        assetId = checkNotNull(savedStateHandle.get<String>(assetIdArg)?.toAssetId()),
+        assetId = savedStateHandle.requireAssetId(),
     )
 
     private data class ChartState(

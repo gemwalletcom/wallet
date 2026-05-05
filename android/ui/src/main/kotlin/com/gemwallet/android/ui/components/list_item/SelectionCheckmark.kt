@@ -12,8 +12,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.theme.compactIconSize
+
+@Composable
+fun SelectionIndicator(
+    isSelected: Boolean,
+    modifier: Modifier = Modifier,
+    size: Dp = compactIconSize,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.secondary,
+) {
+    if (isSelected) {
+        SelectionCheckmark(
+            modifier = modifier,
+            size = size,
+            color = selectedColor,
+        )
+    } else {
+        SelectionCircle(
+            modifier = modifier,
+            size = size,
+            color = unselectedColor,
+        )
+    }
+}
 
 @Composable
 fun SelectionCheckmark(
@@ -46,3 +71,21 @@ fun SelectionCheckmark(
         }
     }
 }
+
+@Composable
+private fun SelectionCircle(
+    modifier: Modifier = Modifier,
+    size: Dp = compactIconSize,
+    color: Color = MaterialTheme.colorScheme.secondary,
+) {
+    Canvas(modifier = modifier.size(size)) {
+        val strokeWidth = selectionCircleStrokeWidth.toPx()
+        drawCircle(
+            color = color,
+            radius = (this.size.minDimension - strokeWidth) / 2,
+            style = Stroke(width = strokeWidth),
+        )
+    }
+}
+
+private val selectionCircleStrokeWidth = 2.dp

@@ -8,7 +8,10 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
+import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
+import com.gemwallet.android.model.format
+import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -41,7 +44,7 @@ class PerpetualMarketViewModel @Inject constructor(
     val positions = getPositions.getPerpetualPositions()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val balance = getBalance.getPerpetualBalance()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
 
     fun onRefresh() {
         sceneState.update { PerpetualMarketSceneState.Refreshing }
@@ -62,4 +65,11 @@ class PerpetualMarketViewModel @Inject constructor(
     fun onTogglePin(perpetualId: String) {
         togglePin.togglePin(perpetualId)
     }
+}
+
+private object EmptyPerpetualBalance : PerpetualBalance {
+    override val deposit: String = Currency.USD.format(0.0)
+    override val available: String = Currency.USD.format(0.0)
+    override val withdrawable: String = Currency.USD.format(0.0)
+    override val total: String = Currency.USD.format(0.0)
 }

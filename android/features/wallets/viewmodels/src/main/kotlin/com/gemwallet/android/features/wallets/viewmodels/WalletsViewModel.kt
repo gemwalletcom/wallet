@@ -6,6 +6,7 @@ import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
 import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
 import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
 import com.gemwallet.android.application.wallet.coordinators.ToggleWalletPin
+import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,15 +25,15 @@ class WalletsViewModel @Inject constructor(
     val wallets = getAllWallets.getAllWallets()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun selectWallet(walletId: String) = viewModelScope.launch(Dispatchers.IO) {
-        setCurrentWallet.setCurrentWallet(walletId)
+    fun selectWallet(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
+        setCurrentWallet.setCurrentWallet(walletId.id)
     }
 
-    fun deleteWallet(walletId: String, onBoard: () -> Unit) = viewModelScope.launch {
-        deleteWallet.deleteWallet(walletId, onBoard) {}
+    fun deleteWallet(walletId: WalletId, onBoard: () -> Unit) = viewModelScope.launch {
+        deleteWallet.deleteWallet(walletId.id, onBoard) {}
     }
 
-    fun togglePin(walletId: String) = viewModelScope.launch(Dispatchers.IO) {
-        toggleWalletPin.toggleWalletPin(walletId)
+    fun togglePin(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
+        toggleWalletPin.toggleWalletPin(walletId.id)
     }
 }

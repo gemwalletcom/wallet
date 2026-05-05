@@ -7,9 +7,10 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
+import com.wallet.core.primitives.Transaction as CoreTransaction
 
 fun mockTransaction(
-    assetId: AssetId = AssetId(chain = com.wallet.core.primitives.Chain.Bitcoin),
+    assetId: AssetId = mockAssetId(),
     id: TransactionId = mockTransactionId(chain = assetId.chain),
     from: String = "sender-address",
     to: String = "recipient-address",
@@ -46,4 +47,27 @@ fun mockTransaction(
     utxoOutputs = utxoOutputs,
     metadata = metadata,
     createdAt = createdAt,
+)
+
+fun mockCoreTransaction(
+    transaction: Transaction = mockTransaction(),
+) = CoreTransaction(
+    id = transaction.id,
+    assetId = transaction.assetId,
+    from = transaction.from,
+    to = transaction.to,
+    contract = transaction.contract,
+    type = transaction.type,
+    state = transaction.state,
+    blockNumber = transaction.blockNumber,
+    sequence = transaction.sequence,
+    fee = transaction.fee,
+    feeAssetId = transaction.feeAssetId,
+    value = transaction.value,
+    memo = transaction.memo,
+    direction = transaction.direction,
+    utxoInputs = transaction.utxoInputs,
+    utxoOutputs = transaction.utxoOutputs,
+    metadata = transaction.metadata,
+    createdAt = transaction.createdAt,
 )

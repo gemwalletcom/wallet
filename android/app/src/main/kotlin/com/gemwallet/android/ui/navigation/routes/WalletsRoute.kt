@@ -1,29 +1,23 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
-import androidx.navigation.navOptions
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.wallets.presents.views.WalletsScreen
+import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
 @Serializable
-object WalletsRoute
+data object WalletsRoute : NavKey
 
-fun NavController.navigateToWalletsScreen(navOptions: NavOptions? = null) {
-    navigate(WalletsRoute, navOptions ?: navOptions { launchSingleTop = true })
-}
-
-fun NavGraphBuilder.walletsScreen(
+fun EntryProviderScope<NavKey>.walletsScreen(
     onCancel: () -> Unit,
     onCreateWallet: () -> Unit,
     onImportWallet: () -> Unit,
-    onEditWallet: (String) -> Unit,
+    onEditWallet: (WalletId) -> Unit,
     onSelectWallet: () -> Unit,
     onBoard: () -> Unit,
 ) {
-    composable<WalletsRoute> {
+    entry<WalletsRoute> {
         WalletsScreen(
             onCreateWallet = onCreateWallet,
             onImportWallet = onImportWallet,

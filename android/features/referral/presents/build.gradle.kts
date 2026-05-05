@@ -56,10 +56,9 @@ dependencies {
     implementation(project(":features:referral:viewmodels"))
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.lifecycle.viewmodel.compose)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.compose.navigation)
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)

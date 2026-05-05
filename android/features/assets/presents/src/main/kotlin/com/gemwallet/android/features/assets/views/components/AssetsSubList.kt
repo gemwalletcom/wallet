@@ -13,6 +13,8 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.AssetId
 
+private const val AssetsGroupHeaderKeyPrefix = "assets_group_header"
+
 @OptIn(ExperimentalFoundationApi::class)
 internal fun LazyListScope.assets(
     items: List<AssetInfoDataAggregate>,
@@ -23,7 +25,7 @@ internal fun LazyListScope.assets(
 ) {
     if (items.isEmpty()) return
 
-    item { PinnedAssetsHeaderItem(group) }
+    item(key = "$AssetsGroupHeaderKeyPrefix-${group.name}") { PinnedAssetsHeaderItem(group) }
 
     itemsPositioned(items = items, key = { _, item -> "${item.id.toIdentifier()}-${group.name}" }) { position, item ->
         AssetItem(

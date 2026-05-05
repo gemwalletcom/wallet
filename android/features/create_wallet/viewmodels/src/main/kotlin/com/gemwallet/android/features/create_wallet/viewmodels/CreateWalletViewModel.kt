@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,14 +57,14 @@ class CreateWalletViewModel @Inject constructor(
         }
     }
 
-    fun handleCreate(onCreated: (walletId: String?) -> Unit) {
+    fun handleCreate(onCreated: (walletId: WalletId?) -> Unit) {
         state.update { it.copy(isShowSafeMessage = true, loading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val phrase = state.value.data.joinToString(" ")
             val newState = try {
                 val wallet = importWalletService.createWallet(state.value.name, phrase)
                 withContext(Dispatchers.Main){
-                    onCreated(if (state.value.isExistingWallets()) wallet.id else null)
+                    onCreated(if (state.value.isExistingWallets()) WalletId(wallet.id) else null)
                 }
                 state.value.copy(loading = false)
             } catch (err: Throwable) {

@@ -9,13 +9,13 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamPriceAlertUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -63,7 +63,7 @@ class StreamEventHandlerTest {
             StreamEvent.Transactions(
                 StreamTransactionsUpdate(
                     walletId = walletId,
-                    transactions = listOf(TransactionId(Chain.Bitcoin, "tx1")),
+                    transactions = listOf(mockTransactionId(Chain.Bitcoin, "tx1")),
                 )
             )
         )

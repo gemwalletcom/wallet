@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.ChartPeriod
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -25,13 +25,13 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetualPosition: GetPerpetualPosition,
     private val getPerpetualChartData: GetPerpetualChartData,
     savedStateHandle: SavedStateHandle
-): ViewModel() {
+) : ViewModel() {
 
-    val perpetualId = savedStateHandle.getStateFlow("perpetualId", "")
+    private val perpetualId = savedStateHandle.requireString(RouteArgument.PerpetualId)
 
-    val perpetual = perpetualId.flatMapLatest { getPerpetual.getPerpetual(it) }
+    val perpetual = getPerpetual.getPerpetual(perpetualId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val position = perpetualId.flatMapLatest { getPerpetualPosition.getPositionByPerpetual(it) }
+    val position = getPerpetualPosition.getPositionByPerpetual(perpetualId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val period = MutableStateFlow(ChartPeriod.Day)
@@ -46,4 +46,10 @@ class PerpetualDetailsViewModel @Inject constructor(
         this.period.update { period }
     }
 
+}
+
+private fun SavedStateHandle.requireString(argument: RouteArgument): String {
+    val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
+    check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
+    return value
 }

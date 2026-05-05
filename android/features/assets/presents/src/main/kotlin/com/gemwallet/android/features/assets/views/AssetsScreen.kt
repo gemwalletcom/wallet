@@ -36,23 +36,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
-import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.AssetsGroupType
-import com.gemwallet.android.ui.open
-import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.components.AssetsHead
 import com.gemwallet.android.features.assets.views.components.AssetsListFooter
 import com.gemwallet.android.features.assets.views.components.assets
 import com.gemwallet.android.features.banner.views.BannersScene
 import com.gemwallet.android.features.banner.views.WelcomeBanner
+import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.AssetContextActions
+import com.gemwallet.android.ui.models.AssetsGroupType
+import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BannerEvent
-import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
+
+private const val AssetsHeadItemKey = "assets_head"
+private const val WelcomeBannerItemKey = "welcome_banner"
+private const val InAppUpdateBannerItemKey = "in_app_update_banner"
+private const val BannersItemKey = "banners"
+private const val ImportingItemKey = "importing"
+private const val FooterItemKey = "footer"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,7 +70,7 @@ fun AssetsScreen(
     onSendClick: () -> Unit,
     onReceiveClick: () -> Unit,
     onBuyClick: () -> Unit,
-    onSwapClick: (AssetId?) -> Unit,
+    onSwapClick: () -> Unit,
     onAssetClick: (AssetId) -> Unit,
     listState: LazyListState = rememberLazyListState(),
     viewModel: AssetsViewModel = hiltViewModel(),
@@ -71,7 +78,6 @@ fun AssetsScreen(
     val importing by viewModel.importInProgress.collectAsStateWithLifecycle()
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
-//    val walletInfo by viewModel.walletInfo.collectAsStateWithLifecycle()
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val showWelcomeBanner by viewModel.showWelcomeBanner.collectAsStateWithLifecycle()
@@ -112,7 +118,7 @@ fun AssetsScreen(
                     .testTag("assets_list"),
                 state = listState
             ) {
-                item {
+                item(key = AssetsHeadItemKey) {
                     AssetsHead(
                         walletSummary = walletSummary,
                         onSendClick = onSendClick,
@@ -123,7 +129,7 @@ fun AssetsScreen(
                     )
                 }
                 if (showWelcomeBanner) {
-                    item {
+                    item(key = WelcomeBannerItemKey) {
                         WelcomeBanner(
                             onBuy = onBuyClick,
                             onReceive = onReceiveClick,
@@ -131,10 +137,10 @@ fun AssetsScreen(
                         )
                     }
                 }
-                item {
+                item(key = InAppUpdateBannerItemKey) {
                     InAppUpdateBanner()
                 }
-                item {
+                item(key = BannersItemKey) {
                     BannersScene(
                         asset = null,
                         onClick = { banner ->
@@ -148,7 +154,7 @@ fun AssetsScreen(
                     )
                 }
                 if (importing) {
-                    item {
+                    item(key = ImportingItemKey) {
                         Row(
                             modifier = Modifier.padding(paddingDefault),
                             verticalAlignment = Alignment.CenterVertically,
@@ -185,7 +191,7 @@ fun AssetsScreen(
                     onAssetClick = onAssetClick,
                     actions = assetActions,
                 )
-                item { AssetsListFooter(onManage) }
+                item(key = FooterItemKey) { AssetsListFooter(onManage) }
             }
         }
     }

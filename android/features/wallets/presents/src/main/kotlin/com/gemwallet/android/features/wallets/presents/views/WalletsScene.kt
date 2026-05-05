@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.features.wallets.presents.views.components.WalletsActions
 import com.gemwallet.android.features.wallets.presents.views.components.wallets
+import com.wallet.core.primitives.WalletId
 
 @Composable
 internal fun WalletsScene(
@@ -19,10 +20,10 @@ internal fun WalletsScene(
     unpinnedWallets: List<WalletDataAggregate>,
     onCreate: () -> Unit,
     onImport: () -> Unit,
-    onEdit: (String) -> Unit,
-    onSelectWallet: (String) -> Unit,
-    onDeleteWallet: (String) -> Unit,
-    onTogglePin: (String) -> Unit,
+    onEdit: (WalletId) -> Unit,
+    onSelectWallet: (WalletId) -> Unit,
+    onDeleteWallet: (WalletId) -> Unit,
+    onTogglePin: (WalletId) -> Unit,
     onCancel: () -> Unit,
 ) {
     val longPressedWallet = remember {

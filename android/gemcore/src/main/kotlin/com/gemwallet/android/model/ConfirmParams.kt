@@ -754,30 +754,30 @@ sealed class ConfirmParams() {
     }
 
     companion object {
-        fun unpack(input: String): ConfirmParams {
-            val json = String(Base64.getDecoder().decode(input.urlDecode()))
-            val type = JSONObject(json).getString("type")
-            val result = when (type) {
-                TransferParams.Generic::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Generic>(json)
-                TransferParams.Native::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Native>(json)
-                TransferParams.Token::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Token>(json)
-                SwapParams::class.qualifiedName -> jsonEncoder.decodeFromString<SwapParams>(json)
-                TokenApprovalParams::class.qualifiedName -> jsonEncoder.decodeFromString<TokenApprovalParams>(json)
-                Stake.DelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.DelegateParams>(json)
-                Stake.UndelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.UndelegateParams>(json)
-                Stake.RewardsParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.RewardsParams>(json)
-                Stake.RedelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.RedelegateParams>(json)
-                Stake.WithdrawParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.WithdrawParams>(json)
-                Stake.Freeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Freeze>(json)
-                Stake.Unfreeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Unfreeze>(json)
-                Activate::class.qualifiedName -> jsonEncoder.decodeFromString<Activate>(json)
-                NftParams::class.qualifiedName -> jsonEncoder.decodeFromString<NftParams>(json)
-                PerpetualParams.Open::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Open>(json)
-                PerpetualParams.Close::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Close>(json)
-                PerpetualParams.Modify::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Modify>(json)
-                else -> throw IllegalStateException()
-            }
-            return result
+        fun unpack(input: String): ConfirmParams? {
+            return runCatching {
+                val json = String(Base64.getDecoder().decode(input.urlDecode()))
+                when (JSONObject(json).getString("type")) {
+                    TransferParams.Generic::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Generic>(json)
+                    TransferParams.Native::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Native>(json)
+                    TransferParams.Token::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Token>(json)
+                    SwapParams::class.qualifiedName -> jsonEncoder.decodeFromString<SwapParams>(json)
+                    TokenApprovalParams::class.qualifiedName -> jsonEncoder.decodeFromString<TokenApprovalParams>(json)
+                    Stake.DelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.DelegateParams>(json)
+                    Stake.UndelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.UndelegateParams>(json)
+                    Stake.RewardsParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.RewardsParams>(json)
+                    Stake.RedelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.RedelegateParams>(json)
+                    Stake.WithdrawParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.WithdrawParams>(json)
+                    Stake.Freeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Freeze>(json)
+                    Stake.Unfreeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Unfreeze>(json)
+                    Activate::class.qualifiedName -> jsonEncoder.decodeFromString<Activate>(json)
+                    NftParams::class.qualifiedName -> jsonEncoder.decodeFromString<NftParams>(json)
+                    PerpetualParams.Open::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Open>(json)
+                    PerpetualParams.Close::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Close>(json)
+                    PerpetualParams.Modify::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Modify>(json)
+                    else -> null
+                }
+            }.getOrNull()
         }
     }
 }
