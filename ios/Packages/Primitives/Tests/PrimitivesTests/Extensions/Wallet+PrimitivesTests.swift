@@ -27,13 +27,20 @@ struct Wallet_PrimitivesTests {
     }
 
     @Test(arguments: [
-        (WalletType.multicoin, Chain.hyperCore, true),
-        (WalletType.multicoin, Chain.ethereum, false),
-        (WalletType.single, Chain.bitcoin, false),
+        (WalletType.multicoin, [Chain.hyperCore], true),
+        (WalletType.multicoin, [Chain.arbitrum], true),
+        (WalletType.multicoin, [Chain.hyperliquid], true),
+        (WalletType.multicoin, [Chain.ethereum], false),
+        (WalletType.multicoin, [], false),
+        (WalletType.single, [Chain.hyperCore], false),
+        (WalletType.single, [Chain.arbitrum], false),
+        (WalletType.single, [Chain.bitcoin], false),
+        (WalletType.privateKey, [Chain.hyperCore], false),
+        (WalletType.view, [Chain.hyperCore], false),
     ])
-    func supportsPerpetuals(type: WalletType, chain: Chain, expected: Bool) {
-        let wallet = Wallet.mock(type: type, accounts: [.mock(chain: chain, address: "addr")])
-        #expect(wallet.supportsPerpetuals == expected)
+    func hasPerpetualsSupport(type: WalletType, chains: [Chain], expected: Bool) {
+        let wallet = Wallet.mock(type: type, accounts: chains.map { .mock(chain: $0, address: "addr") })
+        #expect(wallet.hasPerpetualsSupport == expected)
     }
 
     @Test

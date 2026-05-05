@@ -190,6 +190,6 @@ public final class Preferences: @unchecked Sendable {
     }
 
     public func showPerpetuals(for wallet: Wallet) -> Bool {
-        isPerpetualEnabled && wallet.supportsPerpetuals
+        isPerpetualEnabled && wallet.hasPerpetualsSupport
     }
 }

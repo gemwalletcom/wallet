@@ -43,7 +43,8 @@ public extension Wallet {
         }
     }
 
-    var supportsPerpetuals: Bool {
+
+    var hasPerpetualsSupport: Bool {
         isMultiCoins && hyperliquidAccount != nil
     }
 }
