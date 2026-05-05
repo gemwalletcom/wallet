@@ -47,7 +47,8 @@ public actor AppLifecycleService: Sendable {
         currentWallet = wallet
         async let assets: () = setupPriceAssets(wallet: wallet)
         async let perpetual: () = connectPerpetual()
-        _ = await (assets, perpetual)
+        async let stream: () = connectStreamObserver()
+        _ = await (assets, perpetual, stream)
     }
 
     public func updatePerpetualConnection() async {
@@ -98,10 +99,15 @@ extension AppLifecycleService {
     }
 
     private func connectObservers() async {
-        async let price: () = streamObserverService.connect()
+        async let stream: () = connectStreamObserver()
         async let perpetual: () = connectPerpetual()
         async let nodeAuthToken: () = deviceObserverService.startNodeAuthTokenUpdates()
-        _ = await (price, perpetual, nodeAuthToken)
+        _ = await (stream, perpetual, nodeAuthToken)
+    }
+
+    private func connectStreamObserver() async {
+        guard currentWallet != nil else { return }
+        await streamObserverService.connect()
     }
 
     private func connectPerpetual() async {
