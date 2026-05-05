@@ -26,6 +26,16 @@ struct Wallet_PrimitivesTests {
         #expect(result[1] == AddressChains(address: "bc1", chains: [.bitcoin]))
     }
 
+    @Test(arguments: [
+        (WalletType.multicoin, Chain.hyperCore, true),
+        (WalletType.multicoin, Chain.ethereum, false),
+        (WalletType.single, Chain.bitcoin, false),
+    ])
+    func supportsPerpetuals(type: WalletType, chain: Chain, expected: Bool) {
+        let wallet = Wallet.mock(type: type, accounts: [.mock(chain: chain, address: "addr")])
+        #expect(wallet.supportsPerpetuals == expected)
+    }
+
     @Test
     func walletIdFromType() throws {
         #expect(throws: Error.self) {

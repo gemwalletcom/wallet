@@ -50,7 +50,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     }
 
     var showSegmentedControl: Bool {
-        preferences.isPerpetualEnabled && wallet.isMultiCoins && wallet.hyperliquidAccount != nil
+        preferences.showPerpetuals(for: wallet)
     }
 
     var navigationTitle: String {
