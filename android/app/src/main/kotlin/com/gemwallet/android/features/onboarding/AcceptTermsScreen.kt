@@ -43,12 +43,12 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.PublicUrl
 
 @Composable
@@ -136,14 +136,14 @@ private fun LazyListScope.termItem(
         ) {
             Row(modifier = Modifier.defaultPadding(), verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    modifier = Modifier.size(compactIconSize),
+                    modifier = Modifier.size(smallIconSize),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (isUnderstand) {
                         SelectionCheckmark()
                     } else {
                         Icon(
-                            modifier = Modifier.size(compactIconSize),
+                            modifier = Modifier.size(smallIconSize),
                             imageVector = Icons.Outlined.Circle,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.secondary,
