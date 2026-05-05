@@ -33,9 +33,10 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     public func discoverAssets(wallet: Wallet) async throws {
         let preferences = WalletPreferences(walletId: wallet.walletId)
 
-        try await discoverAssets(wallet: wallet, preferences: preferences)
-        try await discoverTransactions(wallet: wallet, preferences: preferences)
-        try await discoverNFTs(wallet: wallet, preferences: preferences)
+        async let assets: () = discoverAssets(wallet: wallet, preferences: preferences)
+        async let transactions: () = discoverTransactions(wallet: wallet, preferences: preferences)
+        async let nfts: () = discoverNFTs(wallet: wallet, preferences: preferences)
+        _ = try await (assets, transactions, nfts)
     }
 
     private func discoverAssets(wallet: Wallet, preferences: WalletPreferences) async throws {

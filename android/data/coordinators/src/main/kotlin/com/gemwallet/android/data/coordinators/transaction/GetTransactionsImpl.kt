@@ -19,14 +19,26 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 class GetTransactionsImpl(
     private val transactionsRepository: TransactionRepository,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
+
+    private val transactions: StateFlow<List<TransactionDataAggregate>> =
+        transactionsRepository.getTransactions(emptyList())
+            .map { items -> items.map { TransactionDataAggregateImpl(it) } }
+            .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    override fun transactions(): StateFlow<List<TransactionDataAggregate>> = transactions
 
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,

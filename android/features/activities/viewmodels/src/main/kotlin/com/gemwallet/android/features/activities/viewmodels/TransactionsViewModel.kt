@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.activities.viewmodels
 
-import android.text.format.DateUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -60,11 +58,12 @@ class TransactionsViewModel @Inject constructor(
             ),
         )
     }
-    .onEach {
-        _state.update { false }
-    }
     .distinctUntilChanged()
-    .stateIn(viewModelScope, started = SharingStarted.Eagerly, emptyList())
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = getTransactions.transactions().value,
+    )
 
     init {
         refresh()

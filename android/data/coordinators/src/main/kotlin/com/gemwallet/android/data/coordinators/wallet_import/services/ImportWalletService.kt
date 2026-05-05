@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.AssetSubtype
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -51,24 +53,11 @@ class ImportWalletService(
             syncSubscription.syncSubscription(listOf(wallet))
             val currency = sessionRepository.getCurrentCurrency()
             try {
-                val availableAssetsId = getAvailableAssetIds(wallet.id)
-                val assetIds = availableAssetsId.mapNotNull { it.toAssetId() }
-                val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
-
-                searchTokensCase.search(tokenIds, currency)
-                val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull().orEmpty()
-                assets.forEach { assetInfo ->
-                    val asset = assetInfo.asset
-                    wallet.getAccount(asset.chain) ?: return@forEach
-                    assetsRepository.linkAssetToWallet(
-                        walletId = wallet.id,
-                        assetId = asset.id,
-                        visible = true,
-                    )
+                coroutineScope {
+                    launch { discoverAssets(wallet, currency) }
+                    launch { syncTransactions.syncTransactions(wallet) }
+                    launch { syncNfts.syncNfts(wallet) }
                 }
-                assetsRepository.sync()
-                syncTransactions.syncTransactions(wallet)
-                syncNfts.syncNfts(wallet)
             } catch (err: Throwable) {
                 Log.d("IMPORT_ERROR", "Error:", err)
             } finally {
@@ -76,6 +65,25 @@ class ImportWalletService(
             }
         }
         jobs.update { it.toMutableMap().apply { put(wallet.id, job) } }
+    }
+
+    private suspend fun discoverAssets(wallet: Wallet, currency: Currency) {
+        val availableAssetsId = getAvailableAssetIds(wallet.id)
+        val assetIds = availableAssetsId.mapNotNull { it.toAssetId() }
+        val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
+
+        searchTokensCase.search(tokenIds, currency)
+        val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull().orEmpty()
+        assets.forEach { assetInfo ->
+            val asset = assetInfo.asset
+            wallet.getAccount(asset.chain) ?: return@forEach
+            assetsRepository.linkAssetToWallet(
+                walletId = wallet.id,
+                assetId = asset.id,
+                visible = true,
+            )
+        }
+        assetsRepository.sync()
     }
 
     override fun getImportState(walletId: String): Flow<ImportWalletState> = jobs.mapLatest { entries ->
