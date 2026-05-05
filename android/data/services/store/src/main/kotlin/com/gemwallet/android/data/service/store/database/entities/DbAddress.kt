@@ -15,6 +15,13 @@ import com.wallet.core.primitives.Wallet
     primaryKeys = ["chain", "address"],
     foreignKeys = [
         ForeignKey(
+            entity = DbAsset::class,
+            parentColumns = ["id"],
+            childColumns = ["chain"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
             entity = DbWallet::class,
             parentColumns = ["id"],
             childColumns = ["wallet_id"],
@@ -22,7 +29,7 @@ import com.wallet.core.primitives.Wallet
             onUpdate = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index("wallet_id")],
+    indices = [Index("chain"), Index("wallet_id")],
 )
 data class DbAddress(
     val chain: Chain,

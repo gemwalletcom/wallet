@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 73,
-    "identityHash": "c2b484006558e7896e000497defcf88f",
+    "identityHash": "02aa6981d1ffd03ba362cc1848b1eedd",
     "entities": [
       {
         "tableName": "wallets",
@@ -143,7 +143,7 @@
       },
       {
         "tableName": "addresses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chain` TEXT NOT NULL, `address` TEXT NOT NULL, `wallet_id` TEXT, `name` TEXT NOT NULL, `type` TEXT, `status` TEXT NOT NULL, PRIMARY KEY(`chain`, `address`), FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chain` TEXT NOT NULL, `address` TEXT NOT NULL, `wallet_id` TEXT, `name` TEXT NOT NULL, `type` TEXT, `status` TEXT NOT NULL, PRIMARY KEY(`chain`, `address`), FOREIGN KEY(`chain`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "chain",
@@ -189,6 +189,15 @@
         },
         "indices": [
           {
+            "name": "index_addresses_chain",
+            "unique": false,
+            "columnNames": [
+              "chain"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_addresses_chain` ON `${TABLE_NAME}` (`chain`)"
+          },
+          {
             "name": "index_addresses_wallet_id",
             "unique": false,
             "columnNames": [
@@ -199,6 +208,17 @@
           }
         ],
         "foreignKeys": [
+          {
+            "table": "asset",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "chain"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
           {
             "table": "wallets",
             "onDelete": "CASCADE",
@@ -2216,7 +2236,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c2b484006558e7896e000497defcf88f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '02aa6981d1ffd03ba362cc1848b1eedd')"
     ]
   }
 }
