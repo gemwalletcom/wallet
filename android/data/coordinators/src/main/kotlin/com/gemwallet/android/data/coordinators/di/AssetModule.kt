@@ -2,7 +2,11 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
+import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
+import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
+import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
+import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
@@ -21,7 +25,11 @@ import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
+import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
+import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
+import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
+import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
@@ -62,6 +70,26 @@ object AssetModule {
     @Singleton
     fun provideGetActiveAssetsInfo(assetsRepository: AssetsRepository): GetActiveAssetsInfo =
         GetActiveAssetsInfoImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAssetTokenInfo(assetsRepository: AssetsRepository): GetAssetTokenInfo =
+        GetAssetTokenInfoImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAssetById(assetsRepository: AssetsRepository): GetAssetById =
+        GetAssetByIdImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAssetLinks(assetsRepository: AssetsRepository): GetAssetLinks =
+        GetAssetLinksImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAssetMarket(assetsRepository: AssetsRepository): GetAssetMarket =
+        GetAssetMarketImpl(assetsRepository)
 
     @Provides
     @Singleton
