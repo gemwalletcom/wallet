@@ -162,7 +162,8 @@ object AssetModule {
     fun provideGetShowWelcomeBanner(
         sessionRepository: SessionRepository,
         userConfig: UserConfig,
-    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, userConfig)
+        getActiveAssetsInfo: GetActiveAssetsInfo,
+    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, userConfig, getActiveAssetsInfo)
 
     @Provides
     @Singleton
