@@ -34,7 +34,7 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func dismissAfterUnlockRemovesWindow() {
+    func dismissAfterUnlockHidesWindow() {
         let manager = LockWindowManagerMock.mock()
         manager.toggleLock(show: true)
 
@@ -42,7 +42,24 @@ struct LockWindowManagerTests {
         manager.lockModel.lastUnlockTime = .distantFuture
         manager.toggleLock(show: false)
 
-        #expect(manager.overlayWindow == nil)
+        #expect(manager.overlayWindow != nil)
+        #expect(manager.overlayWindow?.alpha == 0)
+        #expect(manager.overlayWindow?.isHidden == true)
+    }
+
+    @Test
+    func resumeFromBackgroundWithStuckUnlockingKeepsLockVisible() {
+        let manager = LockWindowManagerMock.mock()
+        manager.toggleLock(show: true)
+        manager.lockModel.state = .unlocking
+
+        manager.setPhase(phase: .background)
+        manager.setPhase(phase: .active)
+
+        #expect(manager.lockModel.state == .locked)
+        #expect(manager.showLockScreen)
+        #expect(manager.overlayWindow?.isHidden == false)
+        #expect(manager.overlayWindow?.alpha == 1)
     }
 
     @Test

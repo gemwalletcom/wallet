@@ -19,7 +19,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Fee
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.model.TransactionChanges
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder

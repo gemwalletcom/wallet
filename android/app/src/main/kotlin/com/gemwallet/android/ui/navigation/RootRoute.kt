@@ -260,11 +260,12 @@ class WalletNavigator(
         openAsset(assetId)
     }
 
-    internal fun openPendingNavigation(route: NavKey, confirmed: Boolean = false): Boolean {
+    internal fun openPendingNavigation(routes: List<NavKey>, confirmed: Boolean = false): Boolean {
+        if (routes.isEmpty()) return false
         if (!canOpenPendingNavigation()) return false
         if (!confirmed && needsPendingNavigationConfirmation()) return false
         resetToWallet()
-        push(route)
+        routes.forEach(::push)
         return true
     }
 

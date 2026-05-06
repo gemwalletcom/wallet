@@ -101,7 +101,7 @@ public final class WalletSceneViewModel: Sendable {
     }
 
     var showPerpetuals: Bool {
-        observablePreferences.isPerpetualEnabled && wallet.isMultiCoins
+        observablePreferences.showPerpetuals(for: wallet)
     }
 
     var currencyCode: String {

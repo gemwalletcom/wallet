@@ -11,7 +11,9 @@ import javax.inject.Inject
 
 internal sealed interface PendingNavigation {
     data class RawIntent(val intent: Intent) : PendingNavigation
-    data class Route(val route: NavKey) : PendingNavigation
+    data class Route(val routes: List<NavKey>) : PendingNavigation {
+        constructor(route: NavKey) : this(listOf(route))
+    }
 }
 
 class PendingNavigationCoordinator @Inject constructor(
@@ -55,8 +57,8 @@ class PendingNavigationCoordinator @Inject constructor(
             return
         }
 
-        val route = notificationNavigation.prepareNavigation(pendingIntent)
-        replace(pendingIntent, replacement = route?.let(PendingNavigation::Route))
+        val routes = notificationNavigation.prepareNavigation(pendingIntent)
+        replace(pendingIntent, replacement = routes.takeIf { it.isNotEmpty() }?.let(PendingNavigation::Route))
     }
 
     private fun replace(pendingIntent: Intent, replacement: PendingNavigation?) {

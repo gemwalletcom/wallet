@@ -4,14 +4,12 @@ import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockCoreTransaction
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PushNotificationAsset
 import com.wallet.core.primitives.PushNotificationSwapAsset
-import com.wallet.core.primitives.PushNotificationTransaction
 import com.wallet.core.primitives.PushNotificationWalletAsset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -64,24 +62,15 @@ class FCMTest {
             createdAt = 0,
             blockNumber = null,
         )
-        val jsonData = jsonEncoder.encodeToString(
-            PushNotificationTransaction(
-                walletId = walletId,
-                assetId = assetId,
-                transaction = mockCoreTransaction(transaction),
-            )
+        val expected = PushNotificationData.Transaction(
+            walletId = walletId,
+            assetId = assetId,
+            transaction = transaction,
         )
 
-        val result = parseNotificationData("transaction", jsonData)
+        val result = parseNotificationData("transaction", jsonEncoder.encodeToString(expected))
 
-        assertEquals(
-            PushNotificationData.Transaction(
-                walletId = walletId,
-                assetId = assetId,
-                transaction = transaction,
-            ),
-            result,
-        )
+        assertEquals(expected, result)
     }
 
     @Test

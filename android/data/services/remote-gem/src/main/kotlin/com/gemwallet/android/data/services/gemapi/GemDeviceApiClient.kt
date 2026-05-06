@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemapi
 
-import com.gemwallet.android.model.TransactionsResponse
+import com.wallet.core.primitives.TransactionsResponse
 import com.wallet.core.primitives.AuthNonce
 import com.wallet.core.primitives.AuthenticatedRequest
 import com.wallet.core.primitives.Device

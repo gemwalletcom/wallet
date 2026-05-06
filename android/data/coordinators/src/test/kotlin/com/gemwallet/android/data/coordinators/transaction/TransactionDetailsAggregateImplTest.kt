@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Asset

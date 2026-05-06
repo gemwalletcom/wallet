@@ -1,7 +1,7 @@
 package com.gemwallet.android.cases.transactions
 
 import com.gemwallet.android.model.Fee
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionDirection

@@ -30,21 +30,21 @@ class NotificationNavigation @Inject constructor(
     private val prefetchAssets: PrefetchAssets,
     private val ensureWalletAssets: EnsureWalletAssets,
 ) {
-    suspend fun prepareNavigation(intent: Intent): NavKey? {
+    suspend fun prepareNavigation(intent: Intent): List<NavKey> {
         if (!intent.hasNotificationPayload()) {
-            return null
+            return emptyList()
         }
         val type = intent.getStringExtra(PushNotificationField.Type.key)
         val rawData = intent.getStringExtra(PushNotificationField.Data.key)
         return prepareNavigation(type = type, data = parseNotificationData(type, rawData))
     }
 
-    internal suspend fun prepareNavigation(type: String?, data: PushNotificationData?): NavKey? {
-        val payload = data ?: parseNotificationData(type, rawData = null) ?: return null
+    internal suspend fun prepareNavigation(type: String?, data: PushNotificationData?): List<NavKey> {
+        val payload = data ?: parseNotificationData(type, rawData = null) ?: return emptyList()
         if (!prepare(payload)) {
-            return null
+            return emptyList()
         }
-        return payload.toRoute()
+        return payload.toRoutes()
     }
 
     private suspend fun prepare(data: PushNotificationData): Boolean {
@@ -83,16 +83,16 @@ class NotificationNavigation @Inject constructor(
     }
 }
 
-private fun PushNotificationData.toRoute(): NavKey {
+private fun PushNotificationData.toRoutes(): List<NavKey> {
     return when (this) {
-        is PushNotificationData.Asset -> AssetRoute(assetId)
-        is PushNotificationData.BuyAsset -> FiatInputRoute(assetId)
-        is PushNotificationData.WalletAsset -> AssetRoute(assetId)
-        is PushNotificationData.Stake -> AssetRoute(assetId)
-        is PushNotificationData.Transaction -> TransactionDetailsRoute(transaction.id)
-        is PushNotificationData.Swap -> SwapPairRoute(fromAssetId, toAssetId)
-        PushNotificationData.Reward -> ReferralRoute()
-        PushNotificationData.Support -> SupportRoute
+        is PushNotificationData.Asset -> listOf(AssetRoute(assetId))
+        is PushNotificationData.BuyAsset -> listOf(FiatInputRoute(assetId))
+        is PushNotificationData.WalletAsset -> listOf(AssetRoute(assetId))
+        is PushNotificationData.Stake -> listOf(AssetRoute(assetId))
+        is PushNotificationData.Transaction -> listOf(AssetRoute(assetId), TransactionDetailsRoute(transaction.id))
+        is PushNotificationData.Swap -> listOf(SwapPairRoute(fromAssetId, toAssetId))
+        PushNotificationData.Reward -> listOf(ReferralRoute())
+        PushNotificationData.Support -> listOf(SupportRoute)
     }
 }
 

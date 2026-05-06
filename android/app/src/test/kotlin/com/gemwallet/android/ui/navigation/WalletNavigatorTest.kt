@@ -88,7 +88,7 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(WalletRootRoute, WalletsRoute)
         val route = AssetRoute(mockAssetId(Chain.Solana))
 
-        val opened = navigator.openPendingNavigation(route)
+        val opened = navigator.openPendingNavigation(listOf(route))
 
         assertTrue(opened)
         assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())
@@ -98,7 +98,7 @@ class WalletNavigatorTest {
     fun openPendingNavigation_waitsWhenWalletRootIsUnavailable() {
         val navigator = navigatorWith(OnboardingRoute)
 
-        val opened = navigator.openPendingNavigation(AssetRoute(mockAssetId(Chain.Solana)))
+        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Solana))))
 
         assertFalse(opened)
         assertEquals(listOf(OnboardingRoute), navigator.backStack.toList())
@@ -113,7 +113,7 @@ class WalletNavigatorTest {
             AmountRoute("amount"),
         )
 
-        val opened = navigator.openPendingNavigation(AssetRoute(mockAssetId(Chain.Ethereum)))
+        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Ethereum))))
 
         assertFalse(opened)
         assertTrue(navigator.needsPendingNavigationConfirmation())
@@ -136,7 +136,7 @@ class WalletNavigatorTest {
             WalletPhraseRoute(walletId, WalletType.Multicoin),
         )
 
-        val opened = navigator.openPendingNavigation(AssetRoute(mockAssetId(Chain.Solana)))
+        val opened = navigator.openPendingNavigation(listOf(AssetRoute(mockAssetId(Chain.Solana))))
 
         assertFalse(opened)
         assertTrue(navigator.needsPendingNavigationConfirmation())
@@ -179,7 +179,7 @@ class WalletNavigatorTest {
         )
         val route = AssetRoute(mockAssetId(Chain.Solana))
 
-        val opened = navigator.openPendingNavigation(route, confirmed = true)
+        val opened = navigator.openPendingNavigation(listOf(route), confirmed = true)
 
         assertTrue(opened)
         assertEquals(listOf(WalletRootRoute, route), navigator.backStack.toList())

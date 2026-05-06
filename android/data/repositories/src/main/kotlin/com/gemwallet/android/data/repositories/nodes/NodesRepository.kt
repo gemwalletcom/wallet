@@ -17,7 +17,7 @@ import com.gemwallet.android.data.service.store.database.NodesDao
 import com.gemwallet.android.data.service.store.database.entities.DbNode
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.hash
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node

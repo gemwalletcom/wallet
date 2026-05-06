@@ -6,6 +6,7 @@ package com.gemwallet.android.model
 
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Price
+import com.wallet.core.primitives.Transaction
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -20,18 +20,17 @@ internal fun MainContent(
     systemAuthEnrollmentMissing: Boolean,
     walletConnectViewModel: WalletConnectViewModel,
     onSystemAuthRequired: () -> Unit,
-    onPreparePendingNavigation: () -> Unit,
     onIntentConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectPairingToastShown: () -> Unit,
     onWalletConnectErrorDismiss: () -> Unit,
 ) {
-    val pendingRoute = (pendingNavigation as? PendingNavigation.Route)?.route
+    val pendingRoutes = (pendingNavigation as? PendingNavigation.Route)?.routes.orEmpty()
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
     val requiresAuthPrompt = state.initialAuth == AuthState.Required || state.authState == AuthState.Required
     val isWalletUnlocked = state.initialAuth == AuthState.Success
     val isEnrollmentRequired = state.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
-    val unlockedPendingRoute = pendingRoute.takeIf { isWalletUnlocked }
+    val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
     val walletConnectOverlay = rememberWalletConnectOverlay(walletConnectViewModel)
     var isWalletContentReady by remember { mutableStateOf(state.hasUnlockedApp) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
@@ -44,16 +43,10 @@ internal fun MainContent(
     }
 
     WalletTheme {
-        LaunchedEffect(pendingNavigation, isWalletUnlocked) {
-            if (pendingNavigation is PendingNavigation.RawIntent && isWalletUnlocked) {
-                onPreparePendingNavigation()
-            }
-        }
-
         Box(modifier = Modifier.fillMaxSize()) {
             if (state.hasUnlockedApp) {
                 WalletApp(
-                    pendingRoute = unlockedPendingRoute,
+                    pendingRoutes = unlockedPendingRoutes,
                     onIntentConsumed = onIntentConsumed,
                     onContentReady = onWalletContentReady,
                     walletConnectOverlay = walletConnectOverlay,

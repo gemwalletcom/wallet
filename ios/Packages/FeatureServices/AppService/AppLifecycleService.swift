@@ -111,7 +111,7 @@ extension AppLifecycleService {
     }
 
     private func connectPerpetual() async {
-        if let wallet = currentWallet, wallet.isMultiCoins, preferences.isPerpetualEnabled {
+        if let wallet = currentWallet, preferences.showPerpetuals(for: wallet) {
             await hyperliquidObserverService.setup(for: wallet)
         } else {
             await hyperliquidObserverService.disconnect()

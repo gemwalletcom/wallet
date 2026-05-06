@@ -52,8 +52,8 @@ class PendingNavigationCoordinatorTest {
 
         coordinator.resolve(NoOpWalletConnect)
 
-        val route = (coordinator.pendingNavigation.value as PendingNavigation.Route).route
-        assertEquals(ReferralRoute(code = "gemcoder"), route)
+        val routes = (coordinator.pendingNavigation.value as PendingNavigation.Route).routes
+        assertEquals(listOf(ReferralRoute(code = "gemcoder")), routes)
     }
 
     @Test
@@ -68,21 +68,21 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun resolve_notificationPayload_storesRouteFromNotificationNavigation() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
-        val expected = ReferralRoute(code = "from-notification")
+        val expected = listOf(ReferralRoute(code = "from-notification"))
         coEvery { notificationNavigation.prepareNavigation(intent) } returns expected
         coordinator.setPendingIntentForTest(intent)
 
         coordinator.resolve(NoOpWalletConnect)
 
         coVerify(exactly = 1) { notificationNavigation.prepareNavigation(intent) }
-        val route = (coordinator.pendingNavigation.value as PendingNavigation.Route).route
-        assertEquals(expected, route)
+        val routes = (coordinator.pendingNavigation.value as PendingNavigation.Route).routes
+        assertEquals(expected, routes)
     }
 
     @Test
     fun resolve_notificationPayloadWithNoRoute_clears() = runTest {
         val intent = intent(uri = null, hasNotificationPayload = true)
-        coEvery { notificationNavigation.prepareNavigation(intent) } returns null
+        coEvery { notificationNavigation.prepareNavigation(intent) } returns emptyList()
         coordinator.setPendingIntentForTest(intent)
 
         coordinator.resolve(NoOpWalletConnect)

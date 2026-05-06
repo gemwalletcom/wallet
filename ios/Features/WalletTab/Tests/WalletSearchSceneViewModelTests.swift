@@ -48,6 +48,27 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.hasMorePerpetuals == true)
     }
 
+    @Test(arguments: [
+        Wallet.mock(type: .single, accounts: [.mock(chain: .bitcoin, address: "bc1")]),
+        Wallet.mock(type: .view, accounts: [.mock(chain: .ethereum, address: "0x1")]),
+        Wallet.mock(type: .multicoin, accounts: [.mock(chain: .ethereum, address: "0x1")]),
+    ])
+    func hidesPerpetualsForUnsupportedWallet(wallet: Wallet) {
+        let model = WalletSearchSceneViewModel.mock(
+            wallet: wallet,
+            preferences: .mock(isPerpetualEnabled: true),
+        )
+        model.searchQuery.value = WalletSearchResult(
+            assets: [],
+            perpetuals: [
+                .mock(metadata: .mock(isPinned: false)),
+                .mock(metadata: .mock(isPinned: true)),
+            ],
+        )
+        #expect(model.showPerpetuals == false)
+        #expect(model.showPinnedPerpetuals == false)
+    }
+
     @Test
     func pinAssetEnablesAsset() async {
         let db = DB.mockAssets()

@@ -1,9 +1,9 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.model.Transaction as AppTransaction
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
+import com.wallet.core.primitives.Transaction as CoreTransaction
 
 enum class PushNotificationField(val key: String) {
     Data("data"),
@@ -30,7 +30,7 @@ sealed interface PushNotificationData {
     data class Transaction(
         val walletId: WalletId,
         val assetId: AssetId,
-        val transaction: AppTransaction,
+        val transaction: CoreTransaction,
     ) : PushNotificationData
 
     object Reward : PushNotificationData

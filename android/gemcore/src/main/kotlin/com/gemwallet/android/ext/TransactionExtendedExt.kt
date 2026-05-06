@@ -1,6 +1,6 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionNFTTransferMetadata

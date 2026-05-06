@@ -56,7 +56,7 @@ class ImportWalletService(
                 coroutineScope {
                     launch { discoverAssets(wallet, currency) }
                     launch { syncTransactions.syncTransactions(wallet) }
-                    launch { syncNfts.syncNfts(wallet) }
+                    launch { syncNfts.sync(wallet.id) }
                 }
             } catch (err: Throwable) {
                 Log.d("IMPORT_ERROR", "Error:", err)

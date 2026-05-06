@@ -188,4 +188,8 @@ public final class Preferences: @unchecked Sendable {
     public func explorerName(chain: Chain) -> String? {
         defaults.string(forKey: "\(ExplorerKeys.explorerName)_\(chain.rawValue)")
     }
+
+    public func showPerpetuals(for wallet: Wallet) -> Bool {
+        isPerpetualEnabled && wallet.hasPerpetualsSupport
+    }
 }

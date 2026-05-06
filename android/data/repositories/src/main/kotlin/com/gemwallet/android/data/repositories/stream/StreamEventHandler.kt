@@ -104,8 +104,7 @@ class StreamEventHandler(
     }
 
     private suspend fun handleNft(update: StreamWalletUpdate) {
-        val wallet = walletsRepository.getWallet(update.walletId.id).firstOrNull() ?: return
-        syncNfts.syncNfts(wallet)
+        syncNfts.sync(update.walletId.id)
     }
 
     private suspend fun handleFiatTransaction(update: StreamWalletUpdate) {

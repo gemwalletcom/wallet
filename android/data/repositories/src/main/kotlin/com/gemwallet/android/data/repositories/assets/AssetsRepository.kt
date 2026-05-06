@@ -4,6 +4,8 @@ import android.util.Log
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.operators.GetAsset
 import com.gemwallet.android.blockchain.services.BalancesService
+import com.gemwallet.android.cases.nft.SyncNfts
+import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
@@ -29,6 +31,7 @@ import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.getAssociatedAssetIds
+import com.gemwallet.android.ext.isComplete
 import com.gemwallet.android.ext.swapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
@@ -38,6 +41,7 @@ import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
@@ -51,6 +55,7 @@ import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
+import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineScope
@@ -84,6 +89,8 @@ class AssetsRepository @Inject constructor(
     private val sessionRepository: SessionRepository,
     private val balancesService: BalancesService,
     getChangedTransactions: GetChangedTransactions,
+    private val syncStakeDelegations: SyncStakeDelegations,
+    private val syncNfts: SyncNfts,
     private val searchTokensCase: SearchTokensCase,
     private val streamSubscriptionService: StreamSubscriptionService,
     private val updateBalances: UpdateBalances = UpdateBalances(balancesDao, balancesService),
@@ -422,14 +429,45 @@ class AssetsRepository @Inject constructor(
         )
     }
 
-    private fun onTransactions(txs: List<TransactionExtended>) = scope.launch {
-        txs.map { txEx ->
+    private fun onTransactions(transactions: List<TransactionExtended>) = scope.launch {
+        processTransactions(transactions)
+    }
+
+    internal suspend fun processTransactions(transactions: List<TransactionExtended>) = withContext(Dispatchers.IO) {
+        transactions.map { transactionExtended ->
             async {
-                getAssetsInfo(txEx.transaction.getAssociatedAssetIds())
-                    .firstOrNull()
-                    ?.updateBalances()
+                val transaction = transactionExtended.transaction
+                val assetInfos = getAssetsInfo(transaction.getAssociatedAssetIds()).firstOrNull().orEmpty()
+                assetInfos.updateBalances()
+                val walletId = assetInfos.firstNotNullOfOrNull { it.walletId } ?: return@async
+                if (transaction.state.isComplete()) {
+                    processCompleteTransaction(walletId, transaction, assetInfos)
+                }
             }
         }.awaitAll()
+    }
+
+    private suspend fun processCompleteTransaction(
+        walletId: String,
+        transaction: Transaction,
+        assetInfos: List<AssetInfo>,
+    ) {
+        when (transaction.type) {
+            TransactionType.StakeDelegate,
+            TransactionType.StakeUndelegate,
+            TransactionType.StakeRewards,
+            TransactionType.StakeRedelegate,
+            TransactionType.StakeWithdraw,
+            TransactionType.StakeFreeze,
+            TransactionType.StakeUnfreeze -> syncStakeDelegations.sync(
+                walletId = walletId,
+                chain = transaction.assetId.chain,
+                address = transaction.from,
+                apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.stakeApr ?: 0.0,
+            )
+            TransactionType.TransferNFT -> syncNfts.sync(walletId)
+            else -> Unit
+        }
     }
 
     fun getAssetLinks(id: AssetId): Flow<List<AssetLink>> {

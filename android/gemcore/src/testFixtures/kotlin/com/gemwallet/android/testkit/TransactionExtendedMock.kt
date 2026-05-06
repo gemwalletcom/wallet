@@ -1,6 +1,6 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Price

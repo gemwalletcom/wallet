@@ -53,7 +53,6 @@ final class LockWindowManagerMock: LockWindowManageable {
         guard !lockModel.isPrivacyLockVisible else { return }
         overlayWindow?.alpha = 0
         overlayWindow?.isHidden = true
-        overlayWindow = nil
     }
 
     private static func makeWindow(model: LockSceneViewModel, visible: Bool) -> UIWindow {

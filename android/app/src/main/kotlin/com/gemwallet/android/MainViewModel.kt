@@ -14,6 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicLong
@@ -46,6 +50,20 @@ class MainViewModel @Inject constructor(
     private val walletConnectHandler = object : PendingNavigationCoordinator.WalletConnectHandler {
         override fun onPairing(uri: String) = addPairing(uri)
         override fun onRequest() = showWalletConnectPairingToast()
+    }
+
+    init {
+        viewModelScope.launch {
+            combine(
+                _uiState.map { it.initialAuth == AuthState.Success }.distinctUntilChanged(),
+                pendingNavigation,
+            ) { unlocked, pending -> unlocked && pending is PendingNavigation.RawIntent }
+                .distinctUntilChanged()
+                .filter { it }
+                .collect {
+                    pendingNavigationCoordinator.resolve(walletConnectHandler)
+                }
+        }
     }
 
     fun isAuthRequired(request: AuthRequest): Boolean =
@@ -122,12 +140,6 @@ class MainViewModel @Inject constructor(
     fun handleIntent(intent: Intent) = pendingNavigationCoordinator.handleIntent(intent)
 
     fun consumePendingNavigation() = pendingNavigationCoordinator.consume()
-
-    fun preparePendingNavigation() {
-        viewModelScope.launch(Dispatchers.IO) {
-            pendingNavigationCoordinator.resolve(walletConnectHandler)
-        }
-    }
 
     fun dismissWalletConnectPairingToast() {
         _uiState.update { it.copy(isWalletConnectPairingToastVisible = false) }

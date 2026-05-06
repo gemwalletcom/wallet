@@ -80,11 +80,10 @@ class StreamEventHandlerTest {
 
     @Test
     fun `nft event syncs wallet nfts`() = runTest {
-        coEvery { walletsRepository.getWallet("w1") } returns flowOf(wallet)
-
         handler.handle(StreamEvent.Nft(StreamWalletUpdate(walletId = walletId)))
 
-        coVerify { syncNfts.syncNfts(wallet) }
+        coVerify { syncNfts.sync("w1") }
+        coVerify(exactly = 0) { walletsRepository.getWallet(any()) }
     }
 
     @Test
