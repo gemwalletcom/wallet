@@ -46,9 +46,10 @@ class WCCreateAccountOperator : CreateAccountOperator {
         val privateKey = PrivateKey(data.decodeHex())
         val publicKey = privateKey.getPublicKey(coinType)
         val rawAddress = AnyAddress(publicKey, coinType).description()
+        val address = shortAddress(rawAddress, chain.string)
         return Account(
             chain = chain,
-            address = shortAddress(rawAddress, chain.string),
+            address = address,
             derivationPath = coinType.derivationPath(),
             extendedPublicKey = ""
         )
