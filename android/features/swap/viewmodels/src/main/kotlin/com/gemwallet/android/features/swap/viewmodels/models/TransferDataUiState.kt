@@ -1,16 +1,17 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
+import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
 import uniffi.gemstone.SwapperProvider
 
 internal sealed interface TransferDataUiState {
     data object Idle : TransferDataUiState
     data class Loading(
-        val quoteKey: QuoteRequestKey,
+        val quoteKey: SwapQuoteRequestKey,
         val providerId: SwapperProvider,
     ) : TransferDataUiState
 
     data class Error(
-        val quoteKey: QuoteRequestKey,
+        val quoteKey: SwapQuoteRequestKey,
         val providerId: SwapperProvider,
         val error: SwapError,
     ) : TransferDataUiState

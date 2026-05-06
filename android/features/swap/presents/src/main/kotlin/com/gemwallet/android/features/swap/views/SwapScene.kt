@@ -23,7 +23,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 import com.gemwallet.android.features.swap.views.components.SwapAction
 import com.gemwallet.android.features.swap.views.components.SwapError

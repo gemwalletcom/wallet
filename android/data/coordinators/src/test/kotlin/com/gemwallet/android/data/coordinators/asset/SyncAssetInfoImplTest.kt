@@ -16,7 +16,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -87,7 +86,7 @@ class SyncAssetInfoImplTest {
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsRepository.updateAssetMetadata(assetFull) }
-        verify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 
     @Test
@@ -116,6 +115,6 @@ class SyncAssetInfoImplTest {
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsRepository.updateAssetMetadata(assetFull) }
-        verify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 }

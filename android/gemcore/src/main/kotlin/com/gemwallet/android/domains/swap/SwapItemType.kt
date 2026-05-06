@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.swap.viewmodels.models
+package com.gemwallet.android.domains.swap
 
 import kotlinx.serialization.Serializable
 

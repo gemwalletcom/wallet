@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.views.SwapScreen
 import com.gemwallet.android.features.swap.views.SwapSelectScreen
 import com.gemwallet.android.model.ConfirmParams

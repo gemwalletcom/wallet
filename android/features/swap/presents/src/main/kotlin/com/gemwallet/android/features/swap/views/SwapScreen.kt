@@ -10,7 +10,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet

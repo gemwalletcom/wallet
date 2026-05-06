@@ -1,4 +1,4 @@
-package com.gemwallet.android.cases.swap
+package com.gemwallet.android.application.swap.coordinators
 
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.SwapperAssetList
