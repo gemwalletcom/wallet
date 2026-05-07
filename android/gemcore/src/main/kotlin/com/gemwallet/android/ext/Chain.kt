@@ -10,6 +10,7 @@ import com.wallet.core.primitives.EncodingType
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemAssetType
+import uniffi.gemstone.validateAddress
 import java.math.BigInteger
 
 fun Chain.assetType(): AssetType? {
@@ -221,14 +222,7 @@ fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
-fun BitcoinChain.fullAddress(address: String) = when (this) {
-    BitcoinChain.BitcoinCash -> if (address.startsWith(Chain.BitcoinCash.string)) {
-        address
-    } else {
-        "${Chain.BitcoinCash.string}:" + address
-    }
-    else -> address
-}
+fun Chain.isValidAddress(address: String): Boolean = validateAddress(address, string)
 
 fun uniffi.gemstone.Chain.toChain(): Chain? {
     return Chain.entries.firstOrNull { it.string == this }

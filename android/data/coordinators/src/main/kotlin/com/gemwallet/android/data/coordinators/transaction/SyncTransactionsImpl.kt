@@ -9,7 +9,7 @@ import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.identifier
-import com.gemwallet.android.model.TransactionsResponse
+import com.wallet.core.primitives.TransactionsResponse
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 

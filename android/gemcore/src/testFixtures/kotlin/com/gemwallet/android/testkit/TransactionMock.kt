@@ -1,13 +1,12 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransactionUtxoInput
-import com.wallet.core.primitives.Transaction as CoreTransaction
 
 fun mockTransaction(
     assetId: AssetId = mockAssetId(),
@@ -49,25 +48,3 @@ fun mockTransaction(
     createdAt = createdAt,
 )
 
-fun mockCoreTransaction(
-    transaction: Transaction = mockTransaction(),
-) = CoreTransaction(
-    id = transaction.id,
-    assetId = transaction.assetId,
-    from = transaction.from,
-    to = transaction.to,
-    contract = transaction.contract,
-    type = transaction.type,
-    state = transaction.state,
-    blockNumber = transaction.blockNumber,
-    sequence = transaction.sequence,
-    fee = transaction.fee,
-    feeAssetId = transaction.feeAssetId,
-    value = transaction.value,
-    memo = transaction.memo,
-    direction = transaction.direction,
-    utxoInputs = transaction.utxoInputs,
-    utxoOutputs = transaction.utxoOutputs,
-    metadata = transaction.metadata,
-    createdAt = transaction.createdAt,
-)

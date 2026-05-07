@@ -1,10 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.gemwallet.android.features.activities.presents.list
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -21,23 +18,29 @@ fun TransactionsNavScreen(
     viewModel: TransactionsViewModel = hiltViewModel()
 ) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
-    val loading by viewModel.state.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val chainFilter by viewModel.chainsFilter.collectAsStateWithLifecycle()
     val typeFilter by viewModel.typeFilter.collectAsStateWithLifecycle()
 
     TransactionsScene(
-        loading = loading,
+        isRefreshing = isRefreshing,
         transactions = transactions,
         chainsFilter = chainFilter,
         typeFilter = typeFilter,
         listState = listState,
-        onRefresh = viewModel::refresh,
-        onApplyChainsFilter = viewModel::applyChainsFilter,
-        onApplyTypesFilter = viewModel::applyTypesFilter,
-        onTransactionClick = onTransaction,
-        onClearChainsFilter = viewModel::clearChainsFilter,
-        onClearTypesFilter = viewModel::clearTypeFilter,
-        onBuy = onBuy,
-        onReceive = onReceive,
+        showBuyAction = onBuy != null,
+        showReceiveAction = onReceive != null,
+        onAction = { action ->
+            when (action) {
+                TransactionsListAction.Refresh -> viewModel.refresh()
+                is TransactionsListAction.OpenTransaction -> onTransaction(action.transactionId)
+                is TransactionsListAction.ApplyChainsFilter -> viewModel.applyChainsFilter(action.chains)
+                is TransactionsListAction.ApplyTypesFilter -> viewModel.applyTypesFilter(action.types)
+                TransactionsListAction.ClearChainsFilter -> viewModel.clearChainsFilter()
+                TransactionsListAction.ClearTypesFilter -> viewModel.clearTypeFilter()
+                TransactionsListAction.Buy -> onBuy?.invoke()
+                TransactionsListAction.Receive -> onReceive?.invoke()
+            }
+        },
     )
 }

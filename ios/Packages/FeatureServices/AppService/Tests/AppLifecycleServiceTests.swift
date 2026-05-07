@@ -14,7 +14,7 @@ struct AppLifecycleServiceTests {
     func setupWalletConnectsHyperliquidForMultiCoinWallet() async {
         let (service, observer, _) = makeService(perpetualEnabled: true)
 
-        await service.setupWallet(.mock(type: .multicoin))
+        await service.setupWallet(.mock(type: .multicoin, accounts: [.mock(chain: .hyperliquid)]))
 
         #expect(await observer.isConnected == true)
     }
@@ -31,7 +31,7 @@ struct AppLifecycleServiceTests {
     @Test
     func setupWalletDisconnectsWhenSwitchingToSingleChainWallet() async {
         let (service, observer, _) = makeService(perpetualEnabled: true)
-        await service.setupWallet(.mock(type: .multicoin))
+        await service.setupWallet(.mock(type: .multicoin, accounts: [.mock(chain: .hyperliquid)]))
 
         await service.setupWallet(.mock(type: .single))
 
@@ -42,7 +42,7 @@ struct AppLifecycleServiceTests {
     func setupWalletSkipsHyperliquidWhenDisabled() async {
         let (service, observer, _) = makeService(perpetualEnabled: false)
 
-        await service.setupWallet(.mock(type: .multicoin))
+        await service.setupWallet(.mock(type: .multicoin, accounts: [.mock(chain: .hyperliquid)]))
 
         #expect(await observer.isConnected == false)
     }
@@ -50,7 +50,7 @@ struct AppLifecycleServiceTests {
     @Test
     func updatePerpetualConnectionDisconnectsWhenDisabled() async {
         let (service, observer, preferences) = makeService(perpetualEnabled: true)
-        await service.setupWallet(.mock(type: .multicoin))
+        await service.setupWallet(.mock(type: .multicoin, accounts: [.mock(chain: .hyperliquid)]))
 
         preferences.isPerpetualEnabled = false
         await service.updatePerpetualConnection()

@@ -50,31 +50,31 @@ interface NftDao {
         SELECT DISTINCT nft_collections.* FROM nft_collections
         JOIN nft_assets ON nft_collections.id = nft_assets.collection_id
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
-            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+            AND nft_assets_associations.wallet_id = :walletId
     """)
-    fun getCollection(): Flow<List<DbNFTCollection>>
+    fun getCollections(walletId: String): Flow<List<DbNFTCollection>>
 
     @Query("""
         SELECT DISTINCT nft_collections.* FROM nft_collections
         JOIN nft_assets ON nft_collections.id = nft_assets.collection_id
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
-            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+            AND nft_assets_associations.wallet_id = :walletId
         WHERE nft_collections.id = :id
     """)
-    fun getCollection(id: String): Flow<DbNFTCollection?>
+    fun getCollection(walletId: String, id: String): Flow<DbNFTCollection?>
 
     @Query("""
         SELECT DISTINCT nft_assets.* FROM nft_assets
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
-            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+            AND nft_assets_associations.wallet_id = :walletId
     """)
-    fun getAssets(): Flow<List<DbNFTAsset>>
+    fun getAssets(walletId: String): Flow<List<DbNFTAsset>>
 
     @Query("""
         SELECT DISTINCT nft_assets.* FROM nft_assets
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
-            AND nft_assets_associations.wallet_id = (SELECT wallet_id FROM session WHERE id = 1)
+            AND nft_assets_associations.wallet_id = :walletId
         WHERE nft_assets.id = :id
     """)
-    fun getAsset(id: String): Flow<DbNFTAsset?>
+    fun getAsset(walletId: String, id: String): Flow<DbNFTAsset?>
 }

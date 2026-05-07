@@ -17,10 +17,14 @@ private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
 }
 
 fun buildExtendedTransactionsSql(
+    walletId: String,
     filters: List<TransactionsRequestFilter>,
     limit: Int = DEFAULT_TRANSACTIONS_LIMIT,
-): SqlQuery = SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE")
-    .whereAll(filters.map { it.toSqlClause() })
-    .orderBy("tx.createdAt DESC")
-    .limit(limit)
-    .build()
+): SqlQuery {
+    val source = EXTENDED_SOURCE.replace(":walletId", "?")
+    return SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $source", baseArgs = listOf(walletId))
+        .whereAll(filters.map { it.toSqlClause() })
+        .orderBy("tx.createdAt DESC")
+        .limit(limit)
+        .build()
+}

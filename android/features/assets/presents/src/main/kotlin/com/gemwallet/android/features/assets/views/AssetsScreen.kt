@@ -21,9 +21,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -72,6 +74,7 @@ fun AssetsScreen(
     onBuyClick: () -> Unit,
     onSwapClick: () -> Unit,
     onAssetClick: (AssetId) -> Unit,
+    onContentReady: () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
@@ -84,6 +87,11 @@ fun AssetsScreen(
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+
+    val currentOnContentReady by rememberUpdatedState(onContentReady)
+    LaunchedEffect(walletSummary != null) {
+        if (walletSummary != null) currentOnContentReady()
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -196,3 +204,4 @@ fun AssetsScreen(
         }
     }
 }
+

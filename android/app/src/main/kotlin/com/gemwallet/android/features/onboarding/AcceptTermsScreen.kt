@@ -2,7 +2,6 @@ package com.gemwallet.android.features.onboarding
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,20 +28,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
+import com.gemwallet.android.ui.components.list_item.SelectionIndicator
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -81,7 +78,7 @@ fun AcceptTermsScreen(
             }
         },
     ) {
-        LazyColumn (
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = sceneContentPadding()),
@@ -135,21 +132,7 @@ private fun LazyListScope.termItem(
             shape = RoundedCornerShape(paddingDefault),
         ) {
             Row(modifier = Modifier.defaultPadding(), verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.size(compactIconSize),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isUnderstand) {
-                        SelectionCheckmark()
-                    } else {
-                        Icon(
-                            modifier = Modifier.size(compactIconSize),
-                            imageVector = Icons.Outlined.Circle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                        )
-                    }
-                }
+                SelectionIndicator(isSelected = isUnderstand)
                 Spacer16()
                 Column(modifier = Modifier.weight(1f)) {
                     Text(

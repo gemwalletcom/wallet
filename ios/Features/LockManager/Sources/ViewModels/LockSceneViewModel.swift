@@ -88,15 +88,14 @@ extension LockSceneViewModel {
             }
         case .active:
             showPlaceholderPreview = false
-            if inBackground {
-                inBackground = false
-            }
             if state == .unlocked, shouldLock {
                 state = .locked
+            } else if inBackground, state == .unlocking {
+                state = .locked
             }
+            inBackground = false
         case .inactive:
             showPlaceholderPreview = true
-            break
         @unknown default:
             break
         }

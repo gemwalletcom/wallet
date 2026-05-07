@@ -9,6 +9,7 @@ import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
@@ -16,7 +17,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -61,7 +61,7 @@ class SyncAssetInfoImplTest {
         )
         val foreignWalletAsset = mockAssetInfo(
             asset = asset,
-            walletId = "wallet-2",
+            walletId = mockWalletId("wallet-2"),
             owner = mockAccount(chain = Chain.Bitcoin, address = "bc1-foreign"),
         ).copy(metadata = assetMetadata)
 
@@ -87,7 +87,7 @@ class SyncAssetInfoImplTest {
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsRepository.updateAssetMetadata(assetFull) }
-        verify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 
     @Test
@@ -98,7 +98,7 @@ class SyncAssetInfoImplTest {
         )
         val currentWalletAsset = mockAssetInfo(
             asset = asset,
-            walletId = "wallet-1",
+            walletId = mockWalletId(),
             owner = mockAccount(chain = Chain.Bitcoin, address = "bc1-current"),
         ).copy(metadata = assetMetadata)
 
@@ -116,6 +116,6 @@ class SyncAssetInfoImplTest {
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
         coVerify { assetsRepository.updateAssetMetadata(assetFull) }
-        verify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
+        coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 }

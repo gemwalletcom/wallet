@@ -11,6 +11,7 @@ import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.GetTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
@@ -19,7 +20,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Fee
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.model.TransactionChanges
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
@@ -37,7 +38,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionsRepositoryImpl(
+    private val sessionRepository: SessionRepository,
     private val transactionsDao: TransactionsDao,
     private val transactionStatusService: TransactionStatusService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
@@ -65,22 +71,31 @@ class TransactionsRepositoryImpl(
     val changedTransactions = MutableStateFlow<List<TransactionExtended>>(emptyList())
     private val pendingTransactionJobs = ConcurrentHashMap<String, Job>()
 
+    private fun currentWalletId(): Flow<String> = sessionRepository.session()
+        .filterNotNull()
+        .map { it.wallet.id }
+        .distinctUntilChanged()
+
     init {
         handlePendingTransactions()
     }
 
     override fun getPendingTransactionsCount(): Flow<Int?> {
-        return transactionsDao.getTransactionsCount(TransactionState.Pending)
+        return currentWalletId().flatMapLatest { walletId ->
+            transactionsDao.getTransactionsCount(walletId, TransactionState.Pending)
+        }
     }
 
     override fun getTransactions(filters: List<TransactionsRequestFilter>): Flow<List<TransactionExtended>> {
-        return transactionsDao.getExtendedTransactions(filters)
-            .mapNotNull { items -> items.toDTO() }
+        return currentWalletId().flatMapLatest { walletId ->
+            transactionsDao.getExtendedTransactions(walletId, filters)
+        }.mapNotNull { items -> items.toDTO() }
     }
 
     override fun getTransaction(transactionId: String): Flow<TransactionExtended?> {
-        return transactionsDao.getExtendedTransaction(transactionId)
-            .mapNotNull { it?.toDTO() }
+        return currentWalletId().flatMapLatest { walletId ->
+            transactionsDao.getExtendedTransaction(walletId, transactionId)
+        }.mapNotNull { it?.toDTO() }
             .flowOn(Dispatchers.IO)
     }
 
@@ -157,7 +172,12 @@ class TransactionsRepositoryImpl(
 
     private fun handlePendingTransactions() {
         scope.launch {
-            transactionsDao.getExtendedTransactions(TransactionState.Pending).collect { items ->
+            currentWalletId().flatMapLatest { walletId ->
+                transactionsDao.getExtendedTransactions(
+                    walletId,
+                    listOf(TransactionsRequestFilter.State(TransactionState.Pending)),
+                )
+            }.collect { items ->
                 items.forEach { item ->
                     if (!pendingTransactionJobs.containsKey(item.transaction.id)) {
                         val job = handlePendingTransaction(item)

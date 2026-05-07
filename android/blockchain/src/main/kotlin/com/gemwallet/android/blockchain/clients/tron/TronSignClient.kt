@@ -222,7 +222,7 @@ class TronSignClient(
         val chainData = chainData as TronChainData
         val fromAsset = params.fromAsset
         val toAddress = params.toAddress
-        val memo = params.swapData
+        val memo = params.memo ?: params.swapData
         val amount = params.value
         val contract = when (fromAsset.subtype) {
             AssetSubtype.NATIVE -> {

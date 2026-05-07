@@ -71,6 +71,7 @@ class StreamObserverService(
 
     fun start() {
         if (connectionJob != null) return
+        if (sessionRepository.session().value?.wallet == null) return
 
         connectionJob = scope.launch(Dispatchers.IO) {
             while (isActive) {

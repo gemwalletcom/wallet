@@ -9,6 +9,7 @@ import com.gemwallet.android.blockchain.services.AddressStatusService
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.nft.SyncNfts
+import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -45,6 +46,8 @@ object AssetsModule {
         sessionRepository: SessionRepository,
         balancesService: BalancesService,
         getChangedTransactions: GetChangedTransactions,
+        syncStakeDelegations: SyncStakeDelegations,
+        syncNfts: SyncNfts,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: StreamSubscriptionService,
     ): AssetsRepository = AssetsRepository(
@@ -55,6 +58,8 @@ object AssetsModule {
         sessionRepository = sessionRepository,
         getChangedTransactions = getChangedTransactions,
         balancesService = balancesService,
+        syncStakeDelegations = syncStakeDelegations,
+        syncNfts = syncNfts,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
     )

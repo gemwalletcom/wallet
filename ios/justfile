@@ -46,11 +46,11 @@ spm-resolve-all:
 
 lint:
     @echo "==> Running SwiftLint"
-    @swiftlint --fix --quiet
+    @git ls-files -z '*.swift' | xargs -0 swiftlint lint --fix --config .swiftlint.yml --quiet --force-exclude
 
 format:
     @echo "==> Running SwiftFormat"
-    @swiftformat .
+    @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --quiet
 
 _build action extra_flags="":
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \

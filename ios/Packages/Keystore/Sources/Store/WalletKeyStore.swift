@@ -6,6 +6,7 @@ import Primitives
 
 internal import enum Formatters.MnemonicFormatter
 internal import func Gemstone.decodePrivateKey
+internal import func Gemstone.shortAddress
 internal import WalletCorePrimitives
 
 struct WalletKeyStore {
@@ -209,7 +210,7 @@ extension WalletCore.Account {
     func mapToAccount(chain: Chain) -> Primitives.Account {
         Account(
             chain: chain,
-            address: chain.shortAddress(address: address),
+            address: shortAddress(address: address, chain: chain.rawValue),
             derivationPath: derivationPath,
             extendedPublicKey: extendedPublicKey,
         )

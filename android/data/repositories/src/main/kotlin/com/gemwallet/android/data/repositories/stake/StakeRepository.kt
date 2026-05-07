@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.stake
 
 import com.gemwallet.android.blockchain.services.StakeService
+import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -23,8 +24,12 @@ class StakeRepository(
     private val gemApiStaticClient: GemApiStaticClient,
     private val stakeService: StakeService,
     private val stakeDao: StakeDao,
-) {
+) : SyncStakeDelegations {
     private val recommendedValidators = Config().getValidators()
+
+    override suspend fun sync(walletId: String, chain: Chain, address: String, apr: Double) {
+        sync(chain, address, apr)
+    }
 
     suspend fun sync(chain: Chain, address: String, apr: Double) = withContext(Dispatchers.IO) {
         if (stakeDao.getValidators(chain).first().isEmpty()) {

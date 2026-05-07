@@ -10,7 +10,7 @@ data class AssetInfo(
     val owner: Account?,
     val asset: Asset,
     val balance: AssetBalance = AssetBalance(asset),
-    val walletId: String?,
+    val walletId: WalletId?,
     val walletType: WalletType = WalletType.View,
     val walletName: String = "",
     val price: AssetPriceInfo? = null,
@@ -20,8 +20,6 @@ data class AssetInfo(
     val position: Int = 0,
 ) {
     fun id() = asset.id
-
-    fun walletIdOrNull(): WalletId? = walletId?.let(::WalletId)
 
     override fun equals(other: Any?): Boolean {
         return (other as? AssetInfo)?.let { info ->

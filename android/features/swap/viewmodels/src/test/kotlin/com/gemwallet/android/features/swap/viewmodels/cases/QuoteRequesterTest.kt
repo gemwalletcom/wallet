@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CompletableDeferred
@@ -255,7 +256,7 @@ class QuoteRequesterTest {
             owner = Account(chain = Chain.SmartChain, address = "address", derivationPath = "m/44'/60'/0'/0/0"),
             asset = asset,
             balance = AssetBalance.create(asset, available = "100000000000000000000"),
-            walletId = "wallet-id",
+            walletId = mockWalletId(),
             walletType = WalletType.View,
             walletName = "Wallet",
         )

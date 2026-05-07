@@ -387,7 +387,7 @@ struct LockSceneViewModelTests {
             availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
-        let initialStates: [LockSceneState] = [.locked, .unlocking, .lockedCanceled]
+        let initialStates: [LockSceneState] = [.locked, .lockedCanceled]
 
         for state in initialStates {
             viewModel.state = state
@@ -397,6 +397,21 @@ struct LockSceneViewModelTests {
             viewModel.handleSceneChange(to: .active)
             #expect(viewModel.state == state)
         }
+    }
+
+    @Test
+    func resumeFromBackgroundDemotesStuckUnlocking() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocking
+
+        viewModel.handleSceneChange(to: .background)
+        viewModel.handleSceneChange(to: .active)
+
+        #expect(viewModel.state == .locked)
     }
 
     @Test

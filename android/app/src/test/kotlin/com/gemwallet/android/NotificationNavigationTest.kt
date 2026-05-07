@@ -80,7 +80,7 @@ class NotificationNavigationTest {
             ),
         )
 
-        assertEquals(TransactionDetailsRoute(transaction.id), route)
+        assertEquals(listOf(AssetRoute(assetId), TransactionDetailsRoute(transaction.id)), route)
         coVerify { prefetchAssets.prefetchAssets(assetIds) }
         coVerify { ensureWalletAssets.ensureWalletAssets(wallet, assetIds) }
         coVerify { sessionRepository.setWallet(wallet) }
@@ -98,7 +98,7 @@ class NotificationNavigationTest {
             data = PushNotificationData.Stake(assetId = assetId, walletId = walletId),
         )
 
-        assertNull(route)
+        assertEquals(emptyList<Any>(), route)
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
         coVerify(exactly = 0) { ensureWalletAssets.ensureWalletAssets(any(), any()) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
@@ -109,7 +109,7 @@ class NotificationNavigationTest {
     fun supportNotification_doesNotNeedPayloadData() = runBlocking {
         val route = subject.prepareNavigation(type = null, data = PushNotificationData.Support)
 
-        assertEquals(SupportRoute, route)
+        assertEquals(listOf(SupportRoute), route)
         coVerify(exactly = 0) { prefetchAssets.prefetchAssets(any()) }
         coVerify(exactly = 0) { ensureWalletAssets.ensureWalletAssets(any(), any()) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
@@ -125,7 +125,7 @@ class NotificationNavigationTest {
             data = PushNotificationData.Asset(assetId),
         )
 
-        assertEquals(AssetRoute(assetId), route)
+        assertEquals(listOf(AssetRoute(assetId)), route)
         coVerify { prefetchAssets.prefetchAssets(listOf(assetId)) }
         coVerify(exactly = 0) { sessionRepository.setWallet(any()) }
         coVerify(exactly = 0) { saveTransactions.saveTransactions(any(), any()) }

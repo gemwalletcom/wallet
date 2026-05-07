@@ -4,6 +4,7 @@ import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.flow.firstOrNull
@@ -16,6 +17,6 @@ class AddCustomTokenImpl(
     override suspend fun invoke(chain: Chain, assetId: AssetId) {
         val session = sessionRepository.session().firstOrNull() ?: return
         session.wallet.getAccount(chain) ?: return
-        enableAsset(session.wallet.id, assetId)
+        enableAsset(session.wallet.walletId, assetId)
     }
 }

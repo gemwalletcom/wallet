@@ -3,7 +3,9 @@ package com.gemwallet.android.ui.navigation
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
@@ -52,13 +54,19 @@ fun WalletNavGraph(
     navigator: WalletNavigator,
     onboard: @Composable () -> Unit,
     onAcceptTerms: () -> Unit,
+    onWalletContentReady: () -> Unit = {},
 ) {
     val onCancel: () -> Unit = navigator::pop
+    val currentOnWalletContentReady by rememberUpdatedState(onWalletContentReady)
 
     val entryProvider = remember(navigator, onboard, onAcceptTerms) {
         entryProvider<NavKey> {
             entry<WalletRootRoute> {
-                MainScreen(navigator = navigator, currentTab = navigator.currentTab)
+                MainScreen(
+                    navigator = navigator,
+                    currentTab = navigator.currentTab,
+                    onWalletContentReady = { currentOnWalletContentReady() },
+                )
             }
 
             entry<OnboardingRoute> {

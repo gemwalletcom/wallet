@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.settings.security.presents
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -9,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -25,20 +23,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.settings.security.viewmodels.SecurityViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer4
-import com.gemwallet.android.features.settings.security.viewmodels.SecurityViewModel
+import com.gemwallet.android.ui.theme.compactIconSize
 
 @Composable
 fun SecurityScene(
@@ -104,44 +101,31 @@ private fun LazyListScope.requiredAuthDelay(
     item {
         var isShowLockDelays by remember { mutableStateOf(false) }
         PropertyItem(
+            modifier = Modifier.clickable(onClick = { isShowLockDelays = true }),
             title = { PropertyTitleText(R.string.lock_require_authentication) },
             data = {
-                Box {
-                    Row(
-                        modifier = Modifier.clickable(onClick = { isShowLockDelays = true }),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(locks[currentInterval]!!),
-                            textAlign = TextAlign.End,
-                            maxLines = 1,
-                            overflow = TextOverflow.MiddleEllipsis,
-                            style = MaterialTheme.typography.bodyLarge,
+                PropertyDataText(text = stringResource(locks[currentInterval]!!))
+                DropdownMenu(
+                    expanded = isShowLockDelays,
+                    onDismissRequest = { isShowLockDelays = false },
+                    containerColor = MaterialTheme.colorScheme.background,
+                ) {
+                    for (interval in locks.keys) {
+                        DropdownMenuItem(
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    interval.takeIf { it == currentInterval }?.let {
+                                        Icon(Icons.Default.Check, null, modifier = Modifier.size(compactIconSize))
+                                    } ?: Spacer(modifier = Modifier.size(compactIconSize))
+                                    Spacer4()
+                                    Text(stringResource(locks[interval]!!))
+                                }
+                            },
+                            {
+                                onSelect(interval)
+                                isShowLockDelays = false
+                            },
                         )
-                        Icon(imageVector = Icons.Default.UnfoldMore, contentDescription = "Show lock timeouts")
-                    }
-                    DropdownMenu(
-                        expanded = isShowLockDelays,
-                        onDismissRequest = { isShowLockDelays = false },
-                        containerColor = MaterialTheme.colorScheme.background,
-                    ) {
-                        for (interval in locks.keys) {
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        interval.takeIf { it == currentInterval }?.let {
-                                            Icon(Icons.Default.Check, "", modifier = Modifier.size(20.dp))
-                                        } ?: Spacer(modifier = Modifier.size(20.dp))
-                                        Spacer4()
-                                        Text(stringResource(locks[interval]!!))
-                                    }
-                                },
-                                {
-                                    onSelect(interval)
-                                    isShowLockDelays = false
-                                },
-                            )
-                        }
                     }
                 }
             },

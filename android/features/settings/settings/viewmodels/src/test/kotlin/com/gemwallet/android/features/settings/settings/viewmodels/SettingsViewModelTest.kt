@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -33,11 +34,12 @@ class SettingsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val userConfig = mockk<UserConfig>(relaxed = true)
     private val wallets = MutableStateFlow<List<Wallet>>(emptyList())
+    private val session = MutableStateFlow<Session?>(null)
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true) {
         every { getAll() } returns wallets
     }
     private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns MutableStateFlow(null)
+        every { session() } returns session
     }
     private val switchPushEnabled = mockk<SwitchPushEnabled>(relaxed = true)
     private val getPushEnabled = object : GetPushEnabled {
@@ -49,14 +51,7 @@ class SettingsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = SettingsViewModel(
-            userConfig = userConfig,
-            walletsRepository = walletsRepository,
-            sessionRepository = sessionRepository,
-            switchPushEnabled = switchPushEnabled,
-            getPushEnabled = getPushEnabled,
-            notificationsAvailable = true,
-        )
+        viewModel = createViewModel()
     }
 
     @After
@@ -75,8 +70,8 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `rewards hidden before wallets load`() = runTest(testDispatcher) {
-        assertFalse(viewModel.isRewardsAvailable.value)
+    fun `rewards shown before wallets load`() = runTest(testDispatcher) {
+        assertTrue(viewModel.isRewardsAvailable.value)
     }
 
     @Test
@@ -94,4 +89,13 @@ class SettingsViewModelTest {
 
         assertTrue(viewModel.isRewardsAvailable.value)
     }
+
+    private fun createViewModel() = SettingsViewModel(
+        userConfig = userConfig,
+        walletsRepository = walletsRepository,
+        sessionRepository = sessionRepository,
+        switchPushEnabled = switchPushEnabled,
+        getPushEnabled = getPushEnabled,
+        notificationsAvailable = true,
+    )
 }

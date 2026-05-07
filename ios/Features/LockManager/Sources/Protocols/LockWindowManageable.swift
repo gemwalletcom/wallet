@@ -4,8 +4,8 @@ import SwiftUI
 
 @MainActor
 public protocol LockWindowManageable: Observable {
-    var lockModel: LockSceneViewModel { get set }
-    var overlayWindow: UIWindow? { get set }
+    var lockModel: LockSceneViewModel { get }
+    var overlayWindow: UIWindow? { get }
 
     var showLockScreen: Bool { get }
     var isPrivacyLockVisible: Bool { get }

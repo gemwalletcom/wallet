@@ -78,8 +78,12 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).transactionTimeout / 1000
     }
 
+    var transactionStateConfig: Primitives.JobConfiguration {
+        Gemstone.transactionStateConfig(chain: rawValue).map()
+    }
+
     var defaultAssets: [Asset] {
-        switch self {
+        switch self { 
         case .hyperCore:
             [
                 .hypercoreUSDC(),
@@ -88,6 +92,10 @@ public extension Primitives.Chain {
         default:
             []
         }
+    }
+
+    func isValidAddress(address: String) -> Bool {
+        Gemstone.validateAddress(address: address, chain: rawValue)
     }
 }
 

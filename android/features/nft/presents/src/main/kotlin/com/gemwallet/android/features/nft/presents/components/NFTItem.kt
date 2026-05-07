@@ -21,8 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.models.NftItemUIModel
-import com.gemwallet.android.ui.models.actions.NftAssetIdAction
-import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.theme.emptyImageColor
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -33,11 +31,10 @@ import com.gemwallet.android.ui.theme.space8
 @Composable
 fun NFTItem(
     model: NftItemUIModel,
-    collectionIdAction: NftCollectionIdAction,
-    assetIdAction: NftAssetIdAction,
+    onClick: () -> Unit,
 ) {
     Card(
-        onClick = { model.onClick(collectionIdAction, assetIdAction) },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = paddingDefault),

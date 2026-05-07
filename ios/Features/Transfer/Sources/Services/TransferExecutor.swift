@@ -14,25 +14,26 @@ public protocol TransferExecutable: Sendable {
 public struct TransferExecutor: TransferExecutable {
     private static let ignoredTransactionTypes: Set<TransactionType> = [.perpetualModifyPosition]
     private static let ignoredAssetChains: Set<Chain> = [.hyperCore]
+    private static let hyperCoreOrderIdPrefix = "order:"
 
     private let signer: any TransactionSigneable
     private let chainService: any ChainServiceable
     private let assetsEnabler: any AssetsEnabler
     private let balanceService: BalanceService
-    private let transactionStateService: TransactionStateService
+    private let transactionStateScheduler: TransactionStateScheduler
 
     public init(
         signer: any TransactionSigneable,
         chainService: any ChainServiceable,
         assetsEnabler: any AssetsEnabler,
         balanceService: BalanceService,
-        transactionStateService: TransactionStateService,
+        transactionStateScheduler: TransactionStateScheduler,
     ) {
         self.signer = signer
         self.chainService = chainService
         self.assetsEnabler = assetsEnabler
         self.balanceService = balanceService
-        self.transactionStateService = transactionStateService
+        self.transactionStateScheduler = transactionStateScheduler
     }
 
     public func execute(input: TransferConfirmationInput) async throws {
@@ -83,11 +84,9 @@ extension TransferExecutor {
         let transactions = pendingTransactions(
             for: transaction,
             transferData: input.data,
-            transactionIndex: transactionIndex,
-            totalTransactions: totalTransactions,
         )
 
-        try transactionStateService.addTransactions(wallet: input.wallet, transactions: transactions)
+        try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: transactions)
         Task {
             do {
                 try balanceService.addAssetsBalancesIfMissing(assetIds: assetIds, wallet: input.wallet, isEnabled: true)
@@ -114,8 +113,6 @@ extension TransferExecutor {
     private func pendingTransactions(
         for transaction: Transaction,
         transferData: TransferData,
-        transactionIndex: Int,
-        totalTransactions: Int,
     ) -> [Transaction] {
         guard !Self.ignoredTransactionTypes.contains(transaction.type) else {
             return []
@@ -123,7 +120,7 @@ extension TransferExecutor {
 
         if case .perpetual = transferData.type,
            Self.ignoredAssetChains.contains(transaction.assetId.chain),
-           transactionIndex < totalTransactions - 1
+           !transaction.id.hash.hasPrefix(Self.hyperCoreOrderIdPrefix)
         {
             return []
         }

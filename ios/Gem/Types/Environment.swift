@@ -64,7 +64,7 @@ extension EnvironmentValues {
     @Entry var scanService: ScanService = AppResolver.main.services.scanService
     @Entry var perpetualService: PerpetualService = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
-    @Entry var transactionStateService: TransactionStateService = AppResolver.main.services.transactionStateService
+    @Entry var transactionStateScheduler: TransactionStateScheduler = AppResolver.main.services.transactionStateScheduler
     @Entry var nameService: NameService = AppResolver.main.services.nameService
     @Entry var addressNameService: AddressNameService = AppResolver.main.services.addressNameService
     @Entry var activityService: ActivityService = AppResolver.main.services.activityService

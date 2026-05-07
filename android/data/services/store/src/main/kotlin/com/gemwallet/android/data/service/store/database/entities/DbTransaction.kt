@@ -4,7 +4,7 @@ import androidx.room.Entity
 import com.gemwallet.android.ext.hash
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.Transaction
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState

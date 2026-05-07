@@ -218,7 +218,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var assetBannerViewModel: AssetSceneBannersViewModel {
-        AssetSceneBannersViewModel(assetData: assetData, banners: banners)
+        AssetSceneBannersViewModel(wallet: wallet, assetData: assetData, banners: banners)
     }
 
     var assetHeaderModel: AssetHeaderViewModel {

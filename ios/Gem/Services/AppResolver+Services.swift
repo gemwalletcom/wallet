@@ -52,7 +52,7 @@ extension AppResolver {
         let streamSubscriptionService: StreamSubscriptionService
         let stakeService: StakeService
         let transactionsService: TransactionsService
-        let transactionStateService: TransactionStateService
+        let transactionStateScheduler: TransactionStateScheduler
         let walletService: WalletService
         let walletSessionService: any WalletSessionManageable
         let assetsEnabler: any AssetsEnabler
@@ -104,7 +104,7 @@ extension AppResolver {
             priceService: PriceService,
             stakeService: StakeService,
             transactionsService: TransactionsService,
-            transactionStateService: TransactionStateService,
+            transactionStateScheduler: TransactionStateScheduler,
             walletService: WalletService,
             walletSessionService: any WalletSessionManageable,
             assetsEnabler: any AssetsEnabler,
@@ -155,7 +155,7 @@ extension AppResolver {
             self.streamSubscriptionService = streamSubscriptionService
             self.stakeService = stakeService
             self.transactionsService = transactionsService
-            self.transactionStateService = transactionStateService
+            self.transactionStateScheduler = transactionStateScheduler
             self.walletService = walletService
             self.walletSessionService = walletSessionService
             self.assetsEnabler = assetsEnabler

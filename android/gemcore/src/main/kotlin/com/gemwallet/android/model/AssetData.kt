@@ -3,8 +3,10 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetMetaData
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+
 
 // TODO: Move to TypeShare once Balance is typeshared in core.
 //  1. Add #[typeshare] to Balance in core/crates/primitives/src/asset_balance.rs
@@ -24,7 +26,7 @@ data class AssetData(
         owner = account,
         asset = asset,
         balance = balance,
-        walletId = walletId.id,
+        walletId = walletId,
         price = price,
         metadata = metadata,
     )
@@ -33,7 +35,7 @@ data class AssetData(
         fun from(assetInfo: AssetInfo, wallet: Wallet, account: Account) = AssetData(
             asset = assetInfo.asset,
             account = account,
-            walletId = WalletId(wallet.id),
+            walletId = wallet.walletId,
             balance = assetInfo.balance,
             price = assetInfo.price,
             metadata = assetInfo.metadata,

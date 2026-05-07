@@ -8,6 +8,7 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetMetaData
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -410,7 +411,7 @@ class AssetInfoDataAggregateImplTest {
             owner = owner,
             asset = asset,
             balance = balance,
-            walletId = walletId,
+            walletId = walletId?.let(::mockWalletId),
             walletType = walletType,
             walletName = walletName,
             price = price,

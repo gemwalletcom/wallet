@@ -128,7 +128,7 @@ public final class WalletSearchSceneViewModel: Sendable {
     }
 
     var showPerpetuals: Bool {
-        sections.perpetuals.isNotEmpty && preferences.isPerpetualEnabled
+        sections.perpetuals.isNotEmpty && preferences.showPerpetuals(for: wallet)
     }
 
     var showLoading: Bool {
@@ -144,7 +144,7 @@ public final class WalletSearchSceneViewModel: Sendable {
     }
 
     var showPinnedPerpetuals: Bool {
-        sections.pinnedPerpetuals.isNotEmpty && preferences.isPerpetualEnabled
+        sections.pinnedPerpetuals.isNotEmpty && preferences.showPerpetuals(for: wallet)
     }
 
     var showAssets: Bool {

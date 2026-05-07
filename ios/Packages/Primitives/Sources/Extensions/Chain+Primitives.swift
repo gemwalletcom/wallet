@@ -1,8 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
-import Foundation
-
 public extension Chain {
     init(id: String) throws {
         if let chain = Chain(rawValue: id) {
@@ -14,22 +11,6 @@ public extension Chain {
 
     var assetId: AssetId {
         AssetId(chain: self, tokenId: .none)
-    }
-
-    /// in most cases address is the case, except bitcoin cash
-    /// short and full simplifies bitcoincash address
-    func shortAddress(address: String) -> String {
-        switch self {
-        case .bitcoinCash: address.removePrefix("\(rawValue):")
-        default: address
-        }
-    }
-
-    func fullAddress(address: String) -> String {
-        switch self {
-        case .bitcoinCash: address.addPrefix("\(rawValue):")
-        default: address
-        }
     }
 }
 

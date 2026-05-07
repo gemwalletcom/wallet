@@ -2,6 +2,8 @@ package com.gemwallet.android.data.repositories.assets
 
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.BalancesService
+import com.gemwallet.android.cases.nft.SyncNfts
+import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -20,6 +22,7 @@ import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInf
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
+import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toIdentifier
@@ -31,7 +34,10 @@ import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockTransaction
+import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.testkit.mockChartValuePercentage
 import com.gemwallet.android.testkit.mockPrice
 import com.wallet.core.primitives.AssetBasic
@@ -39,6 +45,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -69,6 +77,8 @@ class AssetsRepositoryTest {
     private val sessionRepository = mockk<SessionRepository>()
     private val balancesService = mockk<BalancesService>(relaxed = true)
     private val getChangedTransactions = mockk<GetChangedTransactions>()
+    private val syncStakeDelegations = mockk<SyncStakeDelegations>(relaxed = true)
+    private val syncNfts = mockk<SyncNfts>(relaxed = true)
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
@@ -83,6 +93,8 @@ class AssetsRepositoryTest {
         sessionRepository = sessionRepository,
         balancesService = balancesService,
         getChangedTransactions = getChangedTransactions,
+        syncStakeDelegations = syncStakeDelegations,
+        syncNfts = syncNfts,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
         updateBalances = updateBalances,
@@ -93,6 +105,67 @@ class AssetsRepositoryTest {
     fun tearDown() {
         scope.cancel()
         unmockkAll()
+    }
+
+    @Test
+    fun completeStakeTransaction_syncsDelegations() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        val asset = mockAssetSolana()
+        every { assetsDao.getAssetsInfo(listOf(asset.id.toIdentifier())) } returns flowOf(
+            listOf(
+                mockDbAssetInfo(
+                    chain = asset.id.chain,
+                    id = asset.id.toIdentifier(),
+                    name = asset.name,
+                    symbol = asset.symbol,
+                    decimals = asset.decimals,
+                    type = asset.type,
+                    address = "solana-sender",
+                    stakingApr = 7.5,
+                )
+            )
+        )
+
+        val subject = createSubject()
+        subject.processTransactions(
+            listOf(TransactionState.Confirmed, TransactionState.Failed, TransactionState.Reverted).map { state ->
+                mockTransactionExtended(
+                    transaction = mockTransaction(
+                        assetId = asset.id,
+                        from = "solana-sender",
+                        type = TransactionType.StakeDelegate,
+                        state = state,
+                    ),
+                    asset = asset,
+                )
+            }
+        )
+
+        coVerify(exactly = 3) {
+            syncStakeDelegations.sync("wallet-1", Chain.Solana, "solana-sender", apr = 7.5)
+        }
+        coVerify(exactly = 0) { syncNfts.sync(any()) }
+    }
+
+    @Test
+    fun completeNftTransfer_syncsWalletNfts() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        val transaction = mockTransaction(type = TransactionType.TransferNFT)
+        every { assetsDao.getAssetsInfo(transaction.getAssociatedAssetIds().map { it.toIdentifier() }) } returns flowOf(
+            listOf(mockDbAssetInfo(chain = transaction.assetId.chain, id = transaction.assetId.toIdentifier()))
+        )
+
+        val subject = createSubject()
+        subject.processTransactions(
+            listOf(TransactionState.Confirmed, TransactionState.Failed, TransactionState.Reverted).map { state ->
+                mockTransactionExtended(transaction = transaction.copy(state = state))
+            }
+        )
+
+        coVerify(exactly = 3) { syncNfts.sync(mockWalletId()) }
+        coVerify(exactly = 0) { syncStakeDelegations.sync(any(), any(), any(), any()) }
     }
 
     @Test
@@ -356,7 +429,7 @@ class AssetsRepositoryTest {
         every { assetsDao.getAssetInfo("solana", Chain.Solana) } returns flowOf(null)
 
         val subject = createSubject()
-        subject.switchVisibility("wallet-1", AssetId(Chain.Solana), false)
+        subject.switchVisibility(mockWalletId(), AssetId(Chain.Solana), false)
 
         coVerify(exactly = 0) { assetsDao.setWalletAssetVisibility(any(), any(), any()) }
     }
@@ -369,7 +442,7 @@ class AssetsRepositoryTest {
         every { assetsDao.getAssetsInfo(listOf("solana")) } returns flowOf(emptyList())
 
         val subject = createSubject()
-        subject.switchVisibility("wallet-1", AssetId(Chain.Solana), true)
+        subject.switchVisibility(mockWalletId(), AssetId(Chain.Solana), true)
 
         coVerify(exactly = 1) {
             assetsDao.setWalletAssetVisibility(
@@ -444,6 +517,44 @@ class AssetsRepositoryTest {
         ).first()
 
         assertEquals(listOf(enabledAsset.id, hiddenAsset.id, unlinkedAsset.id), result.map { it.asset.id })
+    }
+
+    @Test
+    fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        every { assetsPriorityDao.hasPriorities("usd") } returns flowOf(2)
+
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Solana)),
+        )
+        val highPriorityAsset = mockAssetSolana()
+        val lowPriorityAsset = mockAssetSolanaUSDC()
+
+        every {
+            assetsDao.swapSearchWithPriority(
+                query = "usd",
+                byChains = listOf(Chain.Solana),
+                byAssets = emptyList(),
+            )
+        } returns flowOf(
+            listOf(
+                mockDbAssetInfo(asset = highPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+                mockDbAssetInfo(asset = lowPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+            )
+        )
+
+        val subject = createSubject()
+        val result = subject.swapSearch(
+            wallet = wallet,
+            query = "usd",
+            byChains = listOf(Chain.Solana),
+            byAssets = emptyList(),
+            tags = emptyList(),
+        ).first()
+
+        assertEquals(listOf(highPriorityAsset.id, lowPriorityAsset.id), result.map { it.asset.id })
     }
 
     @Test

@@ -1,16 +1,13 @@
 package com.gemwallet.android.cases
 
-import com.gemwallet.android.ext.toModel
 import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationData.Asset
 import com.gemwallet.android.model.PushNotificationData.BuyAsset
 import com.gemwallet.android.model.PushNotificationData.Swap
-import com.gemwallet.android.model.PushNotificationData.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.PushNotificationAsset
 import com.wallet.core.primitives.PushNotificationReward
 import com.wallet.core.primitives.PushNotificationSwapAsset
-import com.wallet.core.primitives.PushNotificationTransaction
 import com.wallet.core.primitives.PushNotificationTypes
 import com.wallet.core.primitives.PushNotificationWalletAsset
 import kotlinx.serialization.decodeFromString
@@ -22,13 +19,7 @@ fun parseNotificationData(rawType: String?, rawData: String?): PushNotificationD
     val type = PushNotificationTypes.entries.firstOrNull { it.string == rawType } ?: return null
     return runCatching {
         when (type) {
-            PushNotificationTypes.Transaction -> rawData.decodePayload<PushNotificationTransaction>()?.let {
-                Transaction(
-                    walletId = it.walletId,
-                    assetId = it.assetId,
-                    transaction = it.transaction.toModel(),
-                )
-            }
+            PushNotificationTypes.Transaction -> rawData.decodePayload<PushNotificationData.Transaction>()
             PushNotificationTypes.PriceAlert,
             PushNotificationTypes.Asset -> rawData.decodePayload<PushNotificationAsset>()?.let {
                 Asset(

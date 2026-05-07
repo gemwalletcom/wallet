@@ -8,13 +8,16 @@ import PrimitivesComponents
 @Observable
 @MainActor
 final class AssetSceneBannersViewModel: Sendable {
+    private let wallet: Wallet
     private let assetData: AssetData
     private let banners: [Banner]
 
     init(
+        wallet: Wallet,
         assetData: AssetData,
         banners: [Banner],
     ) {
+        self.wallet = wallet
         self.assetData = assetData
         self.banners = banners
     }
@@ -36,7 +39,8 @@ final class AssetSceneBannersViewModel: Sendable {
 
     private func shouldShowBanner(_ banner: Banner) -> Bool {
         switch banner.event {
-        case .enableNotifications, .accountBlockedMultiSignature, .tradePerpetuals: true
+        case .enableNotifications, .accountBlockedMultiSignature: true
+        case .tradePerpetuals: wallet.hasPerpetualsSupport
         case .accountActivation: assetData.balance.available == 0
         case .stake: assetData.balance.staked.isZero && assetData.balance.frozen.isZero
         case .activateAsset: !assetData.metadata.isActive

@@ -16,6 +16,7 @@ import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.features.swap.viewmodels.cases.QuoteRequester
 import com.gemwallet.android.features.swap.viewmodels.models.QuoteUiState
@@ -391,7 +392,7 @@ class SwapViewModel @Inject constructor(
     private fun updateBalance(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val session = sessionRepository.session().firstOrNull() ?: return@launch
         session.wallet.getAccount(id.chain) ?: return@launch
-        enableAsset(session.wallet.id, id)
+        enableAsset(session.wallet.walletId, id)
     }
 
     private fun onQuoteRequestParamsChanged(params: QuoteRequestParams?) {

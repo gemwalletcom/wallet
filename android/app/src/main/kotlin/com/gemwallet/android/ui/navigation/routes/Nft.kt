@@ -3,14 +3,14 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.features.nft.presents.NFTDetailsScene
+import com.gemwallet.android.features.nft.presents.NftListNavScreen
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
-import com.gemwallet.android.features.nft.presents.NFTDetailsScene
-import com.gemwallet.android.features.nft.presents.NftListScene
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
 
@@ -35,13 +35,13 @@ fun EntryProviderScope<NavKey>.nftCollection(
     entry<NftCollectionRoute>(
         metadata = { key -> routeArguments(RouteArgument.NftCollectionId to key.nftCollectionId) },
     ) {
-        NftListScene(cancelAction, collectionIdAction, assetIdAction, onReceive = onReceive)
+        NftListNavScreen(cancelAction, collectionIdAction, assetIdAction, onReceive = onReceive)
     }
 
     entry<NftUnverifiedCollectionsRoute>(
         metadata = { routeArguments(RouteArgument.Unverified to true) },
     ) {
-        NftListScene(
+        NftListNavScreen(
             cancelAction = cancelAction,
             collectionAction = collectionIdAction,
             assetAction = assetIdAction,

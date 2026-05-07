@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import SwiftUI
 
 @Observable
@@ -105,6 +106,11 @@ public final class ObservablePreferences: Sendable {
                 preferences.perpetualLeverage = newValue
             }
         }
+    }
+
+    public func showPerpetuals(for wallet: Wallet) -> Bool {
+        access(keyPath: \.isPerpetualEnabled)
+        return preferences.showPerpetuals(for: wallet)
     }
 }
 

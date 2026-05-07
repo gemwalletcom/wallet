@@ -88,7 +88,7 @@ class StreamEventHandler(
                     .forEach { (account, assetInfos) ->
                         val owner: Account = account ?: return@forEach
                         updateBalances.updateBalances(
-                            walletId, owner, assetInfos.map { it.asset }
+                            walletId.id, owner, assetInfos.map { it.asset }
                         )
                     }
             }
@@ -104,8 +104,7 @@ class StreamEventHandler(
     }
 
     private suspend fun handleNft(update: StreamWalletUpdate) {
-        val wallet = walletsRepository.getWallet(update.walletId.id).firstOrNull() ?: return
-        syncNfts.syncNfts(wallet)
+        syncNfts.sync(update.walletId)
     }
 
     private suspend fun handleFiatTransaction(update: StreamWalletUpdate) {

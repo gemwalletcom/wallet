@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -32,23 +33,18 @@ import com.gemwallet.android.ui.components.list_item.transaction.transactionsLis
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionId
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TransactionsScene(
-    loading: Boolean,
+    isRefreshing: Boolean,
     transactions: List<TransactionDataAggregate>,
     chainsFilter: List<Chain>,
     typeFilter: List<TransactionTypeFilter>,
     listState: LazyListState = rememberLazyListState(),
-    onRefresh: () -> Unit,
-    onApplyChainsFilter: (List<Chain>) -> Unit,
-    onApplyTypesFilter: (List<TransactionTypeFilter>) -> Unit,
-    onTransactionClick: (TransactionId) -> Unit,
-    onClearChainsFilter: () -> Unit,
-    onClearTypesFilter: () -> Unit,
-    onBuy: (() -> Unit)? = null,
-    onReceive: (() -> Unit)? = null,
+    showBuyAction: Boolean,
+    showReceiveAction: Boolean,
+    onAction: (TransactionsListAction) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     var showFilters by remember { mutableStateOf(false) }
@@ -72,28 +68,30 @@ internal fun TransactionsScene(
     ) {
         PullToRefreshBox(
             modifier = Modifier,
-            isRefreshing = loading,
-            onRefresh = onRefresh,
+            isRefreshing = isRefreshing,
+            onRefresh = { onAction(TransactionsListAction.Refresh) },
             state = pullToRefreshState,
             indicator = {
                 PullToRefreshDefaults.Indicator(
                     modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = loading,
+                    isRefreshing = isRefreshing,
                     state = pullToRefreshState,
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
                 )
-            }
+            },
         ) {
             if (transactions.isEmpty()) {
-                val hasFilters = chainsFilter.isNotEmpty() || typeFilter.isNotEmpty()
-                val type = if (hasFilters) {
-                    EmptyContentType.SearchActivity { onClearChainsFilter(); onClearTypesFilter() }
-                } else {
-                    EmptyContentType.Activity(onReceive = onReceive, onBuy = onBuy)
-                }
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
-                        EmptyContentView(type = type, modifier = Modifier.fillParentMaxSize())
+                        EmptyContentView(
+                            type = transactionsEmptyContentType(
+                                hasFilters = chainsFilter.isNotEmpty() || typeFilter.isNotEmpty(),
+                                showBuyAction = showBuyAction,
+                                showReceiveAction = showReceiveAction,
+                                onAction = onAction,
+                            ),
+                            modifier = Modifier.fillParentMaxSize(),
+                        )
                     }
                 }
             } else {
@@ -101,7 +99,10 @@ internal fun TransactionsScene(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                 ) {
-                    transactionsList(items = transactions, onTransactionClick = onTransactionClick)
+                    transactionsList(
+                        items = transactions,
+                        onTransactionClick = { onAction(TransactionsListAction.OpenTransaction(it)) },
+                    )
                 }
             }
         }
@@ -112,10 +113,40 @@ internal fun TransactionsScene(
             chainsFilter = chainsFilter,
             typesFilter = typeFilter,
             onDismissRequest = { showFilters = false },
-            onApplyChainsFilter = onApplyChainsFilter,
-            onApplyTypesFilter = onApplyTypesFilter,
-            onClearChainsFilter = onClearChainsFilter,
-            onClearTypesFilter = onClearTypesFilter,
+            onApplyChainsFilter = { onAction(TransactionsListAction.ApplyChainsFilter(it)) },
+            onApplyTypesFilter = { onAction(TransactionsListAction.ApplyTypesFilter(it)) },
+            onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
+            onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
         )
     }
+}
+
+private fun transactionsEmptyContentType(
+    hasFilters: Boolean,
+    showBuyAction: Boolean,
+    showReceiveAction: Boolean,
+    onAction: (TransactionsListAction) -> Unit,
+): EmptyContentType {
+    if (hasFilters) {
+        return EmptyContentType.SearchActivity {
+            onAction(TransactionsListAction.ClearChainsFilter)
+            onAction(TransactionsListAction.ClearTypesFilter)
+        }
+    }
+
+    val onBuy: (() -> Unit)? = if (showBuyAction) {
+        { onAction(TransactionsListAction.Buy) }
+    } else {
+        null
+    }
+    val onReceive: (() -> Unit)? = if (showReceiveAction) {
+        { onAction(TransactionsListAction.Receive) }
+    } else {
+        null
+    }
+
+    return EmptyContentType.Activity(
+        onBuy = onBuy,
+        onReceive = onReceive,
+    )
 }

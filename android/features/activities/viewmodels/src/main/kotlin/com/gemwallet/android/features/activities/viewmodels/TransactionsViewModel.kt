@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.activities.viewmodels
 
-import android.text.format.DateUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
@@ -13,14 +12,16 @@ import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,8 +36,8 @@ class TransactionsViewModel @Inject constructor(
     private val syncTransactions: SyncTransactions,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(true)
-    val state: StateFlow<Boolean> = _state
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
     val chainsFilter = MutableStateFlow<List<Chain>>(emptyList())
 
@@ -60,22 +61,35 @@ class TransactionsViewModel @Inject constructor(
             ),
         )
     }
-    .onEach {
-        _state.update { false }
-    }
     .distinctUntilChanged()
-    .stateIn(viewModelScope, started = SharingStarted.Eagerly, emptyList())
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = getTransactions.transactions().value,
+    )
 
     init {
-        refresh()
+        viewModelScope.launch(Dispatchers.IO) {
+            session.firstOrNull()?.wallet?.let { syncTransactions.syncTransactions(it) }
+        }
+        viewModelScope.launch {
+            session
+                .filterNotNull()
+                .distinctUntilChangedBy { it.wallet.id }
+                .drop(1)
+                .collect {
+                    clearChainsFilter()
+                    clearTypeFilter()
+                }
+        }
     }
 
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {
-        _state.update { true }
-        syncTransactions.syncTransactions(session.value?.wallet ?: return@launch)
-        viewModelScope.launch(Dispatchers.IO) {
-            delay(500)
-            _state.update { false }
+        _isRefreshing.update { true }
+        try {
+            session.firstOrNull()?.wallet?.let { syncTransactions.syncTransactions(it) }
+        } finally {
+            _isRefreshing.update { false }
         }
     }
 

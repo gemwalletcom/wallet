@@ -14,6 +14,7 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -167,6 +168,6 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
         walletType = entity.walletType ?: WalletType.Multicoin,
         stakeApr = entity.stakingApr,
         position = entity.listPosition ?: 0,
-        walletId = walletId,
+        walletId = walletId?.let(::WalletId),
     )
 }

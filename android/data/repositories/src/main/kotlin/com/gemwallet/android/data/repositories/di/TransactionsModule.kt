@@ -7,6 +7,7 @@ import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.cases.transactions.GetTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionsRepositoryImpl
 import com.gemwallet.android.data.service.store.database.TransactionsDao
@@ -24,9 +25,11 @@ object TransactionsModule {
     @Singleton
     @Provides
     fun provideTransactionsRepository(
+        sessionRepository: SessionRepository,
         transactionsDao: TransactionsDao,
         gateway: GemGateway,
     ): TransactionsRepositoryImpl = TransactionsRepositoryImpl(
+        sessionRepository = sessionRepository,
         transactionsDao = transactionsDao,
         transactionStatusService = TransactionStatusService(
             gateway = gateway,

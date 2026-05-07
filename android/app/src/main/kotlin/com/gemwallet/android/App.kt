@@ -11,6 +11,7 @@ import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -22,6 +23,8 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
     lateinit var streamObserver: StreamObserverService
     @Inject
     lateinit var syncPerpetualPositions: SyncPerpetualPositions
+    @Inject
+    lateinit var getTransactions: GetTransactions
 
     override fun onCreate() {
         super.onCreate()

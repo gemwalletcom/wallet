@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 
@@ -27,6 +28,6 @@ class EnsureWalletAssetsImpl(
             return
         }
 
-        enableAsset(wallet.id, missing)
+        enableAsset(wallet.walletId, missing)
     }
 }

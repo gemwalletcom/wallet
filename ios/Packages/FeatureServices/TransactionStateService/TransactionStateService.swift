@@ -1,76 +1,77 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
-import ChainService
-import EarnService
+import Blockchain
 import Foundation
-import protocol Gemstone.GemSwapperProtocol
-import NFTService
 import Primitives
-import StakeService
 import Store
 
 public struct TransactionStateService: Sendable {
     private let transactionStore: TransactionStore
-    private let stateService: TransactionStateProvider
-    private let swapResultProvider: SwapResultProvider
+    private let gatewayService: GatewayService
     private let postProcessingService: TransactionPostProcessingService
-    private let runner: JobRunner = .init()
 
     public init(
         transactionStore: TransactionStore,
-        swapper: any GemSwapperProtocol,
-        stakeService: StakeService,
-        earnService: EarnService,
-        nftService: NFTService,
-        chainServiceFactory: any ChainServiceFactorable,
-        balanceUpdater: any BalanceUpdater,
+        gatewayService: GatewayService,
+        postProcessingService: TransactionPostProcessingService,
     ) {
         self.transactionStore = transactionStore
-        self.stateService = TransactionStateProvider(
-            transactionStore: transactionStore,
-            chainServiceFactory: chainServiceFactory,
-        )
-        self.swapResultProvider = SwapResultProvider(swapper: swapper)
-        self.postProcessingService = TransactionPostProcessingService(
-            transactionStore: transactionStore,
-            balanceUpdater: balanceUpdater,
-            stakeService: stakeService,
-            earnService: earnService,
-            nftService: nftService,
-        )
+        self.gatewayService = gatewayService
+        self.postProcessingService = postProcessingService
     }
 
-    public func setup() {
-        if let walletsTransactions = try? transactionStore.getTransactionWallets(states: [.pending, .inTransit]) {
-            runUpdate(for: walletsTransactions)
+    func update(for transaction: Transaction) async -> JobStatus {
+        do {
+            let stateChanges = try await gatewayService.transactionStatus(
+                chain: transaction.assetId.chain,
+                request: TransactionStateRequest(
+                    id: transaction.id.hash,
+                    senderAddress: transaction.from,
+                    block: Int.from(string: transaction.blockNumber ?? "0"),
+                    createdAt: transaction.createdAt,
+                    swapProvider: transaction.swapProvider.flatMap(SwapProvider.init(rawValue:)),
+                ),
+            )
+            switch stateChanges.state {
+            case .pending, .inTransit:
+                return .retry
+            case .confirmed, .reverted, .failed:
+                try update(stateChanges, for: transaction)
+                return .complete
+            }
+        } catch {
+            debugLog("TransactionStateService: \(error)")
+            return .retry
         }
     }
 
-    public func addTransactions(wallet: Wallet, transactions: [Transaction]) throws {
-        try transactionStore.addTransactions(
-            walletId: wallet.walletId,
-            transactions: transactions,
+    func process(_ transactionWallet: TransactionWallet) async throws {
+        try await postProcessingService.process(
+            wallet: transactionWallet.wallet,
+            transaction: transactionWallet.transaction,
         )
-        runUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })
     }
 }
 
 // MARK: - Private
 
 extension TransactionStateService {
-    private func runUpdate(for transactionWallets: [TransactionWallet]) {
-        let jobs = transactionWallets.map {
-            TransactionStateUpdateJob(
-                transactionWallet: $0,
-                stateService: stateService,
-                swapResultProvider: swapResultProvider,
-                postProcessingService: postProcessingService,
-            )
-        }
-        Task {
-            for job in jobs {
-                await runner.addJob(job: job)
+    private func update(_ stateChanges: TransactionChanges, for transaction: Transaction) throws {
+        let id = transaction.id.identifier
+        _ = try transactionStore.updateState(id: id, state: stateChanges.state)
+        for change in stateChanges.changes {
+            switch change {
+            case let .networkFee(fee):
+                _ = try transactionStore.updateNetworkFee(transactionId: id, networkFee: fee.description)
+            case let .hashChange(_, newHash):
+                let newTransactionId = Primitives.Transaction.id(chain: transaction.assetId.chain, hash: newHash)
+                try transactionStore.updateTransactionId(oldTransactionId: id, transactionId: newTransactionId, hash: newHash)
+            case let .blockNumber(block):
+                _ = try transactionStore.updateBlockNumber(transactionId: id, block: block)
+            case let .createdAt(date):
+                _ = try transactionStore.updateCreatedAt(transactionId: id, date: date)
+            case let .metadata(metadata):
+                _ = try transactionStore.updateMetadata(transactionId: id, metadata: metadata)
             }
         }
     }

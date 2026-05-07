@@ -43,7 +43,7 @@ public struct ViewModelFactory: Sendable {
     let nameService: NameService
     let balanceService: BalanceService
     let priceService: PriceService
-    let transactionStateService: TransactionStateService
+    let transactionStateScheduler: TransactionStateScheduler
     let addressNameService: AddressNameService
     let activityService: ActivityService
     let eventPresenterService: EventPresenterService
@@ -64,7 +64,7 @@ public struct ViewModelFactory: Sendable {
         nameService: NameService,
         balanceService: BalanceService,
         priceService: PriceService,
-        transactionStateService: TransactionStateService,
+        transactionStateScheduler: TransactionStateScheduler,
         addressNameService: AddressNameService,
         activityService: ActivityService,
         eventPresenterService: EventPresenterService,
@@ -84,7 +84,7 @@ public struct ViewModelFactory: Sendable {
         self.nameService = nameService
         self.balanceService = balanceService
         self.priceService = priceService
-        self.transactionStateService = transactionStateService
+        self.transactionStateScheduler = transactionStateScheduler
         self.addressNameService = addressNameService
         self.activityService = activityService
         self.eventPresenterService = eventPresenterService
@@ -108,7 +108,7 @@ public struct ViewModelFactory: Sendable {
             balanceService: balanceService,
             assetsService: assetsService,
             priceService: priceService,
-            transactionStateService: transactionStateService,
+            transactionStateScheduler: transactionStateScheduler,
             addressNameService: addressNameService,
             activityService: activityService,
             eventPresenterService: eventPresenterService,

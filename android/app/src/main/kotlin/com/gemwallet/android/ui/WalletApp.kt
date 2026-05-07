@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +30,7 @@ import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
 import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.ui.navigation.WalletNavGraph
+import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
@@ -36,8 +38,9 @@ import com.gemwallet.android.ui.theme.Spacer16
 
 @Composable
 fun WalletApp(
-    pendingRoute: NavKey? = null,
+    pendingRoutes: List<NavKey> = emptyList(),
     onIntentConsumed: () -> Unit = {},
+    onContentReady: () -> Unit = {},
     walletConnectOverlay: @Composable (AssetIdAction) -> Unit = {},
     viewModel: AppViewModel = hiltViewModel(),
 ) {
@@ -50,14 +53,17 @@ fun WalletApp(
     val currentTab = rememberSaveable { mutableStateOf(assetsRoute) }
     val navigator = rememberWalletNavigationState(startDestination = start, currentTab = currentTab)
     val onBuy = remember(navigator) { AssetIdAction { navigator.openBuy(it) } }
-    var confirmPendingNavigation by remember(pendingRoute) { mutableStateOf(false) }
+    var confirmPendingNavigation by remember(pendingRoutes) { mutableStateOf(false) }
+    val currentOnContentReady by rememberUpdatedState(onContentReady)
+    val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute
+    val shouldWaitForWalletRootContent = isWalletRootActive && pendingRoutes.isEmpty()
 
-    LaunchedEffect(pendingRoute, navigator, confirmPendingNavigation) {
-        val route = pendingRoute ?: return@LaunchedEffect
+    LaunchedEffect(pendingRoutes, navigator, confirmPendingNavigation) {
+        if (pendingRoutes.isEmpty()) return@LaunchedEffect
         if (confirmPendingNavigation) {
             return@LaunchedEffect
         }
-        if (navigator.openPendingNavigation(route)) {
+        if (navigator.openPendingNavigation(pendingRoutes)) {
             onIntentConsumed()
         } else if (navigator.needsPendingNavigationConfirmation()) {
             confirmPendingNavigation = true
@@ -66,6 +72,7 @@ fun WalletApp(
 
     WalletNavGraph(
         navigator = navigator,
+        onWalletContentReady = onContentReady,
         onAcceptTerms = viewModel::acceptTerms,
         onboard = {
             OnboardScreen(
@@ -86,6 +93,12 @@ fun WalletApp(
             )
         },
     )
+
+    LaunchedEffect(shouldWaitForWalletRootContent) {
+        if (!shouldWaitForWalletRootContent) {
+            currentOnContentReady()
+        }
+    }
 
     walletConnectOverlay(onBuy)
     state.update?.let { update ->
@@ -112,11 +125,11 @@ fun WalletApp(
         )
     }
 
-    if (confirmPendingNavigation && pendingRoute != null) {
+    if (confirmPendingNavigation && pendingRoutes.isNotEmpty()) {
         OpenPendingNavigationDialog(
             onOpen = {
                 confirmPendingNavigation = false
-                if (navigator.openPendingNavigation(pendingRoute, confirmed = true)) {
+                if (navigator.openPendingNavigation(pendingRoutes, confirmed = true)) {
                     onIntentConsumed()
                 }
             },

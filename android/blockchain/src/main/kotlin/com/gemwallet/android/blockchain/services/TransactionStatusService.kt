@@ -21,7 +21,8 @@ class TransactionStatusService(
                     id = request.hash,
                     senderAddress = request.sender,
                     createdAt = 0L, /// TODO: Add created at for HyperCore,
-                    blockNumber = request.block.toLongOrDefault(0L) ,
+                    blockNumber = request.block.toLongOrDefault(0L),
+                    swapProvider = null,
                 )
             )
             val fee = result.changes.firstNotNullOfOrNull { it as? TransactionChange.NetworkFee }

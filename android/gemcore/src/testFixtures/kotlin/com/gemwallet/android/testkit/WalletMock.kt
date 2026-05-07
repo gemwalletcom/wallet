@@ -6,10 +6,10 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 
-fun mockWalletId(id: String = "wallet-id") = WalletId(id)
+fun mockWalletId(id: String = "wallet-1") = WalletId(id)
 
 fun mockWallet(
-    id: String = "wallet-id",
+    id: String = "wallet-1",
     name: String = "Wallet",
     index: Int = 0,
     type: WalletType = WalletType.Multicoin,

@@ -12,19 +12,16 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
@@ -35,14 +32,23 @@ class SettingsViewModel @Inject constructor(
     private val notificationsAvailable: NotificationsAvailable,
 ) : ViewModel() {
 
+    private val session = sessionRepository.session()
+    private val wallets = walletsRepository.getAll()
     private val state = MutableStateFlow(SettingsViewModelState())
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, SettingsUIState.General())
 
-    val isRewardsAvailable = walletsRepository.getAll().mapLatest { items -> items.any { it.type == WalletType.Multicoin } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isRewardsAvailable = wallets
+        .map { items ->
+            items.isEmpty() || items.any { it.type == WalletType.Multicoin }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            true,
+        )
 
-    val walletsCount = walletsRepository.getAll().mapLatest { it.size }
+    val walletsCount = wallets.map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     val pushEnabled = getPushEnabled.getPushEnabled()
@@ -50,7 +56,7 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            sessionRepository.session().collectLatest {
+            session.collectLatest {
                 refresh()
             }
         }
@@ -60,7 +66,7 @@ class SettingsViewModel @Inject constructor(
     private fun refresh() = viewModelScope.launch(Dispatchers.IO) {
         state.update {
             it.copy(
-                currency = sessionRepository.session().firstOrNull()?.currency ?: Currency.USD,
+                currency = session.value?.currency ?: Currency.USD,
                 developEnabled = userConfig.developEnabled(),
             )
         }
@@ -76,7 +82,7 @@ class SettingsViewModel @Inject constructor(
             userConfig.stopAskNotifications()
             switchPushEnabled.switchPushEnabled(
                 true,
-                walletsRepository.getAll().firstOrNull() ?: emptyList()
+                wallets.firstOrNull() ?: emptyList()
             )
         }
     }
@@ -86,7 +92,7 @@ class SettingsViewModel @Inject constructor(
             userConfig.stopAskNotifications()
             switchPushEnabled.switchPushEnabled(
                 false,
-                walletsRepository.getAll().firstOrNull() ?: emptyList()
+                wallets.firstOrNull() ?: emptyList()
             )
         }
     }

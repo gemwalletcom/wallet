@@ -30,7 +30,7 @@ struct GemApp: App {
                     observablePreferences: resolver.storages.observablePreferences,
                     walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
                     onstartWalletService: resolver.services.onstartWalletService,
-                    transactionStateService: resolver.services.transactionStateService,
+                    transactionStateScheduler: resolver.services.transactionStateScheduler,
                     connectionsService: resolver.services.connectionsService,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationHandler: resolver.services.navigationHandler,

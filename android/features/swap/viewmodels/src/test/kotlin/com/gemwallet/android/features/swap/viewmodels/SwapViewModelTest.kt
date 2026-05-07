@@ -131,7 +131,7 @@ class SwapViewModelTest {
 
     private fun swapSavedState(
         from: String = solAsset.id.toIdentifier(),
-        to: String = usdcAsset.id.toIdentifier(),
+        to: String? = usdcAsset.id.toIdentifier(),
     ) = SavedStateHandle(
         mapOf(
             RouteArgument.FromAssetId.key to from,
@@ -164,6 +164,23 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
         advanceUntilIdle()
 
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+    }
+
+    @Test
+    fun `selecting receive asset preserves pay amount`() = runTest(testDispatcher) {
+        val savedState = swapSavedState(to = null)
+
+        val viewModel = createViewModel(savedState)
+        advanceUntilIdle()
+
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("1.5")
+        Snapshot.sendApplyNotifications()
+        viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
+        advanceUntilIdle()
+
+        assertEquals("1.5", viewModel.payValue.text.toString())
         assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
     }

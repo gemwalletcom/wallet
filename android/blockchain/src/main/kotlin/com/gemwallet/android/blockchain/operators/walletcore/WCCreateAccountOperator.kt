@@ -5,6 +5,7 @@ import com.gemwallet.android.math.decodeHex
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.shortAddress
 import wallet.core.jni.AnyAddress
 import wallet.core.jni.Derivation
 import wallet.core.jni.HDWallet
@@ -22,12 +23,11 @@ class WCCreateAccountOperator : CreateAccountOperator {
     private fun createFromPhrase(data: String, chain: Chain): Account {
         val hdWallet = HDWallet(data, "")
         val coinType = WCChainTypeProxy().invoke(chain = chain)
-        val address = when (chain) {
+        val rawAddress = when (chain) {
             Chain.Solana -> hdWallet.getAddressDerivation(coinType, Derivation.SOLANASOLANA)
-            Chain.BitcoinCash -> hdWallet.getAddressForCoin(coinType)
-                .replaceFirst("${Chain.BitcoinCash.string}:", "")
             else -> hdWallet.getAddressForCoin(coinType)
         }
+        val address = shortAddress(rawAddress, chain.string)
         val extendedPublicKey = if (chain == Chain.Solana) {
             hdWallet.getExtendedPublicKeyDerivation(coinType.purpose(), coinType, Derivation.SOLANASOLANA, coinType.xpubVersion())
         } else {
@@ -45,7 +45,8 @@ class WCCreateAccountOperator : CreateAccountOperator {
         val coinType = WCChainTypeProxy().invoke(chain = chain)
         val privateKey = PrivateKey(data.decodeHex())
         val publicKey = privateKey.getPublicKey(coinType)
-        val address = AnyAddress(publicKey, coinType).description()
+        val rawAddress = AnyAddress(publicKey, coinType).description()
+        val address = shortAddress(rawAddress, chain.string)
         return Account(
             chain = chain,
             address = address,

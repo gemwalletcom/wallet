@@ -123,7 +123,7 @@ class ConfirmTransactionImpl(
     }
 
     private suspend fun addRecent(assetInfo: AssetInfo, request: ConfirmParams) {
-        val walletId = assetInfo.walletId ?: return
+        val walletId = assetInfo.walletId?.id ?: return
         val type = when (request) {
             is ConfirmParams.SwapParams -> RecentType.Swap
             is ConfirmParams.TransferParams -> RecentType.Send
