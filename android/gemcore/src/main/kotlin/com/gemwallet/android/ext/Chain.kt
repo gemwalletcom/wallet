@@ -141,6 +141,9 @@ fun List<Chain>.filter(query: String): List<Chain> {
     }
 }
 
+fun Chain.checksumAddress(address: String): String =
+    uniffi.gemstone.checksumAddress(address, string)
+
 fun Chain.toChainType(): ChainType {
     return when (this) {
         Chain.HyperCore -> ChainType.HyperCore

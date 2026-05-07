@@ -7,6 +7,7 @@ import com.gemwallet.android.application.recipient.coordinators.GetRecipientAsse
 import com.gemwallet.android.application.recipient.coordinators.GetWallets
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
+import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
@@ -162,6 +163,9 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
+        val destination = destination.copy(
+            address = type.assetInfo.asset.chain.checksumAddress(destination.address),
+        )
         val validation = validateDestination(type.assetInfo.asset.chain, destination)
         if (validation != RecipientError.None) {
             addressError.update { validation }
@@ -176,8 +180,7 @@ class RecipientViewModel @Inject constructor(
     }
 
     fun onAddress(input: String, record: NameRecord?) {
-        _address.value = input
-        nameRecord.value = record
+        setAddress(input, record)
     }
 
     fun onMemo(input: String) {
@@ -191,16 +194,18 @@ class RecipientViewModel @Inject constructor(
         } catch (_: Throwable) {
             null
         }
-        val address = paymentWrapper.address
-        val memo = paymentWrapper.memo
         val assetInfo = type.assetInfo
+        val address = assetInfo.asset.chain.checksumAddress(paymentWrapper.address)
+        val memo = paymentWrapper.memo
+        val owner = assetInfo.owner
 
         if (
-            address.isNotEmpty()
+            owner != null
+            && address.isNotEmpty()
             && amount != null
             && (assetInfo.asset.chain.isMemoSupport() || !memo.isNullOrEmpty())
         ) {
-            val params = ConfirmParams.Builder(assetInfo.asset, assetInfo.owner!!, amount, false).transfer(DestinationAddress(address), memo)
+            val params = ConfirmParams.Builder(assetInfo.asset, owner, amount, false).transfer(DestinationAddress(address), memo)
             confirmAction(params)
             return
         }
@@ -208,13 +213,25 @@ class RecipientViewModel @Inject constructor(
         when (field) {
             QrScanField.None -> Unit
             QrScanField.Address -> {
-                _address.value = address.ifEmpty { data }
+                setAddress(address.ifEmpty { data })
                 _memo.value = memo?.ifEmpty { _memo.value } ?: _memo.value
             }
             QrScanField.Memo -> {
-                _address.value = address.ifEmpty { _address.value }
                 _memo.value = paymentWrapper.memo ?: data
             }
+        }
+    }
+
+    private fun setAddress(input: String, record: NameRecord? = null) {
+        val chain = when (val state = state.value) {
+            is RecipientState.Ready -> state.type.assetInfo.asset.chain
+            RecipientState.Loading -> null
+        }
+        _address.value = chain?.checksumAddress(input) ?: input
+        nameRecord.value = if (chain != null && record != null) {
+            record.copy(address = chain.checksumAddress(record.address))
+        } else {
+            record
         }
     }
 
