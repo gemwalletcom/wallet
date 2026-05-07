@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -68,6 +71,16 @@ class TransactionsViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             session.firstOrNull()?.wallet?.let { syncTransactions.syncTransactions(it) }
+        }
+        viewModelScope.launch {
+            session
+                .filterNotNull()
+                .distinctUntilChangedBy { it.wallet.id }
+                .drop(1)
+                .collect {
+                    clearChainsFilter()
+                    clearTypeFilter()
+                }
         }
     }
 
