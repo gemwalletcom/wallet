@@ -40,36 +40,36 @@ sealed interface TransactionDetailsValue {
 
     sealed class Destination(
         val data: String,
-        open val name: String? = null,
-        open val addressType: AddressType? = null,
-        open val explorerLink: BlockExplorerLink? = null,
+        val name: String? = null,
+        val addressType: AddressType? = null,
+        val explorerLink: BlockExplorerLink? = null,
     ) : TransactionDetailsValue {
         class Sender(
             data: String,
-            override val name: String? = null,
-            override val addressType: AddressType? = null,
-            override val explorerLink: BlockExplorerLink? = null,
+            name: String? = null,
+            addressType: AddressType? = null,
+            explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, name, addressType, explorerLink)
         class Recipient(
             data: String,
-            override val name: String? = null,
-            override val addressType: AddressType? = null,
-            override val explorerLink: BlockExplorerLink? = null,
+            name: String? = null,
+            addressType: AddressType? = null,
+            explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, name, addressType, explorerLink)
         class Contract(
             data: String,
-            override val name: String? = null,
-            override val explorerLink: BlockExplorerLink? = null,
+            name: String? = null,
+            explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, name = name, explorerLink = explorerLink)
         class Validator(
             data: String,
-            override val name: String? = null,
-            override val explorerLink: BlockExplorerLink? = null,
+            name: String? = null,
+            explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, name = name, explorerLink = explorerLink)
         class ProviderAddress(
             data: String,
-            override val name: String? = null,
-            override val explorerLink: BlockExplorerLink? = null,
+            name: String? = null,
+            explorerLink: BlockExplorerLink? = null,
         ) : Destination(data, name = name, explorerLink = explorerLink)
         class Provider(name: String) : Destination(name)
     }

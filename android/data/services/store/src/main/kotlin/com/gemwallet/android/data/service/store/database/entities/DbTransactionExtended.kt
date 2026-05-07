@@ -19,11 +19,11 @@ data class DbTransactionExtended(
     @ColumnInfo("fee_price_day_changed") val feePriceDayChanged: Double?,
     @Embedded(prefix = "from_asset_") val fromAsset: DbAssetProjection?,
     @Embedded(prefix = "to_asset_") val toAsset: DbAssetProjection?,
-    @Embedded(prefix = "from_address_") val fromAddress: DbAddressNameProjection?,
-    @Embedded(prefix = "to_address_") val toAddress: DbAddressNameProjection?,
+    @Embedded(prefix = "from_address_") val fromAddress: DbAddressProjection?,
+    @Embedded(prefix = "to_address_") val toAddress: DbAddressProjection?,
 )
 
-data class DbAddressNameProjection(
+data class DbAddressProjection(
     val chain: Chain?,
     val name: String?,
     val type: AddressType?,
@@ -51,7 +51,7 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
     )
 }
 
-private fun DbAddressNameProjection.toAddressName(address: String): AddressName? {
+private fun DbAddressProjection.toAddressName(address: String): AddressName? {
     val chain = chain ?: return null
     val name = name ?: return null
     return AddressName(

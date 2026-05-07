@@ -22,12 +22,5 @@ object Migration_72_73 : Migration(72, 73) {
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_addresses_chain` ON `addresses` (`chain`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_addresses_wallet_id` ON `addresses` (`wallet_id`)")
-        db.execSQL(
-            """
-                INSERT OR REPLACE INTO `addresses` (`chain`, `address`, `wallet_id`, `name`, `type`, `status`)
-                SELECT a.chain, a.address, a.wallet_id, w.name, 'InternalWallet', 'Verified'
-                FROM accounts a INNER JOIN wallets w ON a.wallet_id = w.id
-            """
-        )
     }
 }
