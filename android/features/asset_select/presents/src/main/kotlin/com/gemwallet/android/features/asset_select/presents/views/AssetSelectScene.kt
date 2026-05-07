@@ -277,7 +277,7 @@ private fun LazyListScope.assets(
 
     item { PinnedAssetsHeaderItem(group) }
 
-    itemsPositioned(items, key = { index, item -> "${item.asset.id.toIdentifier()}-${group.name}" }) { position, item ->
+    itemsPositioned(items) { position, item ->
         AssetSelectRow(
             position = position,
             item = item,

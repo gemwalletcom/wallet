@@ -267,7 +267,7 @@ interface AssetsDao {
             AND (walletId = (SELECT wallet_id FROM session WHERE session.id = 1) OR walletId IS NULL)
             AND assetRank > 0
             AND assets_priority.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, assets_priority.priority DESC, assetRank DESC
+            ORDER BY balanceFiatTotalAmount DESC, assets_priority.priority ASC, assetRank DESC
         """)
     fun searchWithPriority(query: String, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
 
@@ -290,7 +290,7 @@ interface AssetsDao {
             assetRank > 0
             AND
             assets_priority.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, assets_priority.priority DESC, assetRank DESC
+            ORDER BY balanceFiatTotalAmount DESC, assets_priority.priority ASC, assetRank DESC
             
         """)
     fun searchByAllWalletsWithPriority(query: String): Flow<List<DbAssetInfo>>
@@ -314,7 +314,7 @@ interface AssetsDao {
             (chain IN (:byChains) OR id IN (:byAssets) )
             AND assetRank > 0
             AND assets_priority.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
+            ORDER BY balanceFiatTotalAmount DESC, assets_priority.priority ASC, assetRank DESC
         """)
     fun swapSearchWithPriority(query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 

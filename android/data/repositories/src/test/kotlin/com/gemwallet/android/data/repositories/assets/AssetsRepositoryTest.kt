@@ -447,6 +447,44 @@ class AssetsRepositoryTest {
     }
 
     @Test
+    fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        every { assetsPriorityDao.hasPriorities("usd") } returns flowOf(2)
+
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Solana)),
+        )
+        val highPriorityAsset = mockAssetSolana()
+        val lowPriorityAsset = mockAssetSolanaUSDC()
+
+        every {
+            assetsDao.swapSearchWithPriority(
+                query = "usd",
+                byChains = listOf(Chain.Solana),
+                byAssets = emptyList(),
+            )
+        } returns flowOf(
+            listOf(
+                mockDbAssetInfo(asset = highPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+                mockDbAssetInfo(asset = lowPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+            )
+        )
+
+        val subject = createSubject()
+        val result = subject.swapSearch(
+            wallet = wallet,
+            query = "usd",
+            byChains = listOf(Chain.Solana),
+            byAssets = emptyList(),
+            tags = emptyList(),
+        ).first()
+
+        assertEquals(listOf(highPriorityAsset.id, lowPriorityAsset.id), result.map { it.asset.id })
+    }
+
+    @Test
     fun getAssetsInfo_returnsStoreRowsWithoutRepositoryDedupe() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
