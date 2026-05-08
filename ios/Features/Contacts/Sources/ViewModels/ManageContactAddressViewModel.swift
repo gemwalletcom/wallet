@@ -103,7 +103,7 @@ public final class ManageContactAddressViewModel {
         ContactAddress.new(
             contactId: contactId,
             chain: chain,
-            address: chain.checksumAddress(addressInputModel.resolvedAddress),
+            address: chain.checksumAddress(addressInputModel.address),
             memo: memo.isEmpty ? nil : memo,
         )
     }

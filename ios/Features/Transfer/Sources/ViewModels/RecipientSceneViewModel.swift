@@ -129,7 +129,7 @@ extension RecipientSceneViewModel {
         handle(
             recipientData: makeRecipientData(
                 name: addressInputModel.nameResolveState.result,
-                address: addressInputModel.resolvedAddress,
+                address: addressInputModel.address,
                 memo: memo,
                 amount: amount.isEmpty ? .none : amount,
             ),
@@ -193,16 +193,15 @@ extension RecipientSceneViewModel {
         let payment = try PaymentURLDecoder.decode(string)
 
         return PaymentScanResult(
-            address: payment.address,
+            address: asset.chain.checksumAddress(payment.address),
             amount: payment.amount,
             memo: payment.memo,
         )
     }
 
     func getRecipientScanResult(payment: PaymentScanResult) throws -> RecipientScanResult {
-        let address = asset.chain.checksumAddress(payment.address)
         if let amount = payment.amount, showMemo ? ((payment.memo?.isEmpty) == nil) : true,
-           asset.chain.isValidAddress(address)
+           asset.chain.isValidAddress(payment.address)
         {
             let transferType: TransferDataType = switch type {
             case let .asset(asset): .transfer(asset)
@@ -213,7 +212,7 @@ extension RecipientSceneViewModel {
             let recipientData = RecipientData(
                 recipient: Recipient(
                     name: .none,
-                    address: address,
+                    address: payment.address,
                     memo: payment.memo,
                 ),
                 amount: .none,
@@ -223,7 +222,7 @@ extension RecipientSceneViewModel {
             )
         }
 
-        return .recipient(address: address, memo: payment.memo, amount: payment.amount)
+        return .recipient(address: payment.address, memo: payment.memo, amount: payment.amount)
     }
 
     private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {

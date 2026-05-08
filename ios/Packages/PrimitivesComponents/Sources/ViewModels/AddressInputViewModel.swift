@@ -53,9 +53,8 @@ public final class AddressInputViewModel {
         }
     }
 
-    public var resolvedAddress: String {
-        let raw = nameResolveState.result?.address ?? inputModel.text.trim()
-        return chain.checksumAddress(raw)
+    public var address: String {
+        chain.checksumAddress(nameResolveState.result?.address ?? inputModel.text.trim())
     }
 
     @discardableResult
