@@ -23,7 +23,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,19 +58,12 @@ fun NftListNavScreen(
     listState: LazyGridState = rememberLazyGridState(),
     title: String = stringResource(R.string.nft_collections),
     onUnverifiedClick: (() -> Unit)? = null,
-    refreshKey: Any? = null,
     viewModel: NftListViewModels = hiltViewModel(),
 ) {
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val unverifiedCount by viewModel.unverifiedCount.collectAsStateWithLifecycle()
-
-    LaunchedEffect(refreshKey) {
-        if (refreshKey != null) {
-            viewModel.refresh()
-        }
-    }
 
     NftListScene(
         items = items,

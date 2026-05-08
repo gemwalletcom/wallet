@@ -76,21 +76,16 @@ class StreamEventHandler(
     }
 
     private suspend fun handleBalances(update: StreamBalanceUpdate) {
+        val walletId = update.walletId.id
         val assetIds = listOf(update.assetId.toIdentifier())
-        assetsDao.getAssetsInfo(assetIds)
+        assetsDao.getAssetsInfo(walletId, assetIds)
             .toAssetInfoModel()
             .firstOrNull()
-            ?.groupBy { it.walletId }
-            ?.forEach { (walletId, assets) ->
-                walletId ?: return@forEach
-                assets.groupBy { it.asset.chain }
-                    .mapKeys { it.value.firstOrNull()?.owner }
-                    .forEach { (account, assetInfos) ->
-                        val owner: Account = account ?: return@forEach
-                        updateBalances.updateBalances(
-                            walletId.id, owner, assetInfos.map { it.asset }
-                        )
-                    }
+            ?.groupBy { it.asset.chain }
+            ?.mapKeys { it.value.firstOrNull()?.owner }
+            ?.forEach { (account, assetInfos) ->
+                val owner: Account = account ?: return@forEach
+                updateBalances.updateBalances(walletId, owner, assetInfos.map { it.asset })
             }
     }
 

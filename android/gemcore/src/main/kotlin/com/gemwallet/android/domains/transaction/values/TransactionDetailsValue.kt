@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.transaction.values
 
 import com.gemwallet.android.model.AssetInfo
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
@@ -37,12 +38,39 @@ sealed interface TransactionDetailsValue {
 
     class Date(val data: String) : TransactionDetailsValue
 
-    sealed class Destination(val data: String, open val explorerLink: BlockExplorerLink? = null) : TransactionDetailsValue {
-        class Sender(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
-        class Recipient(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
-        class Contract(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
-        class Validator(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
-        class ProviderAddress(data: String, override val explorerLink: BlockExplorerLink? = null) : Destination(data, explorerLink)
+    sealed class Destination(
+        val data: String,
+        val name: String? = null,
+        val addressType: AddressType? = null,
+        val explorerLink: BlockExplorerLink? = null,
+    ) : TransactionDetailsValue {
+        class Sender(
+            data: String,
+            name: String? = null,
+            addressType: AddressType? = null,
+            explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name, addressType, explorerLink)
+        class Recipient(
+            data: String,
+            name: String? = null,
+            addressType: AddressType? = null,
+            explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name, addressType, explorerLink)
+        class Contract(
+            data: String,
+            name: String? = null,
+            explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name = name, explorerLink = explorerLink)
+        class Validator(
+            data: String,
+            name: String? = null,
+            explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name = name, explorerLink = explorerLink)
+        class ProviderAddress(
+            data: String,
+            name: String? = null,
+            explorerLink: BlockExplorerLink? = null,
+        ) : Destination(data, name = name, explorerLink = explorerLink)
         class Provider(name: String) : Destination(name)
     }
 

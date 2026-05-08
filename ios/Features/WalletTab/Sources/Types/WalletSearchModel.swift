@@ -51,26 +51,16 @@ extension WalletSearchModel {
         Limits.perpetuals
     }
 
-    static func initialFetchLimit(isPerpetualEnabled: Bool) -> Int {
-        if isPerpetualEnabled {
-            return Limits.Assets.initial + 1
-        }
-        return Limits.fetch
+    static var initialFetchLimit: Int {
+        Limits.Assets.initial + 1
     }
 
-    static func searchItemTypes(isPerpetualEnabled: Bool) -> [SearchItemType] {
-        var types: [SearchItemType] = [.asset]
-        if isPerpetualEnabled {
-            types.append(.perpetual)
-        }
-        return types
+    static var searchItemTypes: [SearchItemType] {
+        [.asset, .perpetual]
     }
 
-    static func recentActivityTypes(isPerpetualEnabled: Bool) -> [RecentActivityType] {
-        if isPerpetualEnabled {
-            return RecentActivityType.allCases
-        }
-        return RecentActivityType.allCases.filter { $0 != .perpetual }
+    static var recentActivityTypes: [RecentActivityType] {
+        RecentActivityType.allCases
     }
 
     func searchMode(tag: String?) -> WalletSearchMode {
@@ -79,20 +69,18 @@ extension WalletSearchModel {
         return .initial
     }
 
-    func assetsLimit(tag: String?, isPerpetualEnabled: Bool) -> Int {
-        guard isPerpetualEnabled else { return Limits.fetch }
+    func assetsLimit(tag: String?) -> Int {
         switch searchMode(tag: tag) {
-        case .initial: return Limits.Assets.initial
-        case .tagBrowsing: return Limits.Assets.tagBrowse
-        case .searching: return Limits.Assets.search
+        case .initial: Limits.Assets.initial
+        case .tagBrowsing: Limits.Assets.tagBrowse
+        case .searching: Limits.Assets.search
         }
     }
 
-    func fetchLimit(tag: String?, isPerpetualEnabled: Bool) -> Int {
-        guard isPerpetualEnabled else { return Limits.fetch }
+    func fetchLimit(tag: String?) -> Int {
         switch searchMode(tag: tag) {
-        case .initial, .tagBrowsing: return assetsLimit(tag: tag, isPerpetualEnabled: true) + 1
-        case .searching: return Limits.fetch
+        case .initial, .tagBrowsing: assetsLimit(tag: tag) + 1
+        case .searching: Limits.fetch
         }
     }
 }

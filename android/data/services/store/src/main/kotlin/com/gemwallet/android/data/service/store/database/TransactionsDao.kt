@@ -7,12 +7,15 @@ import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 
 const val EXTENDED_COLUMNS = """
@@ -40,7 +43,15 @@ const val EXTENDED_COLUMNS = """
     to_asset.name AS to_asset_name,
     to_asset.symbol AS to_asset_symbol,
     to_asset.decimals AS to_asset_decimals,
-    to_asset.type AS to_asset_type
+    to_asset.type AS to_asset_type,
+    from_addr.chain AS from_address_chain,
+    from_addr.name AS from_address_name,
+    from_addr.type AS from_address_type,
+    from_addr.status AS from_address_status,
+    to_addr.chain AS to_address_chain,
+    to_addr.name AS to_address_name,
+    to_addr.type AS to_address_type,
+    to_addr.status AS to_address_status
 """
 
 const val EXTENDED_SOURCE = """
@@ -52,6 +63,8 @@ const val EXTENDED_SOURCE = """
     LEFT JOIN tx_swap_metadata as swap ON tx.id = swap.tx_id
     LEFT JOIN asset as from_asset ON swap.from_asset_id = from_asset.id
     LEFT JOIN asset as to_asset ON swap.to_asset_id = to_asset.id
+    LEFT JOIN addresses as from_addr ON from_addr.chain = asset.chain AND from_addr.address = tx.owner
+    LEFT JOIN addresses as to_addr ON to_addr.chain = asset.chain AND to_addr.address = tx.recipient
     WHERE tx.walletId = :walletId
 """
 
@@ -62,7 +75,7 @@ interface TransactionsDao {
     fun insert(transactions: List<DbTransaction>)
 
     @Query("DELETE FROM transactions WHERE id = :id AND walletId = :walletId")
-    fun delete(id: String, walletId: String)
+    fun delete(id: TransactionId, walletId: WalletId)
 
     @RawQuery(
         observedEntities = [
@@ -70,20 +83,21 @@ interface TransactionsDao {
             DbAsset::class,
             DbPrice::class,
             DbTxSwapMetadata::class,
+            DbAddress::class,
         ]
     )
     fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
 
     fun getExtendedTransactions(
-        walletId: String,
+        walletId: WalletId,
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
     @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state = :state")
-    fun getTransactionsCount(walletId: String, state: TransactionState): Flow<Int?>
+    fun getTransactionsCount(walletId: WalletId, state: TransactionState): Flow<Int?>
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
-    fun getExtendedTransaction(walletId: String, id: String): Flow<DbTransactionExtended?>
+    fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)

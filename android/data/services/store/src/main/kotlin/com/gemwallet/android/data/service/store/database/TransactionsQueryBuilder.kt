@@ -2,6 +2,7 @@ package com.gemwallet.android.data.service.store.database
 
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.WalletId
 
 const val DEFAULT_TRANSACTIONS_LIMIT = 50
 
@@ -17,12 +18,12 @@ private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
 }
 
 fun buildExtendedTransactionsSql(
-    walletId: String,
+    walletId: WalletId,
     filters: List<TransactionsRequestFilter>,
     limit: Int = DEFAULT_TRANSACTIONS_LIMIT,
 ): SqlQuery {
     val source = EXTENDED_SOURCE.replace(":walletId", "?")
-    return SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $source", baseArgs = listOf(walletId))
+    return SqlQueryBuilder(baseSql = "SELECT $EXTENDED_COLUMNS $source", baseArgs = listOf(walletId.id))
         .whereAll(filters.map { it.toSqlClause() })
         .orderBy("tx.createdAt DESC")
         .limit(limit)

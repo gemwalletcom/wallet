@@ -18,6 +18,8 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
+import com.gemwallet.android.ext.walletId
+import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.TransactionSwapMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +63,7 @@ class ConfirmTransactionImpl(
                 delay(500)
             } else {
                 lastHash = txHash
-                addTransaction(txHash, signerParams, assetInfo, session)
+                addTransaction(txHash, signerParams, assetInfo, account, session)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }
         }
@@ -97,15 +99,16 @@ class ConfirmTransactionImpl(
         txHash: String,
         signerParams: SignerParams,
         assetInfo: AssetInfo,
+        account: Account,
         session: Session,
     ) {
         val destinationAddress = signerParams.input.destination()?.address ?: ""
 
         createTransactionsCase.createTransaction(
             hash = txHash,
-            walletId = session.wallet.id,
+            walletId = session.wallet.walletId,
             assetId = assetInfo.id(),
-            owner = assetInfo.owner!!,
+            owner = account,
             to = destinationAddress,
             state = TransactionState.Pending,
             fee = signerParams.fee(),
@@ -113,7 +116,7 @@ class ConfirmTransactionImpl(
             memo = signerParams.input.memo() ?: "",
             type = signerParams.input.getTxType(),
             metadata = assembleMetadata(signerParams),
-            direction = if (destinationAddress == assetInfo.owner!!.address) {
+            direction = if (destinationAddress == account.address) {
                 TransactionDirection.SelfTransfer
             } else {
                 TransactionDirection.Outgoing

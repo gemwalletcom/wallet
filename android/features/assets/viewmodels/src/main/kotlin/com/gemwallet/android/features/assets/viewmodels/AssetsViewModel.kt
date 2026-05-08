@@ -18,7 +18,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -58,14 +57,6 @@ class AssetsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AssetGroups())
 
-    private val isWalletEmpty = assetGroups
-        .map { groups ->
-            groups.pinned.all { it.isZeroBalance }
-                && groups.unpinned.all { it.isZeroBalance }
-        }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
     val pinnedAssets = assetGroups
         .map { it.pinned }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -77,7 +68,7 @@ class AssetsViewModel @Inject constructor(
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val showWelcomeBanner = getShowWelcomeBanner(isWalletEmpty)
+    val showWelcomeBanner = getShowWelcomeBanner()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onRefresh() = viewModelScope.launch(Dispatchers.IO) {

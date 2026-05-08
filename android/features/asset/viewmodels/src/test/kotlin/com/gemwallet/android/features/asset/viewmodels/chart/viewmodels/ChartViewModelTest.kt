@@ -3,8 +3,8 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
+import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -39,8 +39,8 @@ class ChartViewModelTest {
     private val currencyFlow = MutableStateFlow(Currency.USD)
     private val viewModels = mutableListOf<ViewModel>()
 
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
+    private val getAssetTokenInfo = mockk<GetAssetTokenInfo>(relaxed = true)
+    private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
     private val getAssetChartData = mockk<GetAssetChartData>(relaxed = true)
@@ -61,7 +61,7 @@ class ChartViewModelTest {
     fun `historical chart renders when token info flow emits null`() = runTest(testDispatcher) {
         val prices = mockChartPrices(values = listOf(10f, 12f, 14f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        every { assetsRepository.getTokenInfo(asset.id) } returns tokenInfoFlow
+        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
@@ -76,7 +76,7 @@ class ChartViewModelTest {
     fun `current point overlay is skipped when local price info is missing`() = runTest(testDispatcher) {
         val prices = mockChartPrices(values = listOf(100f, 105f, 110f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
-        every { assetsRepository.getTokenInfo(asset.id) } returns tokenInfoFlow
+        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
@@ -90,7 +90,7 @@ class ChartViewModelTest {
     fun `initial request uses currency flow without waiting for session object`() = runTest(testDispatcher) {
         val prices = mockChartPrices(values = listOf(1f, 2f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        every { assetsRepository.getTokenInfo(asset.id) } returns tokenInfoFlow
+        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
         coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
 
         val viewModel = createViewModel(tokenInfoFlow)
@@ -104,10 +104,10 @@ class ChartViewModelTest {
     }
 
     private fun createViewModel(tokenInfoFlow: MutableStateFlow<AssetInfo?>): ChartViewModel {
-        every { assetsRepository.getTokenInfo(asset.id) } returns tokenInfoFlow
+        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
         return ChartViewModel(
-            assetsRepository = assetsRepository,
-            sessionRepository = sessionRepository,
+            getAssetTokenInfo = getAssetTokenInfo,
+            getCurrentCurrency = getCurrentCurrency,
             getAssetChartData = getAssetChartData,
             assetId = asset.id,
         ).also(viewModels::add)

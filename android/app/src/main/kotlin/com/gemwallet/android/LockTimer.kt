@@ -10,6 +10,7 @@ import javax.inject.Inject
 
 class LockTimer @Inject constructor(
     private val userConfig: UserConfig,
+    private val activeRequestState: WalletConnectActiveRequestState,
 ) {
 
     private val pauseTime = AtomicLong(0L)
@@ -23,6 +24,7 @@ class LockTimer @Inject constructor(
     @VisibleForTesting
     internal suspend fun shouldRelock(now: Long): Boolean {
         if (!userConfig.authRequired()) return false
+        if (activeRequestState.hasActive.value) return false
         val elapsed = now - pauseTime.get()
         val lockIntervalMs = userConfig.getLockInterval().first() * DateUtils.MINUTE_IN_MILLIS
         return elapsed > lockIntervalMs

@@ -35,6 +35,7 @@ import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockTransaction
+import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
@@ -110,9 +111,10 @@ class AssetsRepositoryTest {
     @Test
     fun completeStakeTransaction_syncsDelegations() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
         val asset = mockAssetSolana()
-        every { assetsDao.getAssetsInfo(listOf(asset.id.toIdentifier())) } returns flowOf(
+        every { assetsDao.getAssetsInfo("wallet-1", listOf(asset.id.toIdentifier())) } returns flowOf(
             listOf(
                 mockDbAssetInfo(
                     chain = asset.id.chain,
@@ -151,9 +153,10 @@ class AssetsRepositoryTest {
     @Test
     fun completeNftTransfer_syncsWalletNfts() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
         val transaction = mockTransaction(type = TransactionType.TransferNFT)
-        every { assetsDao.getAssetsInfo(transaction.getAssociatedAssetIds().map { it.toIdentifier() }) } returns flowOf(
+        every { assetsDao.getAssetsInfo("wallet-1", transaction.getAssociatedAssetIds().map { it.toIdentifier() }) } returns flowOf(
             listOf(mockDbAssetInfo(chain = transaction.assetId.chain, id = transaction.assetId.toIdentifier()))
         )
 
@@ -425,8 +428,9 @@ class AssetsRepositoryTest {
     @Test
     fun switchVisibility_hideUnlinkedAsset_doesNotCreateWalletAsset() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
-        every { assetsDao.getAssetInfo("solana", Chain.Solana) } returns flowOf(null)
+        every { assetsDao.getAssetInfo("wallet-1", "solana", Chain.Solana) } returns flowOf(null)
 
         val subject = createSubject()
         subject.switchVisibility(mockWalletId(), AssetId(Chain.Solana), false)
@@ -437,9 +441,10 @@ class AssetsRepositoryTest {
     @Test
     fun switchVisibility_showUnlinkedAsset_linksOnce() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
-        every { assetsDao.getAssetInfo("solana", Chain.Solana) } returns flowOf(null)
-        every { assetsDao.getAssetsInfo(listOf("solana")) } returns flowOf(emptyList())
+        every { assetsDao.getAssetInfo("wallet-1", "solana", Chain.Solana) } returns flowOf(null)
+        every { assetsDao.getAssetsInfo("wallet-1", listOf("solana")) } returns flowOf(emptyList())
 
         val subject = createSubject()
         subject.switchVisibility(mockWalletId(), AssetId(Chain.Solana), true)
@@ -480,6 +485,7 @@ class AssetsRepositoryTest {
 
         every {
             assetsDao.swapSearch(
+                walletId = "wallet-1",
                 query = "",
                 byChains = listOf(Chain.Solana),
                 byAssets = emptyList(),
@@ -520,12 +526,52 @@ class AssetsRepositoryTest {
     }
 
     @Test
+    fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+        every { assetsPriorityDao.hasPriorities("usd") } returns flowOf(2)
+
+        val wallet = mockWallet(
+            id = "wallet-1",
+            accounts = listOf(mockAccount(chain = Chain.Solana)),
+        )
+        val highPriorityAsset = mockAssetSolana()
+        val lowPriorityAsset = mockAssetSolanaUSDC()
+
+        every {
+            assetsDao.swapSearchWithPriority(
+                walletId = "wallet-1",
+                query = "usd",
+                byChains = listOf(Chain.Solana),
+                byAssets = emptyList(),
+            )
+        } returns flowOf(
+            listOf(
+                mockDbAssetInfo(asset = highPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+                mockDbAssetInfo(asset = lowPriorityAsset, walletId = "wallet-1", visible = true, sessionId = 1),
+            )
+        )
+
+        val subject = createSubject()
+        val result = subject.swapSearch(
+            wallet = wallet,
+            query = "usd",
+            byChains = listOf(Chain.Solana),
+            byAssets = emptyList(),
+            tags = emptyList(),
+        ).first()
+
+        assertEquals(listOf(highPriorityAsset.id, lowPriorityAsset.id), result.map { it.asset.id })
+    }
+
+    @Test
     fun getAssetsInfo_returnsStoreRowsWithoutRepositoryDedupe() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolana()
-        every { assetsDao.getAssetsInfo() } returns flowOf(
+        every { assetsDao.getAssetsInfo("wallet-1") } returns flowOf(
             listOf(
                 mockDbAssetInfo(asset = asset, address = "first-address"),
                 mockDbAssetInfo(asset = asset, address = "duplicate-address"),

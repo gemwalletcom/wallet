@@ -83,7 +83,7 @@ public final class PerpetualSceneViewModel {
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        perpetualTotalValueQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, balanceType: .perpetual), initialValue: .zero)
+        perpetualTotalValueQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, type: .perpetual), initialValue: .zero)
         transactionsQuery = ObservableQuery(
             TransactionsRequest.perpetualScene(
                 walletId: wallet.walletId,

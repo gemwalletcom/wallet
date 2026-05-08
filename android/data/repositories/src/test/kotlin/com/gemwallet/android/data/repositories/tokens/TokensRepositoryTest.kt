@@ -76,6 +76,34 @@ class TokensRepositoryTest {
     }
 
     @Test
+    fun search_storesPriorityByResponseOrderNotByAssetRank() = runTest {
+        val firstResult = mockAssetBasic(asset = mockAssetEthereum(), rank = 10)
+        val secondResult = mockAssetBasic(asset = mockAsset(), rank = 999)
+        coEvery {
+            searchAssets.search(
+                query = "usdt arbitrum",
+                chains = emptyList(),
+                tags = emptyList(),
+            )
+        } returns listOf(firstResult, secondResult)
+        every { pricesDao.getRates(Currency.USD) } returns flowOf(DbFiatRate(Currency.USD, 1.0))
+
+        subject.search(
+            query = "usdt arbitrum",
+            currency = Currency.USD,
+            chains = emptyList(),
+            tags = emptyList(),
+        )
+
+        val priorities = slot<List<DbAssetPriority>>()
+        coVerify { assetsPriorityDao.put(capture(priorities)) }
+        val captured = priorities.captured
+
+        assertEquals(listOf(firstResult.asset.id.toIdentifier(), secondResult.asset.id.toIdentifier()), captured.map { it.assetId })
+        assertTrue("first response item must outrank later items", captured[0].priority < captured[1].priority)
+    }
+
+    @Test
     fun searchByAssetIds_usesSearchAssetsGetAssets() = runTest {
         val asset = mockAsset()
         val assetBasic = mockAssetBasic(asset = asset, rank = 100)

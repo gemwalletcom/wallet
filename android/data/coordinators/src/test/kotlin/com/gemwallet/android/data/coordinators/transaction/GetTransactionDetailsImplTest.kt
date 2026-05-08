@@ -82,7 +82,7 @@ class GetTransactionDetailsImplTest {
         )
 
         every { sessionRepository.session() } returns MutableStateFlow(mockSession(wallet = wallet))
-        every { transactionRepository.getTransaction("tx-id") } returns flowOf(transactionExtended)
+        every { transactionRepository.getTransaction(transaction.id) } returns flowOf(transactionExtended)
         every { assetsRepository.getAssetsInfo(any<List<AssetId>>()) } returns flowOf(
             listOf(mockAssetInfo(asset = asset, owner = mockAccount(chain = Chain.Near, address = transaction.from)))
         )
@@ -94,7 +94,7 @@ class GetTransactionDetailsImplTest {
         every { gemSwapper.getProviders() } returns emptyList()
         every { explorer.getAddressUrl("Near", any()) } answers { "https://nearblocks.io/address/${secondArg<String>()}" }
 
-        val result = subject.getTransactionDetails("tx-id").first()
+        val result = subject.getTransactionDetails(transaction.id).first()
 
         assertNotNull(result)
         assertEquals("NEAR Intents", result?.explorer?.name)

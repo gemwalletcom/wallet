@@ -142,10 +142,6 @@ class ProposalSceneViewModel @Inject constructor(
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId.id } }
     }
 
-    fun reset() {
-        state.update { ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN) }
-        _proposal.value = null
-    }
 }
 
 sealed interface ProposalSceneState {

@@ -10,6 +10,8 @@ interface TransactionDataAggregate {
     val id: TransactionId
     val asset: Asset
     val address: String
+    val addressName: String?
+        get() = null
     val value: String
     val equivalentValue: String?
     val type: TransactionType

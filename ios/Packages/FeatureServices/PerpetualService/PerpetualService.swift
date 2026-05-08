@@ -75,6 +75,10 @@ public struct PerpetualService: PerpetualServiceable {
         try store.clear()
     }
 
+    public func clearBalance() throws {
+        try balanceStore.deleteBalance(assetId: Asset.hypercoreUSDC().id)
+    }
+
     // MARK: - Private
 
     private func syncProviderBalances(walletId: WalletId, balance: PerpetualBalance) throws {

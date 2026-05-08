@@ -44,10 +44,23 @@ class LockTimerTest {
         assertTrue(timer.shouldRelock(now = 1L))
     }
 
-    private fun lockTimer(authRequired: Boolean, lockIntervalMinutes: Int): LockTimer {
+    @Test
+    fun shouldRelock_returnsFalseWhenWalletConnectRequestActive() = runTest {
+        val activeRequestState = WalletConnectActiveRequestState().apply { setActive(true) }
+        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0, activeRequestState = activeRequestState)
+        timer.setPausedAt(0L)
+
+        assertFalse(timer.shouldRelock(now = Long.MAX_VALUE))
+    }
+
+    private fun lockTimer(
+        authRequired: Boolean,
+        lockIntervalMinutes: Int,
+        activeRequestState: WalletConnectActiveRequestState = WalletConnectActiveRequestState(),
+    ): LockTimer {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(userConfig)
+        return LockTimer(userConfig, activeRequestState)
     }
 }

@@ -16,7 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,10 +70,8 @@ fun ProposalScene(
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
 
-    DisposableEffect(key1 = proposal) {
+    LaunchedEffect(proposal) {
         viewModel.onProposal(proposal, verifyContext)
-
-        onDispose { viewModel.reset() }
     }
 
     when {

@@ -199,10 +199,12 @@ class RecipientViewModel @Inject constructor(
         val memo = paymentWrapper.memo
         val owner = assetInfo.owner
 
+        val owner = assetInfo.owner
         if (
             owner != null
             && address.isNotEmpty()
             && amount != null
+            && owner != null
             && (assetInfo.asset.chain.isMemoSupport() || !memo.isNullOrEmpty())
         ) {
             val params = ConfirmParams.Builder(assetInfo.asset, owner, amount, false).transfer(DestinationAddress(address), memo)

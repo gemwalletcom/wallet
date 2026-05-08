@@ -1,87 +1,87 @@
 package com.gemwallet.android.data.repositories.bridge
 
+import android.util.Log
+import com.gemwallet.android.data.repositories.BuildConfig
 import com.reown.android.CoreClient
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+
+private const val TAG = "WalletConnect"
+private fun log(msg: String) { if (BuildConfig.DEBUG) Log.d(TAG, msg) }
 
 object WalletConnectDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _walletEvents: MutableSharedFlow<WalletConnectEvent> = MutableSharedFlow()
+    private val _walletEvents: MutableSharedFlow<WalletConnectEvent> = MutableSharedFlow(
+        replay = 1,
+        extraBufferCapacity = 64,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
     internal val walletEvents: SharedFlow<WalletConnectEvent> = _walletEvents.asSharedFlow()
 
-    init {
+    fun bind() {
         CoreClient.setDelegate(this)
         WalletKit.setWalletDelegate(this)
     }
 
     override val onSessionAuthenticate: ((Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit) = { sessionAuth, verifyContext ->
-            scope.launch {
-                _walletEvents.emit(WalletConnectEvent(sessionAuth, verifyContext))
-            }
+            log("onSessionAuthenticate id=${sessionAuth.id} verify=${verifyContext.validation}")
+            _walletEvents.tryEmit(WalletConnectEvent(sessionAuth, verifyContext))
         }
 
     override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(state, null))
-        }
+        log("onConnectionStateChange available=${state.isAvailable}")
+        _walletEvents.tryEmit(WalletConnectEvent(state, null))
     }
 
     override fun onError(error: Wallet.Model.Error) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(error, null))
-        }
+        log("onError ${error.throwable.stackTraceToString()}")
+        _walletEvents.tryEmit(WalletConnectEvent(error, null))
     }
 
     override fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal) {
+        log("onProposalExpired topic=${proposal.pairingTopic}")
     }
 
     override fun onRequestExpired(request: Wallet.Model.ExpiredRequest) {
+        log("onRequestExpired topic=${request.topic} id=${request.id}")
     }
 
     override fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(sessionDelete, null))
-        }
+        log("onSessionDelete $sessionDelete")
+        _walletEvents.tryEmit(WalletConnectEvent(sessionDelete, null))
     }
 
     override fun onSessionExtend(session: Wallet.Model.Session) {
+        log("onSessionExtend topic=${session.topic} expiry=${session.expiry}")
     }
 
     override fun onSessionProposal(
         sessionProposal: Wallet.Model.SessionProposal,
         verifyContext: Wallet.Model.VerifyContext
     ) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(sessionProposal, verifyContext))
-        }
+        log("onSessionProposal name=${sessionProposal.name} url=${sessionProposal.url} verify=${verifyContext.validation}")
+        _walletEvents.tryEmit(WalletConnectEvent(sessionProposal, verifyContext))
     }
 
     override fun onSessionRequest(
         sessionRequest: Wallet.Model.SessionRequest,
         verifyContext: Wallet.Model.VerifyContext
     ) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(sessionRequest, verifyContext))
-        }
+        log("onSessionRequest method=${sessionRequest.request.method} chain=${sessionRequest.chainId} topic=${sessionRequest.topic}")
+        _walletEvents.tryEmit(WalletConnectEvent(sessionRequest, verifyContext))
     }
 
     override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(settleSessionResponse, null))
-        }
+        log("onSessionSettleResponse $settleSessionResponse")
+        _walletEvents.tryEmit(WalletConnectEvent(settleSessionResponse, null))
     }
 
     override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) {
-        scope.launch {
-            _walletEvents.emit(WalletConnectEvent(sessionUpdateResponse, null))
-        }
+        log("onSessionUpdateResponse $sessionUpdateResponse")
+        _walletEvents.tryEmit(WalletConnectEvent(sessionUpdateResponse, null))
     }
 }

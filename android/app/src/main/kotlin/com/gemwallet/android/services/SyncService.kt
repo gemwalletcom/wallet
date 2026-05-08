@@ -11,8 +11,10 @@ class SyncService @Inject constructor(
     private val syncDeviceInfo: SyncDeviceInfo,
 ) {
 
-    suspend fun sync() = withContext(Dispatchers.IO) {
-        syncFiatAssets()
-        syncDeviceInfo.syncDeviceInfo()
+    suspend fun sync() {
+        withContext(Dispatchers.IO) {
+            runCatching { syncFiatAssets() }
+            runCatching { syncDeviceInfo.syncDeviceInfo() }
+        }
     }
 }

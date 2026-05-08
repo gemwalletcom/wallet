@@ -4,18 +4,19 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
+import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
+import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
 import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsStateCoordinator
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.cases.banners.HasMultiSign
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
@@ -67,14 +68,15 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AssetDetailsViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
     savedStateHandle: SavedStateHandle,
-    private val assetsRepository: AssetsRepository,
+    private val getAssetTokenInfo: GetAssetTokenInfo,
+    private val toggleAssetPin: ToggleAssetPin,
     private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
     private val priceAlertsStateCoordinator: PriceAlertsStateCoordinator,
-    private val priceAlertRepository: PriceAlertRepository,
+    private val hasAssetPriceAlerts: HasAssetPriceAlerts,
     private val updatePriceAlerts: UpdatePriceAlerts,
     private val getPriceAlerts: GetPriceAlerts,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
@@ -83,8 +85,7 @@ class AssetDetailsViewModel @Inject constructor(
 ) : ViewModel() {
     private var syncJob: Job? = null
 
-    val session = sessionRepository.session()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val session = getSession()
 
     val isRefreshing = MutableStateFlow(false)
 
@@ -98,7 +99,7 @@ class AssetDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, routeAssetId)
 
     private val assetInfo = assetId
-        .flatMapLatest { assetsRepository.getTokenInfo(it).filterNotNull() }
+        .flatMapLatest { getAssetTokenInfo(it).filterNotNull() }
 
     val isOperationEnabled = session.filterNotNull().flatMapLatest {
         hasMultiSign.hasMultiSign(it.wallet).mapLatest { !it }
@@ -182,7 +183,7 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     private fun refreshPriceAlertsIfNeeded(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        if (priceAlertRepository.hasAssetPriceAlerts(assetId)) {
+        if (hasAssetPriceAlerts(assetId)) {
             runCatching { updatePriceAlerts.update(assetId) }
         }
     }
@@ -201,7 +202,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetInfo = model.value?.assetInfo ?: return@launch
         val assetId = assetInfo.id()
         wallet.getAccount(assetId) ?: return@launch
-        assetsRepository.togglePin(wallet.id, assetId)
+        toggleAssetPin(assetId)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {

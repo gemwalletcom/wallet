@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
+import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
 import com.gemwallet.android.ui.models.navigation.requireAssetId
@@ -33,12 +33,12 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ChartViewModel internal constructor(
-    assetsRepository: AssetsRepository,
-    sessionRepository: SessionRepository,
+    getAssetTokenInfo: GetAssetTokenInfo,
+    getCurrentCurrency: GetCurrentCurrency,
     private val getAssetChartData: GetAssetChartData,
     private val assetId: AssetId,
 ) : ViewModel() {
-    private val assetPriceInfo = assetsRepository.getTokenInfo(assetId)
+    private val assetPriceInfo = getAssetTokenInfo(assetId)
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Day)
@@ -54,7 +54,7 @@ class ChartViewModel internal constructor(
 
     private val chartPrices = combine(
         selectedPeriod,
-        sessionRepository.getCurrency().distinctUntilChanged(),
+        getCurrentCurrency.getCurrency().distinctUntilChanged(),
         refreshTrigger,
     ) { period, currency, _ -> period to currency }
         .mapLatest { (period, currency) ->
@@ -77,7 +77,7 @@ class ChartViewModel internal constructor(
         assetPriceInfo,
         selectedPeriod,
         chartPrices,
-        sessionRepository.getCurrency().distinctUntilChanged(),
+        getCurrentCurrency.getCurrency().distinctUntilChanged(),
     ) { priceInfo, period, prices, currency ->
         ChartUIModel.from(prices, priceInfo, period, currency)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChartUIModel())
@@ -102,13 +102,13 @@ class ChartViewModel internal constructor(
 
     @Inject
     constructor(
-        assetsRepository: AssetsRepository,
-        sessionRepository: SessionRepository,
+        getAssetTokenInfo: GetAssetTokenInfo,
+        getCurrentCurrency: GetCurrentCurrency,
         getAssetChartData: GetAssetChartData,
         savedStateHandle: SavedStateHandle,
     ) : this(
-        assetsRepository = assetsRepository,
-        sessionRepository = sessionRepository,
+        getAssetTokenInfo = getAssetTokenInfo,
+        getCurrentCurrency = getCurrentCurrency,
         getAssetChartData = getAssetChartData,
         assetId = savedStateHandle.requireAssetId(),
     )

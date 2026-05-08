@@ -16,7 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,7 +64,7 @@ fun RequestScene(
     val viewModel: WCRequestViewModel = hiltViewModel()
     val context = LocalContext.current
 
-    DisposableEffect(request.topic, request.request.id) {
+    LaunchedEffect(request.topic, request.request.id) {
         viewModel.onRequest(request, verifyContext) { error ->
             when (error) {
                 BridgeRequestError.ScamSession -> Toast.makeText(
@@ -75,8 +75,6 @@ fun RequestScene(
                 else -> Unit
             }
         }
-
-        onDispose { viewModel.reset() }
     }
 
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
