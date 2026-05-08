@@ -63,5 +63,7 @@ class ImportWalletServiceTest {
 
         coVerify { searchTokensCase.search(listOf(token.id), Currency.USD) }
         coVerify { assetsRepository.linkAssetToWallet("wallet-1", token.id, true) }
+        coVerify { assetsRepository.updateBalances(token.id) }
+        coVerify(exactly = 0) { assetsRepository.sync() }
     }
 }

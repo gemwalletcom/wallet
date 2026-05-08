@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ext.walletId
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
@@ -75,16 +76,20 @@ class ImportWalletService(
 
         searchTokensCase.search(tokenIds, currency)
         val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull().orEmpty()
-        assets.forEach { assetInfo ->
+
+        val linkedIds = assets.mapNotNull { assetInfo ->
             val asset = assetInfo.asset
-            wallet.getAccount(asset.chain) ?: return@forEach
+            wallet.getAccount(asset.chain) ?: return@mapNotNull null
             assetsRepository.linkAssetToWallet(
                 walletId = wallet.id,
                 assetId = asset.id,
                 visible = true,
             )
+            asset.id
         }
-        assetsRepository.sync()
+        if (linkedIds.isNotEmpty()) {
+            assetsRepository.updateBalances(*linkedIds.toTypedArray())
+        }
     }
 
     override fun getImportState(walletId: String): Flow<ImportWalletState> = jobs.mapLatest { entries ->
