@@ -320,6 +320,16 @@ class SwapViewModel @Inject constructor(
             providerId = snapshot.providerId,
         )
 
+        fun setTransferError(error: SwapError) {
+            if (transferDataUiState.value.matches(snapshot)) {
+                transferDataUiState.value = TransferDataUiState.Error(
+                    quoteKey = snapshot.requestKey,
+                    providerId = snapshot.providerId,
+                    error = error,
+                )
+            }
+        }
+
         try {
             val params = buildSwapConfirmParams(
                 quote = snapshot.quote.quote,
@@ -342,21 +352,9 @@ class SwapViewModel @Inject constructor(
                 clearTransferQuoteState(resumeQuoteRefresh = false)
             }
         } catch (_: SwapNoQuoteException) {
-            if (transferDataUiState.value.matches(snapshot)) {
-                transferDataUiState.value = TransferDataUiState.Error(
-                    quoteKey = snapshot.requestKey,
-                    providerId = snapshot.providerId,
-                    error = SwapError.NoQuote,
-                )
-            }
+            setTransferError(SwapError.NoQuote)
         } catch (err: Throwable) {
-            if (transferDataUiState.value.matches(snapshot)) {
-                transferDataUiState.value = TransferDataUiState.Error(
-                    quoteKey = snapshot.requestKey,
-                    providerId = snapshot.providerId,
-                    error = SwapError.Unknown(err.message ?: ""),
-                )
-            }
+            setTransferError(SwapError.Unknown(err.message ?: ""))
         }
     }
 

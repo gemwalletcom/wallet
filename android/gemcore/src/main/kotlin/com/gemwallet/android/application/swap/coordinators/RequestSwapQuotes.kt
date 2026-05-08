@@ -13,5 +13,6 @@ interface RequestSwapQuotes {
 
     companion object {
         const val QUOTE_REFRESH_INTERVAL_MS = 30_000L
+        const val QUOTE_DEBOUNCE_MS = 500L
     }
 }

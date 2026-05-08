@@ -40,11 +40,10 @@ class SearchSwapAssetsImpl(
         return flow {
             if (oppositeAssetId == null) {
                 val chains = wallet.accounts.map { it.chain }.filter { it.isSwapSupport() }
-                emit(SwapperAssetList(chains.map { it.string }, emptyList()))
-                val assetIds = chains
-                    .map { getSwapSupported.getSwapSupportChains(AssetId(it)).assetIds }
-                    .fold(listOf<uniffi.gemstone.AssetId>()) { acc, items -> acc + items }
-                emit(SwapperAssetList(chains.map { it.string }, assetIds))
+                val chainNames = chains.map { it.string }
+                emit(SwapperAssetList(chainNames, emptyList()))
+                val assetIds = chains.flatMap { getSwapSupported.getSwapSupportChains(AssetId(it)).assetIds }
+                emit(SwapperAssetList(chainNames, assetIds))
             } else {
                 emit(getSwapSupported.getSwapSupportChains(oppositeAssetId))
             }

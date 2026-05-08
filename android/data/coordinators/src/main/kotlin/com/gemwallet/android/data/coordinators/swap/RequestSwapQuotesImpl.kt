@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
+import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
 import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
@@ -47,7 +48,7 @@ class RequestSwapQuotesImpl(
                 merge(flowOf(Unit), refreshRequests)
                     .transformLatest {
                         while (currentCoroutineContext().isActive) {
-                            delay(500)
+                            delay(QUOTE_DEBOUNCE_MS)
                             onFetchStarted(params.key)
                             val data = fetchQuotes(params)
                             emit(data)

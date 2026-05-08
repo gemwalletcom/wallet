@@ -4,6 +4,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.swap.coordinators.GetSwapQuoteData
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.SignClientProxy
+import com.gemwallet.android.ext.nowSeconds
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.math.decodeHex
 import com.wallet.core.primitives.Wallet
@@ -38,7 +39,9 @@ class GetSwapQuoteDataImpl(
             value = permit.value,
             nonce = permit.permit2Nonce,
         )
-        val chain = quote.request.fromAsset.id.toAssetId()?.chain ?: throw Exception()
+        val chain = checkNotNull(quote.request.fromAsset.id.toAssetId()?.chain) {
+            "Swap quote has invalid asset id"
+        }
         val permit2Json = permit2DataToEip712Json(
             chain = chain.string,
             data = permit2Single,
@@ -60,7 +63,7 @@ class GetSwapQuoteDataImpl(
 
     private fun permit2Single(token: String, spender: String, value: String, nonce: ULong): PermitSingle {
         val config = Config().getSwapConfig()
-        val now = (System.currentTimeMillis() / 1000).toULong()
+        val now = nowSeconds()
         return PermitSingle(
             details = Permit2Detail(
                 token = token,
