@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.VerificationStatus
+import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,8 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -49,22 +48,17 @@ class NftListViewModels @Inject constructor(
 
     private val session = getSession()
 
+    val walletId: StateFlow<WalletId?> = session
+        .map { it?.wallet?.walletId }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private var lastSyncedWalletId: WalletId? = null
+
     private val nftData: StateFlow<List<NFTData>> = nftCollectionId
         .flatMapLatest { collectionId ->
             getNftCollections(collectionId).map { data -> data.filter { it.assets.isNotEmpty() } }
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    init {
-        if (nftCollectionId.value == null) {
-            viewModelScope.launch {
-                session
-                    .filterNotNull()
-                    .distinctUntilChangedBy { it.wallet.id }
-                    .collect { refresh() }
-            }
-        }
-    }
 
     val collections = combine(nftData, nftCollectionId, unverified) { data, nftCollectionId, unverified ->
         val filtered = when {
@@ -89,6 +83,14 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     val error = MutableStateFlow<NftError?>(null)
+
+    fun syncIfNeeded() {
+        if (nftCollectionId.value != null) return
+        val current = walletId.value ?: return
+        if (current == lastSyncedWalletId) return
+        lastSyncedWalletId = current
+        refresh()
+    }
 
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {

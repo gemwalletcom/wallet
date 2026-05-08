@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.swap.viewmodels
 
 import com.gemwallet.android.cases.swap.GetSwapSupported
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.gemwallet.android.model.AssetBalance
@@ -12,7 +14,6 @@ import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
@@ -37,13 +38,13 @@ class SwapSelectSearchTest {
         val fundedAsset = mockAssetInfo(
             asset = usdcAsset,
             balance = AssetBalance.create(usdcAsset, available = "100000000"),
-            walletId = wallet.id,
+            walletId = wallet.walletId,
             metadata = swapableMetaData,
         )
         val stakedOnlyAsset = mockAssetInfo(
             asset = hypeAsset,
             balance = AssetBalance.create(hypeAsset, available = "0", staked = "500000000"),
-            walletId = wallet.id,
+            walletId = wallet.walletId,
             metadata = swapableMetaData,
         )
 

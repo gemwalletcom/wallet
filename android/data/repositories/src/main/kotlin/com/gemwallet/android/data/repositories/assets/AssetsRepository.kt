@@ -66,6 +66,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -75,6 +76,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -201,9 +203,12 @@ class AssetsRepository @Inject constructor(
             .toSet()
     }
 
-    fun getAssetsInfo(): Flow<List<AssetInfo>> = currentWalletId()
+    private val assetsInfo: Flow<List<AssetInfo>> = currentWalletId()
         .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId) }
         .toAssetInfoModel()
+        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+
+    fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsInfo
 
     fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = currentWalletId()
         .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId, assetsId.map { it.toIdentifier() }) }

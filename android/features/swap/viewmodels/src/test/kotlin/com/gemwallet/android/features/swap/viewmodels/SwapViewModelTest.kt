@@ -186,17 +186,20 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `selecting same asset for both pay and receive clears opposite`() = runTest(testDispatcher) {
+    fun `selecting same receive asset clears pay asset and amount`() = runTest(testDispatcher) {
         val savedState = swapSavedState()
 
         val viewModel = createViewModel(savedState)
         advanceUntilIdle()
 
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
+        Snapshot.sendApplyNotifications()
         viewModel.onSelect(SwapItemType.Receive, solAsset.id)
         advanceUntilIdle()
 
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
         assertNull("pay must be cleared when receive matches it", savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertEquals("", viewModel.payValue.text.toString())
     }
 
     @Test

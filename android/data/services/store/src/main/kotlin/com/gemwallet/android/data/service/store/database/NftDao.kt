@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Upsert
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.service.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.service.store.database.entities.DbNFTCollection
@@ -12,13 +13,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NftDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insertCollections(collections: List<DbNFTCollection>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insertAssets(assets: List<DbNFTAsset>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun associateWithWallet(relations: List<DbNFTAssociation>)
 
     @Query("SELECT asset_id FROM nft_assets_associations WHERE wallet_id = :walletId")

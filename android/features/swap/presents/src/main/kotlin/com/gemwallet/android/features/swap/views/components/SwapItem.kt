@@ -112,9 +112,12 @@ private fun SwapItemLotInfo(
 @Composable
 private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
     Row(
-        modifier = Modifier.clickable(enabled = enabled, onClick = onClick).smallPadding(),
+        modifier = Modifier
+            .clickable(enabled = enabled, onClick = onClick)
+            .smallPadding()
+            .heightIn(min = listItemIconSize),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.End),
     ) {
         Text(
             text = stringResource(R.string.assets_select_asset),
@@ -131,7 +134,10 @@ private fun AssetInfo(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.clickable(enabled = enabled, onClick = onClick).smallPadding(),
+        modifier = Modifier
+            .clickable(enabled = enabled, onClick = onClick)
+            .smallPadding()
+            .heightIn(min = listItemIconSize),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.End),
     ) {

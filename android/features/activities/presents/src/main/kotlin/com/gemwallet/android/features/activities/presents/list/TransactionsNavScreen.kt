@@ -3,6 +3,7 @@ package com.gemwallet.android.features.activities.presents.list
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,6 +22,11 @@ fun TransactionsNavScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val chainFilter by viewModel.chainsFilter.collectAsStateWithLifecycle()
     val typeFilter by viewModel.typeFilter.collectAsStateWithLifecycle()
+    val walletId by viewModel.walletId.collectAsStateWithLifecycle()
+
+    LaunchedEffect(walletId) {
+        viewModel.syncIfNeeded()
+    }
 
     TransactionsScene(
         isRefreshing = isRefreshing,

@@ -7,8 +7,10 @@ import com.gemwallet.android.application.transactions.coordinators.SyncTransacti
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ui.models.TransactionTypeFilter
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,6 +49,12 @@ class TransactionsViewModel @Inject constructor(
     val session = sessionRepository.session()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
 
+    val walletId: StateFlow<WalletId?> = session
+        .map { it?.wallet?.walletId }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private var lastSyncedWalletId: WalletId? = null
+
     val transactions = combine(
         chainsFilter,
         typeFilter
@@ -69,9 +78,6 @@ class TransactionsViewModel @Inject constructor(
     )
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            session.firstOrNull()?.wallet?.let { syncTransactions.syncTransactions(it) }
-        }
         viewModelScope.launch {
             session
                 .filterNotNull()
@@ -84,10 +90,18 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
+    fun syncIfNeeded() {
+        val current = walletId.value ?: return
+        if (current == lastSyncedWalletId) return
+        lastSyncedWalletId = current
+        refresh()
+    }
+
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {
+        val wallet = session.firstOrNull()?.wallet ?: return@launch
         _isRefreshing.update { true }
         try {
-            session.firstOrNull()?.wallet?.let { syncTransactions.syncTransactions(it) }
+            syncTransactions.syncTransactions(wallet)
         } finally {
             _isRefreshing.update { false }
         }
