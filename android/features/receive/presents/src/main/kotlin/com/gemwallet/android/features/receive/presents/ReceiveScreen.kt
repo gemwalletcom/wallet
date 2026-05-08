@@ -3,18 +3,15 @@ package com.gemwallet.android.features.receive.presents
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
@@ -33,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -62,13 +60,18 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
 
+private val qrSize = 300.dp
+private val qrSizeCompact = 220.dp
+private val qrMinSize = 100.dp
+
 @Composable
 fun ReceiveScreen(onCancel: () -> Unit) {
     val viewModel: ReceiveViewModel = hiltViewModel()
     val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
+    val info = assetInfo
 
-    if (assetInfo != null) {
-        ReceiveScene(assetInfo, viewModel::setVisible, onCancel)
+    if (info != null) {
+        ReceiveScene(info, viewModel::setVisible, onCancel)
     } else {
         LoadingScene(title = stringResource(R.string.wallet_receive), onCancel)
     }
@@ -76,16 +79,15 @@ fun ReceiveScreen(onCancel: () -> Unit) {
 
 @Composable
 private fun ReceiveScene(
-    assetInfo: AssetInfo?,
+    assetInfo: AssetInfo,
     onCopy: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    assetInfo ?: return
     val context = LocalContext.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
-    val shareTitle = stringResource(id = R.string.common_share)
+    val shareTitle = stringResource(R.string.common_share)
     val isCompactHeight = isCompactDimension(WindowDimension.Height)
-    val imageSize = if (isCompactHeight) 220.dp else 300.dp
+    val imageSize = if (isCompactHeight) qrSizeCompact else qrSize
     val imagePadding = if (isCompactHeight) paddingSmall else paddingDefault
 
     val onShare = fun () {
@@ -106,7 +108,7 @@ private fun ReceiveScene(
     }
 
     Scene(
-        title = stringResource(id = R.string.receive_title, ""),
+        title = stringResource(R.string.receive_title, ""),
         onClose = onCancel,
         actions = {
             IconButton(onShare) {
@@ -120,7 +122,7 @@ private fun ReceiveScene(
                     horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall)
                 ) {
                     Icon(Icons.Default.ContentCopy, "copy")
-                    Text(stringResource(id = R.string.common_copy))
+                    Text(stringResource(R.string.common_copy))
                 }
             }
         }
@@ -128,75 +130,62 @@ private fun ReceiveScene(
         if (assetInfo.owner?.address.isNullOrEmpty()) {
             return@Scene
         }
-        LazyColumn (
-            modifier = Modifier
-                .fillMaxSize()
+        Spacer(modifier = Modifier.weight(1f))
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(imagePadding)
         ) {
-            item {
-                Box(
+            CenteredListHead(
+                title = assetInfo.asset.name,
+                subtitle = assetInfo.asset.subtitleSymbol,
+                bottomPadding = 0.dp,
+                leading = { HeaderIcon(assetInfo.asset) },
+            )
+            ElevatedCard(
+                modifier = Modifier.width(imageSize),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White,
+                    contentColor = Color.White,
+                )
+            ) {
+                Image(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                ) {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(imagePadding)
-                    ) {
-                        CenteredListHead(
-                            title = assetInfo.asset.name,
-                            subtitle = assetInfo.asset.subtitleSymbol,
-                            bottomPadding = 0.dp,
-                            leading = { HeaderIcon(assetInfo.asset) },
-                        )
-                        ElevatedCard(
-                            modifier = Modifier.width(imageSize),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White,
-                                contentColor = Color.White,
-                            )
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .widthIn(100.dp, imageSize)
-                                    .heightIn(100.dp, imageSize)
-                                    .padding(imagePadding)
-                                    .clickable(onCopyClick),
-                                painter = rememberQRCodePainter(
-                                    content = assetInfo.owner?.address ?: "",
-                                    cacheName = "${assetInfo.owner?.chain?.string}_${assetInfo.owner?.address}",
-                                    size = 300.dp
-                                ),
-                                contentDescription = "Receive QR",
-                                contentScale = ContentScale.FillWidth
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .width(imageSize)
-                                    .padding(horizontal = imagePadding)
-                                    .clickable(onCopyClick),
-                                text = assetInfo.owner?.address ?: "",
-                                textAlign = TextAlign.Center,
-                                color = MaterialTheme.colorScheme.secondary,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.size(imagePadding))
-                        }
-                        Text(
-                            modifier = Modifier.width(imageSize),
-                            text = parseMarkdownToAnnotatedString(warningMessage(assetInfo.asset)),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    }
-                }
+                        .widthIn(qrMinSize, imageSize)
+                        .heightIn(qrMinSize, imageSize)
+                        .padding(imagePadding)
+                        .clickable(onCopyClick),
+                    painter = rememberQRCodePainter(
+                        content = assetInfo.owner?.address ?: "",
+                        cacheName = "${assetInfo.owner?.chain?.string}_${assetInfo.owner?.address}",
+                        size = qrSize
+                    ),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth
+                )
+                Text(
+                    modifier = Modifier
+                        .width(imageSize)
+                        .padding(horizontal = imagePadding)
+                        .clickable(onCopyClick),
+                    text = assetInfo.owner?.address ?: "",
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Spacer(modifier = Modifier.size(imagePadding))
             }
-            item {
-                Spacer(modifier = Modifier.size(it.calculateBottomPadding()))
-            }
+            Text(
+                modifier = Modifier.width(imageSize),
+                text = parseMarkdownToAnnotatedString(warningMessage(assetInfo.asset)),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.secondary,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
