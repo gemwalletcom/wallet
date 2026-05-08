@@ -70,7 +70,7 @@ public final class WalletSceneViewModel: Sendable {
         self.walletService = walletService
         self.observablePreferences = observablePreferences
 
-        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, balanceType: .wallet), initialValue: .zero)
+        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, type: .wallet), initialValue: .zero)
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: [.enabledBalance]), initialValue: [])
         bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.walletId, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput

@@ -6,6 +6,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -39,7 +40,7 @@ class EnsureWalletAssetsImplTest {
 
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id, ethereum.id, ethereum.id))
 
-        coVerify(exactly = 1) { enableAsset("wallet-1", listOf(ethereum.id)) }
+        coVerify(exactly = 1) { enableAsset(mockWalletId(), listOf(ethereum.id)) }
     }
 
     @Test
@@ -74,6 +75,6 @@ class EnsureWalletAssetsImplTest {
 
         subject.ensureWalletAssets(wallet, listOf(bitcoin.id, ethereum.id))
 
-        coVerify(exactly = 1) { enableAsset("wallet-1", listOf(bitcoin.id)) }
+        coVerify(exactly = 1) { enableAsset(mockWalletId(), listOf(bitcoin.id)) }
     }
 }

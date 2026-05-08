@@ -16,6 +16,7 @@ import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilit
 import com.gemwallet.android.data.coordinators.asset_select.ToggleAssetPinImpl
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -66,6 +67,7 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideClearRecentAssets(
+        sessionRepository: SessionRepository,
         assetsRepository: AssetsRepository,
-    ): ClearRecentAssets = ClearRecentAssetsImpl(assetsRepository)
+    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, assetsRepository)
 }

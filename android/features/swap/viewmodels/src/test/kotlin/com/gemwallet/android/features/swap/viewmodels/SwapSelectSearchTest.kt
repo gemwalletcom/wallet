@@ -2,6 +2,7 @@ package com.gemwallet.android.features.swap.viewmodels
 
 import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -36,7 +37,7 @@ class SwapSelectSearchTest {
         val fundedAsset = mockAssetInfo(
             asset = usdcAsset,
             balance = AssetBalance.create(usdcAsset, available = "100000000"),
-            walletId = wallet.id,
+            walletId = wallet.walletId,
             metadata = swapableMetaData,
         )
         val captured = mutableListOf<SearchCall>()

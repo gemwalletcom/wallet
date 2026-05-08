@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 
 class HideAssetImpl(
@@ -14,6 +15,6 @@ class HideAssetImpl(
     override suspend fun invoke(assetId: AssetId) {
         val session = sessionRepository.session().value ?: return
         session.wallet.getAccount(assetId.chain) ?: return
-        assetsRepository.switchVisibility(session.wallet.id, assetId, false)
+        assetsRepository.switchVisibility(session.wallet.walletId, assetId, false)
     }
 }

@@ -182,6 +182,15 @@ public struct BalanceStore: Sendable {
         }
     }
 
+    @discardableResult
+    public func deleteBalance(assetId: AssetId) throws -> Int {
+        try db.write { db in
+            try BalanceRecord
+                .filter(BalanceRecord.Columns.assetId == assetId.identifier)
+                .deleteAll(db)
+        }
+    }
+
     public func addMissingBalances(walletId: WalletId, assetIds: [AssetId], isEnabled: Bool = false) throws {
         let missingAssetIds = try getMissingAssetIds(walletId: walletId, assetIds: assetIds)
         let missingBalances = missingAssetIds.map { assetId in

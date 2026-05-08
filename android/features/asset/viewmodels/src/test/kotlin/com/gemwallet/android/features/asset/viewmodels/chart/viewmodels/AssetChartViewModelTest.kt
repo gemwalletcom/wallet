@@ -2,10 +2,12 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.GetAssetById
+import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
+import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
+import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
@@ -42,22 +44,23 @@ class AssetChartViewModelTest {
     private val marketFlow = MutableStateFlow<AssetMarket?>(null)
     private val currencyFlow = MutableStateFlow(Currency.USD)
 
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true) {
-        every { asset(asset.id) } returns assetFlow
-        every { getAssetLinks(asset.id) } returns linksFlow
-        every { getAssetMarket(asset.id) } returns marketFlow
-    }
+    private val getAssetById = mockk<GetAssetById>(relaxed = true)
+    private val getAssetLinks = mockk<GetAssetLinks>(relaxed = true)
+    private val getAssetMarket = mockk<GetAssetMarket>(relaxed = true)
     private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>(relaxed = true) {
         every { getCurrentBlockExplorer(asset.id.chain) } returns "Solscan"
     }
     private val getPriceAlerts = mockk<GetPriceAlerts>(relaxed = true)
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
+    private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { getAssetById(asset.id) } returns assetFlow
+        every { getAssetLinks(asset.id) } returns linksFlow
+        every { getAssetMarket(asset.id) } returns marketFlow
         every { getPriceAlerts(asset.id) } returns MutableStateFlow<List<PriceAlertDataAggregate>>(emptyList())
     }
 
@@ -70,13 +73,7 @@ class AssetChartViewModelTest {
 
     @Test
     fun `local asset bootstraps ui without waiting for market or links`() = runTest(testDispatcher) {
-        val viewModel = AssetChartViewModel(
-            assetsRepository = assetsRepository,
-            getCurrentBlockExplorer = getCurrentBlockExplorer,
-            getPriceAlerts = getPriceAlerts,
-            sessionRepository = sessionRepository,
-            assetId = asset.id,
-        ).also(viewModels::add)
+        val viewModel = createViewModel()
         val uiModel = viewModel.marketUIModel.first { it != null }!!
 
         assertEquals(asset, uiModel.asset)
@@ -89,13 +86,7 @@ class AssetChartViewModelTest {
 
     @Test
     fun `local asset bootstraps title`() = runTest(testDispatcher) {
-        val viewModel = AssetChartViewModel(
-            assetsRepository = assetsRepository,
-            getCurrentBlockExplorer = getCurrentBlockExplorer,
-            getPriceAlerts = getPriceAlerts,
-            sessionRepository = sessionRepository,
-            assetId = asset.id,
-        ).also(viewModels::add)
+        val viewModel = createViewModel()
 
         val title = viewModel.title.first { it.isNotBlank() }
 
@@ -104,13 +95,7 @@ class AssetChartViewModelTest {
 
     @Test
     fun `repo updates populate market and links without changing bootstrap asset`() = runTest(testDispatcher) {
-        val viewModel = AssetChartViewModel(
-            assetsRepository = assetsRepository,
-            getCurrentBlockExplorer = getCurrentBlockExplorer,
-            getPriceAlerts = getPriceAlerts,
-            sessionRepository = sessionRepository,
-            assetId = asset.id,
-        ).also(viewModels::add)
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
         val market = mockAssetMarket(marketCap = 1234.0)
@@ -128,4 +113,14 @@ class AssetChartViewModelTest {
         assertEquals(market, uiModel.marketInfo)
         assertEquals(Currency.EUR, uiModel.currency)
     }
+
+    private fun createViewModel(): AssetChartViewModel = AssetChartViewModel(
+        getAssetById = getAssetById,
+        getAssetLinks = getAssetLinks,
+        getAssetMarket = getAssetMarket,
+        getCurrentBlockExplorer = getCurrentBlockExplorer,
+        getPriceAlerts = getPriceAlerts,
+        getCurrentCurrency = getCurrentCurrency,
+        assetId = asset.id,
+    ).also(viewModels::add)
 }

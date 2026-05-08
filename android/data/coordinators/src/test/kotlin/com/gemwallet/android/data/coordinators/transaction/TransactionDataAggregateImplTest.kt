@@ -144,7 +144,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bitcoin_test-id-123", aggregate.id)
+        assertEquals(TransactionId(Chain.Bitcoin, "test-id-123"), aggregate.id)
         assertEquals(btcAsset, aggregate.asset)
         assertEquals(TransactionType.Transfer, aggregate.type)
         assertEquals(TransactionDirection.Incoming, aggregate.direction)

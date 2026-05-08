@@ -11,12 +11,12 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamPriceAlertUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
-import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -50,7 +50,7 @@ class StreamEventHandlerTest {
         updateBalances = updateBalances,
     )
 
-    private val walletId = WalletId("w1")
+    private val walletId = mockWalletId("w1")
     private val wallet = mockWallet(id = "w1")
 
     @Test
@@ -82,7 +82,7 @@ class StreamEventHandlerTest {
     fun `nft event syncs wallet nfts`() = runTest {
         handler.handle(StreamEvent.Nft(StreamWalletUpdate(walletId = walletId)))
 
-        coVerify { syncNfts.sync("w1") }
+        coVerify { syncNfts.sync(walletId) }
         coVerify(exactly = 0) { walletsRepository.getWallet(any()) }
     }
 
@@ -103,7 +103,7 @@ class StreamEventHandlerTest {
         every { syncTransactions.get() } returns sync
         coEvery { walletsRepository.getWallet("unknown") } returns flowOf(null)
 
-        handler.handle(StreamEvent.Transactions(StreamTransactionsUpdate(walletId = WalletId("unknown"), transactions = emptyList())))
+        handler.handle(StreamEvent.Transactions(StreamTransactionsUpdate(walletId = mockWalletId("unknown"), transactions = emptyList())))
 
         coVerify(exactly = 0) { sync.syncTransactions(any()) }
     }

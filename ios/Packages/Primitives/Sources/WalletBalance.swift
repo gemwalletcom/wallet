@@ -12,4 +12,8 @@ public struct WalletBalance: Sendable, Equatable {
     }
 
     public static let zero = WalletBalance(total: 0, available: 0)
+
+    public static func perpetual(available: Double, reserved: Double) -> WalletBalance {
+        WalletBalance(total: available + reserved, available: available)
+    }
 }

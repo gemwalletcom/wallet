@@ -9,6 +9,7 @@ import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.firstOrNull
@@ -60,7 +61,7 @@ class DeviceAssetsSyncService @Inject constructor(
     private suspend fun enableAssets(wallet: Wallet, assetIds: Collection<AssetId>) {
         val accounts = assetIds.filter { wallet.getAccount(it) != null }
         if (accounts.isEmpty()) return
-        enableAsset(wallet.id, accounts)
+        enableAsset(wallet.walletId, accounts)
     }
 
     private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000

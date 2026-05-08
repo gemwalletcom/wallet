@@ -16,12 +16,16 @@ import TransactionStateServiceTestKit
 
 struct TransferExecutorTests {
     @Test
-    func hyperCorePerpetualFiltersSetupTransactions() async throws {
+    func hyperCorePerpetualStoresPrimaryOrder() async throws {
         let db = DB.mockAssets(assets: [.mock(asset: .hypercoreUSDC())])
         let transactionStore = TransactionStore(db: db)
         let executor = TransferExecutor(
-            signer: TransactionSignerMock(signedData: ["setup1", "setup2", "setup3", "actual_order"]),
-            chainService: ChainServiceMock.mock(broadcastResponses: ["hash0", "hash1", "hash2", "hash3"]),
+            signer: TransactionSignerMock(signedData: [
+                "update_leverage",
+                "primary_order",
+                "position_tpsl",
+            ]),
+            chainService: ChainServiceMock.mock(broadcastResponses: ["action:1", "order:413978262893", "action:2"]),
             assetsEnabler: .mock(),
             balanceService: .mock(),
             transactionStateScheduler: .mock(transactionStore: transactionStore),
@@ -38,7 +42,7 @@ struct TransferExecutorTests {
 
         let transactions = try transactionStore.getTransactions(state: .pending)
         #expect(transactions.count == 1)
-        #expect(transactions.first?.id.hash == "hash3")
+        #expect(transactions.first?.id.hash == "order:413978262893")
     }
 
     @Test

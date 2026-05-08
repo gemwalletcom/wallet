@@ -15,12 +15,10 @@ data class DbAssetPriority(
     val priority: Int,
 )
 
-fun AssetBasic.toRecordPriority(query: String): DbAssetPriority {
-    return DbAssetPriority(
+fun List<AssetBasic>.toRecordPriority(query: String): List<DbAssetPriority> = mapIndexed { index, basic ->
+    DbAssetPriority(
         query = query,
-        assetId = asset.id.toIdentifier(),
-        priority = score.rank,
+        assetId = basic.asset.id.toIdentifier(),
+        priority = index,
     )
 }
-
-fun List<AssetBasic>.toRecordPriority(query: String) = map { it.toRecordPriority(query) }

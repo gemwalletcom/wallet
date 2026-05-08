@@ -30,7 +30,10 @@ data class SqlClause(val sql: String, val args: List<Any> = emptyList()) {
     }
 }
 
-class SqlQueryBuilder(private val baseSql: String) {
+class SqlQueryBuilder(
+    private val baseSql: String,
+    private val baseArgs: List<Any> = emptyList(),
+) {
     private val clauses = mutableListOf<SqlClause>()
     private var orderBy: String? = null
     private var limit: Int? = null
@@ -49,7 +52,7 @@ class SqlQueryBuilder(private val baseSql: String) {
 
     fun build(): SqlQuery {
         val sql = StringBuilder(baseSql)
-        val args = mutableListOf<Any>()
+        val args = mutableListOf<Any>().apply { addAll(baseArgs) }
         if (clauses.isNotEmpty()) {
             val baseHasWhere = baseSql.contains("WHERE", ignoreCase = true)
             sql.append(if (baseHasWhere) " AND " else " WHERE ")

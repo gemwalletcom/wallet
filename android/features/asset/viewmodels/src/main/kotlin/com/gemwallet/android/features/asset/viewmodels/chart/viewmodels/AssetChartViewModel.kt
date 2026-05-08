@@ -3,15 +3,16 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.coordinators.GetAssetById
+import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
+import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
+import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -22,10 +23,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AssetChartViewModel internal constructor(
-    assetsRepository: AssetsRepository,
+    getAssetById: GetAssetById,
+    getAssetLinks: GetAssetLinks,
+    getAssetMarket: GetAssetMarket,
     getCurrentBlockExplorer: GetCurrentBlockExplorer,
     getPriceAlerts: GetPriceAlerts,
-    sessionRepository: SessionRepository,
+    getCurrentCurrency: GetCurrentCurrency,
     val assetId: AssetId,
 ) : ViewModel() {
 
@@ -35,11 +38,11 @@ class AssetChartViewModel internal constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    private val asset = assetsRepository.asset(assetId)
+    private val asset = getAssetById(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val links = assetsRepository.getAssetLinks(assetId)
-    private val market = assetsRepository.getAssetMarket(assetId)
+    private val links = getAssetLinks(assetId)
+    private val market = getAssetMarket(assetId)
 
     val title = asset
         .map { it?.name.orEmpty() }
@@ -50,7 +53,7 @@ class AssetChartViewModel internal constructor(
         asset,
         links,
         market,
-        sessionRepository.getCurrency().distinctUntilChanged(),
+        getCurrentCurrency.getCurrency().distinctUntilChanged(),
     ) { asset, links, market, currency ->
         asset?.let {
             AssetMarketUIModel(
@@ -67,16 +70,20 @@ class AssetChartViewModel internal constructor(
 
     @Inject
     constructor(
-        assetsRepository: AssetsRepository,
+        getAssetById: GetAssetById,
+        getAssetLinks: GetAssetLinks,
+        getAssetMarket: GetAssetMarket,
         getCurrentBlockExplorer: GetCurrentBlockExplorer,
         getPriceAlerts: GetPriceAlerts,
-        sessionRepository: SessionRepository,
+        getCurrentCurrency: GetCurrentCurrency,
         savedStateHandle: SavedStateHandle,
     ) : this(
-        assetsRepository = assetsRepository,
+        getAssetById = getAssetById,
+        getAssetLinks = getAssetLinks,
+        getAssetMarket = getAssetMarket,
         getCurrentBlockExplorer = getCurrentBlockExplorer,
         getPriceAlerts = getPriceAlerts,
-        sessionRepository = sessionRepository,
+        getCurrentCurrency = getCurrentCurrency,
         assetId = savedStateHandle.requireAssetId(),
     )
 }

@@ -84,7 +84,7 @@ class NotificationNavigationTest {
         coVerify { prefetchAssets.prefetchAssets(assetIds) }
         coVerify { ensureWalletAssets.ensureWalletAssets(wallet, assetIds) }
         coVerify { sessionRepository.setWallet(wallet) }
-        coVerify { saveTransactions.saveTransactions(wallet.id, listOf(transaction)) }
+        coVerify { saveTransactions.saveTransactions(mockWalletId(wallet.id), listOf(transaction)) }
     }
 
     @Test

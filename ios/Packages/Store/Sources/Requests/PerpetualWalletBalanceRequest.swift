@@ -1,19 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import GRDB
 import Primitives
 
-public struct PerpetualWalletBalanceRequest: DatabaseQueryable {
-    private let totalValueRequest: TotalValueRequest
+public struct PerpetualWalletBalanceRequest: DatabaseQueryable, Equatable {
+    private let walletId: WalletId
 
     public init(walletId: WalletId) {
-        totalValueRequest = TotalValueRequest(walletId: walletId, balanceType: .perpetual)
+        self.walletId = walletId
     }
 
     public func fetch(_ db: Database) throws -> WalletBalance {
-        try totalValueRequest.fetchWalletBalance(db)
+        let balance = try BalanceRecord
+            .filter(BalanceRecord.Columns.walletId == walletId.id)
+            .filter(BalanceRecord.Columns.assetId == Self.collateralAssetId)
+            .fetchOne(db)
+        guard let balance else { return .zero }
+        return WalletBalance.perpetual(
+            available: balance.availableAmount,
+            reserved: balance.reservedAmount,
+        )
     }
-}
 
-extension PerpetualWalletBalanceRequest: Equatable {}
+    private static let collateralAssetId = Asset.hypercoreUSDC().id.identifier
+}

@@ -5,6 +5,7 @@ import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
 
 class EnableAssetImpl(
@@ -13,10 +14,10 @@ class EnableAssetImpl(
     private val assetsRepository: AssetsRepository,
 ) : EnableAsset {
 
-    override suspend fun invoke(walletId: String, assetId: AssetId) =
+    override suspend fun invoke(walletId: WalletId, assetId: AssetId) =
         invoke(walletId, listOf(assetId))
 
-    override suspend fun invoke(walletId: String, assetIds: List<AssetId>) {
+    override suspend fun invoke(walletId: WalletId, assetIds: List<AssetId>) {
         val unique = assetIds.distinct()
         if (unique.isEmpty()) return
 
@@ -30,7 +31,7 @@ class EnableAssetImpl(
         if (missing.isEmpty()) return
 
         syncAssetPrices(missing, sessionRepository.getCurrentCurrency())
-        missing.forEach { assetsRepository.linkAssetToWallet(walletId, it, visible = true) }
+        missing.forEach { assetsRepository.linkAssetToWallet(walletId.id, it, visible = true) }
         assetsRepository.updateBalances(*missing.toTypedArray())
     }
 }

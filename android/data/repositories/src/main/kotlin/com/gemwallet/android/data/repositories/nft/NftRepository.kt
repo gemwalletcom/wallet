@@ -20,6 +20,7 @@ import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -33,8 +34,8 @@ class NftRepository(
 ) : SyncNfts, GetListNftCase, GetAssetNft, RefreshNftAsset {
 
     @Throws(HttpException::class, IOException::class)
-    override suspend fun sync(walletId: String) {
-        val nftData = gemDeviceApiClient.getNFTs(walletId = walletId).orEmpty()
+    override suspend fun sync(walletId: WalletId) {
+        val nftData = gemDeviceApiClient.getNFTs(walletId = walletId.id).orEmpty()
         val collections = nftData.map {
             DbNFTCollection(
                 id = it.collection.id,
@@ -69,12 +70,12 @@ class NftRepository(
         }
         val associations = assets.map {
             DbNFTAssociation(
-                walletId = walletId,
+                walletId = walletId.id,
                 assetId = it.id,
             )
         }
         nftDao.updateNft(
-            walletId,
+            walletId.id,
             collections,
             assets,
             associations,
@@ -86,30 +87,32 @@ class NftRepository(
         gemDeviceApiClient.refreshNftAsset(wallet.id, assetId.toIdentifier())
     }
 
-    override fun getListNft(collectionId: String?): Flow<List<NFTData>> {
+    override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> {
         return combine(
-            nftDao.getCollection(),
-            nftDao.getAssets(),
+            nftDao.getCollections(walletId.id),
+            nftDao.getAssets(walletId.id),
         ) { collectionEntities, assetEntities ->
             val assets = assetEntities.toAssetModels().groupBy { it.collectionId }
             val collections = collectionEntities.toCollectionModels()
             collections.map { NFTData(it, assets[it.id] ?: emptyList()) }
-                .filter { it.collection.id == (collectionId ?: return@filter true) }
+                .filter { collectionId == null || it.collection.id == collectionId }
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Throws(NftError::class)
-    override fun getAssetNft(assetId: AssetId): Flow<NFTData> = nftDao.getAsset(assetId.toIdentifier()).flatMapLatest { assetEntity ->
-        assetEntity ?: throw NftError.NotFoundAsset
+    override fun getAssetNft(walletId: WalletId, assetId: AssetId): Flow<NFTData> {
+        return nftDao.getAsset(walletId.id, assetId.toIdentifier()).flatMapLatest { assetEntity ->
+            val asset = assetEntity ?: throw NftError.NotFoundAsset
 
-        nftDao.getCollection(assetEntity.collectionId).map { collection ->
-            collection ?: throw NftError.NotFoundCollection
+            nftDao.getCollection(walletId.id, asset.collectionId).map { collection ->
+                val nftCollection = collection ?: throw NftError.NotFoundCollection
 
-            NFTData(
-                collection = collection.toCollectionModel(),
-                assets = listOf(assetEntity.toAssetModel()),
-            )
+                NFTData(
+                    collection = nftCollection.toCollectionModel(),
+                    assets = listOf(asset.toAssetModel()),
+                )
+            }
         }
     }
 }

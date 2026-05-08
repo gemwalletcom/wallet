@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.TransactionId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -16,7 +17,9 @@ class TransactionDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val transactionId = savedStateHandle.requireString(RouteArgument.TransactionId)
+    private val transactionId = requireNotNull(
+        TransactionId.from(savedStateHandle.requireString(RouteArgument.TransactionId))
+    ) { "Invalid TransactionId route argument" }
 
     val data = getTransactionDetails.getTransactionDetails(transactionId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

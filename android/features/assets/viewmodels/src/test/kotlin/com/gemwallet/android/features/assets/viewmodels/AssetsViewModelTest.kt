@@ -19,8 +19,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -61,8 +61,8 @@ class AssetsViewModelTest {
         override fun invoke(): Flow<Boolean> = flowOf(false)
     }
     private val getShowWelcomeBanner = object : GetShowWelcomeBanner {
-        override fun invoke(isWalletEmpty: Flow<Boolean>): Flow<Boolean> {
-            return isWalletEmpty.combine(flowOf(true)) { isEmpty, _ -> isEmpty }
+        override fun invoke(): Flow<Boolean> {
+            return activeAssetsFlow.map { items -> items.all { it.isZeroBalance } }
         }
     }
 

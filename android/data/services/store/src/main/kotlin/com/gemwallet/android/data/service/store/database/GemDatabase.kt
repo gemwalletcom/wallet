@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.gemwallet.android.data.service.store.database.entities.DbAccount
+import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
@@ -33,10 +34,11 @@ import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetada
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 72,
+    version = 73,
     entities = [
         DbWallet::class,
         DbAccount::class,
+        DbAddress::class,
         DbAsset::class,
         DbBalance::class,
         DbPrice::class,
@@ -70,6 +72,8 @@ abstract class GemDatabase : RoomDatabase() {
     abstract fun walletsDao(): WalletsDao
 
     abstract fun accountsDao(): AccountsDao
+
+    abstract fun addressesDao(): AddressesDao
 
     abstract fun assetsDao(): AssetsDao
 

@@ -9,6 +9,7 @@ import com.gemwallet.android.testkit.mockAssetFull
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.AssetMetaData
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
@@ -60,7 +61,7 @@ class SyncAssetInfoImplTest {
         )
         val foreignWalletAsset = mockAssetInfo(
             asset = asset,
-            walletId = "wallet-2",
+            walletId = mockWalletId("wallet-2"),
             owner = mockAccount(chain = Chain.Bitcoin, address = "bc1-foreign"),
         ).copy(metadata = assetMetadata)
 
@@ -97,7 +98,7 @@ class SyncAssetInfoImplTest {
         )
         val currentWalletAsset = mockAssetInfo(
             asset = asset,
-            walletId = "wallet-1",
+            walletId = mockWalletId(),
             owner = mockAccount(chain = Chain.Bitcoin, address = "bc1-current"),
         ).copy(metadata = assetMetadata)
 

@@ -17,6 +17,7 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
@@ -56,7 +57,7 @@ class ImportWalletService(
                 coroutineScope {
                     launch { discoverAssets(wallet, currency) }
                     launch { syncTransactions.syncTransactions(wallet) }
-                    launch { syncNfts.sync(wallet.id) }
+                    launch { syncNfts.sync(wallet.walletId) }
                 }
             } catch (err: Throwable) {
                 Log.d("IMPORT_ERROR", "Error:", err)

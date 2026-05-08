@@ -68,7 +68,7 @@ class NotificationNavigation @Inject constructor(
     private suspend fun prepareTransaction(data: PushNotificationData.Transaction): Boolean {
         val assetIds = (data.transaction.getAssociatedAssetIds() + data.assetId).distinct()
         val wallet = prepareWallet(data.walletId, assetIds) ?: return false
-        saveTransactions.saveTransactions(wallet.id, listOf(data.transaction))
+        saveTransactions.saveTransactions(data.walletId, listOf(data.transaction))
         return true
     }
 

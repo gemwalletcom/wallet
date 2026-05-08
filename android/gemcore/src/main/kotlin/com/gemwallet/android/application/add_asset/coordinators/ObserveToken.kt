@@ -5,5 +5,5 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.Flow
 
 interface ObserveToken {
-    suspend operator fun invoke(assetId: AssetId): Flow<Asset?>
+    operator fun invoke(assetId: AssetId): Flow<Asset?>
 }

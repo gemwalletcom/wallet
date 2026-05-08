@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetMetaData
+import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
@@ -36,7 +37,7 @@ class EnableAssetImplTest {
         val asset = mockAsset()
         every { assetsRepository.getAssetsInfo(listOf(asset.id)) } returns flowOf(emptyList())
 
-        subject("wallet-1", asset.id)
+        subject(mockWalletId(), asset.id)
 
         coVerify(ordering = io.mockk.Ordering.ORDERED) {
             syncAssetPrices(listOf(asset.id), Currency.USD)
@@ -52,13 +53,12 @@ class EnableAssetImplTest {
             listOf(
                 mockAssetInfo(
                     asset = asset,
-                    walletId = "wallet-1",
                     metadata = mockAssetMetaData(isBalanceEnabled = true),
                 )
             )
         )
 
-        subject("wallet-1", asset.id)
+        subject(mockWalletId(), asset.id)
 
         coVerify(exactly = 0) { syncAssetPrices(any(), any()) }
         coVerify(exactly = 0) { assetsRepository.linkAssetToWallet(any(), any(), any()) }
@@ -72,13 +72,12 @@ class EnableAssetImplTest {
             listOf(
                 mockAssetInfo(
                     asset = asset,
-                    walletId = "wallet-1",
                     metadata = mockAssetMetaData(isBalanceEnabled = false),
                 )
             )
         )
 
-        subject("wallet-1", asset.id)
+        subject(mockWalletId(), asset.id)
 
         coVerify(exactly = 1) { syncAssetPrices(listOf(asset.id), Currency.USD) }
         coVerify(exactly = 1) { assetsRepository.linkAssetToWallet("wallet-1", asset.id, visible = true) }
@@ -92,13 +91,12 @@ class EnableAssetImplTest {
             listOf(
                 mockAssetInfo(
                     asset = enabled,
-                    walletId = "wallet-1",
                     metadata = mockAssetMetaData(isBalanceEnabled = true),
                 )
             )
         )
 
-        subject("wallet-1", listOf(fresh.id, enabled.id, fresh.id))
+        subject(mockWalletId(), listOf(fresh.id, enabled.id, fresh.id))
 
         coVerify(exactly = 1) { assetsRepository.getAssetsInfo(listOf(fresh.id, enabled.id)) }
         coVerify(exactly = 1) { syncAssetPrices(listOf(fresh.id), Currency.USD) }
@@ -109,7 +107,7 @@ class EnableAssetImplTest {
 
     @Test
     fun emptyList_isNoOp() = runTest {
-        subject("wallet-1", emptyList<AssetId>())
+        subject(mockWalletId(), emptyList<AssetId>())
 
         coVerify(exactly = 0) { assetsRepository.getAssetsInfo(any<List<AssetId>>()) }
         coVerify(exactly = 0) { syncAssetPrices(any(), any()) }

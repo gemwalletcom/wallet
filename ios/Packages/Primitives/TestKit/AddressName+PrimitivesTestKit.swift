@@ -8,7 +8,7 @@ public extension AddressName {
         chain: Chain = .arbitrum,
         address: String = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
         name: String = "Hyperliquid",
-        type: AddressType? = nil,
+        type: AddressType = .address,
         status: VerificationStatus = .verified,
     ) -> AddressName {
         AddressName(
