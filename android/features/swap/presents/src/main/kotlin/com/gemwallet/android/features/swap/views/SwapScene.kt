@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.model.AssetInfo
@@ -48,12 +48,21 @@ internal fun SwapScene(
     onCancel: () -> Unit,
     onPrimaryAction: () -> Unit,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    fun clearAmountFocus() {
+        focusManager.clearFocus(force = true)
+    }
 
     Scene(
         title = stringResource(id = R.string.wallet_swap),
         mainAction = {
-            SwapAction(swapState, onPrimaryAction)
+            SwapAction(
+                swapState = swapState,
+                onSwap = {
+                    clearAmountFocus()
+                    onPrimaryAction()
+                },
+            )
         },
         onClose = onCancel,
     ) {
@@ -68,7 +77,7 @@ internal fun SwapScene(
                     state = payValue,
                     interaction = swapState.payItemInteraction,
                     onAssetSelect = {
-                        keyboardController?.hide()
+                        clearAmountFocus()
                         onSelectAsset(SwapItemType.Pay)
                     }
                 )
@@ -103,7 +112,7 @@ internal fun SwapScene(
                     calculating = swapState.isReceiveLoading,
                     interaction = swapState.receiveItemInteraction,
                     onAssetSelect = {
-                        keyboardController?.hide()
+                        clearAmountFocus()
                         onSelectAsset(SwapItemType.Receive)
                     }
 

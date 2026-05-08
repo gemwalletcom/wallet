@@ -24,6 +24,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionDirection
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -51,7 +52,7 @@ class GetTransactionDetailsImpl(
     private val createExplorer: (String) -> Explorer = ::Explorer,
 ) : GetTransactionDetails {
 
-    override fun getTransactionDetails(id: String): Flow<TransactionDetailsAggregate?> {
+    override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> {
         return combine(
             sessionRepository.session().filterNotNull(),
             transactionRepository.getTransaction(id),

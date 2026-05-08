@@ -35,6 +35,7 @@ struct SettingsNavigationStack: View {
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.releaseService) private var releaseService
     @Environment(\.perpetualService) private var perpetualService
+    @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
     @Environment(\.walletConnectorManager) private var walletConnectorManager
     @Environment(\.rewardsService) private var rewardsService
     @Environment(\.inAppNotificationService) private var inAppNotificationService
@@ -164,6 +165,7 @@ struct SettingsNavigationStack: View {
             }
             .navigationDestination(for: Scenes.Preferences.self) { _ in
                 PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel))
+                    .onChange(of: observablePreferences.isPerpetualEnabled, onChangePerpetualEnabled)
             }
             .navigationDestination(for: Scenes.AppIcon.self) { _ in
                 AppIconScene(model: AppIconSceneViewModel())
@@ -206,3 +208,23 @@ struct SettingsNavigationStack: View {
 }
 
 extension Preferences: @retroactive CurrencyStorable {}
+
+private extension SettingsNavigationStack {
+    func onChangePerpetualEnabled(_: Bool, _ newValue: Bool) {
+        if newValue {
+            Task {
+                if let wallet = walletService.currentWallet {
+                    await hyperliquidObserverService.setup(for: wallet)
+                }
+                try? await perpetualService.updateMarkets()
+            }
+        } else {
+            Task {
+                await hyperliquidObserverService.disconnect()
+                try? perpetualService.clear()
+                try? perpetualService.clearBalance()
+                observablePreferences.preferences.perpetualMarketsUpdatedAt = nil
+            }
+        }
+    }
+}

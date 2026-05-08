@@ -63,12 +63,14 @@ class QuoteRequester @Inject constructor(
     }
 
     private suspend fun fetchQuotes(params: QuoteRequestParams): QuotesState = try {
+        val payOwner = checkNotNull(params.pay.owner) { "Swap pay asset has no account" }
+        val receiveOwner = checkNotNull(params.receive.owner) { "Swap receive asset has no account" }
         val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
         val quotes = getSwapQuotes.getQuotes(
             from = params.pay.asset,
             to = params.receive.asset,
-            ownerAddress = params.pay.owner!!.address,
-            destination = params.receive.owner!!.address,
+            ownerAddress = payOwner.address,
+            destination = receiveOwner.address,
             amount = amount.toString(),
             useMaxAmount = BigInteger(params.pay.balance.balance.available) == amount,
         )

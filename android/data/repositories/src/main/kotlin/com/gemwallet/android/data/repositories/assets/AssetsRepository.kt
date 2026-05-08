@@ -68,6 +68,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -114,6 +116,11 @@ class AssetsRepository @Inject constructor(
             syncSwapSupportChains()
         }
     }
+
+    private fun currentWalletId(): Flow<String> = sessionRepository.session()
+        .filterNotNull()
+        .map { it.wallet.id }
+        .distinctUntilChanged()
 
     suspend fun sync() {
         getAssetsInfo().firstOrNull()?.updateBalances()?.awaitAll()
@@ -194,17 +201,19 @@ class AssetsRepository @Inject constructor(
             .toSet()
     }
 
-    fun getAssetsInfo(): Flow<List<AssetInfo>> = assetsDao.getAssetsInfo()
+    fun getAssetsInfo(): Flow<List<AssetInfo>> = currentWalletId()
+        .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId) }
         .toAssetInfoModel()
 
-    fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = assetsDao
-        .getAssetsInfo(assetsId.map { it.toIdentifier() })
+    fun getAssetsInfo(assetsId: List<AssetId>): Flow<List<AssetInfo>> = currentWalletId()
+        .flatMapLatest { walletId -> assetsDao.getAssetsInfo(walletId, assetsId.map { it.toIdentifier() }) }
         .toAssetInfoModel()
         .flowOn(Dispatchers.IO)
 
 
     fun getAssetInfo(assetId: AssetId): Flow<AssetInfo?> {
-        return assetsDao.getAssetInfo(assetId.toIdentifier(), assetId.chain)
+        return currentWalletId()
+            .flatMapLatest { walletId -> assetsDao.getAssetInfo(walletId, assetId.toIdentifier(), assetId.chain) }
             .map { it?.toDTO() }
             .flowOn(Dispatchers.IO)
     }
@@ -215,23 +224,28 @@ class AssetsRepository @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
-    suspend fun getToken(assetId: AssetId): Flow<Asset?> = withContext(Dispatchers.IO) {
-        assetsDao.getTokenInfo(assetId.toIdentifier(), assetId.chain).map { it?.toDTO()?.asset }
-    }
+    fun getToken(assetId: AssetId): Flow<Asset?> = currentWalletId()
+        .flatMapLatest { walletId -> assetsDao.getTokenInfo(walletId, assetId.toIdentifier(), assetId.chain) }
+        .map { it?.toDTO()?.asset }
+        .flowOn(Dispatchers.IO)
 
     fun getTokenInfo(assetId: AssetId): Flow<AssetInfo?> {
-        return assetsDao.getAssetInfo(assetId.toIdentifier(), assetId.chain).flatMapLatest { assetInfo ->
-            if (assetInfo == null) {
-                assetsDao.getTokenInfo(assetId.toIdentifier(), assetId.chain).map { it?.toDTO() }
-            } else {
-                flow { emit(assetInfo.toDTO()) }
+        return currentWalletId().flatMapLatest { walletId ->
+            assetsDao.getAssetInfo(walletId, assetId.toIdentifier(), assetId.chain).flatMapLatest { assetInfo ->
+                if (assetInfo == null) {
+                    assetsDao.getTokenInfo(walletId, assetId.toIdentifier(), assetId.chain).map { it?.toDTO() }
+                } else {
+                    flow { emit(assetInfo.toDTO()) }
+                }
             }
         }
         .flowOn(Dispatchers.IO)
     }
 
     fun getTokensInfo(assetsId: List<String>): Flow<List<AssetInfo>> {
-        return assetsDao.getAssetsInfoByAllWallets(assetsId).toAssetInfoModel()
+        return currentWalletId()
+            .flatMapLatest { walletId -> assetsDao.getAssetsInfoByAllWallets(walletId, assetsId) }
+            .toAssetInfoModel()
     }
 
     suspend fun getWidgetTokens(currency: Currency): List<AssetInfo> = withContext(Dispatchers.IO) {
@@ -247,20 +261,13 @@ class AssetsRepository @Inject constructor(
 
     fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> {
         val query = tags.toPriorityQuery(query)
-        return if (byAllWallets) {
-            assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest {
-                if (it) {
-                    assetsDao.searchByAllWalletsWithPriority(query)
-                } else {
-                    assetsDao.searchByAllWallets(query)
-                }
-            }
-        } else {
-            assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest {
-                if (it) {
-                    assetsDao.searchWithPriority(query)
-                } else {
-                    assetsDao.search(query)
+        return currentWalletId().flatMapLatest { walletId ->
+            assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
+                when {
+                    byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query)
+                    byAllWallets -> assetsDao.searchByAllWallets(walletId, query)
+                    hasPriority -> assetsDao.searchWithPriority(walletId, query)
+                    else -> assetsDao.search(walletId, query)
                 }
             }
         }
@@ -274,9 +281,9 @@ class AssetsRepository @Inject constructor(
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
         return assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
                 if (hasPriority) {
-                    assetsDao.swapSearchWithPriority(query, includeChains, includeAssetIds.map { it.toIdentifier() })
+                    assetsDao.swapSearchWithPriority(wallet.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 } else {
-                    assetsDao.swapSearch(query, includeChains, includeAssetIds.map { it.toIdentifier() })
+                    assetsDao.swapSearch(wallet.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 }
             }
             .toAssetInfoModel()
@@ -568,7 +575,8 @@ class AssetsRepository @Inject constructor(
     }
 
     fun getRecentAssets(request: RecentAssetsRequest): Flow<List<RecentAsset>> {
-        return assetsDao.getRecentAssets(request.types, request.filters, request.limit)
+        return currentWalletId()
+            .flatMapLatest { walletId -> assetsDao.getRecentAssets(walletId, request.types, request.filters, request.limit) }
             .map { items ->
                 items.mapNotNull { row ->
                     val asset = row.asset.toDTO() ?: return@mapNotNull null
@@ -577,8 +585,8 @@ class AssetsRepository @Inject constructor(
             }
     }
 
-    suspend fun clearRecentAssets(types: List<RecentType>) {
-        assetsDao.clearRecentAssets(types)
+    suspend fun clearRecentAssets(walletId: WalletId, types: List<RecentType>) {
+        assetsDao.clearRecentAssets(walletId.id, types)
     }
 }
 

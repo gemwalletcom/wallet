@@ -7,12 +7,13 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import java.math.BigInteger
 
 interface CreateTransaction {
     suspend fun createTransaction(
         hash: String,
-        walletId: String,
+        walletId: WalletId,
         assetId: AssetId,
         owner: Account,
         to: String,

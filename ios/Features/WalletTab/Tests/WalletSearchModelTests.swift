@@ -19,33 +19,28 @@ struct WalletSearchModelTests {
     func assetsLimit() {
         var model = WalletSearchModel(selectType: .manage)
 
-        #expect(model.assetsLimit(tag: nil, isPerpetualEnabled: false) == 100)
-        #expect(model.assetsLimit(tag: nil, isPerpetualEnabled: true) == 12)
-        #expect(model.assetsLimit(tag: "stablecoins", isPerpetualEnabled: true) == 18)
+        #expect(model.assetsLimit(tag: nil) == 12)
+        #expect(model.assetsLimit(tag: "stablecoins") == 18)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.assetsLimit(tag: nil, isPerpetualEnabled: true) == 25)
+        #expect(model.assetsLimit(tag: nil) == 25)
     }
 
     @Test
     func fetchLimit() {
         var model = WalletSearchModel(selectType: .manage)
 
-        #expect(model.fetchLimit(tag: nil, isPerpetualEnabled: false) == 100)
-        #expect(model.fetchLimit(tag: nil, isPerpetualEnabled: true) == 13)
-        #expect(model.fetchLimit(tag: "stablecoins", isPerpetualEnabled: true) == 19)
+        #expect(model.fetchLimit(tag: nil) == 13)
+        #expect(model.fetchLimit(tag: "stablecoins") == 19)
 
         model.searchableQuery = "bitcoin"
-        #expect(model.fetchLimit(tag: nil, isPerpetualEnabled: true) == 100)
+        #expect(model.fetchLimit(tag: nil) == 100)
     }
 
     @Test
-    func staticMethods() {
-        #expect(WalletSearchModel.initialFetchLimit(isPerpetualEnabled: false) == 100)
-        #expect(WalletSearchModel.initialFetchLimit(isPerpetualEnabled: true) == 13)
-        #expect(WalletSearchModel.searchItemTypes(isPerpetualEnabled: false) == [.asset])
-        #expect(WalletSearchModel.searchItemTypes(isPerpetualEnabled: true) == [.asset, .perpetual])
-        #expect(WalletSearchModel.recentActivityTypes(isPerpetualEnabled: false) == RecentActivityType.allCases.filter { $0 != .perpetual })
-        #expect(WalletSearchModel.recentActivityTypes(isPerpetualEnabled: true) == RecentActivityType.allCases)
+    func staticMembers() {
+        #expect(WalletSearchModel.initialFetchLimit == 13)
+        #expect(WalletSearchModel.searchItemTypes == [.asset, .perpetual])
+        #expect(WalletSearchModel.recentActivityTypes == RecentActivityType.allCases)
     }
 }

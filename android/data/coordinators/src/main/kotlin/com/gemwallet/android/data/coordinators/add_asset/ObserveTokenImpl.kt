@@ -10,7 +10,7 @@ class ObserveTokenImpl(
     private val assetsRepository: AssetsRepository,
 ) : ObserveToken {
 
-    override suspend fun invoke(assetId: AssetId): Flow<Asset?> {
+    override fun invoke(assetId: AssetId): Flow<Asset?> {
         return assetsRepository.getToken(assetId)
     }
 }

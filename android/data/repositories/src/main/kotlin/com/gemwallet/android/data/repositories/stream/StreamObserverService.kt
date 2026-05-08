@@ -20,7 +20,6 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -58,12 +57,7 @@ class StreamObserverService(
                     if (connectionJob == null) {
                         start()
                     }
-                    try {
-                        syncAssets()
-                    } catch (cancelled: CancellationException) {
-                        throw cancelled
-                    } catch (_: Throwable) {
-                    }
+                    syncAssets()
                 }
             }
         }

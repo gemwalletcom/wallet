@@ -24,14 +24,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,14 +56,14 @@ class BridgesRepository(
                 sync()
                 pingActiveSessions()
                 handlePendingRequests()
-                WalletConnectDelegate.walletEvents.collectLatest { event ->
-                    withContext(Dispatchers.IO) {
-                        when (event.model) {
-                            is Wallet.Model.Session -> updateSession(event.model)
-                            is Wallet.Model.SessionDelete -> sync()
-                            else -> Unit
-                        }
-                    }
+            }
+        }
+        scope.launch(Dispatchers.IO) {
+            bridgeEvents.collect { event ->
+                when (val model = event.model) {
+                    is Wallet.Model.Session -> updateSession(model)
+                    is Wallet.Model.SessionDelete.Success -> sync()
+                    else -> Unit
                 }
             }
         }
@@ -98,6 +96,7 @@ class BridgesRepository(
         WalletKit.initialize(
             initParams,
             {
+                WalletConnectDelegate.bind()
                 isWalletConnectInit.update { true }
                 onSuccess()
             }
@@ -153,7 +152,6 @@ class BridgesRepository(
         val unknownSessions = local.filter { local -> !sessions.any { local.session.sessionId == it.pairingTopic } }
 
         if (unknownSessions.isNotEmpty()) {
-            sessions.forEach { disconnect(it.pairingTopic) }
             connectionsDao.deleteAll(unknownSessions.map { it.toRecord() })
         }
     }
@@ -181,24 +179,19 @@ class BridgesRepository(
 
     suspend fun disconnect(id: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         val connection = getConnections().firstOrNull()?.firstOrNull { it.session.id == id } ?: return
-        val session = try {
+        val activeSession = runCatching {
             WalletKit.getListOfActiveSessions()
                 .firstOrNull { wcSession -> connection.session.sessionId == wcSession.pairingTopic }
-                    ?: throw IllegalStateException("Active sessions is null")
-        } catch (err: Throwable) {
-            onError(err.message ?: "Disconnect error")
-            return
+        }.getOrNull()
+        if (activeSession != null) {
+            WalletKit.disconnectSession(
+                params = Wallet.Params.SessionDisconnect(activeSession.topic),
+                onSuccess = {},
+                onError = {},
+            )
         }
-        WalletKit.disconnectSession(
-            params = Wallet.Params.SessionDisconnect(session.topic),
-            onSuccess = {
-                scope.launch { connectionsDao.delete(id) }
-                onSuccess()
-            },
-            onError = {
-                onError(it.throwable.message ?: "Disconnect error")
-            },
-        )
+        connectionsDao.delete(id)
+        onSuccess()
     }
 
     fun addPairing(uri: String, onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {

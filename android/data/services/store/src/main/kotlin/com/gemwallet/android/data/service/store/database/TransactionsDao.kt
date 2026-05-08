@@ -13,7 +13,9 @@ import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 
 const val EXTENDED_COLUMNS = """
@@ -73,7 +75,7 @@ interface TransactionsDao {
     fun insert(transactions: List<DbTransaction>)
 
     @Query("DELETE FROM transactions WHERE id = :id AND walletId = :walletId")
-    fun delete(id: String, walletId: String)
+    fun delete(id: TransactionId, walletId: WalletId)
 
     @RawQuery(
         observedEntities = [
@@ -87,15 +89,15 @@ interface TransactionsDao {
     fun getExtendedTransactions(query: SupportSQLiteQuery): Flow<List<DbTransactionExtended>>
 
     fun getExtendedTransactions(
-        walletId: String,
+        walletId: WalletId,
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
     @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state = :state")
-    fun getTransactionsCount(walletId: String, state: TransactionState): Flow<Int?>
+    fun getTransactionsCount(walletId: WalletId, state: TransactionState): Flow<Int?>
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
-    fun getExtendedTransaction(walletId: String, id: String): Flow<DbTransactionExtended?>
+    fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)

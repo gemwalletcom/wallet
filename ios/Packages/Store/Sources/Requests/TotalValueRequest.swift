@@ -3,29 +3,34 @@
 import GRDB
 import Primitives
 
-public enum BalanceType: Sendable {
-    case wallet
-    case perpetual
-}
-
-public struct TotalValueRequest: DatabaseQueryable {
+public struct TotalValueRequest: DatabaseQueryable, Equatable {
     public var walletId: WalletId
-    public var type: BalanceType
+    public var type: TotalValueType
 
-    public init(walletId: WalletId, balanceType: BalanceType) {
+    public init(walletId: WalletId, type: TotalValueType) {
         self.walletId = walletId
-        type = balanceType
+        self.type = type
     }
 
     public func fetch(_ db: Database) throws -> TotalFiatValue {
         switch type {
-        case .wallet: try fetchWalletBalance(db)
-        case .perpetual: try fetchPerpetualBalance(db)
+        case .perpetual:
+            return BalanceCalculator.totalFiatValue([try perpetualFiatValue(db)])
+        case .wallet:
+            let assets = try assetRecords(db).compactMap {
+                AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
+            }
+            return BalanceCalculator.totalFiatValue(assets + [try perpetualFiatValue(db)])
+        case .earn:
+            let assets = try assetRecords(db).compactMap {
+                AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)
+            }
+            return BalanceCalculator.totalFiatValue(assets)
         }
     }
 
-    private func fetchWalletBalance(_ db: Database) throws -> TotalFiatValue {
-        let (total, pnl) = try AssetRecord
+    private func assetRecords(_ db: Database) throws -> [AssetRecordInfoMinimal] {
+        try AssetRecord
             .including(optional: AssetRecord.price)
             .including(optional: AssetRecord.balance)
             .joining(required: AssetRecord.balance
@@ -33,30 +38,21 @@ public struct TotalValueRequest: DatabaseQueryable {
                 .filter(BalanceRecord.Columns.isEnabled == true))
             .asRequest(of: AssetRecordInfoMinimal.self)
             .fetchAll(db)
-            .reduce((0.0, 0.0)) { result, record in
-                guard let price = record.price else { return result }
-                let fiat = record.balance.totalAmount * price.price
-                let pnl = PriceChangeCalculator.calculate(.amount(percentage: price.priceChangePercentage24h, value: fiat))
-                return (result.0 + fiat, result.1 + pnl)
-            }
-        return TotalFiatValue(
-            value: total,
-            pnlAmount: pnl,
-            pnlPercentage: PriceChangeCalculator.calculate(.percentage(from: total - pnl, to: total)),
-        )
     }
 
-    private func fetchPerpetualBalance(_ db: Database) throws -> TotalFiatValue {
-        let total = try AssetRecord
-            .including(required: AssetRecord.balance)
-            .filter(AssetRecord.Columns.type == AssetType.perpetual.rawValue)
-            .joining(required: AssetRecord.balance
-                .filter(BalanceRecord.Columns.walletId == walletId.id))
-            .asRequest(of: PerpetualAssetBalance.self)
-            .fetchAll(db)
-            .reduce(0.0) { $0 + $1.totalFiatAmount }
-        return TotalFiatValue(value: total, pnlAmount: 0, pnlPercentage: 0)
+    private func perpetualFiatValue(_ db: Database) throws -> AssetFiatValue {
+        let balance = try PerpetualWalletBalanceRequest(walletId: walletId).fetch(db)
+        return AssetFiatValue(amount: balance.total, price: 1, priceChangePercentage24h: 0)
     }
 }
 
-extension TotalValueRequest: Equatable {}
+extension AssetFiatValue {
+    init?(record: AssetRecordInfoMinimal, amount: Double) {
+        guard let price = record.price else { return nil }
+        self.init(
+            amount: amount,
+            price: price.price,
+            priceChangePercentage24h: price.priceChangePercentage24h,
+        )
+    }
+}

@@ -9,8 +9,9 @@ import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.identifier
-import com.wallet.core.primitives.TransactionsResponse
+import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.TransactionsResponse
 import com.wallet.core.primitives.Wallet
 
 class SyncTransactionsImpl(
@@ -51,7 +52,7 @@ class SyncTransactionsImpl(
         prefetchAssets.prefetchAssets(assetIds)
         ensureWalletAssets.ensureWalletAssets(wallet, assetIds)
 
-        saveTransactions.saveTransactions(walletId = wallet.id, response.transactions)
+        saveTransactions.saveTransactions(walletId = wallet.walletId, response.transactions)
         saveAddressNames.saveAddressNames(response.addressNames)
     }
 

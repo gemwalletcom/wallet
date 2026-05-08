@@ -46,10 +46,9 @@ object NftCoordinatorModule {
     @Provides
     @Singleton
     fun provideSyncNftCollections(
-        sessionRepository: SessionRepository,
         syncNfts: SyncNfts,
     ): SyncNftCollections {
-        return SyncNftCollectionsImpl(sessionRepository, syncNfts)
+        return SyncNftCollectionsImpl(syncNfts)
     }
 
     @Provides

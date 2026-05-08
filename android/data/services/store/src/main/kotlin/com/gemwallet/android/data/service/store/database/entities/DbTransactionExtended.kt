@@ -31,13 +31,8 @@ data class DbAddressProjection(
 )
 
 fun DbTransactionExtended.toDTO(): TransactionExtended? {
-    val tx = try {
-        transaction.toDTO()
-    } catch (_: IllegalArgumentException) {
-        return null
-    }
     return TransactionExtended(
-        transaction = tx,
+        transaction = transaction.toDTO(),
         asset = asset.toDTO() ?: return null,
         feeAsset = feeAsset.toDTO() ?: return null,
         price = priceValue?.let { Price(it, priceDayChanged ?: 0.0, 0L) },
