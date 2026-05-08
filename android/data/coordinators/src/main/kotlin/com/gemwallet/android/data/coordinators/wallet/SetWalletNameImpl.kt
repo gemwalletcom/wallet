@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.wallet
 import com.gemwallet.android.application.wallet.coordinators.SetWalletName
 import com.gemwallet.android.cases.addresses.RenameWalletAddresses
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
 
 class SetWalletNameImpl(
@@ -13,6 +14,6 @@ class SetWalletNameImpl(
     override suspend fun setWalletName(walletId: String, name: String) {
         val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return
         walletsRepository.updateWallet(wallet.copy(name = name))
-        renameWalletAddresses.renameWalletAddresses(walletId, name)
+        renameWalletAddresses.rename(WalletId(walletId), name)
     }
 }

@@ -1,5 +1,7 @@
 package com.gemwallet.android.cases.addresses
 
+import com.wallet.core.primitives.WalletId
+
 interface RenameWalletAddresses {
-    suspend fun renameWalletAddresses(walletId: String, name: String)
+    suspend fun rename(walletId: WalletId, name: String)
 }

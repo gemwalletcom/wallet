@@ -12,7 +12,7 @@ data class AddressName (
 	val chain: Chain,
 	val address: String,
 	val name: String,
-	val type: AddressType? = null,
+	val type: AddressType,
 	val status: VerificationStatus
 )
 

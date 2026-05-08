@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 73,
-    "identityHash": "02aa6981d1ffd03ba362cc1848b1eedd",
+    "identityHash": "8b8ecdaf771936e0ffd5daf16b017709",
     "entities": [
       {
         "tableName": "wallets",
@@ -143,7 +143,7 @@
       },
       {
         "tableName": "addresses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chain` TEXT NOT NULL, `address` TEXT NOT NULL, `wallet_id` TEXT, `name` TEXT NOT NULL, `type` TEXT, `status` TEXT NOT NULL, PRIMARY KEY(`chain`, `address`), FOREIGN KEY(`chain`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chain` TEXT NOT NULL, `address` TEXT NOT NULL, `walletId` TEXT, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`chain`, `address`), FOREIGN KEY(`chain`) REFERENCES `asset`(`id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`walletId`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "chain",
@@ -159,7 +159,7 @@
           },
           {
             "fieldPath": "walletId",
-            "columnName": "wallet_id",
+            "columnName": "walletId",
             "affinity": "TEXT"
           },
           {
@@ -171,7 +171,8 @@
           {
             "fieldPath": "type",
             "columnName": "type",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": true
           },
           {
             "fieldPath": "status",
@@ -198,13 +199,13 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_addresses_chain` ON `${TABLE_NAME}` (`chain`)"
           },
           {
-            "name": "index_addresses_wallet_id",
+            "name": "index_addresses_walletId",
             "unique": false,
             "columnNames": [
-              "wallet_id"
+              "walletId"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_addresses_wallet_id` ON `${TABLE_NAME}` (`wallet_id`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_addresses_walletId` ON `${TABLE_NAME}` (`walletId`)"
           }
         ],
         "foreignKeys": [
@@ -224,7 +225,7 @@
             "onDelete": "CASCADE",
             "onUpdate": "CASCADE",
             "columns": [
-              "wallet_id"
+              "walletId"
             ],
             "referencedColumns": [
               "id"
@@ -2236,7 +2237,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '02aa6981d1ffd03ba362cc1848b1eedd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8b8ecdaf771936e0ffd5daf16b017709')"
     ]
   }
 }

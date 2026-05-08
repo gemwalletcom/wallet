@@ -18,7 +18,7 @@ struct AddressRecord: Codable, FetchableRecord, PersistableRecord {
     let chain: Chain
     let address: String
     let name: String
-    let type: AddressType?
+    let type: AddressType
     let status: VerificationStatus
 }
 
@@ -33,6 +33,7 @@ extension AddressRecord: CreateTable {
             $0.column(Columns.name.name, .text)
                 .notNull()
             $0.column(Columns.type.name, .text)
+                .notNull()
             $0.column(Columns.status.name, .text)
                 .notNull()
                 .defaults(to: VerificationStatus.unverified.rawValue)

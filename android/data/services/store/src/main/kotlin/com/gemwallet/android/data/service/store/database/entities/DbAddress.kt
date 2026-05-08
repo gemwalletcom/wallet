@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.service.store.database.entities
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -24,19 +23,19 @@ import com.wallet.core.primitives.Wallet
         ForeignKey(
             entity = DbWallet::class,
             parentColumns = ["id"],
-            childColumns = ["wallet_id"],
+            childColumns = ["walletId"],
             onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index("chain"), Index("wallet_id")],
+    indices = [Index("chain"), Index("walletId")],
 )
 data class DbAddress(
     val chain: Chain,
     val address: String,
-    @ColumnInfo(name = "wallet_id") val walletId: String?,
+    val walletId: String?,
     val name: String,
-    val type: AddressType?,
+    val type: AddressType,
     val status: VerificationStatus,
 )
 

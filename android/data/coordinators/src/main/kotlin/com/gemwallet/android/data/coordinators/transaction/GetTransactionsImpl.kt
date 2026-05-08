@@ -13,8 +13,6 @@ import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
-import com.wallet.core.primitives.AddressName
-import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
@@ -58,7 +56,7 @@ class TransactionDataAggregateImpl(
 
     override val asset: Asset = data.asset
 
-    private val participantAddressName: AddressName? = when (data.transaction.type) {
+    override val addressName: String? = when (data.transaction.type) {
         TransactionType.StakeDelegate,
         TransactionType.StakeUndelegate,
         TransactionType.StakeRedelegate,
@@ -69,11 +67,7 @@ class TransactionDataAggregateImpl(
             TransactionDirection.Outgoing,
             TransactionDirection.SelfTransfer -> data.toAddress
         }
-    }
-
-    override val addressName: String? = participantAddressName?.name
-
-    override val addressType: AddressType? = participantAddressName?.type
+    }?.name
 
     override val address: String get() = when (data.transaction.type) {
         TransactionType.TransferNFT,

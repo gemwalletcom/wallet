@@ -1,6 +1,5 @@
 package com.gemwallet.android.domains.transaction.aggregates
 
-import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
@@ -12,8 +11,6 @@ interface TransactionDataAggregate {
     val asset: Asset
     val address: String
     val addressName: String?
-        get() = null
-    val addressType: AddressType?
         get() = null
     val value: String
     val equivalentValue: String?

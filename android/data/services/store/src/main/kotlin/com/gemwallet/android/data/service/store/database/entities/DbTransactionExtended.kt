@@ -24,10 +24,10 @@ data class DbTransactionExtended(
 )
 
 data class DbAddressProjection(
-    val chain: Chain?,
-    val name: String?,
-    val type: AddressType?,
-    val status: VerificationStatus?,
+    val chain: Chain,
+    val name: String,
+    val type: AddressType,
+    val status: VerificationStatus,
 )
 
 fun DbTransactionExtended.toDTO(): TransactionExtended? {
@@ -46,16 +46,12 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
     )
 }
 
-private fun DbAddressProjection.toAddressName(address: String): AddressName? {
-    val chain = chain ?: return null
-    val name = name ?: return null
-    return AddressName(
-        chain = chain,
-        address = address,
-        name = name,
-        type = type,
-        status = status ?: VerificationStatus.Unverified,
-    )
-}
+private fun DbAddressProjection.toAddressName(address: String): AddressName = AddressName(
+    chain = chain,
+    address = address,
+    name = name,
+    type = type,
+    status = status,
+)
 
 fun List<DbTransactionExtended>.toDTO() = mapNotNull { it.toDTO() }

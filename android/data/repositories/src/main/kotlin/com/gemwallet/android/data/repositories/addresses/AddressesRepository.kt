@@ -10,6 +10,7 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 
 class AddressesRepository(
     private val addressesDao: AddressesDao,
@@ -25,8 +26,8 @@ class AddressesRepository(
         return addressesDao.get(chain, address)?.toDTO()
     }
 
-    override suspend fun renameWalletAddresses(walletId: String, name: String) {
-        addressesDao.updateName(walletId, name)
+    override suspend fun rename(walletId: WalletId, name: String) {
+        addressesDao.updateName(walletId.id, name)
     }
 
     suspend fun saveWalletAddresses(wallet: Wallet) {
