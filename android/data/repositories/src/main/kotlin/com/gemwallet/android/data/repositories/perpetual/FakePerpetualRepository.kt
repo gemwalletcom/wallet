@@ -12,6 +12,7 @@ import com.wallet.core.primitives.PerpetualMetadata
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -28,13 +29,6 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
 
     override suspend fun putPerpetuals(items: List<PerpetualData>) {
         perpetualsFlow.value = items
-    }
-
-    override suspend fun removeNotAvailablePerpetuals(items: List<PerpetualData>) {
-        val availablePerpetualIds = items.map { it.perpetual.id }.toSet()
-        perpetualsFlow.value = perpetualsFlow.value.filter {
-            it.perpetual.id in availablePerpetualIds
-        }
     }
 
     override fun getPerpetuals(query: String?): Flow<List<PerpetualData>> {
@@ -71,38 +65,21 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         }
     }
 
-    override suspend fun removeNotAvailablePositions(accountAddress: String, items: List<PerpetualPosition>) {
+    override suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>) {
         val currentPositions = positionsFlow.value.toMutableMap()
-        val availablePositionIds = items.map { it.id }.toSet()
-        currentPositions[accountAddress] = currentPositions[accountAddress]?.filter {
-            it.position.id in availablePositionIds
-        } ?: emptyList()
-        positionsFlow.value = currentPositions
-    }
-
-    override suspend fun putPositions(accountAddress: String, items: List<PerpetualPosition>) {
-        val currentPositions = positionsFlow.value.toMutableMap()
-        currentPositions[accountAddress] = items.map { position ->
-            val perpetual = perpetualsFlow.value.firstOrNull { it.perpetual.id == position.perpetualId }
-            if (perpetual != null) {
-                PerpetualPositionData(
-                    perpetual = perpetual.perpetual,
-                    asset = perpetual.asset,
-                    position = position
-                )
-            } else {
-                null
-            }
-        }.filterNotNull()
-        positionsFlow.value = currentPositions
-    }
-
-    override fun getPositions(accountAddress: List<String>): Flow<List<PerpetualPositionData>> {
-        return positionsFlow.map { positionsMap ->
-            accountAddress.flatMap { address ->
-                positionsMap[address] ?: emptyList()
-            }
+        currentPositions[walletId.id] = items.mapNotNull { position ->
+            val perpetual = perpetualsFlow.value.firstOrNull { it.perpetual.id == position.perpetualId } ?: return@mapNotNull null
+            PerpetualPositionData(
+                perpetual = perpetual.perpetual,
+                asset = perpetual.asset,
+                position = position,
+            )
         }
+        positionsFlow.value = currentPositions
+    }
+
+    override fun getPositions(walletId: WalletId): Flow<List<PerpetualPositionData>> {
+        return positionsFlow.map { it[walletId.id] ?: emptyList() }
     }
 
     override fun getPositionByPositionId(id: String): Flow<PerpetualPositionData?> {
@@ -117,32 +94,17 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         }
     }
 
-    override suspend fun putBalance(accountAddress: String, balance: PerpetualBalance) {
-        val currentBalances = balancesFlow.value.toMutableMap()
-        currentBalances[accountAddress] = balance
-        balancesFlow.value = currentBalances
+    override suspend fun putAsset(asset: Asset) {}
+
+    override suspend fun putBalance(walletId: WalletId, assetId: AssetId, balance: PerpetualBalance) {
+        balancesFlow.value = balancesFlow.value.toMutableMap().apply { put(walletId.id, balance) }
     }
 
-    override fun getBalance(accountAddress: String): Flow<PerpetualBalance> {
-        return balancesFlow.map { balancesMap ->
-            balancesMap[accountAddress] ?: PerpetualBalance(
-                available = 0.0,
-                reserved = 0.0,
-                withdrawable = 0.0
-            )
-        }
+    override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> {
+        return balancesFlow.map { it[walletId.id] }
     }
 
-    override fun getBalances(accountAddresses: List<String>): Flow<List<PerpetualBalance>> {
-        return balancesFlow.map { balancesMap ->
-            accountAddresses.mapNotNull { address -> balancesMap[address] }
-        }
-    }
-
-    override suspend fun setMetadata(
-        perpetualId: String,
-        metadata: PerpetualMetadata
-    ) { }
+    override suspend fun setPinned(perpetualId: String, isPinned: Boolean) {}
 
     private fun getSamplePerpetuals(): List<PerpetualData> {
         val btcAsset = Asset(

@@ -2,7 +2,9 @@
 
 Gem Wallet is a crypto wallet. Security-sensitive changes require extra scrutiny even when the code change looks small.
 
-## Always Treat These Areas As High Risk
+## Pause Before Editing These Areas
+
+Before editing any of the following, confirm the task explicitly intends to change security behavior. If it does not, the change is probably wrong — stop and ask. Re-read this file in full before continuing.
 
 - Seed phrases, private keys, backup material, wallet import and export
 - Transaction construction, signing, simulation, and submission

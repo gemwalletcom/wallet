@@ -3,7 +3,6 @@ package com.gemwallet.android.ui.navigation
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction.FinishRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.ImportChainWalletRoute
@@ -356,7 +355,7 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun finishConfirm_popsTransferFlowWithoutResettingStack() {
+    fun popConfirmFlow_popsTransferFlowToAsset() {
         val assetId = mockAssetId(Chain.Solana)
         val navigator = navigatorWith(
             WalletRootRoute,
@@ -367,7 +366,7 @@ class WalletNavigatorTest {
             ConfirmRoute("confirm"),
         )
 
-        navigator.finishConfirm(assetId, route = FinishRoute.Asset)
+        navigator.popConfirmFlow()
 
         assertEquals(
             listOf(
@@ -380,7 +379,7 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun finishConfirm_popsStakeFlowFromLaunchingAsset() {
+    fun popConfirmFlow_popsStakeFlowToLaunchingAsset() {
         val previousAssetId = mockAssetId(Chain.Ethereum)
         val stakeAssetId = mockAssetId(Chain.Solana)
         val navigator = navigatorWith(
@@ -392,7 +391,7 @@ class WalletNavigatorTest {
             ConfirmRoute("confirm"),
         )
 
-        navigator.finishConfirm(stakeAssetId, route = FinishRoute.Stake)
+        navigator.popConfirmFlow()
 
         assertEquals(
             listOf(
@@ -405,28 +404,7 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun finishConfirm_popsStakeFlowWhenLaunchingAssetIsMissing() {
-        val stakeAssetId = mockAssetId(Chain.Solana)
-        val navigator = navigatorWith(
-            WalletRootRoute,
-            StakeRoute(stakeAssetId),
-            AmountRoute("amount"),
-            ConfirmRoute("confirm"),
-        )
-
-        navigator.finishConfirm(stakeAssetId, route = FinishRoute.Stake)
-
-        assertEquals(
-            listOf(
-                WalletRootRoute,
-                AssetRoute(stakeAssetId),
-            ),
-            navigator.backStack.toList(),
-        )
-    }
-
-    @Test
-    fun finishConfirm_popsSwapFlowWithoutResettingStack() {
+    fun popConfirmFlow_popsSwapFlowToAsset() {
         val assetId = mockAssetId(Chain.Ethereum)
         val navigator = navigatorWith(
             WalletRootRoute,
@@ -436,7 +414,7 @@ class WalletNavigatorTest {
             ConfirmRoute("confirm"),
         )
 
-        navigator.finishConfirm(assetId, route = FinishRoute.Swap)
+        navigator.popConfirmFlow()
 
         assertEquals(
             listOf(
@@ -449,16 +427,15 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun finishConfirm_popsAssetFlowForAlreadyConfirmedTransfer() {
-        val assetId = mockAssetId(Chain.Solana)
+    fun popConfirmFlow_popsToRootWhenNoAssetUnderneath() {
         val navigator = navigatorWith(
             WalletRootRoute,
             ConfirmRoute("confirm"),
         )
 
-        navigator.finishConfirm(assetId, route = FinishRoute.Asset)
+        navigator.popConfirmFlow()
 
-        assertEquals(listOf(WalletRootRoute, AssetRoute(assetId)), navigator.backStack.toList())
+        assertEquals(listOf(WalletRootRoute), navigator.backStack.toList())
     }
 
     @Test

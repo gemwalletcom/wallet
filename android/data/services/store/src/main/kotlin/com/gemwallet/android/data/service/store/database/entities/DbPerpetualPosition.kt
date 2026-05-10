@@ -2,6 +2,7 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.Relation
 import com.gemwallet.android.ext.toAssetId
@@ -14,18 +15,41 @@ import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualTriggerOrder
 
 @Entity(
-    tableName = "perpetual_position",
-    primaryKeys = ["id", "perpetualId", "accountAddress"],
+    tableName = "perpetuals_positions",
+    primaryKeys = ["id", "walletId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = DbWallet::class,
+            parentColumns = ["id"],
+            childColumns = ["walletId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = DbPerpetual::class,
+            parentColumns = ["id"],
+            childColumns = ["perpetualId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = DbAsset::class,
+            parentColumns = ["id"],
+            childColumns = ["assetId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+    ],
     indices = [
-        Index(name = "perpetual_position_asset_id_idx", value = ["assetId"]),
-        Index(name = "perpetual_position_perpetual_id_idx", value = ["perpetualId"]),
-        Index(name = "perpetual_position_account_address_idx", value = ["accountAddress"]),
+        Index(name = "perpetuals_positions_wallet_id_idx", value = ["walletId"]),
+        Index(name = "perpetuals_positions_perpetual_id_idx", value = ["perpetualId"]),
+        Index(name = "perpetuals_positions_asset_id_idx", value = ["assetId"]),
     ],
 )
 data class DbPerpetualPosition(
     val id: String,
+    val walletId: String,
     val perpetualId: String,
-    val accountAddress: String,
     val assetId: String,
     val size: Double,
     val sizeValue: Double,
@@ -35,35 +59,26 @@ data class DbPerpetualPosition(
     val marginType: PerpetualMarginType,
     val direction: PerpetualDirection,
     val marginAmount: Double,
-    // Trigger: profit
     val takeProfitPrice: Double? = null,
     val takeProfitType: PerpetualOrderType? = null,
     val takeProfitOrderId: String? = null,
-    // // Trigger: stop loss
     val stopLossPrice: Double? = null,
     val stopLossType: PerpetualOrderType? = null,
     val stopLossOrderId: String? = null,
     val pnl: Double,
     val funding: Float? = null,
+    val updatedAt: Long,
 )
 
 data class DbPerpetualPositionData(
-
     @Embedded
     val position: DbPerpetualPosition,
 
-    @Relation(
-        parentColumn = "perpetualId",
-        entityColumn = "id"
-    )
+    @Relation(parentColumn = "perpetualId", entityColumn = "id")
     val perpetual: DbPerpetual,
 
-
-    @Relation(
-        parentColumn = "assetId",
-        entityColumn = "id"
-    )
-    val asset: DbPerpetualAsset,
+    @Relation(parentColumn = "assetId", entityColumn = "id")
+    val asset: DbAsset,
 )
 
 fun DbPerpetualPosition.toDto(): PerpetualPosition? {
@@ -82,7 +97,7 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition? {
             order_id = stopLossOrderId,
         )
     } else null
-    
+
     return PerpetualPosition(
         id = id,
         perpetualId = perpetualId,
@@ -102,11 +117,11 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition? {
     )
 }
 
-fun PerpetualPosition.toDB(accountAddress: String): DbPerpetualPosition {
+fun PerpetualPosition.toDB(walletId: String, updatedAt: Long = System.currentTimeMillis()): DbPerpetualPosition {
     return DbPerpetualPosition(
         id = id,
+        walletId = walletId,
         perpetualId = perpetualId,
-        accountAddress = accountAddress,
         assetId = assetId.toIdentifier(),
         size = size,
         sizeValue = sizeValue,
@@ -124,6 +139,7 @@ fun PerpetualPosition.toDB(accountAddress: String): DbPerpetualPosition {
         stopLossOrderId = stopLoss?.order_id,
         pnl = pnl,
         funding = funding,
+        updatedAt = updatedAt,
     )
 }
 
@@ -131,6 +147,6 @@ fun DbPerpetualPositionData.toDTO(): PerpetualPositionData? {
     return PerpetualPositionData(
         perpetual = perpetual.toDTO() ?: return null,
         asset = asset.toDTO() ?: return null,
-        position = position.toDto() ?: return null
+        position = position.toDto() ?: return null,
     )
 }

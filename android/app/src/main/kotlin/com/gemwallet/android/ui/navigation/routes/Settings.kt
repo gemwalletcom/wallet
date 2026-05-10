@@ -60,7 +60,6 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     onAddPriceAlertTarget: (AssetId) -> Unit,
     onPriceAlertTargetComplete: (String) -> Unit,
     onChart: (AssetId) -> Unit,
-    onPerpetual: () -> Unit,
     toastMessage: (NavKey) -> String?,
     onToastShown: (NavKey) -> Unit,
     onCancel: () -> Unit,
@@ -124,7 +123,6 @@ fun EntryProviderScope<NavKey>.settingsScreen(
         PreferencesScene(
             onNetworks = onNetworks,
             onCurrencies = onCurrencies,
-            onPerpetual = onPerpetual,
             onCancel = onCancel,
         )
     }

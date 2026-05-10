@@ -22,7 +22,7 @@ public actor GemAPIAssetsListServiceMock: GemAPIAssetsListService {
         self.swapAssetsResult = swapAssetsResult
     }
 
-    public func getDeviceAssets(walletId _: String, fromTimestamp _: Int) async throws -> [AssetId] {
+    public func getDeviceAssets(walletId _: WalletId, fromTimestamp _: Int) async throws -> [AssetId] {
         assetsByDeviceIdResult!
     }
 

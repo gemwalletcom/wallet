@@ -2,7 +2,8 @@ package com.gemwallet.android.data.repositories.di
 
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepositoryImpl
-import com.gemwallet.android.data.service.store.database.PerpetualBalanceDao
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import dagger.Module
@@ -19,13 +20,15 @@ object PerpetualModule {
     @Singleton
     fun providePerpetualRepository(
         perpetualDao: PerpetualDao,
-        perpetualBalanceDao: PerpetualBalanceDao,
         perpetualPositionDao: PerpetualPositionDao,
+        assetsDao: AssetsDao,
+        balancesDao: BalancesDao,
     ): PerpetualRepository {
         return PerpetualRepositoryImpl(
-            perpetualDao =  perpetualDao,
-            perpetualBalanceDao = perpetualBalanceDao,
+            perpetualDao = perpetualDao,
             perpetualPositionDao = perpetualPositionDao,
+            assetsDao = assetsDao,
+            balancesDao = balancesDao,
         )
     }
 }

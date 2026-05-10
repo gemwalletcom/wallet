@@ -7,7 +7,9 @@ import Primitives
 
 public extension AssetScore {
     /// default score of a token asset, not assigned
-    static var defaultScore: Int { Gemstone.defaultTokenRank().asInt }
+    static var defaultScore: Int {
+        Gemstone.defaultTokenRank().asInt
+    }
 
     static func defaultScore(chain: Chain) -> AssetScore {
         AssetScore(

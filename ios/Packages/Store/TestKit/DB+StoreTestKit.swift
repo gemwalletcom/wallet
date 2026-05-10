@@ -53,7 +53,7 @@ public extension DB {
         try priceStore.updatePrices(
             prices: [
                 .mock(assetId: ethereum.id, price: 100, priceChangePercentage24h: 0),
-                .mock(assetId: bnb.id, price: 1_000, priceChangePercentage24h: 0),
+                .mock(assetId: bnb.id, price: 1000, priceChangePercentage24h: 0),
             ],
             currency: Currency.usd.rawValue,
         )

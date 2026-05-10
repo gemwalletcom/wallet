@@ -24,7 +24,7 @@ struct GemAPITests {
                 },
             )
 
-            return try await service.getDeviceAssets(walletId: "wallet", fromTimestamp: 0)
+            return try await service.getDeviceAssets(walletId: .multicoin(address: "0xabc"), fromTimestamp: 0)
         }
 
         #expect(assetIds.isEmpty)
@@ -68,7 +68,7 @@ struct GemAPITests {
             )
 
             do {
-                _ = try await service.getDeviceAssets(walletId: "wallet", fromTimestamp: 0)
+                _ = try await service.getDeviceAssets(walletId: .multicoin(address: "0xabc"), fromTimestamp: 0)
                 Issue.record("Expected preflight to throw")
             } catch {
                 #expect(events.snapshot().isEmpty)
@@ -78,11 +78,14 @@ struct GemAPITests {
 
     @Test
     func gemDeviceAPIWalletIdClassifiesWalletScopedTargets() {
+        let walletId = WalletId.multicoin(address: "0xabc")
+
         #expect(GemDeviceAPI.getSubscriptions.walletId == nil)
-        #expect(GemDeviceAPI.getAssetsList(walletId: "wallet", fromTimestamp: 0).walletId == "wallet")
-        #expect(GemDeviceAPI.getTransactions(walletId: "wallet", assetId: nil, fromTimestamp: 0).walletId == "wallet")
-        #expect(GemDeviceAPI.refreshNftAsset(walletId: "wallet", assetId: "ethereum_0xabc::1").walletId == "wallet")
-        #expect(GemDeviceAPI.getFiatQuoteUrl(walletId: "wallet", quoteId: "quote").walletId == "wallet")
+        #expect(GemDeviceAPI.getAssetsList(walletId: walletId, fromTimestamp: 0).walletId == walletId.id)
+        #expect(GemDeviceAPI.getTransactions(walletId: walletId, assetId: nil, fromTimestamp: 0).walletId == walletId.id)
+        #expect(GemDeviceAPI.refreshNftAsset(walletId: walletId, assetId: "ethereum_0xabc::1").walletId == walletId.id)
+        #expect(GemDeviceAPI.getFiatQuoteUrl(walletId: walletId, quoteId: "quote").walletId == walletId.id)
+        #expect(GemDeviceAPI.getWalletConfiguration(walletId: walletId).walletId == walletId.id)
     }
 }
 

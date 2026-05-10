@@ -54,6 +54,22 @@ class SettingsViewModel @Inject constructor(
     val pushEnabled = getPushEnabled.getPushEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    val isPerpetualEnabled = userConfig.isPerpetualEnabled()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val perpetualLeverage = userConfig.perpetualLeverage()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UserConfig.PERPETUAL_LEVERAGE_DEFAULT)
+
+    val perpetualLeverageOptions: List<Int> = UserConfig.PERPETUAL_LEVERAGE_OPTIONS
+
+    fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        userConfig.setPerpetualEnabled(enabled)
+    }
+
+    fun setPerpetualLeverage(value: Int) = viewModelScope.launch(Dispatchers.IO) {
+        userConfig.setPerpetualLeverage(value)
+    }
+
     init {
         viewModelScope.launch {
             session.collectLatest {

@@ -384,3 +384,8 @@ fun Asset.formatSupply(
     value: Double,
     locale: Locale = Locale.getDefault(),
 ): String = if (value == 0.0) "\u221E $symbol" else compactFormatter(value = value, locale = locale)
+
+fun com.wallet.core.primitives.Currency.formatPnl(value: Double): String {
+    val sign = if (value >= 0) "+" else "-"
+    return "$sign${format(kotlin.math.abs(value))}"
+}

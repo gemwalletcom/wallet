@@ -40,7 +40,15 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Testing
 
+- Tests must verify intent, not just behavior. If the same test still passes after the business rule flips, it is a tautology — fix the assertion or the function under test
 - When fixing a high-impact bug, add or update the smallest meaningful test only if it materially reduces regression risk; keep it compact, avoid trivial/framework/formatting-only coverage, and skip purely visual UI polish unless coverage is explicitly requested or already cheap to extend
+- "Tests pass" is not a green light if any were skipped, marked `xfail`, or guarded behind feature flags you did not run — report what you actually executed
+
+## Working Across the Monorepo
+
+- When two patterns contradict (iOS vs. Android handling of a shared flow, two error-mapping styles in `core/`, parallel provider implementations), do not blend them. Pick the more recent or more tested one, state why, and flag the other for follow-up
+- For multi-step work that crosses Core → bindings → iOS/Android, checkpoint after each step: state what changed, what was verified, what is left. Do not continue from a state you cannot describe back
+- If a regeneration's effect on either app is unclear, stop and restate before adding more changes
 
 ## Task Completion
 
@@ -53,3 +61,5 @@ Before finishing a task:
 6. Remove dead code, keep imports clean, and follow platform patterns
 
 Do not close a task based only on reasoning, `git diff`, or file inspection. Run real verification commands for the changed area. If verification is blocked by unrelated repo state, report the exact command you ran and the blocking failure explicitly.
+
+For wallet-critical flows (signing, secure storage, migrations, key import/export, transaction construction), "completed" is wrong if anything was skipped silently. Surface skipped records, swallowed errors, or untested branches explicitly — a silent success on these paths is the most expensive failure mode in this repo.

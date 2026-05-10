@@ -17,10 +17,10 @@ struct BalanceCalculatorTests {
     @Test
     func totalFiatValueWithPositiveChange() {
         let result = BalanceCalculator.totalFiatValue([
-            AssetFiatValue(amount: 3, price: 1_100, priceChangePercentage24h: 10),
+            AssetFiatValue(amount: 3, price: 1100, priceChangePercentage24h: 10),
         ])
 
-        #expect(result.value == 3_300)
+        #expect(result.value == 3300)
         #expect(result.pnlAmount == 300)
         #expect(result.pnlPercentage == 10)
     }
@@ -28,10 +28,10 @@ struct BalanceCalculatorTests {
     @Test
     func totalFiatValueWithZeroChange() {
         let result = BalanceCalculator.totalFiatValue([
-            AssetFiatValue(amount: 3, price: 1_100, priceChangePercentage24h: 0),
+            AssetFiatValue(amount: 3, price: 1100, priceChangePercentage24h: 0),
         ])
 
-        #expect(result.value == 3_300)
+        #expect(result.value == 3300)
         #expect(result.pnlAmount == 0)
         #expect(result.pnlPercentage == 0)
     }

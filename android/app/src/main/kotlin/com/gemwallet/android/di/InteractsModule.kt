@@ -3,7 +3,7 @@ package com.gemwallet.android.di
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.SecurityStore
-import com.gemwallet.android.application.wallet_import.services.ImportAssets
+import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
@@ -20,8 +20,6 @@ import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateKeyOpe
 import com.gemwallet.android.blockchain.operators.walletcore.WCStorePhraseOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCValidatePhraseOperator
-import com.gemwallet.android.blockchain.services.AddressStatusService
-import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.PreferencePasswordStore
@@ -104,10 +102,8 @@ object InteractsModule {
         phraseValidate: ValidatePhraseOperator,
         addressValidate: ValidateAddressOperator,
         passwordStore: PasswordStore,
-        addBanner: AddBanner,
         syncSubscription: SyncSubscription,
-        addressStatusService: AddressStatusService,
-        importAssets: ImportAssets,
+        walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
         walletsRepository = walletsRepository,
         assetsRepository = assetsRepository,
@@ -116,9 +112,7 @@ object InteractsModule {
         phraseValidate = phraseValidate,
         addressValidate = addressValidate,
         passwordStore = passwordStore,
-        addBanner = addBanner,
         syncSubscription = syncSubscription,
-        addressStatusService = addressStatusService,
-        importAssets = importAssets,
+        walletImportSync = walletImportSync,
     )
 }

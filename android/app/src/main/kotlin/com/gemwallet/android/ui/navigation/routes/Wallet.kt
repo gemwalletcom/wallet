@@ -39,7 +39,7 @@ fun EntryProviderScope<NavKey>.walletScreen(
 
         WalletNavScreen(
             onPhraseShow = { walletId, type ->
-                context.requestAuth(AuthRequest.Phrase) { onSecurityReminder(walletId, type) }
+                context.requestAuth(AuthRequest.Default) { onSecurityReminder(walletId, type) }
             },
             onBoard = onBoard,
             onCancel = onCancel,

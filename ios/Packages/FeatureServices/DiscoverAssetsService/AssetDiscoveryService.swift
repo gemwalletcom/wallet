@@ -40,7 +40,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     }
 
     private func discoverAssets(wallet: Wallet, preferences: WalletPreferences) async throws {
-        let assetIds = try await assetsListService.getDeviceAssets(walletId: wallet.id, fromTimestamp: preferences.assetsTimestamp)
+        let assetIds = try await assetsListService.getDeviceAssets(walletId: wallet.walletId, fromTimestamp: preferences.assetsTimestamp)
         if assetIds.isNotEmpty {
             try await assetService.prefetchAssets(assetIds: assetIds)
             try await assetsEnabler.enableAssets(wallet: wallet, assetIds: assetIds, enabled: true)

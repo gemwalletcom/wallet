@@ -17,7 +17,7 @@ struct WalletPreferencesTests {
         #expect(!preferences.completeInitialLoadAssets)
         #expect(!preferences.completeInitialLoadTransactions)
         #expect(!preferences.completeInitialLoadNFTs)
-        #expect(!preferences.completeInitialAddressStatus)
+        #expect(!preferences.completeInitialWalletConfiguration)
         #expect(preferences.transactionsForAssetTimestamp(assetId: asset.id.identifier) == 0)
     }
 
@@ -38,8 +38,8 @@ struct WalletPreferencesTests {
         preferences.completeInitialLoadNFTs = true
         #expect(preferences.completeInitialLoadNFTs)
 
-        preferences.completeInitialAddressStatus = true
-        #expect(preferences.completeInitialAddressStatus)
+        preferences.completeInitialWalletConfiguration = true
+        #expect(preferences.completeInitialWalletConfiguration)
 
         preferences.setTransactionsForAssetTimestamp(assetId: asset.id.identifier, value: 10)
         #expect(preferences.transactionsForAssetTimestamp(assetId: asset.id.identifier) == 10)
@@ -52,7 +52,7 @@ struct WalletPreferencesTests {
         #expect(preferences.completeInitialLoadAssets)
         #expect(preferences.completeInitialLoadTransactions)
         #expect(preferences.completeInitialLoadNFTs)
-        #expect(preferences.completeInitialAddressStatus)
+        #expect(preferences.completeInitialWalletConfiguration)
     }
 
     @Test
@@ -62,7 +62,7 @@ struct WalletPreferencesTests {
         preferences.completeInitialLoadAssets = true
         preferences.completeInitialLoadTransactions = true
         preferences.completeInitialLoadNFTs = true
-        preferences.completeInitialAddressStatus = true
+        preferences.completeInitialWalletConfiguration = true
         preferences.setTransactionsForAssetTimestamp(assetId: asset.id.identifier, value: 10)
 
         #expect(preferences.assetsTimestamp == 123)
@@ -70,7 +70,7 @@ struct WalletPreferencesTests {
         #expect(preferences.completeInitialLoadAssets)
         #expect(preferences.completeInitialLoadTransactions)
         #expect(preferences.completeInitialLoadNFTs)
-        #expect(preferences.completeInitialAddressStatus)
+        #expect(preferences.completeInitialWalletConfiguration)
         #expect(preferences.transactionsForAssetTimestamp(assetId: asset.id.identifier) == 10)
 
         preferences.clear()
@@ -80,7 +80,7 @@ struct WalletPreferencesTests {
         #expect(!preferences.completeInitialLoadAssets)
         #expect(!preferences.completeInitialLoadTransactions)
         #expect(!preferences.completeInitialLoadNFTs)
-        #expect(!preferences.completeInitialAddressStatus)
+        #expect(!preferences.completeInitialWalletConfiguration)
         #expect(preferences.transactionsForAssetTimestamp(assetId: asset.id.identifier) == 0)
     }
 }

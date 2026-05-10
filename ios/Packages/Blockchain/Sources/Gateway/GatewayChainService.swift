@@ -126,9 +126,3 @@ extension GatewayChainService: ChainNodeStatusFetchable {
         try await gateway.nodeStatus(chain: chain, url: url)
     }
 }
-
-extension GatewayChainService: ChainAddressStatusFetchable {
-    func getAddressStatus(address: String) async throws -> [AddressStatus] {
-        try await gateway.getAddressStatus(chain: chain, address: address)
-    }
-}

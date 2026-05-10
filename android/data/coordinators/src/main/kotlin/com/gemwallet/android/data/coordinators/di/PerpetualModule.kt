@@ -57,7 +57,6 @@ object PerpetualModule {
             sessionRepository = sessionRepository,
             perpetualService = perpetualService,
             perpetualRepository = perpetualRepository,
-            chains = listOf(Chain.HyperCore)
         )
     }
 

@@ -10,7 +10,9 @@ import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
+import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
 import com.wallet.core.primitives.Chain
 import io.mockk.every
@@ -19,6 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -65,6 +68,9 @@ class AssetsViewModelTest {
             return activeAssetsFlow.map { items -> items.all { it.isZeroBalance } }
         }
     }
+    private val getSession = object : GetSession {
+        override fun invoke(): StateFlow<Session?> = MutableStateFlow(null)
+    }
 
     @Before
     fun setUp() {
@@ -107,6 +113,7 @@ class AssetsViewModelTest {
         getWalletSummary = getWalletSummary,
         getHideBalancesState = getHideBalancesState,
         getShowWelcomeBanner = getShowWelcomeBanner,
+        getSession = getSession,
     )
 
     private fun assetAggregate(

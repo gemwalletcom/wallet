@@ -4,12 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,17 +16,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.defaultTokenRank
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -56,21 +51,16 @@ class TransactionsViewModel @Inject constructor(
     private var lastSyncedWalletId: WalletId? = null
 
     val transactions = combine(
+        getTransactions.transactions(),
         chainsFilter,
-        typeFilter
-    ) { chains, types ->
-        Pair(chains, types.fold(emptyList<TransactionType>(), { acc, filter -> acc + filter.types }))
+        typeFilter,
+    ) { items, chains, types ->
+        val allowedTypes = types.flatMap { it.types }.toSet()
+        items.filter {
+            (chains.isEmpty() || it.asset.id.chain in chains) &&
+                (allowedTypes.isEmpty() || it.type in allowedTypes)
+        }
     }
-    .flatMapLatest { (chains, types) ->
-        getTransactions.getTransactions(
-            filters = listOf(
-                TransactionsRequestFilter.Chains(chains),
-                TransactionsRequestFilter.Types(types),
-                TransactionsRequestFilter.AssetRankGreaterThan(defaultTokenRank()),
-            ),
-        )
-    }
-    .distinctUntilChanged()
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
@@ -94,7 +84,10 @@ class TransactionsViewModel @Inject constructor(
         val current = walletId.value ?: return
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current
-        refresh()
+        viewModelScope.launch(Dispatchers.IO) {
+            val wallet = session.firstOrNull()?.wallet ?: return@launch
+            syncTransactions.syncTransactions(wallet)
+        }
     }
 
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {

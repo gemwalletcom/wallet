@@ -6,10 +6,11 @@ internal class AuthRequestQueue {
     private val queued = ArrayDeque<PendingAuthRequest>()
 
     @Synchronized
-    fun enqueue(onSuccess: () -> Unit): PendingAuthRequest? {
+    fun enqueue(requiresConfirmation: Boolean = false, onSuccess: () -> Unit): PendingAuthRequest? {
         queued.addLast(
             PendingAuthRequest(
                 id = nextId++,
+                requiresConfirmation = requiresConfirmation,
                 onSuccess = onSuccess,
             )
         )
@@ -18,6 +19,9 @@ internal class AuthRequestQueue {
 
     @Synchronized
     fun hasActive(): Boolean = active != null
+
+    @Synchronized
+    fun activeRequiresConfirmation(): Boolean = active?.requiresConfirmation == true
 
     @Synchronized
     fun completeActive(): PendingAuthRequest? {
@@ -43,5 +47,6 @@ internal class AuthRequestQueue {
 
 internal data class PendingAuthRequest(
     val id: Long,
+    val requiresConfirmation: Boolean = false,
     val onSuccess: () -> Unit,
 )

@@ -19,7 +19,7 @@ public struct AssetDataViewModel: Sendable {
         assetData: AssetData,
         formatter: ValueFormatter,
         currencyCode: String,
-        currencyFormatterType: CurrencyFormatterType = .abbreviated,
+        currencyFormatterType: CurrencyFormatterType = .currency,
     ) {
         self.assetData = assetData
         priceViewModel = PriceViewModel(
