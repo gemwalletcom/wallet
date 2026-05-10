@@ -16,11 +16,11 @@ public final class GemAPITransactionServiceMock: GemAPITransactionService, @unch
         self.assetTransactionsResponse = assetTransactionsResponse
     }
 
-    public func getDeviceTransactions(walletId _: String, fromTimestamp _: Int) async throws -> TransactionsResponse {
+    public func getDeviceTransactions(walletId _: WalletId, fromTimestamp _: Int) async throws -> TransactionsResponse {
         walletTransactionsResponse
     }
 
-    public func getDeviceTransactionsForAsset(walletId _: String, asset _: AssetId, fromTimestamp _: Int) async throws -> TransactionsResponse {
+    public func getDeviceTransactionsForAsset(walletId _: WalletId, asset _: AssetId, fromTimestamp _: Int) async throws -> TransactionsResponse {
         assetTransactionsResponse
     }
 

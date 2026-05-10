@@ -16,6 +16,7 @@ public struct PushNotificationEnablerService: Sendable {
             preferences.isPushNotificationsEnabled = try await requestAuthorizationPermissions()
             return preferences.isPushNotificationsEnabled
         }
+        await registerForRemoteNotifications()
         return true
     }
 
@@ -24,6 +25,7 @@ public struct PushNotificationEnablerService: Sendable {
         switch status {
         case .authorized, .ephemeral, .provisional:
             preferences.isPushNotificationsEnabled = true
+            await registerForRemoteNotifications()
             return preferences.isPushNotificationsEnabled
         case .notDetermined:
             return try await requestPermissions()
@@ -50,7 +52,12 @@ public struct PushNotificationEnablerService: Sendable {
 
     private func requestAuthorizationPermissions() async throws -> Bool {
         let result = try await UNUserNotificationCenter.current().requestAuthorization(options: [.badge, .sound, .alert])
-        await UIApplication.shared.registerForRemoteNotifications()
+        await registerForRemoteNotifications()
         return result
+    }
+
+    @MainActor
+    private func registerForRemoteNotifications() {
+        UIApplication.shared.registerForRemoteNotifications()
     }
 }

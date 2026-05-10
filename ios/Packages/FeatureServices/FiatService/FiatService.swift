@@ -22,22 +22,22 @@ public struct FiatService: Sendable {
     }
 
     public func updateTransactions(walletId: WalletId) async throws {
-        let transactions = try await apiService.getFiatTransactions(walletId: walletId.id)
+        let transactions = try await apiService.getFiatTransactions(walletId: walletId)
         try await prefetchAssets(transactions: transactions)
         try store.addTransactions(walletId: walletId, transactions: transactions)
     }
 }
 
 extension FiatService: GemAPIFiatService {
-    public func getQuotes(walletId: String, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote] {
+    public func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote] {
         try await apiService.getQuotes(walletId: walletId, type: type, assetId: assetId, request: request)
     }
 
-    public func getQuoteUrl(walletId: String, quoteId: String) async throws -> FiatQuoteUrl {
+    public func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl {
         try await apiService.getQuoteUrl(walletId: walletId, quoteId: quoteId)
     }
 
-    public func getFiatTransactions(walletId: String) async throws -> [FiatTransactionData] {
+    public func getFiatTransactions(walletId: WalletId) async throws -> [FiatTransactionData] {
         try await apiService.getFiatTransactions(walletId: walletId)
     }
 }

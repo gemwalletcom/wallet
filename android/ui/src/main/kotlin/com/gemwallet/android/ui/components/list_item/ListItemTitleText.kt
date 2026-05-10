@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
@@ -16,6 +17,7 @@ fun ListItemTitleText(
     text: String,
     titleBadge: (@Composable () -> Unit)? = null,
     color: Color = MaterialTheme.colorScheme.onSurface,
+    style: TextStyle = MaterialTheme.typography.titleMedium,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -26,7 +28,7 @@ fun ListItemTitleText(
             text = text,
             maxLines = 1,
             overflow = TextOverflow.MiddleEllipsis,
-            style = MaterialTheme.typography.titleMedium,
+            style = style,
             color = color,
         )
         titleBadge?.invoke()

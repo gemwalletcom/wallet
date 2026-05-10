@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -124,6 +125,7 @@ class SwapViewModel @Inject constructor(
     private val quoteRequestParams = combine(payValueFlow, payAsset, receiveAsset) { value, fromAsset, toAsset ->
             SwapQuoteRequestParams.create(value, fromAsset, toAsset)
         }
+        .distinctUntilChangedBy { it?.key }
         .onEach(::onQuoteRequestParamsChanged)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -249,6 +251,7 @@ class SwapViewModel @Inject constructor(
             SwapItemType.Receive -> {
                 if (payAsset.value?.id() == assetId) {
                     savedStateHandle[RouteArgument.FromAssetId.key] = null
+                    payValue.clearText()
                 }
                 savedStateHandle[RouteArgument.ToAssetId.key] = assetId.toIdentifier()
             }

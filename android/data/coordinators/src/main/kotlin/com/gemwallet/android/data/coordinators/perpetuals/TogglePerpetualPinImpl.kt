@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.wallet.core.primitives.PerpetualMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -15,11 +14,8 @@ class TogglePerpetualPinImpl @Inject constructor(
 ) : TogglePerpetualPin {
     override fun togglePin(perpetualId: String) {
         scope.launch {
-            val perpetual = perpetualRepository.getPerpetual(perpetualId).firstOrNull()
-            perpetualRepository.setMetadata(
-                perpetualId = perpetualId,
-                metadata = PerpetualMetadata(isPinned = !(perpetual?.metadata?.isPinned ?: true)),
-            )
+            val current = perpetualRepository.getPerpetual(perpetualId).firstOrNull() ?: return@launch
+            perpetualRepository.setPinned(perpetualId, !current.metadata.isPinned)
         }
     }
 }

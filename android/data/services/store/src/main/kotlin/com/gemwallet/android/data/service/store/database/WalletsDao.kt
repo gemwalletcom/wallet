@@ -2,10 +2,9 @@ package com.gemwallet.android.data.service.store.database
 
 import androidx.room.Dao
 import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.gemwallet.android.data.service.store.database.entities.DbAccount
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +20,7 @@ interface WalletsDao {
     @Query("SELECT * FROM wallets WHERE id = :id")
     fun getById(id: String): Flow<DbWallet?>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun insert(wallet: DbWallet)
 
     @Update

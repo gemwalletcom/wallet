@@ -13,14 +13,12 @@ public extension TransactionsService {
         provider: any GemAPITransactionService = GemAPITransactionServiceMock(),
         transactionStore: TransactionStore = .mock(),
         assetsService: AssetsService = .mock(),
-        walletStore: WalletStore = .mock(),
         addressStore: AddressStore = .mock(),
     ) -> TransactionsService {
         TransactionsService(
             provider: provider,
             transactionStore: transactionStore,
             assetsService: assetsService,
-            walletStore: walletStore,
             addressStore: addressStore,
         )
     }

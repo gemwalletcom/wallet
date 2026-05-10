@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.walletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
@@ -21,7 +22,7 @@ class GetImportInProgressImpl(
             .filterNotNull()
             .flatMapLatest { session ->
                 getImportWalletState
-                    .getImportState(session.wallet.id)
+                    .getImportState(session.wallet.walletId)
                     .mapLatest { it == ImportWalletState.Importing }
             }
     }

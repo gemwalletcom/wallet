@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
 import com.gemwallet.android.services.SyncService
@@ -66,8 +65,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun isAuthRequired(request: AuthRequest): Boolean =
-        request == AuthRequest.Enable || userConfig.authRequired()
+    fun isAuthRequired(): Boolean = userConfig.authRequired()
 
     internal fun maintain() {
         viewModelScope.launch(Dispatchers.IO) { syncService.sync() }

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BalancesDao {
@@ -64,6 +65,9 @@ interface BalancesDao {
         updatedAt: Long,
     )
 
+    @Query("SELECT available_amount AS available, reserved_amount AS reserved, withdrawableAmount AS withdrawable FROM balances WHERE wallet_id = :walletId AND asset_id = :assetId")
+    fun perpetualBalance(walletId: String, assetId: String): Flow<DbPerpetualBalanceProjection?>
+
     @Query("""
         UPDATE balances SET
             staked = :staked,
@@ -106,3 +110,9 @@ interface BalancesDao {
         updatedAt: Long,
     )
 }
+
+data class DbPerpetualBalanceProjection(
+    val available: Double,
+    val reserved: Double,
+    val withdrawable: Double,
+)

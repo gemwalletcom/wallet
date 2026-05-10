@@ -20,6 +20,7 @@ import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -54,14 +55,14 @@ class BannersRepository(
     }
 
     override suspend fun addBanner(
-        wallet: Wallet?,
+        walletId: WalletId?,
         asset: Asset?,
         chain: Chain?,
         event: BannerEvent,
         state: BannerState,
     ) {
         val banner = DbBanner(
-            walletId = wallet?.id ?: "",
+            walletId = walletId?.id ?: "",
             assetId = asset?.id?.toIdentifier() ?: "",
             chain = chain,
             event = event,

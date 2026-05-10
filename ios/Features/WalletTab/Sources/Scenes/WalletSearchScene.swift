@@ -52,7 +52,6 @@ public struct WalletSearchScene: View {
         .onChange(of: model.searchModel.searchableQuery, model.onChangeSearchQuery)
         .onChange(of: model.isSearching, model.onChangeFocus)
         .onChange(of: model.isSearchPresented, model.onChangeSearchPresented)
-        .onChange(of: model.isPerpetualEnabled, model.onChangePerpetualsEnabled)
         .onAppear {
             model.onAppear()
         }

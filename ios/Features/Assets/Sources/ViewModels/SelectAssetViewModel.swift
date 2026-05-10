@@ -84,8 +84,7 @@ public final class SelectAssetViewModel {
             RecentActivityRequest(
                 walletId: wallet.walletId,
                 limit: 10,
-                types: RecentActivityType.allCases.filter { $0 != .perpetual
-                },
+                types: RecentActivityType.allCases,
                 filters: filter.defaultFilters,
             ),
             initialValue: [],

@@ -15,12 +15,12 @@ public struct TotalValueRequest: DatabaseQueryable, Equatable {
     public func fetch(_ db: Database) throws -> TotalFiatValue {
         switch type {
         case .perpetual:
-            return BalanceCalculator.totalFiatValue([try perpetualFiatValue(db)])
+            return try BalanceCalculator.totalFiatValue([perpetualFiatValue(db)])
         case .wallet:
             let assets = try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
             }
-            return BalanceCalculator.totalFiatValue(assets + [try perpetualFiatValue(db)])
+            return try BalanceCalculator.totalFiatValue(assets + [perpetualFiatValue(db)])
         case .earn:
             let assets = try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)

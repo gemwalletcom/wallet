@@ -45,10 +45,10 @@ public struct DeviceService: DeviceServiceable {
         try? await updateNodeAuthTokenIfNeeded()
     }
 
-    public func prepareForWalletRequest() async throws {
+    public func synchronizeIfNeeded() async throws {
         try await syncCoordinator.waitForSyncIfNeeded()
         _ = try getOrCreateDeviceId()
-        guard !isReadyForWalletRequest else { return }
+        guard !isSynchronized else { return }
         try await synchronizeDevice()
     }
 
@@ -113,7 +113,7 @@ public struct DeviceService: DeviceServiceable {
         return deviceId
     }
 
-    private var isReadyForWalletRequest: Bool {
+    private var isSynchronized: Bool {
         preferences.isDeviceRegistered
             && !preferences.subscriptionsVersionHasChange
     }
