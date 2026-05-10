@@ -30,3 +30,7 @@ Before finishing an iOS task:
 3. Run `just lint` and `just format` when Swift code changed
 4. If generated files or `core/` changed, run the required generation step and verify iOS still builds
 5. Keep imports clean and remove dead code
+
+Add or update tests only for high-impact behavior where a compact test materially reduces risk; skip trivial logic and purely visual SwiftUI polish unless coverage is explicitly requested or already cheap to extend.
+
+Do not finish an iOS task without running at least one real verification command for the touched codepath. `swift build` succeeding is not the same as the feature working — for UI changes, exercise the flow on a simulator or device. If verification is blocked by unrelated repo state, report the exact command and the blocking failure instead of claiming the change was verified.

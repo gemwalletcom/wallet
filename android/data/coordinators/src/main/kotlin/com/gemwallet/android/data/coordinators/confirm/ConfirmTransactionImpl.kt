@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction.FinishRoute
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.SignClientProxy
@@ -41,7 +40,7 @@ class ConfirmTransactionImpl(
         session: Session,
         assetInfo: AssetInfo,
         scope: CoroutineScope,
-    ): ConfirmTransaction.Result {
+    ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
         val signs = sign(signerParams, session, assetInfo)
@@ -51,8 +50,7 @@ class ConfirmTransactionImpl(
 
         if (signerParams.input is ConfirmParams.TransferParams.Generic) {
             if (!(signerParams.input as ConfirmParams.TransferParams.Generic).isSendable) {
-                val hash = String(signs.firstOrNull() ?: byteArrayOf())
-                return ConfirmTransaction.Result(txHash = hash, finishRoute = getFinishRoute(signerParams.input))
+                return String(signs.firstOrNull() ?: byteArrayOf())
             }
         }
 
@@ -68,8 +66,7 @@ class ConfirmTransactionImpl(
             }
         }
 
-        val finishRoute = getFinishRoute(signerParams.input)
-        return ConfirmTransaction.Result(txHash = lastHash, finishRoute = finishRoute)
+        return lastHash
     }
 
     private suspend fun sign(
@@ -160,13 +157,4 @@ class ConfirmTransactionImpl(
         else -> null
     }
 
-    private fun getFinishRoute(input: ConfirmParams): FinishRoute = when (input) {
-        is ConfirmParams.Stake -> FinishRoute.Stake
-        is ConfirmParams.SwapParams,
-        is ConfirmParams.TokenApprovalParams -> FinishRoute.Swap
-        is ConfirmParams.TransferParams,
-        is ConfirmParams.Activate,
-        is ConfirmParams.NftParams,
-        is ConfirmParams.PerpetualParams -> FinishRoute.Asset
-    }
 }

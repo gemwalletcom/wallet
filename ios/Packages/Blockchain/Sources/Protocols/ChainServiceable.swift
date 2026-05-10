@@ -3,7 +3,6 @@ import Foundation
 import Primitives
 
 public typealias ChainServiceable =
-    ChainAddressStatusFetchable &
     ChainBalanceable &
     ChainBroadcastable &
     ChainFeeRateFetchable &
@@ -64,10 +63,6 @@ public protocol ChainLatestBlockFetchable: Sendable {
     func getLatestBlock() async throws -> BigInt
 }
 
-public protocol ChainAddressStatusFetchable: Sendable {
-    func getAddressStatus(address: String) async throws -> [AddressStatus]
-}
-
 public protocol ChainNodeStatusFetchable: Sendable {
     func getNodeStatus(url: String) async throws -> NodeStatus
 }
@@ -106,11 +101,5 @@ public extension ChainTokenable {
 
     func getIsTokenAddress(tokenId _: String) -> Bool {
         false
-    }
-}
-
-public extension ChainAddressStatusFetchable {
-    func getAddressStatus(address _: String) async throws -> [AddressStatus] {
-        []
     }
 }

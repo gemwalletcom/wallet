@@ -9,9 +9,9 @@ public protocol GemAPIConfigService: Sendable {
 }
 
 public protocol GemAPIFiatService: Sendable {
-    func getQuotes(walletId: String, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote]
-    func getQuoteUrl(walletId: String, quoteId: String) async throws -> FiatQuoteUrl
-    func getFiatTransactions(walletId: String) async throws -> [FiatTransactionData]
+    func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote]
+    func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl
+    func getFiatTransactions(walletId: WalletId) async throws -> [FiatTransactionData]
 }
 
 public protocol GemAPIPricesService: Sendable {
@@ -19,7 +19,7 @@ public protocol GemAPIPricesService: Sendable {
 }
 
 public protocol GemAPIAssetsListService: Sendable {
-    func getDeviceAssets(walletId: String, fromTimestamp: Int) async throws -> [AssetId]
+    func getDeviceAssets(walletId: WalletId, fromTimestamp: Int) async throws -> [AssetId]
     func getBuyableFiatAssets() async throws -> FiatAssets
     func getSellableFiatAssets() async throws -> FiatAssets
     func getSwapAssets() async throws -> FiatAssets
@@ -64,8 +64,8 @@ public protocol GemAPISubscriptionService: Sendable {
 }
 
 public protocol GemAPITransactionService: Sendable {
-    func getDeviceTransactions(walletId: String, fromTimestamp: Int) async throws -> TransactionsResponse
-    func getDeviceTransactionsForAsset(walletId: String, asset: AssetId, fromTimestamp: Int) async throws -> TransactionsResponse
+    func getDeviceTransactions(walletId: WalletId, fromTimestamp: Int) async throws -> TransactionsResponse
+    func getDeviceTransactionsForAsset(walletId: WalletId, asset: AssetId, fromTimestamp: Int) async throws -> TransactionsResponse
 }
 
 public protocol GemAPIPriceAlertService: Sendable {
@@ -75,13 +75,17 @@ public protocol GemAPIPriceAlertService: Sendable {
 }
 
 public protocol GemAPINFTService: Sendable {
-    func getDeviceNFTAssets(walletId: String) async throws -> [NFTData]
-    func refreshNftAsset(walletId: String, assetId: String) async throws
+    func getDeviceNFTAssets(walletId: WalletId) async throws -> [NFTData]
+    func refreshNftAsset(walletId: WalletId, assetId: String) async throws
     func reportNft(report: ReportNft) async throws
 }
 
 public protocol GemAPIScanService: Sendable {
     func getScanTransaction(payload: ScanTransactionPayload) async throws -> ScanTransaction
+}
+
+public protocol GemAPIWalletConfigurationService: Sendable {
+    func getWalletConfiguration(walletId: WalletId) async throws -> WalletConfigurationResult
 }
 
 public protocol GemAPIMarketService: Sendable {
@@ -93,11 +97,11 @@ public protocol GemAPIAuthService: Sendable {
 }
 
 public protocol GemAPIRewardsService: Sendable {
-    func getRewards(walletId: String) async throws -> Rewards
-    func createReferral(walletId: String, request: AuthenticatedRequest<ReferralCode>) async throws -> Rewards
-    func useReferralCode(walletId: String, request: AuthenticatedRequest<ReferralCode>) async throws
+    func getRewards(walletId: WalletId) async throws -> Rewards
+    func createReferral(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>) async throws -> Rewards
+    func useReferralCode(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>) async throws
     func getRedemptionOption(code: String) async throws -> RewardRedemptionOption
-    func redeem(walletId: String, request: AuthenticatedRequest<RedemptionRequest>) async throws -> RedemptionResult
+    func redeem(walletId: WalletId, request: AuthenticatedRequest<RedemptionRequest>) async throws -> RedemptionResult
 }
 
 public protocol GemAPISearchService: Sendable {
@@ -141,18 +145,18 @@ public struct GemAPIService {
 }
 
 extension GemAPIService: GemAPIFiatService {
-    public func getQuotes(walletId: String, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote] {
+    public func getQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest) async throws -> [FiatQuote] {
         try await requestDevice(.getFiatQuotes(walletId: walletId, type: type, assetId: assetId, request: request))
             .mapResponse(as: FiatQuotes.self)
             .quotes
     }
 
-    public func getQuoteUrl(walletId: String, quoteId: String) async throws -> FiatQuoteUrl {
+    public func getQuoteUrl(walletId: WalletId, quoteId: String) async throws -> FiatQuoteUrl {
         try await requestDevice(.getFiatQuoteUrl(walletId: walletId, quoteId: quoteId))
             .mapResponse(as: FiatQuoteUrl.self)
     }
 
-    public func getFiatTransactions(walletId: String) async throws -> [FiatTransactionData] {
+    public func getFiatTransactions(walletId: WalletId) async throws -> [FiatTransactionData] {
         try await requestDevice(.getFiatTransactions(walletId: walletId))
             .mapResponse(as: [FiatTransactionData].self)
     }
@@ -189,19 +193,19 @@ extension GemAPIService: GemAPIChartService {
 }
 
 extension GemAPIService: GemAPITransactionService {
-    public func getDeviceTransactionsForAsset(walletId: String, asset: Primitives.AssetId, fromTimestamp: Int) async throws -> TransactionsResponse {
+    public func getDeviceTransactionsForAsset(walletId: WalletId, asset: Primitives.AssetId, fromTimestamp: Int) async throws -> TransactionsResponse {
         try await requestDevice(.getTransactions(walletId: walletId, assetId: asset.identifier, fromTimestamp: fromTimestamp))
             .mapResponse(as: TransactionsResponse.self)
     }
 
-    public func getDeviceTransactions(walletId: String, fromTimestamp: Int) async throws -> TransactionsResponse {
+    public func getDeviceTransactions(walletId: WalletId, fromTimestamp: Int) async throws -> TransactionsResponse {
         try await requestDevice(.getTransactions(walletId: walletId, assetId: nil, fromTimestamp: fromTimestamp))
             .mapResponse(as: TransactionsResponse.self)
     }
 }
 
 extension GemAPIService: GemAPIAssetsListService {
-    public func getDeviceAssets(walletId: String, fromTimestamp: Int) async throws -> [Primitives.AssetId] {
+    public func getDeviceAssets(walletId: WalletId, fromTimestamp: Int) async throws -> [Primitives.AssetId] {
         try await requestDevice(.getAssetsList(walletId: walletId, fromTimestamp: fromTimestamp))
             .mapResponse(as: [String].self)
             .compactMap { try? AssetId(id: $0) }
@@ -262,12 +266,12 @@ extension GemAPIService: GemAPIPriceAlertService {
 }
 
 extension GemAPIService: GemAPINFTService {
-    public func getDeviceNFTAssets(walletId: String) async throws -> [NFTData] {
+    public func getDeviceNFTAssets(walletId: WalletId) async throws -> [NFTData] {
         try await requestDevice(.getDeviceNFTAssets(walletId: walletId))
             .mapResponse(as: [NFTData].self)
     }
 
-    public func refreshNftAsset(walletId: String, assetId: String) async throws {
+    public func refreshNftAsset(walletId: WalletId, assetId: String) async throws {
         _ = try await requestDevice(.refreshNftAsset(walletId: walletId, assetId: assetId))
             .mapResponse(as: Bool.self)
     }
@@ -281,6 +285,13 @@ extension GemAPIService: GemAPIScanService {
     public func getScanTransaction(payload: ScanTransactionPayload) async throws -> ScanTransaction {
         try await requestDevice(.scanTransaction(payload: payload))
             .mapResponse(as: ScanTransaction.self)
+    }
+}
+
+extension GemAPIService: GemAPIWalletConfigurationService {
+    public func getWalletConfiguration(walletId: WalletId) async throws -> WalletConfigurationResult {
+        try await requestDevice(.getWalletConfiguration(walletId: walletId))
+            .mapResponse(as: WalletConfigurationResult.self)
     }
 }
 
@@ -308,17 +319,17 @@ extension GemAPIService: GemAPIAuthService {
 }
 
 extension GemAPIService: GemAPIRewardsService {
-    public func getRewards(walletId: String) async throws -> Rewards {
+    public func getRewards(walletId: WalletId) async throws -> Rewards {
         try await requestDevice(.getDeviceRewards(walletId: walletId))
             .mapResponse(as: Rewards.self)
     }
 
-    public func createReferral(walletId: String, request: AuthenticatedRequest<ReferralCode>) async throws -> Rewards {
+    public func createReferral(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>) async throws -> Rewards {
         try await requestDevice(.createDeviceReferral(walletId: walletId, request: request))
             .mapResponse(as: Rewards.self)
     }
 
-    public func useReferralCode(walletId: String, request: AuthenticatedRequest<ReferralCode>) async throws {
+    public func useReferralCode(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>) async throws {
         _ = try await requestDevice(.useDeviceReferralCode(walletId: walletId, request: request))
             .mapResponse(as: Bool.self)
     }
@@ -328,7 +339,7 @@ extension GemAPIService: GemAPIRewardsService {
             .mapResponse(as: RewardRedemptionOption.self)
     }
 
-    public func redeem(walletId: String, request: AuthenticatedRequest<RedemptionRequest>) async throws -> RedemptionResult {
+    public func redeem(walletId: WalletId, request: AuthenticatedRequest<RedemptionRequest>) async throws -> RedemptionResult {
         try await requestDevice(.redeemDeviceRewards(walletId: walletId, request: request))
             .mapResponse(as: RedemptionResult.self)
     }

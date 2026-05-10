@@ -13,16 +13,9 @@ class SyncPerpetualsImpl @Inject constructor(
 ) : SyncPerpetuals {
 
     override suspend fun syncPerpetuals() {
-        chains.mapNotNull { chain ->
-            try {
-                perpetualService.getPerpetualsData(chain = chain)
-            } catch (_: Throwable) {
-                null
-            }
-        }
-        .map {
-            perpetualRepository.removeNotAvailablePerpetuals(it)
-            perpetualRepository.putPerpetuals(it)
+        chains.forEach { chain ->
+            val data = runCatching { perpetualService.getPerpetualsData(chain = chain) }.getOrNull() ?: return@forEach
+            perpetualRepository.putPerpetuals(data)
         }
     }
 }

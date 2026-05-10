@@ -1,7 +1,10 @@
 package com.gemwallet.android.data.repositories.transactions
 
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.transaction.TransactionBalanceContext
@@ -20,6 +23,7 @@ import javax.inject.Inject
 class TransactionBalanceService @Inject constructor(
     private val stakeRepository: StakeRepository,
     private val perpetualRepository: PerpetualRepository,
+    private val sessionRepository: SessionRepository,
 ) {
 
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
@@ -91,8 +95,8 @@ class TransactionBalanceService @Inject constructor(
     }
 
     private suspend fun getPerpetualBalance(assetInfo: AssetInfo): BigInteger {
-        val owner = assetInfo.owner?.address ?: return BigInteger.ZERO
-        val amount = perpetualRepository.getBalance(owner).firstOrNull()?.available ?: 0.0
+        val walletId = sessionRepository.session().value?.wallet?.walletId ?: return BigInteger.ZERO
+        val amount = perpetualRepository.getBalance(walletId, HypercoreUSDC.id).firstOrNull()?.available ?: 0.0
         return Crypto(amount.toBigDecimal(), assetInfo.asset.decimals).atomicValue
     }
 }

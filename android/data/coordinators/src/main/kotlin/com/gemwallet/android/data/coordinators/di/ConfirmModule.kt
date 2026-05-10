@@ -7,6 +7,7 @@ import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.SignClientProxy
+import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
@@ -51,8 +52,10 @@ object ConfirmModule {
     fun provideBuildConfirmProperties(
         stakeRepository: StakeRepository,
         getCurrentBlockExplorer: GetCurrentBlockExplorer,
+        getAddressName: GetAddressName,
     ): BuildConfirmProperties = BuildConfirmPropertiesImpl(
         stakeRepository,
         getCurrentBlockExplorer,
+        getAddressName,
     )
 }

@@ -30,4 +30,13 @@ struct TransactionFilterTypeTests {
             }
         }
     }
+
+    @Test
+    func perpetualFilterIncludesOpenAndClose() {
+        var model = TransactionTypesFilterViewModel(types: TransactionType.allCases)
+
+        model.selectedTypes = [.perpetuals]
+
+        #expect(model.requestFilters == [.perpetualOpenPosition, .perpetualClosePosition])
+    }
 }

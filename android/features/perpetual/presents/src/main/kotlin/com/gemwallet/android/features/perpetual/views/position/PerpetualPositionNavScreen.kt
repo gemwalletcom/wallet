@@ -4,14 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualDetailsViewModel
 
 @Composable
 fun PerpetualPositionNavScreen(
-    onOpenPosition: (AmountParams) -> Unit,
     onClose: () -> Unit,
-    viewModel: PerpetualDetailsViewModel = hiltViewModel()
+    viewModel: PerpetualDetailsViewModel = hiltViewModel(),
 ) {
     val perpetual by viewModel.perpetual.collectAsStateWithLifecycle()
     val position by viewModel.position.collectAsStateWithLifecycle()
@@ -25,15 +23,6 @@ fun PerpetualPositionNavScreen(
         period = period,
         onClose = onClose,
         onChartPeriodSelect = viewModel::period,
-        onOpenPosition = { direction ->
-            val currentPerpetual = perpetual ?: return@PerpetualPositionScene
-            onOpenPosition(
-                AmountParams.buildPerpetualOpenPosition(
-                    currentPerpetual.asset.id,
-                    currentPerpetual.id,
-                    direction,
-                )
-            )
-        }
+        onOpenPosition = {},
     )
 }

@@ -83,7 +83,7 @@ public extension Primitives.Chain {
     }
 
     var defaultAssets: [Asset] {
-        switch self { 
+        switch self {
         case .hyperCore:
             [
                 .hypercoreUSDC(),

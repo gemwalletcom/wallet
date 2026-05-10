@@ -204,9 +204,3 @@ public extension GatewayService {
         try await gateway.getPerpetualPortfolio(chain: chain.rawValue, address: address).map()
     }
 }
-
-public extension GatewayService {
-    func getAddressStatus(chain: Primitives.Chain, address: String) async throws -> [Primitives.AddressStatus] {
-        try await gateway.getAddressStatus(chain: chain.rawValue, address: address).map { $0.map() }
-    }
-}

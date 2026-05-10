@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.AuthState
+import com.gemwallet.android.model.requiresConfirmation
 import com.gemwallet.android.ui.R
 import kotlin.time.Duration
 import kotlinx.coroutines.Job
@@ -25,7 +26,6 @@ internal class SystemAuthenticator(
     private val _enrollmentMissing = MutableStateFlow(false)
     private val authRequests = AuthRequestQueue()
     private lateinit var biometricPrompt: BiometricPrompt
-    private lateinit var promptInfo: BiometricPrompt.PromptInfo
     private var initialAuthRetry: Job? = null
     private var activeAuthTimeout: Job? = null
 
@@ -51,16 +51,18 @@ internal class SystemAuthenticator(
                 }
             }
         })
-
-        promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(activity.getString(R.string.settings_security_authentication))
-            .setAllowedAuthenticators(SystemAuthPolicy.allowedAuthenticators)
-            .build()
     }
 
     fun authenticate() {
-        biometricPrompt.authenticate(promptInfo)
+        biometricPrompt.authenticate(buildPrompt(authRequests.activeRequiresConfirmation()))
     }
+
+    private fun buildPrompt(requiresConfirmation: Boolean): BiometricPrompt.PromptInfo =
+        BiometricPrompt.PromptInfo.Builder()
+            .setTitle(activity.getString(R.string.settings_security_authentication))
+            .setAllowedAuthenticators(SystemAuthPolicy.allowedAuthenticators)
+            .setConfirmationRequired(requiresConfirmation)
+            .build()
 
     fun refreshEnrollment(): Boolean {
         val canAuth = BiometricManager.from(activity).canAuthenticate(SystemAuthPolicy.allowedAuthenticators)
@@ -84,10 +86,13 @@ internal class SystemAuthenticator(
     }
 
     fun requestAuth(auth: AuthRequest, onSuccess: () -> Unit) {
-        if (!viewModel.isAuthRequired(auth)) {
+        if (!viewModel.isAuthRequired()) {
             onSuccess()
         } else if (refreshEnrollment()) {
-            authRequests.enqueue(onSuccess = onSuccess)?.let(::startAuthRequest)
+            authRequests.enqueue(
+                requiresConfirmation = auth.requiresConfirmation,
+                onSuccess = onSuccess,
+            )?.let(::startAuthRequest)
         } else {
             openSettings()
         }

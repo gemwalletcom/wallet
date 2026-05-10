@@ -122,7 +122,7 @@ fun WalletNavGraph(
             )
 
             confirm(
-                finishAction = { assetId, _, route -> navigator.finishConfirm(assetId, route) },
+                finishAction = { _ -> navigator.popConfirmFlow() },
                 onBuy = navigator::openBuy,
                 cancelAction = onCancel,
             )
@@ -188,7 +188,6 @@ fun WalletNavGraph(
                 onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
                 onPriceAlertTargetComplete = navigator::popWithToast,
                 onChart = navigator::openAssetChart,
-                onPerpetual = navigator::openPerpetuals,
                 toastMessage = navigator::toastMessage,
                 onToastShown = navigator::clearToastMessage,
                 onCancel = onCancel,
@@ -229,7 +228,6 @@ fun WalletNavGraph(
 
             perpetualScreen(
                 onOpenPerpetualDetails = navigator::openPerpetualDetails,
-                onOpenPerpetualPosition = navigator::openAmount,
                 onCancel = onCancel
             )
 

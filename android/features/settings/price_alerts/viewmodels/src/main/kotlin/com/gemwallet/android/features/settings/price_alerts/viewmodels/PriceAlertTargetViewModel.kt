@@ -12,7 +12,6 @@ import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.domains.price.toPriceState
-import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
@@ -68,7 +67,7 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val priceFormatted: StateFlow<String> = assetInfo.map { info ->
         val priceInfo = info?.price ?: return@map ""
-        priceInfo.currency.compactFormatter(priceInfo.price.price)
+        priceInfo.currency.format(priceInfo.price.price, dynamicPlace = true)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val priceChangeFormatted: StateFlow<String> = assetInfo.map {

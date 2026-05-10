@@ -1,11 +1,10 @@
-// TODO: Out to special module or reorganize coordinators module as example rename to application or domain-application
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import android.util.Log
+import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.application.wallet_import.coordinators.GetAvailableAssetIds
 import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.services.ImportAssets
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
+import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.nft.SyncNfts
@@ -19,23 +18,20 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetSubtype
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ImportWalletService(
     private val sessionRepository: SessionRepository,
     private val getAvailableAssetIds: GetAvailableAssetIds,
@@ -44,36 +40,39 @@ class ImportWalletService(
     private val syncSubscription: SyncSubscription,
     private val syncTransactions: SyncTransactions,
     private val syncNfts: SyncNfts,
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler {_, _ -> }),
-) : ImportAssets, GetImportWalletState {
+    private val walletConfigurationSync: SyncWalletConfiguration,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
+) : SyncWalletImport, GetImportWalletState {
 
-    private val jobs = MutableStateFlow<Map<String, Job>>(mutableMapOf())
+    private val importingWalletIds = MutableStateFlow<Set<WalletId>>(emptySet())
 
-    override fun importAssets(wallet: Wallet) {
-        val job = scope.launch {
-            syncSubscription.syncSubscription(listOf(wallet))
-            val currency = sessionRepository.getCurrentCurrency()
+    override fun sync(wallet: Wallet) {
+        importingWalletIds.update { it + wallet.walletId }
+        scope.launch {
             try {
-                coroutineScope {
-                    launch { discoverAssets(wallet, currency) }
-                    launch { syncTransactions.syncTransactions(wallet) }
-                    launch { syncNfts.sync(wallet.walletId) }
-                }
-            } catch (err: Throwable) {
-                Log.d("IMPORT_ERROR", "Error:", err)
+                syncWallet(wallet)
             } finally {
-                jobs.update { entries -> entries.toMutableMap().apply { remove(wallet.id) } }
+                importingWalletIds.update { it - wallet.walletId }
             }
         }
-        jobs.update { it.toMutableMap().apply { put(wallet.id, job) } }
     }
 
-    private suspend fun discoverAssets(wallet: Wallet, currency: Currency) {
+    private suspend fun syncWallet(wallet: Wallet) {
+        syncSubscription.syncSubscription(listOf(wallet))
+        supervisorScope {
+            launch { walletConfigurationSync.sync(wallet.walletId) }
+            launch { discoverAssets(wallet) }
+            launch { syncTransactions.syncTransactions(wallet) }
+            launch { syncNfts.sync(wallet.walletId) }
+        }
+    }
+
+    private suspend fun discoverAssets(wallet: Wallet) {
         val availableAssetsId = getAvailableAssetIds(wallet.id)
         val assetIds = availableAssetsId.mapNotNull { it.toAssetId() }
         val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
 
-        searchTokensCase.search(tokenIds, currency)
+        searchTokensCase.search(tokenIds, sessionRepository.getCurrentCurrency())
         val assets = assetsRepository.getTokensInfo(assetIds.map { it.identifier }).firstOrNull().orEmpty()
         assets.forEach { assetInfo ->
             val asset = assetInfo.asset
@@ -87,10 +86,7 @@ class ImportWalletService(
         assetsRepository.sync()
     }
 
-    override fun getImportState(walletId: String): Flow<ImportWalletState> = jobs.mapLatest { entries ->
-        when (entries[walletId]?.isActive) {
-            true -> ImportWalletState.Importing
-            else -> ImportWalletState.Complete
-        }
+    override fun getImportState(walletId: WalletId): Flow<ImportWalletState> = importingWalletIds.map { walletIds ->
+        if (walletId in walletIds) ImportWalletState.Importing else ImportWalletState.Complete
     }
 }

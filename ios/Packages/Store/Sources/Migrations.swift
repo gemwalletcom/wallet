@@ -470,6 +470,13 @@ struct Migrations {
             try PerpetualPositionRecord.create(db: db)
         }
 
+        migrator.registerMigration("Backfill type in \(AddressRecord.databaseTableName)") { db in
+            try db.execute(
+                sql: "UPDATE \(AddressRecord.databaseTableName) SET \(AddressRecord.Columns.type.name) = ? WHERE \(AddressRecord.Columns.type.name) IS NULL",
+                arguments: [AddressType.address.rawValue],
+            )
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

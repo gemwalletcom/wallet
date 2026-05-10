@@ -71,7 +71,6 @@ struct AssetDiscoveryServiceTests {
                     assetStore: .mock(db: db),
                     balanceStore: .mock(db: db),
                 ),
-                walletStore: walletStore,
                 addressStore: .mock(db: db),
             ),
             nftService: .mock(apiService: nftProvider, nftStore: nftStore),

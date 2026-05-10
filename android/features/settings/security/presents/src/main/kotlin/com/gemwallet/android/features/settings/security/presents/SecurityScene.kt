@@ -75,7 +75,7 @@ private fun LazyListScope.enablePasscode(
                 Switch(
                     authRequired,
                     onCheckedChange = {
-                        context.requestAuth(AuthRequest.Enable) {
+                        context.requestAuth(AuthRequest.Default) {
                             onAuthRequired(it)
                         }
                     }

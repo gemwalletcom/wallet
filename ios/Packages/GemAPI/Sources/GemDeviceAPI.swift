@@ -18,31 +18,32 @@ public enum GemDeviceAPI: TargetType {
     case addPriceAlerts(priceAlerts: [PriceAlert])
     case deletePriceAlerts(priceAlerts: [PriceAlert])
 
-    case getTransactions(walletId: String, assetId: String?, fromTimestamp: Int)
-    case getAssetsList(walletId: String, fromTimestamp: Int)
-    case getDeviceNFTAssets(walletId: String)
-    case refreshNftAsset(walletId: String, assetId: String)
+    case getTransactions(walletId: WalletId, assetId: String?, fromTimestamp: Int)
+    case getAssetsList(walletId: WalletId, fromTimestamp: Int)
+    case getDeviceNFTAssets(walletId: WalletId)
+    case refreshNftAsset(walletId: WalletId, assetId: String)
 
     case reportNft(report: ReportNft)
     case scanTransaction(payload: ScanTransactionPayload)
+    case getWalletConfiguration(walletId: WalletId)
 
     case getAuthNonce
     case getDeviceToken
 
-    case getDeviceRewards(walletId: String)
-    case getDeviceRewardsEvents(walletId: String)
+    case getDeviceRewards(walletId: WalletId)
+    case getDeviceRewardsEvents(walletId: WalletId)
     case getDeviceRedemptionOption(code: String)
-    case createDeviceReferral(walletId: String, request: AuthenticatedRequest<ReferralCode>)
-    case useDeviceReferralCode(walletId: String, request: AuthenticatedRequest<ReferralCode>)
-    case redeemDeviceRewards(walletId: String, request: AuthenticatedRequest<RedemptionRequest>)
+    case createDeviceReferral(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>)
+    case useDeviceReferralCode(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>)
+    case redeemDeviceRewards(walletId: WalletId, request: AuthenticatedRequest<RedemptionRequest>)
 
     case getNotifications(fromTimestamp: Int)
     case markNotificationsRead
 
     case getFiatAssets(FiatQuoteType)
-    case getFiatQuotes(walletId: String, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest)
-    case getFiatQuoteUrl(walletId: String, quoteId: String)
-    case getFiatTransactions(walletId: String)
+    case getFiatQuotes(walletId: WalletId, type: FiatQuoteType, assetId: AssetId, request: FiatQuoteRequest)
+    case getFiatQuoteUrl(walletId: WalletId, quoteId: String)
+    case getFiatTransactions(walletId: WalletId)
 
     case getNameRecord(name: String, chain: String)
     case getAddressNames(requests: [ChainAddress])
@@ -72,7 +73,8 @@ public enum GemDeviceAPI: TargetType {
              .getFiatQuotes,
              .getFiatQuoteUrl,
              .getFiatTransactions,
-             .getNameRecord:
+             .getNameRecord,
+             .getWalletConfiguration:
             .GET
         case .addDevice,
              .addSubscriptions,
@@ -127,6 +129,8 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/nft/report"
         case .scanTransaction:
             return "/v2/devices/scan/transaction"
+        case .getWalletConfiguration:
+            return "/v2/devices/wallet_configuration"
         case .getAuthNonce:
             return "/v2/devices/auth/nonce"
         case .getDeviceToken:
@@ -164,10 +168,6 @@ public enum GemDeviceAPI: TargetType {
         }
     }
 
-    public var headers: [String: String] {
-        [:]
-    }
-
     public var walletId: String? {
         switch self {
         case let .getTransactions(walletId, _, _),
@@ -181,8 +181,9 @@ public enum GemDeviceAPI: TargetType {
              let .redeemDeviceRewards(walletId, _),
              let .getFiatQuotes(walletId, _, _, _),
              let .getFiatQuoteUrl(walletId, _),
-             let .getFiatTransactions(walletId):
-            walletId
+             let .getFiatTransactions(walletId),
+             let .getWalletConfiguration(walletId):
+            walletId.id
         default:
             nil
         }
@@ -203,6 +204,7 @@ public enum GemDeviceAPI: TargetType {
              .getNotifications,
              .markNotificationsRead,
              .getTransactions,
+             .getWalletConfiguration,
              .isDeviceRegistered,
              .getFiatAssets,
              .getFiatQuoteUrl,

@@ -3,7 +3,11 @@ package com.gemwallet.android.data.service.store.database.entities
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.AddressType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Price
+import com.wallet.core.primitives.VerificationStatus
 
 data class DbTransactionExtended(
     @Embedded val transaction: DbTransaction,
@@ -15,6 +19,15 @@ data class DbTransactionExtended(
     @ColumnInfo("fee_price_day_changed") val feePriceDayChanged: Double?,
     @Embedded(prefix = "from_asset_") val fromAsset: DbAssetProjection?,
     @Embedded(prefix = "to_asset_") val toAsset: DbAssetProjection?,
+    @Embedded(prefix = "from_address_") val fromAddress: DbAddressProjection?,
+    @Embedded(prefix = "to_address_") val toAddress: DbAddressProjection?,
+)
+
+data class DbAddressProjection(
+    val chain: Chain,
+    val name: String,
+    val type: AddressType,
+    val status: VerificationStatus,
 )
 
 fun DbTransactionExtended.toDTO(): TransactionExtended? {
@@ -28,7 +41,17 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
             fromAsset?.toDTO(),
             toAsset?.toDTO(),
         ),
+        fromAddress = fromAddress?.toAddressName(transaction.owner),
+        toAddress = toAddress?.toAddressName(transaction.recipient),
     )
 }
+
+private fun DbAddressProjection.toAddressName(address: String): AddressName = AddressName(
+    chain = chain,
+    address = address,
+    name = name,
+    type = type,
+    status = status,
+)
 
 fun List<DbTransactionExtended>.toDTO() = mapNotNull { it.toDTO() }

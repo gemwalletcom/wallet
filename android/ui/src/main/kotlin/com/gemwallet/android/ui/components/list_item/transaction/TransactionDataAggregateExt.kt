@@ -10,18 +10,33 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.showsStatusBadge
 import com.gemwallet.android.ui.components.statusColor
 import com.gemwallet.android.ui.components.statusLabelRes
+import com.gemwallet.android.model.format
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 
 @Composable
-fun TransactionDataAggregate.getTitle(): String {
-    return stringResource(type.getTitle(direction, state))
-}
+fun TransactionDataAggregate.getTitle(): String =
+    perpetualTitle(type, perpetualDirection) ?: stringResource(type.getTitle(direction, state))
 
 @Composable
-fun TransactionDetailsAggregate.getTitle(): String {
-    return stringResource(type.getTitle(direction, state))
+fun TransactionDetailsAggregate.getTitle(): String =
+    perpetualTitle(type, perpetualDirection) ?: stringResource(type.getTitle(direction, state))
+
+@Composable
+private fun perpetualTitle(type: TransactionType, direction: PerpetualDirection?): String? {
+    val side = when (direction) {
+        PerpetualDirection.Long -> stringResource(R.string.perpetual_long)
+        PerpetualDirection.Short -> stringResource(R.string.perpetual_short)
+        null -> stringResource(R.string.perpetual_position)
+    }
+    return when (type) {
+        TransactionType.PerpetualOpenPosition -> stringResource(R.string.perpetual_open_direction, side)
+        TransactionType.PerpetualClosePosition -> stringResource(R.string.perpetual_close_direction, side)
+        else -> null
+    }
 }
 
 @Composable
@@ -34,33 +49,47 @@ fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 @Composable
 fun TransactionDataAggregate.formatAddress(): String? = when (type) {
     TransactionType.TransferNFT,
-    TransactionType.Transfer -> when (direction) {
-        TransactionDirection.SelfTransfer,
-        TransactionDirection.Outgoing -> "${stringResource(id = R.string.transfer_to)} $address"
-        TransactionDirection.Incoming -> "${stringResource(id = R.string.transfer_from)} $address"
+    TransactionType.Transfer,
+    TransactionType.TokenApproval,
+    TransactionType.SmartContractCall -> {
+        val displayAddress = addressName ?: address
+        when (direction) {
+            TransactionDirection.SelfTransfer,
+            TransactionDirection.Outgoing -> "${stringResource(id = R.string.transfer_to)} $displayAddress"
+            TransactionDirection.Incoming -> "${stringResource(id = R.string.transfer_from)} $displayAddress"
+        }
+    }
+    TransactionType.StakeDelegate,
+    TransactionType.StakeRedelegate,
+    TransactionType.EarnDeposit -> (addressName ?: address)
+        .takeIf { it.isNotEmpty() }
+        ?.let { "${stringResource(id = R.string.transfer_to)} $it" }
+    TransactionType.StakeUndelegate,
+    TransactionType.EarnWithdraw -> (addressName ?: address)
+        .takeIf { it.isNotEmpty() }
+        ?.let { "${stringResource(id = R.string.transfer_from)} $it" }
+    TransactionType.PerpetualOpenPosition,
+    TransactionType.PerpetualClosePosition,
+    TransactionType.PerpetualModifyPosition -> perpetualPrice?.let {
+        "${stringResource(R.string.asset_price)}: ${Currency.USD.format(it)}"
     }
     TransactionType.Swap,
-    TransactionType.TokenApproval,
-    TransactionType.StakeDelegate,
-    TransactionType.StakeUndelegate,
-    TransactionType.StakeRedelegate,
     TransactionType.StakeWithdraw,
     TransactionType.AssetActivation,
     TransactionType.StakeRewards,
-    TransactionType.EarnDeposit,
-    TransactionType.EarnWithdraw,
-    TransactionType.SmartContractCall,
-    TransactionType.PerpetualOpenPosition,
     TransactionType.StakeFreeze,
     TransactionType.StakeUnfreeze,
-    TransactionType.PerpetualClosePosition,
-    TransactionType.PerpetualModifyPosition,
         -> null
 }
 
 @Composable
 fun TransactionDataAggregate.getValueColor(): Color = when (type) {
     TransactionType.Swap -> MaterialTheme.colorScheme.tertiary
+    TransactionType.PerpetualClosePosition -> when {
+        (pnl ?: 0.0) > 0 -> MaterialTheme.colorScheme.tertiary
+        (pnl ?: 0.0) < 0 -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurface
+    }
     else -> when (direction) {
         TransactionDirection.SelfTransfer,
         TransactionDirection.Outgoing -> MaterialTheme.colorScheme.onSurface

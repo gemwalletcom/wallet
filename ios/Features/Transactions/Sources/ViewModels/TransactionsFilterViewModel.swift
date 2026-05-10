@@ -22,8 +22,7 @@ public final class TransactionsFilterViewModel {
 
     public let query: ObservableQuery<TransactionsRequest>
 
-    private static let excludeTransactionTypes: [TransactionType] = [.perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition]
-    private let transactionTypes = TransactionType.allCases.filter { !excludeTransactionTypes.contains($0) }
+    private let transactionTypes = TransactionType.allCases
 
     private let defaultFilters: [TransactionsRequestFilter] = [
         .assetRankGreaterThan(AssetScore.defaultScore),

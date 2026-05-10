@@ -8,12 +8,17 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.getNftMetadata
+import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.format
+import com.gemwallet.android.model.formatPnl
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
@@ -49,31 +54,44 @@ class GetTransactionsImpl(
 
 @Stable
 class TransactionDataAggregateImpl(
-    private val data: TransactionExtended
+    private val data: TransactionExtended,
 ) : TransactionDataAggregate {
 
     override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
 
+    override val addressName: String? = when (data.transaction.type) {
+        TransactionType.StakeDelegate,
+        TransactionType.StakeUndelegate,
+        TransactionType.StakeRedelegate,
+        TransactionType.EarnDeposit,
+        TransactionType.EarnWithdraw -> data.toAddress
+        else -> when (data.transaction.direction) {
+            TransactionDirection.Incoming -> data.fromAddress
+            TransactionDirection.Outgoing,
+            TransactionDirection.SelfTransfer -> data.toAddress
+        }
+    }?.name
+
     override val address: String get() = when (data.transaction.type) {
         TransactionType.TransferNFT,
-        TransactionType.Transfer -> when (data.transaction.direction) {
+        TransactionType.Transfer,
+        TransactionType.TokenApproval,
+        TransactionType.SmartContractCall -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
             TransactionDirection.Outgoing -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
             TransactionDirection.Incoming -> AddressFormatter(data.transaction.from, chain = data.transaction.assetId.chain).value()
         }
-        TransactionType.Swap,
-        TransactionType.TokenApproval,
         TransactionType.StakeDelegate,
         TransactionType.StakeUndelegate,
         TransactionType.StakeRedelegate,
-        TransactionType.StakeWithdraw,
-        TransactionType.EarnWithdraw,
         TransactionType.EarnDeposit,
+        TransactionType.EarnWithdraw -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
+        TransactionType.Swap,
+        TransactionType.StakeWithdraw,
         TransactionType.AssetActivation,
         TransactionType.StakeRewards,
-        TransactionType.SmartContractCall,
         TransactionType.PerpetualOpenPosition,
         TransactionType.StakeFreeze,
         TransactionType.StakeUnfreeze,
@@ -88,6 +106,10 @@ class TransactionDataAggregateImpl(
                 "+${asset.format(Crypto(metadata.toValue), decimalPlace = 2, dynamicPlace = true)}"
             } ?: ""
         }
+        TransactionType.PerpetualOpenPosition -> Currency.USD.format(
+            Crypto(data.transaction.value).convert(HypercoreUSDC.decimals, price = 1.0).atomicValue,
+        )
+        TransactionType.PerpetualClosePosition -> pnl?.let { Currency.USD.formatPnl(it) } ?: ""
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
         TransactionType.StakeRedelegate,
@@ -95,10 +117,8 @@ class TransactionDataAggregateImpl(
         TransactionType.EarnWithdraw,
         TransactionType.StakeDelegate,
         TransactionType.EarnDeposit,
-        TransactionType.PerpetualOpenPosition,
         TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze,
-        TransactionType.PerpetualClosePosition -> getFormattedValue()
+        TransactionType.StakeUnfreeze -> getFormattedValue()
         TransactionType.Transfer -> {
             when (data.transaction.direction) {
                 TransactionDirection.SelfTransfer,
@@ -133,6 +153,14 @@ class TransactionDataAggregateImpl(
 
     override val direction: TransactionDirection  = data.transaction.direction
 
+    private val perpetualMetadata = data.transaction.getPerpetualMetadata()
+
+    override val perpetualDirection: PerpetualDirection? = perpetualMetadata?.direction
+
+    override val perpetualPrice: Double? = perpetualMetadata?.price?.takeIf { it > 0 }
+
+    override val pnl: Double? = perpetualMetadata?.pnl
+
     override val state: TransactionState = data.transaction.state
     override val createdAt: Long = data.transaction.createdAt
 
@@ -152,5 +180,4 @@ class TransactionDataAggregateImpl(
         decimalPlace = 2,
         dynamicPlace = true,
     )
-
 }

@@ -83,6 +83,7 @@ class SignClientProxy(
             GemSwapQuoteDataType.TRANSFER -> signSwapTransfer(
                 params,
                 chainData,
+                finalAmount,
                 fee,
                 client,
                 privateKey,
@@ -93,29 +94,35 @@ class SignClientProxy(
     private suspend fun signSwapTransfer(
         params: ConfirmParams.SwapParams,
         chainData: ChainSignData,
+        finalAmount: BigInteger,
         fee: Fee,
         client: SignClient,
         privateKey: ByteArray,
     ): List<ByteArray> {
         val memo = params.memo()
         val destinationAddress = params.toAddress
-        val transferParams = ConfirmParams.Builder(params.fromAsset, params.from, params.fromAmount, params.useMaxAmount)
+        val transferParams = ConfirmParams.Builder(
+            asset = params.fromAsset,
+            from = params.from,
+            amount = finalAmount,
+            useMaxAmount = params.useMaxAmount,
+        )
             .transfer(
                 destination = DestinationAddress(destinationAddress),
                 memo = memo,
             )
         return when (transferParams) {
             is ConfirmParams.TransferParams.Native -> client.signNativeTransfer(
-                    transferParams,
-                    chainData,
-                    params.fromAmount,
-                    fee,
-                    privateKey,
-                )
+                transferParams,
+                chainData,
+                finalAmount,
+                fee,
+                privateKey,
+            )
             is ConfirmParams.TransferParams.Token -> client.signTokenTransfer(
                 transferParams,
                 chainData,
-                params.fromAmount,
+                finalAmount,
                 fee,
                 privateKey,
             )

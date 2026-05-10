@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.service.store.database
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy.Companion.REPLACE
 import androidx.room.Query
@@ -14,38 +13,26 @@ import kotlinx.coroutines.flow.Flow
 interface PerpetualPositionDao {
 
     @Insert(onConflict = REPLACE)
-    suspend fun putPositions(items: List<DbPerpetualPosition>)
+    suspend fun upsertPositions(items: List<DbPerpetualPosition>)
 
-    @Delete
-    suspend fun deletePositions(items: List<DbPerpetualPosition>)
-
-    @Query("""
-        DELETE FROM perpetual_position
-            WHERE accountAddress = :accountAddress
-                AND id NOT IN (:ids)
-    """)
-    suspend fun removeNotAvailablePositions(accountAddress: String, ids: List<String>)
-
-    @Query("SELECT * FROM perpetual_position WHERE accountAddress IN (:accountAddress)")
-    fun getPositions(accountAddress: List<String>): Flow<List<DbPerpetualPosition>>
+    @Query("DELETE FROM perpetuals_positions WHERE walletId = :walletId AND id NOT IN (:ids)")
+    suspend fun deleteStale(walletId: String, ids: List<String>)
 
     @Transaction
-    @Query("""SELECT * FROM perpetual_position WHERE accountAddress IN (:accountAddresses)""")
-    fun getPositionsData(accountAddresses: List<String>): Flow<List<DbPerpetualPositionData>>
+    suspend fun diffPositions(walletId: String, items: List<DbPerpetualPosition>) {
+        deleteStale(walletId, items.map { it.id })
+        upsertPositions(items)
+    }
 
     @Transaction
-    @Query("""
-        SELECT * FROM perpetual_position
-            WHERE perpetual_position.id = :positionId
-    """)
+    @Query("SELECT * FROM perpetuals_positions WHERE walletId = :walletId ORDER BY updatedAt DESC")
+    fun getPositionsData(walletId: String): Flow<List<DbPerpetualPositionData>>
+
+    @Transaction
+    @Query("SELECT * FROM perpetuals_positions WHERE id = :positionId")
     fun getPositionData(positionId: String): Flow<DbPerpetualPositionData?>
 
-
     @Transaction
-    @Query("""
-        SELECT * FROM perpetual_position
-            WHERE perpetual_position.perpetualId = :perpetualId
-    """)
+    @Query("SELECT * FROM perpetuals_positions WHERE perpetualId = :perpetualId LIMIT 1")
     fun getPositionDataByPerpetual(perpetualId: String): Flow<DbPerpetualPositionData?>
-
 }
