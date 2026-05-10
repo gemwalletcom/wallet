@@ -94,10 +94,6 @@ public final class WalletSearchSceneViewModel: Sendable {
         )
     }
 
-    var isPerpetualEnabled: Bool {
-        preferences.isPerpetualEnabled
-    }
-
     var perpetualsTitle: String {
         Localized.Perpetuals.title
     }
@@ -280,12 +276,6 @@ extension WalletSearchSceneViewModel {
 
     func onChangeSearchQuery(_: String, _: String) {
         updateRequest()
-    }
-
-    func onChangePerpetualsEnabled(_: Bool, _: Bool) {
-        recentsQuery.request.types = WalletSearchModel.recentActivityTypes
-        searchQuery.request.types = WalletSearchModel.searchItemTypes
-        searchQuery.request.limit = searchModel.fetchLimit(tag: searchQuery.request.tag)
     }
 
     func onChangeFocus(_: Bool, isSearching: Bool) {

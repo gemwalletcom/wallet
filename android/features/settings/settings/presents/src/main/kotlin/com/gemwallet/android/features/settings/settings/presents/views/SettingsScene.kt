@@ -50,7 +50,6 @@ fun SettingsScene(
     onNotifications: () -> Unit,
     onSupport: () -> Unit,
     onPreferences: () -> Unit,
-    onPerpetual: () -> Unit,
     onReferral: () -> Unit,
     scrollState: ScrollState = rememberScrollState()
 ) {

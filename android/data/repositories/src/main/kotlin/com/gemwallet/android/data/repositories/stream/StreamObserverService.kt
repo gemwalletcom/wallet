@@ -3,7 +3,11 @@ package com.gemwallet.android.data.repositories.stream
 import android.util.Log
 import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.ext.hasPerpetualsSupport
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.serializer.StreamEventSerializer
 import com.gemwallet.android.serializer.jsonEncoder
@@ -25,12 +29,16 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 
 class StreamObserverService(
     private val sessionRepository: SessionRepository,
+    private val userConfig: UserConfig,
     private val syncAssets: SyncAssets,
+    private val syncPerpetuals: SyncPerpetuals,
+    private val syncPerpetualPositions: SyncPerpetualPositions,
     private val deviceRequestSigner: DeviceRequestSigner,
     private val subscriptionService: StreamSubscriptionService,
     private val eventHandler: StreamEventHandler,
@@ -50,14 +58,15 @@ class StreamObserverService(
     init {
         scope.launch {
             sessionRepository.session().collectLatest { session ->
-                val walletId = session?.wallet?.id
-                if (walletId != null && walletId != currentWalletId) {
-                    currentWalletId = walletId
-                    subscriptionService.setupAssets(walletId)
-                    if (connectionJob == null) {
-                        start()
-                    }
-                    syncAssets()
+                val wallet = session?.wallet ?: return@collectLatest
+                if (wallet.id == currentWalletId) return@collectLatest
+                currentWalletId = wallet.id
+                subscriptionService.setupAssets(wallet.id)
+                if (connectionJob == null) start()
+                runCatching { syncAssets() }
+                if (wallet.hasPerpetualsSupport && userConfig.isPerpetualEnabled().first()) {
+                    runCatching { syncPerpetuals.syncPerpetuals() }
+                    runCatching { syncPerpetualPositions.syncPerpetualPositions() }
                 }
             }
         }

@@ -12,7 +12,7 @@ public final class WalletPreferences: @unchecked Sendable {
         static let completeInitialLoadAssets = "complete_initial_load_assets"
         static let completeInitialLoadTransactions = "complete_initial_load_transactions"
         static let completeInitialLoadNFTs = "complete_initial_load_nfts"
-        static let completeInitialAddressStatus = "complete_initial_address_status"
+        static let completeInitialWalletConfiguration = "complete_initial_wallet_configuration"
     }
 
     private let defaults: UserDefaults
@@ -53,13 +53,13 @@ public final class WalletPreferences: @unchecked Sendable {
         get { defaults.integer(forKey: Keys.assetsTimestamp) }
     }
 
-    public var completeInitialAddressStatus: Bool {
-        set { defaults.setValue(newValue, forKey: Keys.completeInitialAddressStatus) }
-        get { defaults.bool(forKey: Keys.completeInitialAddressStatus) }
+    public var completeInitialWalletConfiguration: Bool {
+        set { defaults.setValue(newValue, forKey: Keys.completeInitialWalletConfiguration) }
+        get { defaults.bool(forKey: Keys.completeInitialWalletConfiguration) }
     }
 
     public func completeInitialSynchronization() {
-        completeInitialAddressStatus = true
+        completeInitialWalletConfiguration = true
         completeInitialLoadAssets = true
         completeInitialLoadTransactions = true
         completeInitialLoadNFTs = true

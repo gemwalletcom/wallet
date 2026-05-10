@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -35,14 +36,24 @@ class PerpetualMarketViewModel @Inject constructor(
 ) : ViewModel() {
 
     val query = MutableStateFlow<String?>(null)
+
+    fun setQuery(value: String) {
+        query.value = value.takeIf { it.isNotEmpty() }
+    }
     val sceneState = MutableStateFlow<PerpetualMarketSceneState>(PerpetualMarketSceneState.Idle)
     private val perpetuals = getPerpetuals.getPerpetuals(query)
     val unpinnedPerpetuals = perpetuals.map { items -> items.filter { !it.isPinned } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val pinnedPerpetuals = perpetuals.map { items -> items.filter { it.isPinned } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val positions = getPositions.getPerpetualPositions()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val positions = combine(getPositions.getPerpetualPositions(), query) { items, q ->
+        val needle = q?.trim().orEmpty()
+        if (needle.isEmpty()) items else items.filter {
+            it.name.contains(needle, ignoreCase = true) ||
+                it.asset.symbol.contains(needle, ignoreCase = true) ||
+                it.asset.name.contains(needle, ignoreCase = true)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val balance = getBalance.getPerpetualBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
 

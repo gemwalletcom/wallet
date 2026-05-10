@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -33,10 +32,9 @@ fun ChainItem(
             )
         },
         title = @Composable {
-            Text(
-                modifier = Modifier,
+            ListItemTitleText(
                 text = title.capitalize(Locale.current),
-                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge,
             )
         },
         trailing = if (trailing != null) {

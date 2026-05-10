@@ -515,7 +515,7 @@ extension AssetSceneViewModel {
 
     private func fetchTransactions() async {
         do {
-            try await transactionsService.updateForAsset(wallet: walletModel.wallet, assetId: assetModel.asset.id)
+            try await transactionsService.updateForAsset(walletId: walletModel.wallet.walletId, assetId: assetModel.asset.id)
         } catch {
             // TODO: - handle fetchTransactions error
             debugLog("asset scene: fetchTransactions error \(error)")

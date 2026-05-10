@@ -11,7 +11,7 @@ import WalletServiceTestKit
 @MainActor
 struct CreateWalletModelTests {
     @Test
-    func createWalletSetsAddressStatus() async throws {
+    func createWalletSetsWalletConfiguration() async throws {
         let model = CreateWalletModel(
             walletService: .mock(keystore: KeystoreMock()),
             avatarService: .init(store: .mock()),
@@ -21,7 +21,7 @@ struct CreateWalletModelTests {
         let wallet = try await model.createWallet(words: LocalKeystore.words)
         let preferences = WalletPreferences(walletId: wallet.walletId)
 
-        #expect(preferences.completeInitialAddressStatus)
+        #expect(preferences.completeInitialWalletConfiguration)
         #expect(preferences.completeInitialLoadAssets)
         #expect(preferences.completeInitialLoadTransactions)
         #expect(preferences.completeInitialLoadNFTs)

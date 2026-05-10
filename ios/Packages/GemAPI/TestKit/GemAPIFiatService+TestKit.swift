@@ -19,15 +19,15 @@ public struct GemAPIFiatServiceMock: GemAPIFiatService {
         self.fiatTransactions = fiatTransactions
     }
 
-    public func getQuotes(walletId _: String, type _: FiatQuoteType, assetId _: AssetId, request _: FiatQuoteRequest) async throws -> [FiatQuote] {
+    public func getQuotes(walletId _: WalletId, type _: FiatQuoteType, assetId _: AssetId, request _: FiatQuoteRequest) async throws -> [FiatQuote] {
         quotes
     }
 
-    public func getQuoteUrl(walletId _: String, quoteId _: String) async throws -> FiatQuoteUrl {
+    public func getQuoteUrl(walletId _: WalletId, quoteId _: String) async throws -> FiatQuoteUrl {
         quoteUrl
     }
 
-    public func getFiatTransactions(walletId _: String) async throws -> [FiatTransactionData] {
+    public func getFiatTransactions(walletId _: WalletId) async throws -> [FiatTransactionData] {
         fiatTransactions
     }
 }

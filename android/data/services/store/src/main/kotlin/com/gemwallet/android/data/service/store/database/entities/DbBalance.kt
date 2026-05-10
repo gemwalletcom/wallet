@@ -56,6 +56,9 @@ data class DbBalance(
     var reserved: String = "0",
     @ColumnInfo("reserved_amount") var reservedAmount: Double = 0.0,
 
+    var withdrawable: String = "0",
+    var withdrawableAmount: Double = 0.0,
+
     @ColumnInfo("total_amount") var totalAmount: Double = 0.0,
     @ColumnInfo("is_active") var isActive: Boolean = true,
     @ColumnInfo("is_pinned") var isPinned: Boolean = false,

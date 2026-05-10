@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction.FinishRoute
 import com.gemwallet.android.domains.transaction.isPerpetual
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsSearchRoute
@@ -246,20 +245,6 @@ class WalletNavigator(
         )
     }
 
-    fun finishConfirm(assetId: AssetId, route: FinishRoute) {
-        clearSwapSelections()
-        when (route) {
-            FinishRoute.Asset,
-            FinishRoute.Swap -> popConfirmFlow()
-            FinishRoute.Stake -> {
-                if (!popThroughLast { it == AssetRoute(assetId) }) {
-                    popConfirmFlow()
-                }
-            }
-        }
-        openAsset(assetId)
-    }
-
     internal fun openPendingNavigation(routes: List<NavKey>, confirmed: Boolean = false): Boolean {
         if (routes.isEmpty()) return false
         if (!canOpenPendingNavigation()) return false
@@ -277,24 +262,8 @@ class WalletNavigator(
         return backStack.firstOrNull() == WalletRootRoute
     }
 
-    private fun popConfirmFlow() {
-        var start = backStack.lastIndex
-        while (start > 0 && backStack[start].isConfirmFlowSegmentRoute()) {
-            start -= 1
-        }
-        if (!backStack[start].isConfirmFlowSegmentRoute()) {
-            start += 1
-        }
-        popFrom(start)
-    }
-
-    private fun popThroughLast(predicate: (NavKey) -> Boolean): Boolean {
-        val start = backStack.indexOfLast(predicate)
-        if (start < 0) {
-            return false
-        }
-        popFrom(start)
-        return true
+    fun popConfirmFlow() {
+        popFrom(backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() } + 1)
     }
 
     private fun popFrom(index: Int) {

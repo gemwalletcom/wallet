@@ -1,15 +1,13 @@
 package com.gemwallet.android.data.repositories.wallets
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet_import.services.ImportAssets
+import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
 import com.gemwallet.android.blockchain.operators.InvalidPhrase
 import com.gemwallet.android.blockchain.operators.InvalidWords
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCChainTypeProxy
-import com.gemwallet.android.blockchain.services.AddressStatusService
-import com.gemwallet.android.cases.banners.AddBanner
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
@@ -18,9 +16,6 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ImportType
-import com.wallet.core.primitives.AddressStatus
-import com.wallet.core.primitives.BannerEvent
-import com.wallet.core.primitives.BannerState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletSource
@@ -36,9 +31,7 @@ class PhraseAddressImportWalletService(
     private val addressValidate: ValidateAddressOperator,
     private val passwordStore: PasswordStore,
     private val syncSubscription: SyncSubscription,
-    private val addressStatusService: AddressStatusService,
-    private val addBanner: AddBanner,
-    private val importAssets: ImportAssets,
+    private val walletImportSync: SyncWalletImport,
 ) : ImportWalletService {
 
     override suspend fun importWallet(
@@ -58,13 +51,7 @@ class PhraseAddressImportWalletService(
         } // Other exception handle on call
 
         setupWallet(wallet)
-        importAssets.importAssets(wallet)
-
-        try {
-            checkAddresses(wallet)
-        } catch (_: Throwable) {
-            // TODO: Improve error handle
-        }
+        walletImportSync.sync(wallet)
         return WalletImportResult.New(wallet)
     }
 
@@ -72,7 +59,7 @@ class PhraseAddressImportWalletService(
         val wallet = handlePhrase(ImportType(WalletType.Multicoin), walletName, data, WalletSource.Create)
 
         setupWallet(wallet)
-        syncSubscription.syncSubscription(listOf(wallet)) // TODO: Out to queue
+        syncSubscription.syncSubscription(listOf(wallet))
 
         return wallet
     }
@@ -141,24 +128,7 @@ class PhraseAddressImportWalletService(
         }
     }
 
-    private suspend fun checkAddresses(wallet: Wallet) {
-        wallet.accounts.forEach {
-            val statuses = addressStatusService.getAddressStatus(it.chain, it.address)
-            for (status in statuses) {
-                if (status == AddressStatus.MultiSignature) {
-                    addBanner.addBanner(
-                        wallet = wallet,
-                        chain = it.chain,
-                        event = BannerEvent.AccountBlockedMultiSignature,
-                        state = BannerState.AlwaysActive,
-                    )
-                }
-            }
-        }
-    }
-
     companion object {
-
         fun decodePrivateKey(chain: Chain, data: String): ByteArray {
             return uniffi.gemstone.decodePrivateKey(chain = chain.string, data)
         }

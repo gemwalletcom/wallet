@@ -27,19 +27,19 @@ public struct RewardsService: RewardsServiceable, Sendable {
     }
 
     public func getRewards(wallet: Wallet) async throws -> Rewards {
-        try await apiService.getRewards(walletId: wallet.id)
+        try await apiService.getRewards(walletId: wallet.walletId)
     }
 
     public func useReferralCode(wallet: Wallet, referralCode: String) async throws {
         let auth = try await authService.getAuthPayload(wallet: wallet)
         let request = AuthenticatedRequest(auth: auth, data: ReferralCode(code: referralCode))
-        try await apiService.useReferralCode(walletId: wallet.id, request: request)
+        try await apiService.useReferralCode(walletId: wallet.walletId, request: request)
     }
 
     public func createReferral(wallet: Wallet, code: String) async throws -> Rewards {
         let auth = try await authService.getAuthPayload(wallet: wallet)
         let request = AuthenticatedRequest(auth: auth, data: ReferralCode(code: code))
-        return try await apiService.createReferral(walletId: wallet.id, request: request)
+        return try await apiService.createReferral(walletId: wallet.walletId, request: request)
     }
 
     public func generateReferralLink(code: String) -> URL {
@@ -53,6 +53,6 @@ public struct RewardsService: RewardsServiceable, Sendable {
     public func redeem(wallet: Wallet, redemptionId: String) async throws -> RedemptionResult {
         let auth = try await authService.getAuthPayload(wallet: wallet)
         let request = AuthenticatedRequest(auth: auth, data: RedemptionRequest(id: redemptionId))
-        return try await apiService.redeem(walletId: wallet.id, request: request)
+        return try await apiService.redeem(walletId: wallet.walletId, request: request)
     }
 }

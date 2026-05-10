@@ -296,6 +296,12 @@ class WCRequestViewModel @Inject constructor(
         )
     }
 
+    fun reset() {
+        requestJob?.cancel()
+        requestJob = null
+        state.update { RequestViewModelState() }
+    }
+
     private fun validateChain(chain: Chain, session: WalletConnectionSession) {
         if (!session.chains.contains(chain)) {
             throw BridgeRequestError.UnresolvedChainId

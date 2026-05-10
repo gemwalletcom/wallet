@@ -89,7 +89,10 @@ class NftListViewModels @Inject constructor(
         val current = walletId.value ?: return
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current
-        refresh()
+        viewModelScope.launch(Dispatchers.IO) {
+            val walletId = session.firstOrNull()?.wallet?.walletId ?: return@launch
+            syncNftCollections.syncNftCollections(walletId)
+        }
     }
 
     fun refresh() {

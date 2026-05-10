@@ -45,6 +45,7 @@ import com.gemwallet.android.features.assets.views.components.AssetsListFooter
 import com.gemwallet.android.features.assets.views.components.assets
 import com.gemwallet.android.features.banner.views.BannersScene
 import com.gemwallet.android.features.banner.views.WelcomeBanner
+import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
@@ -62,6 +63,7 @@ private const val InAppUpdateBannerItemKey = "in_app_update_banner"
 private const val BannersItemKey = "banners"
 private const val ImportingItemKey = "importing"
 private const val FooterItemKey = "footer"
+private const val PerpetualsSectionItemKey = "perpetuals_section"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +75,8 @@ fun AssetsScreen(
     onReceiveClick: () -> Unit,
     onBuyClick: () -> Unit,
     onSwapClick: () -> Unit,
+    onPerpetuals: () -> Unit,
+    onPerpetualDetails: (String) -> Unit,
     onAssetClick: (AssetId) -> Unit,
     onContentReady: () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
@@ -91,6 +95,11 @@ fun AssetsScreen(
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     LaunchedEffect(walletSummary != null) {
         if (walletSummary != null) currentOnContentReady()
+    }
+
+    val currentWalletId by viewModel.currentWalletId.collectAsStateWithLifecycle()
+    LaunchedEffect(currentWalletId) {
+        if (currentWalletId != null) listState.scrollToItem(0)
     }
 
     Scaffold(
@@ -184,6 +193,12 @@ fun AssetsScreen(
                             )
                         }
                     }
+                }
+                item(key = PerpetualsSectionItemKey) {
+                    PerpetualsPreviewSection(
+                        onOpenPerpetuals = onPerpetuals,
+                        onOpenPerpetualDetails = onPerpetualDetails,
+                    )
                 }
                 assets(
                     items = pinnedAssets,

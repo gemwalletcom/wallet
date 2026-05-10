@@ -5,7 +5,6 @@ import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
-import com.gemwallet.android.blockchain.services.AddressStatusService
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.nft.SyncNfts
@@ -74,14 +73,6 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideAddressStatusService(
-        gateway: GemGateway,
-    ): AddressStatusService = AddressStatusService(
-        gateway = gateway,
-    )
-
-    @Provides
-    @Singleton
     fun provideUpdateBalances(
         balancesDao: BalancesDao,
         balancesService: BalancesService,
@@ -136,13 +127,19 @@ object AssetsModule {
     @Singleton
     fun provideStreamObserverService(
         sessionRepository: SessionRepository,
+        userConfig: com.gemwallet.android.data.repositories.config.UserConfig,
         syncAssets: SyncAssets,
+        syncPerpetuals: com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals,
+        syncPerpetualPositions: com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions,
         deviceRequestSigner: DeviceRequestSigner,
         streamSubscriptionService: StreamSubscriptionService,
         eventHandler: StreamEventHandler,
     ): StreamObserverService = StreamObserverService(
         sessionRepository = sessionRepository,
+        userConfig = userConfig,
         syncAssets = syncAssets,
+        syncPerpetuals = syncPerpetuals,
+        syncPerpetualPositions = syncPerpetualPositions,
         deviceRequestSigner = deviceRequestSigner,
         subscriptionService = streamSubscriptionService,
         eventHandler = eventHandler,

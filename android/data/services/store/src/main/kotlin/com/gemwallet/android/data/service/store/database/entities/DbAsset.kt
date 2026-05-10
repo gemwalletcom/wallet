@@ -153,6 +153,16 @@ fun AssetFull.toRecord() = DbAsset(
     rank = score.rank,
 )
 
+fun Asset.toRecord(updatedAt: Long = System.currentTimeMillis()) = DbAsset(
+    id = id.toIdentifier(),
+    chain = id.chain,
+    name = name,
+    symbol = symbol,
+    decimals = decimals,
+    type = type,
+    updatedAt = updatedAt,
+)
+
 fun AssetBasic.toRecord() = DbAsset(
     id = asset.id.toIdentifier(),
     chain = asset.chain,

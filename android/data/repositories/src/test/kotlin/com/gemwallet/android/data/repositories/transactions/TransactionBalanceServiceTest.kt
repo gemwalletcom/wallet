@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.repositories.transactions
 
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
@@ -24,10 +25,12 @@ class TransactionBalanceServiceTest {
 
     private val stakeRepository = mockk<StakeRepository>()
     private val perpetualRepository = mockk<PerpetualRepository>()
+    private val sessionRepository = mockk<SessionRepository>(relaxed = true)
 
     private val subject = TransactionBalanceService(
         stakeRepository = stakeRepository,
         perpetualRepository = perpetualRepository,
+        sessionRepository = sessionRepository,
     )
 
     @Test

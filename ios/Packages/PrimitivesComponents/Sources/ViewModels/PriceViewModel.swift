@@ -16,7 +16,7 @@ public struct PriceViewModel: Sendable {
     public init(
         price: Price?,
         currencyCode: String,
-        currencyFormatterType: CurrencyFormatterType = .abbreviated,
+        currencyFormatterType: CurrencyFormatterType = .currency,
     ) {
         self.price = price
         currencyFormatter = CurrencyFormatter(type: currencyFormatterType, currencyCode: currencyCode)

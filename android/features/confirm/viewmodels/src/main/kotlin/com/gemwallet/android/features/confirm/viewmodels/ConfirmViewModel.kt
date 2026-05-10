@@ -298,10 +298,10 @@ class ConfirmViewModel @Inject constructor(
                 feeAssetInfo,
                 getBalance(assetInfo, signerParams.input),
             )
-            val result = confirmTransaction(signerParams, session, assetInfo, viewModelScope)
-            state.update { ConfirmState.Result(txHash = result.txHash) }
+            val txHash = confirmTransaction(signerParams, session, assetInfo, viewModelScope)
+            state.update { ConfirmState.Result(txHash = txHash) }
             viewModelScope.launch(Dispatchers.Main) {
-                finishAction(assetId = assetInfo.id(), hash = result.txHash, route = result.finishRoute)
+                finishAction(txHash)
             }
         } catch (err: Throwable) {
             state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }

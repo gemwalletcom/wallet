@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +38,7 @@ internal fun NetworksListScene(
         listState = listState,
         onSelect = onSelect,
         onCancel = onCancel,
+        trailing = { DataBadgeChevron() },
         listHeader = {
             item {
                 StatusItem(onClick = onStatus)
@@ -56,7 +58,10 @@ private fun StatusItem(
             GemLogoIcon()
         },
         title = {
-            ListItemTitleText(stringResource(R.string.transaction_status))
+            ListItemTitleText(
+                text = stringResource(R.string.transaction_status),
+                style = MaterialTheme.typography.bodyLarge,
+            )
         },
         trailing = {
             DataBadgeChevron()

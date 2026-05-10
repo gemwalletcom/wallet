@@ -5,13 +5,14 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TransactionsQueryBuilderTest {
 
-    private val walletId = "wallet-1"
+    private val walletId = WalletId("wallet-1")
     private val baseArgCount = 1 // walletId is the only bound arg in EXTENDED_SOURCE
 
     @Test
@@ -20,7 +21,7 @@ class TransactionsQueryBuilderTest {
         assertTrue(query.sql.trimStart().startsWith("SELECT"))
         assertTrue(query.sql.contains("FROM transactions as tx"))
         assertTrue(query.sql.trimEnd().endsWith("ORDER BY tx.createdAt DESC LIMIT ?"))
-        assertEquals(List(baseArgCount) { walletId } + DEFAULT_TRANSACTIONS_LIMIT, query.args)
+        assertEquals(List(baseArgCount) { walletId.id } + DEFAULT_TRANSACTIONS_LIMIT, query.args)
     }
 
     @Test
@@ -118,6 +119,6 @@ class TransactionsQueryBuilderTest {
     @Test
     fun walletIdIsBoundOnce() {
         val query = buildExtendedTransactionsSql(walletId, filters = emptyList())
-        assertEquals(walletId, query.args[0])
+        assertEquals(walletId.id, query.args[0])
     }
 }

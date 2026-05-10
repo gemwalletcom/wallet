@@ -77,7 +77,7 @@ struct ServicesFactory {
             provider: provider,
             deviceProvider: deviceProvider,
             walletRequestPreflight: {
-                try await deviceService.prepareForWalletRequest()
+                try await deviceService.synchronizeIfNeeded()
             },
         )
         let deviceObserverService = Self.makeDeviceObserverService(
@@ -129,7 +129,6 @@ struct ServicesFactory {
             apiService: apiService,
             transactionStore: storeManager.transactionStore,
             assetsService: assetsService,
-            walletStore: storeManager.walletStore,
             addressStore: storeManager.addressStore,
         )
         let transactionStateScheduler = Self.makeTransactionService(
@@ -260,10 +259,9 @@ struct ServicesFactory {
             swappableChainsProvider: swapService,
         )
         let onstartWalletService = Self.makeOnstartWalletService(
-            preferences: preferences,
             deviceService: deviceService,
             bannerSetupService: bannerSetupService,
-            addressStatusService: AddressStatusService(chainServiceFactory: chainServiceFactory),
+            walletConfigurationService: apiService,
             pushNotificationEnablerService: pushNotificationEnablerService,
         )
 
@@ -487,14 +485,12 @@ extension ServicesFactory {
         apiService: GemAPIService,
         transactionStore: TransactionStore,
         assetsService: AssetsService,
-        walletStore: WalletStore,
         addressStore: AddressStore,
     ) -> TransactionsService {
         TransactionsService(
             provider: apiService,
             transactionStore: transactionStore,
             assetsService: assetsService,
-            walletStore: walletStore,
             addressStore: addressStore,
         )
     }
@@ -619,17 +615,15 @@ extension ServicesFactory {
     }
 
     private static func makeOnstartWalletService(
-        preferences: Preferences,
         deviceService: any DeviceServiceable,
         bannerSetupService: BannerSetupService,
-        addressStatusService: AddressStatusService,
+        walletConfigurationService: any GemAPIWalletConfigurationService,
         pushNotificationEnablerService: PushNotificationEnablerService,
     ) -> OnstartWalletService {
         OnstartWalletService(
-            preferences: preferences,
             deviceService: deviceService,
             bannerSetupService: bannerSetupService,
-            addressStatusService: addressStatusService,
+            walletConfigurationService: walletConfigurationService,
             pushNotificationEnablerService: pushNotificationEnablerService,
         )
     }

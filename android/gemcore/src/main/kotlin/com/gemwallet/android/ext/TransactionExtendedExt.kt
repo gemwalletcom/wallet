@@ -4,6 +4,7 @@ import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import com.wallet.core.primitives.TransactionPerpetualMetadata
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
@@ -26,6 +27,18 @@ fun getTransactionSwapMetadata(
     if (type != TransactionType.Swap ||  metadata.isNullOrEmpty()) {
         return null
     }
+    return try {
+        jsonEncoder.decodeFromString(metadata)
+    } catch (_: Throwable) {
+        null
+    }
+}
+
+fun Transaction.getPerpetualMetadata(): TransactionPerpetualMetadata? {
+    val isPerpetual = type == TransactionType.PerpetualOpenPosition ||
+        type == TransactionType.PerpetualClosePosition ||
+        type == TransactionType.PerpetualModifyPosition
+    if (!isPerpetual || metadata.isNullOrEmpty()) return null
     return try {
         jsonEncoder.decodeFromString(metadata)
     } catch (_: Throwable) {

@@ -62,6 +62,24 @@ class UserConfig(
         }
     }
 
+    fun isPerpetualEnabled(): Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[Key.IsPerpetualEnabled] == true }
+
+    suspend fun setPerpetualEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[Key.IsPerpetualEnabled] = enabled
+        }
+    }
+
+    fun perpetualLeverage(): Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[Key.PerpetualLeverage] ?: PERPETUAL_LEVERAGE_DEFAULT }
+
+    suspend fun setPerpetualLeverage(value: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[Key.PerpetualLeverage] = value
+        }
+    }
+
     fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data
         .map { preferences ->
             val version = preferences[Key.LatestVersion].orEmpty()
@@ -185,5 +203,12 @@ class UserConfig(
         val IsTermsAccepted = booleanPreferencesKey("is_terms_accepted")
         val IsRequestNotifications = booleanPreferencesKey("is_request_notifications")
         val AskNotifications = longPreferencesKey("ask_notifications")
+        val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")
+        val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
+    }
+
+    companion object {
+        const val PERPETUAL_LEVERAGE_DEFAULT = 5
+        val PERPETUAL_LEVERAGE_OPTIONS = listOf(1, 2, 3, 5, 10, 20, 25, 30, 40, 50)
     }
 }

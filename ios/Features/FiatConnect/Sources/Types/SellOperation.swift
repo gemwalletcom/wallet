@@ -42,7 +42,7 @@ struct SellOperation: FiatOperation {
 
     func fetch(amount: Double) async throws -> [FiatQuote] {
         let request = FiatQuoteRequest(amount: amount, currency: currencyFormatter.currencyCode)
-        return try await service.getQuotes(walletId: walletId.id, type: .sell, assetId: asset.id, request: request)
+        return try await service.getQuotes(walletId: walletId, type: .sell, assetId: asset.id, request: request)
     }
 
     func validators(

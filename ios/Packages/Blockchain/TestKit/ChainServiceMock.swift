@@ -7,7 +7,6 @@ import Primitives
 
 public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
     // Injected data
-    public var addressStatuses: [AddressStatus] = []
     public var coinBalances: [String: AssetBalance] = [:]
     public var tokenBalances: [String: [AssetBalance]] = [:]
     public var stakeBalance: AssetBalance?
@@ -29,10 +28,6 @@ public final class ChainServiceMock: ChainServiceable, @unchecked Sendable {
 }
 
 public extension ChainServiceMock {
-    func getAddressStatus(address _: String) async throws -> [AddressStatus] {
-        addressStatuses
-    }
-
     func coinBalance(for address: String) async throws -> AssetBalance {
         coinBalances[address] ?? .init(assetId: AssetId(chain: .ethereum, tokenId: nil), balance: .zero)
     }

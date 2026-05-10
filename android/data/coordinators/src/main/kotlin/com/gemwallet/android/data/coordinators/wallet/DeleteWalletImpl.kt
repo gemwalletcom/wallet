@@ -6,9 +6,12 @@ import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.wallet.core.primitives.WalletType
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,11 +24,13 @@ class DeleteWalletImpl @Inject constructor(
     private val syncSubscription: SyncSubscription,
 ) : DeleteWallet {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> })
+
     override suspend fun deleteWallet(
         walletId: String,
         onBoard: () -> Unit,
         onComplete: () -> Unit
-    ) = withContext(Dispatchers.IO) { // TODO: Switch context to sync device state and doesn't wait it. Find more correct solution
+    ) = withContext(Dispatchers.IO) {
         val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return@withContext
         val currentWalletId = sessionRepository.session().firstOrNull()?.wallet?.id
 
@@ -36,7 +41,7 @@ class DeleteWalletImpl @Inject constructor(
             if (!deleteKeyStoreOperator(walletId)) return@withContext
         }
 
-        async {
+        scope.launch {
             walletsRepository.getAll().firstOrNull()
                 ?.let { syncSubscription.syncSubscription(it) }
         }

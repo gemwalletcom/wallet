@@ -83,19 +83,11 @@ class PerpetualAmountViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    override val availableBalance: StateFlow<BigDecimal> = combine(
-        sessionRepository.session().filterNotNull(),
-        perpetual.filterNotNull()
-    ) { session, perpetual ->
-        val chain = perpetual.asset.id.chain
-        session.wallet.getAccount(chain)
-    }
-    .filterNotNull()
-    .flatMapLatest { account ->
-        getPerpetualBalance.getBalance(account.chain, account.address)
-    }
-    .mapLatest { it?.available?.toBigDecimal() ?: BigDecimal.ZERO }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
+    override val availableBalance: StateFlow<BigDecimal> = sessionRepository.session()
+        .filterNotNull()
+        .flatMapLatest { getPerpetualBalance.getBalance(it.wallet.walletId) }
+        .mapLatest { it?.available?.toBigDecimal() ?: BigDecimal.ZERO }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
 
     override val availableBalanceFormatted: StateFlow<String> = availableBalance
         .mapLatest { Currency.USD.format(it.toDouble()) }

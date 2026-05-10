@@ -2,20 +2,32 @@ package com.gemwallet.android.features.perpetual.views.market
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
+import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.domains.price.PriceState
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
@@ -46,6 +58,7 @@ fun PerpetualMarketScene(
     positions: List<PerpetualPositionDataAggregate>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
     pinnedPerpetuals: List<PerpetualDataAggregate>,
+    query: TextFieldState,
     onRefresh: () -> Unit,
     onWithdraw: () -> Unit,
     onDeposit: () -> Unit,
@@ -55,10 +68,34 @@ fun PerpetualMarketScene(
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     val longPressedAsset = remember { mutableStateOf<String?>(null) }
+    var isSearching by remember { mutableStateOf(false) }
 
     Scene(
-        title = stringResource(R.string.perpetuals_title),
-        onClose = onClose,
+        titleContent = {
+            if (isSearching) {
+                SearchBar(
+                    query = query,
+                    modifier = Modifier.listItem(com.gemwallet.android.ui.models.ListPosition.Single, paddingHorizontal = 0.dp),
+                )
+            } else {
+                Text(stringResource(R.string.perpetuals_title))
+            }
+        },
+        onClose = {
+            if (isSearching) {
+                query.clearText()
+                isSearching = false
+            } else {
+                onClose()
+            }
+        },
+        actions = {
+            if (!isSearching) {
+                IconButton(onClick = { isSearching = true }) {
+                    Icon(imageVector = Icons.Default.Search, contentDescription = "search")
+                }
+            }
+        },
     ) {
         PullToRefreshBox(
             isRefreshing = sceneState.isRefreshing,
@@ -76,18 +113,20 @@ fun PerpetualMarketScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                item {
-                    AmountListHead(
-                        amount = balance.total,
-                        equivalent = stringResource(
-                            R.string.wallet_available_balance,
-                            balance.available
-                        )
-                    ) {
-                        MarketHeadActions(
-                            onWithdraw = onWithdraw,
-                            onDeposit = onDeposit
-                        )
+                if (!isSearching) {
+                    item {
+                        AmountListHead(
+                            amount = balance.total,
+                            equivalent = stringResource(
+                                R.string.wallet_available_balance,
+                                balance.available
+                            )
+                        ) {
+                            MarketHeadActions(
+                                onWithdraw = onWithdraw,
+                                onDeposit = onDeposit
+                            )
+                        }
                     }
                 }
                 positions.takeIf { it.isNotEmpty() }?.let {
@@ -138,6 +177,7 @@ fun PreviewPerpetualMarketScene() {
     WalletTheme {
         PerpetualMarketScene(
             sceneState = PerpetualMarketSceneState.Idle,
+            query = androidx.compose.foundation.text.input.TextFieldState(),
             balance = object : PerpetualBalance {
                 override val deposit: String = "$50,000.00"
                 override val available: String = "$45,000.00"

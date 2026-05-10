@@ -11,32 +11,26 @@ public final class TransactionsService: Sendable {
     let provider: any GemAPITransactionService
     public let transactionStore: TransactionStore
     let assetsService: AssetsService
-    let walletStore: WalletStore
     private let addressStore: AddressStore
 
     public init(
         provider: any GemAPITransactionService,
         transactionStore: TransactionStore,
         assetsService: AssetsService,
-        walletStore: WalletStore,
         addressStore: AddressStore,
     ) {
         self.provider = provider
         self.transactionStore = transactionStore
         self.assetsService = assetsService
-        self.walletStore = walletStore
         self.addressStore = addressStore
     }
 
     public func updateAll(walletId: WalletId) async throws {
-        guard let wallet = try walletStore.getWallet(id: walletId) else {
-            throw AnyError("Can't get a wallet, walletId: \(walletId.id)")
-        }
         let store = WalletPreferences(walletId: walletId)
         let newTimestamp = Int(Date.now.timeIntervalSince1970)
 
         let response = try await provider.getDeviceTransactions(
-            walletId: wallet.id,
+            walletId: walletId,
             fromTimestamp: store.transactionsTimestamp,
         )
 
@@ -47,11 +41,11 @@ public final class TransactionsService: Sendable {
         store.transactionsTimestamp = newTimestamp
     }
 
-    public func updateForAsset(wallet: Wallet, assetId: AssetId) async throws {
-        let store = WalletPreferences(walletId: wallet.walletId)
+    public func updateForAsset(walletId: WalletId, assetId: AssetId) async throws {
+        let store = WalletPreferences(walletId: walletId)
         let newTimestamp = Int(Date.now.timeIntervalSince1970)
         let response = try await provider.getDeviceTransactionsForAsset(
-            walletId: wallet.id,
+            walletId: walletId,
             asset: assetId,
             fromTimestamp: store.transactionsForAssetTimestamp(assetId: assetId.identifier),
         )
@@ -59,8 +53,8 @@ public final class TransactionsService: Sendable {
             return
         }
 
-        try await prefetchAssets(walletId: wallet.walletId, transactions: response.transactions)
-        try transactionStore.addTransactions(walletId: wallet.walletId, transactions: response.transactions)
+        try await prefetchAssets(walletId: walletId, transactions: response.transactions)
+        try transactionStore.addTransactions(walletId: walletId, transactions: response.transactions)
         try addressStore.addAddressNames(response.addressNames)
 
         store.setTransactionsForAssetTimestamp(assetId: assetId.identifier, value: newTimestamp)
