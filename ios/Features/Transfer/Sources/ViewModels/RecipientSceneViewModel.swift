@@ -193,7 +193,7 @@ extension RecipientSceneViewModel {
         let payment = try PaymentURLDecoder.decode(string)
 
         return PaymentScanResult(
-            address: asset.chain.checksumAddress(payment.address),
+            address: (try? asset.chain.checksumAddress(payment.address)) ?? payment.address,
             amount: payment.amount,
             memo: payment.memo,
         )

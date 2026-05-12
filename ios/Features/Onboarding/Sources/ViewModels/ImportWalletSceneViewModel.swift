@@ -214,7 +214,7 @@ extension ImportWalletSceneViewModel {
                 return
             }
             let chain = chain!
-            let address = chain.checksumAddress(recipient.address)
+            let address = try chain.checksumAddress(recipient.address)
 
             try await importWallet(name: recipient.name, keystoreType: .address(address: address, chain: chain))
         }

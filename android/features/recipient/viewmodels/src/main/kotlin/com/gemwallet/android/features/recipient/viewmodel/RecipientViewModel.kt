@@ -163,7 +163,8 @@ class RecipientViewModel @Inject constructor(
         confirmAction: ConfirmTransactionAction,
     ) {
         val destination = destination.copy(
-            address = type.assetInfo.asset.chain.checksumAddress(destination.address),
+            address = runCatching { type.assetInfo.asset.chain.checksumAddress(destination.address) }
+                .getOrDefault(destination.address),
         )
         val validation = validateDestination(type.assetInfo.asset.chain, destination)
         if (validation != RecipientError.None) {
@@ -194,7 +195,8 @@ class RecipientViewModel @Inject constructor(
             null
         }
         val assetInfo = type.assetInfo
-        val address = assetInfo.asset.chain.checksumAddress(paymentWrapper.address)
+        val address = runCatching { assetInfo.asset.chain.checksumAddress(paymentWrapper.address) }
+            .getOrDefault(paymentWrapper.address)
         val memo = paymentWrapper.memo
         val owner = assetInfo.owner
 
@@ -226,9 +228,9 @@ class RecipientViewModel @Inject constructor(
             is RecipientState.Ready -> state.type.assetInfo.asset.chain
             RecipientState.Loading -> null
         }
-        _address.value = chain?.checksumAddress(input) ?: input
+        _address.value = chain?.let { runCatching { it.checksumAddress(input) }.getOrDefault(input) } ?: input
         nameRecord.value = if (chain != null && record != null) {
-            record.copy(address = chain.checksumAddress(record.address))
+            record.copy(address = runCatching { chain.checksumAddress(record.address) }.getOrDefault(record.address))
         } else {
             record
         }
