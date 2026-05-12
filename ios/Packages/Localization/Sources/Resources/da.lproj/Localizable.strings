@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Få %@ for %@!";
 "transfer.sign_transaction.title" = "Underskriv transaktion";
 "recent_activity.title" = "Seneste";
-"settings.preferences.app_icon" = "App-ikon";
 "rewards.pending.title" = "Bonus afventer";
 "rewards.pending.description" = "Tilgængelig i %@";
 "rewards.pending.description_ready" = "Din bonus er klar!";

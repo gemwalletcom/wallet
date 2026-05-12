@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -59,15 +60,16 @@ private fun LazyListScope.walletsSection(
     isPinned: Boolean = false,
     vararg types: WalletType
 ) {
-    items.filter { types.contains(it.type) && it.getAccount(toChain) != null && it.isPinned == isPinned }
+    items.filter { it.type in types && it.isPinned == isPinned }
+        .mapNotNull { wallet -> wallet.getAccount(toChain)?.let { wallet to it } }
         .takeIf { it.isNotEmpty() }
-        ?.let { wallets ->
+        ?.let { entries ->
             item {
                 SubheaderItem(header)
             }
-            itemsIndexed(wallets) { index, item ->
-                WalletRecipient(item, ListPosition.getPosition(index, wallets.size)) {
-                    onSelect(item, item.getAccount(toChain) ?: return@WalletRecipient)
+            itemsIndexed(entries) { index, (wallet, account) ->
+                WalletRecipient(wallet, account, ListPosition.getPosition(index, entries.size)) {
+                    onSelect(wallet, account)
                 }
             }
         }
@@ -76,13 +78,19 @@ private fun LazyListScope.walletsSection(
 @Composable
 private fun WalletRecipient(
     wallet: Wallet,
+    account: Account,
     listPosition: ListPosition,
     onClick: () -> Unit
 ) {
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
         title = { PropertyTitleText(wallet.name) },
-        data = { PropertyDataText("", badge = { DataBadgeChevron() }) },
+        data = {
+            PropertyDataText(
+                AddressFormatter(account.address, chain = account.chain).value(),
+                badge = { DataBadgeChevron() },
+            )
+        },
         listPosition = listPosition,
     )
 }

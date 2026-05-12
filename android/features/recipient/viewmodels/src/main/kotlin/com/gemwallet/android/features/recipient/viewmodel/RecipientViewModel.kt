@@ -76,9 +76,8 @@ class RecipientViewModel @Inject constructor(
 
     private val nftAsset: Deferred<NFTAsset?> = viewModelScope.async(Dispatchers.IO, CoroutineStart.LAZY) {
         val id = nftAssetId ?: return@async null
-        val wallet = session.filterNotNull().first().wallet
         runCatching {
-            getAssetNft.getAssetNft(wallet.id, id).first().assets.firstOrNull()
+            getAssetNft.getAssetNft(id).first().assets.firstOrNull()
         }.getOrNull()
     }
 

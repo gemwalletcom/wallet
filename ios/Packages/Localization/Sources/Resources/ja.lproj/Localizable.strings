@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "得る %@ のために %@!";
 "transfer.sign_transaction.title" = "トランザクションに署名";
 "recent_activity.title" = "最近";
-"settings.preferences.app_icon" = "アプリアイコン";
 "rewards.pending.title" = "ボーナス保留中";
 "rewards.pending.description" = "入手可能な %@";
 "rewards.pending.description_ready" = "ボーナスの準備ができました!";

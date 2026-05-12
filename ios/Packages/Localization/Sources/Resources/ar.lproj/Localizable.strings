@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "يحصل %@ ل %@!";
 "transfer.sign_transaction.title" = "توقيع المعاملة";
 "recent_activity.title" = "آخر الأخبار";
-"settings.preferences.app_icon" = "أيقونة التطبيق";
 "rewards.pending.title" = "المكافأة معلقة";
 "rewards.pending.description" = "متوفر في %@";
 "rewards.pending.description_ready" = "مكافأتك جاهزة!";

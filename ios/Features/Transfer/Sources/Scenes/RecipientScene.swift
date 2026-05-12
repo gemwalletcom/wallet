@@ -101,6 +101,13 @@ public struct RecipientScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .navigationTitle(model.tittle)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(model.actionButtonTitle, action: onSelectContinue)
+                    .bold()
+                    .disabled(!model.isNextEnabled)
+            }
+        }
         .bindQuery(model.contactsQuery)
         .onChange(of: model.addressInputModel.text, model.onChangeAddressText)
     }

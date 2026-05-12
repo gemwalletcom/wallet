@@ -8,7 +8,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import UIKit
 
 @Observable
 @MainActor
@@ -28,18 +27,6 @@ public final class PreferencesViewModel {
 
     var title: String {
         Localized.Settings.Preferences.title
-    }
-
-    var appIconTitle: String {
-        Localized.Settings.Preferences.appIcon
-    }
-
-    var appIconImage: AssetImage {
-        AssetImage.image(Images.Settings.gem)
-    }
-
-    var supportsAlternateIcons: Bool {
-        UIApplication.shared.supportsAlternateIcons
     }
 
     var currencyTitle: String {

@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Kunin %@ para sa %@!";
 "transfer.sign_transaction.title" = "Pirmahan ang Transaksyon";
 "recent_activity.title" = "Mga Kamakailan";
-"settings.preferences.app_icon" = "Icon ng App";
 "rewards.pending.title" = "Bonus na Nakabinbin";
 "rewards.pending.description" = "Makukuha sa %@";
 "rewards.pending.description_ready" = "Handa na ang iyong bonus!";

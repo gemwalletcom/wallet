@@ -174,7 +174,10 @@ fun WalletNavGraph(
                 onFinish = navigator::resetToWallet,
             )
 
-            transactionDetailsScreen(onCancel = onCancel)
+            transactionDetailsScreen(
+                onCancel = onCancel,
+                onNft = navigator::openNftAsset,
+            )
 
             bridgesScreen(
                 onConnection = navigator::openBridgeConnectionDetails,

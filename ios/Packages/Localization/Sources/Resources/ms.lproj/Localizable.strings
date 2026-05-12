@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Dapatkan %@ untuk %@!";
 "transfer.sign_transaction.title" = "Tandatangan Transaksi";
 "recent_activity.title" = "Terkini";
-"settings.preferences.app_icon" = "Ikon Aplikasi";
 "rewards.pending.title" = "Bonus Tertunda";
 "rewards.pending.description" = "Tersedia dalam %@";
 "rewards.pending.description_ready" = "Bonus anda sudah siap!";

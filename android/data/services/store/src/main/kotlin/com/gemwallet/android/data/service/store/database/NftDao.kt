@@ -64,6 +64,9 @@ interface NftDao {
     """)
     fun getCollection(walletId: String, id: String): Flow<DbNFTCollection?>
 
+    @Query("SELECT * FROM nft_collections WHERE id = :id")
+    fun getCollection(id: String): Flow<DbNFTCollection?>
+
     @Query("""
         SELECT DISTINCT nft_assets.* FROM nft_assets
         JOIN nft_assets_associations ON nft_assets.id = nft_assets_associations.asset_id
@@ -78,4 +81,7 @@ interface NftDao {
         WHERE nft_assets.id = :id
     """)
     fun getAsset(walletId: String, id: String): Flow<DbNFTAsset?>
+
+    @Query("SELECT * FROM nft_assets WHERE id = :id")
+    fun getAsset(id: String): Flow<DbNFTAsset?>
 }

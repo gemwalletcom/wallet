@@ -15,11 +15,29 @@ public final class GemAPINFTServiceMock: GemAPINFTService, @unchecked Sendable {
         nftAssets
     }
 
+    public func getDeviceNFTAsset(assetId: String) async throws -> NFTAssetData {
+        guard let assetData = nftAssets.assetData(for: assetId) else {
+            throw AnyError("NFT asset not found")
+        }
+        return assetData
+    }
+
     public func refreshNftAsset(walletId _: WalletId, assetId _: String) async throws {}
 
     public func reportNft(report _: ReportNft) async throws {}
 
     public func setNFTAssets(_ nftAssets: [NFTData]) {
         self.nftAssets = nftAssets
+    }
+}
+
+private extension [NFTData] {
+    func assetData(for assetId: String) -> NFTAssetData? {
+        for data in self {
+            if let asset = data.assets.first(where: { $0.id == assetId }) {
+                return NFTAssetData(collection: data.collection, asset: asset)
+            }
+        }
+        return nil
     }
 }

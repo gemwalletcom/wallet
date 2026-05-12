@@ -167,9 +167,6 @@ struct SettingsNavigationStack: View {
                 PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel))
                     .onChange(of: observablePreferences.isPerpetualEnabled, onChangePerpetualEnabled)
             }
-            .navigationDestination(for: Scenes.AppIcon.self) { _ in
-                AppIconScene(model: AppIconSceneViewModel())
-            }
             .navigationDestination(for: Scenes.Referral.self) { scene in
                 let wallets = walletService.wallets.filter { $0.type == .multicoin }
                 if let wallet = wallets.first(where: { $0.id == walletService.currentWallet?.id }) ?? wallets.first {

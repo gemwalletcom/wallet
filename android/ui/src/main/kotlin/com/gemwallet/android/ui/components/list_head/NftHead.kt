@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_head
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,10 +28,12 @@ import com.wallet.core.primitives.TransactionNFTTransferMetadata
 fun NftHead(
     source: NftImageSource,
     size: Dp = headerLargeImageSize,
+    onClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -56,9 +59,9 @@ fun NftHead(
 }
 
 @Composable
-fun NftHead(nftAsset: NFTAsset, size: Dp = headerLargeImageSize) =
-    NftHead(nftAsset.toImageSource(), size)
+fun NftHead(nftAsset: NFTAsset, size: Dp = headerLargeImageSize, onClick: (() -> Unit)? = null) =
+    NftHead(nftAsset.toImageSource(), size, onClick)
 
 @Composable
-fun NftHead(metadata: TransactionNFTTransferMetadata, size: Dp = headerLargeImageSize) =
-    NftHead(metadata.toImageSource(), size)
+fun NftHead(metadata: TransactionNFTTransferMetadata, size: Dp = headerLargeImageSize, onClick: (() -> Unit)? = null) =
+    NftHead(metadata.toImageSource(), size, onClick)

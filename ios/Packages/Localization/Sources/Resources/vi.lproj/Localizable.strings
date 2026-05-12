@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Lấy %@ vì %@!";
 "transfer.sign_transaction.title" = "Ký giao dịch";
 "recent_activity.title" = "Gần đây";
-"settings.preferences.app_icon" = "Biểu tượng ứng dụng";
 "rewards.pending.title" = "Tiền thưởng đang chờ xử lý";
 "rewards.pending.description" = "Có sẵn trong %@";
 "rewards.pending.description_ready" = "Phần thưởng của bạn đã sẵn sàng!";
