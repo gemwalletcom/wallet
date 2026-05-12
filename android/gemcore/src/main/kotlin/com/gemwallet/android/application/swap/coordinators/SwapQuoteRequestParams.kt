@@ -1,21 +1,21 @@
-package com.gemwallet.android.features.swap.viewmodels.models
+package com.gemwallet.android.application.swap.coordinators
 
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetId
 import java.math.BigDecimal
 
-internal data class QuoteRequestParams(
+data class SwapQuoteRequestParams(
     val value: BigDecimal,
     val pay: AssetInfo,
     val receive: AssetInfo,
 ) {
-    val key: QuoteRequestKey
-        get() = QuoteRequestKey(value, pay.id(), receive.id())
+    val key: SwapQuoteRequestKey
+        get() = SwapQuoteRequestKey(value, pay.id(), receive.id())
 
     companion object
 }
 
-internal class QuoteRequestKey(
+class SwapQuoteRequestKey(
     val value: BigDecimal,
     val payAssetId: AssetId,
     val receiveAssetId: AssetId,
@@ -24,7 +24,7 @@ internal class QuoteRequestKey(
         if (this === other) {
             return true
         }
-        if (other !is QuoteRequestKey) {
+        if (other !is SwapQuoteRequestKey) {
             return false
         }
 
@@ -41,10 +41,10 @@ internal class QuoteRequestKey(
     }
 }
 
-internal fun QuoteRequestParams.Companion.create(value: BigDecimal, pay: AssetInfo?, receive: AssetInfo?): QuoteRequestParams? {
+fun SwapQuoteRequestParams.Companion.create(value: BigDecimal, pay: AssetInfo?, receive: AssetInfo?): SwapQuoteRequestParams? {
     return if (pay == null || receive == null || pay.id() == receive.id() || value.compareTo(BigDecimal.ZERO) == 0) {
         null
     } else {
-        QuoteRequestParams(value, pay, receive)
+        SwapQuoteRequestParams(value, pay, receive)
     }
 }

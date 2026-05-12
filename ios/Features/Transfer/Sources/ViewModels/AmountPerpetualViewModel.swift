@@ -59,7 +59,10 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
-        AutocloseFormatter().format(
+        AutocloseFormatter(
+            takeProfitLabel: Localized.Charts.takeProfit,
+            stopLossLabel: Localized.Charts.stopLoss,
+        ).format(
             takeProfit: takeProfit.flatMap { currencyFormatter.double(from: $0) },
             stopLoss: stopLoss.flatMap { currencyFormatter.double(from: $0) },
         )

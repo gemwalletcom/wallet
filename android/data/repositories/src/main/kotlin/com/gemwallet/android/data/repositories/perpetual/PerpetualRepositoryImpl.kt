@@ -49,6 +49,10 @@ class PerpetualRepositoryImpl(
         return perpetualDao.getPerpetual(perpetualId).map { it?.toDTO() }
     }
 
+    override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> {
+        return perpetualDao.getPerpetualByAssetId(assetId.toIdentifier()).map { it?.toDTO() }
+    }
+
     override suspend fun putPerpetualChartData(data: List<ChartCandleStick>) {
         TODO("Not yet implemented")
     }

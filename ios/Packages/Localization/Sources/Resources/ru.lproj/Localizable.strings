@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Награды пока неактивны.";
 "rewards.unverified.description" = "Награды активируются автоматически по мере более частого использования приложения.";
 "common.refresh" = "Обновить";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

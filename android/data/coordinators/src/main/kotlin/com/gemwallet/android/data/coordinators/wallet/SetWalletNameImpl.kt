@@ -11,9 +11,9 @@ class SetWalletNameImpl(
     private val renameWalletAddresses: RenameWalletAddresses,
 ) : SetWalletName {
 
-    override suspend fun setWalletName(walletId: String, name: String) {
+    override suspend fun setWalletName(walletId: WalletId, name: String) {
         val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return
         walletsRepository.updateWallet(wallet.copy(name = name))
-        renameWalletAddresses.rename(WalletId(walletId), name)
+        renameWalletAddresses.rename(walletId, name)
     }
 }

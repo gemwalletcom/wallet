@@ -73,7 +73,7 @@ extension WalletConnection {
         WalletConnectionRecord(
             id: session.sessionId,
             sessionId: session.sessionId,
-            walletId: wallet.id,
+            walletId: wallet.id.id,
             state: session.state,
             chains: session.chains,
             createdAt: Date(),

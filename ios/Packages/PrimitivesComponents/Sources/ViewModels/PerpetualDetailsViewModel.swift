@@ -41,7 +41,10 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     private let currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
     private let percentFormatter = CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
     private let percentSignLessFormatter = CurrencyFormatter.percentSignLess
-    private let autocloseFormatter = AutocloseFormatter()
+    private let autocloseFormatter = AutocloseFormatter(
+        takeProfitLabel: Localized.Charts.takeProfit,
+        stopLossLabel: Localized.Charts.stopLoss,
+    )
 
     public init(type: PerpetualDetailsType) {
         self.type = type

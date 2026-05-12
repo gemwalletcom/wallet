@@ -3,12 +3,10 @@ package com.gemwallet.android.data.coordinators.perpetuals
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
-import com.gemwallet.android.domains.price.PriceState
-import com.gemwallet.android.ext.walletId
+import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.format
-import com.gemwallet.android.model.formatPnl
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
@@ -29,7 +27,7 @@ class GetPerpetualPositionsImpl @Inject constructor(
     override fun getPerpetualPositions(): Flow<List<PerpetualPositionDataAggregateImpl>> {
         return sessionRepository.session()
             .filterNotNull()
-            .flatMapLatest { perpetualRepository.getPositions(it.wallet.walletId) }
+            .flatMapLatest { perpetualRepository.getPositions(it.wallet.id) }
             .map { items -> items.map { PerpetualPositionDataAggregateImpl(it) } }
     }
 }
@@ -43,16 +41,7 @@ class PerpetualPositionDataAggregateImpl(val data: PerpetualPositionData) : Perp
     override val leverage: Int = data.position.leverage.toInt()
     override val marginAmount: String = Currency.USD.format(data.position.marginAmount)
     override val pnlWithPercentage: String
-        get() {
-            val percentage = ((data.position.pnl / data.position.marginAmount) * 100).formatAsPercentage()
-            return "${Currency.USD.formatPnl(data.position.pnl)} ($percentage)"
-        }
-    override val pnlState: PriceState
-        get() = if (data.position.pnl == 0.0) {
-            PriceState.None
-        } else if (data.position.pnl > 0) {
-            PriceState.Up
-        } else {
-            PriceState.Down
-        }
+        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
+    override val pnlState: ValueDirection
+        get() = data.position.pnl.toValueDirection()
 }

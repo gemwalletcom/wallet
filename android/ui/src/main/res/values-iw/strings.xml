@@ -589,4 +589,6 @@
   <string name="errors.network_error">שגיאת רשת: %s</string>
   <string name="errors.network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
   <string name="common.refresh">לְרַעֲנֵן</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

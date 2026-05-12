@@ -17,10 +17,6 @@ public extension Wallet {
         type == .multicoin
     }
 
-    var walletId: WalletId {
-        try! WalletId.from(id: id)
-    }
-
     var addressChains: [AddressChains] {
         Dictionary(grouping: accounts, by: \.address)
             .map { AddressChains(address: $0.key, chains: Set($0.value.map(\.chain)).sorted()) }
@@ -51,7 +47,7 @@ public extension Wallet {
 /// factory
 public extension Wallet {
     static func makeView(name: String, chain: Chain, address: String) -> Wallet {
-        let id = WalletId.make(walletType: .view, chain: chain, address: address).id
+        let id = WalletId.make(walletType: .view, chain: chain, address: address)
         return Wallet(
             id: id,
             externalId: nil,

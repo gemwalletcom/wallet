@@ -26,7 +26,7 @@ class GetShowWelcomeBannerImpl(
                 val isWalletEmpty = getActiveAssetsInfo
                     .getAssetsInfo(hideBalance = false)
                     .map { items -> items.all { it.isZeroBalance } }
-                combine(isWalletEmpty, userConfig.isWelcomeBannerHidden(session.wallet.id)) { isEmpty, isHidden ->
+                combine(isWalletEmpty, userConfig.isWelcomeBannerHidden(session.wallet.id.id)) { isEmpty, isHidden ->
                     val created = session.wallet.source == WalletSource.Create
                     isEmpty && created && !isHidden
                 }

@@ -26,14 +26,14 @@ class WalletsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun selectWallet(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
-        setCurrentWallet.setCurrentWallet(walletId.id)
+        setCurrentWallet.setCurrentWallet(walletId)
     }
 
     fun deleteWallet(walletId: WalletId, onBoard: () -> Unit) = viewModelScope.launch {
-        deleteWallet.deleteWallet(walletId.id, onBoard) {}
+        deleteWallet.deleteWallet(walletId, onBoard) {}
     }
 
     fun togglePin(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
-        toggleWalletPin.toggleWalletPin(walletId.id)
+        toggleWalletPin.toggleWalletPin(walletId)
     }
 }

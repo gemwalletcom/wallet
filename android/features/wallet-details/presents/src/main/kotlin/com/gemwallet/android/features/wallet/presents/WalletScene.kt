@@ -74,7 +74,7 @@ internal fun WalletScene(
                 singleLine = true,
             )
             ShowSecretDataProperty(
-                walletId = WalletId(wallet.id),
+                walletId = wallet.id,
                 walletType = wallet.type,
                 onClick = onPhraseShow,
             )

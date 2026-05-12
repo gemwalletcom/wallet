@@ -589,4 +589,6 @@
   <string name="errors.network_error">خطای شبکه: %s</string>
   <string name="errors.network_offline">به نظر می‌رسد اتصال اینترنت آفلاین است.</string>
   <string name="common.refresh">تازه کردن</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

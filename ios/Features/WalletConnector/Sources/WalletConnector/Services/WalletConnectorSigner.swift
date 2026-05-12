@@ -142,7 +142,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     public func signTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
-        let wallet = try getWallet(id: session.wallet.walletId)
+        let wallet = try getWallet(id: session.wallet.id)
 
         switch transaction {
         case .ethereum:
@@ -165,7 +165,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     public func sendTransaction(sessionId: String, chain: Chain, transaction: WalletConnectorTransaction, simulation: SimulationResult) async throws -> String {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
-        let wallet = try getWallet(id: session.wallet.walletId)
+        let wallet = try getWallet(id: session.wallet.id)
 
         switch transaction {
         case let .ethereum(transaction):
@@ -230,7 +230,7 @@ public final class WalletConnectorSigner: WalletConnectorSignable {
     public func sendRawTransaction(sessionId: String, chain: Chain, transaction: String) async throws -> String {
         let session = try connectionsStore.getConnection(id: sessionId)
         try validate(chain: chain, session: session.session)
-        let wallet = try getWallet(id: session.wallet.walletId)
+        let wallet = try getWallet(id: session.wallet.id)
         let transferData = buildTransferData(
             chain: chain,
             metadata: session.session.metadata,

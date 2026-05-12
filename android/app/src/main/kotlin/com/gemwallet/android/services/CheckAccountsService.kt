@@ -45,7 +45,7 @@ class CheckAccountsService @Inject constructor(
             val newChains = Chain.available().filterNot(accountChains::contains)
 
             if (newChains.isNotEmpty()) {
-                val data = loadPrivateDataOperator(wallet, passwordStore.getPassword(wallet.id))
+                val data = loadPrivateDataOperator(wallet, passwordStore.getPassword(wallet.id.id))
                 val newAccounts = newChains.map { createAccountOperator(wallet.type, data, it) }
                 val newWallet = wallet.copy(accounts = wallet.accounts + newAccounts)
                 walletsRepository.updateWallet(newWallet)

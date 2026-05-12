@@ -4,24 +4,28 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.features.perpetual.views.models.color
+import com.gemwallet.android.features.perpetual.views.models.text
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingHalfSmall
-import com.gemwallet.android.features.perpetual.views.models.color
-import com.gemwallet.android.features.perpetual.views.models.text
+import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -35,11 +39,14 @@ fun PerpetualPositionItem(
     listPosition: ListPosition = ListPosition.Single,
 ) {
     ListItem(
-        modifier = modifier,//onClick?.let { modifier.clickable({ onClick(data.perpetualId) }) } ?: modifier,
+        modifier = modifier,
         listPosition = listPosition,
+        minHeight = ListItemDefaults.iconMinHeight,
+        contentPadding = adaptivePadding(default = paddingMiddle, compact = space6),
+        titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(data.asset) },
-        title = @Composable { ListItemTitleText(data.name) },
-        subtitle = { Text(data.direction.text(data.leverage), color = data.direction.color()) },
+        title = @Composable { ListItemTitleText(data.asset.symbol.ifEmpty { data.name }) },
+        subtitle = { ListItemSupportText(data.direction.text(data.leverage), color = data.direction.color()) },
         trailing = {
             Column(
                 modifier = Modifier.defaultMinSize(40.dp),
@@ -73,7 +80,7 @@ private fun PerpetualPositionLongItemPreview() {
         override val leverage: Int = 40
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
-        override val pnlState: PriceState = PriceState.Up
+        override val pnlState: ValueDirection = ValueDirection.Up
     }
 
     WalletTheme {
@@ -101,7 +108,7 @@ private fun PerpetualPositionShortItemPreview() {
         override val leverage: Int = 40
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "-$1,250.00 (+12.50%)"
-        override val pnlState: PriceState = PriceState.Down
+        override val pnlState: ValueDirection = ValueDirection.Down
     }
 
     WalletTheme {

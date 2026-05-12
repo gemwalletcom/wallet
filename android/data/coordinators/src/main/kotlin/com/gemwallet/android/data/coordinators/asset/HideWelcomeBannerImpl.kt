@@ -11,6 +11,6 @@ class HideWelcomeBannerImpl(
 
     override suspend fun invoke() {
         val walletId = sessionRepository.session().value?.wallet?.id ?: return
-        userConfig.hideWelcomeBanner(walletId)
+        userConfig.hideWelcomeBanner(walletId.id)
     }
 }

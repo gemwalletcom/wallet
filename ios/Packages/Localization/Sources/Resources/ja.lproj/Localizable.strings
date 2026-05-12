@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "特典はまだ有効になっていません。";
 "rewards.unverified.description" = "アプリの利用頻度が高くなるにつれて、特典が自動的に付与されます。";
 "common.refresh" = "更新";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

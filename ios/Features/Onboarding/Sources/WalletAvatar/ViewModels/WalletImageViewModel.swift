@@ -49,8 +49,8 @@ public final class WalletImageViewModel: Sendable {
         self.wallet = wallet
         self.source = source
         self.avatarService = avatarService
-        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
-        nftQuery = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .all), initialValue: [])
+        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
+        nftQuery = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
     var title: String {

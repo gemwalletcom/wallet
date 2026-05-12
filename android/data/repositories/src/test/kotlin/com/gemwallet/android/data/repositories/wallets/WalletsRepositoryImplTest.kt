@@ -16,6 +16,7 @@ import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
 import io.mockk.coJustRun
@@ -59,7 +60,7 @@ class WalletsRepositoryImplTest {
     @Test
     fun addWatch_insertsNativeAssetBeforeAccount() = runBlocking {
         stubNativeAssets()
-        every { walletIdGenerator.generateWalletId(WalletType.View, Chain.Ethereum, "0xabc") } returns "wallet-1"
+        every { walletIdGenerator.generateWalletId(WalletType.View, Chain.Ethereum, "0xabc") } returns WalletId("wallet-1")
         every { walletsDao.getById("wallet-1") } returns flowOf(null)
         every { walletsDao.getAll() } returns flowOf(emptyMap())
         coEvery { accountsDao.getByWalletId("wallet-1") } returns emptyList()

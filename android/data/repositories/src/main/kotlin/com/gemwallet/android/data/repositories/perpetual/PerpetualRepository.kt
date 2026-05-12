@@ -17,6 +17,8 @@ interface PerpetualRepository {
 
     fun getPerpetual(perpetualId: String): Flow<PerpetualData?>
 
+    fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?>
+
     suspend fun putPerpetualChartData(data: List<ChartCandleStick>)
 
     fun getPerpetualChartData(perpetualId: String): Flow<List<ChartCandleStick>>

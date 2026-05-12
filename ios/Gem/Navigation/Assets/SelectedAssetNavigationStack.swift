@@ -132,7 +132,7 @@ struct SelectedAssetNavigationStack: View {
 extension SelectedAssetNavigationStack {
     private func updateRecent() {
         if let data = input.type.recentActivityData(assetId: input.asset.id) {
-            try? activityService.updateRecent(data: data, walletId: wallet.walletId)
+            try? activityService.updateRecent(data: data, walletId: wallet.id)
         }
     }
 }

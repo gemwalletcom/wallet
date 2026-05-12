@@ -31,7 +31,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     }
 
     public func discoverAssets(wallet: Wallet) async throws {
-        let preferences = WalletPreferences(walletId: wallet.walletId)
+        let preferences = WalletPreferences(walletId: wallet.id)
 
         async let assets: () = discoverAssets(wallet: wallet, preferences: preferences)
         async let transactions: () = discoverTransactions(wallet: wallet, preferences: preferences)
@@ -40,7 +40,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
     }
 
     private func discoverAssets(wallet: Wallet, preferences: WalletPreferences) async throws {
-        let assetIds = try await assetsListService.getDeviceAssets(walletId: wallet.walletId, fromTimestamp: preferences.assetsTimestamp)
+        let assetIds = try await assetsListService.getDeviceAssets(walletId: wallet.id, fromTimestamp: preferences.assetsTimestamp)
         if assetIds.isNotEmpty {
             try await assetService.prefetchAssets(assetIds: assetIds)
             try await assetsEnabler.enableAssets(wallet: wallet, assetIds: assetIds, enabled: true)
@@ -52,7 +52,7 @@ public struct AssetDiscoveryService: AssetDiscoverable {
 
     private func discoverTransactions(wallet: Wallet, preferences: WalletPreferences) async throws {
         guard !preferences.completeInitialLoadTransactions else { return }
-        try await transactionsService.updateAll(walletId: wallet.walletId)
+        try await transactionsService.updateAll(walletId: wallet.id)
         preferences.completeInitialLoadTransactions = true
     }
 

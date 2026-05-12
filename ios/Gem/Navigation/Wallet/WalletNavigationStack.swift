@@ -110,7 +110,7 @@ struct WalletNavigationStack: View {
                 TransactionNavigationView(
                     model: TransactionSceneViewModel(
                         transaction: $0.transaction,
-                        walletId: model.wallet.walletId,
+                        walletId: model.wallet.id,
                     ),
                 )
             }
@@ -120,7 +120,7 @@ struct WalletNavigationStack: View {
                         priceService: priceService,
                         assetModel: AssetViewModel(asset: $0.asset),
                         priceAlertService: priceAlertService,
-                        walletId: model.wallet.walletId,
+                        walletId: model.wallet.id,
                         onSetPriceAlert: model.presentPriceAlert,
                     ),
                 )
@@ -144,7 +144,7 @@ struct WalletNavigationStack: View {
                         balanceService: balanceService,
                         preferences: preferences.preferences,
                         request: WalletSearchRequest(
-                            walletId: model.wallet.walletId,
+                            walletId: model.wallet.id,
                             searchBy: destination.searchQuery,
                             tag: destination.tag,
                             limit: AssetsResultsSceneViewModel.defaultLimit,
@@ -167,7 +167,7 @@ struct WalletNavigationStack: View {
                 AssetPriceAlertsScene(
                     model: AssetPriceAlertsViewModel(
                         priceAlertService: priceAlertService,
-                        walletId: model.wallet.walletId,
+                        walletId: model.wallet.id,
                         asset: $0.asset,
                     ),
                 )
@@ -204,7 +204,7 @@ struct WalletNavigationStack: View {
                 case let .setPriceAlert(asset):
                     SetPriceAlertNavigationStack(
                         model: SetPriceAlertViewModel(
-                            walletId: model.wallet.walletId,
+                            walletId: model.wallet.id,
                             asset: asset,
                             priceAlertService: priceAlertService,
                         ) { model.onSetPriceAlertComplete(message: $0) },

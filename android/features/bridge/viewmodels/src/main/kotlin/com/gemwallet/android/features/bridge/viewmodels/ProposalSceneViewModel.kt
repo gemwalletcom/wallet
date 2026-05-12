@@ -139,7 +139,7 @@ class ProposalSceneViewModel @Inject constructor(
     }
 
     fun onWalletSelected(walletId: WalletId) {
-        _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId.id } }
+        _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
     }
 
 }

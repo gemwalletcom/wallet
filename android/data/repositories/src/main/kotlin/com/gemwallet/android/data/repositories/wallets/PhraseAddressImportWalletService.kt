@@ -81,7 +81,7 @@ class PhraseAddressImportWalletService(
         }
         val wallet = walletsRepository.addControlled(walletName, cleanedData, importType.walletType, importType.chain, source)
 
-        val password = passwordStore.createPassword(wallet.id)
+        val password = passwordStore.createPassword(wallet.id.id)
         val storeResult = storePhraseOperator(wallet, cleanedData, password)
         return if (storeResult.isSuccess) {
             wallet
@@ -118,7 +118,7 @@ class PhraseAddressImportWalletService(
 
         val wallet = walletsRepository.addControlled(walletName, key, WalletType.PrivateKey, chain, source = WalletSource.Import)
 
-        val password = passwordStore.createPassword(wallet.id)
+        val password = passwordStore.createPassword(wallet.id.id)
         val storeResult = storePhraseOperator(wallet, key, password)
         return if (storeResult.isSuccess) {
             wallet

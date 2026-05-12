@@ -4,6 +4,7 @@ import com.gemwallet.android.testkit.mockDevice
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletSubscriptionChains
 import com.wallet.core.primitives.WalletType
@@ -384,7 +385,7 @@ class DeviceRepositoryTest {
         source: WalletSource = WalletSource.Create
     ): Wallet {
         return Wallet(
-            id = id,
+            id = WalletId(id),
             name = name,
             index = 0,
             type = type,

@@ -62,7 +62,7 @@ fun Wallet.toAddressRecords(): List<DbAddress> = accounts.map { account ->
     DbAddress(
         chain = account.chain,
         address = account.address,
-        walletId = id,
+        walletId = id.id,
         name = name,
         type = AddressType.InternalWallet,
         status = VerificationStatus.Verified,

@@ -21,7 +21,7 @@ public struct AssetsEnablerService: AssetsEnabler {
     }
 
     public func enableAssets(wallet: Wallet, assetIds: [AssetId], enabled: Bool) async throws {
-        let walletId = wallet.walletId
+        let walletId = wallet.id
         for assetId in assetIds {
             try assetsService.addBalanceIfMissing(walletId: walletId, assetId: assetId)
         }

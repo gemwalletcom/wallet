@@ -4,7 +4,6 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 
@@ -19,7 +18,7 @@ class EnsureWalletAssetsImpl(
             return
         }
 
-        val linked = assetsRepository.hasWalletAssets(wallet.id, requestedAssetIds)
+        val linked = assetsRepository.hasWalletAssets(wallet.id.id, requestedAssetIds)
         val missing = requestedAssetIds
             .filterNot(linked::contains)
             .filter { wallet.getAccount(it.chain) != null }
@@ -28,6 +27,6 @@ class EnsureWalletAssetsImpl(
             return
         }
 
-        enableAsset(wallet.walletId, missing)
+        enableAsset(wallet.id, missing)
     }
 }

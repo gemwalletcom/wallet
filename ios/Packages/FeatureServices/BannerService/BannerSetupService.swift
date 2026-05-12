@@ -51,7 +51,7 @@ public struct BannerSetupService: Sendable {
 
     private func setupOnboarding(wallet: Wallet) throws {
         switch wallet.source {
-        case .create: try store.addBanners([NewBanner.onboarding(walletId: wallet.walletId)])
+        case .create: try store.addBanners([NewBanner.onboarding(walletId: wallet.id)])
         case .import: break
         }
     }

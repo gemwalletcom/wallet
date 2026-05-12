@@ -12,7 +12,7 @@ struct PerpetualsPreviewView: View {
 
     init(wallet: Wallet) {
         self.wallet = wallet
-        _viewModel = State(initialValue: PerpetualsPreviewViewModel(walletId: wallet.walletId))
+        _viewModel = State(initialValue: PerpetualsPreviewViewModel(walletId: wallet.id))
     }
 
     var body: some View {
@@ -29,7 +29,7 @@ struct PerpetualsPreviewView: View {
             }
         }
         .bindQuery(viewModel.positionsQuery, viewModel.walletBalanceQuery)
-        .onChange(of: wallet.walletId) { _, newWalletId in
+        .onChange(of: wallet.id) { _, newWalletId in
             viewModel.updateWallet(walletId: newWalletId)
         }
     }

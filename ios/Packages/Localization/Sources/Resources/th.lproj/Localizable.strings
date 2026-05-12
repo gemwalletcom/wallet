@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "ระบบรางวัลยังไม่เปิดใช้งาน";
 "rewards.unverified.description" = "รางวัลจะเปิดใช้งานโดยอัตโนมัติเมื่อคุณใช้งานแอปมากขึ้น";
 "common.refresh" = "รีเฟรช";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

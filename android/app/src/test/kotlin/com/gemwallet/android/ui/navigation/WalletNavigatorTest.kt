@@ -12,7 +12,7 @@ import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockWalletId

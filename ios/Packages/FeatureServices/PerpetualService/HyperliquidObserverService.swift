@@ -63,7 +63,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public func update(for wallet: Wallet) async {
         guard let address = wallet.hyperliquidAccount?.address else { return }
         do {
-            try await perpetualService.getPositions(walletId: wallet.walletId, address: address)
+            try await perpetualService.getPositions(walletId: wallet.id, address: address)
         } catch {
             debugLog("HyperliquidObserver: update failed: \(error)")
         }
@@ -138,7 +138,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
         balance: GemPerpetualBalance,
         newPositions: [GemPerpetualPosition],
     ) throws {
-        guard let walletId = currentWallet?.walletId else { return }
+        guard let walletId = currentWallet?.id else { return }
 
         let diff = try hyperliquid.diffClearinghousePositions(
             newPositions: newPositions,
@@ -157,7 +157,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
     }
 
     private func handleOpenOrders(orders: [GemHyperliquidOpenOrder]) throws {
-        guard let walletId = currentWallet?.walletId else { return }
+        guard let walletId = currentWallet?.id else { return }
 
         let diff = try hyperliquid.diffOpenOrdersPositions(
             orders: orders,

@@ -38,7 +38,7 @@ struct AddAssetNavigationStack: View {
 extension AddAssetNavigationStack {
     private func addAsset(_ asset: Asset) {
         Task {
-            try assetsService.addNewAsset(walletId: wallet.walletId, asset: asset)
+            try assetsService.addNewAsset(walletId: wallet.id, asset: asset)
         }
         dismiss()
     }

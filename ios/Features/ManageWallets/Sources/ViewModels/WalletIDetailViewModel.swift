@@ -41,7 +41,7 @@ public final class WalletDetailViewModel {
         isPresentingAlertMessage = nil
         isPresentingDeleteConfirmation = nil
         isPresentingExportWallet = nil
-        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
+        walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
     }
 
     var name: String {
@@ -88,7 +88,7 @@ public final class WalletDetailViewModel {
 
 extension WalletDetailViewModel {
     func rename(name: String) throws {
-        try walletService.rename(walletId: wallet.walletId, newName: name)
+        try walletService.rename(walletId: wallet.id, newName: name)
     }
 
     func getMnemonicWords() async throws -> [String] {

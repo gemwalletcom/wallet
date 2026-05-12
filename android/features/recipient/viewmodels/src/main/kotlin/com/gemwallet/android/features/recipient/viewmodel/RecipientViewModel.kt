@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.mutableStateIn
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
@@ -80,7 +79,7 @@ class RecipientViewModel @Inject constructor(
         val id = nftAssetId ?: return@async null
         val wallet = session.filterNotNull().first().wallet
         runCatching {
-            getAssetNft.getAssetNft(wallet.walletId, id).first().assets.firstOrNull()
+            getAssetNft.getAssetNft(wallet.id, id).first().assets.firstOrNull()
         }.getOrNull()
     }
 

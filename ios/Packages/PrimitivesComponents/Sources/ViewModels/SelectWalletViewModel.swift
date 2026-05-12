@@ -27,7 +27,7 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
         ]
         .filter(\.2.isNotEmpty)
         .map { title, image, items in
-            ListSection(id: items.ids.joined(), title: title, image: image, values: items)
+            ListSection(id: items.map(\.id.id).joined(), title: title, image: image, values: items)
         }
 
         self.init(

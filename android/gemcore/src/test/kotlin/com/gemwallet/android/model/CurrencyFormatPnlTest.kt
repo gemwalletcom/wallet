@@ -26,4 +26,11 @@ class CurrencyFormatPnlTest {
         Locale.setDefault(Locale.US)
         assertEquals("+\$0.00", Currency.USD.formatPnl(0.0))
     }
+
+    @Test
+    fun formatPnl_dynamicPlace_usesSmallValuePrecision() {
+        Locale.setDefault(Locale.US)
+        assertEquals("-\$0.7006", Currency.USD.formatPnl(-0.7006, dynamicPlace = true))
+        assertEquals("+\$0.7006", Currency.USD.formatPnl(0.7006, dynamicPlace = true))
+    }
 }

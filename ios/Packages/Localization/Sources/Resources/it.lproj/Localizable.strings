@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Premi non ancora attivi.";
 "rewards.unverified.description" = "I premi si attivano automaticamente man mano che utilizzi l'app.";
 "common.refresh" = "Rinfrescato";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

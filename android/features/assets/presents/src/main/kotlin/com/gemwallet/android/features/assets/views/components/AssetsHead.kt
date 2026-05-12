@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.assets.views.components
 
 import androidx.compose.runtime.Composable
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -26,7 +26,7 @@ internal fun AssetsHead(
         ),
         changedValue = walletSummary.changedValue?.valueFormatted,
         changedPercentages = walletSummary.changedValue?.changePercentageFormatted,
-        changeState = walletSummary.changedValue?.state ?: PriceState.None,
+        changeState = walletSummary.changedValue?.state ?: ValueDirection.None,
         actions = {
             AssetHeadActions(
                 walletType = walletSummary.walletType,

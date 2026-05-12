@@ -589,4 +589,6 @@
   <string name="errors.network_error">নেটওয়ার্ক ত্রুটি: %s</string>
   <string name="errors.network_offline">ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।</string>
   <string name="common.refresh">রিফ্রেশ</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

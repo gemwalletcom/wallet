@@ -56,7 +56,7 @@ public final class TransactionsViewModel {
     }
 
     public var walletId: WalletId {
-        wallet.walletId
+        wallet.id
     }
 
     public var currency: String {

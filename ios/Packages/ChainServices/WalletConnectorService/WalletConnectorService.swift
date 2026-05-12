@@ -280,9 +280,9 @@ extension WalletConnectorService {
         }
 
         let wallets = try signer.getWallets(for: proposal)
-        let currentWalletId = try signer.getCurrentWallet().walletId
+        let currentWalletId = try signer.getCurrentWallet().id
 
-        guard let preselectedWallet = wallets.first(where: { $0.walletId == currentWalletId }) ?? wallets.first else {
+        guard let preselectedWallet = wallets.first(where: { $0.id == currentWalletId }) ?? wallets.first else {
             throw WalletConnectorServiceError.walletsUnsupported
         }
 

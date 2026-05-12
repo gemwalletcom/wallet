@@ -12,8 +12,8 @@ struct WalletSessionServiceTests {
         let wallet = Wallet.mock(index: 1)
         let service = try WalletSessionService.mock(wallet: wallet)
 
-        #expect(service.setCurrent(index: 1) == wallet.walletId)
-        #expect(service.currentWalletId == wallet.walletId)
+        #expect(service.setCurrent(index: 1) == wallet.id)
+        #expect(service.currentWalletId == wallet.id)
     }
 
     @Test

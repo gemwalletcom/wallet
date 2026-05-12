@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.repositories.perpetual.FakePerpetualRepository
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -52,7 +52,7 @@ class PerpetualPositionDataAggregateTest {
     @Test
     fun testPerpetualPositionDataAggregate_pnlState() = runBlocking {
         val positions = repository.getPositions(listOf(testAccountAddress)).first()
-        assertEquals(PriceState.Up, PerpetualPositionDataAggregateImpl(positions[0]).pnlState)
-        assertEquals(PriceState.Down, PerpetualPositionDataAggregateImpl(positions[1]).pnlState)
+        assertEquals(ValueDirection.Up, PerpetualPositionDataAggregateImpl(positions[0]).pnlState)
+        assertEquals(ValueDirection.Down, PerpetualPositionDataAggregateImpl(positions[1]).pnlState)
     }
 }

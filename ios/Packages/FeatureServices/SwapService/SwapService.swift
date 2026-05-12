@@ -58,11 +58,9 @@ public final class SwapService: Sendable, SwappableChainsProvider {
             walletAddress: walletAddress,
             destinationAddress: destinationAddress,
             value: value,
-            mode: .exactIn,
             options: SwapperOptions(
                 slippage: getDefaultSlippage(chain: fromAsset.id.chain.rawValue),
                 fee: getReferralFees(),
-                preferredProviders: [],
                 useMaxAmount: useMaxAmount,
             ),
         )

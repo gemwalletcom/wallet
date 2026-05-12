@@ -92,7 +92,7 @@ extension AppLifecycleService {
 
     private func setupPriceAssets(wallet: Wallet) async {
         do {
-            try await streamSubscriptionService.setupAssets(walletId: wallet.walletId)
+            try await streamSubscriptionService.setupAssets(walletId: wallet.id)
         } catch {
             debugLog("AppLifecycleService setupPriceAssets error: \(error)")
         }

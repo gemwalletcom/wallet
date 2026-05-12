@@ -2,7 +2,6 @@ package com.gemwallet.android.features.settings.networks.viewmodels.models
 
 data class ServiceStatusUIState(
     val rows: List<ServiceStatusRowUiModel> = emptyList(),
-    val isRefreshing: Boolean = false,
 )
 
 data class ServiceStatusRowUiModel(

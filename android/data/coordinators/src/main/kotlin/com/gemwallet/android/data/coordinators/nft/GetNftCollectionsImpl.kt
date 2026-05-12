@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.nft
 import com.gemwallet.android.application.nft.coordinators.GetNftCollections
 import com.gemwallet.android.cases.nft.GetListNftCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.NFTData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +20,6 @@ class GetNftCollectionsImpl(
         return sessionRepository.session()
             .filterNotNull()
             .distinctUntilChangedBy { it.wallet.id }
-            .flatMapLatest { getListNftCase.getListNft(it.wallet.walletId, collectionId) }
+            .flatMapLatest { getListNftCase.getListNft(it.wallet.id, collectionId) }
     }
 }

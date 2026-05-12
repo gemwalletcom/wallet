@@ -589,4 +589,6 @@
   <string name="errors.network_error">네트워크 오류: %s</string>
   <string name="errors.network_offline">인터넷 연결이 끊긴 것 같습니다.</string>
   <string name="common.refresh">새로 고치다</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

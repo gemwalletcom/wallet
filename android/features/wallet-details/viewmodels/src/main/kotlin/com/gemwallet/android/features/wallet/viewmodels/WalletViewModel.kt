@@ -23,15 +23,14 @@ class WalletViewModel @Inject constructor(
 
     private val walletId = savedStateHandle.requireWalletId()
 
-    val wallet = getWalletDetails.getWallet(walletId.id)
+    val wallet = getWalletDetails.getWallet(walletId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun setWalletName(name: String) = viewModelScope.launch(Dispatchers.IO) {
-        setWalletName.setWalletName(wallet.value?.id ?: return@launch, name)
+        setWalletName.setWalletName(walletId, name)
     }
 
     fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch(Dispatchers.IO) {
-        val walletId = wallet.value?.id ?: return@launch
         deleteWallet.deleteWallet(walletId, onBoard, onComplete)
     }
 }

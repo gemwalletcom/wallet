@@ -22,5 +22,5 @@ fun DbSession.toDTO(wallet: Wallet): Session {
 }
 
 fun Session.toRecord(): DbSession {
-    return DbSession(walletId = wallet.id, currency = currency.string)
+    return DbSession(walletId = wallet.id.id, currency = currency.string)
 }

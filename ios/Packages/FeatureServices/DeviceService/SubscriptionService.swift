@@ -28,7 +28,7 @@ public struct SubscriptionService: Sendable {
     public func update() async throws {
         let local = try walletStore.getWallets().map { wallet in
             WalletSubscription(
-                walletId: wallet.id,
+                walletId: wallet.id.id,
                 source: wallet.source,
                 subscriptions: wallet.addressChains,
             )

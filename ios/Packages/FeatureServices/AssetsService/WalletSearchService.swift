@@ -53,7 +53,7 @@ public struct WalletSearchService: Sendable {
             try perpetualStore.upsertPerpetuals(response.perpetuals.map(\.perpetual))
         }
         try assetsService.addBalancesIfMissing(
-            walletId: wallet.walletId,
+            walletId: wallet.id,
             assetIds: response.assets.map(\.asset.id),
         )
 

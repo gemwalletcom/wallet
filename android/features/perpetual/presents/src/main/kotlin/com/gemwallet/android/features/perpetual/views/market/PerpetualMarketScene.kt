@@ -28,7 +28,7 @@ import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
@@ -63,7 +63,7 @@ fun PerpetualMarketScene(
     onWithdraw: () -> Unit,
     onDeposit: () -> Unit,
     onPin: (String) -> Unit,
-    onClick: (String) -> Unit,
+    onClick: (AssetId) -> Unit,
     onClose: () -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
@@ -135,7 +135,7 @@ fun PerpetualMarketScene(
                         PerpetualPositionItem(
                             data = item,
                             listPosition = position,
-                            modifier = Modifier.clickable { onClick(item.perpetualId) }
+                            modifier = Modifier.clickable { onClick(item.asset.id) }
                         )
                     }
                 }
@@ -200,7 +200,7 @@ fun PreviewPerpetualMarketScene() {
                     override val leverage: Int = 10
                     override val marginAmount: String = "$10,000.00"
                     override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
-                    override val pnlState: PriceState = PriceState.Up
+                    override val pnlState: ValueDirection = ValueDirection.Up
                 },
                 object : PerpetualPositionDataAggregate {
                     override val positionId: String = "pos_eth_002"
@@ -217,7 +217,7 @@ fun PreviewPerpetualMarketScene() {
                     override val leverage: Int = 20
                     override val marginAmount: String = "$5,000.00"
                     override val pnlWithPercentage: String = "-$180.00 (-3.60%)"
-                    override val pnlState: PriceState = PriceState.Down
+                    override val pnlState: ValueDirection = ValueDirection.Down
                 }
             ),
             unpinnedPerpetuals = listOf(

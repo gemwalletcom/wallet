@@ -22,7 +22,7 @@ struct OnstartWalletServiceTests {
         defer { walletPreferences.clear() }
 
         let wallet = Wallet.mock(
-            id: walletId.id,
+            id: walletId,
             accounts: [.mock(chain: .tron, address: "tron-address")],
         )
         let preferences = Preferences.mock()
@@ -60,7 +60,7 @@ struct OnstartWalletServiceTests {
         defer { walletPreferences.clear() }
         walletPreferences.completeInitialWalletConfiguration = true
 
-        let wallet = Wallet.mock(id: walletId.id, accounts: [.mock(chain: .tron, address: "tron-address")])
+        let wallet = Wallet.mock(id: walletId, accounts: [.mock(chain: .tron, address: "tron-address")])
         let preferences = Preferences.mock()
         let db = DB.mockWithChains([.tron])
         let bannerStore = BannerStore.mock(db: db)

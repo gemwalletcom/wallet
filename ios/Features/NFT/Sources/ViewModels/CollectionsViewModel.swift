@@ -33,7 +33,7 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
         self.nftService = nftService
         self.walletService = walletService
         self.wallet = wallet
-        query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .all), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
 
     public var title: String {

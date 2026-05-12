@@ -22,7 +22,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toPriceState
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.formatSupply
@@ -324,7 +324,7 @@ private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, it
                 val rowScope = this
                 Column(horizontalAlignment = Alignment.End) {
                     with(rowScope) { PropertyDataText(currency.format(item.value, dynamicPlace = true)) }
-                    ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toPriceState().color())
+                    ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toValueDirection().color())
                 }
             },
         )

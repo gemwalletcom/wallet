@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Zawadi hazijaanza kutumika bado.";
 "rewards.unverified.description" = "Zawadi huamilishwa kiotomatiki unapotumia programu zaidi.";
 "common.refresh" = "Onyesha upya";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

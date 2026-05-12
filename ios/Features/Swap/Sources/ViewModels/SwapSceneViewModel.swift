@@ -73,8 +73,8 @@ public final class SwapSceneViewModel {
         self.balanceUpdater = balanceUpdater
         self.priceUpdater = priceUpdater
 
-        fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.walletId, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
-        toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.walletId, assetId: pairSelectorModel.toAssetId), initialValue: nil)
+        fromAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.fromAssetId), initialValue: nil)
+        toAssetQuery = ObservableQuery(AssetRequestOptional(walletId: input.wallet.id, assetId: pairSelectorModel.toAssetId), initialValue: nil)
         self.swapQuotesProvider = swapQuotesProvider
         self.swapQuoteDataProvider = swapQuoteDataProvider
         self.onSwap = onSwap

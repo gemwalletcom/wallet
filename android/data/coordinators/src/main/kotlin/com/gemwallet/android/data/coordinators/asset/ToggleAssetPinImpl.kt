@@ -12,6 +12,6 @@ class ToggleAssetPinImpl(
 
     override suspend fun invoke(assetId: AssetId) {
         val session = sessionRepository.session().value ?: return
-        assetsRepository.togglePin(session.wallet.id, assetId)
+        assetsRepository.togglePin(session.wallet.id.id, assetId)
     }
 }

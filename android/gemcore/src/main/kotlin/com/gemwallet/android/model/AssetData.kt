@@ -3,7 +3,6 @@ package com.gemwallet.android.model
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetMetaData
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 
@@ -35,7 +34,7 @@ data class AssetData(
         fun from(assetInfo: AssetInfo, wallet: Wallet, account: Account) = AssetData(
             asset = assetInfo.asset,
             account = account,
-            walletId = wallet.walletId,
+            walletId = wallet.id,
             balance = assetInfo.balance,
             price = assetInfo.price,
             metadata = assetInfo.metadata,

@@ -41,7 +41,7 @@ public extension BalanceService {
 
 extension BalanceService: BalanceUpdater {
     public func updateBalance(for wallet: Wallet, assetIds: [AssetId]) async {
-        let walletId = wallet.walletId
+        let walletId = wallet.id
 
         await withTaskGroup(of: Void.self) { group in
             for account in wallet.accounts {
@@ -86,7 +86,7 @@ extension BalanceService {
     }
 
     public func addAssetsBalancesIfMissing(assetIds: [AssetId], wallet: Wallet, isEnabled: Bool?) throws {
-        let walletId = wallet.walletId
+        let walletId = wallet.id
         let balancesAssetIds = try balanceStore
             .getBalances(walletId: walletId, assetIds: assetIds)
             .map(\.assetId)

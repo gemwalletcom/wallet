@@ -589,4 +589,6 @@
   <string name="errors.network_error">Error sa network: %s</string>
   <string name="errors.network_offline">Mukhang offline ang koneksyon sa internet.</string>
   <string name="common.refresh">I-refresh</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

@@ -589,4 +589,6 @@
   <string name="errors.network_error">Kesalahan jaringan: %s</string>
   <string name="errors.network_offline">Koneksi internet tampaknya sedang offline.</string>
   <string name="common.refresh">Menyegarkan</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

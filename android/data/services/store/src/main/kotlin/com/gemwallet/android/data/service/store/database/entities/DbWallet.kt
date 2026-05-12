@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.flow.Flow
@@ -23,7 +24,7 @@ data class DbWallet(
 
 fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet {
     return Wallet(
-        id = id,
+        id = WalletId(id),
         name = name,
         type = type,
         accounts = accounts.toDTO(),
@@ -36,7 +37,7 @@ fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet {
 
 fun Wallet.toRecord(): DbWallet {
     return DbWallet(
-        id = id,
+        id = id.id,
         name = name,
         type = type,
         domainName = null,

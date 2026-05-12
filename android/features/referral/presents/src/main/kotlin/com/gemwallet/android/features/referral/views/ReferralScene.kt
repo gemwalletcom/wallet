@@ -58,6 +58,7 @@ import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.RewardStatus
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 
@@ -226,7 +227,7 @@ private fun ReferralScenePreview() {
             ),
             uiState = RewardsUIState(canInvite = true, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
             currentWallet = Wallet(
-                id = "1",
+                id = WalletId("1"),
                 name = "Wallet 1",
                 index = 0,
                 type = WalletType.Multicoin,
@@ -258,7 +259,7 @@ private fun ReferralSceneNoRewardsPreview() {
             rewards = null,
             uiState = RewardsUIState(canInvite = false, isUnverified = false, hasPendingReferral = false, canActivatePendingReferral = false),
             currentWallet = Wallet(
-                id = "1",
+                id = WalletId("1"),
                 name = "Wallet 1",
                 index = 0,
                 type = WalletType.Multicoin,

@@ -52,7 +52,7 @@ struct WalletListItemView: View {
 
                 Spacer()
 
-                if currentWalletId == model.wallet.walletId {
+                if currentWalletId == model.wallet.id {
                     SelectionImageView()
                 }
 

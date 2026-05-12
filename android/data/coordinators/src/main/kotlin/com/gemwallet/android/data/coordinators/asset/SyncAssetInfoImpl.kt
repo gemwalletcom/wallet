@@ -28,7 +28,7 @@ class SyncAssetInfoImpl(
         coroutineScope {
             async {
                 ensureWalletAsset(
-                    walletId = wallet.id,
+                    walletId = wallet.id.id,
                     assetId = assetId,
                 )
             }

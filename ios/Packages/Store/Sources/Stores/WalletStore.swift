@@ -33,7 +33,7 @@ public struct WalletStore: Sendable {
         try db.write { db in
             try record.insert(db, onConflict: .ignore)
             for account in wallet.accounts {
-                try account.record(for: wallet.id).upsert(db)
+                try account.record(for: wallet.id.id).upsert(db)
             }
         }
     }
@@ -55,7 +55,7 @@ public struct WalletStore: Sendable {
                 .including(all: WalletRecord.accounts)
                 .asRequest(of: WalletRecordInfo.self)
                 .fetchAll(db)
-                .compactMap { $0.mapToWallet() }
+                .map { $0.mapToWallet() }
         }
     }
 
@@ -99,11 +99,11 @@ public struct WalletStore: Sendable {
         }
         return try db.write { db in
             try WalletRecord
-                .filter(WalletRecord.Columns.id == fromWallet.id)
+                .filter(WalletRecord.Columns.id == fromWallet.id.id)
                 .updateAll(db, WalletRecord.Columns.order.set(to: toWallet.order))
 
             try WalletRecord
-                .filter(WalletRecord.Columns.id == toWallet.id)
+                .filter(WalletRecord.Columns.id == toWallet.id.id)
                 .updateAll(db, WalletRecord.Columns.order.set(to: fromWallet.order))
         }
     }

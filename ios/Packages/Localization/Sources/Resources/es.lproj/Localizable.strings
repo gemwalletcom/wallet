@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Las recompensas aún no están activas.";
 "rewards.unverified.description" = "Las recompensas se activan automáticamente a medida que usas más la aplicación.";
 "common.refresh" = "Refrescar";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

@@ -20,7 +20,7 @@ class SyncFiatTransactionsImpl(
 ) : SyncFiatTransactions {
 
     override suspend fun invoke(walletId: WalletId?) {
-        val resolvedWalletId = walletId ?: WalletId(sessionRepository.session().first()?.wallet?.id ?: return)
+        val resolvedWalletId = walletId ?: sessionRepository.session().first()?.wallet?.id ?: return
         try {
             val transactions = getFiatTransactions(resolvedWalletId)
             prefetchAssets(transactions)

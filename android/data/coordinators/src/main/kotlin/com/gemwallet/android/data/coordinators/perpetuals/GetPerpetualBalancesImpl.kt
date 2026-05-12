@@ -5,7 +5,6 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance as PerpetualBalanceUi
 import com.gemwallet.android.ext.HypercoreUSDC
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualBalance
@@ -26,7 +25,7 @@ class GetPerpetualBalancesImpl(
     override fun getPerpetualBalance(): Flow<PerpetualBalanceUi> {
         return sessionRepository.session()
             .filterNotNull()
-            .flatMapLatest { perpetualRepository.getBalance(it.wallet.walletId, HypercoreUSDC.id) }
+            .flatMapLatest { perpetualRepository.getBalance(it.wallet.id, HypercoreUSDC.id) }
             .map { PerpetualBalanceImpl(it ?: EmptyBalance) }
     }
 }

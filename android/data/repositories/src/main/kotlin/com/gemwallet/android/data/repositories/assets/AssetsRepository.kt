@@ -121,7 +121,7 @@ class AssetsRepository @Inject constructor(
 
     private fun currentWalletId(): Flow<String> = sessionRepository.session()
         .filterNotNull()
-        .map { it.wallet.id }
+        .map { it.wallet.id.id }
         .distinctUntilChanged()
 
     suspend fun sync() {
@@ -166,7 +166,7 @@ class AssetsRepository @Inject constructor(
         wallet.accounts.forEach { account ->
             val asset = account.chain.asset()
             val isVisible = account.isVisibleByDefault(wallet.type)
-            insertLocalAsset(wallet.id, asset, isVisible)
+            insertLocalAsset(wallet.id.id, asset, isVisible)
             if (isVisible) assetIds.add(asset.id)
         }
         if (assetIds.isNotEmpty()) {
@@ -175,7 +175,7 @@ class AssetsRepository @Inject constructor(
     }
 
     suspend fun getNativeAssets(wallet: Wallet): List<Asset> = withContext(Dispatchers.IO) {
-        assetsDao.getNativeWalletAssets(wallet.id)
+        assetsDao.getNativeWalletAssets(wallet.id.id)
             .firstOrNull()
             ?.toDTO()
             ?: emptyList()
@@ -286,9 +286,9 @@ class AssetsRepository @Inject constructor(
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
         return assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
                 if (hasPriority) {
-                    assetsDao.swapSearchWithPriority(wallet.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
+                    assetsDao.swapSearchWithPriority(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 } else {
-                    assetsDao.swapSearch(wallet.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
+                    assetsDao.swapSearch(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 }
             }
             .toAssetInfoModel()
@@ -309,10 +309,10 @@ class AssetsRepository @Inject constructor(
             val asset = account.chain.asset()
             async {
                 if (assets[account.chain.string] == null) {
-                    add(wallet.id, asset, false)
-                    val balances = updateBalances.updateBalances(wallet.id, account, emptyList()).firstOrNull()
+                    add(wallet.id.id, asset, false)
+                    val balances = updateBalances.updateBalances(wallet.id.id, account, emptyList()).firstOrNull()
                     if ((balances?.totalAmount ?: 0.0) > 0.0) {
-                        linkAssetToWallet(wallet.id, asset.id, true)
+                        linkAssetToWallet(wallet.id.id, asset.id, true)
                     }
                 }
             }
@@ -473,7 +473,7 @@ class AssetsRepository @Inject constructor(
             TransactionType.StakeWithdraw,
             TransactionType.StakeFreeze,
             TransactionType.StakeUnfreeze -> syncStakeDelegations.sync(
-                walletId = walletId.id,
+                walletId = walletId,
                 chain = transaction.assetId.chain,
                 address = transaction.from,
                 apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.stakeApr ?: 0.0,

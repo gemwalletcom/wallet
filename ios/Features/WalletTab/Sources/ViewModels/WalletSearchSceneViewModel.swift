@@ -78,7 +78,7 @@ public final class WalletSearchSceneViewModel: Sendable {
 
         searchQuery = ObservableQuery(
             WalletSearchRequest(
-                walletId: wallet.walletId,
+                walletId: wallet.id,
                 limit: WalletSearchModel.initialFetchLimit,
                 types: WalletSearchModel.searchItemTypes,
             ),
@@ -86,7 +86,7 @@ public final class WalletSearchSceneViewModel: Sendable {
         )
         recentsQuery = ObservableQuery(
             RecentActivityRequest(
-                walletId: wallet.walletId,
+                walletId: wallet.id,
                 limit: 10,
                 types: WalletSearchModel.recentActivityTypes,
             ),
@@ -168,7 +168,7 @@ public final class WalletSearchSceneViewModel: Sendable {
 
     var recentsModel: RecentsSceneViewModel {
         RecentsSceneViewModel(
-            walletId: wallet.walletId,
+            walletId: wallet.id,
             types: recentsQuery.request.types,
             filters: recentsQuery.request.filters,
             activityService: activityService,
@@ -249,7 +249,7 @@ extension WalletSearchSceneViewModel {
 
     func onSelectPinAsset(_ assetData: AssetData, value: Bool) {
         do {
-            try balanceService.setPinned(value, walletId: wallet.walletId, assetId: assetData.asset.id)
+            try balanceService.setPinned(value, walletId: wallet.id, assetId: assetData.asset.id)
             isPresentingToastMessage = .pin(assetData.asset.name, pinned: value)
             if value, !assetData.metadata.isBalanceEnabled {
                 enableAsset(assetData.asset.id)
@@ -323,7 +323,7 @@ extension WalletSearchSceneViewModel {
         do {
             try activityService.updateRecent(
                 data: activityData(for: asset),
-                walletId: wallet.walletId,
+                walletId: wallet.id,
             )
         } catch {
             debugLog("UpdateRecent error: \(error)")

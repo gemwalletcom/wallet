@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
@@ -96,7 +96,7 @@ fun AmountListHead(
     icon: Any? = null,
     changedValue: String? = null,
     changedPercentages: String? = null,
-    changeState: PriceState = PriceState.None,
+    changeState: ValueDirection = ValueDirection.None,
     actions: (@Composable () -> Unit)? = null,
 ) {
     val hidden = hideToggle.isHidden

@@ -51,10 +51,7 @@ class ServiceStatusViewModel @Inject constructor(
     fun fetch() {
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
-            _uiState.value = ServiceStatusUIState(
-                rows = loadingRows(),
-                isRefreshing = true,
-            )
+            _uiState.value = ServiceStatusUIState(rows = loadingRows())
 
             supervisorScope {
                 endpoints.forEach { endpoint ->
@@ -75,7 +72,6 @@ class ServiceStatusViewModel @Inject constructor(
                 }
             }
 
-            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 

@@ -591,7 +591,7 @@ class AssetsRepositoryTest {
 
         val wallet = mockWallet(id = "wallet-1")
         val nativeAsset = mockAssetSolana()
-        every { assetsDao.getNativeWalletAssets(wallet.id) } returns flowOf(
+        every { assetsDao.getNativeWalletAssets(wallet.id.id) } returns flowOf(
             listOf(
                 mockDbAsset(asset = nativeAsset),
             )

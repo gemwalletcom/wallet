@@ -147,7 +147,7 @@ extension PortfolioSceneViewModel {
     private func getDataInput() throws -> PortfolioDataInput {
         switch state.selectedType {
         case .wallet:
-            return .wallet(walletId: wallet.walletId, period: selectedPeriod, currencyCode: currencyCode)
+            return .wallet(walletId: wallet.id, period: selectedPeriod, currencyCode: currencyCode)
         case .perpetuals:
             guard let address = wallet.hyperliquidAccount?.address else {
                 throw AnyError("perpetual account not available")

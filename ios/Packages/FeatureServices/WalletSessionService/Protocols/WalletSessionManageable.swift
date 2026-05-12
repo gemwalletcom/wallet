@@ -36,7 +36,7 @@ public extension WalletSessionManageable {
     }
 
     func getWallet(walletId: WalletId) throws -> Wallet {
-        guard let wallet = wallets.first(where: { $0.walletId == walletId }) else {
+        guard let wallet = wallets.first(where: { $0.id == walletId }) else {
             throw WalletSessionServiceError.noWalletId
         }
         return wallet

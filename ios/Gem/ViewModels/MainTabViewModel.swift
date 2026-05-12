@@ -21,17 +21,17 @@ final class MainTabViewModel {
 
     init(wallet: Wallet) {
         self.wallet = wallet
-        transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.walletId, state: .pending), initialValue: 0)
+        transactionsQuery = ObservableQuery(TransactionsCountRequest(walletId: wallet.id, state: .pending), initialValue: 0)
     }
 
     var walletId: WalletId {
-        wallet.walletId
+        wallet.id
     }
 
     func onChangeWallet(_ _: Wallet?, _ newWallet: Wallet?) {
         guard let newWallet else { return }
         wallet = newWallet
-        transactionsQuery.request.walletId = newWallet.walletId
+        transactionsQuery.request.walletId = newWallet.id
     }
 
     var isMarketEnabled: Bool {

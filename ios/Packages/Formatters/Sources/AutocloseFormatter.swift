@@ -5,9 +5,17 @@ import Primitives
 
 public struct AutocloseFormatter: Sendable {
     private let currencyFormatter: CurrencyFormatter
+    private let takeProfitLabel: String
+    private let stopLossLabel: String
 
-    public init(currencyFormatter: CurrencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)) {
+    public init(
+        currencyFormatter: CurrencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue),
+        takeProfitLabel: String,
+        stopLossLabel: String,
+    ) {
         self.currencyFormatter = currencyFormatter
+        self.takeProfitLabel = takeProfitLabel
+        self.stopLossLabel = stopLossLabel
     }
 
     public func format(
@@ -17,13 +25,13 @@ public struct AutocloseFormatter: Sendable {
         stopLossCanceled: Bool = false,
     ) -> (subtitle: String, subtitleExtra: String?) {
         let tp: String? = {
-            if takeProfitCanceled { return "TP: -" }
-            return takeProfit.map { "TP: \(currencyFormatter.string($0))" }
+            if takeProfitCanceled { return "\(takeProfitLabel): -" }
+            return takeProfit.map { "\(takeProfitLabel): \(currencyFormatter.string($0))" }
         }()
 
         let sl: String? = {
-            if stopLossCanceled { return "SL: -" }
-            return stopLoss.map { "SL: \(currencyFormatter.string($0))" }
+            if stopLossCanceled { return "\(stopLossLabel): -" }
+            return stopLoss.map { "\(stopLossLabel): \(currencyFormatter.string($0))" }
         }()
 
         switch (tp, sl) {

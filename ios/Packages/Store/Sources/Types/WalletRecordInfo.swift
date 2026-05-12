@@ -10,7 +10,7 @@ struct WalletRecordInfo: FetchableRecord, Codable {
 }
 
 extension WalletRecordInfo {
-    func mapToWallet() -> Wallet? {
+    func mapToWallet() -> Wallet {
         Wallet(
             id: wallet.id,
             externalId: wallet.externalId,

@@ -5,6 +5,7 @@ import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StreamMessage
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -29,7 +30,7 @@ class StreamSubscriptionServiceTest {
         every { priceAlertsDao.getAlerts() } returns flowOf(emptyList())
         val service = service()
 
-        service.setupAssets("wallet-1")
+        service.setupAssets(WalletId("wallet-1"))
 
         val subscribe = service.messages.receive() as StreamMessage.SubscribePrices
         assertEquals(listOf(Chain.Bitcoin), subscribe.data.assets.map { it.chain })
@@ -41,7 +42,7 @@ class StreamSubscriptionServiceTest {
         every { priceAlertsDao.getAlerts() } returns flowOf(emptyList())
         val service = service()
 
-        service.setupAssets("wallet-1")
+        service.setupAssets(WalletId("wallet-1"))
         service.addAssetIds(listOf(AssetId(Chain.Ethereum)))
 
         val subscribe = service.messages.receive() as StreamMessage.SubscribePrices

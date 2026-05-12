@@ -6,8 +6,8 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.PriceState
-import com.gemwallet.android.domains.price.toPriceState
+import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ext.toIdentifier
@@ -62,21 +62,21 @@ class PriceAlertDataAggregateImpl(
     override val title: String = asset.name
     override val titleBadge: String = asset.symbol.uppercase()
 
-    override val priceState: PriceState get() {
+    override val priceState: ValueDirection get() {
         val alertPrice = priceAlert.price
 
         return when (priceAlert.priceDirection) {
-            PriceAlertDirection.Up -> PriceState.Up
-            PriceAlertDirection.Down -> PriceState.Down
+            PriceAlertDirection.Up -> ValueDirection.Up
+            PriceAlertDirection.Down -> ValueDirection.Down
             else -> if (alertPrice != null) {
                 assetPrice?.price?.price?.let { currentPrice ->
                     when {
-                        alertPrice > currentPrice -> PriceState.Up
-                        else -> PriceState.Down
+                        alertPrice > currentPrice -> ValueDirection.Up
+                        else -> ValueDirection.Down
                     }
-                } ?: PriceState.None
+                } ?: ValueDirection.None
             } else {
-                assetPrice?.price?.priceChangePercentage24h.toPriceState()
+                assetPrice?.price?.priceChangePercentage24h.toValueDirection()
             }
         }
     }

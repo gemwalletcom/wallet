@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Odměny zatím nejsou aktivní.";
 "rewards.unverified.description" = "Odměny se aktivují automaticky, jakmile aplikaci používáte více.";
 "common.refresh" = "Obnovit";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

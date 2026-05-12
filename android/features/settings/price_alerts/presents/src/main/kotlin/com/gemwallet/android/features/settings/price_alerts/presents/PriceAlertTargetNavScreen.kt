@@ -43,7 +43,7 @@ fun PriceAlertTargetNavScreen(
         asset = asset,
         assetPriceFormatted = priceFormatted,
         assetPriceChangeFormatted = priceChangeFormatted,
-        assetPriceState = priceState,
+        assetValueDirection = priceState,
         error = error,
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,

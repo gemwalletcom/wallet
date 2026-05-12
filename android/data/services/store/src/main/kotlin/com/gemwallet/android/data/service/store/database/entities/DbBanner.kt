@@ -40,7 +40,7 @@ fun DbBanner.toDTO(wallet: Wallet?, asset: Asset?): Banner {
 
 fun Banner.toRecord(state: BannerState? = null): DbBanner {
     return DbBanner(
-        walletId = wallet?.id ?: "",
+        walletId = wallet?.id?.id ?: "",
         assetId = asset?.id?.toIdentifier() ?: "",
         chain = chain,
         event = event,

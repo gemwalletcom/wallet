@@ -7,39 +7,28 @@ import com.gemwallet.android.application.asset_select.coordinators.GetRecentAsse
 import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.cases.swap.GetSwapSupported
-import com.gemwallet.android.model.hasAvailable
+import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
 import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.ext.isSwapSupport
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetTag
-import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import uniffi.gemstone.SwapperAssetList
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,9 +39,8 @@ class SwapSelectViewModel @Inject constructor(
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     toggleAssetPin: ToggleAssetPin,
-    assetsRepository: AssetsRepository,
     searchTokensCase: SearchTokensCase,
-    getSwapSupported: GetSwapSupported,
+    searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
@@ -61,7 +49,7 @@ class SwapSelectViewModel @Inject constructor(
     switchAssetVisibility = switchAssetVisibility,
     toggleAssetPin = toggleAssetPin,
     searchTokensCase = searchTokensCase,
-    search = SwapSelectSearch(assetsRepository, getSwapSupported),
+    search = SwapSelectSearch(searchSwapAssets),
 ) {
 
     val payAssetId = savedStateHandle.getStateFlow<String?>(RouteArgument.FromAssetId.key, null)
@@ -96,8 +84,7 @@ private fun SavedStateHandle.requireSwapItemType(): SwapItemType =
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapSelectSearch(
-    private val assetsRepository: AssetsRepository,
-    private val getSwapSupported: GetSwapSupported,
+    private val searchSwapAssets: SearchSwapAssets,
 ) : SelectSearch {
 
     val swapItemType = MutableStateFlow<SwapItemType?>(null)
@@ -105,63 +92,33 @@ class SwapSelectSearch(
     val receiveId = MutableStateFlow<AssetId?>(null)
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
-        return combine(filters, swapItemType, payId, receiveId) { params/*session, query, type, payId, receiveId, tag*/ ->
-            val filters: SelectAssetFilters? = params[0] as? SelectAssetFilters?
-            val type: SwapItemType? = params[1] as? SwapItemType?
-            val payId: AssetId? = params[2] as? AssetId?
-            val receiveId: AssetId? = params[3] as? AssetId?
-            val oppositeId = getOppositeAssetId(type, payId, receiveId)
-            SearchParams(filters?.session?.wallet, filters?.query ?: "", oppositeId, filters?.tag)
+        return combine(filters, swapItemType, payId, receiveId) { filter, type, payId, receiveId ->
+            SearchInputs(
+                filter = filter,
+                type = type,
+                oppositeAssetId = getOppositeAssetId(type, payId, receiveId),
+            )
         }
-        .flatMapLatest { params ->
-            if (params.wallet == null) {
-                return@flatMapLatest emptyFlow()
-            }
-
-            flow {
-                if (params.oppositeAssetId == null) {
-                    val chains = params.wallet.accounts.map { it.chain }.filter { it.isSwapSupport() }
-                    emit(SwapperAssetList(chains.map { it.string }, emptyList()))
-                    val assetIds = chains
-                        .map { getSwapSupported.getSwapSupportChains(AssetId(it)).assetIds }
-                        .fold(listOf<uniffi.gemstone.AssetId>()) { acc, items -> acc + items }
-                    emit(SwapperAssetList(chains.map { it.string }, assetIds))
-                } else {
-                    emit(getSwapSupported.getSwapSupportChains(params.oppositeAssetId))
-                }
-
-            }.flatMapLatest { supported ->
-                assetsRepository.swapSearch(
-                    params.wallet,
-                    params.query,
-                    supported.chains.mapNotNull { item -> item.toChain() },
-                    supported.assetIds.mapNotNull { it.toAssetId() },
-                    params.tag?.let { listOf(params.tag) } ?: emptyList(),
-                )
-            }.catch { emit(emptyList()) }
-        }
-        .map { items ->
-            items.filter { assetInfo ->
-                assetInfo.metadata?.isSwapEnabled == true
-                    && if (swapItemType.value == SwapItemType.Pay) {
-                        assetInfo.balance.balance.hasAvailable()
-                    } else {
-                        true
-                    }
-            }
+        .flatMapLatest { inputs ->
+            searchSwapAssets(
+                wallet = inputs.filter?.session?.wallet,
+                query = inputs.filter?.query ?: "",
+                swapItemType = inputs.type ?: SwapItemType.Receive,
+                oppositeAssetId = inputs.oppositeAssetId,
+                tag = inputs.filter?.tag,
+            )
         }
     }
 
-    private fun getOppositeAssetId(type: SwapItemType?, payId: AssetId?, receiveId: AssetId?) =  when (type) {
+    private fun getOppositeAssetId(type: SwapItemType?, payId: AssetId?, receiveId: AssetId?) = when (type) {
         SwapItemType.Pay -> receiveId
         SwapItemType.Receive -> payId
         null -> null
     }
 
-    private class SearchParams(
-        val wallet: Wallet?,
-        val query: String,
+    private data class SearchInputs(
+        val filter: SelectAssetFilters?,
+        val type: SwapItemType?,
         val oppositeAssetId: AssetId?,
-        val tag: AssetTag?
     )
 }

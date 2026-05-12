@@ -589,4 +589,6 @@
   <string name="errors.network_error">ネットワークエラー: %s</string>
   <string name="errors.network_offline">インターネット接続が切断されているようです。</string>
   <string name="common.refresh">更新</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import androidx.annotation.StringRes
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Asset
@@ -15,7 +15,7 @@ class AssetInfoUIModel(
     val iconUrl: String = "",
     val priceValue: String = "0",
     val priceDayChanges: String = "0",
-    val priceChangedType: PriceState = PriceState.Up,
+    val priceChangedType: ValueDirection = ValueDirection.Up,
     val tokenType: AssetType = AssetType.NATIVE,
     val accountInfoUIModel: AccountInfoUIModel = AccountInfoUIModel(),
     val isBuyEnabled: Boolean = false,

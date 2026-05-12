@@ -36,7 +36,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -78,7 +78,7 @@ fun PriceAlertTargetScene(
     asset: Asset? = null,
     assetPriceFormatted: String = "",
     assetPriceChangeFormatted: String = "",
-    assetPriceState: PriceState = PriceState.None,
+    assetValueDirection: ValueDirection = ValueDirection.None,
     error: PriceAlertTargetError?,
     onType: (PriceAlertNotificationType) -> Unit,
     onDirection: (PriceAlertDirection) -> Unit,
@@ -255,7 +255,7 @@ fun PriceAlertTargetScene(
                             PriceInfo(
                                 price = assetPriceFormatted,
                                 changes = assetPriceChangeFormatted,
-                                state = assetPriceState,
+                                state = assetValueDirection,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         },

@@ -15,7 +15,7 @@ class GenerateWalletIdTest {
     @Test
     fun `generateWalletId for Multicoin wallet type`() {
         val result = generator.generateWalletId(WalletType.Multicoin, Chain.Ethereum, "0x1234567890abcdef")
-        assertEquals("multicoin_0x1234567890abcdef", result)
+        assertEquals("multicoin_0x1234567890abcdef", result.id)
     }
 
     @Test
@@ -24,49 +24,49 @@ class GenerateWalletIdTest {
         val resultEthereum = generator.generateWalletId(WalletType.Multicoin, Chain.Ethereum, address)
         val resultBitcoin = generator.generateWalletId(WalletType.Multicoin, Chain.Bitcoin, address)
         assertEquals(resultEthereum, resultBitcoin)
-        assertEquals("multicoin_$address", resultEthereum)
+        assertEquals("multicoin_$address", resultEthereum.id)
     }
 
     @Test
     fun `generateWalletId for Single wallet type with Ethereum`() {
         val result = generator.generateWalletId(WalletType.Single, Chain.Ethereum, "0x1234567890abcdef")
-        assertEquals("single_ethereum_0x1234567890abcdef", result)
+        assertEquals("single_ethereum_0x1234567890abcdef", result.id)
     }
 
     @Test
     fun `generateWalletId for Single wallet type with Bitcoin`() {
         val result = generator.generateWalletId(WalletType.Single, Chain.Bitcoin, "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh")
-        assertEquals("single_bitcoin_bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", result)
+        assertEquals("single_bitcoin_bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh", result.id)
     }
 
     @Test
     fun `generateWalletId for Single wallet type with Solana`() {
         val result = generator.generateWalletId(WalletType.Single, Chain.Solana, "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK")
-        assertEquals("single_solana_DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK", result)
+        assertEquals("single_solana_DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK", result.id)
     }
 
     @Test
     fun `generateWalletId for PrivateKey wallet type with Ethereum`() {
         val result = generator.generateWalletId(WalletType.PrivateKey, Chain.Ethereum, "0xabcdef1234567890")
-        assertEquals("privateKey_ethereum_0xabcdef1234567890", result)
+        assertEquals("privateKey_ethereum_0xabcdef1234567890", result.id)
     }
 
     @Test
     fun `generateWalletId for PrivateKey wallet type with Polygon`() {
         val result = generator.generateWalletId(WalletType.PrivateKey, Chain.Polygon, "0x9876543210fedcba")
-        assertEquals("privateKey_polygon_0x9876543210fedcba", result)
+        assertEquals("privateKey_polygon_0x9876543210fedcba", result.id)
     }
 
     @Test
     fun `generateWalletId for View wallet type with Ethereum`() {
         val result = generator.generateWalletId(WalletType.View, Chain.Ethereum, "0xfedcba0987654321")
-        assertEquals("view_ethereum_0xfedcba0987654321", result)
+        assertEquals("view_ethereum_0xfedcba0987654321", result.id)
     }
 
     @Test
     fun `generateWalletId for View wallet type with Tron`() {
         val result = generator.generateWalletId(WalletType.View, Chain.Tron, "TRX123456789")
-        assertEquals("view_tron_TRX123456789", result)
+        assertEquals("view_tron_TRX123456789", result.id)
     }
 
     @Test
@@ -85,7 +85,7 @@ class GenerateWalletIdTest {
 
         chains.forEach { (chain, expectedChainString) ->
             val result = generator.generateWalletId(WalletType.Single, chain, address)
-            assertEquals("single_${expectedChainString}_$address", result)
+            assertEquals("single_${expectedChainString}_$address", result.id)
         }
     }
 
@@ -107,10 +107,10 @@ class GenerateWalletIdTest {
         val privateKey = generator.generateWalletId(WalletType.PrivateKey, chain, address)
         val view = generator.generateWalletId(WalletType.View, chain, address)
 
-        assertEquals("multicoin_$address", multicoin)
-        assertEquals("single_ethereum_$address", single)
-        assertEquals("privateKey_ethereum_$address", privateKey)
-        assertEquals("view_ethereum_$address", view)
+        assertEquals("multicoin_$address", multicoin.id)
+        assertEquals("single_ethereum_$address", single.id)
+        assertEquals("privateKey_ethereum_$address", privateKey.id)
+        assertEquals("view_ethereum_$address", view.id)
     }
 
     @Test

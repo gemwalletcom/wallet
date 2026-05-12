@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.AssetPriceInfo
@@ -186,7 +186,7 @@ class AssetInfoDataAggregateImplTest {
         assertEquals("\$50,000.00", aggregate.price?.valueFormatted)
         assertEquals(-5.000002, aggregate.price?.changePercentage)
         assertEquals("-5.00%", aggregate.price?.changePercentageFormatted)
-        assertEquals(PriceState.Down, aggregate.price?.state)
+        assertEquals(ValueDirection.Down, aggregate.price?.state)
     }
 
     @Test
@@ -199,7 +199,7 @@ class AssetInfoDataAggregateImplTest {
 
         assertEquals(-0.000006, aggregate.price?.changePercentage)
         assertEquals("-0.00%", aggregate.price?.changePercentageFormatted)
-        assertEquals(PriceState.Down, aggregate.price?.state)
+        assertEquals(ValueDirection.Down, aggregate.price?.state)
     }
 
     @Test
@@ -212,7 +212,7 @@ class AssetInfoDataAggregateImplTest {
 
         assertEquals(0.000006, aggregate.price?.changePercentage)
         assertEquals("+0.00%", aggregate.price?.changePercentageFormatted)
-        assertEquals(PriceState.Up, aggregate.price?.state)
+        assertEquals(ValueDirection.Up, aggregate.price?.state)
     }
 
 
@@ -223,14 +223,14 @@ class AssetInfoDataAggregateImplTest {
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.06)
         ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("-0.06%", aggregate.price?.changePercentageFormatted)
-            assertEquals(PriceState.Down, aggregate.price?.state)
+            assertEquals(ValueDirection.Down, aggregate.price?.state)
         }
         createAssetInfo(
             asset = btcAsset,
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = -0.02)
         ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("-0.02%", aggregate.price?.changePercentageFormatted)
-            assertEquals(PriceState.Down, aggregate.price?.state)
+            assertEquals(ValueDirection.Down, aggregate.price?.state)
         }
 
         createAssetInfo(
@@ -238,7 +238,7 @@ class AssetInfoDataAggregateImplTest {
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.06)
         ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("+0.06%", aggregate.price?.changePercentageFormatted)
-            assertEquals(PriceState.Up, aggregate.price?.state)
+            assertEquals(ValueDirection.Up, aggregate.price?.state)
         }
 
         createAssetInfo(
@@ -246,7 +246,7 @@ class AssetInfoDataAggregateImplTest {
             price = createAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 0.02)
         ).toAssetInfoDataAggregate(hideBalance = false).let { aggregate ->
             assertEquals("+0.02%", aggregate.price?.changePercentageFormatted)
-            assertEquals(PriceState.Up, aggregate.price?.state)
+            assertEquals(ValueDirection.Up, aggregate.price?.state)
         }
     }
 

@@ -10,5 +10,4 @@ data class NetworksUIState(
     val currentExplorer: String? = null,
     val availableAddNode: Boolean = false,
     val nodeRows: List<NodeRowUiModel> = emptyList(),
-    val isRefreshing: Boolean = false,
 )

@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Prämien noch nicht aktiv.";
 "rewards.unverified.description" = "Prämien werden automatisch aktiviert, je mehr Sie die App nutzen.";
 "common.refresh" = "Aktualisieren";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

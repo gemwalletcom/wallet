@@ -17,7 +17,6 @@ import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.TransactionSwapMetadata
 import kotlinx.coroutines.CoroutineScope
@@ -77,7 +76,7 @@ class ConfirmTransactionImpl(
         val key = loadPrivateKeyOperator(
             session.wallet,
             assetInfo.id().chain,
-            passwordStore.getPassword(session.wallet.id)
+            passwordStore.getPassword(session.wallet.id.id)
         )
         val sign = try {
             signClient.signTransaction(
@@ -103,7 +102,7 @@ class ConfirmTransactionImpl(
 
         createTransactionsCase.createTransaction(
             hash = txHash,
-            walletId = session.wallet.walletId,
+            walletId = session.wallet.id,
             assetId = assetInfo.id(),
             owner = account,
             to = destinationAddress,

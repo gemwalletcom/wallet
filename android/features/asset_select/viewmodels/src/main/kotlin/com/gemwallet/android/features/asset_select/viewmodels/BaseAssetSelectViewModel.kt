@@ -14,7 +14,6 @@ import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
@@ -155,7 +154,7 @@ open class BaseAssetSelectViewModel(
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {
         val session = session.value ?: return@launch
         session.wallet.getAccount(assetId.chain) ?: return@launch
-        switchAssetVisibility(session.wallet.walletId, assetId, visible)
+        switchAssetVisibility(session.wallet.id, assetId, visible)
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch {

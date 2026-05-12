@@ -84,7 +84,7 @@ class NftRepository(
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun refreshNftAsset(wallet: Wallet, assetId: AssetId) {
-        gemDeviceApiClient.refreshNftAsset(wallet.id, assetId.toIdentifier())
+        gemDeviceApiClient.refreshNftAsset(wallet.id.id, assetId.toIdentifier())
     }
 
     override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> {

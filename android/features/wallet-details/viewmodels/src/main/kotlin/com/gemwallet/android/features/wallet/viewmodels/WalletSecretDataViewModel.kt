@@ -18,6 +18,6 @@ class WalletSecretDataViewModel @Inject constructor(
     private val walletId = savedStateHandle.requireWalletId()
     val walletType = MutableStateFlow(savedStateHandle.requireWalletType())
 
-    val data = getWalletSecretData.getSecretData(walletId.id)
+    val data = getWalletSecretData.getSecretData(walletId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 }

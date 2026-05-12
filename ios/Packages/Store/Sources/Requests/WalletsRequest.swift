@@ -18,7 +18,7 @@ public struct WalletsRequest: DatabaseQueryable {
             .order(WalletRecord.Columns.order.asc)
             .asRequest(of: WalletRecordInfo.self)
             .fetchAll(db)
-            .compactMap { $0.mapToWallet() }
+            .map { $0.mapToWallet() }
     }
 }
 

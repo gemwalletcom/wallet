@@ -443,7 +443,7 @@ public extension AssetSceneViewModel {
         do {
             let pinned = !assetData.metadata.isPinned
             isPresentingToastMessage = .pin(asset.name, pinned: pinned)
-            try balanceService.setPinned(pinned, walletId: wallet.walletId, assetId: asset.id)
+            try balanceService.setPinned(pinned, walletId: wallet.id, assetId: asset.id)
             if !assetData.metadata.isBalanceEnabled {
                 onSelectEnable()
             }
@@ -515,7 +515,7 @@ extension AssetSceneViewModel {
 
     private func fetchTransactions() async {
         do {
-            try await transactionsService.updateForAsset(walletId: walletModel.wallet.walletId, assetId: assetModel.asset.id)
+            try await transactionsService.updateForAsset(walletId: walletModel.wallet.id, assetId: assetModel.asset.id)
         } catch {
             // TODO: - handle fetchTransactions error
             debugLog("asset scene: fetchTransactions error \(error)")

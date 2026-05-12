@@ -589,4 +589,6 @@
   <string name="errors.network_error">เกิดข้อผิดพลาดเครือข่าย: %s</string>
   <string name="errors.network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
   <string name="common.refresh">รีเฟรช</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

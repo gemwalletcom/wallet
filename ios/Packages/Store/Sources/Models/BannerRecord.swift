@@ -61,7 +61,7 @@ extension Banner {
     var record: BannerRecord {
         BannerRecord(
             id: id,
-            walletId: wallet?.id,
+            walletId: wallet?.id.id,
             assetId: asset?.id,
             chain: chain?.id,
             event: event,
@@ -73,8 +73,8 @@ extension Banner {
 extension NewBanner {
     var record: BannerRecord {
         let wallet: Wallet? = {
-            if let walletId {
-                return Wallet(id: walletId, externalId: nil, name: "", index: 0, type: .multicoin, accounts: [], order: 0, isPinned: false, imageUrl: nil, source: .create)
+            if let walletId, let id = try? WalletId.from(id: walletId) {
+                return Wallet(id: id, externalId: nil, name: "", index: 0, type: .multicoin, accounts: [], order: 0, isPinned: false, imageUrl: nil, source: .create)
             }
             return .none
         }()

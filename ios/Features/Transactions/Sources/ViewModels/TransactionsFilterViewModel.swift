@@ -42,7 +42,7 @@ public final class TransactionsFilterViewModel {
         transactionTypesFilter = TransactionTypesFilterViewModel(types: TransactionType.allCases)
 
         let request = TransactionsRequest(
-            walletId: wallet.walletId,
+            walletId: wallet.id,
             type: type,
             filters: defaultFilters + [.types(transactionTypes.map(\.rawValue))],
         )

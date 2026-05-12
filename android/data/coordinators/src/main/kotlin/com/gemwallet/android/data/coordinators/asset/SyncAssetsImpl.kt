@@ -15,7 +15,7 @@ class SyncAssetsImpl(
 
     private suspend fun syncAssets() {
         coroutineScope {
-            val walletId = sessionRepository.session().value?.wallet?.id
+            val walletId = sessionRepository.session().value?.wallet?.id?.id
             val balances = async { runCatching { assetsRepository.sync() } }
             val deviceAssets = walletId?.let {
                 async { runCatching { deviceAssetsSyncService.sync(it) } }

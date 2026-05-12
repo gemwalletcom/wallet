@@ -57,7 +57,7 @@ class StreamEventHandlerTest {
     fun `transactions event syncs wallet transactions`() = runTest {
         val sync = mockk<SyncTransactions>(relaxed = true)
         every { syncTransactions.get() } returns sync
-        coEvery { walletsRepository.getWallet("w1") } returns flowOf(wallet)
+        coEvery { walletsRepository.getWallet(walletId) } returns flowOf(wallet)
 
         handler.handle(
             StreamEvent.Transactions(
@@ -101,7 +101,7 @@ class StreamEventHandlerTest {
     fun `unknown wallet does not call service`() = runTest {
         val sync = mockk<SyncTransactions>(relaxed = true)
         every { syncTransactions.get() } returns sync
-        coEvery { walletsRepository.getWallet("unknown") } returns flowOf(null)
+        coEvery { walletsRepository.getWallet(mockWalletId("unknown")) } returns flowOf(null)
 
         handler.handle(StreamEvent.Transactions(StreamTransactionsUpdate(walletId = mockWalletId("unknown"), transactions = emptyList())))
 

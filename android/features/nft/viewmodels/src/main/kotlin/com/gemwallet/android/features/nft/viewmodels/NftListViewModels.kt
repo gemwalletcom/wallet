@@ -7,7 +7,6 @@ import com.gemwallet.android.application.nft.coordinators.GetNftCollections
 import com.gemwallet.android.application.nft.coordinators.SyncNftCollections
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.nft.NftError
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.NFTData
@@ -49,7 +48,7 @@ class NftListViewModels @Inject constructor(
     private val session = getSession()
 
     val walletId: StateFlow<WalletId?> = session
-        .map { it?.wallet?.walletId }
+        .map { it?.wallet?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var lastSyncedWalletId: WalletId? = null
@@ -90,14 +89,14 @@ class NftListViewModels @Inject constructor(
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current
         viewModelScope.launch(Dispatchers.IO) {
-            val walletId = session.firstOrNull()?.wallet?.walletId ?: return@launch
+            val walletId = session.firstOrNull()?.wallet?.id ?: return@launch
             syncNftCollections.syncNftCollections(walletId)
         }
     }
 
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            val walletId = session.firstOrNull()?.wallet?.walletId ?: return@launch
+            val walletId = session.firstOrNull()?.wallet?.id ?: return@launch
             _isRefreshing.update { true }
             try {
                 syncNftCollections.syncNftCollections(walletId)

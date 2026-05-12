@@ -76,7 +76,7 @@ fun AssetsScreen(
     onBuyClick: () -> Unit,
     onSwapClick: () -> Unit,
     onPerpetuals: () -> Unit,
-    onPerpetualDetails: (String) -> Unit,
+    onPerpetualDetails: (AssetId) -> Unit,
     onAssetClick: (AssetId) -> Unit,
     onContentReady: () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
@@ -219,4 +219,3 @@ fun AssetsScreen(
         }
     }
 }
-

@@ -19,7 +19,7 @@ import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ImportType
@@ -191,7 +191,7 @@ class WalletNavigator(
     fun openPriceAlerts(assetId: AssetId) = push(AssetPriceAlertsRoute(assetId))
     fun openAddPriceAlertTarget(assetId: AssetId) = push(AddPriceAlertTargetRoute(assetId))
     fun openPerpetuals() = push(PerpetualRoute)
-    fun openPerpetualDetails(perpetualId: String) = push(PerpetualPositionRoute(perpetualId))
+    fun openPerpetualDetails(assetId: AssetId) = push(PerpetualPositionRoute(assetId))
     fun openStake(assetId: AssetId) = push(StakeRoute(assetId))
     fun openDelegation(validatorId: String, delegationId: String) = push(DelegationRoute(validatorId, delegationId))
     fun openReceive() = push(ReceiveSelectRoute)

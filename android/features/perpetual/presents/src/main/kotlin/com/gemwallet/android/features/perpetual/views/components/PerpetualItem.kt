@@ -19,9 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
-import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.models.ListPosition
@@ -39,7 +38,7 @@ fun PerpetualItem(
     listPosition: ListPosition = ListPosition.Single,
     longPressState: MutableState<String?>,
     onTogglePin: (String) -> Unit,
-    onClick: (String) -> Unit,
+    onClick: (AssetId) -> Unit,
 ) {
     DropDownContextItem(
         modifier = modifier,
@@ -67,7 +66,7 @@ fun PerpetualItem(
             )
         },
         onLongClick = { longPressState.value = item.id },
-    ) { onClick(item.id) }
+    ) { onClick(item.asset.id) }
 }
 
 @Composable
@@ -76,12 +75,11 @@ fun PerpetualItem(
     modifier: Modifier = Modifier,
     listPosition: ListPosition = ListPosition.Single
 ) {
-    ListItem(
+    AssetListItem(
+        asset = item.asset,
         modifier = modifier,
         listPosition = listPosition,
-        leading = @Composable { AssetIcon(item.asset) },
-        title = @Composable { ListItemTitleText(item.asset.name) },
-        subtitle = if (item.price.value == null || item.price.value == 0.0) {
+        support = if (item.price.value == null || item.price.value == 0.0) {
             null
         } else {
             {

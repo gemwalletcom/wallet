@@ -79,10 +79,10 @@ public final class SelectAssetViewModel {
         filterModel = filter
         searchModel = AssetSearchViewModel(selectType: selectType)
 
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: filter.filters), initialValue: [])
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: filter.filters), initialValue: [])
         recentsQuery = ObservableQuery(
             RecentActivityRequest(
-                walletId: wallet.walletId,
+                walletId: wallet.id,
                 limit: 10,
                 types: RecentActivityType.allCases,
                 filters: filter.defaultFilters,
@@ -221,7 +221,7 @@ extension SelectAssetViewModel {
     public func updateRecent(assetId: AssetId) {
         guard let data = selectType.recentActivityData(assetId: assetId) else { return }
         do {
-            try activityService.updateRecent(data: data, walletId: wallet.walletId)
+            try activityService.updateRecent(data: data, walletId: wallet.id)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }

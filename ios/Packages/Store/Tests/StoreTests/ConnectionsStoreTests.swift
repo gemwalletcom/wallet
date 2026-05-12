@@ -13,8 +13,8 @@ struct ConnectionsStoreTests {
         let walletStore = WalletStore(db: db)
         let connectionsStore = ConnectionsStore(db: db)
 
-        let walletA = Wallet.mock(id: "multicoin_0xa", accounts: [.mock(chain: .ethereum)])
-        let walletB = Wallet.mock(id: "multicoin_0xb", accounts: [.mock(chain: .ethereum)])
+        let walletA = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
+        let walletB = Wallet.mock(id: .multicoin(address: "0xb"), accounts: [.mock(chain: .ethereum)])
         try walletStore.addWallet(walletA)
         try walletStore.addWallet(walletB)
 

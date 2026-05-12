@@ -30,7 +30,7 @@ struct ImportWalletSceneViewModelTests {
         ).wallet
         try await service.setCurrent(wallet: walletB)
 
-        #expect(service.currentWalletId == walletB.walletId)
+        #expect(service.currentWalletId == walletB.id)
 
         let model = ImportWalletSceneViewModel(
             walletService: service,
@@ -41,6 +41,6 @@ struct ImportWalletSceneViewModelTests {
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
-        #expect(service.currentWalletId == walletA.walletId)
+        #expect(service.currentWalletId == walletA.id)
     }
 }

@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.identifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.type
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Wallet
@@ -48,12 +47,12 @@ class ImportWalletService(
     private val importingWalletIds = MutableStateFlow<Set<WalletId>>(emptySet())
 
     override fun sync(wallet: Wallet) {
-        importingWalletIds.update { it + wallet.walletId }
+        importingWalletIds.update { it + wallet.id }
         scope.launch {
             try {
                 syncWallet(wallet)
             } finally {
-                importingWalletIds.update { it - wallet.walletId }
+                importingWalletIds.update { it - wallet.id }
             }
         }
     }
@@ -61,15 +60,15 @@ class ImportWalletService(
     private suspend fun syncWallet(wallet: Wallet) {
         syncSubscription.syncSubscription(listOf(wallet))
         supervisorScope {
-            launch { walletConfigurationSync.sync(wallet.walletId) }
+            launch { walletConfigurationSync.sync(wallet.id) }
             launch { discoverAssets(wallet) }
             launch { syncTransactions.syncTransactions(wallet) }
-            launch { syncNfts.sync(wallet.walletId) }
+            launch { syncNfts.sync(wallet.id) }
         }
     }
 
     private suspend fun discoverAssets(wallet: Wallet) {
-        val availableAssetsId = getAvailableAssetIds(wallet.id)
+        val availableAssetsId = getAvailableAssetIds(wallet.id.id)
         val assetIds = availableAssetsId.mapNotNull { it.toAssetId() }
         val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
 
@@ -80,7 +79,7 @@ class ImportWalletService(
             val asset = assetInfo.asset
             wallet.getAccount(asset.chain) ?: return@mapNotNull null
             assetsRepository.linkAssetToWallet(
-                walletId = wallet.id,
+                walletId = wallet.id.id,
                 assetId = asset.id,
                 visible = true,
             )

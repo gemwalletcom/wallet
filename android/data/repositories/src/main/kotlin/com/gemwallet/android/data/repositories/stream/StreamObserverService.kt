@@ -59,8 +59,8 @@ class StreamObserverService(
         scope.launch {
             sessionRepository.session().collectLatest { session ->
                 val wallet = session?.wallet ?: return@collectLatest
-                if (wallet.id == currentWalletId) return@collectLatest
-                currentWalletId = wallet.id
+                if (wallet.id.id == currentWalletId) return@collectLatest
+                currentWalletId = wallet.id.id
                 subscriptionService.setupAssets(wallet.id)
                 if (connectionJob == null) start()
                 runCatching { syncAssets() }

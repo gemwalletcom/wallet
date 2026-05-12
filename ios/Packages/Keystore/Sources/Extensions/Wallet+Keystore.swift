@@ -4,6 +4,6 @@ import Primitives
 
 extension Wallet {
     var keystoreId: String {
-        externalId ?? id
+        externalId ?? id.id
     }
 }

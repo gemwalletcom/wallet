@@ -28,6 +28,12 @@ test:
     @echo "==> Test Android app"
     @just android test
 
+lint:
+    @echo "==> Lint iOS app"
+    @just ios lint
+    @echo "==> Lint Android app"
+    @just android lint
+
 test-integration:
     @echo "==> Test iOS app integration"
     @just ios test-integration

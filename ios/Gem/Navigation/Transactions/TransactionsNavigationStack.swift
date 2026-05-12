@@ -49,7 +49,7 @@ struct TransactionsNavigationStack: View {
                     TransactionNavigationView(
                         model: TransactionSceneViewModel(
                             transaction: $0.transaction,
-                            walletId: model.wallet.walletId,
+                            walletId: model.wallet.id,
                         ),
                     )
                 }

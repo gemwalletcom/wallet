@@ -30,7 +30,7 @@ class GetAuthPayloadImpl(
         val key = loadPrivateKeyOperator(
             wallet,
             chain,
-            passwordStore.getPassword(wallet.id)
+            passwordStore.getPassword(wallet.id.id)
         )
 
         try {

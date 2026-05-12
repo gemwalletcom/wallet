@@ -18,7 +18,6 @@ import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetada
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.Transaction
 import com.gemwallet.android.model.TransactionChanges
@@ -74,7 +73,7 @@ class TransactionsRepositoryImpl(
 
     private fun currentWalletId(): Flow<WalletId> = sessionRepository.session()
         .filterNotNull()
-        .map { it.wallet.walletId }
+        .map { it.wallet.id }
         .distinctUntilChanged()
 
     init {

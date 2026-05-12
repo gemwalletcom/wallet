@@ -23,11 +23,11 @@ struct AssetDiscoveryServiceTests {
         let nftStore = NFTStore.mock(db: db)
         let walletId = WalletId.mock()
         let wallet = Wallet.mock(
-            id: walletId.id,
+            id: walletId,
             accounts: [.mock(chain: .ethereum, address: walletId.address)],
             source: .import,
         )
-        let preferences = WalletPreferences(walletId: wallet.walletId)
+        let preferences = WalletPreferences(walletId: wallet.id)
         defer { preferences.clear() }
         preferences.clear()
 
@@ -79,7 +79,7 @@ struct AssetDiscoveryServiceTests {
         try await service.discoverAssets(wallet: wallet)
 
         let initialSavedTransactions = try transactionStore.getTransactions(state: .confirmed)
-        let initialSavedNFTs = try fetchNFTs(db: db, walletId: wallet.walletId)
+        let initialSavedNFTs = try fetchNFTs(db: db, walletId: wallet.id)
 
         #expect(preferences.completeInitialLoadAssets)
         #expect(preferences.completeInitialLoadTransactions)
@@ -122,7 +122,7 @@ struct AssetDiscoveryServiceTests {
 
         try await service.discoverAssets(wallet: wallet)
         let savedTransactions = try transactionStore.getTransactions(state: .confirmed)
-        let savedNFTs = try fetchNFTs(db: db, walletId: wallet.walletId)
+        let savedNFTs = try fetchNFTs(db: db, walletId: wallet.id)
 
         #expect(savedTransactions.map(\.id.hash) == [initialTransaction.id.hash])
         #expect(savedNFTs.map(\.collection.id) == [initialNFT.collection.id])

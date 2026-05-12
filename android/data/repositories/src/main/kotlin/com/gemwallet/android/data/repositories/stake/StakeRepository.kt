@@ -12,6 +12,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationValidator
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -27,7 +28,7 @@ class StakeRepository(
 ) : SyncStakeDelegations {
     private val recommendedValidators = Config().getValidators()
 
-    override suspend fun sync(walletId: String, chain: Chain, address: String, apr: Double) {
+    override suspend fun sync(walletId: WalletId, chain: Chain, address: String, apr: Double) {
         sync(chain, address, apr)
     }
 

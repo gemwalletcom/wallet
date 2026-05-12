@@ -589,4 +589,6 @@
   <string name="errors.network_error">網路錯誤： %s</string>
   <string name="errors.network_offline">網路連線似乎已斷開。</string>
   <string name="common.refresh">重新整理</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

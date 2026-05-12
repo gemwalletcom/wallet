@@ -5,6 +5,7 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualProvider
@@ -18,6 +19,12 @@ class GetPerpetualImpl @Inject constructor(
 
     override fun getPerpetual(perpetualId: String): Flow<PerpetualDetailsDataAggregate?> {
         return perpetualRepository.getPerpetual(perpetualId).map {
+            PerpetualDetailsDataAggregateImpl(it ?: return@map null)
+        }
+    }
+
+    override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualDetailsDataAggregate?> {
+        return perpetualRepository.getPerpetualByAssetId(assetId).map {
             PerpetualDetailsDataAggregateImpl(it ?: return@map null)
         }
     }

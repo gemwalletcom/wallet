@@ -22,7 +22,7 @@ public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable
 
     public init(wallet: Wallet) {
         self.wallet = wallet
-        query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .unverified), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .unverified), initialValue: [])
     }
 
     public var title: String {

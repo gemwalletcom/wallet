@@ -64,7 +64,7 @@ class CreateWalletViewModel @Inject constructor(
             val newState = try {
                 val wallet = importWalletService.createWallet(state.value.name, phrase)
                 withContext(Dispatchers.Main){
-                    onCreated(if (state.value.isExistingWallets()) WalletId(wallet.id) else null)
+                    onCreated(if (state.value.isExistingWallets()) wallet.id else null)
                 }
                 state.value.copy(loading = false)
             } catch (err: Throwable) {

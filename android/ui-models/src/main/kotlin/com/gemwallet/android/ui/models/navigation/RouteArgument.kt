@@ -9,7 +9,6 @@ enum class RouteArgument(val key: String) {
     NftAssetId("nftAssetId"),
     NftCollectionId("nftCollectionId"),
     Params("params"),
-    PerpetualId("perpetualId"),
     SwapItemType("swapItemType"),
     ToAssetId("toAssetId"),
     TransactionId("transactionId"),

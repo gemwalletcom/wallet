@@ -589,4 +589,6 @@
   <string name="errors.network_error">Network error: %s</string>
   <string name="errors.network_offline">The Internet connection appears to be offline.</string>
   <string name="common.refresh">Refresh</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

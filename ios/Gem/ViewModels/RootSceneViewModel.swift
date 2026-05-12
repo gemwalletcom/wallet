@@ -138,7 +138,7 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     func onChangeWallet(_ oldWallet: Wallet?, _ newWallet: Wallet?) {
         guard let newWallet else { return }
-        if oldWallet?.walletId != newWallet.walletId {
+        if oldWallet?.id != newWallet.id {
             navigationHandler.resetNavigation()
         }
         setup(wallet: newWallet)

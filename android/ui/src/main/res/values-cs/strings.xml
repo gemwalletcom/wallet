@@ -589,4 +589,6 @@
   <string name="errors.network_error">Chyba sítě: %s</string>
   <string name="errors.network_offline">Zdá se, že je internetové připojení offline.</string>
   <string name="common.refresh">Obnovit</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

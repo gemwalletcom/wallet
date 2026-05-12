@@ -59,19 +59,19 @@ public final class FiatSceneViewModel {
         self.wallet = wallet
         self.assetsEnabler = assetsEnabler
         self.type = type
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
 
         let buyOperation = BuyOperation(
             service: fiatService,
             asset: assetAddress.asset,
             currencyFormatter: currencyFormatter,
-            walletId: wallet.walletId,
+            walletId: wallet.id,
         )
         let sellOperation = SellOperation(
             service: fiatService,
             asset: assetAddress.asset,
             currencyFormatter: currencyFormatter,
-            walletId: wallet.walletId,
+            walletId: wallet.id,
         )
 
         buyViewModel = FiatOperationViewModel(
@@ -227,7 +227,7 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await fiatService.getQuoteUrl(walletId: wallet.walletId, quoteId: selectedQuote.id).redirectUrl.asURL else {
+                guard let url = try await fiatService.getQuoteUrl(walletId: wallet.id, quoteId: selectedQuote.id).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }
@@ -291,7 +291,7 @@ extension FiatSceneViewModel {
     }
 
     var walletId: WalletId {
-        wallet.walletId
+        wallet.id
     }
 
     private var balanceModel: BalanceViewModel {

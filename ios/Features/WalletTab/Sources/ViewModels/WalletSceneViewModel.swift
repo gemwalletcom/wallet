@@ -70,9 +70,9 @@ public final class WalletSceneViewModel: Sendable {
         self.walletService = walletService
         self.observablePreferences = observablePreferences
 
-        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.walletId, type: .wallet), initialValue: .zero)
-        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.walletId, filters: [.enabledBalance]), initialValue: [])
-        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.walletId, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
+        totalFiatQuery = ObservableQuery(TotalValueRequest(walletId: wallet.id, type: .wallet), initialValue: .zero)
+        assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
+        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
@@ -202,7 +202,7 @@ public extension WalletSceneViewModel {
 
     internal func onHideAsset(_ assetId: AssetId) {
         do {
-            try balanceService.hideAsset(walletId: wallet.walletId, assetId: assetId)
+            try balanceService.hideAsset(walletId: wallet.id, assetId: assetId)
         } catch {
             debugLog("WalletSceneViewModel hide Asset error: \(error)")
         }
@@ -210,7 +210,7 @@ public extension WalletSceneViewModel {
 
     internal func onPinAsset(_ asset: Asset, value: Bool) {
         do {
-            try balanceService.setPinned(value, walletId: wallet.walletId, assetId: asset.id)
+            try balanceService.setPinned(value, walletId: wallet.id, assetId: asset.id)
             isPresentingToastMessage = .pin(asset.name, pinned: value)
         } catch {
             debugLog("WalletSceneViewModel pin asset error: \(error)")
@@ -224,7 +224,7 @@ public extension WalletSceneViewModel {
     func onChangeWallet(_: Wallet?, _ newWallet: Wallet?) {
         guard let newWallet else { return }
 
-        if wallet.walletId != newWallet.walletId {
+        if wallet.id != newWallet.id {
             refresh(for: newWallet)
         } else if wallet != newWallet {
             wallet = newWallet
@@ -269,7 +269,7 @@ extension WalletSceneViewModel {
 
         await updateWallet(for: wallet)
 
-        if shouldShowLoadingAssets, self.wallet.walletId == wallet.walletId {
+        if shouldShowLoadingAssets, self.wallet.id == wallet.id {
             isLoadingAssets = false
         }
     }
@@ -290,16 +290,16 @@ extension WalletSceneViewModel {
     }
 
     private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
-        let preferences = WalletPreferences(walletId: wallet.walletId)
+        let preferences = WalletPreferences(walletId: wallet.id)
         return !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
     }
 
     private func refresh(for newWallet: Wallet) {
         isLoadingAssets = false
         wallet = newWallet
-        totalFiatQuery.request.walletId = newWallet.walletId
-        assetsQuery.request.walletId = newWallet.walletId
-        bannersQuery.request.walletId = newWallet.walletId
+        totalFiatQuery.request.walletId = newWallet.id
+        assetsQuery.request.walletId = newWallet.id
+        bannersQuery.request.walletId = newWallet.id
 
         Task { await fetchOnce(wallet: newWallet) }
     }

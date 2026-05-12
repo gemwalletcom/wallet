@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Beloningen nog niet actief.";
 "rewards.unverified.description" = "Je beloningen worden automatisch geactiveerd naarmate je de app meer gebruikt.";
 "common.refresh" = "Vernieuwen";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

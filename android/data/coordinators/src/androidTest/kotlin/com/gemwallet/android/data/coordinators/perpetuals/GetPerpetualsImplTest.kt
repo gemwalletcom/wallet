@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.repositories.perpetual.FakePerpetualRepository
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -58,7 +58,7 @@ class GetPerpetualsImplTest {
         val item = result[0]
         assertEquals("\$95,420.50", item.price.valueFormatted)
         assertEquals("+2.50%", item.price.changePercentageFormatted)
-        assertEquals(PriceState.Up, item.price.state)
+        assertEquals(ValueDirection.Up, item.price.state)
         assertEquals("\$15.00B", item.volume)
     }
 }

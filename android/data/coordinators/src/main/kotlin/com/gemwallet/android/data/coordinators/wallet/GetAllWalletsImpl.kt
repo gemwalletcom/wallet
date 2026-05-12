@@ -43,7 +43,7 @@ class WalletDataAggregateImpl(
     override val isCurrent: Boolean
 ) : WalletDataAggregate {
 
-    override val id: String = wallet.id
+    override val id: String = wallet.id.id
 
     override val name: String = wallet.name
 

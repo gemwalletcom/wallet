@@ -14,11 +14,12 @@ import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.AssetId
 
 @Composable
 fun PerpetualsPreviewSection(
     onOpenPerpetuals: () -> Unit,
-    onOpenPerpetualDetails: (String) -> Unit,
+    onOpenPerpetualDetails: (AssetId) -> Unit,
     viewModel: PerpetualsPreviewViewModel = hiltViewModel(),
 ) {
     val show by viewModel.showPerpetuals.collectAsStateWithLifecycle()
@@ -39,7 +40,7 @@ fun PerpetualsPreviewSection(
                 PerpetualPositionItem(
                     data = position,
                     listPosition = ListPosition.getPosition(index, positions.size),
-                    modifier = Modifier.clickable { onOpenPerpetualDetails(position.perpetualId) },
+                    modifier = Modifier.clickable { onOpenPerpetualDetails(position.asset.id) },
                 )
             }
         }

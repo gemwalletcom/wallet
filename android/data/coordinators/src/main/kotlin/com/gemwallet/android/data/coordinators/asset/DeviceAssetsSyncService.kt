@@ -9,9 +9,9 @@ import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,8 +40,8 @@ class DeviceAssetsSyncService @Inject constructor(
             return
         }
 
-        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return
-        val existingAssetIds = assetsRepository.hasWalletAssets(wallet.id, assetIds)
+        val wallet = walletsRepository.getWallet(WalletId(walletId)).firstOrNull() ?: return
+        val existingAssetIds = assetsRepository.hasWalletAssets(wallet.id.id, assetIds)
         val missingAssetIds = assetIds.filterNot(existingAssetIds::contains)
 
         prefetchAssets.prefetchAssets(assetIds)
@@ -52,7 +52,7 @@ class DeviceAssetsSyncService @Inject constructor(
         }
 
         if (missingAssetIds.isEmpty() ||
-            assetsRepository.hasWalletAssets(wallet.id, missingAssetIds).containsAll(missingAssetIds)
+            assetsRepository.hasWalletAssets(wallet.id.id, missingAssetIds).containsAll(missingAssetIds)
         ) {
             preferences.assetsTimestamp = currentTimestamp()
         }
@@ -61,7 +61,7 @@ class DeviceAssetsSyncService @Inject constructor(
     private suspend fun enableAssets(wallet: Wallet, assetIds: Collection<AssetId>) {
         val accounts = assetIds.filter { wallet.getAccount(it) != null }
         if (accounts.isEmpty()) return
-        enableAsset(wallet.walletId, accounts)
+        enableAsset(wallet.id, accounts)
     }
 
     private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000

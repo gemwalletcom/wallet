@@ -34,7 +34,7 @@ fun WalletItem(
 ) {
     WalletItem(
         modifier = modifier,
-        id = wallet.id,
+        id = wallet.id.id,
         name = wallet.name,
         walletAddress = wallet.accounts.firstOrNull()?.address ?: "",
         walletChain = wallet.accounts.firstOrNull()?.chain,

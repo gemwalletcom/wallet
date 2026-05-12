@@ -22,7 +22,11 @@ public struct PerpetualPositionViewModel {
         self.data = data
         currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
         percentFormatter = CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
-        autocloseFormatter = AutocloseFormatter(currencyFormatter: currencyFormatter)
+        autocloseFormatter = AutocloseFormatter(
+            currencyFormatter: currencyFormatter,
+            takeProfitLabel: Localized.Charts.takeProfit,
+            stopLossLabel: Localized.Charts.stopLoss,
+        )
     }
 
     public var assetImage: AssetImage {

@@ -19,7 +19,7 @@ class ObserveFiatTransactionsImpl(
 
     override fun invoke(): Flow<List<FiatTransactionAssetData>> {
         return sessionRepository.session()
-            .map { it?.wallet?.id }
+            .map { it?.wallet?.id?.id }
             .flatMapLatest { id ->
                 if (id != null) {
                     fiatTransactionsDao.getFiatTransactions(id).map { it.toDTO() }

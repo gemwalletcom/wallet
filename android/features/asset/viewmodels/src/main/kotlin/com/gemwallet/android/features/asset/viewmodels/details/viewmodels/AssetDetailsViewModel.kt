@@ -13,21 +13,20 @@ import com.gemwallet.android.application.pricealerts.coordinators.PriceAlertsSta
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
+import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.cases.banners.HasMultiSign
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toPriceState
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.pricealerts.values.PriceAlertsStateEvent
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.ext.type
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.availableFormatted
 import com.gemwallet.android.model.format
@@ -53,15 +52,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import uniffi.gemstone.Explorer
 import javax.inject.Inject
 
@@ -81,7 +78,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val getPriceAlerts: GetPriceAlerts,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val hasMultiSign: HasMultiSign,
-    private val syncTransactions: SyncTransactions,
+    private val syncAssetTransactions: SyncAssetTransactions,
 ) : ViewModel() {
     private var syncJob: Job? = null
 
@@ -89,17 +86,15 @@ class AssetDetailsViewModel @Inject constructor(
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val routeAssetId = savedStateHandle.requireAssetId()
-    private val assetId = MutableStateFlow(routeAssetId)
-        .onEach { assetId ->
-            val wallet = session.value?.wallet ?: return@onEach
+    private val assetId = savedStateHandle.requireAssetId()
+
+    private val assetInfo = getAssetTokenInfo(assetId)
+        .onStart {
+            val wallet = session.value?.wallet ?: return@onStart
             priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(assetId))
             syncAssetDetails(wallet, assetId, shouldRefreshPriceAlerts = true)
         }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, routeAssetId)
-
-    private val assetInfo = assetId
-        .flatMapLatest { getAssetTokenInfo(it).filterNotNull() }
+        .filterNotNull()
 
     val isOperationEnabled = session.filterNotNull().flatMapLatest {
         hasMultiSign.hasMultiSign(it.wallet).mapLatest { !it }
@@ -121,14 +116,11 @@ class AssetDetailsViewModel @Inject constructor(
     val priceAlertEnabled = priceAlertsStateCoordinator.priceAlertState
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertsCount = assetId
-        .flatMapLatest { getPriceAlerts(it) }
+    val priceAlertsCount = getPriceAlerts(assetId)
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    val transactions = assetId.flatMapLatest {
-        getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(it)))
-    }
+    val transactions = getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)))
         .map { it.toImmutableList() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -138,7 +130,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     fun refresh() {
         val wallet = session.value?.wallet ?: return
-        syncAssetDetails(wallet, assetId.value, showLoading = true, shouldRefreshPriceAlerts = true)
+        syncAssetDetails(wallet, assetId, showLoading = true, shouldRefreshPriceAlerts = true)
     }
 
     private fun syncAssetDetails(
@@ -179,7 +171,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private suspend fun refreshAssetDetails(wallet: Wallet, assetId: AssetId) = coroutineScope {
         launch { syncAssetInfo.syncAssetInfo(assetId = assetId, wallet = wallet) }
-        launch { syncTransactions.syncTransactions(wallet, assetId) }
+        launch { syncAssetTransactions.syncAssetTransactions(assetId) }
     }
 
     private fun refreshPriceAlertsIfNeeded(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
@@ -214,7 +206,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private suspend fun add(wallet: Wallet, assetId: AssetId) {
         wallet.getAccount(assetId) ?: return
-        enableAsset(wallet.walletId, assetId)
+        enableAsset(wallet.id, assetId)
     }
 
     private data class Model(
@@ -242,7 +234,7 @@ class AssetDetailsViewModel @Inject constructor(
                 iconUrl = asset.id.getIconUrl(),
                 priceValue = if (price == 0.0) "" else currency.format(price, dynamicPlace = true),
                 priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
-                priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toPriceState(),
+                priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toValueDirection(),
                 tokenType = asset.type,
                 isBuyEnabled = assetInfo.metadata?.isBuyEnabled == true,
                 isSwapEnabled = assetInfo.metadata?.isSwapEnabled == true,

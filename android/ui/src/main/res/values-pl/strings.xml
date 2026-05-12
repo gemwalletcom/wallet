@@ -589,4 +589,6 @@
   <string name="errors.network_error">Błąd sieciowy: %s</string>
   <string name="errors.network_offline">Połączenie internetowe wydaje się być niedostępne.</string>
   <string name="common.refresh">Odświeżać</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

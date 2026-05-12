@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Hindi pa aktibo ang mga gantimpala.";
 "rewards.unverified.description" = "Awtomatikong naa-activate ang mga reward habang mas madalas mong ginagamit ang app.";
 "common.refresh" = "I-refresh";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

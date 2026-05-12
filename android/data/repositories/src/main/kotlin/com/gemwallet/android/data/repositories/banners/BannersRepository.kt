@@ -41,7 +41,7 @@ class BannersRepository(
         val generatedBanner = generateBanners(wallet, assetInfo)
 
         val banners = bannersDao.getBanner(
-            walletId = wallet?.id ?: "",
+            walletId = wallet?.id?.id ?: "",
             assetId = asset?.id?.toIdentifier() ?: "",
             chain = asset?.id?.chain,
         ).map { it.toDTO(wallet, asset) } + generatedBanner
@@ -101,11 +101,11 @@ class BannersRepository(
         if (event == BannerEvent.EnableNotifications && userConfig.getLaunchNumber() < 3) {
             return false
         }
-        val dbBanner = bannersDao.getBanner(wallet?.id ?: "", asset?.id?.toIdentifier() ?: "", asset?.id?.chain?.string, event)
+        val dbBanner = bannersDao.getBanner(wallet?.id?.id ?: "", asset?.id?.toIdentifier() ?: "", asset?.id?.chain?.string, event)
         return dbBanner == null || dbBanner.state != BannerState.Cancelled
     }
 
     override fun hasMultiSign(wallet: Wallet): Flow<Boolean> {
-        return bannersDao.getMultisign(wallet.id).mapLatest { it.isNotEmpty() }
+        return bannersDao.getMultisign(wallet.id.id).mapLatest { it.isNotEmpty() }
     }
 }

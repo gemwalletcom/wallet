@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "المكافآت غير مفعلة بعد.";
 "rewards.unverified.description" = "يتم تفعيل المكافآت تلقائيًا كلما زاد استخدامك للتطبيق.";
 "common.refresh" = "ينعش";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

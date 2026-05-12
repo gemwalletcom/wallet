@@ -50,6 +50,12 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         }
     }
 
+    override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> {
+        return perpetualsFlow.map { perpetuals ->
+            perpetuals.firstOrNull { it.asset.id == assetId }
+        }
+    }
+
     override suspend fun putPerpetualChartData(data: List<ChartCandleStick>) {
         if (data.isEmpty()) return
 

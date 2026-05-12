@@ -48,7 +48,7 @@ public struct WalletBarView: View {
         model: WalletBarViewViewModel(
             name: WalletViewModel(
                 wallet: .init(
-                    id: "",
+                    id: .multicoin(address: ""),
                     externalId: nil,
                     name: "Wallet #1",
                     index: 1,

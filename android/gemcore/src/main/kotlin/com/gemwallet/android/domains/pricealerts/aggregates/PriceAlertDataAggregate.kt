@@ -1,6 +1,6 @@
 package com.gemwallet.android.domains.pricealerts.aggregates
 
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 
@@ -10,7 +10,7 @@ interface PriceAlertDataAggregate {
     val assetId: AssetId
     val title: String
     val titleBadge: String
-    val priceState: PriceState
+    val priceState: ValueDirection
     val price: String
     val percentage: String
     val type: PriceAlertType

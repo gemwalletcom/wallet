@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "獎勵尚未激活。";
 "rewards.unverified.description" = "您使用應用程式的次數越多，獎勵就會自動啟動。";
 "common.refresh" = "重新整理";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

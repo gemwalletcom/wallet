@@ -107,7 +107,7 @@ class BridgesRepository(
         return walletsRepository.getAll().flatMapLatest { wallets ->
             connectionsDao.getAll().map { items ->
                 items.mapNotNull { room ->
-                    val wallet = wallets.firstOrNull { it.id == room.walletId } ?: return@mapNotNull null
+                    val wallet = wallets.firstOrNull { it.id.id == room.walletId } ?: return@mapNotNull null
                     room.toDTO(wallet)
                 }
             }
@@ -138,7 +138,7 @@ class BridgesRepository(
     suspend fun getConnections(connectionId: String): Flow<WalletConnection?> {
         return walletsRepository.getAll().flatMapLatest { wallets ->
             connectionsDao.getConnection(connectionId).map { room ->
-                val wallet = wallets.firstOrNull { it.id == room?.walletId } ?: return@map null
+                val wallet = wallets.firstOrNull { it.id.id == room?.walletId } ?: return@map null
                 room?.toDTO(wallet)
             }
         }
@@ -275,7 +275,7 @@ class BridgesRepository(
         connectionsDao.insert(
             DbConnection(
                 id = UUID.randomUUID().toString(),
-                walletId = wallet.id,
+                walletId = wallet.id.id,
                 sessionId = proposal.pairingTopic,
                 state = WalletConnectionState.Active,
                 createdAt = System.currentTimeMillis(),

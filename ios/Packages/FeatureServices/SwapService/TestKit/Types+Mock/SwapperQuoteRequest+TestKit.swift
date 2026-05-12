@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.SwapperMode
 import struct Gemstone.SwapperOptions
 import struct Gemstone.SwapperQuoteAsset
 import struct Gemstone.SwapperQuoteRequest
@@ -14,7 +13,6 @@ extension SwapperQuoteRequest {
             walletAddress: "0x",
             destinationAddress: "0x",
             value: "1000000000000000000",
-            mode: .exactIn,
             options: .mock(),
         )
     }

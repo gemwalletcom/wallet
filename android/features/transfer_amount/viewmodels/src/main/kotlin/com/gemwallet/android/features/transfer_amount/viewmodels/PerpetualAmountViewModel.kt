@@ -9,7 +9,6 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.tokens.TokensRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -59,7 +58,7 @@ class PerpetualAmountViewModel @Inject constructor(
             val assetId = getAssetId(it?.asset?.chain ?: return@onEach)
             tokenRepository.search(assetId, session.currency)
             session.wallet.getAccount(assetId.chain) ?: return@onEach
-            assetsRepository.switchVisibility(session.wallet.walletId, assetId, false)
+            assetsRepository.switchVisibility(session.wallet.id, assetId, false)
         }
         .onEach { perpetual -> leverage.update { min(perpetual?.maxLeverage ?: 0, 5) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -85,7 +84,7 @@ class PerpetualAmountViewModel @Inject constructor(
 
     override val availableBalance: StateFlow<BigDecimal> = sessionRepository.session()
         .filterNotNull()
-        .flatMapLatest { getPerpetualBalance.getBalance(it.wallet.walletId) }
+        .flatMapLatest { getPerpetualBalance.getBalance(it.wallet.id) }
         .mapLatest { it?.available?.toBigDecimal() ?: BigDecimal.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigDecimal.ZERO)
 

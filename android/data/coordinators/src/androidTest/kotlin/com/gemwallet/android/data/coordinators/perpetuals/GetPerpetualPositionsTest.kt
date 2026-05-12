@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
 import com.gemwallet.android.data.repositories.perpetual.FakePerpetualRepository
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.PerpetualDirection
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -80,7 +80,7 @@ class GetPerpetualPositionsTest {
     fun testGetPerpetualPositions_pnlState() = runBlocking {
         val result = getPerpetualPositions.getPerpetualPositions().first()
 
-        assertEquals(PriceState.Up, result[0].pnlState)
-        assertEquals(PriceState.Down, result[1].pnlState)
+        assertEquals(ValueDirection.Up, result[0].pnlState)
+        assertEquals(ValueDirection.Down, result[1].pnlState)
     }
 }

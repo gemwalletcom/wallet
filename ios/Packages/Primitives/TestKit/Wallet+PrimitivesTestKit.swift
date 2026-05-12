@@ -5,7 +5,7 @@ import Primitives
 
 public extension Wallet {
     static func mock(
-        id: String = WalletId.mock().id,
+        id: WalletId = .mock(),
         externalId: String? = nil,
         name: String = "",
         type: WalletType = .multicoin,

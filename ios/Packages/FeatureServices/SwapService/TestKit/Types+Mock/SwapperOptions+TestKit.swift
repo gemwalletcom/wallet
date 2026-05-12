@@ -13,7 +13,6 @@ extension SwapperOptions {
                 mode: .auto,
             ),
             fee: nil,
-            preferredProviders: [],
             useMaxAmount: false,
         )
     }

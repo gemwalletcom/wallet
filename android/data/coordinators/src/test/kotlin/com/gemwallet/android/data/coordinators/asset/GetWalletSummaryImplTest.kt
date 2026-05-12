@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
@@ -43,7 +43,7 @@ class GetWalletSummaryImplTest {
 
         assertEquals("-\$140.56", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
-        assertEquals(PriceState.Down, value.state)
+        assertEquals(ValueDirection.Down, value.state)
     }
 
     @Test
@@ -56,7 +56,7 @@ class GetWalletSummaryImplTest {
 
         assertEquals("+\$140.56", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
-        assertEquals(PriceState.Up, value.state)
+        assertEquals(ValueDirection.Up, value.state)
     }
 
     @Test

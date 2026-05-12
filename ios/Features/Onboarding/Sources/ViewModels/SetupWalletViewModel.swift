@@ -31,7 +31,7 @@ public final class SetupWalletViewModel: Sendable {
     ) {
         self.walletService = walletService
         nameInput = wallet.name
-        query = ObservableQuery(WalletRequest(walletId: wallet.walletId), initialValue: wallet)
+        query = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         onSelectImageAction = onSelectImage
         onCompleteAction = onComplete
     }
@@ -67,7 +67,7 @@ public final class SetupWalletViewModel: Sendable {
     func onChangeWalletName() {
         do {
             guard let wallet else { return }
-            try walletService.rename(walletId: wallet.walletId, newName: nameInput)
+            try walletService.rename(walletId: wallet.id, newName: nameInput)
         } catch {
             debugLog("Rename wallet error: \(error)")
         }

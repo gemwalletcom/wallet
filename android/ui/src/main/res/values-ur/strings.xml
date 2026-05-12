@@ -589,4 +589,6 @@
   <string name="errors.network_error">نیٹ ورک کی خرابی: %s</string>
   <string name="errors.network_offline">انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔</string>
   <string name="common.refresh">ریفریش کریں۔</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

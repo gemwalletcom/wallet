@@ -23,7 +23,7 @@ struct TransactionStoreTests {
         let db = DB.mockAssets(assets: assets)
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.multicoin(address: "test")
-        try walletStore.addWallet(.mock(id: walletId.id, accounts: assets.map { Account.mock(chain: $0.asset.chain) }))
+        try walletStore.addWallet(.mock(id: walletId, accounts: assets.map { Account.mock(chain: $0.asset.chain) }))
 
         let store = TransactionStore(db: db)
         let transactionId = "1"

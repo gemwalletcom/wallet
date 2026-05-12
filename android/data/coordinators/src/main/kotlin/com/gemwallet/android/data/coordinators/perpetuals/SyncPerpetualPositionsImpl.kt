@@ -6,7 +6,6 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.hyperliquidAccount
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +21,7 @@ class SyncPerpetualPositionsImpl @Inject constructor(
         val wallet = sessionRepository.session().value?.wallet ?: return@withContext
         val address = wallet.hyperliquidAccount?.address ?: return@withContext
         val summary = perpetualService.getPositions(Chain.HyperCore, address) ?: return@withContext
-        val walletId = wallet.walletId
+        val walletId = wallet.id
         perpetualRepository.putAsset(HypercoreUSDC)
         perpetualRepository.diffPositions(walletId, summary.positions)
         perpetualRepository.putBalance(walletId, HypercoreUSDC.id, summary.balance)

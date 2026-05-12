@@ -1,6 +1,6 @@
 package com.gemwallet.android.domains.price.values
 
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -12,28 +12,28 @@ class EquivalentValueTest {
     fun testPriceableValue_stateUp() {
         val price = createTestPriceableValue(dayChangePercentage = 2.5)
 
-        assertEquals(PriceState.Up, price.state)
+        assertEquals(ValueDirection.Up, price.state)
     }
 
     @Test
     fun testPriceableValue_stateDown() {
         val price = createTestPriceableValue(dayChangePercentage = -2.5)
 
-        assertEquals(PriceState.Down, price.state)
+        assertEquals(ValueDirection.Down, price.state)
     }
 
     @Test
     fun testPriceableValue_stateNone() {
         val price = createTestPriceableValue(dayChangePercentage = 0.0)
 
-        assertEquals(PriceState.None, price.state)
+        assertEquals(ValueDirection.None, price.state)
     }
 
     @Test
     fun testPriceableValue_stateNullPercentage() {
         val price = createTestPriceableValue(dayChangePercentage = null)
 
-        assertEquals(PriceState.None, price.state)
+        assertEquals(ValueDirection.None, price.state)
     }
 
     @Test
@@ -127,37 +127,37 @@ class EquivalentValueTest {
         assertEquals(50000.0, price.value!!, 0.01)
         assertEquals(3.5, price.changePercentage!!, 0.01)
         assertEquals(Currency.USD, price.currency)
-        assertEquals(PriceState.Up, price.state)
+        assertEquals(ValueDirection.Up, price.state)
         assertEquals("+3.50%", price.changePercentageFormatted)
     }
 
     @Test
     fun testPriceableValue_stateTransitionFromPositiveToNegative() {
         val priceUp = createTestPriceableValue(dayChangePercentage = 1.5)
-        assertEquals(PriceState.Up, priceUp.state)
+        assertEquals(ValueDirection.Up, priceUp.state)
 
         val priceDown = createTestPriceableValue(dayChangePercentage = -1.5)
-        assertEquals(PriceState.Down, priceDown.state)
+        assertEquals(ValueDirection.Down, priceDown.state)
     }
 
     @Test
     fun testPriceableValue_stateWithVerySmallChange() {
         val priceSmallUp = createTestPriceableValue(dayChangePercentage = 0.001)
-        assertEquals(PriceState.Up, priceSmallUp.state)
+        assertEquals(ValueDirection.Up, priceSmallUp.state)
         assertEquals("+0.00%", priceSmallUp.changePercentageFormatted)
 
         val priceSmallDown = createTestPriceableValue(dayChangePercentage = -0.001)
-        assertEquals(PriceState.Down, priceSmallDown.state)
+        assertEquals(ValueDirection.Down, priceSmallDown.state)
         assertEquals("-0.00%", priceSmallDown.changePercentageFormatted)
     }
 
     @Test
     fun testPriceableValue_stateWithMinimumDetectableChange() {
         val priceMinUp = createTestPriceableValue(dayChangePercentage = 0.01)
-        assertEquals(PriceState.Up, priceMinUp.state)
+        assertEquals(ValueDirection.Up, priceMinUp.state)
 
         val priceMinDown = createTestPriceableValue(dayChangePercentage = -0.01)
-        assertEquals(PriceState.Down, priceMinDown.state)
+        assertEquals(ValueDirection.Down, priceMinDown.state)
     }
 
     private fun createTestPriceableValue(

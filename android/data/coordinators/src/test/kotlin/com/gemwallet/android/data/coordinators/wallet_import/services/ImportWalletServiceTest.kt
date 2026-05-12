@@ -9,7 +9,6 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.walletId
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -72,7 +71,7 @@ class ImportWalletServiceTest {
 
         coVerifyOrder {
             syncSubscription.syncSubscription(listOf(wallet))
-            walletConfigurationSync.sync(wallet.walletId)
+            walletConfigurationSync.sync(wallet.id)
         }
     }
 

@@ -88,7 +88,6 @@ class NetworksViewModel @Inject constructor(
                 nodes = emptyList(),
                 nodeRows = emptyList(),
                 nodeStates = emptyMap(),
-                isRefreshing = true,
                 refreshNonce = System.nanoTime(),
             )
         }
@@ -186,7 +185,6 @@ class NetworksViewModel @Inject constructor(
                 updateState { current ->
                     if (current.chain == chain && current.refreshNonce <= refreshNonce) {
                         current.copy(
-                            isRefreshing = false,
                             refreshNonce = refreshNonce,
                         )
                     } else {
@@ -204,7 +202,6 @@ class NetworksViewModel @Inject constructor(
                 } else {
                     current.copy(
                         currentNode = currentNode,
-                        isRefreshing = true,
                         refreshNonce = refreshNonce,
                         nodeStates = loadingStates,
                         nodeRows = buildNodeRows(
@@ -263,7 +260,6 @@ class NetworksViewModel @Inject constructor(
                     val refreshedCurrentNode = currentNodeFor(chain, currentNodes, current.currentNode)
                     current.copy(
                         currentNode = refreshedCurrentNode,
-                        isRefreshing = false,
                         nodeRows = buildNodeRows(
                             chain = chain,
                             nodes = currentNodes,
@@ -302,7 +298,6 @@ class NetworksViewModel @Inject constructor(
         val selectChain: Boolean = true,
         val availableAddNode: Boolean = true,
         val defaultNodeUrls: Set<String> = emptySet(),
-        val isRefreshing: Boolean = false,
         val refreshNonce: Long = 0,
     ) {
         fun toUIState(): NetworksUIState {
@@ -314,7 +309,6 @@ class NetworksViewModel @Inject constructor(
                 currentExplorer = currentExplorer,
                 availableAddNode = availableAddNode,
                 nodeRows = nodeRows,
-                isRefreshing = isRefreshing,
             )
         }
     }

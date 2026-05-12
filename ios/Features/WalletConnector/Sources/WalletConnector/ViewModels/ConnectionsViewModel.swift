@@ -60,7 +60,7 @@ public final class ConnectionsViewModel {
             .sorted { $0.order < $1.order }
             .map { wallet in
                 ListSection(
-                    id: wallet.id,
+                    id: wallet.id.id,
                     title: wallet.name,
                     image: nil,
                     values: grouped[wallet]?.sorted { $0.session.createdAt > $1.session.createdAt } ?? [],

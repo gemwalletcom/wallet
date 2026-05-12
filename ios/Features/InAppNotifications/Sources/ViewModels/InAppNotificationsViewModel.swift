@@ -26,7 +26,7 @@ public final class InAppNotificationsViewModel {
     ) {
         self.wallet = wallet
         self.notificationService = notificationService
-        query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id), initialValue: [])
+        query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id.id), initialValue: [])
     }
 
     public var title: String {
@@ -55,7 +55,7 @@ public final class InAppNotificationsViewModel {
 public extension InAppNotificationsViewModel {
     func fetch() async {
         do {
-            try await notificationService.update(walletId: wallet.walletId)
+            try await notificationService.update(walletId: wallet.id)
             if hasUnreadNotifications {
                 await markAsRead()
             }

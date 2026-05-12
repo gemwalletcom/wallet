@@ -54,7 +54,7 @@ public final class AmountSceneViewModel {
         self.fiatService = fiatService
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
         provider = .make(from: input, wallet: wallet, service: service)
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: input.asset.id), initialValue: .with(asset: input.asset))
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
 

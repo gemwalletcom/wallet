@@ -6,7 +6,6 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ui.models.TransactionTypeFilter
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +44,7 @@ class TransactionsViewModel @Inject constructor(
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
 
     val walletId: StateFlow<WalletId?> = session
-        .map { it?.wallet?.walletId }
+        .map { it?.wallet?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private var lastSyncedWalletId: WalletId? = null

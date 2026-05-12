@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toPriceState
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.components.chart.ChartPoint
@@ -44,7 +44,7 @@ internal fun ChartUIModel.Companion.from(
             yLabel = currency.format(chartValue.value, 2, dynamicPlace = true),
             timestamp = chartValue.timestamp * 1000L,
             percentage = changePercent.formatAsPercentage(),
-            priceState = changePercent.toPriceState(),
+            priceState = changePercent.toValueDirection(),
         )
     }
     val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0) * 1000L
@@ -61,7 +61,7 @@ internal fun ChartUIModel.Companion.from(
                 yLabel = currency.format(info.price.price.toFloat(), 2, dynamicPlace = true),
                 timestamp = System.currentTimeMillis(),
                 percentage = changePercent.formatAsPercentage(),
-                priceState = changePercent.toPriceState(),
+                priceState = changePercent.toValueDirection(),
             )
         }
 

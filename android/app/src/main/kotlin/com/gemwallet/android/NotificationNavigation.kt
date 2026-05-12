@@ -3,6 +3,7 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
+import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.cases.parseNotificationData
 import com.gemwallet.android.cases.transactions.SaveTransactions
@@ -13,11 +14,14 @@ import com.gemwallet.android.model.PushNotificationData
 import com.gemwallet.android.model.PushNotificationField
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
@@ -29,6 +33,7 @@ class NotificationNavigation @Inject constructor(
     private val saveTransactions: SaveTransactions,
     private val prefetchAssets: PrefetchAssets,
     private val ensureWalletAssets: EnsureWalletAssets,
+    private val getAssetById: GetAssetById,
 ) {
     suspend fun prepareNavigation(intent: Intent): List<NavKey> {
         if (!intent.hasNotificationPayload()) {
@@ -40,59 +45,64 @@ class NotificationNavigation @Inject constructor(
     }
 
     internal suspend fun prepareNavigation(type: String?, data: PushNotificationData?): List<NavKey> {
-        val payload = data ?: parseNotificationData(type, rawData = null) ?: return emptyList()
-        if (!prepare(payload)) {
-            return emptyList()
+        return when (val payload = data ?: parseNotificationData(type, rawData = null) ?: return emptyList()) {
+            is PushNotificationData.Asset -> {
+                prepareAssets(payload.assetId)
+                listOf(AssetRoute(payload.assetId))
+            }
+            is PushNotificationData.BuyAsset -> {
+                prepareAssets(payload.assetId)
+                listOf(FiatInputRoute(payload.assetId))
+            }
+            is PushNotificationData.WalletAsset -> {
+                prepareWallet(payload.walletId, listOf(payload.assetId)) ?: return emptyList()
+                listOf(AssetRoute(payload.assetId))
+            }
+            is PushNotificationData.Stake -> {
+                prepareWallet(payload.walletId, listOf(payload.assetId)) ?: return emptyList()
+                listOf(AssetRoute(payload.assetId))
+            }
+            is PushNotificationData.Swap -> {
+                prepareAssets(payload.fromAssetId, payload.toAssetId)
+                listOf(SwapPairRoute(payload.fromAssetId, payload.toAssetId))
+            }
+            is PushNotificationData.Transaction -> prepareTransactionRoutes(payload)
+            PushNotificationData.Reward -> listOf(ReferralRoute())
+            PushNotificationData.Support -> listOf(SupportRoute)
         }
-        return payload.toRoutes()
     }
 
-    private suspend fun prepare(data: PushNotificationData): Boolean {
-        return when (data) {
-            is PushNotificationData.Asset -> prepareAssets(data.assetId)
-            is PushNotificationData.BuyAsset -> prepareAssets(data.assetId)
-            is PushNotificationData.WalletAsset -> prepareWallet(data.walletId, listOf(data.assetId)) != null
-            is PushNotificationData.Stake -> prepareWallet(data.walletId, listOf(data.assetId)) != null
-            is PushNotificationData.Swap -> prepareAssets(data.fromAssetId, data.toAssetId)
-            is PushNotificationData.Transaction -> prepareTransaction(data)
-            PushNotificationData.Reward -> true
-            PushNotificationData.Support -> true
-        }
-    }
-
-    private suspend fun prepareAssets(vararg assetIds: AssetId): Boolean {
+    private suspend fun prepareAssets(vararg assetIds: AssetId) {
         prefetchAssets.prefetchAssets(assetIds.toList())
-        return true
     }
 
     private suspend fun prepareTransaction(data: PushNotificationData.Transaction): Boolean {
         val assetIds = (data.transaction.getAssociatedAssetIds() + data.assetId).distinct()
-        val wallet = prepareWallet(data.walletId, assetIds) ?: return false
+        prepareWallet(data.walletId, assetIds) ?: return false
         saveTransactions.saveTransactions(data.walletId, listOf(data.transaction))
         return true
     }
 
+    private suspend fun prepareTransactionRoutes(data: PushNotificationData.Transaction): List<NavKey> {
+        if (!prepareTransaction(data)) {
+            return emptyList()
+        }
+        val transactionRoute = TransactionDetailsRoute(data.transaction.id)
+        val asset = getAssetById(data.assetId).firstOrNull() ?: return emptyList()
+        if (asset.type != AssetType.PERPETUAL) {
+            return listOf(AssetRoute(asset.id), transactionRoute)
+        }
+        return listOf(PerpetualRoute, PerpetualPositionRoute(data.assetId), transactionRoute)
+    }
+
     private suspend fun prepareWallet(walletId: WalletId, assetIds: List<AssetId>): Wallet? {
-        val wallet = walletsRepository.getWallet(walletId.id).firstOrNull() ?: return null
+        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return null
         prefetchAssets.prefetchAssets(assetIds)
         ensureWalletAssets.ensureWalletAssets(wallet, assetIds)
         if (sessionRepository.session().firstOrNull()?.wallet?.id != wallet.id) {
             sessionRepository.setWallet(wallet)
         }
         return wallet
-    }
-}
-
-private fun PushNotificationData.toRoutes(): List<NavKey> {
-    return when (this) {
-        is PushNotificationData.Asset -> listOf(AssetRoute(assetId))
-        is PushNotificationData.BuyAsset -> listOf(FiatInputRoute(assetId))
-        is PushNotificationData.WalletAsset -> listOf(AssetRoute(assetId))
-        is PushNotificationData.Stake -> listOf(AssetRoute(assetId))
-        is PushNotificationData.Transaction -> listOf(AssetRoute(assetId), TransactionDetailsRoute(transaction.id))
-        is PushNotificationData.Swap -> listOf(SwapPairRoute(fromAssetId, toAssetId))
-        PushNotificationData.Reward -> listOf(ReferralRoute())
-        PushNotificationData.Support -> listOf(SupportRoute)
     }
 }
 

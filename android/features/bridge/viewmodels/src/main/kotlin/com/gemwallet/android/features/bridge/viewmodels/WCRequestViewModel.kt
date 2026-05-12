@@ -199,7 +199,7 @@ class WCRequestViewModel @Inject constructor(
         val chain = snapshot.chain ?: return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val password = passwordStore.getPassword(wallet.id)
+            val password = passwordStore.getPassword(wallet.id.id)
             val privateKey = loadPrivateKeyOperator(wallet, chain, password)
             val sign = try {
                 request.execute(privateKey)

@@ -188,7 +188,7 @@ class AppViewModel @Inject constructor(
             WalletRootRoute
         } else {
             val wallet = walletsRepository.getAll().firstOrNull()
-                ?.sortedWith(compareBy({ it.index }, { it.id }))
+                ?.sortedWith(compareBy({ it.index }, { it.id.id }))
                 ?.firstOrNull()
             if (wallet != null) {
                 sessionRepository.setWallet(wallet)

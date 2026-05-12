@@ -25,7 +25,7 @@ public struct TransactionStateScheduler: Sendable {
 
     public func addTransactions(wallet: Wallet, transactions: [Transaction]) throws {
         try transactionStore.addTransactions(
-            walletId: wallet.walletId,
+            walletId: wallet.id,
             transactions: transactions,
         )
         scheduleUpdate(for: transactions.map { TransactionWallet(transaction: $0, wallet: wallet) })

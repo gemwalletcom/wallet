@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Ganjaran belum aktif lagi.";
 "rewards.unverified.description" = "Ganjaran diaktifkan secara automatik apabila anda menggunakan aplikasi dengan lebih kerap.";
 "common.refresh" = "Segarkan semula";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

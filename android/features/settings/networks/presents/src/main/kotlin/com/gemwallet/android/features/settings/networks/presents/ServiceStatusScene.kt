@@ -33,14 +33,14 @@ fun ServiceStatusScene(
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
         PullToRefreshBox(
-            isRefreshing = state.isRefreshing,
+            isRefreshing = false,
             onRefresh = viewModel::fetch,
             state = pullToRefreshState,
             indicator = {
-                if (pullToRefreshState.distanceFraction > 0f || state.isRefreshing) {
+                if (pullToRefreshState.distanceFraction > 0f) {
                     Indicator(
                         modifier = Modifier.align(Alignment.TopCenter),
-                        isRefreshing = state.isRefreshing,
+                        isRefreshing = false,
                         state = pullToRefreshState,
                         containerColor = MaterialTheme.colorScheme.background,
                     )

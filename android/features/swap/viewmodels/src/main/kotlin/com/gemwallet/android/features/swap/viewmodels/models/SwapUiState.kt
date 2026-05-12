@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
+import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
+import com.gemwallet.android.application.swap.coordinators.getQuote
 import uniffi.gemstone.SwapperProvider
 
 sealed interface SwapActionState {
@@ -60,11 +63,11 @@ data class SwapUiState(
 }
 
 internal data class TransferQuoteSnapshot(
-    val quotes: QuotesState,
+    val quotes: SwapQuotesResult,
     val selectedProvider: SwapperProvider?,
     val quote: QuoteState,
 ) {
-    val requestKey: QuoteRequestKey
+    val requestKey: SwapQuoteRequestKey
         get() = quotes.requestKey
 
     val providerId: SwapperProvider
@@ -74,7 +77,7 @@ internal data class TransferQuoteSnapshot(
 }
 
 internal fun TransferQuoteSnapshot.Companion.create(
-    quotes: QuotesState,
+    quotes: SwapQuotesResult,
     selectedProvider: SwapperProvider?,
 ): TransferQuoteSnapshot? {
     val quote = quotes.getQuote(selectedProvider)?.let { QuoteState(it, quotes.pay, quotes.receive) } ?: return null

@@ -2,18 +2,19 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.format
+import com.gemwallet.android.model.formatPnl
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualPositionData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import kotlin.math.absoluteValue
 
 class GetPerpetualPositionImpl @Inject constructor(
     private val perpetualRepository: PerpetualRepository
@@ -26,17 +27,22 @@ class GetPerpetualPositionImpl @Inject constructor(
 class PerpetualPositionDetailsDataAggregateImpl(
     private val data: PerpetualPositionData,
 ) : PerpetualPositionDetailsDataAggregate {
-    override val autoClose: String = data.position.stopLoss?.price?.let { Currency.USD.format(it) } ?: "-"
+    override val size: String = Currency.USD.format(data.position.sizeValue)
 
-    override val size: String = Currency.USD.format(data.position.size)
+    override val entryPrice: String = Currency.USD.format(data.position.entryPrice, dynamicPlace = true)
 
-    override val entryPrice: String = Currency.USD.format(data.position.entryPrice)
+    override val liquidationPrice: String = data.position.liquidationPrice
+        ?.takeIf { it > 0.0 }
+        ?.let { Currency.USD.format(it, dynamicPlace = true) }
+        ?: ""
 
-    override val liquidationPrice: String = data.position.liquidationPrice?.let {  Currency.USD.format(it) } ?: ""
+    override val marginType: PerpetualMarginType = data.position.marginType
 
-    override val margin: String = "${Currency.USD.format(data.position.marginAmount)} ${data.position.marginType.string}"
+    private val fundingPaymentsValue = data.position.funding?.toDouble()
 
-    override val fundingPayments: String = Currency.USD.format(data.position.funding?.toDouble() ?: 0.0)
+    override val fundingPayments: String = fundingPaymentsValue?.let { Currency.USD.formatPnl(it, dynamicPlace = true) } ?: "-"
+
+    override val fundingPaymentsDirection: ValueDirection = fundingPaymentsValue.toValueDirection()
 
     override val positionId: String = data.position.id
 
@@ -54,29 +60,15 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val entryValue: Double? = data.position.entryPrice
 
-    override val liquidationValue: Double? = data.position.liquidationPrice
+    override val liquidationValue: Double? = data.position.liquidationPrice?.takeIf { it > 0.0 }
 
     override val stopLoss: Double? = data.position.stopLoss?.price
 
     override val takeProfit: Double? = data.position.takeProfit?.price
 
-    override val pnlWithPercentage: String // TODO: Duplicated
-        get() {
-            val percentage = ((data.position.pnl / data.position.marginAmount) * 100).formatAsPercentage()
-            val pnl = data.position.pnl.absoluteValue
-            val pnlFormatted = Currency.USD.format(pnl)
-            return if (data.position.pnl >= 0) {
-                "+$pnlFormatted ($percentage)"
-            } else {
-                "-$pnlFormatted ($percentage)"
-            }
-        }
-    override val pnlState: PriceState  // TODO: Duplicated
-        get() = if (data.position.pnl == 0.0) {
-            PriceState.None
-        } else if (data.position.pnl > 0) {
-            PriceState.Up
-        } else {
-            PriceState.Down
-        }
+    override val pnlWithPercentage: String
+        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
+
+    override val pnlState: ValueDirection
+        get() = data.position.pnl.toValueDirection()
 }

@@ -7,6 +7,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.model.Session
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,7 +33,7 @@ class SessionRepositoryImpl(
 
     val session = sessionDao.session().flatMapLatest { record ->
         val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
-        walletsRepository.getWallet(walletId).mapLatest { wallet ->
+        walletsRepository.getWallet(WalletId(walletId)).mapLatest { wallet ->
             val session = record.toDTO(wallet ?: return@mapLatest null)
             session
         }
@@ -43,20 +44,20 @@ class SessionRepositoryImpl(
 
     override suspend fun getCurrentWallet(): Wallet? = withContext(Dispatchers.IO) {
         val walletId = sessionDao.getSession()?.walletId ?: return@withContext null
-        walletsRepository.getWallet(walletId).firstOrNull()
+        walletsRepository.getWallet(WalletId(walletId)).firstOrNull()
     }
 
     override suspend fun setWallet(wallet: Wallet) {
         val oldSession = runBlocking(Dispatchers.IO) { sessionDao.getSession() }
         val session = if (oldSession == null) {
             DbSession( // Create session
-                walletId = wallet.id,
+                walletId = wallet.id.id,
                 currency = android.icu.util.Currency.getInstance(Locale.getDefault()).let { sysCurrency ->
                     Currency.entries.firstOrNull { it.string == sysCurrency.currencyCode } ?: Currency.USD
                 }.string,
             )
         } else {
-            oldSession.copy(walletId = wallet.id)
+            oldSession.copy(walletId = wallet.id.id)
         }
         sessionDao.update(session)
     }

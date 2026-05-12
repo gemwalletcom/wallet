@@ -4,18 +4,20 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
+import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
+import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.swap.SwapRepository
+import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.swap.viewmodels.cases.QuoteRequester
-import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestKey
-import com.gemwallet.android.features.swap.viewmodels.models.QuoteRequestParams
-import com.gemwallet.android.features.swap.viewmodels.models.QuotesState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
-import com.gemwallet.android.features.swap.viewmodels.models.SwapItemType
 import com.gemwallet.android.model.AssetBalance
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
@@ -57,9 +59,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemSwapQuoteData
 import uniffi.gemstone.GemSwapQuoteDataType
-import uniffi.gemstone.SwapperMode
 import uniffi.gemstone.SwapperOptions
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderData
@@ -97,20 +97,18 @@ class SwapViewModelTest {
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
-    private val swapRepository = mockk<SwapRepository>(relaxed = true)
-    private val quoteRequester = mockk<QuoteRequester>(relaxed = true) {
-        every { requestQuotes(any(), any(), any(), any(), any()) } returns emptyFlow()
-    }
+    private val buildSwapConfirmParams = mockk<BuildSwapConfirmParams>(relaxed = true)
+    private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(sessionRepository, assetsRepository, swapRepository, quoteRequester)
+        clearMocks(sessionRepository, assetsRepository, buildSwapConfirmParams, requestSwapQuotes)
         every { sessionRepository.session() } returns MutableStateFlow(null)
         every { assetsRepository.getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { assetsRepository.getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns emptyFlow()
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns emptyFlow()
         every { SwapDetailsUIModelFactory.create(any()) } returns mockk(relaxed = true)
     }
 
@@ -124,8 +122,8 @@ class SwapViewModelTest {
         sessionRepository = sessionRepository,
         assetsRepository = assetsRepository,
         enableAsset = enableAsset,
-        swapRepository = swapRepository,
-        quoteRequester = quoteRequester,
+        buildSwapConfirmParams = buildSwapConfirmParams,
+        requestSwapQuotes = requestSwapQuotes,
         savedStateHandle = savedStateHandle,
     )
 
@@ -221,19 +219,16 @@ class SwapViewModelTest {
 
     @Test
     fun `quote refresh does not replace swapping state`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns quotesFlow
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { sessionRepository.session() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 
-        val quoteDataGate = CompletableDeferred<Unit>()
-        coEvery { swapRepository.getQuoteData(any(), any()) } coAnswers {
-            quoteDataGate.await()
-            mockQuoteData()
-        }
+        val confirmParamsGate = CompletableDeferred<Unit>()
+        stubBuildConfirmParams { confirmParamsGate.await() }
 
         val savedState = swapSavedState()
 
@@ -255,20 +250,20 @@ class SwapViewModelTest {
         assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
         assertEquals(0, confirmCalls)
 
-        quoteDataGate.complete(Unit)
+        confirmParamsGate.complete(Unit)
         awaitCondition { confirmCalls == 1 }
     }
 
     @Test
     fun `transfer data error keeps quote visible and routes retry through transfer state`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns quotesFlow
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { sessionRepository.session() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { swapRepository.getQuoteData(any(), any()) } throws IllegalStateException("boom")
+        coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -287,14 +282,14 @@ class SwapViewModelTest {
 
     @Test
     fun `quote changing actions clear transfer error state`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns quotesFlow
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { sessionRepository.session() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { swapRepository.getQuoteData(any(), any()) } throws IllegalStateException("boom")
+        coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -320,10 +315,10 @@ class SwapViewModelTest {
 
     @Test
     fun `quote refresh stays paused after confirm handoff until screen restarts`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         val refreshEnabledFlow = slot<Flow<Boolean>>()
         every {
-            quoteRequester.requestQuotes(any(), any(), capture(refreshEnabledFlow), any(), any())
+            requestSwapQuotes.invoke(any(), any(), capture(refreshEnabledFlow), any(), any())
         } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
@@ -331,11 +326,8 @@ class SwapViewModelTest {
             Session(wallet = wallet, currency = Currency.USD)
         )
 
-        val quoteDataGate = CompletableDeferred<Unit>()
-        coEvery { swapRepository.getQuoteData(any(), any()) } coAnswers {
-            quoteDataGate.await()
-            mockQuoteData()
-        }
+        val confirmParamsGate = CompletableDeferred<Unit>()
+        stubBuildConfirmParams { confirmParamsGate.await() }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -353,7 +345,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.swap {}
         awaitCondition { viewModel.uiState.value.action == SwapActionState.TransferLoading }
-        quoteDataGate.complete(Unit)
+        confirmParamsGate.complete(Unit)
         awaitCondition { viewModel.uiState.value.action == SwapActionState.Ready }
         advanceUntilIdle()
         assertEquals(false, refreshStates.last())
@@ -372,10 +364,10 @@ class SwapViewModelTest {
 
     @Test
     fun `quote fetch started callback shows quote loading for refreshes`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        val onFetchStarted = slot<(QuoteRequestKey) -> Unit>()
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        val onFetchStarted = slot<(SwapQuoteRequestKey) -> Unit>()
         every {
-            quoteRequester.requestQuotes(any(), any(), any(), capture(onFetchStarted), any())
+            requestSwapQuotes.invoke(any(), any(), any(), capture(onFetchStarted), any())
         } returns quotesFlow
 
         val viewModel = createViewModel(
@@ -394,18 +386,15 @@ class SwapViewModelTest {
 
     @Test
     fun `confirm callback runs before transfer loading clears`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns quotesFlow
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { sessionRepository.session() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        val quoteDataGate = CompletableDeferred<Unit>()
-        coEvery { swapRepository.getQuoteData(any(), any()) } coAnswers {
-            quoteDataGate.await()
-            mockQuoteData()
-        }
+        val confirmParamsGate = CompletableDeferred<Unit>()
+        stubBuildConfirmParams { confirmParamsGate.await() }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -419,7 +408,7 @@ class SwapViewModelTest {
             wasTransferLoadingOnConfirm = viewModel.uiState.value.isTransferLoading
         }
         awaitCondition { viewModel.uiState.value.isTransferLoading }
-        quoteDataGate.complete(Unit)
+        confirmParamsGate.complete(Unit)
         awaitCondition { !viewModel.uiState.value.isTransferLoading }
 
         assertTrue(wasTransferLoadingOnConfirm)
@@ -428,18 +417,15 @@ class SwapViewModelTest {
 
     @Test
     fun `confirm params keep frozen from amount while transfer is in flight`() = runTest(testDispatcher) {
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns quotesFlow
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { sessionRepository.session() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        val quoteDataGate = CompletableDeferred<Unit>()
-        coEvery { swapRepository.getQuoteData(any(), any()) } coAnswers {
-            quoteDataGate.await()
-            mockQuoteData()
-        }
+        val confirmParamsGate = CompletableDeferred<Unit>()
+        stubBuildConfirmParams { confirmParamsGate.await() }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -455,7 +441,7 @@ class SwapViewModelTest {
         awaitCondition { viewModel.uiState.value.isTransferLoading }
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
-        quoteDataGate.complete(Unit)
+        confirmParamsGate.complete(Unit)
         awaitCondition { confirmParams != null }
 
         assertEquals(BigInteger("1000000000"), confirmParams?.fromAmount)
@@ -480,8 +466,8 @@ class SwapViewModelTest {
             slippageText = "0.5%",
         )
 
-        val quotesFlow = MutableSharedFlow<QuotesState?>(replay = 1)
-        every { quoteRequester.requestQuotes(any(), any(), any(), any(), any()) } returns quotesFlow
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { sessionRepository.session() } returns MutableStateFlow(
@@ -489,10 +475,7 @@ class SwapViewModelTest {
         )
 
         var swapCalls = 0
-        coEvery { swapRepository.getQuoteData(any(), any()) } coAnswers {
-            swapCalls += 1
-            mockQuoteData()
-        }
+        stubBuildConfirmParams { swapCalls += 1 }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -515,6 +498,36 @@ class SwapViewModelTest {
         assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
     }
 
+    private fun stubBuildConfirmParams(beforeReturn: suspend () -> Unit = {}) {
+        coEvery { buildSwapConfirmParams(any(), any(), any()) } coAnswers {
+            beforeReturn()
+            val quote = firstArg<SwapperQuote>()
+            val pay = secondArg<AssetInfo>()
+            val receive = thirdArg<AssetInfo>()
+            ConfirmParams.SwapParams(
+                from = pay.owner!!,
+                fromAsset = pay.asset,
+                toAsset = receive.asset,
+                fromAmount = BigInteger(quote.fromValue),
+                toAmount = BigInteger(quote.toValue),
+                swapData = "0x",
+                providerId = quote.data.provider.id,
+                protocol = quote.data.provider.protocol,
+                providerName = quote.data.provider.name,
+                protocolId = quote.data.provider.protocolId,
+                toAddress = "0xconfirm",
+                value = "0",
+                approval = null,
+                gasLimit = BigInteger("210000"),
+                useMaxAmount = quote.request.options.useMaxAmount,
+                etaInSeconds = quote.etaInSeconds,
+                slippageBps = quote.data.slippageBps,
+                memo = null,
+                dataType = GemSwapQuoteDataType.CONTRACT,
+            )
+        }
+    }
+
     private fun awaitCondition(timeoutMs: Long = 2_000, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (!condition() && System.currentTimeMillis() < deadline) {
@@ -526,16 +539,16 @@ class SwapViewModelTest {
 
     private suspend fun seedReadyQuote(
         viewModel: SwapViewModel,
-        quotesFlow: MutableSharedFlow<QuotesState?>,
+        quotesFlow: MutableSharedFlow<SwapQuotesResult?>,
         quote: SwapperQuote = mockQuote(),
-    ): QuotesState {
+    ): SwapQuotesResult {
         viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
         Snapshot.sendApplyNotifications()
         awaitCondition { viewModel.uiState.value.action == SwapActionState.QuoteLoading }
 
-        val quotesState = QuotesState(
+        val quotesState = SwapQuotesResult(
             items = listOf(quote),
-            requestKey = QuoteRequestParams(BigDecimal.ONE, solInfo, usdcInfo).key,
+            requestKey = SwapQuoteRequestParams(BigDecimal.ONE, solInfo, usdcInfo).key,
             pay = solInfo,
             receive = usdcInfo,
         )
@@ -582,27 +595,15 @@ class SwapViewModelTest {
             walletAddress = solInfo.owner!!.address,
             destinationAddress = usdcInfo.owner!!.address,
             value = fromValue,
-            mode = SwapperMode.EXACT_IN,
             options = SwapperOptions(
                 slippage = SwapperSlippage(
                     bps = 50u,
                     mode = SwapperSlippageMode.AUTO,
                 ),
                 fee = null,
-                preferredProviders = emptyList(),
                 useMaxAmount = false,
             ),
         ),
         etaInSeconds = 30u,
-    )
-
-    private fun mockQuoteData() = GemSwapQuoteData(
-        to = "0xconfirm",
-        dataType = GemSwapQuoteDataType.CONTRACT,
-        value = "0",
-        data = "0x",
-        memo = null,
-        approval = null,
-        gasLimit = "210000",
     )
 }

@@ -12,14 +12,14 @@ struct WalletSetupServiceTests {
     @Test
     func setupMulticoinWallet() throws {
         let (db, balanceStore, walletStore, service) = setupService()
-        let wallet = Wallet.mock(id: "multicoin_0xtest", type: .multicoin, accounts: [.mock(chain: .cosmos), .mock(chain: .ethereum)])
+        let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), type: .multicoin, accounts: [.mock(chain: .cosmos), .mock(chain: .ethereum)])
 
         try addAsset(db: db, chain: .cosmos)
         try addAsset(db: db, chain: .ethereum)
         try walletStore.addWallet(wallet)
         try service.setup(wallet: wallet)
 
-        let isEnabled = try balanceStore.getBalanceRecord(walletId: wallet.walletId, assetId: AssetId(chain: .cosmos))?.isEnabled
+        let isEnabled = try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: AssetId(chain: .cosmos))?.isEnabled
 
         #expect(isEnabled == false)
     }
@@ -27,13 +27,13 @@ struct WalletSetupServiceTests {
     @Test
     func setupSingleWallet() throws {
         let (db, balanceStore, walletStore, service) = setupService()
-        let wallet = Wallet.mock(id: "single_cosmos_0xtest", type: .single, accounts: [.mock(chain: .cosmos)])
+        let wallet = Wallet.mock(id: .single(chain: .cosmos, address: "0xtest"), type: .single, accounts: [.mock(chain: .cosmos)])
 
         try addAsset(db: db, chain: .cosmos)
         try walletStore.addWallet(wallet)
         try service.setup(wallet: wallet)
 
-        let isEnabled = try balanceStore.getBalanceRecord(walletId: wallet.walletId, assetId: AssetId(chain: .cosmos))?.isEnabled
+        let isEnabled = try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: AssetId(chain: .cosmos))?.isEnabled
 
         #expect(isEnabled == true)
     }

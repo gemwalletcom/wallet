@@ -18,7 +18,7 @@ fun mockWallet(
     isPinned: Boolean = false,
     source: WalletSource = WalletSource.Create,
 ) = Wallet(
-    id = id,
+    id = WalletId(id),
     name = name,
     index = index,
     type = type,

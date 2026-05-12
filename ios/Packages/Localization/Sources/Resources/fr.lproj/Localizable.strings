@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Récompenses non encore actives.";
 "rewards.unverified.description" = "Les récompenses s'activent automatiquement à mesure que vous utilisez l'application.";
 "common.refresh" = "Rafraîchir";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

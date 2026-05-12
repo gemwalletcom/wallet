@@ -4,7 +4,6 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.receive.coordinators.SetAssetVisible
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -16,6 +15,6 @@ class SetAssetVisibleImpl(
     override suspend fun invoke(assetId: AssetId) {
         val session = sessionRepository.session().firstOrNull() ?: return
         session.wallet.getAccount(assetId.chain) ?: return
-        enableAsset(session.wallet.walletId, assetId)
+        enableAsset(session.wallet.id, assetId)
     }
 }

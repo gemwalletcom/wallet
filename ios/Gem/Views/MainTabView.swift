@@ -95,7 +95,7 @@ struct MainTabView: View {
             .tag(TabItem.activity)
 
             SettingsNavigationStack(
-                walletId: model.wallet.walletId,
+                walletId: model.wallet.id,
                 priceService: priceService,
                 isPresentingSupport: presenter.isPresentingSupport,
             )
@@ -114,7 +114,7 @@ struct MainTabView: View {
         .sheet(item: presenter.isPresentingPriceAlert) { input in
             SetPriceAlertNavigationStack(
                 model: SetPriceAlertViewModel(
-                    walletId: model.wallet.walletId,
+                    walletId: model.wallet.id,
                     asset: input.asset,
                     priceAlertService: priceAlertService,
                     price: input.price,

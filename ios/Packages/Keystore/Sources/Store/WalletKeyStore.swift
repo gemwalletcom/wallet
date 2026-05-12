@@ -62,7 +62,7 @@ struct WalletKeyStore {
             extendedPublicKey: nil,
         )
         return Primitives.Wallet(
-            id: id.id,
+            id: id,
             externalId: wallet.id,
             name: wallet.key.name,
             index: 0,
@@ -107,7 +107,7 @@ struct WalletKeyStore {
         }
 
         return Wallet(
-            id: id.id,
+            id: id,
             externalId: wallet.id,
             name: wallet.key.name,
             index: 0,
@@ -127,7 +127,7 @@ struct WalletKeyStore {
         password: String,
     ) throws -> Primitives.Wallet {
         try addCoins(
-            id: WalletId.from(id: wallet.id),
+            id: wallet.id,
             wallet: getWallet(id: wallet.keystoreId),
             existingChains: existingChains,
             newChains: newChains,

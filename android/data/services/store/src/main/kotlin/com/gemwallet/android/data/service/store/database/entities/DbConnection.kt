@@ -58,6 +58,6 @@ fun WalletConnection.toRecord(): DbConnection {
         appUrl = session.metadata.url,
         redirectNative = null,
         redirectUniversal = null,
-        walletId = wallet.id,
+        walletId = wallet.id.id,
     )
 }

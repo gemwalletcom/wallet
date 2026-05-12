@@ -45,9 +45,9 @@ public final class EarnSceneViewModel {
         self.asset = asset
         self.currencyCode = currencyCode
         self.earnService = earnService
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: asset.id), initialValue: .with(asset: asset))
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
-            DelegationsRequest(walletId: wallet.walletId, assetId: asset.id, providerType: .earn),
+            DelegationsRequest(walletId: wallet.id, assetId: asset.id, providerType: .earn),
             initialValue: [],
         )
         providersQuery = ObservableQuery(
@@ -125,7 +125,7 @@ extension EarnSceneViewModel {
         do {
             let address = try wallet.account(for: asset.id.chain).address
             try await earnService.update(
-                walletId: wallet.walletId,
+                walletId: wallet.id,
                 assetId: asset.id,
                 address: address,
             )

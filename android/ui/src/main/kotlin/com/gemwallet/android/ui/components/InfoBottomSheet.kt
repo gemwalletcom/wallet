@@ -121,8 +121,7 @@ sealed class InfoSheetEntity(
     )
 
     object WatchWalletInfo : InfoSheetEntity(
-        icon = R.drawable.ic_splash,
-        badgeIcon = R.drawable.watch_badge,
+        icon = R.drawable.watch_badge,
         title = R.string.info_watch_wallet_title,
         description = R.string.info_watch_wallet_description,
         infoUrl = { AppUrl.docs(DocsUrl.WhatIsWatchWallet) },

@@ -955,6 +955,12 @@ public enum Localized {
       /// Take profit
       public static let takeProfit = Localized.tr("Localizable", "perpetual.auto_close.take_profit", fallback: "Take profit")
     }
+    public enum Margin {
+      /// Cross
+      public static let cross = Localized.tr("Localizable", "perpetual.margin.cross", fallback: "Cross")
+      /// Isolated
+      public static let isolated = Localized.tr("Localizable", "perpetual.margin.isolated", fallback: "Isolated")
+    }
   }
   public enum Perpetuals {
     /// Markets

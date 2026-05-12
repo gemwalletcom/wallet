@@ -68,10 +68,10 @@ final class PerpetualsSceneViewModel {
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
-        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.walletId, searchQuery: ""), initialValue: [])
+        positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
-        walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.walletId), initialValue: .zero)
-        recentsQuery = ObservableQuery(RecentActivityRequest(walletId: wallet.walletId, limit: 10, types: [.perpetual]), initialValue: [])
+        walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.id), initialValue: .zero)
+        recentsQuery = ObservableQuery(RecentActivityRequest(walletId: wallet.id, limit: 10, types: [.perpetual]), initialValue: [])
     }
 
     var navigationTitle: String {
@@ -192,7 +192,7 @@ extension PerpetualsSceneViewModel {
     func onSearchQueryChange(_ _: String, _ newValue: String) {
         let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
         perpetualsQuery.request = PerpetualsRequest(searchQuery: trimmed)
-        positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.walletId, searchQuery: trimmed)
+        positionsQuery.request = PerpetualPositionsRequest(walletId: wallet.id, searchQuery: trimmed)
     }
 
     func onSearchPresentedChange(_ _: Bool, _ isPresented: Bool) {
@@ -210,7 +210,7 @@ extension PerpetualsSceneViewModel {
         do {
             try activityService.updateRecent(
                 data: RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
-                walletId: wallet.walletId,
+                walletId: wallet.id,
             )
         } catch {
             debugLog("Failed to update recent activity: \(error)")

@@ -158,7 +158,7 @@ struct SelectAssetSceneNavigationStack: View {
         .sheet(isPresented: $model.isPresentingRecents) {
             RecentsScene(
                 model: RecentsSceneViewModel(
-                    walletId: model.wallet.walletId,
+                    walletId: model.wallet.id,
                     types: model.recentsQuery.request.types,
                     filters: model.recentsQuery.request.filters,
                     activityService: activityService,

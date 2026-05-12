@@ -462,7 +462,7 @@ extension ConfirmTransferSceneViewModel {
             )
             try await confirmService.executeTransfer(input: input)
             if let data = input.data.type.recentActivityData {
-                confirmService.updateRecent(data: data, walletId: wallet.walletId)
+                confirmService.updateRecent(data: data, walletId: wallet.id)
             }
             confirmingState = .data(true)
         } catch {

@@ -19,8 +19,8 @@ public struct NFTService: Sendable {
 
     @discardableResult
     public func updateAssets(wallet: Wallet) async throws -> Int {
-        let nfts = try await apiService.getDeviceNFTAssets(walletId: wallet.walletId)
-        try nftStore.save(nfts, for: wallet.walletId)
+        let nfts = try await apiService.getDeviceNFTAssets(walletId: wallet.id)
+        try nftStore.save(nfts, for: wallet.id)
         return nfts.count
     }
 
@@ -34,6 +34,6 @@ public struct NFTService: Sendable {
     }
 
     public func refreshAsset(wallet: Wallet, assetId: String) async throws {
-        try await apiService.refreshNftAsset(walletId: wallet.walletId, assetId: assetId)
+        try await apiService.refreshNftAsset(walletId: wallet.id, assetId: assetId)
     }
 }

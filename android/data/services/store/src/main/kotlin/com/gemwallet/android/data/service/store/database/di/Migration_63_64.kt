@@ -54,7 +54,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
             val accounts = walletEntry.value
             val walletType = walletIds[oldWalletId] ?: continue
             val account = walletIdGenerator.getPriorityAccount(accounts) ?: continue
-            val newWalletId = walletIdGenerator.generateWalletId(walletType, account.chain, account.address)
+            val newWalletId = walletIdGenerator.generateWalletId(walletType, account.chain, account.address).id
             if (newWalletIds.contains(newWalletId)) {
                 walletIdsToDelete.add(oldWalletId)
                 if (walletType != WalletType.View) {

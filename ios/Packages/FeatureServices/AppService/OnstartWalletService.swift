@@ -54,13 +54,13 @@ public final class OnstartWalletService: Sendable {
     }
 
     private func syncWalletConfiguration(_ wallet: Wallet) async {
-        let walletPreferences = WalletPreferences(walletId: wallet.walletId)
+        let walletPreferences = WalletPreferences(walletId: wallet.id)
         guard !walletPreferences.completeInitialWalletConfiguration else { return }
 
-        guard let result = try? await walletConfigurationService.getWalletConfiguration(walletId: wallet.walletId) else { return }
+        guard let result = try? await walletConfigurationService.getWalletConfiguration(walletId: wallet.id) else { return }
 
         for account in result.configuration.multiSignatureAccounts {
-            try? bannerSetupService.setupAccountMultiSignatureWallet(walletId: wallet.walletId, chain: account.chain)
+            try? bannerSetupService.setupAccountMultiSignatureWallet(walletId: wallet.id, chain: account.chain)
         }
         walletPreferences.completeInitialWalletConfiguration = true
     }

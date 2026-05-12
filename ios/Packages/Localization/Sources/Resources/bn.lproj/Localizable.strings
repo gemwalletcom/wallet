@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "পুরস্কারগুলো এখনও সক্রিয় হয়নি।";
 "rewards.unverified.description" = "আপনি অ্যাপটি যত বেশি ব্যবহার করবেন, পুরস্কারগুলো তত স্বয়ংক্রিয়ভাবে সক্রিয় হবে।";
 "common.refresh" = "রিফ্রেশ";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

@@ -35,7 +35,7 @@ public struct AssetSearchService: Sendable {
         }
 
         try assetsService.addBalancesIfMissing(
-            walletId: wallet.walletId,
+            walletId: wallet.id,
             assetIds: assets.map(\.asset.id),
         )
 

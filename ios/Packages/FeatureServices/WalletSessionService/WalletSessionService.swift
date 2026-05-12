@@ -19,7 +19,7 @@ public struct WalletSessionService: WalletSessionManageable {
 
     public var currentWallet: Wallet? {
         guard let currentWalletId else { return nil }
-        return wallets.first(where: { $0.walletId == currentWalletId })
+        return wallets.first(where: { $0.id == currentWalletId })
     }
 
     public var currentWalletId: Primitives.WalletId? {
@@ -32,11 +32,11 @@ public struct WalletSessionService: WalletSessionManageable {
             return nil
         }
         if let currentWallet, currentWallet == wallet {
-            return currentWallet.walletId
+            return currentWallet.id
         }
-        preferences.currentWalletId = wallet.id
+        preferences.currentWalletId = wallet.id.id
 
-        return wallet.walletId
+        return wallet.id
     }
 
     public func setCurrent(walletId: WalletId?) {

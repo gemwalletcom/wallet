@@ -589,4 +589,6 @@
   <string name="errors.network_error">Eroare de rețea: %s</string>
   <string name="errors.network_offline">Conexiunea la internet pare să fie offline.</string>
   <string name="common.refresh">Reîmprospăta</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

@@ -42,7 +42,7 @@ public struct TransactionPostProcessingService: Sendable {
             for assetIdentifier in transaction.assetIds {
                 Task {
                     try await stakeService.update(
-                        walletId: wallet.walletId,
+                        walletId: wallet.id,
                         chain: assetIdentifier.chain,
                         address: transaction.from,
                     )
@@ -52,7 +52,7 @@ public struct TransactionPostProcessingService: Sendable {
             for assetIdentifier in transaction.assetIds {
                 Task {
                     try await earnService.update(
-                        walletId: wallet.walletId,
+                        walletId: wallet.id,
                         assetId: assetIdentifier,
                         address: transaction.from,
                     )

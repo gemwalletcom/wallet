@@ -15,6 +15,6 @@ public struct WCTransferData: Identifiable, Sendable {
     }
 
     public var id: String {
-        wallet.id
+        wallet.id.id
     }
 }

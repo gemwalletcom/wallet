@@ -15,6 +15,7 @@ import com.gemwallet.android.ext.asset
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.Dispatchers
@@ -118,19 +119,19 @@ class WalletsRepositoryImpl @Inject constructor(
 
     private suspend fun insertAccountsWithNativeAssets(wallet: Wallet) {
         insertNativeAssets(wallet.accounts)
-        accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id) })
+        accountsDao.insert(wallet.accounts.map { it.toRecord(wallet.id.id) })
     }
 
-    override suspend fun removeWallet(walletId: String) = withContext(Dispatchers.IO) {
-        val wallet = walletsDao.getById(walletId).firstOrNull() ?: return@withContext false
-        accountsDao.deleteByWalletId(wallet.id)
+    override suspend fun removeWallet(walletId: WalletId) = withContext(Dispatchers.IO) {
+        val wallet = walletsDao.getById(walletId.id).firstOrNull() ?: return@withContext false
+        accountsDao.deleteByWalletId(walletId.id)
         walletsDao.delete(wallet)
         true
     }
 
-    override fun getWallet(walletId: String): Flow<Wallet?> {
-        return walletsDao.getById(walletId).map { walletRecord ->
-            val accounts = accountsDao.getByWalletId(walletId)
+    override fun getWallet(walletId: WalletId): Flow<Wallet?> {
+        return walletsDao.getById(walletId.id).map { walletRecord ->
+            val accounts = accountsDao.getByWalletId(walletId.id)
             if (accounts.isEmpty()) return@map null
             walletRecord?.toDTO(accounts)
         }.flowOn(Dispatchers.IO)

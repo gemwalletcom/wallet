@@ -8,6 +8,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.StreamMessage
 import com.wallet.core.primitives.StreamMessagePrices
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.firstOrNull
@@ -25,8 +26,8 @@ class StreamSubscriptionService(
     private val subscribedAssetIds = mutableSetOf<AssetId>()
     private var currentWalletId: String? = null
 
-    suspend fun setupAssets(walletId: String) {
-        currentWalletId = walletId
+    suspend fun setupAssets(walletId: WalletId) {
+        currentWalletId = walletId.id
         resubscribe()
     }
 

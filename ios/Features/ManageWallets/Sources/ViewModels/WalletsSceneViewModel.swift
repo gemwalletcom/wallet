@@ -105,7 +105,7 @@ extension WalletsSceneViewModel {
     }
 
     func onSelect(wallet: Wallet, dismiss: DismissAction) {
-        setCurrent(wallet.walletId)
+        setCurrent(wallet.id)
         dismiss()
     }
 
@@ -171,23 +171,23 @@ extension WalletsSceneViewModel {
         if source - destination == 1 { // if next to each other, swap
             let to = try wallets.getElement(safe: destination)
             try swapOrder(
-                from: from.walletId,
-                to: to.walletId,
+                from: from.id,
+                to: to.id,
             )
         } else if source == 0 || wallets.count == destination { // moving to last position
             for i in source ..< destination - 1 {
                 let to = try wallets.getElement(safe: i + 1)
                 try swapOrder(
-                    from: from.walletId,
-                    to: to.walletId,
+                    from: from.id,
+                    to: to.id,
                 )
             }
         } else if source == wallets.count - 1 { // moving to the first position
             for i in stride(from: wallets.count - 1, through: destination + 1, by: -1) {
                 let to = try wallets.getElement(safe: i - 1)
                 try swapOrder(
-                    from: from.walletId,
-                    to: to.walletId,
+                    from: from.id,
+                    to: to.id,
                 )
             }
         }

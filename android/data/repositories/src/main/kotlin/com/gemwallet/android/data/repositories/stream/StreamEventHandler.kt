@@ -90,7 +90,7 @@ class StreamEventHandler(
     }
 
     private suspend fun handleTransactions(update: StreamTransactionsUpdate) {
-        val wallet = walletsRepository.getWallet(update.walletId.id).firstOrNull() ?: return
+        val wallet = walletsRepository.getWallet(update.walletId).firstOrNull() ?: return
         syncTransactions.get().syncTransactions(wallet)
     }
 

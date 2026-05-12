@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
@@ -165,7 +165,7 @@ fun assetPriceSupport(price: PriceUIModel): (@Composable () -> Unit)? {
 fun PriceInfo(
     price: String,
     changes: String,
-    state: PriceState,
+    state: ValueDirection,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
@@ -263,7 +263,7 @@ private fun BalanceInfo(
 fun PriceInfo(
     priceValue: String,
     changedPercentages: String,
-    state: PriceState,
+    state: ValueDirection,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.secondary,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
@@ -292,18 +292,4 @@ fun PriceInfo(
             style = style,
         )
     }
-}
-
-//@Composable
-//fun priceColor(state: PriceState) = when (state) {
-//    PriceState.Up -> MaterialTheme.colorScheme.tertiary
-//    PriceState.Down -> MaterialTheme.colorScheme.error
-//    PriceState.None -> MaterialTheme.colorScheme.secondary
-//}
-
-@Composable
-fun PriceState.color() = when (this) {
-    PriceState.Up -> MaterialTheme.colorScheme.tertiary
-    PriceState.Down -> MaterialTheme.colorScheme.error
-    PriceState.None -> MaterialTheme.colorScheme.secondary
 }

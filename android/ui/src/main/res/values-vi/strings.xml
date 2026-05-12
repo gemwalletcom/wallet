@@ -589,4 +589,6 @@
   <string name="errors.network_error">Lỗi mạng: %s</string>
   <string name="errors.network_offline">Kết nối Internet dường như đang bị ngắt.</string>
   <string name="common.refresh">Làm cho khỏe lại</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

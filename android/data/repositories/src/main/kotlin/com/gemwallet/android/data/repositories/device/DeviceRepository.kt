@@ -410,9 +410,9 @@ fun List<Wallet>.subscriptionsDiff(remote: List<WalletSubscriptionChains>): Pair
     val remoteIndex = remote.groupBy { it.walletId }
         .mapValues { item -> item.value.map { it.chains }.flatten() }
 
-    val diffs = wallets.map { wallet -> walletSubscriptionsDiff(wallet, remoteIndex[wallet.id] ?: emptyList()) }
+    val diffs = wallets.map { wallet -> walletSubscriptionsDiff(wallet, remoteIndex[wallet.id.id] ?: emptyList()) }
     val toRemove = diffs.map { it.second }.filter { it.chains.isNotEmpty() } +
-            remote.filter { remote -> wallets.firstOrNull { it.id == remote.walletId} == null }
+            remote.filter { remote -> wallets.firstOrNull { it.id.id == remote.walletId } == null }
 
     val toAdd = diffs.map { it.first }.filter { it.subscriptions.isNotEmpty() }
     return Pair(toAdd, toRemove)
@@ -428,12 +428,12 @@ private fun walletSubscriptionsDiff(wallet: Wallet, remote: List<Chain>): Pair<W
     val toRemove = remote.filter { wallet.getAccount(it) == null }
     return Pair(
         WalletSubscription(
-            walletId = wallet.id,
+            walletId = wallet.id.id,
             source = wallet.source,
             subscriptions = toAdd
         ),
         WalletSubscriptionChains(
-            walletId = wallet.id,
+            walletId = wallet.id.id,
             chains = toRemove
         ),
     )

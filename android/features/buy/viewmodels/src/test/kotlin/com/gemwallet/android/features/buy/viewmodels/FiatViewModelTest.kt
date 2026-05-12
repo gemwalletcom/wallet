@@ -45,7 +45,7 @@ class FiatViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset()
     private val wallet = mockWallet(id = "wallet-id")
-    private val walletId = WalletId(wallet.id)
+    private val walletId = wallet.id
     private val assetDataFlow = MutableStateFlow<AssetData?>(assetData(price = 100.0))
 
     private val getBuyAssetInfo = object : GetBuyAssetInfo {

@@ -19,7 +19,7 @@ public extension TransferMetadataProvidable {
         data: TransferData,
     ) throws -> TransferDataMetadata {
         try metadata(
-            walletId: wallet.walletId,
+            walletId: wallet.id,
             asset: data.type.asset,
             extraIds: data.type.assetIds,
         )

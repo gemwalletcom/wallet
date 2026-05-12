@@ -38,7 +38,7 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func connectionViewModelUsesPayloadWallet() throws {
-        let wallet = Wallet.mock(id: "multicoin_0xspecific", name: "Test Wallet")
+        let wallet = Wallet.mock(id: .multicoin(address: "0xspecific"), name: "Test Wallet")
         let session = WalletConnectionSession.mock(sessionId: "test-session")
         let payload = try SignMessagePayload(
             chain: .ethereum,
@@ -55,7 +55,7 @@ struct SignMessageSceneViewModelTests {
             confirmTransferDelegate: { _ in },
         )
 
-        #expect(viewModel.connectionViewModel.connection.wallet.id == "multicoin_0xspecific")
+        #expect(viewModel.connectionViewModel.connection.wallet.id == .multicoin(address: "0xspecific"))
         #expect(viewModel.connectionViewModel.connection.wallet.name == "Test Wallet")
     }
 

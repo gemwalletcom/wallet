@@ -5,6 +5,7 @@ import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -27,7 +28,7 @@ class DeleteWalletImpl @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> })
 
     override suspend fun deleteWallet(
-        walletId: String,
+        walletId: WalletId,
         onBoard: () -> Unit,
         onComplete: () -> Unit
     ) = withContext(Dispatchers.IO) {
@@ -38,7 +39,7 @@ class DeleteWalletImpl @Inject constructor(
             return@withContext
         }
         if (wallet.type != WalletType.View) {
-            if (!deleteKeyStoreOperator(walletId)) return@withContext
+            if (!deleteKeyStoreOperator(walletId.id)) return@withContext
         }
 
         scope.launch {

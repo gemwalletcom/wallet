@@ -8,8 +8,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.domains.price.PriceState
+import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.features.perpetual.views.components.CandleChart
@@ -24,16 +26,20 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.TransactionId
 
 @Composable
 fun PerpetualPositionScene(
     perpetual: PerpetualDetailsDataAggregate?,
     position: PerpetualPositionDetailsDataAggregate?,
+    transactions: List<TransactionDataAggregate>,
     chartData: List<ChartCandleStick>,
     period: ChartPeriod,
     onChartPeriodSelect: (ChartPeriod) -> Unit,
     onOpenPosition: (PerpetualDirection) -> Unit,
+    onTransaction: (TransactionId) -> Unit,
     onClose: () -> Unit,
 ) {
     Scene(
@@ -63,6 +69,9 @@ fun PerpetualPositionScene(
                 }
             }
             perpetual?.let { perpetualInfo(it) }
+            if (transactions.isNotEmpty()) {
+                transactionsList(transactions, onTransaction)
+            }
         }
     }
 }
@@ -101,15 +110,15 @@ private fun PerpetualPositionScenePreview() {
         override val leverage: Int = 10
         override val marginAmount: String = "$4,771.03"
         override val pnlWithPercentage: String = "+$460.25 (+9.64%)"
-        override val pnlState: PriceState = PriceState.Up
-        override val autoClose: String = "None"
-        override val size: String = "0.5 BTC"
+        override val pnlState: ValueDirection = ValueDirection.Up
+        override val size: String = "$47,250.00"
         override val entryPrice: String = "$94,500.00"
         override val entryValue: Double = 94500.00
         override val liquidationPrice: String = "$85,050.00"
         override val liquidationValue: Double = 85050.00
-        override val margin: String = "$4,771.03"
+        override val marginType: PerpetualMarginType = PerpetualMarginType.Cross
         override val fundingPayments: String = "+$12.50"
+        override val fundingPaymentsDirection: ValueDirection = ValueDirection.Up
         override val stopLoss: Double = 90050.00
         override val takeProfit: Double = 95000.00
     }
@@ -134,10 +143,12 @@ private fun PerpetualPositionScenePreview() {
         PerpetualPositionScene(
             perpetual = samplePerpetual,
             position = samplePosition,
+            transactions = emptyList(),
             chartData = chartData,
             period = ChartPeriod.Day,
             onChartPeriodSelect = {},
             onOpenPosition = {},
+            onTransaction = {},
             onClose = {}
         )
     }

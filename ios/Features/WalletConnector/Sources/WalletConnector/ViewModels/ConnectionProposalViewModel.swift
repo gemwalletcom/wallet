@@ -139,6 +139,6 @@ extension ConnectionProposalViewModel {
         guard let selectedWallet = walletSelectorModel.selectedItems.first else {
             return
         }
-        confirmTransferDelegate(.success(selectedWallet.id))
+        confirmTransferDelegate(.success(selectedWallet.id.id))
     }
 }

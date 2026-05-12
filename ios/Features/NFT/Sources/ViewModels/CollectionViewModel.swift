@@ -28,7 +28,7 @@ public final class CollectionViewModel: CollectionsViewable, Sendable {
     ) {
         self.wallet = wallet
         self.collectionName = collectionName
-        query = ObservableQuery(NFTRequest(walletId: wallet.walletId, filter: .collection(id: collectionId)), initialValue: [])
+        query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .collection(id: collectionId)), initialValue: [])
     }
 
     public var title: String {

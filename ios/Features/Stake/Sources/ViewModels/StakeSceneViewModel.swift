@@ -54,9 +54,9 @@ public final class StakeSceneViewModel {
         self.chain = chain
         self.currencyCode = currencyCode
         self.stakeService = stakeService
-        delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.walletId, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
+        delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
         validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
-        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.walletId, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
+        assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
     }
 
     public var stakeInfoUrl: URL {
@@ -255,7 +255,7 @@ extension StakeSceneViewModel {
         delegationsState = .loading
         do {
             let acccount = try wallet.account(for: chain.chain)
-            try await stakeService.update(walletId: wallet.walletId, chain: chain.chain, address: acccount.address)
+            try await stakeService.update(walletId: wallet.id, chain: chain.chain, address: acccount.address)
             delegationsState = .data(true)
         } catch {
             debugLog("Stake scene fetch error: \(error)")

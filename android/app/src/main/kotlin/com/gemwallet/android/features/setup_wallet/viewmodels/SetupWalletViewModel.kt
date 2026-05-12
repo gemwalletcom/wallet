@@ -32,7 +32,7 @@ class SetupWalletViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch {
-            walletsRepository.getWallet(walletId.id).collect { wallet ->
+            walletsRepository.getWallet(walletId).collect { wallet ->
                 if (wallet != null) {
                     state.update {
                         it.copy(
@@ -50,7 +50,7 @@ class SetupWalletViewModel @AssistedInject constructor(
     fun onNameChange(name: String) {
         state.update { it.copy(walletName = name) }
         viewModelScope.launch {
-            setWalletName.setWalletName(walletId.id, name)
+            setWalletName.setWalletName(walletId, name)
         }
     }
 

@@ -100,7 +100,7 @@ extension AssetsResultsSceneViewModel {
 
     private func onPinAsset(_ assetData: AssetData, value: Bool) {
         do {
-            try balanceService.setPinned(value, walletId: wallet.walletId, assetId: assetData.asset.id)
+            try balanceService.setPinned(value, walletId: wallet.id, assetId: assetData.asset.id)
             isPresentingToastMessage = .pin(assetData.asset.name, pinned: value)
         } catch {
             debugLog("AssetsResultsSceneViewModel pin asset error: \(error)")

@@ -20,7 +20,7 @@ struct WalletRecord: Codable, TableRecord, FetchableRecord, PersistableRecord {
         static let source = Column("source")
     }
 
-    var id: String
+    var id: WalletId
     var externalId: String?
     var name: String
     var type: WalletType

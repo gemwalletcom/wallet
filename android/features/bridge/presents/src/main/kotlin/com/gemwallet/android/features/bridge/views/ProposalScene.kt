@@ -199,7 +199,7 @@ private fun Proposal(
                     isCurrent = item.id == selectedWallet?.id,
                     listPosition = ListPosition.getPosition(index, availableWallets.size),
                     modifier = Modifier.clickable {
-                        onWalletSelected(WalletId(item.id))
+                        onWalletSelected(item.id)
                         isShowSelectWallets = false
                     }
                 )

@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Belønninger er endnu ikke aktive.";
 "rewards.unverified.description" = "Belønninger aktiveres automatisk, når du bruger appen mere.";
 "common.refresh" = "Opfriske";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

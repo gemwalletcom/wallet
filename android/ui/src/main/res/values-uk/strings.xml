@@ -589,4 +589,6 @@
   <string name="errors.network_error">Помилка мережі: %s</string>
   <string name="errors.network_offline">Здається, підключення до Інтернету відсутнє.</string>
   <string name="common.refresh">Оновити</string>
+  <string name="perpetual.margin.cross">Cross</string>
+  <string name="perpetual.margin.isolated">Isolated</string>
 </resources>

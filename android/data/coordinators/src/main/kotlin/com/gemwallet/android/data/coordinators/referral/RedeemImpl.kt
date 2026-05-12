@@ -8,7 +8,6 @@ import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.referralChain
-import com.gemwallet.android.ext.walletId
 import com.wallet.core.primitives.AuthenticatedRequest
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RedemptionRequest
@@ -32,7 +31,7 @@ class RedeemImpl(
             throw ReferralError.InsufficientPoints
         }
         val result = gemDeviceApiClient.redeem(
-            walletId = wallet.id,
+            walletId = wallet.id.id,
             request = AuthenticatedRequest(
                 auth = authPayload,
                 data = RedemptionRequest(option.id)
@@ -41,7 +40,7 @@ class RedeemImpl(
         sessionRepository.session().firstOrNull()?.let { session ->
             val assetId = option.asset?.id ?: return@let
             session.wallet.getAccount(assetId.chain) ?: return@let
-            enableAsset(session.wallet.walletId, assetId)
+            enableAsset(session.wallet.id, assetId)
         }
         return result
     }

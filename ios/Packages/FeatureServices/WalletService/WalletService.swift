@@ -67,7 +67,7 @@ public struct WalletService: Sendable {
     @discardableResult
     public func setCurrent(wallet: Wallet) async throws -> Wallet {
         await MainActor.run {
-            walletSessionService.setCurrent(walletId: wallet.walletId)
+            walletSessionService.setCurrent(walletId: wallet.id)
         }
         return wallet
     }
@@ -98,13 +98,13 @@ public struct WalletService: Sendable {
 
     public func delete(_ wallet: Wallet) async throws {
         try await keystore.deleteKey(for: wallet)
-        try walletStore.deleteWallet(for: wallet.walletId)
+        try walletStore.deleteWallet(for: wallet.id)
         try avatarService.remove(for: wallet)
-        WalletPreferences(walletId: wallet.walletId).clear()
+        WalletPreferences(walletId: wallet.id).clear()
 
         await MainActor.run {
-            if currentWalletId == wallet.walletId {
-                walletSessionService.setCurrent(walletId: wallets.first?.walletId)
+            if currentWalletId == wallet.id {
+                walletSessionService.setCurrent(walletId: wallets.first?.id)
             }
         }
 
@@ -130,11 +130,11 @@ public struct WalletService: Sendable {
     }
 
     public func pin(wallet: Wallet) throws {
-        try walletStore.pinWallet(wallet.walletId, value: true)
+        try walletStore.pinWallet(wallet.id, value: true)
     }
 
     public func unpin(wallet: Wallet) throws {
-        try walletStore.pinWallet(wallet.walletId, value: false)
+        try walletStore.pinWallet(wallet.id, value: false)
     }
 
     public func swapOrder(from: WalletId, to: WalletId) throws {

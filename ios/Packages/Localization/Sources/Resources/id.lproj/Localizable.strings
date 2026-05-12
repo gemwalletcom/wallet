@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Hadiah belum aktif.";
 "rewards.unverified.description" = "Hadiah akan aktif secara otomatis seiring Anda semakin sering menggunakan aplikasi.";
 "common.refresh" = "Menyegarkan";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";

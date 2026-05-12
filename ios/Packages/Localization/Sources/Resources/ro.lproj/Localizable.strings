@@ -566,3 +566,5 @@
 "rewards.unverified.title" = "Recompensele nu sunt încă active.";
 "rewards.unverified.description" = "Recompensele se activează automat pe măsură ce utilizați aplicația mai mult.";
 "common.refresh" = "Reîmprospăta";
+"perpetual.margin.cross" = "Cross";
+"perpetual.margin.isolated" = "Isolated";
