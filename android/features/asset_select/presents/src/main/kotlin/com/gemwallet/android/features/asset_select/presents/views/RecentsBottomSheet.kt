@@ -35,14 +35,13 @@ import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.format.SectionDateFormatter
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.AssetId
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 import java.util.Locale
 
 @Composable
@@ -157,10 +156,6 @@ private fun buildDateSections(
     if (items.isEmpty()) return emptyList()
     val zone = ZoneId.systemDefault()
     val today = LocalDate.now(zone)
-    val yesterday = today.minusDays(1)
-    val longFormatter = DateTimeFormatter
-        .ofLocalizedDate(FormatStyle.LONG)
-        .withLocale(locale)
 
     return items.groupBy { recent ->
         Instant.ofEpochMilli(recent.addedAt).atZone(zone).toLocalDate()
@@ -168,14 +163,15 @@ private fun buildDateSections(
         .entries
         .sortedByDescending { it.key }
         .map { (date, values) ->
-            val title = when (date) {
-                today -> todayLabel
-                yesterday -> yesterdayLabel
-                else -> longFormatter.format(date)
-            }
             RecentsDateSection(
                 id = date.toString(),
-                title = title,
+                title = SectionDateFormatter.format(
+                    date = date,
+                    todayLabel = todayLabel,
+                    yesterdayLabel = yesterdayLabel,
+                    locale = locale,
+                    today = today,
+                ),
                 items = values.sortedByDescending { it.addedAt },
             )
         }

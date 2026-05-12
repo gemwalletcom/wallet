@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
 import android.icu.util.Calendar
-import android.text.format.DateUtils
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -9,10 +8,12 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.format.SectionDateFormatter
 import com.gemwallet.android.ui.models.ListPosition
-import java.text.DateFormat
-import java.util.Date
 
 @OptIn(ExperimentalFoundationApi::class)
 fun <T> LazyListScope.dateGroupedList(
@@ -21,7 +22,6 @@ fun <T> LazyListScope.dateGroupedList(
     key: (Int, T) -> Any,
     itemContent: @Composable LazyItemScope.(ListPosition, T) -> Unit,
 ) {
-    val dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM)
     val calendar = Calendar.getInstance()
 
     items.groupBy { item ->
@@ -33,11 +33,12 @@ fun <T> LazyListScope.dateGroupedList(
         calendar.time.time
     }.forEach { (timestamp, entries) ->
         stickyHeader {
-            val title = if (DateUtils.isToday(timestamp) || DateUtils.isToday(timestamp + DateUtils.DAY_IN_MILLIS)) {
-                DateUtils.getRelativeTimeSpanString(timestamp, System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS).toString()
-            } else {
-                dateFormat.format(Date(timestamp))
-            }
+            val title = SectionDateFormatter.format(
+                timestamp = timestamp,
+                todayLabel = stringResource(R.string.date_today),
+                yesterdayLabel = stringResource(R.string.date_yesterday),
+                locale = LocalConfiguration.current.locales[0],
+            )
             SubheaderItem(
                 title = title,
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface),
