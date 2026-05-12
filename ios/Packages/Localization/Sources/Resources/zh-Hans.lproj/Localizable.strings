@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "得到 %@ 为了 %@！";
 "transfer.sign_transaction.title" = "签署交易";
 "recent_activity.title" = "近期";
-"settings.preferences.app_icon" = "应用图标";
 "rewards.pending.title" = "奖金待发放";
 "rewards.pending.description" = "有售 %@";
 "rewards.pending.description_ready" = "您的奖金已发放！";

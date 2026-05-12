@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Samu %@ don %@!";
 "transfer.sign_transaction.title" = "Sa hannu kan Ma'amala";
 "recent_activity.title" = "Kwanan nan";
-"settings.preferences.app_icon" = "Alamar Manhaja";
 "rewards.pending.title" = "Karin Kudi Ana Jira";
 "rewards.pending.description" = "Akwai a cikin %@";
 "rewards.pending.description_ready" = "Karin kyautar ku a shirye take!";

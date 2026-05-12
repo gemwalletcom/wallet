@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Obţine %@ pentru %@!";
 "transfer.sign_transaction.title" = "Semnează tranzacția";
 "recent_activity.title" = "Recente";
-"settings.preferences.app_icon" = "Pictogramă aplicație";
 "rewards.pending.title" = "Bonus în așteptare";
 "rewards.pending.description" = "Disponibil în %@";
 "rewards.pending.description_ready" = "Bonusul tău este gata!";

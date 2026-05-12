@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "دریافت %@ برای %@!";
 "transfer.sign_transaction.title" = "ثبت تراکنش";
 "recent_activity.title" = "تازه‌ها";
-"settings.preferences.app_icon" = "آیکون برنامه";
 "rewards.pending.title" = "پاداش در انتظار";
 "rewards.pending.description" = "موجود در %@";
 "rewards.pending.description_ready" = "جایزه شما آماده است!";

@@ -59,10 +59,6 @@ public enum Scenes {
         public init() {}
     }
 
-    public struct AppIcon: Hashable, Codable {
-        public init() {}
-    }
-
     public struct WalletConnect: Hashable, Codable {
         public init() {}
     }

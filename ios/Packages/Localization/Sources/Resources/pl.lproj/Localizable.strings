@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Dostawać %@ Do %@!";
 "transfer.sign_transaction.title" = "Podpisz transakcję";
 "recent_activity.title" = "Ostatnie";
-"settings.preferences.app_icon" = "Ikona aplikacji";
 "rewards.pending.title" = "Bonus w toku";
 "rewards.pending.description" = "Dostępne w %@";
 "rewards.pending.description_ready" = "Twój bonus jest gotowy!";

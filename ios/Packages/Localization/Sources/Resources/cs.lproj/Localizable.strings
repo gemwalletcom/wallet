@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Získat %@ pro %@!";
 "transfer.sign_transaction.title" = "Podepsat transakci";
 "recent_activity.title" = "Nedávné";
-"settings.preferences.app_icon" = "Ikona aplikace";
 "rewards.pending.title" = "Bonus čeká na vyřízení";
 "rewards.pending.description" = "K dispozici v %@";
 "rewards.pending.description_ready" = "Váš bonus je připraven!";
