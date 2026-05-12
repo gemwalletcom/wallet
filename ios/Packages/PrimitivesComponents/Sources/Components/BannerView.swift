@@ -12,9 +12,10 @@ public struct BannerView: View {
 
     public init(
         banner: Banner,
+        assetData: AssetData? = nil,
         action: @escaping (BannerAction) -> Void,
     ) {
-        model = BannerViewModel(banner: banner)
+        model = BannerViewModel(banner: banner, assetData: assetData)
         self.action = action
     }
 

@@ -159,7 +159,7 @@ fun AssetsScreen(
                 }
                 item(key = BannersItemKey) {
                     BannersScene(
-                        asset = null,
+                        assetInfo = null,
                         onClick = { banner ->
                             when (banner.event) {
                                 BannerEvent.AccountBlockedMultiSignature ->

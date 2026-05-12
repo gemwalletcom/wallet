@@ -289,7 +289,7 @@ public final class AssetSceneViewModel: Sendable {
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {
         switch type {
-        case .stake: assetDataModel.isStakeEnabled || assetData.balances.contains(where: { Self.showStakedBalanceTypes.contains($0.key) && $0.value > 0 })
+        case .stake: assetData.balances.contains(where: { Self.showStakedBalanceTypes.contains($0.key) && $0.value > 0 })
         #if DEBUG
             case .earn: assetData.balance.earn > .zero
         #else

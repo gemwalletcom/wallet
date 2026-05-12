@@ -16,9 +16,11 @@ struct BannerViewModel {
     }
 
     private let banner: Banner
+    private let assetData: AssetData?
 
-    init(banner: Banner) {
+    init(banner: Banner, assetData: AssetData? = nil) {
         self.banner = banner
+        self.assetData = assetData
     }
 
     var image: AssetImage? {
@@ -68,6 +70,9 @@ struct BannerViewModel {
         case .stake:
             guard let asset else {
                 return .none
+            }
+            if let apr = assetData?.metadata.stakingApr, apr > 0 {
+                return "Earn ~\(CurrencyFormatter.percentSignLess.string(apr)) APR while you sleep."
             }
             return Localized.Banner.Stake.description(asset.symbol)
         case .accountActivation:

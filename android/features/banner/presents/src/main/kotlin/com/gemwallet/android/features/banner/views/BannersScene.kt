@@ -30,8 +30,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -41,18 +44,18 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.features.banner.viewmodels.BannersViewModel
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 
 @Composable
 fun BannersScene(
-    asset: Asset?,
+    assetInfo: AssetInfo?,
     onClick: (Banner) -> Unit,
     isGlobal: Boolean = false,
     viewModel: BannersViewModel = hiltViewModel(),
 ) {
+    val asset = assetInfo?.asset
     LaunchedEffect(asset?.id?.toIdentifier(), isGlobal) {
         viewModel.init(asset, isGlobal)
     }
@@ -69,7 +72,9 @@ fun BannersScene(
             val (title, description) = when (banner.event) {
                 BannerEvent.Stake -> Pair(
                     stringResource(R.string.banner_stake_title, asset?.name ?: ""),
-                    stringResource(R.string.banner_stake_description, asset?.name ?: "")
+                    assetInfo?.stakeApr?.takeIf { it > 0.0 }?.let {
+                        "Earn ~${it.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)} APR while you sleep."
+                    } ?: stringResource(R.string.banner_stake_description, asset?.name ?: ""),
                 )
                 BannerEvent.AccountActivation -> Pair(
                     stringResource(R.string.banner_account_activation_title, asset?.name ?: ""),

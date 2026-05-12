@@ -33,6 +33,7 @@ public struct AssetScene: View {
                 Section {
                     BannerView(
                         banner: banner,
+                        assetData: model.assetData,
                         action: model.onSelectBanner,
                     )
                 }
@@ -139,9 +140,6 @@ public struct AssetScene: View {
                         }
                     }
                 }
-            } else if model.assetDataModel.isStakeEnabled {
-                stakeViewEmpty
-                    .listRowInsets(.assetListRowInsets)
             }
 
             if model.showEarnButton {
@@ -203,21 +201,6 @@ extension AssetScene {
             subtitle: model.networkField.value.text,
             assetImage: model.networkAssetImage,
             imageSize: .list.image,
-        )
-    }
-
-    private var stakeViewEmpty: some View {
-        NavigationCustomLink(
-            with: HStack(spacing: .space12) {
-                EmojiView(color: Colors.grayVeryLight, emoji: "💰")
-                    .frame(size: .image.asset)
-                ListItemView(
-                    title: model.balanceTitle(for: .stake),
-                    subtitle: model.aprModel(for: .stake).text,
-                    subtitleStyle: model.aprModel(for: .stake).subtitle.style,
-                )
-            },
-            action: { model.onSelectHeader(.stake) },
         )
     }
 }

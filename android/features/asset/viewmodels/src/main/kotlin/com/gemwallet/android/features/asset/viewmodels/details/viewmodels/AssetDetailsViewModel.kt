@@ -257,12 +257,8 @@ class AssetDetailsViewModel @Inject constructor(
                     } else {
                         ""
                     },
-                    stake = if (asset.id.type() == AssetSubtype.NATIVE && StakeChain.isStaked(asset.id.chain)) {
-                        if (stakeBalance == 0.0) {
-                            "APR ${(assetInfo.stakeApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
-                        } else {
-                            balances.totalStakeFormatted()
-                        }
+                    stake = if (asset.id.type() == AssetSubtype.NATIVE && StakeChain.isStaked(asset.id.chain) && stakeBalance > 0.0) {
+                        balances.totalStakeFormatted()
                     } else {
                         ""
                     },

@@ -55,7 +55,8 @@ struct AssetSceneViewModelTests {
 
     @Test
     func showProviderBalance() {
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
+        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == false)
+        #expect(AssetSceneViewModel.mock(.mock(balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
         #expect(AssetSceneViewModel.mock(.mock(balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)
         #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == false)
         #expect(AssetSceneViewModel.mock(.mock(balance: .mock(earn: BigInt(100)))).showProviderBalance(for: .earn) == true)

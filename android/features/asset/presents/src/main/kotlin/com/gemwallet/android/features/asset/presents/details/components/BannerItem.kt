@@ -23,7 +23,7 @@ internal fun BannerItem(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     BannersScene(
-        asset = assetInfo.asset,
+        assetInfo = assetInfo,
         onClick = {
             when (it.event) {
                 BannerEvent.Stake -> onStake(assetInfo.asset.id)
