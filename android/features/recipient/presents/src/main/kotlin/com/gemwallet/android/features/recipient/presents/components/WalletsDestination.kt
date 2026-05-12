@@ -68,7 +68,7 @@ private fun LazyListScope.walletsSection(
                 SubheaderItem(header)
             }
             itemsIndexed(entries) { index, (wallet, account) ->
-                WalletRecipient(wallet, account, toChain, ListPosition.getPosition(index, entries.size)) {
+                WalletRecipient(wallet, account, ListPosition.getPosition(index, entries.size)) {
                     onSelect(wallet, account)
                 }
             }
@@ -79,7 +79,6 @@ private fun LazyListScope.walletsSection(
 private fun WalletRecipient(
     wallet: Wallet,
     account: Account,
-    toChain: Chain,
     listPosition: ListPosition,
     onClick: () -> Unit
 ) {
@@ -88,7 +87,7 @@ private fun WalletRecipient(
         title = { PropertyTitleText(wallet.name) },
         data = {
             PropertyDataText(
-                AddressFormatter(account.address, chain = toChain).value(),
+                AddressFormatter(account.address, chain = account.chain).value(),
                 badge = { DataBadgeChevron() },
             )
         },
