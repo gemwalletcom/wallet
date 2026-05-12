@@ -6,10 +6,6 @@ Non-obvious architectural choices. Do not "improve" these without understanding 
 
 Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather than fetched as a prebuilt package. This ensures the mobile apps always link against the exact Core revision in the repo and avoids version drift between Core logic and mobile bindings.
 
-## Docker for Android release builds
-
-Android release artifacts are built inside Docker to guarantee reproducible builds. This lets anyone verify that a published APK matches the source. Do not bypass Docker for release builds even if local Gradle works.
-
 ## TypeShare + UniFFI for code generation
 
 TypeShare generates shared model types; UniFFI generates FFI bindings. Both run from `just generate`. Two tools are used because TypeShare handles pure data models efficiently while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.

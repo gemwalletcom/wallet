@@ -101,7 +101,7 @@ Gem Wallet is self-custodial, and keeping user funds safe is our highest priorit
 - Track work on the [GitHub Project Board](https://github.com/orgs/gemwalletcom/projects/2)
 - See the public [Roadmap](https://github.com/orgs/gemwalletcom/projects/4)
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and [android/reproducible/README.md](android/reproducible/README.md) for Android release verification details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 
 ## Community
 
