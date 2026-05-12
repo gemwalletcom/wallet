@@ -99,6 +99,10 @@ public final class RecipientSceneViewModel {
         addressInputModel.isValid ? .normal : .disabled
     }
 
+    public var isNextEnabled: Bool {
+        actionButtonState == .normal
+    }
+
     var showMemo: Bool {
         asset.chain.isMemoSupported
     }
