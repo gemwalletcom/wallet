@@ -16,6 +16,7 @@ import SwiftUI
 public final class TransactionSceneViewModel {
     private let preferences: Preferences
     private let explorerService: ExplorerService
+    private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
 
     public let query: ObservableQuery<TransactionRequest>
     var transactionExtended: TransactionExtended {
@@ -29,9 +30,11 @@ public final class TransactionSceneViewModel {
         walletId: WalletId,
         preferences: Preferences = Preferences.standard,
         explorerService: ExplorerService = ExplorerService.standard,
+        onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
     ) {
         self.preferences = preferences
         self.explorerService = explorerService
+        self.onHeaderAction = onHeaderAction
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.id), initialValue: transaction)
     }
 
@@ -42,9 +45,16 @@ public final class TransactionSceneViewModel {
     var explorerURL: URL {
         explorerViewModel.url
     }
+
+    var headerAction: VoidAction {
+        guard onHeaderAction != nil, headerActionType != nil else {
+            return nil
+        }
+        return onSelectTransactionHeader
+    }
 }
 
-// MAKR: - ListSectionProvideable
+// MARK: - ListSectionProvideable
 
 extension TransactionSceneViewModel: ListSectionProvideable {
     public var sections: [ListSection<TransactionItem>] {
@@ -79,9 +89,10 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
 extension TransactionSceneViewModel {
     func onSelectTransactionHeader() {
-        if let headerLink = headerViewModel.headerLink {
-            UIApplication.shared.open(headerLink)
+        guard let onHeaderAction, let headerActionType else {
+            return
         }
+        onHeaderAction(headerActionType)
     }
 
     func onSelectShare() {
@@ -112,7 +123,7 @@ extension TransactionSceneViewModel {
 extension TransactionSceneViewModel {
     private var model: TransactionViewModel {
         TransactionViewModel(
-            explorerService: ExplorerService.standard,
+            explorerService: explorerService,
             transaction: transactionExtended,
             currency: preferences.currency,
         )
@@ -130,6 +141,25 @@ extension TransactionSceneViewModel {
             transactionViewModel: model,
             explorerService: explorerService,
         )
+    }
+
+    private var nftAssetId: String? {
+        guard transactionExtended.transaction.type == .transferNFT else {
+            return nil
+        }
+        return transactionExtended.transaction.metadata?.decode(TransactionNFTTransferMetadata.self)?.assetId
+    }
+
+    private var headerActionType: TransactionHeaderAction? {
+        if let headerLink = headerViewModel.headerLink {
+            return .url(headerLink)
+        }
+
+        if let nftAssetId {
+            return .nft(assetId: nftAssetId)
+        }
+
+        return nil
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {

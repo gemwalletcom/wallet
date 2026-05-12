@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "รับ %@ สำหรับ %@-";
 "transfer.sign_transaction.title" = "ลงนามในธุรกรรม";
 "recent_activity.title" = "ล่าสุด";
-"settings.preferences.app_icon" = "ไอคอนแอป";
 "rewards.pending.title" = "โบนัสรออนุมัติ";
 "rewards.pending.description" = "มีจำหน่ายใน %@";
 "rewards.pending.description_ready" = "โบนัสของคุณพร้อมแล้ว!";

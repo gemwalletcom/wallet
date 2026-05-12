@@ -3,7 +3,6 @@ package com.gemwallet.android.data.repositories.nft
 import android.net.http.HttpException
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.cases.nft.NftError
 import com.gemwallet.android.cases.nft.RefreshNftAsset
 import com.gemwallet.android.cases.nft.SyncNfts
 import com.gemwallet.android.data.service.store.database.NftDao
@@ -25,6 +24,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import okio.IOException
 
@@ -100,22 +101,43 @@ class NftRepository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    @Throws(NftError::class)
-    override fun getAssetNft(walletId: WalletId, assetId: AssetId): Flow<NFTData> {
-        return nftDao.getAsset(walletId.id, assetId.toIdentifier()).flatMapLatest { assetEntity ->
-            val asset = assetEntity ?: throw NftError.NotFoundAsset
+    override fun getAssetNft(assetId: AssetId): Flow<NFTData> {
+        val nftAssetId = assetId.toIdentifier()
+        return cachedAssetData(nftAssetId).flatMapLatest { data ->
+            data?.let(::flowOf) ?: getRemoteAssetNft(nftAssetId)
+        }
+    }
 
-            nftDao.getCollection(walletId.id, asset.collectionId).map { collection ->
-                val nftCollection = collection ?: throw NftError.NotFoundCollection
-
-                NFTData(
-                    collection = nftCollection.toCollectionModel(),
-                    assets = listOf(asset.toAssetModel()),
-                )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun cachedAssetData(assetId: String): Flow<NFTData?> {
+        return nftDao.getAsset(assetId).flatMapLatest { asset ->
+            if (asset == null) {
+                flowOf(null)
+            } else {
+                nftDao.getCollection(asset.collectionId).map { collection ->
+                    collection?.let(asset::toNftData)
+                }
             }
         }
     }
+
+    private fun getRemoteAssetNft(assetId: String): Flow<NFTData> {
+        return flow {
+            val assetData = gemDeviceApiClient.getNFT(assetId)
+            emit(
+                NFTData(
+                    collection = assetData.collection,
+                    assets = listOf(assetData.asset),
+                )
+            )
+        }
+    }
 }
+
+private fun DbNFTAsset.toNftData(collection: DbNFTCollection) = NFTData(
+    collection = collection.toCollectionModel(),
+    assets = listOf(toAssetModel()),
+)
 
 private fun List<DbNFTCollection>.toCollectionModels() = map { it.toCollectionModel() }
 

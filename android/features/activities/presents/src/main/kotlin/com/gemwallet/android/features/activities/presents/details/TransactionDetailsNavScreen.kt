@@ -15,6 +15,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 @Composable
 fun TransactionDetailsNavScreen(
     onCancel: () -> Unit,
+    onNft: (String) -> Unit,
     viewModel: TransactionDetailsViewModel = hiltViewModel(),
 ) {
     val data by viewModel.data.collectAsStateWithLifecycle()
@@ -41,6 +42,7 @@ fun TransactionDetailsNavScreen(
             data = model,
             onShare = onShare,
             onFeeDetails =  { isShowFeeDetails = true },
+            onNft = onNft,
             onCancel = onCancel,
         )
     }

@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "পান %@ জন্য %@!";
 "transfer.sign_transaction.title" = "লেনদেন স্বাক্ষর করুন";
 "recent_activity.title" = "সাম্প্রতিক";
-"settings.preferences.app_icon" = "অ্যাপ আইকন";
 "rewards.pending.title" = "বোনাস মুলতুবি";
 "rewards.pending.description" = "পাওয়া যাচ্ছে %@";
 "rewards.pending.description_ready" = "আপনার বোনাস প্রস্তুত!";

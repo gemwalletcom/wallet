@@ -37,7 +37,7 @@ public struct TransactionScene: View {
         case let .header(model):
             TransactionHeaderListItemView(
                 model: model,
-                action: self.model.onSelectTransactionHeader,
+                action: self.model.headerAction,
             )
         case let .participant(model):
             AddressListItemView(model: model.addressViewModel)

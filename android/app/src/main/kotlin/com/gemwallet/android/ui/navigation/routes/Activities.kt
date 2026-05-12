@@ -17,12 +17,13 @@ data class TransactionDetailsRoute(
 
 fun EntryProviderScope<NavKey>.transactionDetailsScreen(
     onCancel: () -> Unit,
+    onNft: (String) -> Unit,
 ) {
     entry<TransactionDetailsRoute>(
         metadata = { key ->
             routeArguments(RouteArgument.TransactionId to key.transactionId.identifier)
         },
     ) {
-        TransactionDetailsNavScreen(onCancel = onCancel)
+        TransactionDetailsNavScreen(onCancel = onCancel, onNft = onNft)
     }
 }

@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
+import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
@@ -27,7 +27,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.ext.type
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.availableFormatted
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.getStackedAmount
@@ -67,7 +67,7 @@ import javax.inject.Inject
 class AssetDetailsViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
-    private val getAssetTokenInfo: GetAssetTokenInfo,
+    private val getChainAssetInfo: GetChainAssetInfo,
     private val toggleAssetPin: ToggleAssetPin,
     private val enableAsset: EnableAsset,
     private val syncAssetInfo: SyncAssetInfo,
@@ -88,7 +88,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private val assetId = savedStateHandle.requireAssetId()
 
-    private val assetInfo = getAssetTokenInfo(assetId)
+    private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart {
             val wallet = session.value?.wallet ?: return@onStart
             priceAlertsStateCoordinator.priceAlertState(PriceAlertsStateEvent.Request(assetId))
@@ -101,15 +101,14 @@ class AssetDetailsViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    private val model = assetInfo
-        .map {
-            val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(it.asset.chain)
-            Model(
-                assetInfo = it,
-                explorerName = explorerName,
-                updatedAt = System.currentTimeMillis()
-            )
-        }
+    private val model = chainAssetInfo.map { chainInfo ->
+        val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chainInfo.assetInfo.asset.chain)
+        Model(
+            chainAssetInfo = chainInfo,
+            explorerName = explorerName,
+            updatedAt = System.currentTimeMillis()
+        )
+    }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -191,7 +190,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {
         val wallet = session.value?.wallet ?: return@launch
-        val assetInfo = model.value?.assetInfo ?: return@launch
+        val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
         val assetId = assetInfo.id()
         wallet.getAccount(assetId) ?: return@launch
         toggleAssetPin(assetId)
@@ -199,7 +198,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {
         val session = session.value ?: return@launch
-        val assetInfo = model.value?.assetInfo ?: return@launch
+        val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
 
         add(session.wallet, assetInfo.id())
     }
@@ -210,12 +209,13 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     private data class Model(
-        val assetInfo: AssetInfo,
+        val chainAssetInfo: ChainAssetInfo,
         val updatedAt: Long,
         val explorerName: String,
     ) {
         fun toUIState(): AssetInfoUIModel {
-            val assetInfo = assetInfo
+            val assetInfo = chainAssetInfo.assetInfo
+            val feeAssetInfo = chainAssetInfo.feeAssetInfo
             val price = assetInfo.price?.price?.price ?: 0.0
             val currency = assetInfo.price?.currency ?: Currency.USD
             val asset = assetInfo.asset
@@ -250,7 +250,7 @@ class AssetDetailsViewModel @Inject constructor(
                     totalBalance = balances.totalFormatted(),
                     totalFiat = fiatTotal,
                     owner = assetInfo.owner?.address ?: "",
-                    balanceMetadata = assetInfo.balance.metadata,
+                    balanceMetadata = feeAssetInfo.balance.metadata,
                     hasBalanceDetails = StakeChain.isStaked(asset.id.chain) || balances.balanceAmount.reserved != 0.0,
                     available = if (balances.balanceAmount.available != total) {
                         balances.availableFormatted()

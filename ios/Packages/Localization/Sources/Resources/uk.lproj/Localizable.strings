@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "Отримати %@ для %@!";
 "transfer.sign_transaction.title" = "Підписати транзакцію";
 "recent_activity.title" = "Нещодавні";
-"settings.preferences.app_icon" = "Іконка програми";
 "rewards.pending.title" = "Бонус очікує на розгляд";
 "rewards.pending.description" = "Доступно в %@";
 "rewards.pending.description_ready" = "Ваш бонус готовий!";

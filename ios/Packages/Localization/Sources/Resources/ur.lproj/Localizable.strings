@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "حاصل کریں۔ %@ کے لیے %@!";
 "transfer.sign_transaction.title" = "لین دین پر دستخط کریں۔";
 "recent_activity.title" = "حالیہ";
-"settings.preferences.app_icon" = "ایپ آئیکن";
 "rewards.pending.title" = "بونس زیر التواء";
 "rewards.pending.description" = "میں دستیاب ہے۔ %@";
 "rewards.pending.description_ready" = "آپ کا بونس تیار ہے!";

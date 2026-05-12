@@ -509,7 +509,6 @@
 "rewards.confirm_redeem" = "पाना %@ के लिए %@!";
 "transfer.sign_transaction.title" = "लेनदेन पर हस्ताक्षर करें";
 "recent_activity.title" = "हाल ही";
-"settings.preferences.app_icon" = "ऐप आइकन";
 "rewards.pending.title" = "बोनस लंबित है";
 "rewards.pending.description" = "उपलब्ध है %@";
 "rewards.pending.description_ready" = "आपका बोनस तैयार है!";

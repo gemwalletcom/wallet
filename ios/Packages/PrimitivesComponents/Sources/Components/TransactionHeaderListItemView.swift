@@ -30,19 +30,26 @@ public struct TransactionHeaderListItemView: View {
     public var body: some View {
         if showClearHeader {
             Section {} header: {
-                TransactionHeaderView(type: headerType)
+                headerView
                     .padding(.top, .small)
             }
             .cleanListRow()
         } else {
             Section {
+                headerView
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var headerView: some View {
+        if let action {
+            Button(action: action) {
                 TransactionHeaderView(type: headerType)
             }
-            .ifLet(action) { view, action in
-                Button(action: action) {
-                    view
-                }
-            }
+            .buttonStyle(.plain)
+        } else {
+            TransactionHeaderView(type: headerType)
         }
     }
 }

@@ -30,6 +30,7 @@ fun TransactionDetailsScene(
     data: TransactionDetailsAggregate,
     onShare: () -> Unit,
     onFeeDetails: () -> Unit,
+    onNft: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
     Scene(
@@ -45,7 +46,10 @@ fun TransactionDetailsScene(
             data.valueGroups.forEach { group ->
                 itemsPositioned(group.items) { position, item ->
                     when (item) {
-                        is TransactionDetailsValue.Amount.NFT -> NftHead(item.metadata)
+                        is TransactionDetailsValue.Amount.NFT -> NftHead(
+                            metadata = item.metadata,
+                            onClick = { onNft(item.metadata.assetId) },
+                        )
                         TransactionDetailsValue.Amount.None -> {}
                         is TransactionDetailsValue.Amount.Plain -> AmountListHead(
                             icon = item.asset,
