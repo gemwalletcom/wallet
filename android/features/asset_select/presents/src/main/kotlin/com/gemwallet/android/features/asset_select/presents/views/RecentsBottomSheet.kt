@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -18,31 +17,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.dateGroupedList
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
-import com.gemwallet.android.ui.format.SectionDateFormatter
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.AssetId
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Locale
 
 @Composable
 fun RecentsBottomSheet(
@@ -53,10 +42,6 @@ fun RecentsBottomSheet(
     onClear: () -> Unit,
     onSelect: (AssetId) -> Unit,
 ) {
-    val todayLabel = stringResource(R.string.date_today)
-    val yesterdayLabel = stringResource(R.string.date_yesterday)
-    val locale = LocalConfiguration.current.locales[0]
-
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
@@ -100,35 +85,21 @@ fun RecentsBottomSheet(
             if (empty != null) {
                 RecentsEmptyStateView(empty)
             } else {
-                val sections = remember(uiModel.items, locale, todayLabel, yesterdayLabel) {
-                    buildDateSections(uiModel.items, locale, todayLabel, yesterdayLabel)
-                }
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    sections.forEach { section ->
-                        recentsSection(section, onSelect)
+                    dateGroupedList(
+                        items = uiModel.items.sortedByDescending { it.addedAt },
+                        createdAt = { it.addedAt },
+                        key = { _, recent -> "${recent.addedAt}-${recent.asset.id.toIdentifier()}" },
+                    ) { position, recent ->
+                        AssetListItem(
+                            asset = recent.asset,
+                            listPosition = position,
+                            modifier = Modifier.clickable { onSelect(recent.asset.id) },
+                        )
                     }
                 }
             }
         }
-    }
-}
-
-private fun LazyListScope.recentsSection(
-    section: RecentsDateSection,
-    onSelect: (AssetId) -> Unit,
-) {
-    item(key = "header-${section.id}") {
-        SubheaderItem(section.title)
-    }
-    itemsPositioned(
-        section.items,
-        key = { _, recent -> "${section.id}-${recent.asset.id.toIdentifier()}" },
-    ) { position, recent ->
-        AssetListItem(
-            asset = recent.asset,
-            listPosition = position,
-            modifier = Modifier.clickable { onSelect(recent.asset.id) },
-        )
     }
 }
 
@@ -139,40 +110,4 @@ private fun RecentsEmptyStateView(state: RecentsEmptyState) {
         RecentsEmptyState.NoSearchResults -> EmptyContentType.SearchAssets()
     }
     EmptyContentView(type = type, modifier = Modifier.fillMaxSize())
-}
-
-private data class RecentsDateSection(
-    val id: String,
-    val title: String,
-    val items: List<RecentAsset>,
-)
-
-private fun buildDateSections(
-    items: List<RecentAsset>,
-    locale: Locale,
-    todayLabel: String,
-    yesterdayLabel: String,
-): List<RecentsDateSection> {
-    if (items.isEmpty()) return emptyList()
-    val zone = ZoneId.systemDefault()
-    val today = LocalDate.now(zone)
-
-    return items.groupBy { recent ->
-        Instant.ofEpochMilli(recent.addedAt).atZone(zone).toLocalDate()
-    }
-        .entries
-        .sortedByDescending { it.key }
-        .map { (date, values) ->
-            RecentsDateSection(
-                id = date.toString(),
-                title = SectionDateFormatter.format(
-                    date = date,
-                    todayLabel = todayLabel,
-                    yesterdayLabel = yesterdayLabel,
-                    locale = locale,
-                    today = today,
-                ),
-                items = values.sortedByDescending { it.addedAt },
-            )
-        }
 }

@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.format
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Clock
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.Locale
@@ -15,19 +16,18 @@ class SectionDateFormatterTest {
         zone,
     )
     private val locale = Locale.US
+    private val formatter = SectionDateFormatter(
+        todayLabel = TODAY,
+        yesterdayLabel = YESTERDAY,
+        clock = clock,
+    )
 
     @Test
     fun test_format() {
-        assertEquals(TODAY, format(2026, 5, 12, 1))
-        assertEquals(YESTERDAY, format(2026, 5, 11, 23))
-        assertEquals("May 10, 2026", format(2026, 5, 10, 12))
-        assertEquals("March 5, 2026", format(2026, 3, 5, 12))
-    }
-
-    private fun format(year: Int, month: Int, day: Int, hour: Int): String {
-        val timestamp = ZonedDateTime.of(year, month, day, hour, 0, 0, 0, zone)
-            .toInstant().toEpochMilli()
-        return SectionDateFormatter.format(timestamp, TODAY, YESTERDAY, locale, clock)
+        assertEquals(TODAY, formatter.format(LocalDate.of(2026, 5, 12), locale))
+        assertEquals(YESTERDAY, formatter.format(LocalDate.of(2026, 5, 11), locale))
+        assertEquals("May 10, 2026", formatter.format(LocalDate.of(2026, 5, 10), locale))
+        assertEquals("March 5, 2026", formatter.format(LocalDate.of(2026, 3, 5), locale))
     }
 
     companion object {
