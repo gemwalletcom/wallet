@@ -38,7 +38,7 @@ public final class AddressInputViewModel {
 
     public var text: String {
         get { inputModel.text }
-        set { inputModel.text = (try? chain.checksumAddress(newValue)) ?? newValue }
+        set { inputModel.text = chain.checksumAddress(newValue) }
     }
 
     public var nameResolveState: NameRecordState {
@@ -54,8 +54,7 @@ public final class AddressInputViewModel {
     }
 
     public var address: String {
-        let raw = nameResolveState.result?.address ?? inputModel.text.trim()
-        return (try? chain.checksumAddress(raw)) ?? raw
+        chain.checksumAddress(nameResolveState.result?.address ?? inputModel.text.trim())
     }
 
     @discardableResult
@@ -64,7 +63,7 @@ public final class AddressInputViewModel {
     }
 
     public func update(text: String) {
-        inputModel.update(text: (try? chain.checksumAddress(text)) ?? text)
+        inputModel.update(text: chain.checksumAddress(text))
     }
 
     public func update(error: (any Error)?) {

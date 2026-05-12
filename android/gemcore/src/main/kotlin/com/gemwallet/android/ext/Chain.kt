@@ -141,9 +141,9 @@ fun List<Chain>.filter(query: String): List<Chain> {
     }
 }
 
-@Throws(uniffi.gemstone.GemstoneException::class)
 fun Chain.checksumAddress(address: String): String =
-    uniffi.gemstone.GemChainAddress(address, string).address()
+    runCatching { uniffi.gemstone.GemChainAddress(address, string).address() }
+        .getOrDefault(address)
 
 fun Chain.toChainType(): ChainType {
     return when (this) {
