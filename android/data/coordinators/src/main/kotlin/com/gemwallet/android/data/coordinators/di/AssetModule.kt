@@ -7,6 +7,7 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
 import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
 import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
 import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
+import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
@@ -30,6 +31,7 @@ import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
+import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
@@ -75,6 +77,11 @@ object AssetModule {
     @Singleton
     fun provideGetAssetTokenInfo(assetsRepository: AssetsRepository): GetAssetTokenInfo =
         GetAssetTokenInfoImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetChainAssetInfo(assetsRepository: AssetsRepository): GetChainAssetInfo =
+        GetChainAssetInfoImpl(assetsRepository)
 
     @Provides
     @Singleton
