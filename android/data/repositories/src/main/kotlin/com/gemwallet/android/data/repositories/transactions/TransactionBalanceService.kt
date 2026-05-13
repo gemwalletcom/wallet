@@ -38,7 +38,7 @@ class TransactionBalanceService @Inject constructor(
             is ConfirmParams.Stake.RewardsParams -> TransactionBalanceContext(
                 rewardsBalance = getRewardsBalance(assetInfo),
             )
-            is ConfirmParams.PerpetualParams.Open -> TransactionBalanceContext(
+            is ConfirmParams.PerpetualParams -> TransactionBalanceContext(
                 perpetualBalance = getPerpetualBalance(assetInfo),
             )
             else -> TransactionBalanceContext()

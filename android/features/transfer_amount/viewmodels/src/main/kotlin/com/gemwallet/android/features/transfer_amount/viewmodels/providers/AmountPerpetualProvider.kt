@@ -4,12 +4,16 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
+import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.domains.perpetual.PerpetualTransferData
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.wallet.core.primitives.PerpetualType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,17 +79,24 @@ class AmountPerpetualProvider(
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
         val currentPerpetual = perpetual.value ?: error("perpetual not loaded")
-        val builder = ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
-        return builder.perpetualOrder(
-            perpetualId = currentPerpetual.id,
-            perpetualPrice = currentPerpetual.price,
-            perpetualProvider = currentPerpetual.provider,
-            perpetualIdentifier = currentPerpetual.identifier,
-            action = ConfirmParams.PerpetualParams.OrderAction.Open,
-            leverage = leverage.value,
-            baseAsset = current.asset,
+        val selectedLeverage = leverage.value.toUByte()
+        val transferData = PerpetualTransferData(
+            provider = currentPerpetual.provider,
             direction = params.direction,
+            asset = currentPerpetual.asset,
+            baseAsset = current.asset,
+            assetIndex = currentPerpetual.identifier.toInt(),
+            price = currentPerpetual.price,
+            leverage = selectedLeverage,
             marginType = currentPerpetual.marginType,
         )
+        val perpetualType = PerpetualOrderFactory.makePerpetualOrder(
+            positionAction = PerpetualPositionAction.Open(transferData),
+            usdcAmount = amount.atomicValue,
+            usdcDecimals = current.asset.decimals,
+            leverage = selectedLeverage,
+        )
+        return ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
+            .perpetual(perpetualType)
     }
 }

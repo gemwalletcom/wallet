@@ -27,9 +27,7 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.Activate,
                 is ConfirmParams.Stake.Freeze,
                 is ConfirmParams.Stake.Unfreeze,
-                is ConfirmParams.PerpetualParams.Open,
-                is ConfirmParams.PerpetualParams.Close,
-                is ConfirmParams.PerpetualParams.Modify,
+                is ConfirmParams.PerpetualParams,
                 is ConfirmParams.SwapParams -> null
                 is ConfirmParams.Stake.RewardsParams -> validator
                     ?.takeIf { params.validators.size == 1 }

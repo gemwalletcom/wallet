@@ -59,9 +59,7 @@ class SignClientProxy(
             is ConfirmParams.TransferParams.Token -> client.signTokenTransfer(input, chainData, params.finalAmount, fee, privateKey)
             is ConfirmParams.Activate -> client.signActivate(input, chainData, params.finalAmount, fee, privateKey)
             is ConfirmParams.NftParams -> client.signNft(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.PerpetualParams.Open -> client.signPerpetualOpen(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.PerpetualParams.Close -> client.signPerpetualClose(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.PerpetualParams.Modify -> client.signPerpetualModify(input, chainData, params.finalAmount, fee, privateKey)
+            is ConfirmParams.PerpetualParams -> client.signPerpetual(input, chainData, params.finalAmount, fee, privateKey)
         }
     }
 

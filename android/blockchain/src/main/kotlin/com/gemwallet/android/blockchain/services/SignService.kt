@@ -132,40 +132,8 @@ class SignService : SignClient {
         )
     }
 
-    override suspend fun signPerpetualClose(
-        params: ConfirmParams.PerpetualParams.Close,
-        chainData: ChainSignData,
-        finalAmount: BigInteger,
-        fee: Fee,
-        privateKey: ByteArray
-    ): List<ByteArray> {
-        val data = buildSignerInput(
-            params = params,
-            chainData = chainData,
-            finalAmount = finalAmount,
-            fee = fee,
-        )
-        return getSigner(params).signPerpetual(data, privateKey).map { it.toByteArray() }
-    }
-
-    override suspend fun signPerpetualModify(
-        params: ConfirmParams.PerpetualParams.Modify,
-        chainData: ChainSignData,
-        finalAmount: BigInteger,
-        fee: Fee,
-        privateKey: ByteArray
-    ): List<ByteArray> {
-        val data = buildSignerInput(
-            params = params,
-            chainData = chainData,
-            finalAmount = finalAmount,
-            fee = fee,
-        )
-        return getSigner(params).signPerpetual(data, privateKey).map { it.toByteArray() }
-    }
-
-    override suspend fun signPerpetualOpen(
-        params: ConfirmParams.PerpetualParams.Open,
+    override suspend fun signPerpetual(
+        params: ConfirmParams.PerpetualParams,
         chainData: ChainSignData,
         finalAmount: BigInteger,
         fee: Fee,
