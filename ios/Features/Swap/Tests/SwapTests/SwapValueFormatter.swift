@@ -24,7 +24,7 @@ struct SwapValueFormatterTests {
     @Test
     func formatQuoteValue_USFull() throws {
         #expect(
-            try usFormatter.format(quoteValue: "1000000000000000000", decimals: 18) == "1",
+            try usFormatter.format(quoteValue: "1000000000000000000", decimals: 18) == "1.00",
         )
     }
 

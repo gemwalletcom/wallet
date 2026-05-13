@@ -21,7 +21,7 @@ public final class StakeSceneViewModel {
     private var delegationsState: StateViewType<Bool> = .loading
     private let chain: StakeChain
 
-    private let formatter = ValueFormatter(style: .medium)
+    private let formatter = ValueFormatter(style: .auto)
     private let recommendedValidators = StakeRecommendedValidators()
     private let currencyCode: String
 

@@ -30,7 +30,7 @@ struct TransactionInfoModelTests {
         let display = model.amountDisplay()
         #expect(display.amount.text.contains(asset.symbol))
         #expect(!display.amount.text.isEmpty)
-        #expect(display.amount.text == "+1 BTC")
+        #expect(display.amount.text == "+1.00 BTC")
     }
 
     @Test
@@ -49,7 +49,7 @@ struct TransactionInfoModelTests {
         let display = model.amountDisplay()
         #expect(display.amount.text.contains(asset.symbol))
         #expect(!display.amount.text.isEmpty)
-        #expect(display.amount.text == "-1 BTC")
+        #expect(display.amount.text == "-1.00 BTC")
     }
 
     @Test
@@ -124,7 +124,7 @@ struct TransactionInfoModelTests {
             return
         }
 
-        #expect(display.amount.text == "+1 BTC")
+        #expect(display.amount.text == "+1.00 BTC")
         #expect(display.fiat?.text == "$1.50")
     }
 
@@ -188,7 +188,7 @@ struct TransactionInfoModelTests {
         #expect(fromField.assetId == asset.id)
         #expect(toField.assetId == feeAsset.id)
         #expect(fromField.amount == "1.00 BTC")
-        #expect(toField.amount == "0.10 BTC")
+        #expect(toField.amount == "0.1 BTC")
     }
 
     @Test
@@ -258,7 +258,7 @@ struct TransactionInfoModelTests {
             return
         }
 
-        #expect(display.amount.text == "+1 BTC")
+        #expect(display.amount.text == "+1.00 BTC")
         #expect(display.fiat == nil)
     }
 }

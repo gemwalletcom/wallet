@@ -24,6 +24,6 @@ struct AssetValueHeaderViewModelTests {
             data: AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(BigInt(1_000_000))),
         )
 
-        #expect(model.title == "1 USDT")
+        #expect(model.title == "1.00 USDT")
     }
 }

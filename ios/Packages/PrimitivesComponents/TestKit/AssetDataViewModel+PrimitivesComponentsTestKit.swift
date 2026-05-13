@@ -8,7 +8,7 @@ import PrimitivesTestKit
 public extension AssetDataViewModel {
     static func mock(
         assetData: AssetData = .mock(),
-        formatter: ValueFormatter = .medium,
+        formatter: ValueFormatter = .short,
         currencyCode: String = "USD",
     ) -> AssetDataViewModel {
         AssetDataViewModel(

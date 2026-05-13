@@ -105,7 +105,7 @@ public final class SetPriceAlertViewModel {
             showBalancePrivacy: .constant(false),
             assetDataModel: AssetDataViewModel(
                 assetData: assetData,
-                formatter: .abbreviated,
+                formatter: .short,
                 currencyCode: currencyFormatter.currencyCode,
             ),
             type: .price,

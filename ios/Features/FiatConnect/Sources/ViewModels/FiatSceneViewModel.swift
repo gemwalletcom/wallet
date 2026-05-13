@@ -28,7 +28,7 @@ public final class FiatSceneViewModel {
     private let assetsEnabler: any AssetsEnabler
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
-    private let valueFormatter = ValueFormatter(locale: .US, style: .medium)
+    private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
 
     public let assetQuery: ObservableQuery<AssetRequest>
     var assetData: AssetData {

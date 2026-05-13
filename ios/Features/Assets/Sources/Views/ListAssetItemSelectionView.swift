@@ -29,7 +29,7 @@ struct ListAssetItemSelectionView: View {
                 showBalancePrivacy: .constant(false),
                 assetDataModel: AssetDataViewModel(
                     assetData: assetData,
-                    formatter: .abbreviated,
+                    formatter: .short,
                     currencyCode: currencyCode,
                 ),
                 type: type,

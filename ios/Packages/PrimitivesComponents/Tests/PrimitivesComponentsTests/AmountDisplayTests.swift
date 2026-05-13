@@ -30,7 +30,7 @@ struct AmountDisplayTests {
         }
 
         #expect(viewModel.amount.text.contains(asset.symbol))
-        #expect(viewModel.amount.text == "+1 BTC")
+        #expect(viewModel.amount.text == "+1.00 BTC")
         #expect(viewModel.fiat?.text == "$1.50")
     }
 

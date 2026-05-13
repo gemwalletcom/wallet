@@ -40,7 +40,7 @@ struct WalletAssetsList: View {
                     model: ListAssetItemViewModel(
                         showBalancePrivacy: $showBalancePrivacy,
                         assetData: asset,
-                        formatter: .abbreviated,
+                        formatter: .short,
                         currencyCode: currencyCode,
                     ),
                 )
