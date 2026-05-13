@@ -6,38 +6,32 @@ import org.junit.Test
 
 class PerpetualOrderFactoryTest {
 
-    @Test
-    fun calculateSlippagePrice_appliesCorrectMultiplierPerDirectionAndAction() {
-        val marketPrice = 100.0
-        val slippagePercent = 2.0
-        val cases = listOf(
-            Triple(PerpetualDirection.Long, PerpetualOrderFactory.OrderAction.Open, 102.0),
-            Triple(PerpetualDirection.Short, PerpetualOrderFactory.OrderAction.Open, 98.0),
-            Triple(PerpetualDirection.Long, PerpetualOrderFactory.OrderAction.Close, 98.0),
-            Triple(PerpetualDirection.Short, PerpetualOrderFactory.OrderAction.Close, 102.0),
-        )
-        cases.forEach { (direction, action, expected) ->
-            val actual = PerpetualOrderFactory.calculateSlippagePrice(
-                marketPrice = marketPrice,
-                direction = direction,
-                action = action,
-                slippage = slippagePercent,
-            )
-            assertEquals("$direction + $action", expected, actual, 1e-9)
-        }
-    }
+    private data class SlippageCase(
+        val direction: PerpetualDirection,
+        val action: PerpetualOrderFactory.OrderAction,
+        val slippagePercent: Double,
+        val expectedPrice: Double,
+    )
 
     @Test
-    fun calculateSlippagePrice_zeroSlippageReturnsMarketPrice() {
-        PerpetualDirection.entries.forEach { direction ->
-            PerpetualOrderFactory.OrderAction.entries.forEach { action ->
-                assertEquals(
-                    "$direction + $action",
-                    100.0,
-                    PerpetualOrderFactory.calculateSlippagePrice(100.0, direction, action, 0.0),
-                    1e-9,
-                )
-            }
+    fun calculateSlippagePrice_appliesCorrectMultiplier() {
+        val marketPrice = 100.0
+        val cases = listOf(
+            SlippageCase(PerpetualDirection.Long, PerpetualOrderFactory.OrderAction.Open, 2.0, 102.0),
+            SlippageCase(PerpetualDirection.Short, PerpetualOrderFactory.OrderAction.Open, 2.0, 98.0),
+            SlippageCase(PerpetualDirection.Long, PerpetualOrderFactory.OrderAction.Close, 2.0, 98.0),
+            SlippageCase(PerpetualDirection.Short, PerpetualOrderFactory.OrderAction.Close, 2.0, 102.0),
+            SlippageCase(PerpetualDirection.Long, PerpetualOrderFactory.OrderAction.Open, 0.0, 100.0),
+            SlippageCase(PerpetualDirection.Short, PerpetualOrderFactory.OrderAction.Close, 0.0, 100.0),
+        )
+        cases.forEach { case ->
+            val actual = PerpetualOrderFactory.calculateSlippagePrice(
+                marketPrice = marketPrice,
+                direction = case.direction,
+                action = case.action,
+                slippage = case.slippagePercent,
+            )
+            assertEquals(case.toString(), case.expectedPrice, actual, 1e-9)
         }
     }
 }

@@ -15,7 +15,8 @@ import kotlin.math.abs
 import kotlin.math.pow
 
 object PerpetualOrderFactory {
-
+    internal enum class OrderAction { Open, Close }
+    
     private const val DEFAULT_SLIPPAGE_PERCENT: Double = 2.0
 
     fun makePerpetualOrder(
@@ -107,17 +108,18 @@ object PerpetualOrderFactory {
         slippage: Double,
     ): Double {
         val fraction = slippage / 100.0
-        val multiplier = when {
-            direction == PerpetualDirection.Long && action == OrderAction.Open -> 1.0 + fraction
-            direction == PerpetualDirection.Short && action == OrderAction.Close -> 1.0 + fraction
-            direction == PerpetualDirection.Long && action == OrderAction.Close -> 1.0 - fraction
-            direction == PerpetualDirection.Short && action == OrderAction.Open -> 1.0 - fraction
-            else -> 1.0
+        val multiplier = when (action) {
+            OrderAction.Open -> when (direction) {
+                PerpetualDirection.Long -> 1.0 + fraction
+                PerpetualDirection.Short -> 1.0 - fraction
+            }
+            OrderAction.Close -> when (direction) {
+                PerpetualDirection.Long -> 1.0 - fraction
+                PerpetualDirection.Short -> 1.0 + fraction
+            }
         }
         return marketPrice * multiplier
     }
-
-    internal enum class OrderAction { Open, Close }
 
     private fun makePerpetualConfirmData(
         direction: PerpetualDirection,
