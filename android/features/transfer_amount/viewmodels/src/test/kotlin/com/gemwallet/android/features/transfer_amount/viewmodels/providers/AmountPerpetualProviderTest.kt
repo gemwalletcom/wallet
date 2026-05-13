@@ -4,10 +4,12 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockPerpetualTransferData
 import com.wallet.core.primitives.PerpetualDirection
 import io.mockk.every
 import io.mockk.mockk
@@ -51,8 +53,11 @@ class AmountPerpetualProviderTest {
         val getPerpetualBalance = mockk<GetPerpetualBalance>(relaxed = true) {
             every { getBalance() } returns flowOf(null)
         }
+        val positionAction = PerpetualPositionAction.Open(
+            mockPerpetualTransferData(direction = direction),
+        )
         return AmountPerpetualProvider(
-            params = AmountParams.Perpetual(asset.id, "BTC-PERP", direction),
+            params = AmountParams.Perpetual(asset.id, "BTC-PERP", positionAction),
             userConfig = userConfig,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,

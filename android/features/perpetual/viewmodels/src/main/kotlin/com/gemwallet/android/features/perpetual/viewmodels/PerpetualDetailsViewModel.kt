@@ -9,8 +9,13 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosi
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.domains.perpetual.PerpetualTransferData
+import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -84,5 +89,25 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     fun period(period: ChartPeriod) {
         this.period.update { period }
+    }
+
+    fun buildOpenPosition(direction: PerpetualDirection): AmountParams.Perpetual? {
+        val current = perpetual.value ?: return null
+        val assetIndex = current.identifier.toIntOrNull() ?: return null
+        val transferData = PerpetualTransferData(
+            provider = current.provider,
+            direction = direction,
+            asset = current.asset,
+            baseAsset = HypercoreUSDC,
+            assetIndex = assetIndex,
+            price = current.price,
+            leverage = current.maxLeverage.toUByte(),
+            marginType = current.marginType,
+        )
+        return AmountParams.Perpetual(
+            assetId = current.asset.id,
+            perpetualId = current.id,
+            positionAction = PerpetualPositionAction.Open(transferData),
+        )
     }
 }

@@ -1,9 +1,11 @@
 package com.gemwallet.android.testkit
 
+import com.gemwallet.android.domains.perpetual.PerpetualTransferData
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualConfirmData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualReduceData
 
 fun mockPerpetualConfirmData(
@@ -46,4 +48,24 @@ fun mockPerpetualReduceData(
 ) = PerpetualReduceData(
     data = data,
     positionDirection = positionDirection,
+)
+
+fun mockPerpetualTransferData(
+    provider: PerpetualProvider = PerpetualProvider.Hypercore,
+    direction: PerpetualDirection = PerpetualDirection.Long,
+    asset: Asset = mockAssetHyperCoreUBTC(),
+    baseAsset: Asset = mockAssetHyperCoreUSDC(),
+    assetIndex: Int = 0,
+    price: Double = 100.0,
+    leverage: UByte = 1u,
+    marginType: PerpetualMarginType = PerpetualMarginType.Cross,
+) = PerpetualTransferData(
+    provider = provider,
+    direction = direction,
+    asset = asset,
+    baseAsset = baseAsset,
+    assetIndex = assetIndex,
+    price = price,
+    leverage = leverage,
+    marginType = marginType,
 )

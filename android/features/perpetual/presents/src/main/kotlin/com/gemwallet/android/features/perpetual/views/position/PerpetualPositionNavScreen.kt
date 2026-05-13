@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualDetailsViewModel
+import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.TransactionId
 
 @Composable
@@ -30,14 +30,7 @@ fun PerpetualPositionNavScreen(
         onClose = onClose,
         onChartPeriodSelect = viewModel::period,
         onOpenPosition = { direction ->
-            val currentPerpetual = perpetual ?: return@PerpetualPositionScene
-            onOpenPosition(
-                AmountParams.Perpetual(
-                    assetId = currentPerpetual.asset.id,
-                    perpetualId = currentPerpetual.id,
-                    direction = direction,
-                )
-            )
+            viewModel.buildOpenPosition(direction)?.let(onOpenPosition)
         },
         onTransaction = onTransaction,
     )
