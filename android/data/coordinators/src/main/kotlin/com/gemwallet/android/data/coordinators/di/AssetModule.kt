@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.EnableAsset
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
+import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
 import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
 import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
@@ -28,6 +29,7 @@ import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
+import com.gemwallet.android.data.coordinators.asset.GetAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
@@ -87,6 +89,11 @@ object AssetModule {
     @Singleton
     fun provideGetAssetById(assetsRepository: AssetsRepository): GetAssetById =
         GetAssetByIdImpl(assetsRepository)
+
+    @Provides
+    @Singleton
+    fun provideGetAssetInfo(assetsRepository: AssetsRepository): GetAssetInfo =
+        GetAssetInfoImpl(assetsRepository)
 
     @Provides
     @Singleton

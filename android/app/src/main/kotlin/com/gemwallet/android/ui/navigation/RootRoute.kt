@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.domains.transaction.isPerpetual
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsSearchRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
@@ -45,7 +44,6 @@ import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
 import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
-import com.gemwallet.android.ui.navigation.routes.PerpetualAmountRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PreferencesRoute
@@ -204,7 +202,7 @@ class WalletNavigator(
     fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return
-        push(if (params.txType.isPerpetual) PerpetualAmountRoute(pack) else AmountRoute(pack))
+        push(AmountRoute(pack))
     }
     fun openSwap() {
         clearSwapSelections()
@@ -286,7 +284,6 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         SwapRoute -> true
         is AmountRoute,
         is ConfirmRoute,
-        is PerpetualAmountRoute,
         is RecipientInputRoute,
         is StakeRoute,
         is SwapPairRoute,

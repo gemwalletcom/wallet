@@ -25,7 +25,7 @@ class GetNftAssetDetailsImpl(
     override fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?> {
         return sessionRepository.session().filterNotNull()
             .flatMapLatest { session ->
-                getAssetNft.getAssetNft(session.wallet.id, assetId)
+                getAssetNft.getAssetNft(assetId)
                     .map { nftData ->
                         val nftAsset = nftData.assets.first()
                         val chain = nftAsset.chain

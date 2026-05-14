@@ -29,4 +29,6 @@ fun amountErrorString(error: AmountError): String = when (error) {
     )
     AmountError.IncorrectAddress -> stringResource(id = R.string.errors_invalid_address_name)
     is AmountError.Unknown -> "${stringResource(id = R.string.errors_unknown)}: ${error.data}"
+    AmountError.NoValidatorSelected -> stringResource(id = R.string.errors_unknown)
+    AmountError.NoDelegationSelected -> stringResource(id = R.string.errors_unknown)
 }

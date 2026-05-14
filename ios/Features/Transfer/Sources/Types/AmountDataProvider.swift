@@ -6,7 +6,6 @@ import Primitives
 public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     case transfer(AmountTransferViewModel)
     case stake(AmountStakeViewModel)
-    case freeze(AmountFreezeViewModel)
     case perpetual(AmountPerpetualViewModel)
     case earn(AmountEarnViewModel)
 
@@ -23,11 +22,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         case let .withdraw(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
         case let .stake(stakeType):
-            .stake(AmountStakeViewModel(asset: input.asset, action: stakeType))
-        case let .freeze(resource):
-            .freeze(AmountFreezeViewModel(asset: input.asset, action: .freeze, resource: resource))
-        case let .unfreeze(resource):
-            .freeze(AmountFreezeViewModel(asset: input.asset, action: .unfreeze, resource: resource))
+            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType))
         case let .perpetual(data):
             .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data))
         case let .earn(earnType):
@@ -91,7 +86,6 @@ extension AmountDataProvider {
         switch self {
         case let .transfer(provider): provider
         case let .stake(provider): provider
-        case let .freeze(provider): provider
         case let .perpetual(provider): provider
         case let .earn(provider): provider
         }

@@ -27,7 +27,6 @@ import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
 import com.gemwallet.android.features.earn.delegation.models.HeadDelegationInfo
 import com.wallet.core.primitives.DelegationState
 import com.wallet.core.primitives.StakeChain
-import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uniffi.gemstone.Explorer
@@ -173,14 +172,14 @@ class DelegationViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onStake(call: AmountTransactionAction) {
-        buildStake(TransactionType.StakeDelegate)?.let { call(it) }
+        buildDelegate()?.let { call(it) }
     }
 
     fun onUnstake(amountCall: AmountTransactionAction, confirmCall: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
         if (assetInfo.chain.changeAmountOnUnstake) {
-            buildStake(TransactionType.StakeUndelegate)?.let { amountCall(it) }
+            buildUndelegate()?.let { amountCall(it) }
             return
         }
         val from = assetInfo.owner ?: return
@@ -191,7 +190,7 @@ class DelegationViewModel @Inject constructor(
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
-        buildStake(TransactionType.StakeRedelegate)?.let { call(it) }
+        buildRedelegate()?.let { call(it) }
     }
 
     fun onWithdraw(call: ConfirmTransactionAction) {
@@ -218,12 +217,27 @@ class DelegationViewModel @Inject constructor(
         )
     }
 
-    private fun buildStake(type: TransactionType): AmountParams? {
+    private fun buildDelegate(): AmountParams.Stake.Delegate? {
         val assetId = assetInfo.value?.asset?.id ?: return null
         val delegation = delegation.value ?: return null
-        return AmountParams.buildStake(
+        return AmountParams.Stake.Delegate(assetId, validatorId = delegation.validator.id)
+    }
+
+    private fun buildUndelegate(): AmountParams.Stake.Undelegate? {
+        val assetId = assetInfo.value?.asset?.id ?: return null
+        val delegation = delegation.value ?: return null
+        return AmountParams.Stake.Undelegate(
             assetId = assetId,
-            txType = type,
+            validatorId = delegation.validator.id,
+            delegationId = delegation.base.delegationId,
+        )
+    }
+
+    private fun buildRedelegate(): AmountParams.Stake.Redelegate? {
+        val assetId = assetInfo.value?.asset?.id ?: return null
+        val delegation = delegation.value ?: return null
+        return AmountParams.Stake.Redelegate(
+            assetId = assetId,
             validatorId = delegation.validator.id,
             delegationId = delegation.base.delegationId,
         )

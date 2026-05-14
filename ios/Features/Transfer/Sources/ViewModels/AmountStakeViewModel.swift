@@ -11,29 +11,36 @@ import PrimitivesComponents
 import Stake
 import Validators
 
+public enum AmountStakeSelection {
+    case validator(SelectionState<DelegationValidator>)
+    case resource(SelectionState<Resource>)
+}
+
 public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
-    let action: StakeAmountType
-    public let validatorSelection: SelectionState<DelegationValidator>
+    let action: AmountStakeType
+    public let selection: AmountStakeSelection
 
-    init(asset: Asset, action: StakeAmountType) {
+    init(asset: Asset, type: AmountStakeType) {
         self.asset = asset
-        self.action = action
-        validatorSelection = Self.makeValidatorSelection(action: action)
+        self.action = type
+        selection = Self.makeSelection(type: type)
     }
 
-    private static func makeValidatorSelection(action: StakeAmountType) -> SelectionState<DelegationValidator> {
-        switch action {
+    private static func makeSelection(type: AmountStakeType) -> AmountStakeSelection {
+        switch type {
         case let .stake(validators, recommended):
-            SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
+            .validator(SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator))
         case let .unstake(delegation):
-            SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
+            .validator(SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator))
         case let .redelegate(_, validators, recommended):
-            SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator)
+            .validator(SelectionState(options: validators, selected: selectedValidator(from: validators, recommended: recommended), isEnabled: true, title: Localized.Stake.validator))
         case let .withdraw(delegation):
-            SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator)
+            .validator(SelectionState(options: [delegation.validator], selected: delegation.validator, isEnabled: false, title: Localized.Stake.validator))
         case let .claimRewards(delegations):
-            SelectionState(options: delegations.map(\.validator), selected: selectedClaimRewardsValidator(from: delegations), isEnabled: delegations.count > 1, title: Localized.Stake.validator)
+            .validator(SelectionState(options: delegations.map(\.validator), selected: selectedClaimRewardsValidator(from: delegations), isEnabled: delegations.count > 1, title: Localized.Stake.validator))
+        case let .freeze(resource), let .unfreeze(resource):
+            .resource(SelectionState(options: [.bandwidth, .energy], selected: resource, isEnabled: true, title: Localized.Stake.resource))
         }
     }
 
@@ -62,7 +69,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     public var validatorSelectType: ValidatorSelectType {
         switch action {
         case .stake, .redelegate: .stake
-        case .unstake, .withdraw, .claimRewards: .unstake
+        case .unstake, .withdraw, .claimRewards, .freeze, .unfreeze: .unstake
         }
     }
 
@@ -73,32 +80,40 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case .redelegate: Localized.Transfer.Redelegate.title
         case .withdraw: Localized.Transfer.Withdraw.title
         case .claimRewards: Localized.Transfer.ClaimRewards.title
+        case .freeze: Localized.Transfer.Freeze.title
+        case .unfreeze: Localized.Transfer.Unfreeze.title
         }
     }
 
     var amountType: AmountType {
-        .stake(action)
+        switch selection {
+        case .validator: .stake(action)
+        case let .resource(state):
+            switch action {
+            case .freeze: .stake(.freeze(state.selected))
+            case .unfreeze: .stake(.unfreeze(state.selected))
+            default: .stake(action)
+            }
+        }
     }
 
     var minimumValue: BigInt {
         guard let stakeChain = asset.chain.stakeChain else { return .zero }
         return switch action {
-        case .stake:
+        case .stake, .freeze:
             BigInt(StakeConfig.config(chain: stakeChain).minAmount)
         case .redelegate:
             stakeChain == .smartChain ? BigInt(StakeConfig.config(chain: stakeChain).minAmount) : .zero
-        case .unstake:
+        case .unstake, .unfreeze, .claimRewards:
             .zero
         case .withdraw:
             asset.symbol == "USDC" ? AmountPerpetualLimits.minDeposit : .zero
-        case .claimRewards:
-            .zero
         }
     }
 
     var canChangeValue: Bool {
         switch action {
-        case .stake, .redelegate:
+        case .stake, .redelegate, .freeze, .unfreeze:
             true
         case .unstake:
             StakeChain(rawValue: asset.chain.rawValue)?.canChangeAmountOnUnstake ?? true
@@ -119,14 +134,16 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         return switch action {
         case .stake:
             asset.chain != .tron && maxAfterFee > minimumValue && !reserveForFee.isZero
-        case .unstake, .redelegate, .withdraw, .claimRewards:
+        case .freeze:
+            maxAfterFee > minimumValue
+        case .unstake, .redelegate, .withdraw, .claimRewards, .unfreeze:
             false
         }
     }
 
     var reserveForFee: BigInt {
         switch action {
-        case .stake where asset.chain != .tron:
+        case .stake where asset.chain != .tron, .freeze:
             BigInt(Gemstone.Config.shared.getStakeConfig(chain: asset.chain.rawValue).reservedForFees)
         default:
             .zero
@@ -147,39 +164,63 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case let .unstake(delegation), let .redelegate(delegation, _, _), let .withdraw(delegation):
             return delegation.base.balanceValue
         case let .claimRewards(delegations):
-            return delegations.first { $0.validator.id == validatorSelection.selected.id }?.base.rewardsValue ?? .zero
+            guard case let .validator(state) = selection else { return .zero }
+            return delegations.first { $0.validator.id == state.selected.id }?.base.rewardsValue ?? .zero
+        case .freeze:
+            return assetData.balance.available
+        case .unfreeze:
+            guard case let .resource(state) = selection else { return .zero }
+            return state.selected == .bandwidth ? assetData.balance.frozen : assetData.balance.locked
         }
     }
 
     func recipientData() -> RecipientData {
-        RecipientData(
-            recipient: Recipient(
-                name: validatorSelection.selected.name,
-                address: validatorSelection.selected.id,
-                memo: Localized.Stake.viagem,
-            ),
-            amount: nil,
-        )
+        switch selection {
+        case let .validator(state):
+            return RecipientData(
+                recipient: Recipient(
+                    name: state.selected.name,
+                    address: state.selected.id,
+                    memo: Localized.Stake.viagem,
+                ),
+                amount: nil,
+            )
+        case let .resource(state):
+            let title = ResourceViewModel(resource: state.selected).title
+            return RecipientData(
+                recipient: Recipient(name: title, address: title, memo: nil),
+                amount: nil,
+            )
+        }
     }
 
     func makeTransferData(value: BigInt) throws -> TransferData {
-        let stakeType: StakeType = switch action {
-        case .stake:
-            .stake(validatorSelection.selected)
-        case let .unstake(delegation):
-            .unstake(delegation)
-        case let .redelegate(delegation, _, _):
-            .redelegate(RedelegateData(delegation: delegation, toValidator: validatorSelection.selected))
-        case let .withdraw(delegation):
-            .withdraw(delegation)
-        case .claimRewards:
-            .rewards([validatorSelection.selected])
-        }
-        return TransferData(
-            type: .stake(asset, stakeType),
+        TransferData(
+            type: .stake(asset, try getStakeType()),
             recipientData: recipientData(),
             value: value,
             canChangeValue: canChangeValue,
         )
+    }
+
+    private func getStakeType() throws -> StakeType {
+        switch (action, selection) {
+        case let (.stake, .validator(state)):
+            .stake(state.selected)
+        case let (.unstake(delegation), _):
+            .unstake(delegation)
+        case let (.redelegate(delegation, _, _), .validator(state)):
+            .redelegate(RedelegateData(delegation: delegation, toValidator: state.selected))
+        case let (.withdraw(delegation), _):
+            .withdraw(delegation)
+        case let (.claimRewards, .validator(state)):
+            .rewards([state.selected])
+        case let (.freeze, .resource(state)):
+            .freeze(state.selected)
+        case let (.unfreeze, .resource(state)):
+            .unfreeze(state.selected)
+        default:
+            throw AnyError("Unsupported stake selection")
+        }
     }
 }

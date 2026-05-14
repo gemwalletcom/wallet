@@ -7,52 +7,32 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
-import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
-import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.stakeChain
-import com.gemwallet.android.domains.stake.hasRewards
-import com.gemwallet.android.domains.stake.rewardsBalance
-import com.gemwallet.android.domains.transaction.TransactionBalanceContext
-import com.gemwallet.android.domains.transaction.balance
-import com.gemwallet.android.ext.freezed
+import com.gemwallet.android.features.transfer_amount.models.AmountError
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.AmountInputType
-import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.Delegation
-import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.Config
 import java.math.BigInteger
 import java.math.MathContext
 import javax.inject.Inject
@@ -60,203 +40,69 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AmountViewModel @Inject constructor(
-    private val assetsRepository: AssetsRepository,
-    private val stakeRepository: StakeRepository,
-    private val transactionBalanceService: TransactionBalanceService,
-    savedStateHandle: SavedStateHandle
+    factory: AmountProviderFactory,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
 
-    val params = MutableStateFlow(savedStateHandle.requireAmountParams())
+    private val params: AmountParams = savedStateHandle.requireAmountParams()
+    val provider: AmountDataProvider = factory.create(params, viewModelScope)
 
     var amount by mutableStateOf("")
         private set
 
-    var amountInputType = MutableStateFlow(AmountInputType.Crypto)
-
-    val errorUIState = MutableStateFlow<AmountError>(AmountError.None)
-
+    val amountInputType = MutableStateFlow(AmountInputType.Crypto)
+    val amountError = MutableStateFlow<AmountError>(AmountError.None)
     private val maxAmount = MutableStateFlow(false)
 
-    val resource = MutableStateFlow(Resource.Bandwidth)
+    val availableBalanceFormatted: StateFlow<String> = combine(
+        provider.availableBalance,
+        provider.assetInfo,
+    ) { balance, current ->
+        current?.asset?.let { formatter.string(balance, it) }.orEmpty()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val assetInfo = params.flatMapLatest {
-        assetsRepository.getAssetInfo(it.assetId).filterNotNull()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val reserveForFee = combine(params, assetInfo.filterNotNull(), maxAmount) { params, assetInfo, maxAmount ->
-        if (!maxAmount) {
-            return@combine null
-        }
-        val value = getReserveForFee(params.txType, assetInfo.asset.chain)
-        if (value == BigInteger.ZERO) {
-            return@combine null
-        }
-        formatter.string(value, assetInfo.asset)
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-
-    private val selectedValidatorId = MutableStateFlow<String?>(null)
-
-    private val delegation: StateFlow<Delegation?> = combine(params, assetInfo, selectedValidatorId) { params, assetInfo, selectedId ->
-        Triple(params, assetInfo, selectedId)
-    }.flatMapLatest { (params, assetInfo, selectedId) ->
-        when (params.txType) {
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRedelegate,
-            TransactionType.StakeWithdraw -> {
-                val validatorId = params.validatorId ?: return@flatMapLatest flowOf(null)
-                stakeRepository.getDelegation(validatorId, params.delegationId ?: "")
-            }
-            TransactionType.StakeRewards -> {
-                val owner = assetInfo?.owner?.address ?: return@flatMapLatest flowOf(null)
-                stakeRepository.getDelegations(assetInfo.asset.id, owner).map { list ->
-                    val rewards = list.filter { it.hasRewards() }
-                    rewards.firstOrNull { it.validator.id == selectedId } ?: rewards.firstOrNull()
-                }
-            }
-            else -> flowOf(null)
-        }
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val recommendedValidator = params.flatMapLatest {
-        stakeRepository.getRecommended(it.assetId.chain)
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val srcValidator = combine(params, delegation, recommendedValidator) { params, delegation, recommended ->
-        when (params.txType) {
-            TransactionType.StakeWithdraw,
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRewards -> delegation?.validator
-            TransactionType.StakeDelegate,
-            TransactionType.StakeRedelegate -> recommended
-            else -> null
-        }
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val selectedValidator = combine(assetInfo, selectedValidatorId) { assetInfo, validatorId ->
-        val assetId = assetInfo?.asset?.id ?: return@combine null
-        validatorId ?: return@combine null
-
-        stakeRepository.getStakeValidator(assetId, validatorId)
-            ?: stakeRepository.getRecommended(assetId.chain).firstOrNull()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val validatorState = selectedValidator.combine(srcValidator) { selected, src ->
-        selected ?: src
+    val reserveForFeeFormatted: StateFlow<String?> = combine(
+        provider.assetInfo,
+        maxAmount,
+    ) { current, isMax ->
+        if (!provider.shouldReserveFee(isMax) || provider.reserveForFee.signum() == 0) null
+        else current?.asset?.let { formatter.string(provider.reserveForFee, it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val balanceContext = combine(params, assetInfo, delegation, resource) { params, assetInfo, delegation, resource ->
-        BalanceRequest(params, assetInfo, delegation, resource)
-    }
-    .mapLatest { request ->
-        val assetInfo = request.assetInfo ?: return@mapLatest null
-        transactionBalanceService.getContext(
-            assetInfo = assetInfo,
-            params = request.params,
-            delegation = request.delegation,
-            resource = request.resource,
-        )
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val availableBalance = combine(params, assetInfo, balanceContext) { params, assetInfo, balanceContext ->
-        assetInfo ?: return@combine ""
-        val value = Crypto(
-            assetInfo.balance(
-                txType = params.txType,
-                context = balanceContext ?: TransactionBalanceContext(),
-            )
-        )
-        formatter.string(value.atomicValue, assetInfo.asset)
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
-    var prefillAmount = combine(
-        params,
-        assetInfo,
-        delegation
-    ) { params, assetInfo, delegation ->
-        assetInfo ?: return@combine null
-
-        when (params.txType) {
-            TransactionType.StakeWithdraw -> {
-                val balance = Crypto(delegation?.base?.balance?.toBigIntegerOrNull() ?: BigInteger.ZERO)
-                val value = balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString()
-                amount = value
-                value
-            }
-            TransactionType.StakeRewards -> {
-                val balance = Crypto(delegation?.rewardsBalance() ?: BigInteger.ZERO)
-                val value = balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString()
-                amount = value
-                value
-            }
-            else -> null
-        }
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val equivalentState = combine(
+    val amountEquivalent: StateFlow<String> = combine(
         snapshotFlow { amount },
         amountInputType,
-        assetInfo
-    ) { input, direction, assetInfo ->
-        val priceInfo = assetInfo?.price ?: return@combine ""
-        calcEquivalent(
-            inputAmount = input,
-            inputDirection = direction,
-            asset = assetInfo.asset,
-            price = priceInfo.price.price,
-            currency = priceInfo.currency
-        )
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+        provider.assetInfo,
+    ) { input, direction, current ->
+        val price = current?.price ?: return@combine ""
+        calculateEquivalent(input, direction, current.asset, price.price.price, price.currency)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
+    val currency: StateFlow<Currency> = provider.assetInfo
+        .mapLatest { it?.price?.currency ?: Currency.USD }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
 
     init {
         combine(
             snapshotFlow { amount },
             amountInputType,
-            assetInfo,
-            params,
-            combine(delegation, resource) { d, r -> d to r },
-        ) { input, inputType, asset, amountParams, (delegation, resource) ->
-            ValidationInputs(input, inputType, asset, amountParams, delegation, resource)
+            provider.assetInfo,
+            provider.availableBalance,
+        ) { input, type, current, balance ->
+            ValidationInputs(input, type, current?.asset, balance)
         }
-        .mapLatest { validate(it) }
-        .onEach { errorUIState.value = it }
-        .launchIn(viewModelScope)
-    }
+            .mapLatest { validate(it) }
+            .onEach { amountError.value = it }
+            .launchIn(viewModelScope)
 
-    private suspend fun validate(inputs: ValidationInputs): AmountError {
-        if (inputs.amount.isEmpty()) return AmountError.None
-        if (inputs.amount.parseNumberOrNull()?.signum() == 0) return AmountError.None
-        val assetInfo = inputs.assetInfo ?: return AmountError.None
-        return try {
-            val asset = assetInfo.asset
-            val price = assetInfo.price?.price?.price ?: 0.0
-            AmountValidation.validateAmount(asset, inputs.amount, getMinAmount(inputs.params.txType, asset.id.chain))
-            val cryptoAmount = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
-            checkBalance(assetInfo, inputs.params, inputs.delegation, inputs.resource, cryptoAmount)
-            AmountError.None
-        } catch (err: Throwable) {
-            err as? AmountError ?: AmountError.None
+        if (!provider.canChangeValue) {
+            provider.assetInfo.filterNotNull()
+                .combine(provider.availableBalance) { _, balance -> balance }
+                .onEach { onMaxAmount() }
+                .launchIn(viewModelScope)
         }
-    }
-
-    fun setDelegatorValidator(validatorId: String?) {
-        selectedValidatorId.update { validatorId }
     }
 
     fun updateAmount(input: String, isMax: Boolean = false) {
@@ -265,198 +111,91 @@ class AmountViewModel @Inject constructor(
     }
 
     fun onMaxAmount() = viewModelScope.launch {
-        val assetInfo = this@AmountViewModel.assetInfo.value ?: return@launch
-        val params = params.value
-        val txType = params.txType
-        val reserveForFee = getReserveForFee(txType = txType, assetInfo.asset.chain)
-        val baseBalance = transactionBalanceService.getBalance(
-            assetInfo = assetInfo,
-            params = params,
-            delegation = delegation.value,
-            resource = resource.value,
-        )
-
-        val balance = when (txType) {
-            TransactionType.EarnDeposit,
-            TransactionType.StakeDelegate -> if (assetInfo.stakeChain?.freezed() == true) {
-                Crypto(baseBalance)
-            } else {
-                Crypto(maxAmountAfterReserve(baseBalance, reserveForFee))
-            }
-            TransactionType.StakeFreeze -> Crypto(maxAmountAfterReserve(baseBalance, reserveForFee))
-            else -> Crypto(baseBalance)
+        val current = provider.assetInfo.value ?: return@launch
+        val balance = provider.availableBalance.value
+        val final = if (provider.shouldReserveFee(isMaxAmount = true)) {
+            (balance - provider.reserveForFee).max(BigInteger.ZERO)
+        } else {
+            balance
         }
-
-        updateAmount(balance.value(assetInfo.asset.decimals).stripTrailingZeros().toPlainString(), true)
+        updateAmount(Crypto(final).value(current.asset.decimals).stripTrailingZeros().toPlainString(), isMax = true)
     }
 
     fun switchInputType() {
-        amountInputType.update {
-            when (it) {
-                AmountInputType.Crypto -> AmountInputType.Fiat
-                AmountInputType.Fiat -> AmountInputType.Crypto
-            }
-        }
+        amountInputType.update { if (it == AmountInputType.Crypto) AmountInputType.Fiat else AmountInputType.Crypto }
         amount = ""
-    }
-
-    fun setResource(resource: Resource) {
-        this.resource.update { resource }
     }
 
     fun onNext(onConfirm: (ConfirmParams) -> Unit) {
         viewModelScope.launch {
             try {
-                onNext(params.value, amount, onConfirm)
+                val current = provider.assetInfo.value ?: return@launch
+                val asset = current.asset
+                AmountValidation.validateAmount(asset, amount, provider.minimumValue)
+                val price = current.price?.price?.price ?: 0.0
+                val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
+                val available = provider.availableBalance.value.toBigDecimal().movePointLeft(asset.decimals)
+                AmountValidation.validateBalance(current, crypto, available)
+                amountError.value = AmountError.None
+                val isMax = maxAmount.value || crypto.atomicValue == provider.availableBalance.value
+                onConfirm(provider.buildConfirmParams(crypto, isMax))
+            } catch (err: AmountError) {
+                amountError.value = err
             } catch (err: Throwable) {
-                when (err) {
-                    is AmountError -> errorUIState.update { err }
-                    else -> errorUIState.update { AmountError.Unknown(err.message ?: "Unknown error") }
-                }
+                amountError.value = AmountError.Unknown(err.message ?: "Unknown error")
             }
         }
     }
 
-    private suspend fun onNext(
-        params: AmountParams,
-        rawAmount: String,
-        onConfirm: (ConfirmParams) -> Unit
-    ) {
-        val assetInfo = assetInfo.value
-        val owner = assetInfo?.owner ?: return
-        val validator = validatorState.value
-        val delegation = delegation.value
-        val asset = assetInfo.asset
-        val decimals = asset.decimals
-        val price = assetInfo.price?.price?.price ?: 0.0
-        val destination = params.destination
-        val memo = params.memo
-        val inputType = amountInputType.value
-
-        val minimumValue = getMinAmount(params.txType, asset.id.chain)
-        AmountValidation.validateAmount(asset, rawAmount, minimumValue)
-
-        val amount = inputType.getAmount(rawAmount, decimals, price)
-        val balance = checkBalance(assetInfo, params, delegation, resource.value, amount)
-
-        errorUIState.update { AmountError.None }
-
-        val isMax = maxAmount.value || amount.atomicValue == balance
-        val builder = ConfirmParams.Builder(asset, owner, amount.atomicValue, isMax)
-        val nextParams = when (params.txType) {
-            TransactionType.Transfer -> builder.transfer(destination!!, memo)
-            TransactionType.EarnDeposit,
-            TransactionType.StakeDelegate -> builder.delegate(validator ?: return)
-            TransactionType.StakeUndelegate -> builder.undelegate(delegation ?: return)
-            TransactionType.StakeRewards -> builder.rewards(listOfNotNull(validator))
-            TransactionType.StakeRedelegate -> builder.redelegate(validator!!, delegation!!)
-            TransactionType.EarnWithdraw,
-            TransactionType.StakeWithdraw -> builder.withdraw(delegation!!)
-            TransactionType.AssetActivation -> builder.activate()
-            TransactionType.StakeFreeze -> builder.freeze(resource.value)
-            TransactionType.StakeUnfreeze -> builder.unfreeze(resource.value)
-            TransactionType.Swap,
-            TransactionType.TransferNFT,
-            TransactionType.SmartContractCall,
-            TransactionType.TokenApproval,
-            TransactionType.PerpetualOpenPosition,
-            TransactionType.PerpetualModifyPosition,
-            TransactionType.PerpetualClosePosition -> throw IllegalArgumentException()
+    private fun validate(inputs: ValidationInputs): AmountError {
+        if (inputs.amount.isEmpty()) return AmountError.None
+        if (inputs.amount.parseNumberOrNull()?.signum() == 0) return AmountError.None
+        val asset = inputs.asset ?: return AmountError.None
+        val current = provider.assetInfo.value ?: return AmountError.None
+        return try {
+            AmountValidation.validateAmount(asset, inputs.amount, provider.minimumValue)
+            val price = current.price?.price?.price ?: 0.0
+            val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
+            val available = inputs.availableBalance.toBigDecimal().movePointLeft(asset.decimals)
+            AmountValidation.validateBalance(current, crypto, available)
+            AmountError.None
+        } catch (err: Throwable) {
+            err as? AmountError ?: AmountError.None
         }
-        onConfirm(nextParams)
     }
 
-    private fun calcEquivalent(
-        inputAmount: String,
-        inputDirection: AmountInputType,
+    private fun calculateEquivalent(
+        input: String,
+        direction: AmountInputType,
         asset: Asset,
         price: Double,
-        currency: Currency
-    ): String {
-        return try {
-            when (inputDirection) {
-                AmountInputType.Crypto -> {
-                    AmountValidation.validateAmount(asset, inputAmount, BigInteger.ZERO)
-                    val amount = inputAmount.parseNumber()
-                    val decimals = asset.decimals
-                    val unit = Crypto(amount, decimals).convert(decimals, price)
-                    currency.format(unit.atomicValue)
-                }
-                AmountInputType.Fiat -> {
-                    val value = inputAmount.parseNumber()
-                    val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
-                    AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
-                    formatter.string(crypto, asset.symbol)
-                }
+        currency: Currency,
+    ): String = try {
+        when (direction) {
+            AmountInputType.Crypto -> {
+                AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
+                val parsed = input.parseNumber()
+                val unit = Crypto(parsed, asset.decimals).convert(asset.decimals, price)
+                currency.format(unit.atomicValue)
             }
-        } catch (_: Throwable) {
-            when (inputDirection) {
-                AmountInputType.Crypto -> {
-                    currency.format(0.0)
-                }
-                AmountInputType.Fiat -> {
-                    formatter.string(BigInteger.ZERO, asset)
-                }
+            AmountInputType.Fiat -> {
+                val value = input.parseNumber()
+                val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
+                AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
+                formatter.string(crypto, asset.symbol)
             }
         }
-    }
-
-    private suspend fun checkBalance(
-        assetInfo: AssetInfo,
-        params: AmountParams,
-        delegation: Delegation?,
-        resource: Resource?,
-        amount: Crypto,
-    ): BigInteger {
-        val balance = transactionBalanceService.getBalance(
-            assetInfo = assetInfo,
-            params = params,
-            delegation = delegation,
-            resource = resource,
-        )
-        val availableBalance = balance.toBigDecimal().movePointLeft(assetInfo.asset.decimals)
-        AmountValidation.validateBalance(assetInfo, amount, availableBalance)
-        return balance
-    }
-
-    private fun getMinAmount(txType: TransactionType, chain: Chain): BigInteger {
-        return when (txType) {
-            TransactionType.StakeRedelegate,
-            TransactionType.StakeFreeze,
-            TransactionType.StakeDelegate -> BigInteger.valueOf(
-                Config().getStakeConfig(chain.string).minAmount.toLong()
-            )
-            else -> BigInteger.ZERO
+    } catch (_: Throwable) {
+        when (direction) {
+            AmountInputType.Crypto -> currency.format(0.0)
+            AmountInputType.Fiat -> formatter.string(BigInteger.ZERO, asset)
         }
-    }
-
-    companion object {
-        fun maxAmountAfterReserve(balance: BigInteger, reserve: BigInteger): BigInteger =
-            maxOf(balance - reserve, BigInteger.ZERO)
-    }
-
-    private fun getReserveForFee(txType: TransactionType, chain: Chain) = when (txType) {
-        TransactionType.StakeFreeze -> BigInteger.valueOf(Config().getStakeConfig(chain.string).reservedForFees.toLong())
-        TransactionType.StakeDelegate -> when (chain) {
-            Chain.Tron -> BigInteger.ZERO
-            else -> BigInteger.valueOf(Config().getStakeConfig(chain.string).reservedForFees.toLong())
-        }
-        else -> BigInteger.ZERO
     }
 }
-
-private data class BalanceRequest(
-    val params: AmountParams,
-    val assetInfo: AssetInfo?,
-    val delegation: Delegation?,
-    val resource: Resource,
-)
 
 private data class ValidationInputs(
     val amount: String,
     val inputType: AmountInputType,
-    val assetInfo: AssetInfo?,
-    val params: AmountParams,
-    val delegation: Delegation?,
-    val resource: Resource,
+    val asset: Asset?,
+    val availableBalance: BigInteger,
 )

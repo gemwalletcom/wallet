@@ -3,7 +3,7 @@ package com.gemwallet.android.features.recipient.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.recipient.coordinators.GetRecipientAssetInfo
+import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.recipient.coordinators.GetWallets
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
@@ -54,7 +54,7 @@ import javax.inject.Inject
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
     private val getWallets: GetWallets,
-    private val getRecipientAssetInfo: GetRecipientAssetInfo,
+    private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
     private val validateAddressOperator: ValidateAddressOperator,
     savedStateHandle: SavedStateHandle
@@ -76,13 +76,12 @@ class RecipientViewModel @Inject constructor(
 
     private val nftAsset: Deferred<NFTAsset?> = viewModelScope.async(Dispatchers.IO, CoroutineStart.LAZY) {
         val id = nftAssetId ?: return@async null
-        val wallet = session.filterNotNull().first().wallet
         runCatching {
-            getAssetNft.getAssetNft(wallet.id, id).first().assets.firstOrNull()
+            getAssetNft.getAssetNft(id).first().assets.firstOrNull()
         }.getOrNull()
     }
 
-    val state: StateFlow<RecipientState> = getRecipientAssetInfo(assetId)
+    val state: StateFlow<RecipientState> = getAssetInfo(assetId)
         .filterNotNull()
         .map { assetInfo ->
             val type: RecipientType? = if (nftAssetId == null) {
@@ -169,7 +168,7 @@ class RecipientViewModel @Inject constructor(
         when (type) {
             is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
             is RecipientType.Asset -> amountAction(
-                AmountParams.buildTransfer(type.assetInfo.id(), destination, memo.value)
+                AmountParams.Transfer(type.assetInfo.id(), destination, memo.value)
             )
         }
     }

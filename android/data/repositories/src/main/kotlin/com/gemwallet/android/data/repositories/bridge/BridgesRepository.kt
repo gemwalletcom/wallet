@@ -218,12 +218,11 @@ class BridgesRepository(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        if (WalletKit.getSessionProposals().isEmpty()) {
+        val sessionProposal = getPendingSessionProposal(proposal)
+        if (sessionProposal == null) {
             onSuccess()
             return
         }
-        val proposalPublicKey = proposal.proposerPublicKey
-        val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WalletKit.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
         val supportedNamespaces = getSupportedNamespaces(wallet)
         val sessionNamespaces = WalletKit.generateApprovedNamespaces(
             sessionProposal = sessionProposal,
@@ -250,12 +249,11 @@ class BridgesRepository(
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        if (WalletKit.getSessionProposals().isEmpty()) {
+        val sessionProposal = getPendingSessionProposal(proposal)
+        if (sessionProposal == null) {
             onSuccess()
             return
         }
-        val proposalPublicKey = proposal.proposerPublicKey
-        val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(WalletKit.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
 
         WalletKit.rejectSession(
             params = Wallet.Params.SessionReject(
@@ -269,6 +267,11 @@ class BridgesRepository(
                 onError(it.throwable.message ?: "")
             },
         )
+    }
+
+    private fun getPendingSessionProposal(proposal: Wallet.Model.SessionProposal): Wallet.Model.SessionProposal? {
+        val proposalPublicKey = proposal.proposerPublicKey
+        return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposalPublicKey }
     }
 
     private suspend fun addConnection(wallet: com.wallet.core.primitives.Wallet, proposal: Wallet.Model.SessionProposal): Boolean {

@@ -85,18 +85,19 @@ struct AmountSceneViewModelTests {
             balance: .mock(frozen: 0, locked: 5_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .unfreeze(resource: .bandwidth),
+            type: .stake(.unfreeze(.bandwidth)),
             assetData: assetData,
         )
 
-        guard case let .freeze(freeze) = model.provider else { return }
+        guard case let .stake(stake) = model.provider,
+              case let .resource(resourceSelection) = stake.selection else { return }
 
-        freeze.resourceSelection.selected = .energy
+        resourceSelection.selected = .energy
         model.onChangeResource(.bandwidth, .energy)
         model.amountInputModel.update(text: "2.0")
         #expect(model.amountInputModel.isValid == true)
 
-        freeze.resourceSelection.selected = .bandwidth
+        resourceSelection.selected = .bandwidth
         model.onChangeResource(.energy, .bandwidth)
         model.amountInputModel.update(text: "2.0")
         #expect(model.amountInputModel.isValid == false)

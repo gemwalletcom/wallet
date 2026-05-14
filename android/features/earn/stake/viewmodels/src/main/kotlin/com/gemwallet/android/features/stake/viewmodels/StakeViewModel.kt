@@ -29,7 +29,6 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.stake.models.StakeAction
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
-import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.isViewOnly
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -182,10 +181,7 @@ class StakeViewModel @Inject constructor(
             )
         } else {
             onAmount(
-                AmountParams.buildStake(
-                    assetId = assetInfo.asset.id,
-                    txType = TransactionType.StakeRewards,
-                )
+                AmountParams.Stake.Rewards(assetInfo.asset.id)
             )
         }
     }

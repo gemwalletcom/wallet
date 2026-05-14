@@ -61,13 +61,14 @@ struct AmountNavigationView: View {
                 }
             }
             .navigationDestination(for: DelegationValidator.self) { validator in
-                if case let .stake(stake) = model.provider {
+                if case let .stake(stake) = model.provider,
+                   case let .validator(validatorSelection) = stake.selection {
                     ValidatorSelectScene(
                         model: ValidatorSelectSceneViewModel(
                             type: stake.validatorSelectType,
                             chain: model.asset.chain,
                             currentValidator: validator,
-                            validators: stake.validatorSelection.options,
+                            validators: validatorSelection.options,
                             selectValidator: model.onValidatorSelected,
                         ),
                     )

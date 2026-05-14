@@ -118,9 +118,11 @@ object PerpetualModule {
     @Singleton
     fun provideGetPerpetualBalance(
         perpetualRepository: PerpetualRepository,
+        sessionRepository: SessionRepository,
     ): GetPerpetualBalance {
         return GetPerpetualBalanceImpl(
             perpetualRepository = perpetualRepository,
+            sessionRepository = sessionRepository,
         )
     }
 

@@ -27,7 +27,6 @@ import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
 import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
-import com.gemwallet.android.ui.navigation.routes.PerpetualAmountRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
@@ -197,7 +196,7 @@ class WalletNavigatorTest {
             WalletPhraseRoute(walletId, WalletType.Multicoin),
             RecipientInputRoute(assetId, nftAssetId = null),
             AmountRoute("amount"),
-            PerpetualAmountRoute("perpetual"),
+            AmountRoute("perpetual"),
             ConfirmRoute("confirm"),
         ).dropNonRestorableRoutes(WalletRootRoute)
 

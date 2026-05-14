@@ -5,67 +5,108 @@ import com.gemwallet.android.ext.urlEncode
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Base64
 
 @Serializable
-data class AmountParams(
-    val assetId: AssetId,
-    val txType: TransactionType,
-    val destination: DestinationAddress? = null,
-    val memo: String? = null,
-    val validatorId: String? = null, // TODO: Separate to special subtype
-    val delegationId: String? = null, // TODO: Separate to special subtype
-    val perpetualId: String? = null, // TODO: Separate to special subtype
-    val perpetualDirection: PerpetualDirection? = null, // TODO: Separate to special subtype
-) {
+sealed interface AmountParams {
+    val assetId: AssetId
+    val transactionType: TransactionType
 
-    fun pack(): String? {
+    fun pack(): String? = runCatching {
         val json = jsonEncoder.encodeToString(this)
-        return Base64.getEncoder().encodeToString(json.toByteArray()).urlEncode()
+        Base64.getEncoder().encodeToString(json.toByteArray()).urlEncode()
+    }.getOrNull()
+
+    @Serializable
+    @SerialName("transfer")
+    data class Transfer(
+        override val assetId: AssetId,
+        val destination: DestinationAddress,
+        val memo: String? = null,
+    ) : AmountParams {
+        override val transactionType: TransactionType get() = TransactionType.Transfer
+    }
+
+    @Serializable
+    sealed interface Stake : AmountParams {
+
+        @Serializable @SerialName("stake.delegate")
+        data class Delegate(
+            override val assetId: AssetId,
+            val validatorId: String? = null,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeDelegate
+        }
+
+        @Serializable @SerialName("stake.undelegate")
+        data class Undelegate(
+            override val assetId: AssetId,
+            val validatorId: String,
+            val delegationId: String,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeUndelegate
+        }
+
+        @Serializable @SerialName("stake.redelegate")
+        data class Redelegate(
+            override val assetId: AssetId,
+            val validatorId: String,
+            val delegationId: String,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeRedelegate
+        }
+
+        @Serializable @SerialName("stake.withdraw")
+        data class Withdraw(
+            override val assetId: AssetId,
+            val validatorId: String,
+            val delegationId: String,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeWithdraw
+        }
+
+        @Serializable @SerialName("stake.rewards")
+        data class Rewards(
+            override val assetId: AssetId,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeRewards
+        }
+
+        @Serializable @SerialName("stake.freeze")
+        data class Freeze(
+            override val assetId: AssetId,
+            val resource: Resource,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeFreeze
+        }
+
+        @Serializable @SerialName("stake.unfreeze")
+        data class Unfreeze(
+            override val assetId: AssetId,
+            val resource: Resource,
+        ) : Stake {
+            override val transactionType: TransactionType get() = TransactionType.StakeUnfreeze
+        }
+    }
+
+    @Serializable
+    @SerialName("perpetual")
+    data class Perpetual(
+        override val assetId: AssetId,
+        val perpetualId: String,
+        val direction: PerpetualDirection,
+    ) : AmountParams {
+        override val transactionType: TransactionType get() = TransactionType.PerpetualOpenPosition
     }
 
     companion object {
-        fun unpack(input: String): AmountParams? {
-            return runCatching {
-                val json = String(Base64.getDecoder().decode(input.urlDecode()))
-                jsonEncoder.decodeFromString<AmountParams>(json)
-            }.getOrNull()
-        }
-
-        fun buildTransfer(
-            assetId: AssetId,
-            destination: DestinationAddress?,
-            memo: String,
-        ): AmountParams = AmountParams(
-            assetId = assetId,
-            txType = TransactionType.Transfer,
-            destination = destination,
-            memo = memo,
-        )
-
-        fun buildStake(
-            assetId: AssetId,
-            txType: TransactionType,
-            validatorId: String? = null,
-            delegationId: String? = null,
-        ): AmountParams = AmountParams(
-            assetId = assetId,
-            txType = txType,
-            delegationId = delegationId,
-            validatorId = validatorId,
-        )
-
-        fun buildPerpetualOpenPosition(
-            assetId: AssetId,
-            perpetualId: String,
-            direction: PerpetualDirection,
-        ): AmountParams = AmountParams(
-            assetId = assetId,
-            txType = TransactionType.PerpetualOpenPosition,
-            perpetualId = perpetualId,
-            perpetualDirection = direction,
-        )
+        fun unpack(input: String): AmountParams? = runCatching {
+            val json = String(Base64.getDecoder().decode(input.urlDecode()))
+            jsonEncoder.decodeFromString<AmountParams>(json)
+        }.getOrNull()
     }
 }

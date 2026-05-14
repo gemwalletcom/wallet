@@ -7,17 +7,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
+import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountStakeProvider
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.TransactionType
 
 @Composable
 fun AmountScreen(
@@ -25,77 +21,64 @@ fun AmountScreen(
     onConfirm: (ConfirmParams) -> Unit,
     viewModel: AmountViewModel = hiltViewModel(),
 ) {
-    val params by viewModel.params.collectAsStateWithLifecycle()
-    val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
-    val validatorState by viewModel.validatorState.collectAsStateWithLifecycle()
-    val error by viewModel.errorUIState.collectAsStateWithLifecycle()
-    val equivalent by viewModel.equivalentState.collectAsStateWithLifecycle()
-    val availableBalance by viewModel.availableBalance.collectAsStateWithLifecycle()
-    val reserveForFee by viewModel.reserveForFee.collectAsStateWithLifecycle()
-    val amountPrefill by viewModel.prefillAmount.collectAsStateWithLifecycle()
-    val amountInputType by viewModel.amountInputType.collectAsStateWithLifecycle()
-    val resources by viewModel.resource.collectAsStateWithLifecycle()
-
-    var isSelectValidator by remember {
-        mutableStateOf(false)
-    }
-
-    BackHandler(isSelectValidator) {
-        isSelectValidator = false
-    }
-
-    if (assetInfo == null) {
-        LoadingScene(stringResource(id = R.string.transfer_amount_title), onCancel)
+    val provider = viewModel.provider
+    val title = provider.title.asString()
+    val assetInfo = provider.assetInfo.collectAsStateWithLifecycle().value ?: run {
+        LoadingScene(title, onCancel)
         return
     }
 
+    var isSelectValidator by remember { mutableStateOf(false) }
+    val canPickValidator = provider is AmountStakeProvider &&
+        provider.canSelectValidator.collectAsStateWithLifecycle().value
+    BackHandler(isSelectValidator && canPickValidator) { isSelectValidator = false }
+
+    val amountInputType by viewModel.amountInputType.collectAsStateWithLifecycle()
+    val error by viewModel.amountError.collectAsStateWithLifecycle()
+    val equivalent by viewModel.amountEquivalent.collectAsStateWithLifecycle()
+    val available by viewModel.availableBalanceFormatted.collectAsStateWithLifecycle()
+    val reserve by viewModel.reserveForFeeFormatted.collectAsStateWithLifecycle()
+    val currency by viewModel.currency.collectAsStateWithLifecycle()
+
     AnimatedContent(
-        isSelectValidator,
-        transitionSpec = {
-            navigationSlideTransition(forward = targetState)
-        },
-        label = "stake"
-    ) { state ->
-        when (state) {
-            true -> {
-                val asset = assetInfo?.asset ?: return@AnimatedContent
-                val source = when (params.txType) {
-                    TransactionType.StakeRewards -> ValidatorsSource.Rewards(
-                        assetId = asset.id,
-                        owner = assetInfo?.owner?.address ?: return@AnimatedContent,
-                    )
-                    else -> ValidatorsSource.ChainValidators(chain = asset.id.chain)
-                }
+        isSelectValidator && canPickValidator,
+        transitionSpec = { navigationSlideTransition(forward = targetState) },
+        label = "amount-validator-pick",
+    ) { showingPicker ->
+        if (showingPicker && provider is AmountStakeProvider) {
+            val validator by provider.validatorState.collectAsStateWithLifecycle()
+            val source by provider.validatorSource.collectAsStateWithLifecycle()
+            source?.let { resolved ->
                 ValidatorsScreen(
-                    source = source,
-                    selectedValidatorId = validatorState?.id ?: "",
+                    source = resolved,
+                    selectedValidatorId = validator?.id.orEmpty(),
                     onCancel = { isSelectValidator = false },
                     onSelect = {
+                        provider.selectValidator(it)
                         isSelectValidator = false
-                        viewModel.setDelegatorValidator(it)
-                    }
+                    },
                 )
             }
-            false -> AmountScene(
+        } else {
+            AmountScene(
+                title = title,
                 amount = viewModel.amount,
-                amountPrefill = amountPrefill,
-                asset = assetInfo?.asset ?: return@AnimatedContent,
-                currency = assetInfo?.price?.currency ?: Currency.USD,
                 amountInputType = amountInputType,
-                txType = params.txType,
-                validatorState = validatorState,
+                asset = assetInfo.asset,
+                currency = currency,
+                canSwitchInputType = provider.canSwitchInputType,
+                readOnly = !provider.canChangeValue,
+                showsAssetBalance = provider.showsAssetBalance,
                 error = error,
                 equivalent = equivalent,
-                availableBalance = availableBalance,
-                reserveForFee = reserveForFee,
-                resource = resources,
+                availableBalance = available,
+                reserveForFee = reserve,
                 onNext = { viewModel.onNext(onConfirm) },
                 onInputAmount = viewModel::updateAmount,
-                onMaxAmount = viewModel::onMaxAmount,
                 onInputTypeClick = viewModel::switchInputType,
+                onMaxAmount = viewModel::onMaxAmount,
                 onCancel = onCancel,
-                onResourceSelect = viewModel::setResource,
-                onValidator = { isSelectValidator = !isSelectValidator },
+                additionParams = { ProviderExtras(provider, onPickValidator = { isSelectValidator = true }) },
             )
         }
     }

@@ -1,9 +1,9 @@
-package com.gemwallet.android.application.recipient.coordinators
+package com.gemwallet.android.application.assets.coordinators
 
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.flow.Flow
 
-interface GetRecipientAssetInfo {
+interface GetAssetInfo {
     operator fun invoke(assetId: AssetId): Flow<AssetInfo?>
 }

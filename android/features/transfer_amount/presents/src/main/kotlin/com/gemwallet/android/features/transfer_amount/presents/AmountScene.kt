@@ -22,6 +22,8 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getIconUrl
+import com.gemwallet.android.features.transfer_amount.models.AmountError
+import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoButton
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -35,28 +37,19 @@ import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
-import com.gemwallet.android.features.transfer_amount.presents.components.resourceSelect
-import com.gemwallet.android.features.transfer_amount.presents.components.transactionTypeTitle
-import com.gemwallet.android.features.transfer_amount.presents.components.validatorView
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.DelegationValidator
-import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.TransactionType
 
 @Composable
 fun AmountScene(
-    txType: TransactionType,
-    title: String = transactionTypeTitle(txType),
+    title: String,
     amount: String,
-    amountPrefill: String? = null,
     amountInputType: AmountInputType,
     asset: Asset,
     currency: Currency,
-    validatorState: DelegationValidator? = null,
-    resource: Resource = Resource.Bandwidth,
+    canSwitchInputType: Boolean,
+    readOnly: Boolean,
+    showsAssetBalance: Boolean,
     error: AmountError,
     equivalent: String,
     availableBalance: String,
@@ -66,8 +59,6 @@ fun AmountScene(
     onInputTypeClick: () -> Unit,
     onMaxAmount: () -> Unit,
     onCancel: () -> Unit,
-    onResourceSelect: (Resource) -> Unit = {},
-    onValidator: () -> Unit = {},
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -89,41 +80,39 @@ fun AmountScene(
             }
         },
         actions = {
-            TextButton(onClick = onNext,
-                colors = ButtonDefaults.textButtonColors()
-                    .copy(contentColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text(stringResource(R.string.common_continue).uppercase())
-            }
-        }
+            TextButton(
+                onClick = onNext,
+                colors = ButtonDefaults.textButtonColors().copy(contentColor = MaterialTheme.colorScheme.primary),
+            ) { Text(stringResource(R.string.common_continue).uppercase()) }
+        },
     ) {
         LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
             item {
                 Spacer16()
                 AmountField(
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-                    amount = amountPrefill ?: amount,
+                    amount = amount,
                     assetSymbol = asset.symbol,
                     currency = currency,
                     inputType = amountInputType,
-                    onInputTypeClick = if (txType.canSwitchAmountInputTypeOnAmountScreen()) onInputTypeClick else null,
+                    onInputTypeClick = if (canSwitchInputType) onInputTypeClick else null,
                     equivalent = equivalent,
-                    readOnly = !amountPrefill.isNullOrEmpty(),
+                    readOnly = readOnly,
                     error = amountErrorString(error = error),
                     onValueChange = onInputAmount,
-                    onNext = onNext
+                    onNext = onNext,
                 )
             }
-            item {
-                PropertyAssetInfoItem(
-                    asset = asset,
-                    availableAmount = availableBalance,
-                    onMaxAmount = onMaxAmount
-                )
+            if (showsAssetBalance) {
+                item {
+                    PropertyAssetInfoItem(
+                        asset = asset,
+                        availableAmount = availableBalance,
+                        onMaxAmount = onMaxAmount,
+                    )
+                }
             }
-            item {
-                additionParams?.invoke()
-            }
+            item { additionParams?.invoke() }
             reserveForFee?.let {
                 item {
                     Row(
@@ -132,25 +121,14 @@ fun AmountScene(
                         horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     ) {
                         InfoButton(InfoSheetEntity.ReserveForFee(asset.getIconUrl()))
-                        Text(
-                            text = stringResource(R.string.transfer_reserved_fees, it)
-                        )
+                        Text(text = stringResource(R.string.transfer_reserved_fees, it))
                     }
-
                 }
             }
-            validatorView(txType, validatorState, onValidator)
-            resourceSelect(txType, resource, onResourceSelect)
         }
     }
 
     LaunchedEffect(Unit) {
-        try {
-            focusRequester.requestFocus()
-        } catch (_: Throwable) {}
+        try { focusRequester.requestFocus() } catch (_: Throwable) {}
     }
-}
-
-internal fun TransactionType.canSwitchAmountInputTypeOnAmountScreen(): Boolean {
-    return this == TransactionType.Transfer
 }

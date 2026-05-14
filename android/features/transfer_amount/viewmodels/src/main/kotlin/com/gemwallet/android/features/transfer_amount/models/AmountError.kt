@@ -20,4 +20,8 @@ sealed class AmountError : Exception() {
     object IncorrectAddress : AmountError()
 
     class Unknown(val data: String) : AmountError()
+
+    object NoValidatorSelected : AmountError()
+
+    object NoDelegationSelected : AmountError()
 }

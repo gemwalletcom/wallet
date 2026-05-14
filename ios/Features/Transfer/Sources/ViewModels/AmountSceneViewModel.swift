@@ -197,8 +197,9 @@ extension AmountSceneViewModel {
     }
 
     public func onValidatorSelected(_ validator: DelegationValidator) {
-        guard case let .stake(stake) = provider else { return }
-        stake.validatorSelection.selected = validator
+        guard case let .stake(stake) = provider,
+              case let .validator(state) = stake.selection else { return }
+        state.selected = validator
         if !canChangeValue {
             setMax()
         }

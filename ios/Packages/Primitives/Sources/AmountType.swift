@@ -2,21 +2,21 @@
 
 import Foundation
 
-public enum StakeAmountType: Equatable, Hashable, Sendable {
+public enum AmountStakeType: Equatable, Hashable, Sendable {
     case stake(validators: [DelegationValidator], recommended: DelegationValidator?)
     case unstake(Delegation)
     case redelegate(Delegation, validators: [DelegationValidator], recommended: DelegationValidator?)
     case withdraw(Delegation)
     case claimRewards(delegations: [Delegation])
+    case freeze(Resource)
+    case unfreeze(Resource)
 }
 
 public enum AmountType: Equatable, Hashable, Sendable {
     case transfer(recipient: RecipientData)
     case deposit(recipient: RecipientData)
     case withdraw(recipient: RecipientData)
-    case stake(StakeAmountType)
-    case freeze(resource: Resource)
-    case unfreeze(resource: Resource)
+    case stake(AmountStakeType)
     case perpetual(PerpetualRecipientData)
     case earn(EarnType)
 }

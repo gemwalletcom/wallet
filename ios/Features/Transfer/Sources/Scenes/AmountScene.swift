@@ -61,30 +61,33 @@ public struct AmountScene: View {
 
             switch model.provider {
             case let .stake(stake):
-                Section(stake.validatorSelection.title) {
-                    if stake.validatorSelection.isEnabled {
-                        NavigationLink(value: stake.validatorSelection.selected) {
-                            ValidatorView(model: ValidatorViewModel(validator: stake.validatorSelection.selected))
+                switch stake.selection {
+                case let .validator(validatorSelection):
+                    Section(validatorSelection.title) {
+                        if validatorSelection.isEnabled {
+                            NavigationLink(value: validatorSelection.selected) {
+                                ValidatorView(model: ValidatorViewModel(validator: validatorSelection.selected))
+                            }
+                        } else {
+                            ValidatorView(model: ValidatorViewModel(validator: validatorSelection.selected))
                         }
-                    } else {
-                        ValidatorView(model: ValidatorViewModel(validator: stake.validatorSelection.selected))
                     }
-                }
 
-            case let .freeze(freeze):
-                @Bindable var resourceSelection = freeze.resourceSelection
-                Section {
-                    Picker("", selection: $resourceSelection.selected) {
-                        ForEach(resourceSelection.options) { resource in
-                            Text(ResourceViewModel(resource: resource).title)
-                                .tag(resource)
+                case let .resource(resourceSelection):
+                    @Bindable var resourceSelection = resourceSelection
+                    Section {
+                        Picker("", selection: $resourceSelection.selected) {
+                            ForEach(resourceSelection.options) { resource in
+                                Text(ResourceViewModel(resource: resource).title)
+                                    .tag(resource)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .frame(width: 200)
+                        .onChange(of: resourceSelection.selected, model.onChangeResource)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 200)
-                    .onChange(of: resourceSelection.selected, model.onChangeResource)
+                    .cleanListRow()
                 }
-                .cleanListRow()
 
             case let .perpetual(perpetual):
                 if let leverageSelection = perpetual.leverageSelection {
