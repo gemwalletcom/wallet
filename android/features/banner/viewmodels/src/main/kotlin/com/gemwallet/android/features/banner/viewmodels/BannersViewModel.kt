@@ -35,7 +35,7 @@ class BannersViewModel @Inject constructor(
         asset ?: return ""
         val value = asset.id.chain.getReserveBalance()
         if (value == BigInteger.ZERO) return ""
-        return ValueFormatter(style = ValueFormatter.Style.Full).string(value, asset)
+        return ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset)
     }
 
     fun onCancel(banner: Banner) = viewModelScope.launch {

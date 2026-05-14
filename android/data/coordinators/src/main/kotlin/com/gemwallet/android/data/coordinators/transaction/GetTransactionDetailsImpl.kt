@@ -134,6 +134,8 @@ class TransactionDetailsAggregateImpl(
                         currency.format(value.convert(asset.decimals, it).atomicValue, dynamicPlace = true)
                     } ?: ""
 
+                    val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+
                     val (amount, equivalent) = when (data.transaction.type) {
                         TransactionType.StakeDelegate,
                         TransactionType.StakeUndelegate,
@@ -144,11 +146,18 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.EarnDeposit,
                         TransactionType.Swap,
                         TransactionType.StakeFreeze,
-                        TransactionType.StakeUnfreeze,
-                        TransactionType.Transfer -> Pair(
-                            ValueFormatter(style = ValueFormatter.Style.Full).string(value.atomicValue, asset),
-                            fiat,
-                        )
+                        TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
+                        TransactionType.Transfer -> {
+                            val amount = formatter.string(value.atomicValue, asset)
+                            Pair(
+                                when (data.transaction.direction) {
+                                    TransactionDirection.Incoming -> "+$amount"
+                                    TransactionDirection.Outgoing -> "-$amount"
+                                    TransactionDirection.SelfTransfer -> amount
+                                },
+                                fiat,
+                            )
+                        }
                         TransactionType.TransferNFT,
                         TransactionType.AssetActivation,
                         TransactionType.SmartContractCall,

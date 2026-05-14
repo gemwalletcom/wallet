@@ -211,7 +211,7 @@ class ConfirmViewModel @Inject constructor(
             return@combine ""
         }
         val feeAmount = Crypto(amount)
-        formatter.string(feeAmount.atomicValue, feeAssetInfo.asset)
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(feeAmount.atomicValue, feeAssetInfo.asset)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
