@@ -42,11 +42,11 @@ class ValidateBalanceImpl : ValidateBalance {
             TransactionType.StakeWithdraw,
             TransactionType.EarnWithdraw,
             TransactionType.StakeUnfreeze,
-            TransactionType.TransferNFT -> amount
-            TransactionType.SmartContractCall,
+            TransactionType.TransferNFT,
             TransactionType.PerpetualOpenPosition,
             TransactionType.PerpetualClosePosition,
-            TransactionType.PerpetualModifyPosition -> TODO()
+            TransactionType.PerpetualModifyPosition -> amount
+            TransactionType.SmartContractCall -> TODO()
         }
 
         if (assetBalance < totalAmount) {
