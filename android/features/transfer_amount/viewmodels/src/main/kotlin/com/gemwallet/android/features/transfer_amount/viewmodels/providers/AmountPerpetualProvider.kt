@@ -9,6 +9,7 @@ import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
 import com.gemwallet.android.domains.perpetual.getLeverage
 import com.gemwallet.android.domains.perpetual.perpetualLeverageOptions
 import com.gemwallet.android.ext.HypercoreUSDC
+import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
@@ -39,7 +40,6 @@ class AmountPerpetualProvider(
     override val title: AmountTitle = AmountTitle.Perpetual(params.direction)
     override val canChangeValue: Boolean = true
     override val canSwitchInputType: Boolean = false
-    override val minimumValue: BigInteger = BigInteger.ZERO
     override val reserveForFee: BigInteger = BigInteger.ZERO
 
     private val perpetual = getPerpetual.getPerpetual(params.perpetualId)
@@ -61,6 +61,20 @@ class AmountPerpetualProvider(
     }.stateIn(scope, SharingStarted.Eagerly, LeverageState(0, emptyList(), params.direction))
 
     fun setLeverage(value: Int) { userSelectedLeverage.value = value }
+
+    override val minimumValue: StateFlow<BigInteger> = combine(
+        perpetual.filterNotNull(),
+        leverageState,
+    ) { current, state ->
+        BigInteger.valueOf(
+            PerpetualFormatter.minimumOrderUsdAmount(
+                provider = current.provider,
+                price = current.price,
+                decimals = current.asset.decimals,
+                leverage = state.current,
+            ).toLong()
+        )
+    }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
 
     override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
