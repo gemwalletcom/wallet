@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.perpetual.views.models
+package com.gemwallet.android.ui.components.perpetual
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,4 +18,3 @@ fun PerpetualDirection.color(): Color = when (this) {
     PerpetualDirection.Short -> MaterialTheme.colorScheme.error
     PerpetualDirection.Long -> MaterialTheme.colorScheme.tertiary
 }
-

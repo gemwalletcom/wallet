@@ -4,7 +4,10 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
+import com.gemwallet.android.domains.perpetual.getLeverage
+import com.gemwallet.android.domains.perpetual.perpetualLeverageOptions
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
@@ -22,7 +25,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
-import kotlin.math.min
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(
@@ -45,19 +47,20 @@ class AmountPerpetualProvider(
 
     private val userSelectedLeverage = MutableStateFlow<Int?>(null)
 
-    val leverage: StateFlow<Int> = combine(
+    val leverageState: StateFlow<LeverageState> = combine(
         perpetual.filterNotNull(),
         userConfig.perpetualLeverage(),
         userSelectedLeverage,
     ) { current, preferred, override ->
-        min(override ?: preferred, current.maxLeverage)
-    }.stateIn(scope, SharingStarted.Eagerly, 0)
+        val options = perpetualLeverageOptions.filter { it <= current.maxLeverage }
+        LeverageState(
+            current = getLeverage(desired = override ?: preferred, from = options),
+            options = options,
+            direction = params.direction,
+        )
+    }.stateIn(scope, SharingStarted.Eagerly, LeverageState(0, emptyList(), params.direction))
 
     fun setLeverage(value: Int) { userSelectedLeverage.value = value }
-
-    val availableLeverages: StateFlow<List<Int>> = perpetual.filterNotNull().map { current ->
-        UserConfig.PERPETUAL_LEVERAGE_OPTIONS.filter { it <= current.maxLeverage }
-    }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override val assetInfo: StateFlow<AssetInfo?> = perpetual.filterNotNull()
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
@@ -79,7 +82,7 @@ class AmountPerpetualProvider(
             positionAction = params.positionAction,
             usdcAmount = amount.atomicValue,
             usdcDecimals = current.asset.decimals,
-            leverage = leverage.value.toUByte(),
+            leverage = leverageState.value.current.toUByte(),
         )
         return ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
             .perpetual(perpetualType)
