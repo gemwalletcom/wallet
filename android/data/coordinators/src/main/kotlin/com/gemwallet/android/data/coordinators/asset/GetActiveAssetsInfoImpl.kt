@@ -5,13 +5,13 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetPriceDataAggregate
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.compactFormatter
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
-import com.gemwallet.android.model.shouldUseCompactFormatter
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.math.BigDecimal
 
 class GetActiveAssetsInfoImpl(
     private val assetsRepository: AssetsRepository,
@@ -32,15 +32,9 @@ internal fun AssetInfo.toAssetInfoDataAggregate(
     val assetBalance = balance
     val formattedBalance = if (hideBalance) {
         "*****"
-    } else if (shouldUseCompactFormatter(assetBalance.totalAmount)) {
-        asset.compactFormatter(value = assetBalance.totalAmount)
     } else {
-        asset.format(
-            humanAmount = assetBalance.totalAmount,
-            decimalPlace = 2,
-            maxDecimals = 4,
-            dynamicPlace = true,
-        )
+        ValueFormatter(style = ValueFormatter.Style.Short)
+            .string(BigDecimal.valueOf(assetBalance.totalAmount), asset.symbol)
     }
     val balanceEquivalent = if (hideBalance) {
         "*****"

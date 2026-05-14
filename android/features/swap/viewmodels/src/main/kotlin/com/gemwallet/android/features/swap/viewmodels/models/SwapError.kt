@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError.IncorrectInput
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError.InputAmountTooSmall
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError.NoAvailableProvider
@@ -30,7 +30,7 @@ sealed class SwapError : Throwable() {
 
         fun getFormattedValue(asset: Asset): String = try {
             val value = minAmount ?: throw IllegalArgumentException()
-            asset.format(BigInteger(value), 2, dynamicPlace = true)
+            ValueFormatter(style = ValueFormatter.Style.Full).string(BigInteger(value), asset)
         } catch (_: Throwable) {
             null
         } ?: ""

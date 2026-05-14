@@ -3,7 +3,7 @@ package com.gemwallet.android.domains.asset
 import android.text.format.DateUtils
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.availableFormatted
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
@@ -37,7 +37,8 @@ val AssetInfo.availableBalance: String  // TODO: Out to BalanceExt
         .stripTrailingZeros().toPlainString()
 
 val AssetInfo.availableBalanceFormatted: String // TODO: Out to BalanceExt
-    get() = balance.availableFormatted(4, dynamicPlace = true)
+    get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+        .string(balance.balance.available.toBigInteger(), balance.asset)
 
 
 fun AssetInfo.calculateFiat(rawInput: String): BigDecimal {

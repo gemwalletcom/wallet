@@ -16,8 +16,6 @@ data class BuyFiatProviderUIModel(
     val fiatFormatted: String,
     val rate: String,
 ) : CryptoFormattedUIModel {
-    override val fraction: Int = 6
-    override val maxFraction: Int = -1
 
     override val cryptoFormatted: String
         get() = "≈ ${super.cryptoFormatted}"

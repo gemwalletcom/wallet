@@ -22,7 +22,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -117,12 +117,8 @@ class StakeViewModel @Inject constructor(
                 .takeIf { assetInfo.chain.canClaimRewards && rewardsBalance > BigInteger.ZERO }
                 ?.let {
                     StakeAction.Rewards(
-                        data = assetInfo.asset.format(
-                            crypto = Crypto(rewardsBalance),
-                            decimalPlace = 2,
-                            maxDecimals = assetInfo.asset.decimals,
-                            dynamicPlace = true,
-                        ),
+                        data = ValueFormatter(style = ValueFormatter.Style.Full)
+                            .string(rewardsBalance, assetInfo.asset),
                     )
                 },
         )

@@ -17,6 +17,7 @@ import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.domains.asset.chain
 import com.wallet.core.primitives.AddressType
@@ -144,7 +145,10 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.Swap,
                         TransactionType.StakeFreeze,
                         TransactionType.StakeUnfreeze,
-                        TransactionType.Transfer -> Pair(asset.format(value), fiat)
+                        TransactionType.Transfer -> Pair(
+                            ValueFormatter(style = ValueFormatter.Style.Full).string(value.atomicValue, asset),
+                            fiat,
+                        )
                         TransactionType.TransferNFT,
                         TransactionType.AssetActivation,
                         TransactionType.SmartContractCall,
@@ -161,7 +165,8 @@ class TransactionDetailsAggregateImpl(
     override val fee: TransactionDetailsValue.Fee
         get() {
             val fee = Crypto(data.transaction.fee.toBigInteger())
-            val feeCrypto = data.feeAsset.format(fee)
+            val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
+                .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
                 currency.format(fee.convert(data.feeAsset.decimals, it).atomicValue, dynamicPlace = true)
             } ?: ""

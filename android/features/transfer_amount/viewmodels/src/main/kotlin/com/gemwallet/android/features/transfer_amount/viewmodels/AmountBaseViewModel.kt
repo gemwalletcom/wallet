@@ -12,6 +12,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.features.transfer_amount.models.AmountError
@@ -34,6 +35,8 @@ import java.math.MathContext
 abstract class AmountBaseViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+
     val params = MutableStateFlow(savedStateHandle.requireAmountParams())
 
     val txType = params.mapLatest { it.txType }
@@ -130,7 +133,7 @@ abstract class AmountBaseViewModel(
                     val value = inputAmount.parseNumber()
                     val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
                     AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
-                    asset.format(crypto, dynamicPlace = true)
+                    formatter.string(crypto, asset.symbol)
                 }
             }
         } catch (_: Throwable) {
@@ -139,7 +142,7 @@ abstract class AmountBaseViewModel(
                     currency.format(0.0)
                 }
                 AmountInputType.Fiat -> {
-                    asset.format(Crypto(BigInteger.ZERO), dynamicPlace = true)
+                    formatter.string(BigInteger.ZERO, asset)
                 }
             }
         }

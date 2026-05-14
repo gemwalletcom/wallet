@@ -23,6 +23,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.features.transfer_amount.models.AmountError
@@ -65,6 +66,8 @@ class AmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+
     val params = MutableStateFlow(savedStateHandle.requireAmountParams())
 
     var amount by mutableStateOf("")
@@ -92,7 +95,7 @@ class AmountViewModel @Inject constructor(
         if (value == BigInteger.ZERO) {
             return@combine null
         }
-        assetInfo.asset.format(value, decimalPlace = 4)
+        formatter.string(value, assetInfo.asset)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -176,7 +179,7 @@ class AmountViewModel @Inject constructor(
                 context = balanceContext ?: TransactionBalanceContext(),
             )
         )
-        assetInfo.asset.format(value, 8)
+        formatter.string(value.atomicValue, assetInfo.asset)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
@@ -383,7 +386,7 @@ class AmountViewModel @Inject constructor(
                     val value = inputAmount.parseNumber()
                     val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
                     AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
-                    asset.format(crypto, dynamicPlace = true)
+                    formatter.string(crypto, asset.symbol)
                 }
             }
         } catch (_: Throwable) {
@@ -392,7 +395,7 @@ class AmountViewModel @Inject constructor(
                     currency.format(0.0)
                 }
                 AmountInputType.Fiat -> {
-                    asset.format(Crypto(BigInteger.ZERO), dynamicPlace = true)
+                    formatter.string(BigInteger.ZERO, asset)
                 }
             }
         }

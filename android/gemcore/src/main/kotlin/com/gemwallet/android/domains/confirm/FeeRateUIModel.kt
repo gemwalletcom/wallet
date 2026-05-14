@@ -2,7 +2,7 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.SignMode
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.FeePriority
 import com.gemwallet.android.ext.gasPriceDecimals
@@ -59,6 +59,7 @@ data class FeeRateUIModel(
         val unit = feeUnitType ?: return ""
         val decimals = unit.gasPriceDecimals ?: return ""
         val symbol = unit.gasPriceSymbol ?: return ""
-        return Crypto(feeRate.gasPriceType.totalFee()).format(decimals, symbol, 2, -1, SignMode.NoSign, true)
+        return ValueFormatter(style = ValueFormatter.Style.Auto)
+            .string(feeRate.gasPriceType.totalFee(), decimals, symbol)
     }
 }

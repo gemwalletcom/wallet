@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -47,7 +48,8 @@ fun FiatTransactionItem(
         FiatQuoteType.Sell -> stringResource(R.string.wallet_sell)
     }
 
-    val cryptoAmount = asset.format(BigInteger(transaction.value))
+    val cryptoAmount = ValueFormatter(style = ValueFormatter.Style.Short)
+        .string(BigInteger(transaction.value), asset)
 
     val fiatCurrency = Currency.entries.first { it.string == transaction.fiatCurrency }
     val fiatFormatted = fiatCurrency.format(transaction.fiatAmount)

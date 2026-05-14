@@ -99,8 +99,6 @@ class FiatViewModel @Inject constructor(
             object : AssetInfoUIModel(
                 assetInfo = it.toAssetInfo(),
                 hideBalances = false,
-                fraction = 2,
-                maxFraction = 4,
             ) {
                 override val cryptoAmount: Double
                     get() = assetInfo.balance.balanceAmount.available

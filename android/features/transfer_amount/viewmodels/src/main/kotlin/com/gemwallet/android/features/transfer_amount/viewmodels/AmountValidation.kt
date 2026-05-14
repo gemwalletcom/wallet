@@ -4,7 +4,7 @@ import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -22,7 +22,9 @@ object AmountValidation {
         }
         val crypto = Crypto(amount.parseNumber(), asset.decimals)
         if (minValue != BigInteger.ZERO && crypto.atomicValue < minValue) {
-            throw AmountError.MinimumValue(asset.format(Crypto(minValue), decimalPlace = 2))
+            throw AmountError.MinimumValue(
+                ValueFormatter(style = ValueFormatter.Style.Full).string(minValue, asset)
+            )
         }
     }
 

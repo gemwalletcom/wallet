@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -105,7 +106,7 @@ private fun SwapItem(
                 ),
         ) {
             Text(
-                text = asset.format(Crypto(value), dynamicPlace = true),
+                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value.toBigInteger(), asset),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
