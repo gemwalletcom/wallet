@@ -35,6 +35,9 @@ fun PerpetualPositionNavScreen(
         onOpenPosition = { direction ->
             viewModel.buildOpenPosition(direction)?.let(onOpenPosition)
         },
+        onIncreasePosition = {}, // TODO: wire when Increase flow lands
+        onReducePosition = {}, // TODO: wire when Reduce flow lands
+        onClosePosition = {}, // TODO: wire when Close flow lands
         onTransaction = onTransaction,
     )
 }

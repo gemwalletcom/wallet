@@ -3,6 +3,10 @@ package com.gemwallet.android.features.perpetual.views.position
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -16,6 +20,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.features.perpetual.views.components.CandleChart
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
+import com.gemwallet.android.features.perpetual.views.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionActions
 import com.gemwallet.android.features.perpetual.views.components.perpetualInfo
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
@@ -39,9 +44,14 @@ fun PerpetualPositionScene(
     period: ChartPeriod,
     onChartPeriodSelect: (ChartPeriod) -> Unit,
     onOpenPosition: (PerpetualDirection) -> Unit,
+    onIncreasePosition: () -> Unit,
+    onReducePosition: () -> Unit,
+    onClosePosition: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
     onClose: () -> Unit,
 ) {
+    var showModifyDialog by remember { mutableStateOf(false) }
+
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
         onClose = onClose,
@@ -64,7 +74,10 @@ fun PerpetualPositionScene(
                     if (position == null) {
                         PerpetualActions(onOpenPosition)
                     } else {
-                        PerpetualPositionActions({}) {}
+                        PerpetualPositionActions(
+                            onModify = { showModifyDialog = true },
+                            onClose = onClosePosition,
+                        )
                     }
                 }
             }
@@ -74,6 +87,13 @@ fun PerpetualPositionScene(
             }
         }
     }
+
+    PerpetualModifyBottomSheet(
+        isVisible = showModifyDialog,
+        onDismiss = { showModifyDialog = false },
+        onIncreasePosition = onIncreasePosition,
+        onReducePosition = onReducePosition,
+    )
 }
 
 @Preview
@@ -148,6 +168,9 @@ private fun PerpetualPositionScenePreview() {
             period = ChartPeriod.Day,
             onChartPeriodSelect = {},
             onOpenPosition = {},
+            onIncreasePosition = {},
+            onReducePosition = {},
+            onClosePosition = {},
             onTransaction = {},
             onClose = {}
         )
