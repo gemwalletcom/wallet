@@ -11,7 +11,7 @@ struct DelegationViewModelTests {
     func balance() {
         let model = DelegationViewModel.mock()
 
-        #expect(model.balanceText == "1,500.00 TRX")
+        #expect(model.balanceText == "1,500 TRX")
         #expect(model.fiatValueText == "$3,000.00")
     }
 
@@ -19,7 +19,7 @@ struct DelegationViewModelTests {
     func rewards() {
         let model = DelegationViewModel.mock()
 
-        #expect(model.rewardsText == "500.00 TRX")
+        #expect(model.rewardsText == "500 TRX")
         #expect(model.rewardsFiatValueText == "$1,000.00")
     }
 

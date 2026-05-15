@@ -22,8 +22,8 @@ import Testing
 struct SwapSceneViewModelTests {
     @Test
     func toValue() async {
-        #expect(await model().toValue == "250,000.00")
-        #expect(await model(toValueMock: "1000000").toValue == "1.00")
+        #expect(await model().toValue == "250,000")
+        #expect(await model(toValueMock: "1000000").toValue == "1")
         #expect(await model(toValueMock: "10000").toValue == "0.01")
         #expect(await model(toValueMock: "12").toValue == "0.000012")
     }
