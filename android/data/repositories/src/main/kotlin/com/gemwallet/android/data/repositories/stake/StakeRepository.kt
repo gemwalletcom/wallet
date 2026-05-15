@@ -48,7 +48,7 @@ class StakeRepository(
         } catch (_: Throwable) {
             return@withContext
         }
-        update(address, delegations)
+        update(chain, address, delegations)
     }
 
     suspend fun syncValidators(chain: Chain? = null, apr: Double) = withContext(Dispatchers.IO) {
@@ -111,13 +111,9 @@ class StakeRepository(
 //        getDelegations(assetId, address).toList().firstOrNull()?.firstOrNull()?.validator
 //    }
 
-    private suspend fun update(address: String, delegations: List<DelegationBase>) {
-        if (delegations.isNotEmpty()) {
-            val baseDelegations = delegations.toRecord(address)
-            stakeDao.update(baseDelegations)
-        } else {
-            stakeDao.deleteBaseDelegation(address)
-        }
+    private suspend fun update(chain: Chain, address: String, delegations: List<DelegationBase>) {
+        val assetId = AssetId(chain).toIdentifier()
+        stakeDao.update(assetId, address, delegations.toRecord(address))
     }
 
     suspend fun update(validators: List<DelegationValidator>) {

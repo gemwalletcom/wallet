@@ -6,7 +6,6 @@ import androidx.room.PrimaryKey
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
-import java.util.UUID
 
 @Entity(tableName = "stake_delegation_base")
 data class DbDelegationBase(
@@ -26,7 +25,7 @@ data class DbDelegationBase(
 
 fun DelegationBase.toRecord(address: String): DbDelegationBase {
     return DbDelegationBase(
-        id = UUID.randomUUID().toString(),
+        id = recordId(),
         address = address,
         delegationId = delegationId,
         validatorId = validatorId,
@@ -37,7 +36,10 @@ fun DelegationBase.toRecord(address: String): DbDelegationBase {
         rewards = rewards,
         shares = shares,
     )
-    
+}
+
+private fun DelegationBase.recordId(): String {
+    return listOf(assetId.toIdentifier(), validatorId, state.string, delegationId).joinToString("_")
 }
 
 fun List<DelegationBase>.toRecord(address: String) = map { it.toRecord(address) }

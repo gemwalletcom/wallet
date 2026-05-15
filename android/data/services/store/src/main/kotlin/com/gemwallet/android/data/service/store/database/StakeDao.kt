@@ -25,8 +25,10 @@ abstract class StakeDao {
     abstract suspend fun deleteBaseDelegation(assetId: String, address: String)
 
     @Query("DELETE FROM stake_delegation_base WHERE " +
-            "address=:address")
-    abstract suspend fun deleteBaseDelegation(address: String)
+            "asset_id=:assetId " +
+            "AND address=:address " +
+            "AND id NOT IN (:ids)")
+    abstract suspend fun deleteBaseDelegationsExcept(assetId: String, address: String, ids: List<String>)
 
     @Query("SELECT * FROM stake_delegation_validator WHERE chain=:chain")
     abstract fun getValidators(chain: Chain): Flow<List<DbDelegationValidator>>
@@ -99,11 +101,15 @@ abstract class StakeDao {
 
     @Transaction
     open suspend fun update(
+        assetId: String,
+        address: String,
         baseDelegations: List<DbDelegationBase>,
     ) {
-        for (baseDelegation in baseDelegations) {
-            deleteBaseDelegation(baseDelegation.assetId, baseDelegation.address)
+        if (baseDelegations.isEmpty()) {
+            deleteBaseDelegation(assetId, address)
+            return
         }
+        deleteBaseDelegationsExcept(assetId, address, baseDelegations.map { it.id })
         updateDelegations(baseDelegations)
     }
 }
