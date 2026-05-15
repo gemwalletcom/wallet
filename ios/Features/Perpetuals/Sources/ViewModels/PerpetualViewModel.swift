@@ -13,7 +13,7 @@ public struct PerpetualViewModel {
     public let perpetual: Perpetual
     private let marketValueFormatter: CurrencyFormatter
     private let priceFormatter: CurrencyFormatter
-    private let percentFormatter = CurrencyFormatter.percent
+    private let percentFormatter = PercentFormatter.signed
     private let fundingRateFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal

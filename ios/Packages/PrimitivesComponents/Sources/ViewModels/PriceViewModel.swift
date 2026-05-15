@@ -11,7 +11,7 @@ public struct PriceViewModel: Sendable {
     public let price: Price?
 
     private let currencyFormatter: CurrencyFormatter
-    static let percentFormatter = CurrencyFormatter.percent
+    static let percentFormatter = PercentFormatter.signed
 
     public init(
         price: Price?,

@@ -20,6 +20,7 @@ public final class SetPriceAlertViewModel {
     private let onComplete: StringAction
     private let preferences = Preferences.standard
     private let currencyFormatter = CurrencyFormatter(currencyCode: Preferences.standard.currency)
+    private let numericFormatter = NumericFormatter()
     private let priceAlertFormatter = PriceAlertFormatter()
     private let suggestionOffsetPercent: Double = 5
 
@@ -78,7 +79,7 @@ public final class SetPriceAlertViewModel {
 
     var isEnabledConfirmButton: Bool {
         guard !state.amount.isEmpty,
-              currencyFormatter.double(from: state.amount) != .zero,
+              numericFormatter.double(from: state.amount) != .zero,
               state.alertDirection != nil
         else {
             return false
@@ -131,7 +132,7 @@ public final class SetPriceAlertViewModel {
     // MARK: - Private
 
     private var amountValue: Double? {
-        currencyFormatter.double(from: state.amount)
+        numericFormatter.double(from: state.amount)
     }
 
     private var completeMessage: String {
@@ -149,8 +150,8 @@ public final class SetPriceAlertViewModel {
         price: Double?,
     ) -> PriceAlertDirection? {
         guard let price,
-              let priceValue = currencyFormatter.normalizedDouble(from: price),
-              let amountValue = currencyFormatter.double(from: amount)
+              let priceValue = numericFormatter.double(from: numericFormatter.string(price)),
+              let amountValue = numericFormatter.double(from: amount)
         else {
             return nil
         }

@@ -4,11 +4,11 @@ import Foundation
 
 public let defaultAbbreviationThreshold: Decimal = 10000.0
 
-struct AbbreviatedFormatter {
+public struct AbbreviatedFormatter {
     private let locale: Locale
     private let threshold: Decimal
 
-    init(
+    public init(
         locale: Locale = .current,
         threshold: Decimal = defaultAbbreviationThreshold,
     ) {
@@ -16,11 +16,11 @@ struct AbbreviatedFormatter {
         self.threshold = threshold
     }
 
-    func string(from double: Double) -> String? {
+    public func string(from double: Double) -> String? {
         string(from: Decimal(double))
     }
 
-    func string(from double: Double, currency: String) -> String? {
+    public func string(from double: Double, currency: String) -> String? {
         string(from: Decimal(double), currency: currency)
     }
 

@@ -17,7 +17,7 @@ public struct AprViewModel: Sendable {
     }
 
     public var subtitle: TextValue {
-        let text = apr > .zero ? CurrencyFormatter.percentSignLess.string(apr) : .empty
+        let text = apr > .zero ? PercentFormatter.unsigned.string(apr) : .empty
         return TextValue(text: text, style: TextStyle(font: .callout, color: Colors.green))
     }
 

@@ -21,7 +21,7 @@ public final class SwapDetailsViewModel {
 
     private let valueFormatter = ValueFormatter(style: .auto)
     private let rateFormatter = AssetRateFormatter()
-    private let percentSignLessFormatter = CurrencyFormatter.percentSignLess
+    private let percentSignLessFormatter = PercentFormatter.unsigned
 
     let state: StateViewType<[SwapperQuote]>
     private let fromAssetPrice: AssetPriceValue

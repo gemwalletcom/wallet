@@ -18,7 +18,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
     private let currencyFormatter: CurrencyFormatter
     private let priceFormatter: CurrencyFormatter
-    private let percentFormatter: CurrencyFormatter
+    private let percentFormatter = PercentFormatter.signed
     private let perpetualFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
 
     var state: PortfolioState
@@ -45,7 +45,6 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         let currencyCode = preferences.preferences.currency
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
-        percentFormatter = CurrencyFormatter(type: .percent, currencyCode: currencyCode)
         state = PortfolioState(selectedType: defaultType)
     }
 
@@ -180,7 +179,7 @@ extension PortfolioSceneViewModel {
 
     private func marginModel(_ margin: PortfolioMarginUsage) -> ListItemModel {
         let value = perpetualFormatter.string(margin.accountValue * margin.usage)
-        let percent = CurrencyFormatter.percentSignLess.string(margin.usage * 100)
+        let percent = PercentFormatter.unsigned.string(margin.usage * 100)
         return ListItemModel(title: Localized.Perpetual.marginUsage, subtitle: "\(value) (\(percent))")
     }
 

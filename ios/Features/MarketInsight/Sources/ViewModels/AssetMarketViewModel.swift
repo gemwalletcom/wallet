@@ -93,7 +93,7 @@ struct AssetMarketViewModel {
     private var allTime: AllTimeValueViewModel {
         AllTimeValueViewModel(
             priceFormatter: CurrencyFormatter(currencyCode: currency),
-            percentFormatter: CurrencyFormatter(type: .percent, currencyCode: currency),
+            percentFormatter: PercentFormatter.signed,
         )
     }
 
@@ -116,6 +116,8 @@ struct AssetMarketViewModel {
     }
 
     private func formatSupply(_ value: Double?) -> String? {
-        value.map { currencyFormatter.string(double: $0, symbol: assetSymbol) }
+        guard let value else { return nil }
+        let formatted = AbbreviatedFormatter().string(from: value) ?? NumericFormatter().string(value)
+        return "\(formatted) \(assetSymbol)"
     }
 }

@@ -16,7 +16,7 @@ struct PriceImpactViewModel {
     let toValue: String
 
     private let valueFormatter = ValueFormatter(style: .full)
-    private let percentFormatter = CurrencyFormatter.percent
+    private let percentFormatter = PercentFormatter.signed
 
     var showPriceImpactWarning: Bool {
         isHighPriceImpact
@@ -45,7 +45,7 @@ struct PriceImpactViewModel {
     }
 
     var priceImpactText: String? {
-        swapPriceImpact.map { CurrencyFormatter.percentSignLess.string(abs($0.percentage)) }
+        swapPriceImpact.map { PercentFormatter.unsigned.string(abs($0.percentage)) }
     }
 
     var priceImpactStyle: TextStyle {

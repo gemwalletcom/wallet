@@ -9,19 +9,19 @@ public struct FeeUnitViewModel {
     private let unit: FeeUnit
     private let decimals: Int
     private let symbol: String
-    private let currencyFormatter: CurrencyFormatter
+    private let numericFormatter: NumericFormatter
     private let valueFormatter = ValueFormatter.full
 
     public init(
         unit: FeeUnit,
         decimals: Int,
         symbol: String,
-        formatter: CurrencyFormatter,
+        formatter: NumericFormatter = NumericFormatter(),
     ) {
         self.unit = unit
         self.decimals = decimals
         self.symbol = symbol
-        currencyFormatter = formatter
+        numericFormatter = formatter
     }
 
     public var value: String {
@@ -40,7 +40,7 @@ public struct FeeUnitViewModel {
             guard let value = try? ValueFormatter.full.double(from: unit.value, decimals: 9) else {
                 return ""
             }
-            return currencyFormatter.string(double: value)
+            return numericFormatter.string(value)
         case .native:
             return String(
                 format: "%@ %@",

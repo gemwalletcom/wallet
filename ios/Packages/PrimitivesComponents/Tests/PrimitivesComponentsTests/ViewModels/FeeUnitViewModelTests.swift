@@ -8,8 +8,8 @@ import PrimitivesTestKit
 import Testing
 
 struct FeeUnitViewModelTests {
-    let formatter = CurrencyFormatter(currencyCode: .empty)
-    let usFormatter = CurrencyFormatter(locale: .US, currencyCode: .empty)
+    let formatter = NumericFormatter()
+    let usFormatter = NumericFormatter(locale: .US)
     let asset = Asset.mock()
 
     @Test
