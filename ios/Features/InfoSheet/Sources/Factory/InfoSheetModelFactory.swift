@@ -28,7 +28,7 @@ public enum InfoSheetModelFactory {
                 image: .assetImage(image),
             )
         case let .insufficientNetworkFee(asset, image, required, action):
-            let formatter = ValueFormatter(style: .full)
+            let formatter = ValueFormatter(style: .auto)
             let value = if let required {
                 formatter.string(required, decimals: asset.chain.asset.decimals.asInt, currency: asset.chain.asset.symbol)
             } else {

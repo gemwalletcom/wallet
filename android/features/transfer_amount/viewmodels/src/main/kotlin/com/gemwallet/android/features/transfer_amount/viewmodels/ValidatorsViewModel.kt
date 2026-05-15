@@ -31,8 +31,8 @@ class ValidatorsViewModel @Inject constructor(
     val validators = source.filterNotNull()
         .flatMapLatest { source ->
             when (source) {
-                is ValidatorsSource.ChainValidators -> stakeRepository.getValidators(source.chain)
-                is ValidatorsSource.Rewards -> stakeRepository.getDelegations(source.assetId, source.owner)
+                is ValidatorsSource.ChainValidators -> stakeRepository.getValidators(source.assetId)
+                is ValidatorsSource.Rewards -> stakeRepository.getDelegations(source.walletId, source.assetId)
                     .map { delegations ->
                         delegations
                             .filter { (it.base.rewards.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO }
@@ -47,7 +47,7 @@ class ValidatorsViewModel @Inject constructor(
             source == null -> ValidatorsUIState.Loading
             validators.isNotEmpty() -> {
                 val recommended = when (source) {
-                    is ValidatorsSource.ChainValidators -> stakeRepository.getRecommendValidators(source.chain)
+                    is ValidatorsSource.ChainValidators -> stakeRepository.getRecommendValidators(source.assetId)
                     is ValidatorsSource.Rewards -> emptySet()
                 }
                 ValidatorsUIState.Loaded(

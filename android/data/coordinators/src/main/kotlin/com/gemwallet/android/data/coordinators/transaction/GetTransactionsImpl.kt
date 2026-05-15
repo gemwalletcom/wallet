@@ -5,6 +5,7 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ext.AddressFormatter
@@ -14,6 +15,7 @@ import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.formatPnl
 import com.wallet.core.primitives.Asset
@@ -103,7 +105,7 @@ class TransactionDataAggregateImpl(
     override val value: String get() = when (data.transaction.type) {
         TransactionType.Swap -> {
             getSwapMetadata(true)?.let { (metadata, asset) ->
-                "+${asset.format(Crypto(metadata.toValue), decimalPlace = 2, dynamicPlace = true)}"
+                AmountSign.Incoming.format(formatter.string(metadata.toValue.toBigInteger(), asset))
             } ?: ""
         }
         TransactionType.PerpetualOpenPosition -> Currency.USD.format(
@@ -119,13 +121,7 @@ class TransactionDataAggregateImpl(
         TransactionType.EarnDeposit,
         TransactionType.StakeFreeze,
         TransactionType.StakeUnfreeze -> getFormattedValue()
-        TransactionType.Transfer -> {
-            when (data.transaction.direction) {
-                TransactionDirection.SelfTransfer,
-                TransactionDirection.Outgoing -> "-${getFormattedValue()}"
-                TransactionDirection.Incoming -> "+${getFormattedValue()}"
-            }
-        }
+        TransactionType.Transfer -> AmountSign(data.transaction.direction).format(getFormattedValue())
         TransactionType.TokenApproval -> data.asset.symbol
         TransactionType.TransferNFT,
         TransactionType.AssetActivation,
@@ -136,13 +132,7 @@ class TransactionDataAggregateImpl(
 
     override val equivalentValue: String? get() = when (data.transaction.type) {
         TransactionType.Swap -> getSwapMetadata(false)?.let { (metadata, asset) ->
-            "-${
-                asset.format(
-                    Crypto(metadata.fromValue),
-                    decimalPlace = 2,
-                    dynamicPlace = true
-                )
-            }"
+            AmountSign.Outgoing.format(formatter.string(metadata.fromValue.toBigInteger(), asset))
         }
         else -> null
     }
@@ -175,9 +165,10 @@ class TransactionDataAggregateImpl(
         return Pair(swapMetadata, asset)
     }
 
-    private fun getFormattedValue(): String = data.asset.format(
-        crypto = data.transaction.value.toBigInteger(),
-        decimalPlace = 2,
-        dynamicPlace = true,
-    )
+    private fun getFormattedValue(): String =
+        formatter.string(data.transaction.value.toBigInteger(), data.asset)
+
+    private companion object {
+        val formatter = ValueFormatter(style = ValueFormatter.Style.Short)
+    }
 }

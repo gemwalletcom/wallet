@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTCollection
-import com.wallet.core.primitives.NFTCollectionId
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NFTImages
 import com.wallet.core.primitives.NFTResource
@@ -38,7 +37,7 @@ class NftRepository(
     override suspend fun sync(walletId: WalletId) {
         val nftData = gemDeviceApiClient.getNFTs(walletId = walletId.id).orEmpty()
         val collections = nftData.map { it.collection.toDb() }
-        val assets = nftData.flatMap { item -> item.assets.map { it.toDb(item.collection.id) } }
+        val assets = nftData.flatMap { it.assets }.map { it.toDb() }
         val associations = assets.map { DbNFTAssociation(walletId = walletId.id, assetId = it.id) }
         nftDao.updateNft(walletId.id, collections, assets, associations)
     }
@@ -61,30 +60,24 @@ class NftRepository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun getAssetNft(walletId: WalletId, assetId: NFTAssetId): Flow<NFTData> {
+    override fun getAssetNft(assetId: NFTAssetId): Flow<NFTData> {
         return nftDao.getAsset(assetId).flatMapLatest { asset ->
-            if (asset == null) return@flatMapLatest fetchAndCacheNftAsset(walletId, assetId)
+            if (asset == null) return@flatMapLatest fetchAndAddNftAsset(assetId)
 
             nftDao.getCollection(asset.collectionId).flatMapLatest { collection ->
                 collection
                     ?.let { flowOf(asset.toNftData(it)) }
-                    ?: fetchAndCacheNftAsset(walletId, assetId)
+                    ?: fetchAndAddNftAsset(assetId)
             }
         }
     }
 
-    private fun fetchAndCacheNftAsset(walletId: WalletId, assetId: NFTAssetId): Flow<NFTData> {
+    private fun fetchAndAddNftAsset(assetId: NFTAssetId): Flow<NFTData> {
         return flow {
             val assetData = gemDeviceApiClient.getNFT(assetId.toIdentifier())
-            cacheNftAsset(walletId, assetData.collection, assetData.asset)
+            nftDao.add(collection = assetData.collection.toDb(), asset = assetData.asset.toDb())
             emit(NFTData(collection = assetData.collection, assets = listOf(assetData.asset)))
         }
-    }
-
-    private suspend fun cacheNftAsset(walletId: WalletId, collection: NFTCollection, asset: NFTAsset) {
-        nftDao.insertCollections(listOf(collection.toDb()))
-        nftDao.insertAssets(listOf(asset.toDb(collection.id)))
-        nftDao.associateWithWallet(listOf(DbNFTAssociation(walletId = walletId.id, assetId = asset.id)))
     }
 }
 
@@ -101,7 +94,7 @@ private fun NFTCollection.toDb() = DbNFTCollection(
     links = links,
 )
 
-private fun NFTAsset.toDb(collectionId: NFTCollectionId) = DbNFTAsset(
+private fun NFTAsset.toDb() = DbNFTAsset(
     id = id,
     collectionId = collectionId,
     name = name,

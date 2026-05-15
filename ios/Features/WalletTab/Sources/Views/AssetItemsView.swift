@@ -18,7 +18,7 @@ struct AssetItemsView: View {
                     model: ListAssetItemViewModel(
                         showBalancePrivacy: .constant(false),
                         assetData: assetData,
-                        formatter: .abbreviated,
+                        formatter: .short,
                         currencyCode: currencyCode,
                     ),
                 )

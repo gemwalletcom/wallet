@@ -36,7 +36,7 @@ struct SwapTokenInteraction {
 
 struct SwapTokenViewModel {
     private let type: SwapTokenViewType
-    private let formatter = ValueFormatter(style: .medium)
+    private let formatter = ValueFormatter(style: .auto)
     let interaction: SwapTokenInteraction
 
     init(

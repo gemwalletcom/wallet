@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.data.services.gemapi.http.getNodeUrl
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toGatewayNetworkMessage
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -46,7 +47,9 @@ class NativeProvider(
             AlienResponse(status, data)
         } catch (err: IOException) {
             throw AlienException.RequestException(err.toGatewayNetworkMessage(config.networkOfflineMessage))
-        } catch (_: Throwable) {
+        } catch (err: CancellationException) {
+            throw err
+        } catch (_: Exception) {
             AlienResponse(500.toUShort(), byteArrayOf())
         }
     }

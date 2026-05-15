@@ -23,6 +23,7 @@ import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
@@ -398,6 +399,29 @@ class WalletNavigatorTest {
                 WalletRootRoute,
                 AssetRoute(previousAssetId),
                 AssetRoute(stakeAssetId),
+            ),
+            navigator.backStack.toList(),
+        )
+    }
+
+    @Test
+    fun popConfirmFlow_popsDelegationStakeFlowToLaunchingAsset() {
+        val assetId = mockAssetId(Chain.Solana)
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            AssetRoute(assetId),
+            StakeRoute(assetId),
+            DelegationRoute(validatorId = "validator", delegationId = "delegation"),
+            AmountRoute("amount"),
+            ConfirmRoute("confirm"),
+        )
+
+        navigator.popConfirmFlow()
+
+        assertEquals(
+            listOf(
+                WalletRootRoute,
+                AssetRoute(assetId),
             ),
             navigator.backStack.toList(),
         )

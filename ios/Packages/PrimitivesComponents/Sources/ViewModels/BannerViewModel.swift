@@ -74,7 +74,7 @@ struct BannerViewModel {
             guard let asset, let fee = asset.chain.accountActivationFee else {
                 return .none
             }
-            let amount = ValueFormatter(style: .full)
+            let amount = ValueFormatter(style: .auto)
                 .string(fee.asInt.asBigInt, decimals: asset.decimals.asInt, currency: asset.symbol)
             return Localized.Banner.AccountActivation.description(asset.name, amount)
         case .enableNotifications:

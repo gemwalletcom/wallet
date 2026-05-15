@@ -5,8 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.banner.coordinators.CancelBanner
 import com.gemwallet.android.application.banner.coordinators.GetActiveBanners
 import com.gemwallet.android.ext.getReserveBalance
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +35,7 @@ class BannersViewModel @Inject constructor(
         asset ?: return ""
         val value = asset.id.chain.getReserveBalance()
         if (value == BigInteger.ZERO) return ""
-        return asset.format(Crypto(value))
+        return ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset)
     }
 
     fun onCancel(banner: Banner) = viewModelScope.launch {

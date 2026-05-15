@@ -24,6 +24,12 @@ interface NftDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun associateWithWallet(relations: List<DbNFTAssociation>)
 
+    @Transaction
+    suspend fun add(collection: DbNFTCollection, asset: DbNFTAsset) {
+        insertCollections(listOf(collection))
+        insertAssets(listOf(asset))
+    }
+
     @Query("SELECT asset_id FROM nft_assets_associations WHERE wallet_id = :walletId")
     suspend fun getWalletAssetIds(walletId: String): List<NFTAssetId>
 

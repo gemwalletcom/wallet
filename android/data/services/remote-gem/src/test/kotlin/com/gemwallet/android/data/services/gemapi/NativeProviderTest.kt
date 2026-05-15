@@ -5,6 +5,7 @@ import com.gemwallet.android.cases.nodes.GetNodesCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
@@ -76,6 +77,34 @@ class NativeProviderTest {
             return
         }
         throw AssertionError("Expected request exception")
+    }
+
+    @Test
+    fun requestRethrowsCancellation() {
+        val provider = nativeProvider(
+            httpClient = OkHttpClient.Builder()
+                .addInterceptor {
+                    throw CancellationException("cancelled")
+                }
+                .build(),
+        )
+
+        try {
+            runBlocking {
+                provider.request(
+                    AlienTarget(
+                        url = "https://gemnodes.com/bitcoin",
+                        method = AlienHttpMethod.GET,
+                        headers = null,
+                        body = null,
+                    )
+                )
+            }
+        } catch (err: CancellationException) {
+            assertEquals("cancelled", err.message)
+            return
+        }
+        throw AssertionError("Expected cancellation exception")
     }
 
     private fun nativeProvider(

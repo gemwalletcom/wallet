@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
@@ -17,6 +18,7 @@ import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.domains.asset.chain
 import com.wallet.core.primitives.AddressType
@@ -133,6 +135,8 @@ class TransactionDetailsAggregateImpl(
                         currency.format(value.convert(asset.decimals, it).atomicValue, dynamicPlace = true)
                     } ?: ""
 
+                    val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
+
                     val (amount, equivalent) = when (data.transaction.type) {
                         TransactionType.StakeDelegate,
                         TransactionType.StakeUndelegate,
@@ -143,8 +147,11 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.EarnDeposit,
                         TransactionType.Swap,
                         TransactionType.StakeFreeze,
-                        TransactionType.StakeUnfreeze,
-                        TransactionType.Transfer -> Pair(asset.format(value), fiat)
+                        TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
+                        TransactionType.Transfer -> Pair(
+                            AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
+                            fiat,
+                        )
                         TransactionType.TransferNFT,
                         TransactionType.AssetActivation,
                         TransactionType.SmartContractCall,
@@ -161,7 +168,8 @@ class TransactionDetailsAggregateImpl(
     override val fee: TransactionDetailsValue.Fee
         get() {
             val fee = Crypto(data.transaction.fee.toBigInteger())
-            val feeCrypto = data.feeAsset.format(fee)
+            val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
+                .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
                 currency.format(fee.convert(data.feeAsset.decimals, it).atomicValue, dynamicPlace = true)
             } ?: ""

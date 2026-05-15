@@ -475,7 +475,7 @@ class AssetsRepository @Inject constructor(
             TransactionType.StakeFreeze,
             TransactionType.StakeUnfreeze -> syncStakeDelegations.sync(
                 walletId = walletId,
-                chain = transaction.assetId.chain,
+                assetId = transaction.assetId,
                 address = transaction.from,
                 apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.stakeApr ?: 0.0,
             )

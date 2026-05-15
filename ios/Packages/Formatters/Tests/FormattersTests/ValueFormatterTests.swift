@@ -10,53 +10,29 @@ final class ValueFormatterTests {
     func testShort() {
         let formatter = ValueFormatter(locale: .US, style: .short)
 
-        #expect(formatter.string(123, decimals: 0) == "123.00")
+        #expect(formatter.string(123, decimals: 0) == "123")
         #expect(formatter.string(12344, decimals: 6) == "0.0123")
         #expect(formatter.string(0, decimals: 0) == "0")
 
-        #expect(formatter.string(1_000_000, decimals: 0) == "1,000,000.00")
-        #expect(formatter.string(1000, decimals: 0) == "1,000.00")
-        #expect(formatter.string(100, decimals: 0) == "100.00")
-        #expect(formatter.string(10, decimals: 0) == "10.00")
-        #expect(formatter.string(1, decimals: 0) == "1.00")
+        #expect(formatter.string(1_000_000, decimals: 0) == "1M")
+        #expect(formatter.string(1000, decimals: 0) == "1,000")
+        #expect(formatter.string(100, decimals: 0) == "100")
+        #expect(formatter.string(10, decimals: 0) == "10")
+        #expect(formatter.string(1, decimals: 0) == "1")
 
-        #expect(formatter.string(1, decimals: 1) == "0.10")
+        #expect(formatter.string(1992, decimals: 4) == "0.19")
+        #expect(formatter.string(99_999, decimals: 6) == "0.0999")
+        #expect(formatter.string(1, decimals: 1) == "0.1")
         #expect(formatter.string(1, decimals: 2) == "0.01")
         #expect(formatter.string(1, decimals: 3) == "0.001")
 
         #expect(formatter.string(1, decimals: 4) == "0.0001")
-        #expect(formatter.string(1, decimals: 5) == "0.00")
-        #expect(formatter.string(1, decimals: 6) == "0.00")
-        #expect(formatter.string(12_345_678_910, decimals: 6) == "12,345.67")
+        #expect(formatter.string(1, decimals: 5) == "0")
+        #expect(formatter.string(1, decimals: 6) == "0")
+        #expect(formatter.string(12_345_678_910, decimals: 6) == "12.35K")
 
         #expect(formatter.string(7_758_980_129_936_940, decimals: 18, currency: "BNB") == "0.0077 BNB")
         #expect(formatter.string(2_737_071, decimals: 8, currency: "BTC") == "0.0273 BTC")
-    }
-
-    @Test
-    func testMedium() {
-        let formatter = ValueFormatter(locale: .US, style: .medium)
-
-        #expect(formatter.string(123, decimals: 0) == "123.00")
-        #expect(formatter.string(12344, decimals: 6) == "0.012344")
-        #expect(formatter.string(0, decimals: 0) == "0")
-
-        #expect(formatter.string(1_000_000, decimals: 0) == "1,000,000.00")
-        #expect(formatter.string(1000, decimals: 0) == "1,000.00")
-        #expect(formatter.string(100, decimals: 0) == "100.00")
-        #expect(formatter.string(10, decimals: 0) == "10.00")
-        #expect(formatter.string(1, decimals: 0) == "1.00")
-
-        #expect(formatter.string(1, decimals: 1) == "0.10")
-        #expect(formatter.string(1, decimals: 2) == "0.01")
-        #expect(formatter.string(1, decimals: 3) == "0.001")
-        #expect(formatter.string(1, decimals: 4) == "0.0001")
-        #expect(formatter.string(1, decimals: 5) == "0.00001")
-        #expect(formatter.string(1, decimals: 6) == "0.000001")
-        #expect(formatter.string(12_345_678_910, decimals: 6) == "12,345.67891")
-        #expect(formatter.string(1, decimals: 7) == "0.0000001")
-
-        #expect(formatter.string(2_737_071, decimals: 8, currency: "BTC") == "0.02737071 BTC")
     }
 
     @Test
@@ -196,26 +172,12 @@ final class ValueFormatterTests {
     func testAuto() {
         let formatter = ValueFormatter(locale: .US, style: .auto)
 
-        #expect(formatter.string(123, decimals: 0) == "123.00")
+        #expect(formatter.string(123, decimals: 0) == "123")
         #expect(formatter.string(12344, decimals: 6) == "0.01234")
         #expect(formatter.string(11_112_344, decimals: 10) == "0.001111")
         #expect(formatter.string(1, decimals: 4) == "0.0001")
         #expect(formatter.string(1, decimals: 5) == "0.00001")
         #expect(formatter.string(4162, decimals: 18) == "0.000000000000004162")
-    }
-
-    @Test
-    func testAbbreviated() {
-        let formatter = ValueFormatter(locale: .US, style: .abbreviated)
-
-        #expect(formatter.string(9999, decimals: 0) == "9,999.00")
-        #expect(formatter.string(10000, decimals: 0) == "10K")
-        #expect(formatter.string(1_500_000, decimals: 0) == "1.5M")
-        #expect(formatter.string(2_300_000_000, decimals: 0) == "2.3B")
-        #expect(formatter.string(1_200_000_000_000, decimals: 0) == "1.2T")
-        #expect(formatter.string(10000, decimals: 0, currency: "BTC") == "10K BTC")
-        #expect(formatter.string(2_000_000, decimals: 0, currency: "ETH") == "2M ETH")
-        #expect(formatter.string(4_906_154, decimals: 2, currency: "SACHI") == "49.06K SACHI")
     }
 
     @Test

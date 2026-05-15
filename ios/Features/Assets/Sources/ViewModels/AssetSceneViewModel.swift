@@ -212,7 +212,7 @@ public final class AssetSceneViewModel: Sendable {
     var assetDataModel: AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
-            formatter: .medium,
+            formatter: .auto,
             currencyCode: preferences.preferences.currency,
         )
     }
@@ -503,7 +503,7 @@ extension AssetSceneViewModel {
     private var feeAssetDataModel: AssetDataViewModel {
         AssetDataViewModel(
             assetData: chainAssetData.feeAssetData,
-            formatter: .medium,
+            formatter: .auto,
             currencyCode: preferences.preferences.currency,
         )
     }

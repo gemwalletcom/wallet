@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PlatformImeOptions
@@ -189,31 +190,47 @@ internal fun ImportInput(
 private fun highlightErrors(text: String, errorColor: Color): AnnotatedString {
     val validateResult = WCValidatePhraseOperator().invoke(text)
     val error = validateResult.exceptionOrNull()
-    val inputWords = text.split(" ")
-    val spans = if (error is InvalidWords) {
-        error.words.filter {
-            text.indexOf("$it ") != -1
-        }.map { word ->
-            val ranges = mutableListOf<AnnotatedString.Range<SpanStyle>>()
-            var offset = 0
-            for (i in inputWords.indices) {
-                val inputWord = inputWords[i]
-                val end = offset + inputWord.length + 1
-                if (inputWord == word && end <= text.length && end != offset) {
-                    ranges.add(
-                        AnnotatedString.Range(
-                            item = SpanStyle(color = errorColor),
-                            start = offset,
-                            end = end,
-                        )
-                    )
-                }
-                offset = end
+    val invalidWords = (error as? InvalidWords)?.words.orEmpty().filter { it.isNotBlank() }.toSet()
+
+    return highlightInvalidPhraseWords(text, errorColor, invalidWords)
+}
+
+internal fun highlightInvalidPhraseWords(
+    text: String,
+    errorColor: Color,
+    invalidWords: Set<String>,
+): AnnotatedString {
+    return buildAnnotatedString {
+        append(text)
+        if (invalidWords.isEmpty()) {
+            return@buildAnnotatedString
+        }
+        text.wordRanges().forEach { range ->
+            val word = text.substring(range)
+            if (word in invalidWords) {
+                addStyle(
+                    style = SpanStyle(color = errorColor),
+                    start = range.first,
+                    end = range.last + 1,
+                )
             }
-            ranges
-        }.flatten()
-    } else {
-        emptyList()
+        }
     }
-    return AnnotatedString(text, spans)
+}
+
+private fun String.wordRanges(): Sequence<IntRange> = sequence {
+    var start = -1
+    for (index in indices) {
+        if (this@wordRanges[index].isWhitespace()) {
+            if (start != -1) {
+                yield(start until index)
+                start = -1
+            }
+        } else if (start == -1) {
+            start = index
+        }
+    }
+    if (start != -1) {
+        yield(start until length)
+    }
 }

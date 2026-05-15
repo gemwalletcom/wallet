@@ -1,109 +1,44 @@
 package com.gemwallet.android.data.service.store.database
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Upsert
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationBase
+import com.gemwallet.android.data.service.store.database.entities.DbDelegationData
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationValidator
-import com.gemwallet.android.data.service.store.database.entities.RoomDelegation
-import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.StakeProviderType
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-abstract class StakeDao {
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    abstract suspend fun updateValidators(validators: List<DbDelegationValidator>)
+interface StakeDao {
+    @Upsert
+    suspend fun upsertValidators(validators: List<DbDelegationValidator>)
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    abstract suspend fun updateDelegations(delegations: List<DbDelegationBase>)
+    @Upsert
+    suspend fun upsertDelegations(delegations: List<DbDelegationBase>)
 
-    @Query("DELETE FROM stake_delegation_base WHERE " +
-            "asset_id=:assetId " +
-            "AND address=:address")
-    abstract suspend fun deleteBaseDelegation(assetId: String, address: String)
-
-    @Query("DELETE FROM stake_delegation_base WHERE " +
-            "address=:address")
-    abstract suspend fun deleteBaseDelegation(address: String)
-
-    @Query("SELECT * FROM stake_delegation_validator WHERE chain=:chain")
-    abstract fun getValidators(chain: Chain): Flow<List<DbDelegationValidator>>
-
-    @Query("SELECT * FROM stake_delegation_validator WHERE " +
-            "chain=:chain AND " +
-            "isActive=:isActive " +
-            "ORDER BY apr DESC")
-    abstract suspend fun getStakeValidators(chain: Chain, isActive: Boolean = true): List<DbDelegationValidator>
-
-    @Query("SELECT * FROM stake_delegation_validator WHERE " +
-            "chain=:chain AND " +
-            "id=:validatorId " +
-            "ORDER BY apr DESC")
-    abstract suspend fun getStakeValidator(chain: Chain, validatorId: String): DbDelegationValidator?
+    @Query("DELETE FROM stake_delegations WHERE walletId=:walletId AND id IN (:ids)")
+    suspend fun deleteDelegations(walletId: String, ids: List<String>)
 
     @Query(
-        "SELECT " +
-            "validator.id as validatorId," +
-            "validator.chain as chain," +
-            "validator.name as name," +
-            "validator.isActive as isActive," +
-            "validator.commission as commission," +
-            "validator.apr as apr," +
-            "validator.providerType as providerType," +
-            "base.address as address," +
-            "base.delegation_id as delegationId," +
-            "base.asset_id as assetId," +
-            "base.state as state," +
-            "base.balance as balance," +
-            "base.completion_date as completionDate," +
-            "base.price as price," +
-            "base.price_change as priceChange," +
-            "base.rewards as rewards," +
-            "base.shares as shares" +
-            " " +
-        "FROM stake_delegation_base as base " +
-        "INNER JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
-        "WHERE asset_id=:assetId AND address=:address " +
-        "ORDER BY validator.name"
+        "SELECT * FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType " +
+            "ORDER BY apr DESC"
     )
-    abstract fun getDelegations(assetId: String, address: String): Flow<List<RoomDelegation>>
+    fun getValidators(assetId: String, providerType: StakeProviderType): Flow<List<DbDelegationValidator>>
 
-    @Query(
-        "SELECT " +
-                "validator.id as validatorId," +
-                "validator.chain as chain," +
-                "validator.name as name," +
-                "validator.isActive as isActive," +
-                "validator.commission as commission," +
-                "validator.apr as apr," +
-                "validator.providerType as providerType," +
-                "base.address as address," +
-                "base.delegation_id as delegationId," +
-                "base.asset_id as assetId," +
-                "base.state as state," +
-                "base.balance as balance," +
-                "base.completion_date as completionDate," +
-                "base.price as price," +
-                "base.price_change as priceChange," +
-                "base.rewards as rewards," +
-                "base.shares as shares" +
-                " " +
-        "FROM stake_delegation_base as base " +
-                "INNER JOIN stake_delegation_validator as validator ON base.validator_id=validator.id " +
-                "WHERE base.delegation_id=:delegationId AND validator.id=:validatorId"
-    )
-
-    abstract fun getDelegation(validatorId: String, delegationId: String): Flow<RoomDelegation?>
+    @Query("SELECT * FROM stake_validators WHERE assetId=:assetId AND validatorId=:validatorId LIMIT 1")
+    suspend fun getValidator(assetId: String, validatorId: String): DbDelegationValidator?
 
     @Transaction
-    open suspend fun update(
-        baseDelegations: List<DbDelegationBase>,
-    ) {
-        for (baseDelegation in baseDelegations) {
-            deleteBaseDelegation(baseDelegation.assetId, baseDelegation.address)
-        }
-        updateDelegations(baseDelegations)
-    }
+    @Query("SELECT * FROM stake_delegations WHERE walletId=:walletId AND assetId=:assetId")
+    fun getDelegations(walletId: String, assetId: String): Flow<List<DbDelegationData>>
+
+    @Transaction
+    @Query(
+        "SELECT base.* FROM stake_delegations as base " +
+            "INNER JOIN stake_validators as validator ON base.validatorId=validator.id " +
+            "WHERE base.delegationId=:delegationId AND validator.validatorId=:validatorId LIMIT 1"
+    )
+    fun getDelegation(validatorId: String, delegationId: String): Flow<DbDelegationData?>
 }

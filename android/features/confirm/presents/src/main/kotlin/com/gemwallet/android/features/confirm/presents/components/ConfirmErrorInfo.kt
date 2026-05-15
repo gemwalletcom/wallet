@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -53,7 +53,7 @@ private fun ConfirmError.toInfoSheetEntity(feeValue: String, onBuy: AssetIdActio
     )
     is ConfirmError.MinimumAccountBalanceTooLow -> InfoSheetEntity.MinimumAccountBalanceInfo(
         asset = asset,
-        value = asset.format(required.toBigInteger(), dynamicPlace = true),
+        value = ValueFormatter(style = ValueFormatter.Style.Full).string(required.toBigInteger(), asset),
     )
     is ConfirmError.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = chain)
     else -> null

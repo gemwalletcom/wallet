@@ -89,8 +89,8 @@ class TransactionBalanceService @Inject constructor(
     }
 
     private suspend fun getRewardsBalance(assetInfo: AssetInfo): BigInteger {
-        val owner = assetInfo.owner?.address ?: return BigInteger.ZERO
-        return stakeRepository.getRewards(assetInfo.asset.id, owner).sumRewardsBalance()
+        val walletId = assetInfo.walletId ?: return BigInteger.ZERO
+        return stakeRepository.getRewards(walletId, assetInfo.asset.id).sumRewardsBalance()
     }
 
     private suspend fun getPerpetualBalance(assetInfo: AssetInfo): BigInteger {

@@ -4,44 +4,43 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 @Entity(
-    tableName = "stake_delegation_validator",
-    indices = [Index("chain")],
+    tableName = "stake_validators",
+    indices = [Index("assetId")],
     foreignKeys = [
-        ForeignKey(DbAsset::class, ["id"], ["chain"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
+        ForeignKey(
+            entity = DbAsset::class,
+            parentColumns = ["id"],
+            childColumns = ["assetId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
     ],
 )
 data class DbDelegationValidator(
     @PrimaryKey val id: String,
-    val chain: Chain,
+    val assetId: String,
+    val validatorId: String,
     val name: String,
     val isActive: Boolean,
     val commission: Double,
     val apr: Double,
-    val providerType: StakeProviderType?,
+    val providerType: StakeProviderType,
 )
 
-fun DbDelegationValidator.toDTO(): DelegationValidator {
-    return DelegationValidator(
-        id = id,
-        chain = chain,
-        name = name,
-        isActive = isActive,
-        commission = commission,
-        apr = apr,
-        providerType = providerType ?: StakeProviderType.Stake
-    )
-}
+internal fun validatorRecordId(chain: Chain, validatorId: String): String = "${chain.string}_$validatorId"
 
-fun DelegationValidator.toRecord(): DbDelegationValidator {
-    return DbDelegationValidator(
-        id = id,
+fun DbDelegationValidator.toDTO(): DelegationValidator? {
+    val chain = assetId.toAssetId()?.chain ?: return null
+    return DelegationValidator(
+        id = validatorId,
         chain = chain,
         name = name,
         isActive = isActive,
@@ -51,8 +50,19 @@ fun DelegationValidator.toRecord(): DbDelegationValidator {
     )
 }
 
-fun List<DbDelegationValidator>.toDTO() = map { it.toDTO() }
+fun DelegationValidator.toRecord(): DbDelegationValidator {
+    return DbDelegationValidator(
+        id = validatorRecordId(chain = chain, validatorId = id),
+        assetId = AssetId(chain).toIdentifier(),
+        validatorId = id,
+        name = name,
+        isActive = isActive,
+        commission = commission,
+        apr = apr,
+        providerType = providerType,
+    )
+}
 
-fun Flow<List<DbDelegationValidator>>.toDTO() = map { it.toDTO() }
+fun List<DbDelegationValidator>.toDTO() = mapNotNull { it.toDTO() }
 
 fun List<DelegationValidator>.toRecord() = map { it.toRecord() }

@@ -29,8 +29,6 @@ interface AssetItemUIModel : CryptoFormattedUIModel, FiatFormattedUIModel {
 open class AssetInfoUIModel(
     val assetInfo: AssetInfo,
     val hideBalances: Boolean = false,
-    override val fraction: Int = 2,
-    override val maxFraction: Int = 4,
 ) : AssetItemUIModel {
 
     override val asset: Asset

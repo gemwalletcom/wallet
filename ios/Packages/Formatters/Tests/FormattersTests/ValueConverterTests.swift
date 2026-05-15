@@ -21,9 +21,9 @@ struct ValueConverterTests {
     @Test
     func testConvertToAmount() throws {
         let price = AssetPrice.mock(price: 2.5)
-        #expect(try converter.convertToAmount(fiatValue: "2.5", price: price, decimals: 8) == "1.00")
-        #expect(try converter.convertToAmount(fiatValue: "1.0", price: price, decimals: 8) == "0.40")
-        #expect(try converter.convertToAmount(fiatValue: "25", price: price, decimals: 8) == "10.00")
+        #expect(try converter.convertToAmount(fiatValue: "2.5", price: price, decimals: 8) == "1")
+        #expect(try converter.convertToAmount(fiatValue: "1.0", price: price, decimals: 8) == "0.4")
+        #expect(try converter.convertToAmount(fiatValue: "25", price: price, decimals: 8) == "10")
     }
 
     @Test
@@ -51,6 +51,6 @@ struct ValueConverterTests {
     @Test
     func convertToAmountWithRounding() throws {
         let price = AssetPrice.mock(price: 3.33333333)
-        #expect(try converter.convertToAmount(fiatValue: "10", price: price, decimals: 2) == "3.00")
+        #expect(try converter.convertToAmount(fiatValue: "10", price: price, decimals: 2) == "3")
     }
 }

@@ -94,7 +94,7 @@ extension TransactionInfoViewModel {
     private func swapAmountField(input: AssetValuePrice) -> SwapAmountField {
         let display = AmountDisplay.numeric(
             data: input,
-            style: .init(formatter: .medium, currencyCode: currency),
+            style: .init(formatter: .auto, currencyCode: currency),
         )
 
         return SwapAmountField(

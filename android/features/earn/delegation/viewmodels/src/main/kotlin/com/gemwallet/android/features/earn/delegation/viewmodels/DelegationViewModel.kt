@@ -51,7 +51,7 @@ class DelegationViewModel @Inject constructor(
 ) : ViewModel() {
 
     val validatorId = MutableStateFlow(savedStateHandle.requireString(RouteArgument.ValidatorId))
-    val delegationId = MutableStateFlow(savedStateHandle.requireString(RouteArgument.DelegationId))
+    val delegationId = MutableStateFlow(savedStateHandle.getString(RouteArgument.DelegationId))
 
     val delegation = combine(validatorId, delegationId) { validatorId, delegationId -> Pair(validatorId, delegationId) }
         .flatMapLatest {
@@ -249,3 +249,6 @@ private fun SavedStateHandle.requireString(argument: RouteArgument): String {
     check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
     return value
 }
+
+private fun SavedStateHandle.getString(argument: RouteArgument): String =
+    get<String>(argument.key).orEmpty()

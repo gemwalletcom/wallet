@@ -190,76 +190,6 @@ class Fiat(value: BigDecimal) : CountingUnit<BigDecimal, Crypto>(
     ): String = fiatFormat(value(0), symbol, decimalPlace, maxDecimals, dynamicPlace)
 }
 
-fun AssetBalance.format(
-    value: Double,
-    decimalPlace: Int = 6,
-    showSign: SignMode = SignMode.NoPLus,
-    dynamicPlace: Boolean = false,
-    zeroFraction: Int = 0,
-    showSymbol: Boolean = true,
-): String {
-    return cryptoFormat(
-        value = value.toBigDecimal(),
-        symbol = if (showSymbol) asset.symbol else "",
-        decimalPlace = decimalPlace,
-        showSign = showSign,
-        dynamicPlace = dynamicPlace,
-        zeroFraction = zeroFraction,
-    )
-}
-
-fun AssetBalance.availableFormatted(
-    decimalPlace: Int = 6,
-    dynamicPlace: Boolean = false,
-): String {
-    return format(balanceAmount.available, decimalPlace, SignMode.NoPLus, dynamicPlace, 0, true)
-}
-
-fun AssetBalance.reservedFormatted(
-    decimalPlace: Int = 6,
-    dynamicPlace: Boolean = false,
-): String {
-    return format(balanceAmount.reserved, decimalPlace, SignMode.NoPLus, dynamicPlace, 0, true)
-}
-
-fun AssetBalance.totalFormatted(
-    decimalPlace: Int = 6,
-    dynamicPlace: Boolean = true,
-): String {
-    return asset.format(
-        crypto = balance.getTotalAmount(),
-        decimalPlace = decimalPlace,
-        showSign = SignMode.NoPLus,
-        dynamicPlace = dynamicPlace,
-        zeroFraction = 0,
-    )
-}
-
-fun AssetBalance.totalStakeFormatted(
-    decimalPlace: Int = 6,
-    dynamicPlace: Boolean = false,
-): String {
-    return format(balanceAmount.getStackedAmount(), decimalPlace, SignMode.NoPLus, dynamicPlace, 0, true)
-}
-
-fun Asset.format(
-    humanAmount: String,
-    decimalPlace: Int = 6,
-    maxDecimals: Int = -1,
-    showSign: SignMode = SignMode.NoPLus,
-    dynamicPlace: Boolean = false,
-    zeroFraction: Int = 0,
-): String {
-    return format(
-        Crypto(humanAmount.toBigDecimal(), decimals),
-        decimalPlace,
-        maxDecimals,
-        showSign,
-        dynamicPlace,
-        zeroFraction,
-    )
-}
-
 fun Asset.format(
     humanAmount: Double,
     decimalPlace: Int = 6,
@@ -270,42 +200,6 @@ fun Asset.format(
 ): String {
     return format(
         Crypto(humanAmount.toBigDecimal(), decimals),
-        decimalPlace,
-        maxDecimals,
-        showSign,
-        dynamicPlace,
-        zeroFraction,
-    )
-}
-
-fun Asset.format(
-    humanAmount: BigDecimal,
-    decimalPlace: Int = 6,
-    maxDecimals: Int = -1,
-    showSign: SignMode = SignMode.NoPLus,
-    dynamicPlace: Boolean = false,
-    zeroFraction: Int = 0,
-): String {
-    return format(
-        Crypto(humanAmount, decimals),
-        decimalPlace,
-        maxDecimals,
-        showSign,
-        dynamicPlace,
-        zeroFraction,
-    )
-}
-
-fun Asset.format(
-    crypto: BigInteger,
-    decimalPlace: Int = 6,
-    maxDecimals: Int = -1,
-    showSign: SignMode = SignMode.NoPLus,
-    dynamicPlace: Boolean = false,
-    zeroFraction: Int = 0,
-): String {
-    return format(
-        Crypto(crypto),
         decimalPlace,
         maxDecimals,
         showSign,

@@ -128,8 +128,9 @@ class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, col
                     append(zeroValue)
                     append(" ")
                     append(symbol)
-                    addStyle(
-                        SpanStyle(color = color),
+                    addPlaceholderStyle(
+                        zeroValue = zeroValue,
+                        color = color,
                         start = 0,
                         end = zeroValue.length,
                     )
@@ -138,8 +139,9 @@ class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, col
                     append(symbol)
                     append(" ")
                     append(zeroValue)
-                    addStyle(
-                        SpanStyle(color = color),
+                    addPlaceholderStyle(
+                        zeroValue = zeroValue,
+                        color = color,
                         start = symbol.length,
                         end = symbol.length + zeroValue.length + 1,
                     )
@@ -183,4 +185,20 @@ abstract class AmountTransformation(
     abstract fun transformText(text: AnnotatedString): AnnotatedString
 
     abstract fun convertToOriginal(text: AnnotatedString, offset: Int): Int
+}
+
+private fun AnnotatedString.Builder.addPlaceholderStyle(
+    zeroValue: String,
+    color: Color,
+    start: Int,
+    end: Int,
+) {
+    if (zeroValue.isEmpty()) {
+        return
+    }
+    addStyle(
+        SpanStyle(color = color),
+        start = start,
+        end = end,
+    )
 }

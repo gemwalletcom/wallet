@@ -87,7 +87,7 @@ class AssetInfoDataAggregateImplTest {
             balance = AssetBalance.create(btcAsset, available = "100000000")
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
-        assertEquals("1.00 BTC", aggregate.balance)
+        assertEquals("1 BTC", aggregate.balance)
     }
 
     @Test
@@ -391,7 +391,7 @@ class AssetInfoDataAggregateImplTest {
         )
         val aggregate = assetInfo.toAssetInfoDataAggregate(hideBalance = false)
 
-        assertEquals("1.00 BTC", aggregate.balance)
+        assertEquals("1 BTC", aggregate.balance)
     }
 
     private fun createAssetInfo(

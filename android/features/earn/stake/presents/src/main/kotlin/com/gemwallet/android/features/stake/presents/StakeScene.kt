@@ -30,10 +30,9 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ui.open
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -160,7 +159,8 @@ private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
         when (row) {
             is StakeInfoRow.MinAmount -> PropertyItem(
                 title = stringResource(id = R.string.stake_minimum_amount, ""),
-                data = row.chain.asset().format(Crypto(row.value.toBigInteger()), decimalPlace = 2),
+                data = ValueFormatter(style = ValueFormatter.Style.Full)
+                    .string(row.value.toBigInteger(), row.chain.asset()),
                 listPosition = position,
             )
             is StakeInfoRow.Apr -> PropertyItem(

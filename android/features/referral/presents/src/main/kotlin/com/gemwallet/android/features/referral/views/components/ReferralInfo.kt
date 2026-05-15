@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -139,7 +139,9 @@ private fun RewardRedemptionOption.confirmationMessage(): String {
 }
 
 private val RewardRedemptionOption.valueText: String
-    get() = asset?.format(value.toBigInteger(), decimalPlace = 0) ?: ""
+    get() = asset?.let {
+        ValueFormatter(style = ValueFormatter.Style.Compact).string(value.toBigInteger(), it)
+    } ?: ""
 
 private val RewardRedemptionOption.pointsText: String
     get() = "$points \uD83D\uDC8E"

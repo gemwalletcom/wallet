@@ -15,6 +15,7 @@ import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.AmountInputType
 import com.wallet.core.primitives.Asset
@@ -43,6 +44,8 @@ class AmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    private val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
 
@@ -57,7 +60,7 @@ class AmountViewModel @Inject constructor(
         provider.availableBalance,
         provider.assetInfo,
     ) { balance, current ->
-        current?.asset?.format(Crypto(balance), 8).orEmpty()
+        current?.asset?.let { formatter.string(balance, it) }.orEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val reserveForFeeFormatted: StateFlow<String?> = combine(
@@ -65,7 +68,7 @@ class AmountViewModel @Inject constructor(
         maxAmount,
     ) { current, isMax ->
         if (!provider.shouldReserveFee(isMax) || provider.reserveForFee.signum() == 0) null
-        else current?.asset?.format(Crypto(provider.reserveForFee), 4)
+        else current?.asset?.let { formatter.string(provider.reserveForFee, it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val amountEquivalent: StateFlow<String> = combine(
@@ -180,13 +183,13 @@ class AmountViewModel @Inject constructor(
                 val value = input.parseNumber()
                 val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
                 AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
-                asset.format(crypto, dynamicPlace = true)
+                formatter.string(crypto, asset.symbol)
             }
         }
     } catch (_: Throwable) {
         when (direction) {
             AmountInputType.Crypto -> currency.format(0.0)
-            AmountInputType.Fiat -> asset.format(Crypto(BigInteger.ZERO), dynamicPlace = true)
+            AmountInputType.Fiat -> formatter.string(BigInteger.ZERO, asset)
         }
     }
 }

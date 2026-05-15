@@ -18,6 +18,7 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.SignerParams
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -66,6 +67,8 @@ class ConfirmViewModel @Inject constructor(
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    private val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
 
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
@@ -179,7 +182,7 @@ class ConfirmViewModel @Inject constructor(
 
         AmountUIModel(
             txType = request.getTxType(),
-            amount = amount.format(decimals, symbol, -1),
+            amount = formatter.string(amount.atomicValue, decimals, symbol),
             amountEquivalent = currency.format(amount.convert(decimals, price).atomicValue, dynamicPlace = true),
             asset = assetInfo,
             fromAsset = assetInfo,
@@ -208,7 +211,7 @@ class ConfirmViewModel @Inject constructor(
             return@combine ""
         }
         val feeAmount = Crypto(amount)
-        feeAssetInfo.asset.format(feeAmount, 8, dynamicPlace = true)
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(feeAmount.atomicValue, feeAssetInfo.asset)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
@@ -222,7 +225,7 @@ class ConfirmViewModel @Inject constructor(
             val feeAmount = Crypto(amount)
             val currency = feeAssetInfo.price?.currency ?: Currency.USD
             val feeDecimals = feeAssetInfo.asset.decimals
-            val feeCrypto = feeAssetInfo.asset.format(feeAmount, 8, dynamicPlace = true)
+            val feeCrypto = formatter.string(feeAmount.atomicValue, feeAssetInfo.asset)
             val feeFiat = feeAssetInfo.price?.let {
                 currency.format(feeAmount.convert(feeDecimals, it.price.price).atomicValue, dynamicPlace = true) // TODO: Move to UI - Model
             } ?: ""

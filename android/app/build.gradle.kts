@@ -18,7 +18,7 @@ repositories {
 
 android {
     namespace = "com.gemwallet.android"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "28.1.13356709"
 
     val channelDimension by extra("channel")
@@ -28,8 +28,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 36
-        versionCode = 758
-        versionName = "2.59"
+        versionCode = 759
+        versionName = "2.60"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

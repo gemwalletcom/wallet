@@ -53,9 +53,6 @@ android {
 dependencies {
     api(project(":blockchain"))
 
-    // JSON
-    implementation(libs.gson)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

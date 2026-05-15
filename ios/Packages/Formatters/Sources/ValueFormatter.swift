@@ -6,13 +6,11 @@ import Primitives
 
 public struct ValueFormatter: Sendable {
     public enum Style: Sendable {
-        case short
-        case medium
-        case full
-        case auto
-        case abbreviated
-        case compact
+        case short, compact, auto, full
     }
+
+    private static let smallAmountThreshold = Decimal(sign: .plus, exponent: -1, significand: 1)
+    private static let dustThreshold = Decimal(sign: .plus, exponent: -4, significand: 1)
 
     private let locale: Locale
     private let style: Style
@@ -28,76 +26,6 @@ public struct ValueFormatter: Sendable {
         self.abbreviationThreshold = abbreviationThreshold
     }
 
-    private var formatterShort: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        formatter.roundingIncrement = 0
-        formatter.roundingMode = .down
-        return formatter
-    }
-
-    private var formatterCompact: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 2
-        formatter.roundingIncrement = 0
-        formatter.roundingMode = .down
-        return formatter
-    }
-
-    private var formatterMiddle: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumSignificantDigits = 4
-        formatter.usesSignificantDigits = true
-        formatter.roundingIncrement = 0
-        formatter.roundingMode = .down
-        return formatter
-    }
-
-    private var formatterMedium: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 6
-        formatter.roundingIncrement = 0
-        formatter.roundingMode = .down
-        return formatter
-    }
-
-    private var formatterFull: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 32
-        formatter.maximumSignificantDigits = 32
-        formatter.usesSignificantDigits = true
-        formatter.roundingIncrement = 0
-        formatter.roundingMode = .down
-        return formatter
-    }
-
-    private var abbreviatedFormatter: AbbreviatedFormatter {
-        AbbreviatedFormatter(locale: locale, threshold: abbreviationThreshold)
-    }
-
-    public func inputNumber(from string: String, decimals: Int) throws -> BigInt {
-        // use standart formatter, which are en_US for getting correct BigInt value
-        try BigNumberFormatter.standard.number(
-            from: NumberInputNormalizer.normalize(string, locale: locale),
-            decimals: decimals,
-        )
-    }
-
     public func string(_ value: BigInt, asset: Asset) -> String {
         string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
@@ -106,32 +34,28 @@ public struct ValueFormatter: Sendable {
         guard let decimal = BigNumberFormatter.standard.decimal(from: value, decimals: decimals) else {
             return ""
         }
-        let number = NSDecimalNumber(decimal: decimal)
-
-        if let abbreviated = abbreviatedString(from: decimal, currency: currency) {
-            return abbreviated
+        if value.isZero {
+            return appendingCurrency("0", currency: currency)
         }
-
-        let formatter = {
-            let formatter = self.formatter(style: style, number: number)
-            if value == 0 {
-                formatter.maximumFractionDigits = 0
-                return formatter
-            }
-            if abs(decimal) < 0.1, value != 0 {
-                formatter.maximumFractionDigits = formatter.maximumFractionDigits * 2
-                return formatter
-            }
-            return formatter
-        }()
-        formatter.currencySymbol = currency
-        formatter.currencyCode = currency
-        formatter.internationalCurrencySymbol = currency
-
-        guard let value = formatter.string(from: number) else {
-            return ""
+        if style == .short, abs(decimal) >= abbreviationThreshold,
+           let abbreviated = abbreviatedFormatter.string(from: decimal) {
+            return appendingCurrency(abbreviated, currency: currency)
         }
-        return combined(value, currency: currency)
+        return appendingCurrency(decimal.formatted(formatStyle(for: decimal)), currency: currency)
+    }
+
+    public func inputNumber(from string: String, decimals: Int) throws -> BigInt {
+        try BigNumberFormatter.standard.number(
+            from: NumberInputNormalizer.normalize(string, locale: locale),
+            decimals: decimals,
+        )
+    }
+
+    public func double(from number: BigInt, decimals: Int) throws -> Double {
+        guard let result = BigNumberFormatter.standard.double(from: number, decimals: decimals) else {
+            throw AnyError("unknown \(number) number")
+        }
+        return result
     }
 
     func number(amount: String) throws -> Decimal {
@@ -144,49 +68,45 @@ public struct ValueFormatter: Sendable {
         }
         return decimal
     }
+}
 
-    public func double(from number: BigInt, decimals: Int) throws -> Double {
-        guard let number = BigNumberFormatter.standard.double(from: number, decimals: decimals) else {
-            throw AnyError("unknown \(number) number")
-        }
-        return number
+private extension ValueFormatter {
+    var abbreviatedFormatter: AbbreviatedFormatter {
+        AbbreviatedFormatter(locale: locale, threshold: abbreviationThreshold)
     }
 
-    private func formatter(style: ValueFormatter.Style, number: NSDecimalNumber) -> Foundation.NumberFormatter {
-        switch style {
-        case .short: formatterShort
-        case .medium: formatterMedium
-        case .full: formatterFull
-        case .auto: autoFormatter(for: number)
-        case .abbreviated: formatterShort
-        case .compact: formatterCompact
+    func formatStyle(for decimal: Decimal) -> Decimal.FormatStyle {
+        Decimal.FormatStyle()
+            .locale(locale)
+            .grouping(.automatic)
+            .rounded(rule: .towardZero)
+            .precision(precision(for: abs(decimal)))
+    }
+
+    func precision(for magnitude: Decimal) -> NumberFormatStyleConfiguration.Precision {
+        switch (style, magnitude) {
+        case (.full, _): .full
+
+        case (.short, Self.smallAmountThreshold...): .twoPlaces
+        case (.short, _): .fourPlaces
+
+        case (.compact, Self.smallAmountThreshold...): .twoPlaces
+        case (.compact, _): .fourPlaces
+
+        case (.auto, 1...): .twoPlaces
+        case (.auto, Self.dustThreshold...): .fourSignificant
+        case (.auto, _): .full
         }
     }
 
-    private func autoFormatter(for number: NSDecimalNumber) -> NumberFormatter {
-        switch number.doubleValue.magnitude {
-        case 0: formatterShort
-        case 1...: formatterShort
-        case 0.0001 ..< 1: formatterMiddle
-        default: formatterFull
-        }
+    func appendingCurrency(_ value: String, currency: String) -> String {
+        currency.isEmpty ? value : "\(value) \(currency)"
     }
+}
 
-    private func abbreviatedString(from decimal: Decimal, currency: String) -> String? {
-        guard case .abbreviated = style else {
-            return nil
-        }
-
-        if let result = abbreviatedFormatter.string(from: decimal) {
-            return combined(result, currency: currency)
-        }
-        return nil
-    }
-
-    private func combined(_ value: String, currency: String) -> String {
-        if currency.isEmpty {
-            return value
-        }
-        return String(format: "%@ %@", value, currency)
-    }
+private extension NumberFormatStyleConfiguration.Precision {
+    static let full = fractionLength(0 ... 32)
+    static let twoPlaces = fractionLength(0 ... 2)
+    static let fourPlaces = fractionLength(0 ... 4)
+    static let fourSignificant = significantDigits(1 ... 4)
 }

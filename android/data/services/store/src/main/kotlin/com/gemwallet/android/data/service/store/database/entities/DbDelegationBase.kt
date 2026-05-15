@@ -1,43 +1,77 @@
 package com.gemwallet.android.data.service.store.database.entities
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.ForeignKey
+import androidx.room.Index
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationState
-import java.util.UUID
+import com.wallet.core.primitives.WalletId
 
-@Entity(tableName = "stake_delegation_base")
+@Entity(
+    tableName = "stake_delegations",
+    primaryKeys = ["walletId", "id"],
+    indices = [
+        Index("assetId"),
+        Index("validatorId"),
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = DbWallet::class,
+            parentColumns = ["id"],
+            childColumns = ["walletId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = DbAsset::class,
+            parentColumns = ["id"],
+            childColumns = ["assetId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = DbDelegationValidator::class,
+            parentColumns = ["id"],
+            childColumns = ["validatorId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+        ),
+    ],
+)
 data class DbDelegationBase(
-    @PrimaryKey val id: String,
-    val address: String,
-    @ColumnInfo("delegation_id") val delegationId: String,
-    @ColumnInfo("validator_id") val validatorId: String,
-    @ColumnInfo("asset_id") val assetId: String,
+    val id: String,
+    val walletId: String,
+    val assetId: String,
+    val validatorId: String,
     val state: DelegationState,
+    val delegationId: String,
     val balance: String,
+    val shares: String,
     val rewards: String,
-    @ColumnInfo("completion_date") val completionDate: Long? = null,
-    val price: Double? = null,
-    @ColumnInfo("price_change") val priceChange: Double? = null,
-    val shares: String? = null,
+    val completionDate: Long? = null,
 )
 
-fun DelegationBase.toRecord(address: String): DbDelegationBase {
+fun DelegationBase.toRecord(walletId: WalletId): DbDelegationBase {
     return DbDelegationBase(
-        id = UUID.randomUUID().toString(),
-        address = address,
-        delegationId = delegationId,
-        validatorId = validatorId,
+        id = delegationRecordId(assetId.toIdentifier(), validatorId, state, delegationId),
+        walletId = walletId.id,
         assetId = assetId.toIdentifier(),
+        validatorId = validatorRecordId(chain = assetId.chain, validatorId = validatorId),
         state = state,
+        delegationId = delegationId,
         balance = balance,
-        completionDate = completionDate,
-        rewards = rewards,
         shares = shares,
+        rewards = rewards,
+        completionDate = completionDate,
     )
-    
 }
 
-fun List<DelegationBase>.toRecord(address: String) = map { it.toRecord(address) }
+fun List<DelegationBase>.toRecord(walletId: WalletId) = map { it.toRecord(walletId) }
+
+internal fun delegationRecordId(
+    assetId: String,
+    validatorId: String,
+    state: DelegationState,
+    delegationId: String,
+): String = "${assetId}_${validatorId}_${state.string}_$delegationId"

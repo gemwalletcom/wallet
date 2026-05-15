@@ -4,14 +4,15 @@ import com.gemwallet.android.blockchain.services.StakeService
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.service.store.database.StakeDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
+import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationValidator
+import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -28,100 +29,78 @@ class StakeRepository(
 ) : SyncStakeDelegations {
     private val recommendedValidators = Config().getValidators()
 
-    override suspend fun sync(walletId: WalletId, chain: Chain, address: String, apr: Double) {
-        sync(chain, address, apr)
-    }
-
-    suspend fun sync(chain: Chain, address: String, apr: Double) = withContext(Dispatchers.IO) {
-        if (stakeDao.getValidators(chain).first().isEmpty()) {
-            syncValidators(chain, apr)
-            syncDelegations(chain, address)
+    override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String, apr: Double) = withContext(Dispatchers.IO) {
+        val validators = stakeDao.getValidators(assetId.toIdentifier(), StakeProviderType.Stake).first()
+        if (validators.isEmpty()) {
+            syncValidators(assetId, apr)
+            syncDelegations(walletId, assetId, address)
         } else {
-            syncDelegations(chain, address)
-            syncValidators(chain, apr)
+            syncDelegations(walletId, assetId, address)
+            syncValidators(assetId, apr)
         }
     }
 
-    private suspend fun syncDelegations(chain: Chain, address: String) = withContext(Dispatchers.IO) {
-        val delegations = try {
-            stakeService.getStakeDelegations(chain, address)
-        } catch (_: Throwable) {
-            return@withContext
-        }
-        update(address, delegations)
+    fun getRecommendValidators(assetId: AssetId): List<String> {
+        return recommendedValidators[assetId.chain.string].orEmpty()
     }
 
-    suspend fun syncValidators(chain: Chain? = null, apr: Double) = withContext(Dispatchers.IO) {
-        chain?.string ?: return@withContext
-        val validatorsInfo = try {
-            gemApiStaticClient.getValidators(chain.string)
-                .groupBy { it.id }
-                .mapValues { it.value.firstOrNull() }
-        } catch (_: Throwable) {
-            emptyMap()
-        }
-        val validators = stakeService.getValidators(chain, apr)
-            .map {
-                if (it.name.isEmpty()) {
-                    it.copy(name = validatorsInfo[it.id]?.name ?: "")
-                } else {
-                    it
-                }
-            }
-        update(validators)
+    fun getRecommended(assetId: AssetId): Flow<DelegationValidator?> {
+        val recommendedIds = getRecommendValidators(assetId)
+        return getValidators(assetId).map { pickRecommendedValidator(it, recommendedIds) }
     }
 
-    fun getRecommendValidators(chain: Chain): List<String> {
-        return recommendedValidators[chain.string] ?: emptyList()
-    }
-
-    fun getRecommended(chain: Chain): Flow<DelegationValidator?> {
-        val validators = getValidators(chain)
-        val recommendedId = getRecommendValidators(chain)
-        return validators.map { items ->
-            pickRecommendedValidator(items, recommendedId)
-        }
-    }
-
-    fun getValidators(chain: Chain): Flow<List<DelegationValidator>> {
-        return stakeDao.getValidators(chain)
+    fun getValidators(assetId: AssetId): Flow<List<DelegationValidator>> {
+        return stakeDao.getValidators(assetId.toIdentifier(), StakeProviderType.Stake)
             .map { items -> selectableValidators(items.toDTO()) }
     }
 
-    fun getDelegations(assetId: AssetId, owner: String): Flow<List<Delegation>> {
-        return stakeDao.getDelegations(assetId.toIdentifier(), owner)
-            .map { items -> items.mapNotNull { it.toModel() } }
+    fun getDelegations(walletId: WalletId, assetId: AssetId): Flow<List<Delegation>> {
+        return stakeDao.getDelegations(walletId.id, assetId.toIdentifier())
+            .map { rows ->
+                rows
+                    .sortedByDescending { it.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO }
+                    .mapNotNull { it.toModel() }
+            }
     }
 
-    fun getDelegation(validatorId: String, delegationId: String = ""): Flow<Delegation?> {
-        return stakeDao.getDelegation(validatorId = validatorId, delegationId = delegationId)
-            .map { it?.toModel() }
+    fun getDelegation(validatorId: String, delegationId: String): Flow<Delegation?> {
+        return stakeDao.getDelegation(validatorId, delegationId).map { it?.toModel() }
     }
 
-    suspend fun getRewards(assetId: AssetId, owner: String): List<Delegation> {
-        return getDelegations(assetId, owner).first()
+    suspend fun getRewards(walletId: WalletId, assetId: AssetId): List<Delegation> {
+        return getDelegations(walletId, assetId).first()
             .filter { BigInteger(it.base.rewards) > BigInteger.ZERO }
     }
 
     suspend fun getStakeValidator(assetId: AssetId, validatorId: String): DelegationValidator? = withContext(Dispatchers.IO) {
-        stakeDao.getStakeValidator(assetId.chain, validatorId)?.toDTO()
+        stakeDao.getValidator(assetId.toIdentifier(), validatorId)?.toDTO()
     }
 
-//    suspend fun getUnstakeValidator(assetId: AssetId, address: String): DelegationValidator? = withContext(Dispatchers.IO) {
-//        getDelegations(assetId, address).toList().firstOrNull()?.firstOrNull()?.validator
-//    }
-
-    private suspend fun update(address: String, delegations: List<DelegationBase>) {
-        if (delegations.isNotEmpty()) {
-            val baseDelegations = delegations.toRecord(address)
-            stakeDao.update(baseDelegations)
-        } else {
-            stakeDao.deleteBaseDelegation(address)
+    private suspend fun syncValidators(assetId: AssetId, apr: Double) {
+        val chain = assetId.chain
+        val names = runCatching { gemApiStaticClient.getValidators(chain.string) }
+            .getOrDefault(emptyList())
+            .associateBy { it.id }
+        val validators = stakeService.getValidators(chain, apr).map { validator ->
+            if (validator.name.isEmpty()) validator.copy(name = names[validator.id]?.name.orEmpty()) else validator
         }
+        stakeDao.upsertValidators(validators.toRecord())
     }
 
-    suspend fun update(validators: List<DelegationValidator>) {
-        stakeDao.updateValidators(validators.toRecord())
+    private suspend fun syncDelegations(walletId: WalletId, assetId: AssetId, address: String) {
+        val delegations = runCatching { stakeService.getStakeDelegations(assetId.chain, address) }
+            .getOrNull() ?: return
+        val incoming = delegations.toRecord(walletId)
+        val incomingIds = incoming.map { it.id }.toSet()
+        val deleteIds = stakeDao.getDelegations(walletId.id, assetId.toIdentifier()).first()
+            .map { it.base.id }
+            .filterNot { incomingIds.contains(it) }
+        if (deleteIds.isNotEmpty()) {
+            stakeDao.deleteDelegations(walletId.id, deleteIds)
+        }
+        if (incoming.isNotEmpty()) {
+            stakeDao.upsertDelegations(incoming)
+        }
     }
 }
 

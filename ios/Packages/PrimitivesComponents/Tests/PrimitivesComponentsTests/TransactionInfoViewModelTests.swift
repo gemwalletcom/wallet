@@ -187,8 +187,8 @@ struct TransactionInfoModelTests {
         #expect(toField.amount.contains(feeAsset.symbol))
         #expect(fromField.assetId == asset.id)
         #expect(toField.assetId == feeAsset.id)
-        #expect(fromField.amount == "1.00 BTC")
-        #expect(toField.amount == "0.10 BTC")
+        #expect(fromField.amount == "1 BTC")
+        #expect(toField.amount == "0.1 BTC")
     }
 
     @Test

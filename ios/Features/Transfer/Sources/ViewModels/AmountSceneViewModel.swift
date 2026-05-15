@@ -92,7 +92,7 @@ public final class AmountSceneViewModel {
     }
 
     var balanceText: String {
-        ValueFormatter(style: .medium).string(
+        ValueFormatter(style: .auto).string(
             provider.availableValue(from: assetData),
             decimals: asset.decimals.asInt,
             currency: asset.symbol,

@@ -284,6 +284,7 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         SwapRoute -> true
         is AmountRoute,
         is ConfirmRoute,
+        is DelegationRoute,
         is RecipientInputRoute,
         is StakeRoute,
         is SwapPairRoute,

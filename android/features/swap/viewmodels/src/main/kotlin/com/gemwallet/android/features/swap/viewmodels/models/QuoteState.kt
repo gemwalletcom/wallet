@@ -2,8 +2,7 @@ package com.gemwallet.android.features.swap.viewmodels.models
 
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
 
@@ -14,7 +13,8 @@ data class QuoteState(
 )
 
 internal val QuoteState.formattedToAmount: String
-    get() = receive.asset.format(Crypto(quote.toValue), 8, showSymbol = false)
+    get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+        .string(quote.toValue.toBigInteger(), receive.asset.decimals)
 
 internal val QuoteState.validationError: SwapError?
     get() {

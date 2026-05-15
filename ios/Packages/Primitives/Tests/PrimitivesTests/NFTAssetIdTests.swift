@@ -36,5 +36,9 @@ struct NFTAssetIdTests {
         #expect(throws: Error.self) { try NFTAssetId.from(id: "nounderscore") }
         #expect(throws: Error.self) { try NFTCollectionId.from(id: "nounderscore") }
         #expect(throws: Error.self) { try NFTCollectionId.from(id: "unknownchain_0xabc") }
+
+        let encoded = try JSONEncoder().encode(asset)
+        #expect(String(data: encoded, encoding: .utf8) == "\"ethereum_0xabc::1\"")
+        #expect(try JSONDecoder().decode(NFTAssetId.self, from: encoded) == asset)
     }
 }

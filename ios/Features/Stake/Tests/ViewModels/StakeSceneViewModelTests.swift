@@ -27,7 +27,7 @@ struct StakeSceneViewModelTests {
 
     @Test
     func minimumStakeAmount() {
-        #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField?.value.text == "1.00 TRX")
+        #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField?.value.text == "1 TRX")
     }
 
     @Test

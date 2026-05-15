@@ -28,12 +28,10 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.ChainAssetInfo
-import com.gemwallet.android.model.availableFormatted
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.model.getStackedAmount
-import com.gemwallet.android.model.reservedFormatted
-import com.gemwallet.android.model.totalFormatted
-import com.gemwallet.android.model.totalStakeFormatted
+import com.gemwallet.android.model.getTotalAmount
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
@@ -223,6 +221,7 @@ class AssetDetailsViewModel @Inject constructor(
             val total = balances.totalAmount
             val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currency.format(balances.fiatTotalAmount, dynamicPlace = true)
             val stakeBalance = balances.balanceAmount.getStackedAmount()
+            val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
 
             return AssetInfoUIModel(
                 assetInfo = assetInfo,
@@ -247,13 +246,13 @@ class AssetDetailsViewModel @Inject constructor(
                 },
                 accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                     walletType = assetInfo.walletType,
-                    totalBalance = balances.totalFormatted(),
+                    totalBalance = formatter.string(balances.balance.getTotalAmount(), balances.asset),
                     totalFiat = fiatTotal,
                     owner = assetInfo.owner?.address ?: "",
                     balanceMetadata = feeAssetInfo.balance.metadata,
                     hasBalanceDetails = StakeChain.isStaked(asset.id.chain) || balances.balanceAmount.reserved != 0.0,
                     available = if (balances.balanceAmount.available != total) {
-                        balances.availableFormatted()
+                        formatter.string(balances.balance.available.toBigInteger(), balances.asset)
                     } else {
                         ""
                     },
@@ -261,13 +260,13 @@ class AssetDetailsViewModel @Inject constructor(
                         if (stakeBalance == 0.0) {
                             "APR ${(assetInfo.stakeApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
                         } else {
-                            balances.totalStakeFormatted()
+                            formatter.string(balances.balance.getStackedAmount(), balances.asset)
                         }
                     } else {
                         ""
                     },
                     reserved = if (balances.balanceAmount.reserved != 0.0) {
-                        balances.reservedFormatted()
+                        formatter.string(balances.balance.reserved.toBigInteger(), balances.asset)
                     } else {
                         ""
                     },

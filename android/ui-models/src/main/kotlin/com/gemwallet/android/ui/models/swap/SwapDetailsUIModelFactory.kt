@@ -9,7 +9,7 @@ import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import java.math.BigDecimal
 import uniffi.gemstone.SwapPriceImpact
 import uniffi.gemstone.SwapperProvider
@@ -43,7 +43,8 @@ object SwapProviderUIModelFactory {
             id = providerId,
             title = title,
             icon = providerId.getSwapProviderIcon(),
-            amount = receiveAsset.asset.format(toAmount, 2, dynamicPlace = true),
+            amount = ValueFormatter(style = ValueFormatter.Style.Auto)
+                .string(toAmount.atomicValue, receiveAsset.asset),
             fiat = receiveAsset.formatFiat(fiatValue),
         )
     }
@@ -102,7 +103,8 @@ object SwapDetailsUIModelFactory {
             providers = input.providers,
             rate = rate,
             priceImpact = priceImpact,
-            minimumReceive = input.receiveAsset.asset.format(Crypto(minReceiveAtomic), 2, dynamicPlace = true),
+            minimumReceive = ValueFormatter(style = ValueFormatter.Style.Auto)
+                .string(minReceiveAtomic, input.receiveAsset.asset),
             slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
             estimatedTime = input.etaInSeconds?.formatSwapEta(),
             isProviderSelectable = input.isProviderSelectable,

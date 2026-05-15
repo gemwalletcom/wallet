@@ -37,8 +37,7 @@ import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
 import com.gemwallet.android.features.confirm.viewmodels.reorderWalletConnectProperties
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -149,7 +148,8 @@ fun ConfirmScreen(
                         val title = if (walletConnectReview.headerIsUnlimited) {
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
-                            walletConnectReview.headerValue?.toBigIntegerOrNull()?.let { asset.format(Crypto(it), dynamicPlace = true) } ?: ""
+                            walletConnectReview.headerValue?.toBigIntegerOrNull()
+                                ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: ""
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
