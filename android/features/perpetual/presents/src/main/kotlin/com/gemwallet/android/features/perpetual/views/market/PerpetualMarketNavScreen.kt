@@ -27,6 +27,8 @@ fun PerpetualMarketNavScreen(
         snapshotFlow { query.text.toString() }.collect(viewModel::setQuery)
     }
 
+    LaunchedEffect(Unit) { viewModel.fetch() }
+
     PerpetualMarketScene(
         sceneState = sceneState,
         balance = balance,

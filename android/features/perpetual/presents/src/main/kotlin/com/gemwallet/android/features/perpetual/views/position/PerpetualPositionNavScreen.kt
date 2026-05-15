@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.perpetual.views.position
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -15,6 +16,8 @@ fun PerpetualPositionNavScreen(
     onTransaction: (TransactionId) -> Unit,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(Unit) { viewModel.fetch() }
+
     val perpetual by viewModel.perpetual.collectAsStateWithLifecycle()
     val position by viewModel.position.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()

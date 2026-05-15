@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,6 +43,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetualChartData: GetPerpetualChartData,
     private val getTransactions: GetTransactions,
     private val syncAssetTransactions: SyncAssetTransactions,
+    private val syncPerpetualPositions: SyncPerpetualPositions,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -89,6 +92,12 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     fun period(period: ChartPeriod) {
         this.period.update { period }
+    }
+
+    fun fetch() {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncPerpetualPositions.syncPerpetualPositions()
+        }
     }
 
     fun buildOpenPosition(direction: PerpetualDirection): AmountParams.Perpetual? {

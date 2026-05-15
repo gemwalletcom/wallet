@@ -73,6 +73,12 @@ class PerpetualMarketViewModel @Inject constructor(
         }
     }
 
+    fun fetch() {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncPerpetualPositions.syncPerpetualPositions()
+        }
+    }
+
     fun onTogglePin(perpetualId: String) {
         togglePin.togglePin(perpetualId)
     }
