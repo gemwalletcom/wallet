@@ -53,7 +53,7 @@ class ValueFormatter(
     private fun precision(magnitude: BigDecimal): Precision = when (style) {
         Style.Full -> Precision.full
         Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.twoPlaces else Precision.fourPlaces
-        Style.Compact -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
+        Style.Compact -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.twoPlaces else Precision.fourPlaces
         Style.Auto -> when {
             magnitude >= BigDecimal.ONE -> Precision.twoPlaces
             magnitude >= DUST_THRESHOLD -> Precision.fourSignificant
@@ -75,11 +75,9 @@ class ValueFormatter(
         data class Significant(val max: Int) : Precision
 
         companion object {
-            val full = Fraction(min = 2, max = 32)
-            val twoPlaces = Fraction(min = 2, max = 2)
-            val fourPlaces = Fraction(min = 2, max = 4)
-            val upToTwoPlaces = Fraction(min = 0, max = 2)
-            val upToFourPlaces = Fraction(min = 0, max = 4)
+            val full = Fraction(min = 0, max = 32)
+            val twoPlaces = Fraction(min = 0, max = 2)
+            val fourPlaces = Fraction(min = 0, max = 4)
             val fourSignificant = Significant(max = 4)
         }
     }

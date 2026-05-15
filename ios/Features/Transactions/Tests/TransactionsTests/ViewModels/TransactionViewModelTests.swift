@@ -19,12 +19,12 @@ final class TransactionViewModelTests {
     func autoValueFormatter() {
         let fromAsset = Asset.mockEthereum()
         let toAsset = Asset.mockEthereumUSDT()
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue?.text == "+1.00 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue?.text == "+1 USDT")
         #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue?.text == "+0.01 USDT")
         #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue?.text == "+0.001 USDT")
         #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue?.text == "+0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue?.text == "+0.00 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue?.text == "+0.00 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue?.text == "+0 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue?.text == "+0 USDT")
     }
 
     @Test

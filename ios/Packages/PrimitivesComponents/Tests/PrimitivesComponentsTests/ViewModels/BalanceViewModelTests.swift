@@ -49,8 +49,8 @@ struct BalanceViewModelTests {
             balance: .mock(staked: BigInt(1_000_000_000_000_000_000), earn: BigInt(2_000_000_000_000_000_000)),
             formatter: .full,
         )
-        #expect(model.balanceTextWithSymbol(for: .stake) == "1.00 ETH")
-        #expect(model.balanceTextWithSymbol(for: .earn) == "2.00 ETH")
+        #expect(model.balanceTextWithSymbol(for: .stake) == "1 ETH")
+        #expect(model.balanceTextWithSymbol(for: .earn) == "2 ETH")
     }
 
     @Test

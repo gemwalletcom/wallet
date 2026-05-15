@@ -152,7 +152,7 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertTrue(amount is TransactionDetailsValue.Amount.Plain)
         val plainAmount = amount as TransactionDetailsValue.Amount.Plain
         Assert.assertEquals(btcAsset, plainAmount.asset)
-        Assert.assertEquals("1.00 BTC", plainAmount.value)
+        Assert.assertEquals("-1 BTC", plainAmount.value)
         Assert.assertEquals("\$50,000.00", plainAmount.equivalent)
     }
 
@@ -169,7 +169,7 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertTrue(amount is TransactionDetailsValue.Amount.Plain)
         val plainAmount = amount as TransactionDetailsValue.Amount.Plain
         Assert.assertEquals(btcAsset, plainAmount.asset)
-        Assert.assertEquals("1.00 BTC", plainAmount.value)
+        Assert.assertEquals("-1 BTC", plainAmount.value)
         Assert.assertEquals("", plainAmount.equivalent)
     }
 

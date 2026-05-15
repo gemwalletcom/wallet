@@ -5,6 +5,7 @@ import com.gemwallet.android.application.transactions.coordinators.GetTransactio
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ext.AddressFormatter
@@ -104,7 +105,7 @@ class TransactionDataAggregateImpl(
     override val value: String get() = when (data.transaction.type) {
         TransactionType.Swap -> {
             getSwapMetadata(true)?.let { (metadata, asset) ->
-                "+${formatter.string(metadata.toValue.toBigInteger(), asset)}"
+                AmountSign.Incoming.format(formatter.string(metadata.toValue.toBigInteger(), asset))
             } ?: ""
         }
         TransactionType.PerpetualOpenPosition -> Currency.USD.format(
@@ -120,13 +121,7 @@ class TransactionDataAggregateImpl(
         TransactionType.EarnDeposit,
         TransactionType.StakeFreeze,
         TransactionType.StakeUnfreeze -> getFormattedValue()
-        TransactionType.Transfer -> {
-            when (data.transaction.direction) {
-                TransactionDirection.SelfTransfer,
-                TransactionDirection.Outgoing -> "-${getFormattedValue()}"
-                TransactionDirection.Incoming -> "+${getFormattedValue()}"
-            }
-        }
+        TransactionType.Transfer -> AmountSign(data.transaction.direction).format(getFormattedValue())
         TransactionType.TokenApproval -> data.asset.symbol
         TransactionType.TransferNFT,
         TransactionType.AssetActivation,
@@ -137,7 +132,7 @@ class TransactionDataAggregateImpl(
 
     override val equivalentValue: String? get() = when (data.transaction.type) {
         TransactionType.Swap -> getSwapMetadata(false)?.let { (metadata, asset) ->
-            "-${formatter.string(metadata.fromValue.toBigInteger(), asset)}"
+            AmountSign.Outgoing.format(formatter.string(metadata.fromValue.toBigInteger(), asset))
         }
         else -> null
     }

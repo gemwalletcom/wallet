@@ -23,7 +23,7 @@ struct NumericViewModelTests {
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: style)
 
-        #expect(viewModel.amount.text == "+1.00 BTC")
+        #expect(viewModel.amount.text == "+1 BTC")
         #expect(viewModel.amount.style.color == Colors.green)
     }
 
@@ -37,7 +37,7 @@ struct NumericViewModelTests {
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: outgoingStyle)
 
-        #expect(viewModel.amount.text == "-1.00 BTC")
+        #expect(viewModel.amount.text == "-1 BTC")
         #expect(viewModel.amount.style.color == Colors.black)
     }
 
@@ -51,7 +51,7 @@ struct NumericViewModelTests {
         let data = AssetValuePrice(asset: asset, value: value, price: price)
         let viewModel = NumericViewModel(data: data, style: noSignStyle)
 
-        #expect(viewModel.amount.text == "1.00 BTC")
+        #expect(viewModel.amount.text == "1 BTC")
         #expect(viewModel.amount.style.color == Colors.black)
     }
 

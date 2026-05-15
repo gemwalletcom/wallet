@@ -90,8 +90,8 @@ private extension ValueFormatter {
         case (.short, Self.smallAmountThreshold...): .twoPlaces
         case (.short, _): .fourPlaces
 
-        case (.compact, Self.smallAmountThreshold...): .upToTwoPlaces
-        case (.compact, _): .upToFourPlaces
+        case (.compact, Self.smallAmountThreshold...): .twoPlaces
+        case (.compact, _): .fourPlaces
 
         case (.auto, 1...): .twoPlaces
         case (.auto, Self.dustThreshold...): .fourSignificant
@@ -105,10 +105,8 @@ private extension ValueFormatter {
 }
 
 private extension NumberFormatStyleConfiguration.Precision {
-    static let full = fractionLength(2 ... 32)
-    static let twoPlaces = fractionLength(2 ... 2)
-    static let fourPlaces = fractionLength(2 ... 4)
-    static let upToTwoPlaces = fractionLength(0 ... 2)
-    static let upToFourPlaces = fractionLength(0 ... 4)
+    static let full = fractionLength(0 ... 32)
+    static let twoPlaces = fractionLength(0 ... 2)
+    static let fourPlaces = fractionLength(0 ... 4)
     static let fourSignificant = significantDigits(1 ... 4)
 }

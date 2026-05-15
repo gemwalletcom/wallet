@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
@@ -147,17 +148,10 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.Swap,
                         TransactionType.StakeFreeze,
                         TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
-                        TransactionType.Transfer -> {
-                            val amount = formatter.string(value.atomicValue, asset)
-                            Pair(
-                                when (data.transaction.direction) {
-                                    TransactionDirection.Incoming -> "+$amount"
-                                    TransactionDirection.Outgoing -> "-$amount"
-                                    TransactionDirection.SelfTransfer -> amount
-                                },
-                                fiat,
-                            )
-                        }
+                        TransactionType.Transfer -> Pair(
+                            AmountSign(data.transaction.direction).format(formatter.string(value.atomicValue, asset)),
+                            fiat,
+                        )
                         TransactionType.TransferNFT,
                         TransactionType.AssetActivation,
                         TransactionType.SmartContractCall,
