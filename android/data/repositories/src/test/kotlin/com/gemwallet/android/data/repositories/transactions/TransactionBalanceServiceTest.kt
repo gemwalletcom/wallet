@@ -43,7 +43,7 @@ class TransactionBalanceServiceTest {
             mockDelegation(assetId = asset.id, balance = "2", rewards = "53"),
             mockDelegation(assetId = asset.id, balance = "100", rewards = "7"),
         )
-        coEvery { stakeRepository.getRewards(asset.id, "wallet-address") } returns rewards
+        coEvery { stakeRepository.getRewards(any(), asset.id) } returns rewards
 
         val amountParams = AmountParams.Stake.Rewards(asset.id)
         val confirmParams = ConfirmParams.Builder(

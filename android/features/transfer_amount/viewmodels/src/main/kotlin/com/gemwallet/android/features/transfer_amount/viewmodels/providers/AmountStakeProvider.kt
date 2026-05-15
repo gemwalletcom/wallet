@@ -132,8 +132,8 @@ class AmountStakeProvider(
 
     private val rewardsDelegations: StateFlow<List<Delegation>> = when (params) {
         is AmountParams.Stake.Rewards -> assetInfo.filterNotNull().flatMapLatest { current ->
-            val owner = current.owner?.address ?: return@flatMapLatest flowOf(emptyList())
-            getDelegations(current.asset.id, owner).map { list -> list.filter { it.hasRewards() } }
+            val walletId = current.walletId ?: return@flatMapLatest flowOf(emptyList())
+            getDelegations(walletId, current.asset.id).map { list -> list.filter { it.hasRewards() } }
         }.flowOn(Dispatchers.IO).stateIn(scope, SharingStarted.Eagerly, emptyList())
         else -> MutableStateFlow(emptyList())
     }
@@ -157,7 +157,7 @@ class AmountStakeProvider(
 
     private val recommendedValidator: StateFlow<DelegationValidator?> = when (params) {
         is AmountParams.Stake.Delegate,
-        is AmountParams.Stake.Redelegate -> getRecommendedValidator(params.assetId.chain)
+        is AmountParams.Stake.Redelegate -> getRecommendedValidator(params.assetId)
             .flowOn(Dispatchers.IO)
             .stateIn(scope, SharingStarted.Eagerly, null)
         else -> MutableStateFlow(null)
@@ -176,12 +176,12 @@ class AmountStakeProvider(
     val validatorSource: StateFlow<ValidatorsSource?> = assetInfo.mapLatest { current ->
         when (params) {
             is AmountParams.Stake.Rewards ->
-                current?.owner?.address?.let { ValidatorsSource.Rewards(params.assetId, it) }
+                current?.walletId?.let { ValidatorsSource.Rewards(walletId = it, assetId = params.assetId) }
             is AmountParams.Stake.Freeze, is AmountParams.Stake.Unfreeze -> null
             is AmountParams.Stake.Delegate,
             is AmountParams.Stake.Redelegate,
             is AmountParams.Stake.Undelegate,
-            is AmountParams.Stake.Withdraw -> ValidatorsSource.ChainValidators(chain = params.assetId.chain)
+            is AmountParams.Stake.Withdraw -> ValidatorsSource.ChainValidators(assetId = params.assetId)
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 

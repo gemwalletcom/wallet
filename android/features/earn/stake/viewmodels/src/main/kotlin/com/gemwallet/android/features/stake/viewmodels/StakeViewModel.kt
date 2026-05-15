@@ -37,8 +37,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -83,16 +83,14 @@ class StakeViewModel @Inject constructor(
         session?.wallet?.getAccount(assetId.chain)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val delegations = account.combine(assetId) { account, assetId -> Pair(account, assetId) }
-        .flatMapLatest {
-            val (account, assetId) = it
-            val accountAddress = account?.address ?: return@flatMapLatest emptyFlow()
-            stakeRepository.getDelegations(assetId, accountAddress)
-        }
+    val delegations = session.filterNotNull().combine(assetId) { session, assetId ->
+        session.wallet.id to assetId
+    }
+        .flatMapLatest { (walletId, assetId) -> stakeRepository.getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isStakeEnabled = assetId
-        .flatMapLatest { stakeRepository.getValidators(it.chain) }
+        .flatMapLatest { stakeRepository.getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -129,18 +127,23 @@ class StakeViewModel @Inject constructor(
 
     private val sync = MutableStateFlow<Boolean>(true)
 
-    val isSync = combine(sync, assetInfo.filterNotNull(), account.filterNotNull()) { sync, assetInfo, account ->
-        Triple(sync, assetInfo, account)
-    }
-        .flatMapLatest {
-            val (isSync, assetInfo, account) = it
+    val isSync = sync
+        .flatMapLatest { isSync ->
             flow {
                 if (!isSync) {
                     emit(false)
                     return@flow
                 }
+                val assetInfo = assetInfo.filterNotNull().first()
+                val account = account.filterNotNull().first()
+                val walletId = session.filterNotNull().first().wallet.id
                 emit(true)
-                stakeRepository.sync(assetInfo.asset.chain, account.address, assetInfo.stakeApr ?: 0.0)
+                stakeRepository.sync(
+                    walletId = walletId,
+                    assetId = assetInfo.asset.id,
+                    address = account.address,
+                    apr = assetInfo.stakeApr ?: 0.0,
+                )
                 emit(false)
                 sync.update { false }
             }

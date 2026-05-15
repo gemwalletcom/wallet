@@ -1,17 +1,15 @@
 package com.gemwallet.android.features.transfer_amount.models
 
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.WalletId
 
 sealed interface ValidatorsSource {
-    val chain: Chain
+    val assetId: AssetId
 
-    data class ChainValidators(override val chain: Chain) : ValidatorsSource
+    data class ChainValidators(override val assetId: AssetId) : ValidatorsSource
 
     data class Rewards(
-        val assetId: AssetId,
-        val owner: String,
-    ) : ValidatorsSource {
-        override val chain: Chain get() = assetId.chain
-    }
+        val walletId: WalletId,
+        override val assetId: AssetId,
+    ) : ValidatorsSource
 }

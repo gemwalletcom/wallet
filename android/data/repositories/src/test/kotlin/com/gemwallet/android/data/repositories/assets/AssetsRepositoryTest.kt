@@ -146,7 +146,7 @@ class AssetsRepositoryTest {
         )
 
         coVerify(exactly = 3) {
-            syncStakeDelegations.sync(mockWalletId("wallet-1"), Chain.Solana, "solana-sender", apr = 7.5)
+            syncStakeDelegations.sync(mockWalletId("wallet-1"), asset.id, "solana-sender", apr = 7.5)
         }
         coVerify(exactly = 0) { syncNfts.sync(any()) }
     }
