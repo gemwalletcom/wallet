@@ -181,7 +181,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
                 recipient: Recipient(
                     name: state.selected.name,
                     address: state.selected.id,
-                    memo: Localized.Stake.viagem,
+                    memo: nil,
                 ),
                 amount: nil,
             )

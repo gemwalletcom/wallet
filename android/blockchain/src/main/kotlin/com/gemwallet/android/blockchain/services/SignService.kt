@@ -316,6 +316,7 @@ class SignService : SignClient {
             ChainType.Near,
             ChainType.Algorand,
             ChainType.Stellar,
+            ChainType.Cosmos,
             ChainType.Ton -> true
             else -> false
         }
