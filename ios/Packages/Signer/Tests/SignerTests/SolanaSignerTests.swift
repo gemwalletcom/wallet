@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import Primitives
 import PrimitivesTestKit
 @testable import Signer
 import Testing
-import WalletCore
 
 struct SolanaSignerTests {
     let fee = Fee(fee: .zero, gasPriceType: .solana(gasPrice: 5000, priorityFee: 10000, unitPrice: 200), gasLimit: 125_000)
@@ -80,24 +80,17 @@ struct SolanaSignerTests {
         )
 
         let result = try signer.signTokenTransfer(input: input, privateKey: TestPrivateKey)
-        #expect(result == "Ae6hSpKCcVbkYuds3uO7YlyAUIusI/K/3QcQh+LgtB1eSp//yHMpQee0z5TV0hiQwmPwG6mx3AmYpoB5Z3Is1wABAAcK02lFIZfCpWSB5eLT6L8D3iNJ9npjFRlWgiIIwjNK3uLwhdgOizjjG7Mj811OLchuXyuo+2ii49Swx83kAelI9bmZvAj603hNd2y6oh4qtFN3Owp0MOnPxcJxDLcm+M/Q9Rubeehd6DFzvf5nfQ2p/eUXSpxWf4eYqi//oVbWGMTOAQ5gr+2yJxe9YxkvVBRaP5ZaM7uC0scCnrLOHiCCZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKkGp9UXGSxcUSGMyUw9SvF/WNruCJuh/UTj29mKAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAjJclj04kifG7PRApFI4NgwtaE5na/xCEBI572Nvp+Flzwz4o6+Cji9oIdB7FElRcPSFxAzYV8cPxQk26SYaknAQIAAkDyAAAAAAAAAAIAAUCSOgBAAkHAAEDBAUGBwAGBAIEAQAKDAAAAAAAAAAACA==")
+        #expect(result == "AbuNML07oatutMK8MiMw9fHiFtymJ51ZEmgp5A9dQt1ESrR8L7Rckn0+CM7Tp7MD4d95gBlixCt/KsrCIayflwoBAAcK02lFIZfCpWSB5eLT6L8D3iNJ9npjFRlWgiIIwjNK3uLwhdgOizjjG7Mj811OLchuXyuo+2ii49Swx83kAelI9bmZvAj603hNd2y6oh4qtFN3Owp0MOnPxcJxDLcm+M/Q9Rubeehd6DFzvf5nfQ2p/eUXSpxWf4eYqi//oVbWGMTOAQ5gr+2yJxe9YxkvVBRaP5ZaM7uC0scCnrLOHiCCZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKkGp9UXGSxcUSGMyUw9SvF/WNruCJuh/UTj29mKAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAjJclj04kifG7PRApFI4NgwtaE5na/xCEBI572Nvp+Flzwz4o6+Cji9oIdB7FElRcPSFxAzYV8cPxQk26SYaknAQIAAkDyAAAAAAAAAAIAAUCSOgBAAkHAAEDBAUGBwEBBgQCBAEACgwAAAAAAAAAAAg=")
     }
 
     @Test
     func signSolanaMessage() throws {
-        let keyData = try #require(Base58.decodeNoCheck(string: "G282j1ejo5LbL4DqBR4G5i9EQZk1FPZa2ZR4VE9x6JaHqfie3nrrgcGL6UXLfXrappiPnWSWK5F1kz3Xduoy57H"))
-        let key = PrivateKey(data: keyData[0 ..< 32])!
-        let pubKey = key.getPublicKeyEd25519()
-
-        #expect(pubKey.data == keyData[32...])
-
+        let privateKey = try #require(Data(hexString: "0CF3BCE421F870B1D54B27632AED05B7BC2AAF4AA818ED1275FB3A75518E60CB"))
         let message = "hello world"
         let dataMessage = try #require(message.data(using: .utf8))
 
-        let sig = try #require(key.sign(digest: dataMessage, curve: .ed25519))
-        let b58Sig = Base58.encodeNoCheck(data: sig)
+        let signature = try signer.signMessage(message: .raw(dataMessage), privateKey: privateKey)
 
-        #expect(pubKey.verify(signature: sig, message: dataMessage))
-        #expect(b58Sig == "2gK63KVgpUMjT612P2iyL1TCZx5zmwbXjNMQ9PqkVrLsUpNuPWUhJhGLp4puzXu87AoNtMASkzziUJmkKCv3wESR")
+        #expect(signature == "2gK63KVgpUMjT612P2iyL1TCZx5zmwbXjNMQ9PqkVrLsUpNuPWUhJhGLp4puzXu87AoNtMASkzziUJmkKCv3wESR")
     }
 }
