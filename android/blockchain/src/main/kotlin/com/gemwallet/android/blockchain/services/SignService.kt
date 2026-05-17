@@ -311,6 +311,7 @@ class SignService : SignClient {
     override fun supported(chain: Chain): Boolean {
         return when (chain.toChainType()) {
             ChainType.Ethereum,
+            ChainType.Solana,
             ChainType.Aptos,
             ChainType.Sui,
             ChainType.HyperCore,

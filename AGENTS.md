@@ -53,6 +53,8 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Task Completion
 
+During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad lint/format runs until the change is ready to commit. Do not skip the required lint/format checks silently before final handoff; run them then, or report the exact reason they are still pending.
+
 Before finishing a task:
 1. Build the affected platform(s)
 2. Run the relevant test suites

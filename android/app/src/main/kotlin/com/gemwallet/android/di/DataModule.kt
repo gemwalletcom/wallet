@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
-import com.gemwallet.android.blockchain.clients.solana.SolanaSignClient
 import com.gemwallet.android.blockchain.clients.sui.SuiSignClient
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
@@ -10,7 +9,6 @@ import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.device.SyncDeviceInfo
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.services.SyncService
@@ -47,15 +45,13 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideSignService(
-        assetsRepository: AssetsRepository,
-    ): SignClientProxy = SignClientProxy(
+    fun provideSignService(): SignClientProxy = SignClientProxy(
         clients = Chain.available().mapNotNull {
             when (it.toChainType()) {
                 ChainType.Bitcoin -> BitcoinSignClient(it)
-                ChainType.Solana -> SolanaSignClient(it, assetsRepository)
 
                 ChainType.Ethereum,
+                ChainType.Solana,
                 ChainType.Aptos,
                 ChainType.Sui,
                 ChainType.HyperCore,
