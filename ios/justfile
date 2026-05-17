@@ -53,7 +53,6 @@ format:
     @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --quiet
 
 _build action extra_flags="":
-    @./scripts/generate-stone.sh
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme Gem \
     ONLY_ACTIVE_ARCH=YES \
@@ -63,8 +62,9 @@ _build action extra_flags="":
     -parallelizeTargets \
     -jobs {{BUILD_THREADS}} \
     -showBuildTimingSummary \
-    {{extra_flags}} \
-    {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
+    {{ extra_flags }} \
+    "OTHER_LDFLAGS=\$(inherited) -L$PWD/../core/target/aarch64-apple-ios-sim/debug -lgemstone" \
+    {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 # Example: just build
 build: (_build "build" FAST_BUILD_FLAGS)
@@ -103,7 +103,6 @@ show-simulator:
     @xcrun simctl list devices | grep "iPhone" | head -5 || true
 
 _test action target="":
-    @./scripts/generate-stone.sh
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme Gem \
     ONLY_ACTIVE_ARCH=YES \
@@ -113,8 +112,9 @@ _test action target="":
     {{ if target != "" { "-only-testing " + target } else { "" } }} \
     -parallel-testing-enabled YES \
     -parallelizeTargets \
-    -jobs {{BUILD_THREADS}} \
-    {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
+    -jobs {{ BUILD_THREADS }} \
+    "OTHER_LDFLAGS=\$(inherited) -L$PWD/../core/target/aarch64-apple-ios-sim/debug -lgemstone" \
+    {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 test-without-building: (_test "test-without-building")
 
