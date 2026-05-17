@@ -46,7 +46,7 @@ struct FiatQuoteViewModelTests {
 
     @Test
     func testRateText() {
-        #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 0, cryptoAmount: 0), formatter: usFormatter).rateText == "NaN")
+        #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 0, cryptoAmount: 0), formatter: usFormatter).rateText == "$NaN")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 10.123, cryptoAmount: 15.12), formatter: usFormatter).rateText == "$0.6695")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 50, cryptoAmount: 0.0018), formatter: usFormatter).rateText == "$27,777.78")
 
