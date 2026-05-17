@@ -53,6 +53,7 @@ format:
     @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --quiet
 
 _build action extra_flags="":
+    @./scripts/generate-stone.sh
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme Gem \
     ONLY_ACTIVE_ARCH=YES \
@@ -102,6 +103,7 @@ show-simulator:
     @xcrun simctl list devices | grep "iPhone" | head -5 || true
 
 _test action target="":
+    @./scripts/generate-stone.sh
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme Gem \
     ONLY_ACTIVE_ARCH=YES \

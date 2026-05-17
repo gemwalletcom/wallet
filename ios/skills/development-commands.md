@@ -22,10 +22,12 @@ just format                 # run SwiftFormat
 ```bash
 just generate               # run all generation steps
 just generate-models         # regenerate model types from Rust
-just generate-stone         # regenerate Rust-to-Swift bindings
+just generate-stone         # regenerate UniFFI sources and iOS Rust static libraries
 just generate-swiftgen      # regenerate assets and localization code
 just localize               # update localization files
 ```
+
+From the repo root, use `just generate-stone` and `just run-ios` as the default Gemstone/iOS flow. The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build.
 
 ## Additional Utilities
 

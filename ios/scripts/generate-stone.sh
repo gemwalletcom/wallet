@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 #
-# Build the Gemstone XCFramework, skipping when Rust sources are unchanged.
-# Usage: generate-stone.sh [--force] [release]
+# Generate Gemstone UniFFI sources and iOS Rust static libraries.
+# Usage:
+#   generate-stone.sh [--force] [release]
+#
 
 set -euo pipefail
 
@@ -13,7 +15,8 @@ PROJ_PATH="$IOS_DIR/Gem.xcodeproj/project.pbxproj"
 CORE_DIR="$IOS_DIR/../core"
 STONE_DIR="$CORE_DIR/gemstone"
 PACKAGES_DIR="$IOS_DIR/Packages/Gemstone"
-XCFRAMEWORK="$PACKAGES_DIR/Sources/GemstoneFFI.xcframework"
+SWIFT_BINDINGS="$PACKAGES_DIR/Sources/Gemstone/Gemstone.swift"
+FFI_HEADER="$PACKAGES_DIR/Sources/GemstoneFFI/include/GemstoneFFI.h"
 
 FORCE=0
 POSITIONAL=()
@@ -29,46 +32,104 @@ if [ -z "$BUILD_MODE" ] && [ "${CONFIGURATION:-Debug}" = "Release" ]; then
     BUILD_MODE="release"
 fi
 
-compute_hash() {
+core_source_fingerprint() {
     {
+        shasum -a 256 "$0"
         git -C "$CORE_DIR" rev-parse HEAD
         git -C "$CORE_DIR" diff
+        git -C "$CORE_DIR" diff --cached
         git -C "$CORE_DIR" ls-files --others --exclude-standard -z | \
-            (cd "$CORE_DIR" && xargs -0 stat -f '%m %z %N' 2>/dev/null)
+            (cd "$CORE_DIR" && xargs -0 stat -f '%m %z %N' 2>/dev/null || true)
+    }
+}
+
+gemstone_hash() {
+    {
+        core_source_fingerprint
+        printf '%s\n' "$@"
     } | shasum -a 256 | cut -d' ' -f1
 }
 
-CACHE_DIR="$IOS_DIR/build/.gemstone-cache"
-mkdir -p "$CACHE_DIR"
-HASH_FILE="$CACHE_DIR/sources-${BUILD_MODE:-debug}.hash"
-
-current_hash=$(compute_hash)
-
-if [ "$FORCE" -eq 0 ] && [ -f "$HASH_FILE" ] && [ -d "$XCFRAMEWORK" ]; then
-    cached_hash=$(cat "$HASH_FILE")
-    if [ "$current_hash" = "$cached_hash" ]; then
-        echo "note: Gemstone sources unchanged (${BUILD_MODE:-debug}) — skipping rebuild"
-        exit 0
-    fi
-fi
-
 read_deployment_target() {
-    echo -n $(/usr/libexec/PlistBuddy -c "Print" "$PROJ_PATH" | grep IPHONEOS_DEPLOYMENT_TARGET | awk -F ' = ' '{print $2}' | uniq)
+    /usr/libexec/PlistBuddy -c "Print" "$PROJ_PATH" | awk -F ' = ' '/IPHONEOS_DEPLOYMENT_TARGET/ { print $2; exit }'
 }
 
-if [ "$FORCE" -eq 1 ]; then
-    echo "note: Forcing Gemstone rebuild (${BUILD_MODE:-debug})..."
-else
-    echo "note: Gemstone sources changed — rebuilding XCFramework (${BUILD_MODE:-debug})..."
-fi
+generate_bindings() {
+    local cache_dir="$IOS_DIR/build/.gemstone-cache"
+    local hash_file="$cache_dir/sources-${BUILD_MODE:-debug}.hash"
+    local current_hash
+    mkdir -p "$cache_dir"
+    current_hash=$(gemstone_hash "${BUILD_MODE:-debug}")
 
-pushd "$STONE_DIR" > /dev/null
-unset MACOSX_DEPLOYMENT_TARGET TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET XROS_DEPLOYMENT_TARGET
-BUILD_MODE=$BUILD_MODE IPHONEOS_DEPLOYMENT_TARGET=$(read_deployment_target) just build-ios
-mkdir -p "$PACKAGES_DIR"
-ditto target/spm "$PACKAGES_DIR"
-popd > /dev/null
+    if [ "$FORCE" -eq 0 ] && [ -f "$hash_file" ] && [ -f "$SWIFT_BINDINGS" ] && [ -f "$FFI_HEADER" ]; then
+        if [ "$current_hash" = "$(cat "$hash_file")" ]; then
+            echo "note: Gemstone UniFFI sources unchanged (${BUILD_MODE:-debug}) - skipping regeneration"
+            return 0
+        fi
+    fi
 
-echo "$current_hash" > "$HASH_FILE"
+    if [ "$FORCE" -eq 1 ]; then
+        echo "note: Forcing Gemstone UniFFI source regeneration (${BUILD_MODE:-debug})..."
+    else
+        echo "note: Gemstone sources changed - regenerating UniFFI sources (${BUILD_MODE:-debug})..."
+    fi
 
-echo "note: Gemstone XCFramework rebuilt successfully (${BUILD_MODE:-debug})"
+    pushd "$STONE_DIR" > /dev/null
+    env -u MACOSX_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET -u XROS_DEPLOYMENT_TARGET \
+        -u SWIFT_DEBUG_INFORMATION_FORMAT -u SWIFT_DEBUG_INFORMATION_VERSION \
+        BUILD_MODE=$BUILD_MODE IPHONEOS_DEPLOYMENT_TARGET=$(read_deployment_target) just bindgen-swift
+    mkdir -p "$PACKAGES_DIR/Sources/Gemstone" "$PACKAGES_DIR/Sources/GemstoneFFI/include"
+    cp generated/swift/gemstone.swift "$SWIFT_BINDINGS"
+    cp generated/swift/GemstoneFFI.h "$FFI_HEADER"
+    popd > /dev/null
+
+    echo "$current_hash" > "$hash_file"
+    echo "note: Gemstone UniFFI sources regenerated successfully (${BUILD_MODE:-debug})"
+}
+
+build_ios_static_libraries() {
+    local target_dir="$CORE_DIR/target"
+    local profile="debug"
+    local build_flag=""
+    local host_arch
+    host_arch="$(uname -m)"
+
+    if [ "${BUILD_MODE:-}" = "release" ]; then
+        profile="release"
+        build_flag="--release"
+    fi
+
+    if [ "$host_arch" != "arm64" ]; then
+        echo "error: Intel Macs are not supported for iOS Gemstone builds." >&2
+        exit 1
+    fi
+
+    local cache_dir="$IOS_DIR/build/.gemstone-native/ios-static-$profile"
+    local hash_file="$cache_dir/sources.hash"
+    local current_hash
+    current_hash="$(gemstone_hash "ios-static" "$profile" "aarch64-apple-ios" "aarch64-apple-ios-sim" "$(read_deployment_target)")"
+
+    mkdir -p "$cache_dir"
+
+    if [ -f "$hash_file" ] \
+        && [ -f "$target_dir/aarch64-apple-ios/$profile/libgemstone.a" ] \
+        && [ -f "$target_dir/aarch64-apple-ios-sim/$profile/libgemstone.a" ] \
+        && [ "$(cat "$hash_file")" = "$current_hash" ]; then
+        echo "note: Gemstone iOS static libraries unchanged ($profile)"
+        return 0
+    fi
+
+    pushd "$STONE_DIR" >/dev/null
+    echo "note: Building Gemstone iOS static libraries ($profile)"
+    env -u MACOSX_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET -u XROS_DEPLOYMENT_TARGET \
+        -u SWIFT_DEBUG_INFORMATION_FORMAT -u SWIFT_DEBUG_INFORMATION_VERSION \
+        IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
+        cargo build --manifest-path "$STONE_DIR/Cargo.toml" --target aarch64-apple-ios-sim --target aarch64-apple-ios --lib ${build_flag}
+    popd >/dev/null
+
+    echo "$current_hash" > "$hash_file"
+    echo "note: Gemstone iOS static libraries ready ($profile)"
+}
+
+generate_bindings
+build_ios_static_libraries
