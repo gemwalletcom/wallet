@@ -24,8 +24,8 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.compactFormatter
-import com.gemwallet.android.model.formatSupply
+import com.gemwallet.android.model.ValueFormatter
+import java.math.BigDecimal
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -187,10 +187,12 @@ private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketIn
 
 private fun LazyListScope.assetSupply(asset: Asset, marketInfo: AssetMarket?) {
     marketInfo ?: return
+    val formatter = ValueFormatter(style = ValueFormatter.Style.Short)
+    val format: (Double) -> String = { formatter.string(BigDecimal.valueOf(it), asset.symbol) }
     val supplyItems = buildSupplyItems(
         marketInfo = marketInfo,
-        compactSupplyFormatter = { asset.compactFormatter(it) },
-        maxSupplyFormatter = { asset.formatSupply(it) },
+        compactSupplyFormatter = format,
+        maxSupplyFormatter = { if (it == 0.0) "∞ ${asset.symbol}" else format(it) },
     )
 
     marketProperties(asset, supplyItems)
