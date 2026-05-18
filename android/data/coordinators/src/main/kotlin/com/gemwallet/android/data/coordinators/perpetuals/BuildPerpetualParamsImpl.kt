@@ -58,7 +58,7 @@ class BuildPerpetualParamsImpl(
             asset = data.asset,
             baseAsset = HypercoreUSDC,
         )
-        return ConfirmParams.Builder(HypercoreUSDC, account)
+        return ConfirmParams.Builder(data.asset, account)
             .perpetual(PerpetualType.Close(confirmData))
     }
 

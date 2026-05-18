@@ -7,17 +7,16 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualType
 
 @Composable
-fun PerpetualType.title(): String {
-    val (direction, formatRes) = when (this) {
-        is PerpetualType.Open -> content.direction to null
-        is PerpetualType.Close -> content.direction to R.string.perpetual_close_direction
-        is PerpetualType.Increase -> content.direction to R.string.perpetual_increase_direction
-        is PerpetualType.Reduce -> content.positionDirection to R.string.perpetual_reduce_direction
-        is PerpetualType.Modify -> return stringResource(R.string.perpetual_modify)
-    }
-    val directionLabel = stringResource(when (direction) {
-        PerpetualDirection.Long -> R.string.perpetual_long
-        PerpetualDirection.Short -> R.string.perpetual_short
-    })
-    return formatRes?.let { stringResource(it, directionLabel) } ?: directionLabel
+fun PerpetualType.title(): String = when (this) {
+    is PerpetualType.Open -> directionLabel(content.direction)
+    is PerpetualType.Increase -> stringResource(R.string.perpetual_increase_direction, directionLabel(content.direction))
+    is PerpetualType.Reduce -> stringResource(R.string.perpetual_reduce_direction, directionLabel(content.positionDirection))
+    is PerpetualType.Close -> stringResource(R.string.perpetual_close_position)
+    is PerpetualType.Modify -> stringResource(R.string.perpetual_modify)
 }
+
+@Composable
+private fun directionLabel(direction: PerpetualDirection): String = stringResource(when (direction) {
+    PerpetualDirection.Long -> R.string.perpetual_long
+    PerpetualDirection.Short -> R.string.perpetual_short
+})

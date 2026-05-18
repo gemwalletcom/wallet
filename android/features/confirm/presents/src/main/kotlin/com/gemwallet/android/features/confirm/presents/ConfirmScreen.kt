@@ -163,6 +163,14 @@ fun ConfirmScreen(
 
                     amountModel?.txType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
 
+                    perpetualType != null -> {
+                        val asset = amountModel?.asset?.asset
+                        AmountListHead(
+                            amount = asset?.symbol.orEmpty(),
+                            icon = asset,
+                        )
+                    }
+
                     else -> AmountListHead(
                         amount = amountModel?.amount ?: "",
                         equivalent = amountModel?.amountEquivalent,

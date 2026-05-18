@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
 
@@ -104,13 +103,14 @@ class AmountPerpetualProvider(
     override suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams {
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
+        val perpetualMarket = perpetual.value ?: error("perpetual not loaded")
         val perpetualType = PerpetualOrderFactory.makePerpetualOrder(
             positionAction = params.positionAction,
             usdcAmount = amount.atomicValue,
             usdcDecimals = current.asset.decimals,
             leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
         )
-        return ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
+        return ConfirmParams.Builder(perpetualMarket.asset, owner, amount.atomicValue, isMax)
             .perpetual(perpetualType)
     }
 }
