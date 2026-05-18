@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.price.values.EquivalentValue
-import com.gemwallet.android.model.compactFormatter
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
@@ -35,7 +35,7 @@ class GetPerpetualsImpl @Inject constructor(
 
         override val name: String = data.perpetual.name
 
-        override val volume: String = price.currency.compactFormatter(data.perpetual.volume24h)
+        override val volume: String = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = price.currency).string(data.perpetual.volume24h)
 
         override val isPinned: Boolean = data.metadata.isPinned
     }

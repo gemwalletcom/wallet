@@ -10,7 +10,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.showsStatusBadge
 import com.gemwallet.android.ui.components.statusColor
 import com.gemwallet.android.ui.components.statusLabelRes
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionDirection
@@ -71,7 +71,7 @@ fun TransactionDataAggregate.formatAddress(): String? = when (type) {
     TransactionType.PerpetualOpenPosition,
     TransactionType.PerpetualClosePosition,
     TransactionType.PerpetualModifyPosition -> perpetualPrice?.let {
-        "${stringResource(R.string.asset_price)}: ${Currency.USD.format(it)}"
+        "${stringResource(R.string.asset_price)}: ${CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(it)}"
     }
     TransactionType.Swap,
     TransactionType.StakeWithdraw,

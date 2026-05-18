@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -27,15 +27,15 @@ data class BuyFiatProviderUIModel(
 fun FiatQuote.toProviderUIModel(
     asset: Asset,
     currency: Currency,
-) = BuyFiatProviderUIModel(
-    provider = provider,
-    asset = asset,
-    cryptoAmount = cryptoAmount,
-    fiatFormatted = currency.format(fiatAmount),
-    rate = asset.rateText(fiatAmount, cryptoAmount, currency),
-)
-
-private fun Asset.rateText(fiatAmount: Double, cryptoAmount: Double, currency: Currency) =
-    "1 $symbol ≈ ${currency.format(fiatAmount / cryptoAmount).format(currency.string, 2)}"
+): BuyFiatProviderUIModel {
+    val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
+    return BuyFiatProviderUIModel(
+        provider = provider,
+        asset = asset,
+        cryptoAmount = cryptoAmount,
+        fiatFormatted = formatter.string(fiatAmount),
+        rate = "1 ${asset.symbol} ≈ ${formatter.string(fiatAmount / cryptoAmount)}",
+    )
+}
 
 

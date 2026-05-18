@@ -23,8 +23,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.compactFormatter
-import com.gemwallet.android.model.format
 import com.gemwallet.android.model.formatSupply
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
@@ -179,7 +179,8 @@ private fun LazyListScope.assetContract(asset: Asset, explorerName: String) {
 
 private fun LazyListScope.assetMarket(currency: Currency, asset: Asset, marketInfo: AssetMarket?) {
     marketInfo ?: return
-    val marketItems = buildMarketItems(marketInfo) { currency.compactFormatter(it) }
+    val abbreviatedFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = currency)
+    val marketItems = buildMarketItems(marketInfo) { abbreviatedFormatter.string(it) }
 
     marketProperties(asset, marketItems)
 }
@@ -323,7 +324,7 @@ private fun LazyListScope.allTimeProperties(asset: Asset, currency: Currency, it
             trailing = {
                 val rowScope = this
                 Column(horizontalAlignment = Alignment.End) {
-                    with(rowScope) { PropertyDataText(currency.format(item.value, dynamicPlace = true)) }
+                    with(rowScope) { PropertyDataText(CurrencyFormatter(currency = currency).string(item.value)) }
                     ListItemSupportText(item.percentage.formatAsPercentage(), color = item.percentage.toValueDirection().color())
                 }
             },

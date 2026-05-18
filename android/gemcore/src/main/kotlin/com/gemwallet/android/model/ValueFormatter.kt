@@ -4,7 +4,6 @@ import android.icu.text.CompactDecimalFormat
 import com.wallet.core.primitives.Asset
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.math.MathContext
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
@@ -30,32 +29,18 @@ class ValueFormatter(
             return appendCurrency(abbreviated(value), currency)
         }
 
-        return appendCurrency(formatNumber(value), currency)
-    }
-
-    private fun formatNumber(decimal: BigDecimal): String {
         val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
             roundingMode = RoundingMode.DOWN
         }
-        return when (val precision = precision(decimal.abs())) {
-            is Precision.Fraction -> formatter.run {
-                minimumFractionDigits = precision.min
-                maximumFractionDigits = precision.max
-                format(decimal)
-            }
-            is Precision.Significant -> formatter.run {
-                maximumFractionDigits = Int.MAX_VALUE
-                format(decimal.round(MathContext(precision.max, RoundingMode.DOWN)).stripTrailingZeros())
-            }
-        }
+        return appendCurrency(formatter.format(value, precision(value.abs())), currency)
     }
 
     private fun precision(magnitude: BigDecimal): Precision = when (style) {
         Style.Full -> Precision.full
-        Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.twoPlaces else Precision.fourPlaces
-        Style.Compact -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.twoPlaces else Precision.fourPlaces
+        Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
+        Style.Compact -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
         Style.Auto -> when {
-            magnitude >= BigDecimal.ONE -> Precision.twoPlaces
+            magnitude >= BigDecimal.ONE -> Precision.upToTwoPlaces
             magnitude >= DUST_THRESHOLD -> Precision.fourSignificant
             else -> Precision.full
         }
@@ -69,18 +54,6 @@ class ValueFormatter(
 
     private fun appendCurrency(value: String, currency: String): String =
         if (currency.isEmpty()) value else "$value $currency"
-
-    private sealed interface Precision {
-        data class Fraction(val min: Int, val max: Int) : Precision
-        data class Significant(val max: Int) : Precision
-
-        companion object {
-            val full = Fraction(min = 0, max = 32)
-            val twoPlaces = Fraction(min = 0, max = 2)
-            val fourPlaces = Fraction(min = 0, max = 4)
-            val fourSignificant = Significant(max = 4)
-        }
-    }
 
     companion object {
         private val SMALL_AMOUNT_THRESHOLD: BigDecimal = BigDecimal("0.1")

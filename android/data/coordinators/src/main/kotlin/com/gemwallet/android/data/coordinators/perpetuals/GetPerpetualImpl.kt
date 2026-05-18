@@ -3,7 +3,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -41,11 +41,13 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val name: String = data.perpetual.name
 
-    override val dayVolume: String = Currency.USD.format(data.perpetual.volume24h)
+    private val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 
-    override val openInterest: String = Currency.USD.format(data.perpetual.openInterest)
+    override val dayVolume: String = formatter.string(data.perpetual.volume24h)
 
-    override val funding: String = Currency.USD.format(data.perpetual.funding)
+    override val openInterest: String = formatter.string(data.perpetual.openInterest)
+
+    override val funding: String = formatter.string(data.perpetual.funding)
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 

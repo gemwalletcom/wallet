@@ -17,9 +17,9 @@ import com.gemwallet.android.ext.getWalletConnectOutputAction
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
 import com.gemwallet.android.domains.asset.chain
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
@@ -132,7 +132,7 @@ class TransactionDetailsAggregateImpl(
                 else -> {
                     val value = Crypto(data.transaction.value.toBigInteger())
                     val fiat = data.price?.price?.let {
-                        currency.format(value.convert(asset.decimals, it).atomicValue, dynamicPlace = true)
+                        CurrencyFormatter(currency = currency).string(value.convert(asset.decimals, it).atomicValue)
                     } ?: ""
 
                     val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
@@ -171,7 +171,7 @@ class TransactionDetailsAggregateImpl(
             val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
                 .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
-                currency.format(fee.convert(data.feeAsset.decimals, it).atomicValue, dynamicPlace = true)
+                CurrencyFormatter(currency = currency).string(fee.convert(data.feeAsset.decimals, it).atomicValue)
             } ?: ""
             return TransactionDetailsValue.Fee(data.feeAsset, feeCrypto, feeFiat)
         }

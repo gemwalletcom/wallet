@@ -46,7 +46,7 @@ import com.gemwallet.android.data.repositories.di.WidgetEntryPoint
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -169,7 +169,7 @@ private fun AssetItem(asset: AssetInfo) {
                 modifier = GlanceModifier.defaultWeight(),
                 horizontalAlignment = Alignment.End,
             ) {
-                WidgetTitleText(it.currency.format(it.price.price))
+                WidgetTitleText(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = it.currency).string(it.price.price))
                 Spacer(GlanceModifier.size(paddingHalfSmall))
                 WidgetSubtitleText(it.price.priceChangePercentage24h.formatAsPercentage(), percentageColor)
             }

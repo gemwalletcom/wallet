@@ -2,8 +2,8 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
 import com.wallet.core.primitives.FeePriority
 import com.gemwallet.android.ext.gasPriceDecimals
 import com.gemwallet.android.ext.gasPriceSymbol
@@ -52,7 +52,7 @@ data class FeeRateUIModel(
         val priceInfo = feeAsset.price ?: return null
         val amount = feeAmount ?: return null
         val fiat = Crypto(amount).convert(feeAsset.asset.decimals, priceInfo.price.price)
-        return priceInfo.currency.format(fiat.atomicValue, dynamicPlace = true)
+        return CurrencyFormatter(currency = priceInfo.currency).string(fiat.atomicValue)
     }
 
     private fun gasPriceText(): String {

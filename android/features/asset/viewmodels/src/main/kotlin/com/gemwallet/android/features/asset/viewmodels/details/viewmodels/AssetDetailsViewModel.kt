@@ -29,7 +29,7 @@ import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.getStackedAmount
 import com.gemwallet.android.model.getTotalAmount
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
@@ -219,7 +219,8 @@ class AssetDetailsViewModel @Inject constructor(
             val asset = assetInfo.asset
             val balances = assetInfo.balance
             val total = balances.totalAmount
-            val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currency.format(balances.fiatTotalAmount, dynamicPlace = true)
+            val currencyFormatter = CurrencyFormatter(currency = currency)
+            val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
             val stakeBalance = balances.balanceAmount.getStackedAmount()
             val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
 
@@ -231,7 +232,7 @@ class AssetDetailsViewModel @Inject constructor(
                     asset.name
                 },
                 iconUrl = asset.id.getIconUrl(),
-                priceValue = if (price == 0.0) "" else currency.format(price, dynamicPlace = true),
+                priceValue = if (price == 0.0) "" else currencyFormatter.string(price),
                 priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
                 priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toValueDirection(),
                 tokenType = asset.type,

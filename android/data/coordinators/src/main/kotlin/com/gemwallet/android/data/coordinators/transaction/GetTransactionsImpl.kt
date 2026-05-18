@@ -16,8 +16,8 @@ import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
-import com.gemwallet.android.model.formatPnl
+import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
@@ -108,10 +108,12 @@ class TransactionDataAggregateImpl(
                 AmountSign.Incoming.format(formatter.string(metadata.toValue.toBigInteger(), asset))
             } ?: ""
         }
-        TransactionType.PerpetualOpenPosition -> Currency.USD.format(
+        TransactionType.PerpetualOpenPosition -> CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(
             Crypto(data.transaction.value).convert(HypercoreUSDC.decimals, price = 1.0).atomicValue,
         )
-        TransactionType.PerpetualClosePosition -> pnl?.let { Currency.USD.formatPnl(it) } ?: ""
+        TransactionType.PerpetualClosePosition -> pnl?.let {
+            PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)).string(it)
+        } ?: ""
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
         TransactionType.StakeRedelegate,
