@@ -8,9 +8,19 @@ public extension TransactionStateRequest {
         GemTransactionStateRequest(
             id: id,
             senderAddress: senderAddress,
-            createdAt: createdAt.millisecondsSince1970,
-            blockNumber: Int64(block),
-            swapProvider: try? swapProvider?.map(),
+            createdAt: Int64(createdAt.timeIntervalSince1970),
+            blockNumber: blockNumber,
+        )
+    }
+}
+
+public extension TransactionSwapStateRequest {
+    func map() throws -> GemTransactionSwapStateRequest {
+        try GemTransactionSwapStateRequest(
+            transaction: transaction.map(),
+            state: state.map(),
+            swapProvider: swapProvider.map(),
+            destinationChain: destinationChain.rawValue,
         )
     }
 }

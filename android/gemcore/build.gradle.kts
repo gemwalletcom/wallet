@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.wallet.core"
-    compileSdk = 36
+    compileSdk = 37
     
     defaultConfig {
         minSdk = 28

@@ -27,5 +27,12 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .testTarget(
+            name: "NativeProviderServiceTests",
+            dependencies: [
+                "NativeProviderService",
+                "Gemstone",
+            ],
+        ),
     ],
 )

@@ -45,7 +45,7 @@ public enum TransactionLoadMetadata: Sendable {
     )
     case bitcoin(utxos: [UTXO])
     case zcash(utxos: [UTXO], branchId: String)
-    case cardano(utxos: [UTXO])
+    case cardano(utxos: [UTXO], blockNumber: UInt64)
     case evm(nonce: UInt64, chainId: UInt64, contractCall: ContractCallData? = nil)
     case near(
         sequence: UInt64,
@@ -103,7 +103,8 @@ public extension TransactionLoadMetadata {
         switch self {
         case let .polkadot(_, _, _, blockNumber, _, _, _),
              let .tron(blockNumber, _, _, _, _, _, _),
-             let .xrp(_, blockNumber):
+             let .xrp(_, blockNumber),
+             let .cardano(_, blockNumber):
             return blockNumber
         default:
             throw AnyError("Block number not available for this metadata type")
@@ -139,7 +140,7 @@ public extension TransactionLoadMetadata {
         switch self {
         case let .bitcoin(utxos),
              let .zcash(utxos, _),
-             let .cardano(utxos):
+             let .cardano(utxos, _):
             return utxos
         default:
             throw AnyError("UTXOs not available for this metadata type")

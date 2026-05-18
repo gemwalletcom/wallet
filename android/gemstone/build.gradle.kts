@@ -13,7 +13,7 @@ val generatedKotlinDir = gemstoneSrc.resolve("main/java")
 
 android {
     namespace = "com.gemwallet.gemstone"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

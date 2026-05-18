@@ -8,10 +8,14 @@ import uniffi.gemstone.GemTransactionLoadMetadata
 
 data class CardanoChainData(
     val utxos: List<UTXO>,
+    val blockNumber: ULong,
 ) : ChainSignData {
+    override fun blockNumber(): String = blockNumber.toString()
+
     override fun toDto(): GemTransactionLoadMetadata {
         return GemTransactionLoadMetadata.Cardano(
-            utxos.toGem()
+            utxos.toGem(),
+            blockNumber,
         )
     }
 }
@@ -19,5 +23,6 @@ data class CardanoChainData(
 fun GemTransactionLoadMetadata.Cardano.toChainData(): CardanoChainData {
     return CardanoChainData(
         utxos = utxos.toUtxo(),
+        blockNumber = blockNumber,
     )
 }

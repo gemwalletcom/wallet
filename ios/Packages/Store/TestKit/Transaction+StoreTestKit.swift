@@ -6,13 +6,13 @@ import PrimitivesTestKit
 
 public extension Transaction {
     static func mock(
-        id _: String = "1",
+        transactionId: TransactionId = TransactionId(chain: .ethereum, hash: "1"),
         type: TransactionType = .transfer,
         assetId: AssetId = .mock(),
         metadata: AnyCodableValue? = nil,
     ) -> Transaction {
         Transaction(
-            id: TransactionId(chain: .ethereum, hash: "1"),
+            id: transactionId,
             assetId: assetId,
             from: "from",
             to: "to",

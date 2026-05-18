@@ -64,7 +64,7 @@ public final class TransactionsService: Sendable {
         try transactionStore.addTransactions(walletId: walletId, transactions: [transaction])
     }
 
-    public func getTransaction(walletId: WalletId, transactionId: String) throws -> TransactionExtended {
+    public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
         try transactionStore.getTransaction(walletId: walletId, transactionId: transactionId)
     }
 

@@ -26,10 +26,10 @@ struct TransactionStoreTests {
         try walletStore.addWallet(.mock(id: walletId, accounts: assets.map { Account.mock(chain: $0.asset.chain) }))
 
         let store = TransactionStore(db: db)
-        let transactionId = "1"
+        let transactionId = TransactionId(chain: .ethereum, hash: "1")
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                id: transactionId,
+                transactionId: transactionId,
                 type: .swap,
                 assetId: btc,
                 metadata: .encode(TransactionSwapMetadata(
@@ -40,7 +40,7 @@ struct TransactionStoreTests {
 
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                id: transactionId,
+                transactionId: transactionId,
                 type: .swap,
                 assetId: btc,
                 metadata: .encode(TransactionSwapMetadata(
@@ -51,6 +51,7 @@ struct TransactionStoreTests {
 
         let assetIds = try store.getTransactionAssetAssociations(for: transactionId).map(\.assetId)
 
-        #expect(assetIds == [btc, sol])
+        #expect(assetIds.count == 2)
+        #expect(Set(assetIds) == Set([btc, sol]))
     }
 }

@@ -35,7 +35,7 @@ public final class TransactionSceneViewModel {
         self.preferences = preferences
         self.explorerService = explorerService
         self.onHeaderAction = onHeaderAction
-        query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.id), initialValue: transaction)
+        query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
     }
 
     var title: String {

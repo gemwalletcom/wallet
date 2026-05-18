@@ -20,6 +20,7 @@ import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.WalletSubscription
 import com.wallet.core.primitives.WalletSubscriptionChains
 import com.wallet.core.primitives.WalletConfigurationResult
@@ -105,6 +106,9 @@ interface GemDeviceApiClient {
         @Query("asset_id") assetId: String,
         @Query("from_timestamp") from: Long,
     ): TransactionsResponse?
+
+    @GET("/v2/devices/transaction/{transaction_id}")
+    suspend fun getTransaction(@Path("transaction_id") transactionId: String): Transaction
 
     @POST("/v2/devices/scan/transaction")
     suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction

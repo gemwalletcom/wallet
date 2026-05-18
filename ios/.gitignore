@@ -37,8 +37,11 @@ build/
 # Claude Code settings
 .claude/settings.local.json
 
-# Dependency Management
-Packages/Gemstone/
+# Generated Gemstone artifacts
+Packages/Gemstone/.swiftpm/
+Packages/Gemstone/Sources/Gemstone/
+Packages/Gemstone/Sources/GemstoneFFI/include/
+Packages/Gemstone/Sources/GemstoneFFI.xcframework/
 
 # Compressed files
 *.tar.bz2

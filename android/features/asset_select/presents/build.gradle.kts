@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.features.asset_select.presents"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

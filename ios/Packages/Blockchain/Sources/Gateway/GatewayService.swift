@@ -64,24 +64,11 @@ public extension GatewayService {
     }
 
     func transactionStatus(chain: Primitives.Chain, request: TransactionStateRequest) async throws -> TransactionChanges {
-        let update = try await gateway.getTransactionStatus(chain: chain.rawValue, request: request.map())
-        let changes: [Primitives.TransactionChange] = try update.changes.compactMap {
-            switch $0 {
-            case let .hashChange(old: old, new: new):
-                return .hashChange(old: old, new: new)
-            case let .metadata(metadata):
-                guard let value = metadata.mapToAnyCodableValue() else { return nil }
-                return .metadata(value)
-            case let .blockNumber(number):
-                return try .blockNumber(Int.from(string: number))
-            case let .networkFee(fee):
-                return try .networkFee(BigInt.from(string: fee))
-            }
-        }
-        return TransactionChanges(
-            state: update.state.map(),
-            changes: changes,
-        )
+        try await gateway.getTransactionStatus(chain: chain.rawValue, request: request.map()).map()
+    }
+
+    func transactionSwapStatus(chain: Primitives.Chain, request: TransactionSwapStateRequest) async throws -> TransactionChanges {
+        try await gateway.getTransactionSwapStatus(chain: chain.rawValue, request: request.map()).map()
     }
 }
 

@@ -5,7 +5,6 @@ import com.gemwallet.android.application.transactions.coordinators.GetChangedTra
 import com.gemwallet.android.application.transactions.coordinators.GetPendingTransactionsCount
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.blockchain.model.ServiceUnavailable
-import com.gemwallet.android.blockchain.model.TransactionStateRequest
 import com.gemwallet.android.blockchain.services.TransactionStatusService
 import com.gemwallet.android.cases.transactions.ClearPendingTransactions
 import com.gemwallet.android.cases.transactions.CreateTransaction
@@ -13,22 +12,27 @@ import com.gemwallet.android.cases.transactions.GetTransaction
 import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.TransactionsDao
+import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.getTransactionSwapMetadata
+import com.gemwallet.android.ext.isCompleted
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toSwapProvider
 import com.gemwallet.android.model.Fee
-import com.wallet.core.primitives.Transaction
-import com.gemwallet.android.model.TransactionChanges
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.TransactionStateRequest
 import com.wallet.core.primitives.TransactionSwapMetadata
+import com.wallet.core.primitives.TransactionSwapStateRequest
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
@@ -50,26 +54,26 @@ import uniffi.gemstone.Config
 import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
+private val pollingTransactionStates = listOf(TransactionState.Pending, TransactionState.InTransit)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionsRepositoryImpl(
     private val sessionRepository: SessionRepository,
     private val transactionsDao: TransactionsDao,
     private val transactionStatusService: TransactionStatusService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
-)
-: TransactionRepository,
+) : TransactionRepository,
     GetChangedTransactions,
     GetPendingTransactionsCount,
     GetTransaction,
     CreateTransaction,
     SaveTransactions,
-    ClearPendingTransactions
-{
+    ClearPendingTransactions {
 
     private val transactionsCheckDelay = 10 * DateUtils.SECOND_IN_MILLIS
 
     val changedTransactions = MutableStateFlow<List<TransactionExtended>>(emptyList())
-    private val pendingTransactionJobs = ConcurrentHashMap<TransactionId, Job>()
+    private val pollingTransactionJobs = ConcurrentHashMap<TransactionId, Job>()
 
     private fun currentWalletId(): Flow<WalletId> = sessionRepository.session()
         .filterNotNull()
@@ -77,12 +81,12 @@ class TransactionsRepositoryImpl(
         .distinctUntilChanged()
 
     init {
-        handlePendingTransactions()
+        observePollingTransactions()
     }
 
     override fun getPendingTransactionsCount(): Flow<Int?> {
         return currentWalletId().flatMapLatest { walletId ->
-            transactionsDao.getTransactionsCount(walletId, TransactionState.Pending)
+            transactionsDao.getTransactionsCount(walletId, pollingTransactionStates)
         }
     }
 
@@ -103,13 +107,14 @@ class TransactionsRepositoryImpl(
 
     override suspend fun saveTransactions(walletId: WalletId, transactions: List<Transaction>) = withContext(Dispatchers.IO) {
         transactionsDao.insert(transactions.toRecord(walletId))
-        addSwapMetadata(transactions.filter { it.type == TransactionType.Swap })
+        addSwapMetadata(transactions)
     }
 
-    private suspend fun updateTransaction(transactions: List<DbTransactionExtended>) = withContext(Dispatchers.IO) {
-        val dtoPairs = transactions.mapNotNull { db -> db.toDTO()?.transaction?.let { it to db.transaction.walletId } }
-        transactionsDao.insert(dtoPairs.map { (tx, walletId) -> tx.toRecord(walletId) })
-        addSwapMetadata(dtoPairs.map { it.first })
+    private suspend fun updateTransactions(transactions: List<DbTransactionExtended>) = withContext(Dispatchers.IO) {
+        val updatedAt = System.currentTimeMillis()
+        val records = transactions.map { it.transaction.copy(updatedAt = updatedAt) }
+        transactionsDao.insert(records)
+        addSwapMetadata(records.map { it.toDTO() })
     }
 
     override suspend fun clearPending() {
@@ -155,80 +160,85 @@ class TransactionsRepositoryImpl(
         transaction
     }
 
-    private fun addSwapMetadata(txs: List<Transaction>) {
-        val room = txs.filter { it.type == TransactionType.Swap && it.metadata != null }.mapNotNull {
-            val txMetadata = it.metadata?.let { metadata ->
-                jsonEncoder.decodeFromString<TransactionSwapMetadata>(metadata)
-            } ?: return@mapNotNull null
+    private fun addSwapMetadata(transactions: List<Transaction>) {
+        val swapMetadataRecords = transactions.mapNotNull { transaction ->
+            if (transaction.type != TransactionType.Swap) {
+                return@mapNotNull null
+            }
+            val metadata = transaction.metadata ?: return@mapNotNull null
+            val swapMetadata = jsonEncoder.decodeFromString<TransactionSwapMetadata>(metadata)
             DbTxSwapMetadata(
-                txId = it.id.identifier,
-                fromAssetId = txMetadata.fromAsset.toIdentifier(),
-                toAssetId = txMetadata.toAsset.toIdentifier(),
-                fromAmount = txMetadata.fromValue,
-                toAmount = txMetadata.toValue,
+                txId = transaction.id.identifier,
+                fromAssetId = swapMetadata.fromAsset.toIdentifier(),
+                toAssetId = swapMetadata.toAsset.toIdentifier(),
+                fromAmount = swapMetadata.fromValue,
+                toAmount = swapMetadata.toValue,
             )
         }
-        transactionsDao.addSwapMetadata(room)
+        transactionsDao.addSwapMetadata(swapMetadataRecords)
     }
 
-    private fun handlePendingTransactions() {
+    private fun observePollingTransactions() {
         scope.launch {
             currentWalletId().flatMapLatest { walletId ->
                 transactionsDao.getExtendedTransactions(
                     walletId,
-                    listOf(TransactionsRequestFilter.State(TransactionState.Pending)),
+                    listOf(TransactionsRequestFilter.States(pollingTransactionStates)),
                 )
             }.collect { items ->
                 items.forEach { item ->
-                    if (!pendingTransactionJobs.containsKey(item.transaction.id)) {
-                        val job = handlePendingTransaction(item)
-                        pendingTransactionJobs.put(item.transaction.id, job)
+                    if (!pollingTransactionJobs.containsKey(item.transaction.id)) {
+                        val job = pollTransactionStatus(item)
+                        pollingTransactionJobs.put(item.transaction.id, job)
                     }
                 }
             }
         }
     }
 
-    private fun handlePendingTransaction(transaction: DbTransactionExtended) = scope.launch {
-        val jobKey = transaction.transaction.id
+    private fun pollTransactionStatus(transaction: DbTransactionExtended) = scope.launch {
+        val jobKeys = mutableSetOf(transaction.transaction.id)
         try {
             var iteration = 0L
             var currentTransaction = transaction
             val chainConfig = Config().getChainConfig(currentTransaction.transaction.assetId.chain.string)
-            val delay = chainConfig.blockTime.toLong()
-            val timeout = chainConfig.transactionTimeout.toLong()
+            val blockDelay = chainConfig.blockTime.toLong()
 
             while (true) {
-                transactionCheckDelay(delay, iteration)
+                transactionCheckDelay(blockDelay, iteration)
                 iteration++
 
-                currentTransaction = checkTx(currentTransaction)?.let { newTransaction ->
-                    if (newTransaction.transaction.id != currentTransaction.transaction.id) {
-                        transactionsDao.delete(
-                            currentTransaction.transaction.id,
-                            currentTransaction.transaction.walletId,
-                        )
+                checkTransaction(currentTransaction)?.let { updatedTransaction ->
+                    if (updatedTransaction.transaction.id != currentTransaction.transaction.id) {
+                        coroutineContext[Job]?.let { runningJob ->
+                            pollingTransactionJobs[updatedTransaction.transaction.id] = runningJob
+                            jobKeys.add(updatedTransaction.transaction.id)
+                        }
                     }
-                    updateTransaction(listOf(newTransaction))
-                    newTransaction
-                } ?: currentTransaction
+                    currentTransaction = storeTransactionUpdate(
+                        currentTransaction = currentTransaction,
+                        updatedTransaction = updatedTransaction,
+                    )
+                }
 
-                if (currentTransaction.transaction.createdAt < System.currentTimeMillis() - timeout) {
+                val hasTimedOut = !currentTransaction.transaction.state.isCompleted() &&
+                    currentTransaction.transaction.createdAt < System.currentTimeMillis() - transactionTimeout(currentTransaction.transaction)
+                if (hasTimedOut) {
                     currentTransaction = currentTransaction.copy(transaction = currentTransaction.transaction.copy(state = TransactionState.Failed))
-                    updateTransaction(listOf(currentTransaction))
+                    updateTransactions(listOf(currentTransaction))
                     break
                 }
-                if (currentTransaction.transaction.state != TransactionState.Pending) {
+                if (currentTransaction.transaction.state.isCompleted()) {
                     break
                 }
             }
             currentTransaction.toDTO()?.let { changedTransactions.tryEmit(listOf(it)) }
         } finally {
-            pendingTransactionJobs.remove(jobKey)
+            jobKeys.forEach { pollingTransactionJobs.remove(it) }
         }
     }
 
-    private suspend fun transactionCheckDelay(delay: Long, iteration: Long) {
+    private suspend fun transactionCheckDelay(blockDelay: Long, iteration: Long) {
         val multiple = when (iteration) {
             0L -> 1.2
             1L -> 1.5
@@ -236,42 +246,144 @@ class TransactionsRepositoryImpl(
             3L -> 5.0
             else -> 10.0
         }
-        val delay = (delay * multiple).toLong().takeIf { it < transactionsCheckDelay } ?: transactionsCheckDelay
-        delay(delay)
+        val pollingDelay = (blockDelay * multiple).toLong().takeIf { it < transactionsCheckDelay } ?: transactionsCheckDelay
+        delay(pollingDelay)
     }
 
-    private suspend fun checkTx(transaction: DbTransactionExtended): DbTransactionExtended? {
-        val request = TransactionStateRequest(
-            chain = transaction.transaction.assetId.chain,
-            sender = transaction.transaction.owner,
-            hash = transaction.transaction.hash,
-            block = transaction.transaction.blockNumber,
-        )
-        val state = try {
-            transactionStatusService.getStatus(request) ?: TransactionChanges(transaction.transaction.state)
-        } catch (_: ServiceUnavailable) {
-            return transaction.copy(transaction = transaction.transaction.copy(updatedAt = System.currentTimeMillis()))
-        } catch (_: Throwable) {
-            TransactionChanges(transaction.transaction.state)
+    private fun transactionTimeout(transaction: DbTransaction): Long {
+        val chain = transaction.assetId.chain
+        val sourceTimeout = Config().getChainConfig(chain.string).transactionTimeout.toLong()
+        if (transaction.state != TransactionState.InTransit) {
+            return sourceTimeout
         }
-        return if (state.state != transaction.transaction.state) {
-            val newTransaction = transaction.copy(
-                transaction = transaction.transaction.copy(
-                    id = if (state.hashChanges != null) {
-                        TransactionId(transaction.transaction.assetId.chain, state.hashChanges!!.new)
-                    } else {
-                        transaction.transaction.id
-                    },
-                    state = state.state,
-                    hash = if (state.hashChanges != null) state.hashChanges!!.new else transaction.transaction.hash,
+        val destinationChain = getTransactionSwapMetadata(transaction.type, transaction.metadata)?.toAsset?.chain ?: chain
+        if (destinationChain == chain) {
+            return sourceTimeout
+        }
+        val destinationTimeout = Config().getChainConfig(destinationChain.string).transactionTimeout.toLong()
+        return ((sourceTimeout + destinationTimeout) * 3).coerceAtLeast(DateUtils.DAY_IN_MILLIS)
+    }
+
+    private suspend fun checkTransaction(transaction: DbTransactionExtended): DbTransactionExtended? {
+        val transactionRecord = transaction.transaction
+        val chain = transactionRecord.assetId.chain
+        val swapMetadata = getTransactionSwapMetadata(transactionRecord.type, transactionRecord.metadata)
+        val swapProvider = swapMetadata?.provider?.toSwapProvider()
+        if (transactionRecord.type == TransactionType.Swap && transactionRecord.state == TransactionState.InTransit && swapProvider == null) {
+            return null
+        }
+        val request = TransactionStateRequest(
+            id = transactionRecord.hash,
+            senderAddress = transactionRecord.owner,
+            createdAt = transactionRecord.createdAt,
+            blockNumber = transactionRecord.blockNumber.toLongOrNull() ?: 0L,
+        )
+        val stateChanges = try {
+            if (swapMetadata != null && swapProvider != null) {
+                transactionStatusService.getSwapStatus(
+                    chain,
+                    TransactionSwapStateRequest(
+                        transaction = request,
+                        state = transactionRecord.state,
+                        swapProvider = swapProvider,
+                        destinationChain = swapMetadata.toAsset.chain,
+                    ),
                 )
-            )
-            when {
-                state.fee != null -> newTransaction.copy(transaction = newTransaction.transaction.copy(fee = state.fee.toString()))
-                else -> newTransaction
+            } else {
+                transactionStatusService.getStatus(chain, request)
             }
+        } catch (_: ServiceUnavailable) {
+            return transaction.copy(transaction = transactionRecord.copy(updatedAt = System.currentTimeMillis()))
+        }
+        val newHash = stateChanges.hashChanges?.new
+        val updatedTransaction = transaction.copy(
+            transaction = transactionRecord.copy(
+                id = newHash?.let { TransactionId(chain, it) } ?: transactionRecord.id,
+                state = nextTransactionState(
+                    oldState = transactionRecord.state,
+                    newState = stateChanges.state,
+                ),
+                hash = newHash ?: transactionRecord.hash,
+                fee = stateChanges.fee?.toString() ?: transactionRecord.fee,
+                metadata = stateChanges.metadata ?: transactionRecord.metadata,
+            )
+        )
+        return if (updatedTransaction.transaction != transactionRecord) {
+            updatedTransaction
         } else {
             null
         }
     }
+
+    private suspend fun storeTransactionUpdate(
+        currentTransaction: DbTransactionExtended,
+        updatedTransaction: DbTransactionExtended,
+    ): DbTransactionExtended {
+        if (updatedTransaction.transaction.id == currentTransaction.transaction.id) {
+            updateTransactions(listOf(updatedTransaction))
+            return updatedTransaction
+        }
+
+        val existingState = transactionsDao.getTransactionState(
+            updatedTransaction.transaction.id,
+            currentTransaction.transaction.walletId,
+        )
+        if (existingState == null) {
+            transactionsDao.updateSwapMetadataTransactionId(
+                oldTransactionId = currentTransaction.transaction.id.identifier,
+                newTransactionId = updatedTransaction.transaction.id.identifier,
+            )
+            transactionsDao.updateTransactionId(
+                oldId = currentTransaction.transaction.id,
+                newId = updatedTransaction.transaction.id,
+                walletId = currentTransaction.transaction.walletId,
+                hash = updatedTransaction.transaction.hash,
+            )
+            updateTransactions(listOf(updatedTransaction))
+            return updatedTransaction
+        }
+
+        transactionsDao.deleteSwapMetadata(currentTransaction.transaction.id.identifier)
+        transactionsDao.delete(
+            currentTransaction.transaction.id,
+            currentTransaction.transaction.walletId,
+        )
+        val nextState = updateExistingTransaction(
+            placeholder = currentTransaction.transaction,
+            updatedTransaction = updatedTransaction.transaction,
+            existingState = existingState,
+        )
+        return updatedTransaction.copy(
+            transaction = updatedTransaction.transaction.copy(
+                state = nextState,
+            )
+        )
+    }
+
+    private fun updateExistingTransaction(
+        placeholder: DbTransaction,
+        updatedTransaction: DbTransaction,
+        existingState: TransactionState,
+    ): TransactionState {
+        val nextState = nextTransactionState(
+            oldState = existingState,
+            newState = updatedTransaction.state,
+        )
+        if (nextState != existingState) {
+            transactionsDao.updateState(updatedTransaction.id, updatedTransaction.walletId, nextState)
+        }
+        if (placeholder.fee != updatedTransaction.fee) {
+            transactionsDao.updateFee(updatedTransaction.id, updatedTransaction.walletId, updatedTransaction.fee)
+        }
+        val metadata = updatedTransaction.metadata
+        if (placeholder.metadata != metadata && metadata != null) {
+            transactionsDao.updateMetadata(updatedTransaction.id, updatedTransaction.walletId, metadata)
+            addSwapMetadata(listOf(updatedTransaction.toDTO()))
+        }
+        return nextState
+    }
+}
+
+internal fun nextTransactionState(oldState: TransactionState, newState: TransactionState): TransactionState {
+    return if (oldState == TransactionState.Pending || newState.isCompleted()) newState else oldState
 }

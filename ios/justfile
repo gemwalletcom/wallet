@@ -62,8 +62,9 @@ _build action extra_flags="":
     -parallelizeTargets \
     -jobs {{BUILD_THREADS}} \
     -showBuildTimingSummary \
-    {{extra_flags}} \
-    {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
+    {{ extra_flags }} \
+    "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
+    {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 # Example: just build
 build: (_build "build" FAST_BUILD_FLAGS)
@@ -111,8 +112,9 @@ _test action target="":
     {{ if target != "" { "-only-testing " + target } else { "" } }} \
     -parallel-testing-enabled YES \
     -parallelizeTargets \
-    -jobs {{BUILD_THREADS}} \
-    {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
+    -jobs {{ BUILD_THREADS }} \
+    "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
+    {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 test-without-building: (_test "test-without-building")
 
@@ -120,7 +122,9 @@ test-without-building: (_test "test-without-building")
 # Example: just test PrimitivesTests
 test TARGET="": (_test "test" TARGET)
 
-_test-integration action:
+test-all: test
+
+_test-integration action: generate-stone
     @set -o pipefail && xcodebuild -project Gem.xcodeproj \
     -scheme GemUITests \
     -testPlan ui_tests \
@@ -130,6 +134,7 @@ _test-integration action:
     -clonedSourcePackagesDirPath {{SPM_CACHE}} \
     -allowProvisioningUpdates \
     -allowProvisioningDeviceRegistration \
+    "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
     {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
 
 test-integration: reset-simulator (_test-integration "test")

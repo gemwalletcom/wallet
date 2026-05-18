@@ -18,6 +18,8 @@ For local environment prerequisites and GitHub Packages credentials, read `setup
 
 ```bash
 just build
+just run
+just start-emulator
 just build-test
 just test
 just test-integration
@@ -27,6 +29,8 @@ just release
 ```
 
 For release builds, read `release-and-verification.md`.
+
+From the repo root, use `just start-emulator`, then `just run-android` as the default Android run flow.
 
 ## Test and Quality Commands
 

@@ -14,7 +14,7 @@ private fun TransactionsRequestFilter.toSqlClause(): SqlClause = when (this) {
         val id = assetId.toIdentifier()
         SqlClause.raw("(tx.assetId = ? OR swap.from_asset_id = ? OR swap.to_asset_id = ?)", id, id, id)
     }
-    is TransactionsRequestFilter.State -> SqlClause.equalTo("tx.state", state.name)
+    is TransactionsRequestFilter.States -> SqlClause.inList("tx.state", states.map { it.name })
 }
 
 fun buildExtendedTransactionsSql(

@@ -6,13 +6,16 @@ extension TransactionState: Identifiable {
     public var id: String {
         rawValue
     }
-
-    public var isPending: Bool {
-        self == .pending
-    }
 }
 
 public extension TransactionState {
+    var isCompleted: Bool {
+        switch self {
+        case .confirmed, .reverted, .failed: true
+        case .pending, .inTransit: false
+        }
+    }
+
     init(id: String) throws {
         if let state = TransactionState(rawValue: id) {
             self = state

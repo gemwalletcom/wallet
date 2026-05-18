@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.features.import_wallet.viewmodels"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

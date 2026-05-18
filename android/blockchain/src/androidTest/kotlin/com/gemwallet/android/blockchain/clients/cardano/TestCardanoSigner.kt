@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.clients.cardano
 
 import com.gemwallet.android.blockchain.includeLibs
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
@@ -28,7 +29,7 @@ class TestCardanoSigner {
     @Test
     fun testCardanoNativeSign() {
         val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.CARDANO)
-        val signer = CardanoSignClient(Chain.Cardano)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
@@ -46,7 +47,8 @@ class TestCardanoSigner {
                             value = "7945975",
                             vout = 1,
                         )
-                    )
+                    ),
+                    blockNumber = 189_992_800uL,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),
                 fee = Fee.Plain(
@@ -59,13 +61,13 @@ class TestCardanoSigner {
             )
         }
 
-        assertEquals("83a40081825820412c5a964cf4515210bf4b82f45df6521c38e1e5381f27638fc509bef66" +
+        assertEquals("84a40081825820412c5a964cf4515210bf4b82f45df6521c38e1e5381f27638fc509bef66" +
                 "79378010182825839015aa69b33391cc8148231a6a7576c4a67e2f920e778ce216ae23db4c380947" +
                 "e2680b778e16cac5010e69d962fd50f076c39f5820a470a5edc192710825839015aa69b33391cc81" +
                 "48231a6a7576c4a67e2f920e778ce216ae23db4c380947e2680b778e16cac5010e69d962fd50f076" +
-                "c39f5820a470a5edc1a0076859c021a0002924b031a0b532b80a10081825820878150b7cb71f9406" +
-                "e36dcdd250e22dc943ec4525233581536497acb4f13e670584004bf4935e4dcc7f54947c4eb0b9cd" +
-                "d24880b168138af31b394ee0e7fe935900383822f432a1c2b533ea54f8ef12f1758b30a045f3918e" +
-                "f25a51dad762d071b0af6", String(sign.first()))
+                "c39f5820a470a5edc1a00768570021a00029277031a0b532b80a10081825820878150b7cb71f9406" +
+                "e36dcdd250e22dc943ec4525233581536497acb4f13e6705840aac7a33b86a5f8c08a3887b278646" +
+                "5dbb6007eaeb9edcf9002e16ae8f5d7880c7a33cb5c8e317abf910cabbe5e8ff3f8d48b404d9fc" +
+                "fd5025447c49698d01900f5f6", String(sign.first()))
     }
 }

@@ -5,7 +5,9 @@ The iOS app consumes the shared Rust core through generated Swift bindings.
 ## Rules
 
 - Read [`../core/AGENTS.md`](../../core/AGENTS.md) before changing Rust code or generated interfaces
-- Run `just generate-stone` when Rust-to-Swift bindings need to be regenerated
+- Run `just generate-stone` from the repo root when Rust-to-Swift bindings or iOS Rust static libraries need to be regenerated
+- Run `just run-ios` from the repo root to build and run the iOS app
+- The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build
 - Run `just generate` when model generation or broader shared codegen is required
 - Verify iOS still builds after any core or generated-code change
 
@@ -17,5 +19,8 @@ The iOS app consumes the shared Rust core through generated Swift bindings.
 
 ## Integration Notes
 
-- `GemstoneFFI.xcframework` provides the compiled bridge to Rust
+- `GemstoneFFI` is a source C target that exposes the UniFFI header to SwiftPM
+- The Gemstone UniFFI Swift/header sources are generated locally and are not committed
+- Gemstone generation also builds the iOS `libgemstone.a` outputs under `core/target`; the app links those outputs directly
+- The normal `Gem` scheme expects generated bindings and Rust static libraries to already exist
 - Shared model changes may also require Android verification because both apps consume the same core
