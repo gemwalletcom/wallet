@@ -18,6 +18,8 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
@@ -239,7 +241,8 @@ fun WalletNavGraph(
 
             perpetualScreen(
                 onOpenPerpetualDetails = navigator::openPerpetualDetails,
-                onOpenPerpetualPosition = navigator::openAmount,
+                amountAction = AmountTransactionAction(navigator::openAmount),
+                confirmAction = ConfirmTransactionAction(navigator::openConfirm),
                 onCancel = onCancel,
                 onTransaction = navigator::openTransaction,
             )

@@ -3,6 +3,7 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
@@ -10,10 +11,8 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPos
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
-import com.gemwallet.android.domains.perpetual.PerpetualTransferData
-import com.gemwallet.android.ext.HypercoreUSDC
-import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
@@ -44,6 +43,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val getTransactions: GetTransactions,
     private val syncAssetTransactions: SyncAssetTransactions,
     private val syncPerpetualPositions: SyncPerpetualPositions,
+    private val buildPerpetualParams: BuildPerpetualParams,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -100,23 +100,31 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
     }
 
-    fun buildOpenPosition(direction: PerpetualDirection): AmountParams.Perpetual? {
-        val current = perpetual.value ?: return null
-        val assetIndex = current.identifier.toIntOrNull() ?: return null
-        val transferData = PerpetualTransferData(
-            provider = current.provider,
-            direction = direction,
-            asset = current.asset,
-            baseAsset = HypercoreUSDC,
-            assetIndex = assetIndex,
-            price = current.price,
-            leverage = current.maxLeverage.toUByte(),
-            marginType = current.marginType,
-        )
-        return AmountParams.Perpetual(
-            assetId = current.asset.id,
-            perpetualId = current.id,
-            positionAction = PerpetualPositionAction.Open(transferData),
-        )
+    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.open(perpetualId, direction)?.let(amountAction::invoke)
+        }
+    }
+
+    fun increasePosition(amountAction: AmountTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.increase(perpetualId)?.let(amountAction::invoke)
+        }
+    }
+
+    fun reducePosition(amountAction: AmountTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.reduce(perpetualId)?.let(amountAction::invoke)
+        }
+    }
+
+    fun closePosition(confirmAction: ConfirmTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.close(perpetualId)?.let(confirmAction::invoke)
+        }
     }
 }

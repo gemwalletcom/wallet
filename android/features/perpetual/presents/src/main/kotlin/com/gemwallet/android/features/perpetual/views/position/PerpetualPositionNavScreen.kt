@@ -6,12 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualDetailsViewModel
-import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.wallet.core.primitives.TransactionId
 
 @Composable
 fun PerpetualPositionNavScreen(
-    onOpenPosition: (AmountParams) -> Unit,
+    amountAction: AmountTransactionAction,
+    confirmAction: ConfirmTransactionAction,
     onClose: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
@@ -32,12 +34,10 @@ fun PerpetualPositionNavScreen(
         period = period,
         onClose = onClose,
         onChartPeriodSelect = viewModel::period,
-        onOpenPosition = { direction ->
-            viewModel.buildOpenPosition(direction)?.let(onOpenPosition)
-        },
-        onIncreasePosition = {}, // TODO: wire when Increase flow lands
-        onReducePosition = {}, // TODO: wire when Reduce flow lands
-        onClosePosition = {}, // TODO: wire when Close flow lands
+        onOpenPosition = { direction -> viewModel.openPosition(direction, amountAction) },
+        onIncreasePosition = { viewModel.increasePosition(amountAction) },
+        onReducePosition = { viewModel.reducePosition(amountAction) },
+        onClosePosition = { viewModel.closePosition(confirmAction) },
         onTransaction = onTransaction,
     )
 }
