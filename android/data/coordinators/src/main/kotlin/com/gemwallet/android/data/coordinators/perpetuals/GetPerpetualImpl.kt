@@ -31,7 +31,7 @@ class GetPerpetualImpl @Inject constructor(
 }
 
 class PerpetualDetailsDataAggregateImpl(
-    private val data: PerpetualData
+    private val data: PerpetualData,
 ) : PerpetualDetailsDataAggregate {
     override val id: String = data.perpetual.id
 

@@ -29,10 +29,15 @@ object PerpetualOrderFactory {
         stopLoss: String? = null,
     ): PerpetualType {
         val data = positionAction.data
+        val orderAction = when (positionAction) {
+            is PerpetualPositionAction.Open,
+            is PerpetualPositionAction.Increase -> OrderAction.Open
+            is PerpetualPositionAction.Reduce -> OrderAction.Close
+        }
         val slippagePrice = calculateSlippagePrice(
             marketPrice = data.price,
             direction = data.direction,
-            action = OrderAction.Open,
+            action = orderAction,
             slippage = slippage,
         )
         val usdAmount = usdcAmount.toDouble() / 10.0.pow(usdcDecimals)

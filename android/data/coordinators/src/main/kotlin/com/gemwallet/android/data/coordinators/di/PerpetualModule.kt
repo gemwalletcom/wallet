@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
@@ -11,6 +12,7 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPos
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
 import com.gemwallet.android.blockchain.services.PerpetualService
+import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalanceImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalancesImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartDataImpl
@@ -143,6 +145,18 @@ object PerpetualModule {
     ): GetPerpetualChartData {
         return GetPerpetualChartDataImpl(
             perpetualService = perpetualService,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideBuildPerpetualParams(
+        perpetualRepository: PerpetualRepository,
+        sessionRepository: SessionRepository,
+    ): BuildPerpetualParams {
+        return BuildPerpetualParamsImpl(
+            perpetualRepository = perpetualRepository,
+            sessionRepository = sessionRepository,
         )
     }
 }
