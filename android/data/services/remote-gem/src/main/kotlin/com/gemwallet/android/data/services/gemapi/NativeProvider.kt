@@ -27,6 +27,7 @@ class NativeProvider(
     private val httpClient: OkHttpClient = OkHttpClient(),
     private val config: NativeProviderConfig,
 ) : AlienProvider {
+    private val cache = MemoryCache()
 
     override fun getEndpoint(chain: Chain): String {
         return chain.toChain()?.getNodeUrl(getNodesCase, getCurrentNodeCase, setCurrentNodeCase)
@@ -34,17 +35,30 @@ class NativeProvider(
     }
 
     override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
+        val cacheKey = target.nativeCacheKey()
+        if (cacheKey != null) {
+            cache.get(cacheKey)?.let {
+                return@withContext AlienResponse(200.toUShort(), it)
+            }
+        }
+
         val requestBuilder = Request.Builder()
             .url(target.url)
             .method(target.method.name, target.body?.toRequestBody())
-        target.headers?.forEach {
-            requestBuilder.addHeader(it.key, it.value)
+        target.headers?.forEach { (key, value) ->
+            if (key != NATIVE_PROVIDER_CACHE_HEADER) {
+                requestBuilder.addHeader(key, value)
+            }
         }
         try {
-            val response = httpClient.newCall(requestBuilder.build()).execute()
-            val data = response.body.bytes()
-            val status = response.code.toUShort()
-            AlienResponse(status, data)
+            httpClient.newCall(requestBuilder.build()).execute().use { response ->
+                val data = response.body.bytes()
+                val status = response.code.toUShort()
+                if (cacheKey != null) {
+                    cache.set(cacheKey, data)
+                }
+                AlienResponse(status, data)
+            }
         } catch (err: IOException) {
             throw AlienException.RequestException(err.toGatewayNetworkMessage(config.networkOfflineMessage))
         } catch (err: CancellationException) {

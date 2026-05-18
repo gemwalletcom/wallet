@@ -28,6 +28,13 @@ Optional shared codegen after setup:
 just generate
 ```
 
+For local Android app iteration from the repo root:
+
+```bash
+just start-emulator
+just run-android
+```
+
 ## Notes
 
 - `local.properties` is local machine configuration and must not be committed

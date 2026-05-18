@@ -27,8 +27,8 @@ public extension GemTransactionLoadMetadata {
             try .bitcoin(utxos: utxos.map { try $0.map() })
         case let .zcash(utxos, branchId):
             try .zcash(utxos: utxos.map { try $0.map() }, branchId: branchId)
-        case let .cardano(utxos):
-            try .cardano(utxos: utxos.map { try $0.map() })
+        case let .cardano(utxos, blockNumber):
+            try .cardano(utxos: utxos.map { try $0.map() }, blockNumber: blockNumber)
         case let .evm(nonce, chainId, contractCall):
             .evm(nonce: UInt64(nonce), chainId: UInt64(chainId), contractCall: contractCall?.map())
         case let .near(sequence, blockHash):
@@ -97,8 +97,8 @@ public extension TransactionLoadMetadata {
             .bitcoin(utxos: utxos.map { $0.map() })
         case let .zcash(utxos, branchId):
             .zcash(utxos: utxos.map { $0.map() }, branchId: branchId)
-        case let .cardano(utxos):
-            .cardano(utxos: utxos.map { $0.map() })
+        case let .cardano(utxos, blockNumber):
+            .cardano(utxos: utxos.map { $0.map() }, blockNumber: blockNumber)
         case let .evm(nonce, chainId, contractCall):
             .evm(
                 nonce: UInt64(nonce),

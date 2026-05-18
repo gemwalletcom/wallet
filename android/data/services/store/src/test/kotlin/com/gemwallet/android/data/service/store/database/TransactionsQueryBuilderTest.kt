@@ -87,13 +87,14 @@ class TransactionsQueryBuilderTest {
     }
 
     @Test
-    fun stateFilter_buildsEqualityWithEnumName() {
+    fun statesFilter_buildsInClauseWithEnumNames() {
         val query = buildExtendedTransactionsSql(
             walletId,
-            filters = listOf(TransactionsRequestFilter.State(TransactionState.Pending)),
+            filters = listOf(TransactionsRequestFilter.States(listOf(TransactionState.Pending, TransactionState.InTransit))),
         )
-        assertTrue(query.sql.contains("AND tx.state = ?"))
+        assertTrue(query.sql.contains("AND tx.state IN (?,?)"))
         assertEquals("Pending", query.args[baseArgCount])
+        assertEquals("InTransit", query.args[baseArgCount + 1])
     }
 
     @Test

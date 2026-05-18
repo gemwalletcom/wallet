@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.data.services.gemapi"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28
@@ -58,9 +58,6 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.kotlinx.coroutines.android)
-
-    api(libs.tink)
-
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

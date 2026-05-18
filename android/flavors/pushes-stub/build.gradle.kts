@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.flovers.stub"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

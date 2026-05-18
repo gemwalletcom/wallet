@@ -269,7 +269,7 @@ let package = Package(
                 "GemstonePrimitives",
             ],
             path: "TransactionStateService",
-            exclude: ["TestKit"],
+            exclude: ["Tests", "TestKit"],
         ),
         .target(
             name: "TransactionStateServiceTestKit",
@@ -657,6 +657,20 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "FiatService/TestKit",
+        ),
+        .testTarget(
+            name: "TransactionStateServiceTests",
+            dependencies: [
+                "TransactionStateService",
+                "TransactionStateServiceTestKit",
+                "BalanceServiceTestKit",
+                "EarnService",
+                "NFTServiceTestKit",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "StakeServiceTestKit", package: "ChainServices"),
+                .product(name: "StoreTestKit", package: "Store"),
+            ],
+            path: "TransactionStateService/Tests",
         ),
         .testTarget(
             name: "DiscoverAssetsServiceTests",

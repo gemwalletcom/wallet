@@ -47,10 +47,13 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 ## Working Across the Monorepo
 
 - When two patterns contradict (iOS vs. Android handling of a shared flow, two error-mapping styles in `core/`, parallel provider implementations), do not blend them. Pick the more recent or more tested one, state why, and flag the other for follow-up
+- Use full domain terms in code names: write `transaction`, not `tx`, except when preserving external protocol field names, database columns, or URLs verbatim
 - For multi-step work that crosses Core → bindings → iOS/Android, checkpoint after each step: state what changed, what was verified, what is left. Do not continue from a state you cannot describe back
 - If a regeneration's effect on either app is unclear, stop and restate before adding more changes
 
 ## Task Completion
+
+During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad lint/format runs until the change is ready to commit. Do not skip the required lint/format checks silently before final handoff; run them then, or report the exact reason they are still pending.
 
 Before finishing a task:
 1. Build the affected platform(s)

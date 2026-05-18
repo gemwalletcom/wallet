@@ -3,7 +3,6 @@
 import Foundation
 import Keystore
 import Primitives
-import WalletCore
 
 public struct Signer: Sendable {
     let wallet: Primitives.Wallet
@@ -74,14 +73,8 @@ public struct Signer: Sendable {
 
     func signer(for chain: Chain) -> Signable {
         switch chain.type {
-        case .solana: SolanaSigner()
-        case .ethereum, .sui, .hyperCore, .aptos, .near, .stellar, .algorand, .ton: ChainSigner(chain: chain)
-        case .cosmos: CosmosSigner()
-        case .tron: TronSigner()
+        case .ethereum, .solana, .sui, .hyperCore, .aptos, .near, .stellar, .algorand, .ton, .cosmos, .xrp, .polkadot, .cardano, .tron: ChainSigner(chain: chain)
         case .bitcoin: BitcoinSigner()
-        case .xrp: XrpSigner()
-        case .polkadot: PolkadotSigner()
-        case .cardano: CardanoSigner()
         }
     }
 }

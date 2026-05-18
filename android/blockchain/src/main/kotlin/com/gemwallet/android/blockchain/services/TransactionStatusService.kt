@@ -1,45 +1,34 @@
 package com.gemwallet.android.blockchain.services
 
+import com.gemwallet.android.blockchain.gemstone.toGem
+import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.model.ServiceUnavailable
-import com.gemwallet.android.blockchain.model.TransactionStateRequest
-import com.gemwallet.android.model.HashChanges
 import com.gemwallet.android.model.TransactionChanges
-import com.wallet.core.primitives.TransactionState
-import okhttp3.internal.toLongOrDefault
-import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemTransactionStateRequest
-import uniffi.gemstone.TransactionChange
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.TransactionStateRequest
+import com.wallet.core.primitives.TransactionSwapStateRequest
+import uniffi.gemstone.GemGatewayInterface
 
 class TransactionStatusService(
-    private val gateway: GemGateway,
+    private val gateway: GemGatewayInterface,
 ) {
-    suspend fun getStatus(request: TransactionStateRequest): TransactionChanges? {
+    suspend fun getStatus(chain: Chain, request: TransactionStateRequest): TransactionChanges {
         return try {
-            val result = gateway.getTransactionStatus(
-                chain = request.chain.string,
-                GemTransactionStateRequest(
-                    id = request.hash,
-                    senderAddress = request.sender,
-                    createdAt = 0L, /// TODO: Add created at for HyperCore,
-                    blockNumber = request.block.toLongOrDefault(0L),
-                    swapProvider = null,
-                )
-            )
-            val fee = result.changes.firstNotNullOfOrNull { it as? TransactionChange.NetworkFee }
-                ?.v1?.toBigIntegerOrNull()
-            val hashChanges = result.changes.firstNotNullOfOrNull { it as? TransactionChange.HashChange }
+            gateway.getTransactionStatus(
+                chain = chain.string,
+                request.toGem(),
+            ).toPrimitives()
+        } catch (_: Throwable) {
+            throw ServiceUnavailable
+        }
+    }
 
-            TransactionChanges(
-                state = when (result.state) {
-                    uniffi.gemstone.TransactionState.PENDING -> TransactionState.Pending
-                    uniffi.gemstone.TransactionState.CONFIRMED -> TransactionState.Confirmed
-                    uniffi.gemstone.TransactionState.FAILED -> TransactionState.Failed
-                    uniffi.gemstone.TransactionState.REVERTED -> TransactionState.Reverted
-                    uniffi.gemstone.TransactionState.IN_TRANSIT -> TransactionState.InTransit
-                },
-                fee = fee,
-                hashChanges = hashChanges?.let { HashChanges(it.old, it.new) }
-            )
+    suspend fun getSwapStatus(chain: Chain, request: TransactionSwapStateRequest): TransactionChanges {
+        return try {
+            gateway.getTransactionSwapStatus(
+                chain = chain.string,
+                request = request.toGem(),
+            ).toPrimitives()
         } catch (_: Throwable) {
             throw ServiceUnavailable
         }

@@ -8,9 +8,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.data.coordinators"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

@@ -93,17 +93,41 @@ interface TransactionsDao {
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<DbTransactionExtended>> = getExtendedTransactions(buildExtendedTransactionsSql(walletId, filters).toSupportSQLiteQuery())
 
-    @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state = :state")
-    fun getTransactionsCount(walletId: WalletId, state: TransactionState): Flow<Int?>
+    @Query("SELECT COUNT(*) $EXTENDED_SOURCE AND tx.state IN (:states)")
+    fun getTransactionsCount(walletId: WalletId, states: List<TransactionState>): Flow<Int?>
 
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
+    @Query("SELECT state FROM transactions WHERE id = :id AND walletId = :walletId")
+    fun getTransactionState(id: TransactionId, walletId: WalletId): TransactionState?
+
+    @Query("UPDATE transactions SET id = :newId, hash = :hash, updatedAt = :updatedAt WHERE id = :oldId AND walletId = :walletId")
+    fun updateTransactionId(
+        oldId: TransactionId,
+        newId: TransactionId,
+        walletId: WalletId,
+        hash: String,
+        updatedAt: Long = System.currentTimeMillis(),
+    )
+
+    @Query("UPDATE transactions SET state = :state, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
+    fun updateState(id: TransactionId, walletId: WalletId, state: TransactionState, updatedAt: Long = System.currentTimeMillis())
+
+    @Query("UPDATE transactions SET fee = :fee, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
+    fun updateFee(id: TransactionId, walletId: WalletId, fee: String, updatedAt: Long = System.currentTimeMillis())
+
+    @Query("UPDATE transactions SET metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
+    fun updateMetadata(id: TransactionId, walletId: WalletId, metadata: String, updatedAt: Long = System.currentTimeMillis())
+
     @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)
 
-    @Query("SELECT * FROM tx_swap_metadata WHERE tx_id=:txId")
-    fun getMetadata(txId: String): DbTxSwapMetadata?
+    @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId")
+    fun deleteSwapMetadata(transactionId: String)
+
+    @Query("UPDATE tx_swap_metadata SET tx_id = :newTransactionId WHERE tx_id = :oldTransactionId")
+    fun updateSwapMetadataTransactionId(oldTransactionId: String, newTransactionId: String)
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)

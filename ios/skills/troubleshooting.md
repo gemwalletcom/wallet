@@ -14,13 +14,14 @@ just clean
 just build
 ```
 
-### GemstoneFFI Framework Not Found
+### Gemstone Rust Library Link Failures
 
-If the build fails with missing `GemstoneFFI.xcframework`:
+If SwiftPM cannot resolve `Gemstone` in a fresh checkout, or the build fails with missing `libgemstone.a` or undefined `ffi_gemstone_*` symbols:
 ```bash
-just generate-stone
+just bootstrap
+just build
 ```
-This recompiles the Rust core and produces the framework.
+`just bootstrap` creates the local UniFFI Swift/header sources and iOS Rust static libraries needed by SwiftPM and Xcode. From the repo root, use `just generate-stone`, then `just run-ios`. The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build.
 
 ### Test Failures After Model Changes
 
@@ -63,6 +64,8 @@ If still stuck, clear DerivedData: `just clean`, then `just bootstrap`.
 just generate
 just generate-stone
 ```
+
+The optional `GemStone` Xcode scheme can be used when you want generation and app build in one Xcode action.
 
 Read `core/AGENTS.md` when the failure is caused by shared Rust or generated-model changes.
 

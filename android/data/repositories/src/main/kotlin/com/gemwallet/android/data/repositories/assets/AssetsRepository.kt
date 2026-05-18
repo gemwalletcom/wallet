@@ -31,7 +31,7 @@ import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.ext.getAssociatedAssetIds
-import com.gemwallet.android.ext.isComplete
+import com.gemwallet.android.ext.isCompleted
 import com.gemwallet.android.ext.swapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
@@ -454,7 +454,7 @@ class AssetsRepository @Inject constructor(
                 val assetInfos = getAssetsInfo(transaction.getAssociatedAssetIds()).firstOrNull().orEmpty()
                 assetInfos.updateBalances()
                 val walletId = assetInfos.firstNotNullOfOrNull { it.walletId } ?: return@async
-                if (transaction.state.isComplete()) {
+                if (transaction.state.isCompleted()) {
                     processCompleteTransaction(walletId, transaction, assetInfos)
                 }
             }

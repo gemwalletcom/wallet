@@ -10,5 +10,5 @@ sealed interface TransactionsRequestFilter {
     data class Types(val types: List<TransactionType>) : TransactionsRequestFilter
     data class AssetRankGreaterThan(val rank: Int) : TransactionsRequestFilter
     data class Asset(val assetId: AssetId) : TransactionsRequestFilter
-    data class State(val state: TransactionState) : TransactionsRequestFilter
+    data class States(val states: List<TransactionState>) : TransactionsRequestFilter
 }

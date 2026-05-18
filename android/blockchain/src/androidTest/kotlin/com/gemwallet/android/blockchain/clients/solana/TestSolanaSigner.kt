@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.clients.solana
 
 import com.gemwallet.android.blockchain.includeLibs
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
@@ -17,9 +18,11 @@ import com.wallet.core.primitives.SolanaTokenProgramId
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import wallet.core.jni.Base64
+import wallet.core.jni.Base58
 import wallet.core.jni.CoinType
+import wallet.core.jni.Curve
 import wallet.core.jni.HDWallet
+import wallet.core.jni.PrivateKey
 import java.math.BigInteger
 
 class TestSolanaSigner {
@@ -30,24 +33,26 @@ class TestSolanaSigner {
     }
 
     val privateKey = HDWallet(TEST_PHRASE, "").getKeyForCoin(CoinType.SOLANA).data()
+    val senderAddress = "5yUxrLd6C5nSDzpvg9bNpQMXpcw6J6pSVrYQmr6Bmyp6"
+
+    @Test
+    fun testSolana_sign_message() {
+        val message = "hello".toByteArray()
+        val expected = Base58.encodeNoCheck(PrivateKey(privateKey).sign(message, Curve.ED25519))
+
+        val result = runBlocking {
+            SignService().signMessage(Chain.Solana, message, privateKey)
+        }
+
+        assertEquals(expected, result.decodeToString())
+    }
 
     @Test
     fun testSolana_native_transfer() {
-        val signer = SolanaSignClient(
-            chain = Chain.Solana,
-            getAsset = {
-                Asset(
-                    it,
-                    name = "sol_asset",
-                    symbol = "sol_asset",
-                    decimals = 6,
-                    type = AssetType.SPL,
-                )
-            }
-        )
+        val signer = SignService()
         val params = ConfirmParams.Builder(
             asset = Chain.Solana.asset(),
-            from = Account(Chain.Solana, "4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S", ""),
+            from = Account(Chain.Solana, senderAddress, ""),
             amount = BigInteger.valueOf(10_000_000)
         )
             .transfer(destination = DestinationAddress("4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S")) as ConfirmParams.TransferParams.Native
@@ -76,42 +81,30 @@ class TestSolanaSigner {
             )
         }
         assertEquals(
-            "0x4159436b734f696556323339774436566c6841614a41464844544a647a632f61577a3331" +
-                    "6f693676686e783978676d4c544a5372643165504634454e73734a704867667575424e6e55556b3" +
-                    "159304a52784e504a59513442414149455365626b44466a2b415242396b4b486b394f4167745057" +
-                    "456e614370426a475a3869707a61372f4e43577330767554324f647746546758414767305a61753" +
-                    "17474703157354f7153437a77434c53384e5738357a71514d47526d2f6c495263792f2b7974756e" +
-                    "4c446d2b65386a4f573778666353617978446d7a704141414141414141414141414141414141414" +
-                    "141414141414141414141414141414141414141414141414141414141414c4d706730536d427863" +
-                    "684e486e756872566468464259677863634c722b5370616932436959444a4b51514d4341416b446" +
-                    "74c71565067414141414143414155436f49594241414d434141454d416741414141414141414141" +
-                    "41414141", result.first().toHexString()
+            "0x415965576d664f4538764f357870302b7159557733437a4450713839724b4c587a7976546a587673" +
+                    "7a37796f42746f44324f30394f3148554e78584f704c456a43645371397876414a4f6c41564a486b" +
+                    "397568707a516342414149455365626b44466a2b415242396b4b486b394f4167745057456e614370" +
+                    "426a475a3869707a61372f4e43577330767554324f647746546758414767305a6175317474703157" +
+                    "354f7153437a77434c53384e5738357a71514d47526d2f6c495263792f2b7974756e4c446d2b6538" +
+                    "6a4f573778666353617978446d7a7041414141414141414141414141414141414141414141414141" +
+                    "41414141414141414141414141414141414141414141414c4d706730536d427863684e486e756872" +
+                    "566468464259677863634c722b5370616932436959444a4b51514d4341416b4469424d4141414141" +
+                    "41414143414155436f49594241414d434141454d41674141414141414141414141414141", result.first().toHexString()
         )
     }
 
     @Test
     fun testSolana_token_transfer() {
-        val signer = SolanaSignClient(
-            chain = Chain.Solana,
-            getAsset = {
-                Asset(
-                    it,
-                    name = "sol_asset",
-                    symbol = "sol_asset",
-                    decimals = 6,
-                    type = AssetType.SPL,
-                )
-            }
-        )
+        val signer = SignService()
         val params = ConfirmParams.Builder(
             asset = Asset(
                 AssetId(Chain.Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
                 "",
                 "",
                 8,
-                AssetType.TOKEN
+                AssetType.SPL
             ),
-            from = Account(Chain.Solana, "4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S", ""),
+            from = Account(Chain.Solana, senderAddress, ""),
             amount = BigInteger.valueOf(10_000_000)
         )
             .transfer(destination = DestinationAddress("AGkXQZ9qm99xukisDUHvspWHESrcjs8Y4AmQQgef3BRh")) as ConfirmParams.TransferParams.Token
@@ -140,43 +133,31 @@ class TestSolanaSigner {
             )
         }
         assertEquals(
-            "0x416238786c7268464374766e72677357477874416f6b6852423654737057545862643066" +
-                    "6e31557835466c736b734b317838714d6668326e313662454d384d6b6a4a4d467450664b7046684" +
-                    "25a376576716557713051514241414d465365626b44466a2b415242396b4b486b394f4167745057" +
-                    "456e614370426a475a3869707a61372f4e435775356d6277492b744e3454586473757149654b725" +
-                    "254647a734b644444707a385843635179334a766a50304d3442446d43763762496e4637316a4753" +
-                    "395546466f2f6c6c6f7a75344c5378774b657373346549494a6b41775a47622b5568467a4c2f374" +
-                    "b323663734f623537794d3562764639784a724c454f624f6b41414141414733666268313257686b" +
-                    "396e4c3455624f36336d73484c5346375639624e3545366a50574666763841715173796d44524b5" +
-                    "948467945306565364774563245554669444678777576354b6c714c594b4a674d6b704241774d41" +
-                    "43514f417570552b4141414141414d4142514b67686745414241514241674541436777414141414" +
-                    "1414141414141593d", result.first().toHexString()
+            "0x4163456263336c444271665a76794f3954784d4e39647244584c6c374673626e664c4f453031362f" +
+                    "4c5a374a737059497248744a4579335a536354715842396143317362413734444e5033735a79686b" +
+                    "6c354f347967304241414d465365626b44466a2b415242396b4b486b394f4167745057456e614370" +
+                    "426a475a3869707a61372f4e435775356d6277492b744e3454586473757149654b725254647a734b" +
+                    "644444707a385843635179334a766a50304d3442446d43763762496e4637316a4753395546466f2f" +
+                    "6c6c6f7a75344c5378774b657373346549494a6b41775a47622b5568467a4c2f374b323663734f62" +
+                    "3537794d3562764639784a724c454f624f6b41414141414733666268313257686b396e4c3455624f" +
+                    "36336d73484c5346375639624e3545366a50574666763841715173796d44524b5948467945306565" +
+                    "364774563245554669444678777576354b6c714c594b4a674d6b704241774d4143514f4945774141" +
+                    "4141414141414d4142514b676867454142415142416745414367774141414141414141414141673d", result.first().toHexString()
         )
     }
 
     @Test
     fun testSolana_token2022_transfer() {
-        val signer = SolanaSignClient(
-            chain = Chain.Solana,
-            getAsset = {
-                Asset(
-                    it,
-                    name = "sol_asset",
-                    symbol = "sol_asset",
-                    decimals = 6,
-                    type = AssetType.SPL,
-                )
-            }
-        )
+        val signer = SignService()
         val params = ConfirmParams.Builder(
             asset = Asset(
                 AssetId(Chain.Solana, "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo"),
                 "",
                 "",
                 8,
-                AssetType.TOKEN
+                AssetType.SPL2022
             ),
-            from = Account(Chain.Solana, "4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S", ""),
+            from = Account(Chain.Solana, senderAddress, ""),
             amount = BigInteger.valueOf(10_000_000)
         )
             .transfer(destination = DestinationAddress("AGkXQZ9qm99xukisDUHvspWHESrcjs8Y4AmQQgef3BRh")) as ConfirmParams.TransferParams.Token
@@ -205,40 +186,17 @@ class TestSolanaSigner {
             )
         }
         assertEquals(
-            "0x4152744d346e59365642416d427563754c675a7759623165304764516d6b782b6251764f" +
-                    "6241657558466e6a4b5a4744507930653972305249444f384757705056384439453345754b33416" +
-                    "e492b354b6b6d72485667414241414d465365626b44466a2b415242396b4b486b394f4167745057" +
-                    "456e614370426a475a3869707a61372f4e43577470783737467363375a7773776d4234324a65393" +
-                    "04538487a622b59486131534a74465451777a385351705265535344747369697148743063646755" +
-                    "2b566b666b355849514b6e4f505a394e57366654704c696e536541775a47622b5568467a4c2f374" +
-                    "b323663734f623537794d3562764639784a724c454f624f6b41414141414733666268376e575033" +
-                    "68684358627a6b624d33617468723854594f354453662b76666b6f324b474c2f4173796d44524b5" +
-                    "948467945306565364774563245554669444678777576354b6c714c594b4a674d6b704241774d41" +
-                    "43514f417570552b4141414141414d4142514b67686745414241514241674541436777414141414" +
-                    "1414141414141593d", result.first().toHexString()
+            "0x416642774d397335796f63362b3845727a325432664e595a35747a35466f41786f69485463664d6f" +
+                    "744a4967757549733931386f507673584c59366964776e5a6f41696b506d6e356f4a775865443153" +
+                    "3171354a6c51514241414d465365626b44466a2b415242396b4b486b394f4167745057456e614370" +
+                    "426a475a3869707a61372f4e43577470783737467363375a7773776d4234324a6539304538487a62" +
+                    "2b59486131534a74465451777a3853517052655353447473696971487430636467552b566b666b35" +
+                    "5849514b6e4f505a394e57366654704c696e536541775a47622b5568467a4c2f374b323663734f62" +
+                    "3537794d3562764639784a724c454f624f6b41414141414733666268376e57503368684358627a6b" +
+                    "624d33617468723854594f354453662b76666b6f324b474c2f4173796d44524b5948467945306565" +
+                    "364774563245554669444678777576354b6c714c594b4a674d6b704241774d4143514f4945774141" +
+                    "4141414141414d4142514b676867454142415142416745414367774141414141414141414141673d", result.first().toHexString()
         )
     }
 
-    @Test
-    fun solanaRawTxDecoder() {
-        val rawTx = "AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +
-                "AAAAAAAAAAADg8M2FRx269K+zS8zLnv1jrOc5UgDry1oYxecVoCE+FxaIlIE3LTCK5GF5CzCCSkyPQP" +
-                "R14YZsIa38Vu8zmewBgAIAAwuF+6k+4pxgT6hYo1FojAEpCEHq+xnGOnCkddPHvDvvnwoEJW7RK+RvT" +
-                "yYjTaEmmeJJGx7FDytUlV3phwhnLk/r+o7AIiuGV76I/RQwJmovrxVIVynZIDhgTTNAHNxKXKQMOlp0" +
-                "lJiwd9U+29PnQtf+c3R43jQldu6Ve4l4MJzRLHu3TqNZNjLp6OSRg8r3sOv1e+QztSj31QG3tKRlT5z" +
-                "LCWp06QMZwgS1uI/TJ/gwLpboVWOHBIESfT2odVamEF8olyekhrnZjIZzm9FeP8AkdfjUBFdj1PeKOY" +
-                "jOQQ5yIVmPLxjpjiM7L1AxMxqh2a/yjPk5ti2H8FK09PE9u6wRAwZGb+UhFzL/7K26csOb57yM5bvF9" +
-                "xJrLEObOkAAAACMlyWPTiSJ8bs9ECkUjg2DC1oTmdr/EIQEjnvY2+n4WQbd9uHXZaGT2cvhRs7reawc" +
-                "tIXtX1s3kTqM9YV+/wCp0P5e0Steyi4OtRMALbRonjhrWQUnM3/sbCIGRwipaicFCAAJA4AaBgAAAAA" +
-                "ACQcAAgMLDQoOAQEKAwQCAAkDgJaYAAAAAAAFBQADAgsNvAGP6/zC01qGTam9BJP5vR95KkrtwfmdVF" +
-                "NadaRsOP1WqPLGt8jXWBehgJaYAAAAAAAAAAAAAAAAAJF5EQAAAAAAAAAAAAAAAAAVAIk/g7omh1PrQ" +
-                "HSTjRmxQaSVbGwIsUkg7qwrN0tYmJrlA5JYGB9c6sjb/7cDCJAkPK7WmpWZ0ohtlXqct2Vq872zKDwh" +
-                "DQAAAAAhh39oAAAAAJ1rmLGP0mte/uxo0CDc8b56lMLDFTU3ebxrOu1EGI3fMgUTAwIABQsGDxAREgc" +
-                "TDAEUFRYKDQiNNiXP7dL61wHZww37lhGNrgM1pfXVtOEebA/y8LN1Fi1I9ekUZZPYqwIREAopJw4LGg" +
-                "wPAwQg"
-        val rawTxData = Base64.decode(rawTx)
-        val decoder = SolanaRawTxDecoder(rawTxData)
-
-        assertEquals(2, decoder.signatureCount())
-    }
 }

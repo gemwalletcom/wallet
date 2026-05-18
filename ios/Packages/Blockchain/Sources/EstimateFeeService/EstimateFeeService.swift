@@ -10,8 +10,6 @@ struct EstimateFeeService {
     func provider(chain: Primitives.Chain) throws -> any GemGatewayEstimateFee {
         switch chain.type {
         case .bitcoin: try BitcoinService(chain: BitcoinChain(id: chain.rawValue))
-        case .cardano: CardanoService()
-        case .polkadot: PolkadotService()
         default: EmptyService()
         }
     }

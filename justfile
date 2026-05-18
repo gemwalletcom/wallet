@@ -22,6 +22,9 @@ run-ios:
 run-android:
     @just android run
 
+start-emulator:
+    @just android start-emulator
+
 test:
     @echo "==> Test iOS app"
     @just ios test

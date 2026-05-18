@@ -49,7 +49,7 @@ extension AlienTarget: URLRequestConvertible {
         var request = URLRequest(url: url)
         request.httpMethod = alienMethodToString(method: method)
         if let headers {
-            request.allHTTPHeaderFields = headers
+            request.allHTTPHeaderFields = headers.filter { $0.key != nativeProviderCacheHeader }
         }
         if let body {
             request.httpBody = body

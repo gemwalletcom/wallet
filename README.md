@@ -50,7 +50,7 @@ just spm-resolve
 just build-for-testing
 ```
 
-If you are using an Intel Mac, update `core` and run `just generate-stone` to build the additional `x86_64` Gemstone artifacts.
+`just bootstrap` also creates the local Gemstone UniFFI Swift/header sources that SwiftPM needs for package resolution. Xcode builds the Gemstone Rust static library automatically after that. Intel Macs are not supported for iOS Gemstone builds.
 
 ### Android
 

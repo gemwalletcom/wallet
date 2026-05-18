@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.flavors"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

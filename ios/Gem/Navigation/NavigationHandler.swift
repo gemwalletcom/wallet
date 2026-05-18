@@ -154,7 +154,7 @@ extension NavigationHandler {
         }
 
         try transactionsService.addTransaction(walletId: walletId, transaction: transaction)
-        let transaction = try transactionsService.getTransaction(walletId: walletId, transactionId: transaction.id.identifier)
+        let transaction = try transactionsService.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)
         switch asset.type {

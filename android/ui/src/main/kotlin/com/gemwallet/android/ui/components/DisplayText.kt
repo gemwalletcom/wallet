@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,6 +51,15 @@ fun DisplayText(
             lineHeight = balanceTextLineHeight,
         )
     }
+    val balanceAutoSize = if (hidden) {
+        null
+    } else {
+        TextAutoSize.StepBased(
+            minFontSize = 20.sp,
+            maxFontSize = 42.sp,
+            stepSize = 1.sp,
+        )
+    }
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -65,6 +75,7 @@ fun DisplayText(
                 style = balanceTextStyle,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
+                autoSize = balanceAutoSize,
             )
         }
         hideToggle?.let { toggle ->

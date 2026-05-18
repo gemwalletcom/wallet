@@ -5,22 +5,47 @@ import GemstonePrimitives
 import Primitives
 
 struct TransactionStateJob: Job {
-    let wallet: TransactionWallet
+    let id: String
+    let configuration: JobConfiguration
+    private let context: TransactionStateJobContext
     let service: TransactionStateService
 
-    var id: String {
-        wallet.transaction.id.identifier
-    }
-
-    var configuration: JobConfiguration {
-        wallet.transaction.assetId.chain.transactionStateConfig
+    init(wallet: TransactionWallet, service: TransactionStateService) {
+        id = wallet.transaction.id.identifier
+        configuration = wallet.transaction.assetId.chain.transactionStateConfig
+        context = TransactionStateJobContext(transactionWallet: wallet)
+        self.service = service
     }
 
     func run() async -> JobStatus {
-        await service.update(for: wallet.transaction)
+        let transactionWallet = await context.transactionWallet()
+        let result = await service.update(for: transactionWallet.transaction)
+        if let currentTransactionWallet = try? service.transactionWallet(
+            walletId: transactionWallet.wallet.id,
+            transactionId: result.transactionId,
+        ) {
+            await context.update(currentTransactionWallet)
+        }
+        return result.status
     }
 
     func onComplete() async throws {
-        try await service.process(wallet)
+        try await service.process(context.transactionWallet())
+    }
+}
+
+private actor TransactionStateJobContext {
+    private var currentTransactionWallet: TransactionWallet
+
+    init(transactionWallet: TransactionWallet) {
+        currentTransactionWallet = transactionWallet
+    }
+
+    func transactionWallet() -> TransactionWallet {
+        currentTransactionWallet
+    }
+
+    func update(_ transactionWallet: TransactionWallet) {
+        currentTransactionWallet = transactionWallet
     }
 }

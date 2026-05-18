@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.gemwallet.android.features.confirm.presents"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28
