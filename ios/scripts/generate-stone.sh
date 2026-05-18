@@ -88,14 +88,15 @@ generate_bindings() {
 }
 
 build_ios_static_libraries() {
-    local target_dir="$CORE_DIR/target"
     local profile="debug"
+    local clean_profile_flag="--profile dev"
     local build_flag=""
     local host_arch
     host_arch="$(uname -m)"
 
     if [ "${BUILD_MODE:-}" = "release" ]; then
         profile="release"
+        clean_profile_flag="--release"
         build_flag="--release"
     fi
 
@@ -104,20 +105,10 @@ build_ios_static_libraries() {
         exit 1
     fi
 
-    local cache_dir="$IOS_DIR/build/.gemstone-native/ios-static-$profile"
-    local hash_file="$cache_dir/sources.hash"
-    local current_hash
-    current_hash="$(gemstone_hash "ios-static" "$profile" "aarch64-apple-ios" "aarch64-apple-ios-sim" "$(read_deployment_target)")"
-
-    mkdir -p "$cache_dir"
-
-    if [ -f "$hash_file" ] \
-        && [ -f "$target_dir/aarch64-apple-ios/$profile/libgemstone.a" ] \
-        && [ -f "$target_dir/aarch64-apple-ios-sim/$profile/libgemstone.a" ] \
-        && [ "$(cat "$hash_file")" = "$current_hash" ]; then
-        echo "note: Gemstone iOS static libraries unchanged ($profile)"
-        return 0
-    fi
+    echo "note: Cleaning Gemstone iOS target artifacts ($profile)"
+    for rust_target in aarch64-apple-ios-sim aarch64-apple-ios; do
+        cargo clean --manifest-path "$STONE_DIR/Cargo.toml" --target "$rust_target" --package gemstone ${clean_profile_flag} --quiet
+    done
 
     echo "note: Building Gemstone iOS static libraries ($profile)"
     for rust_target in aarch64-apple-ios-sim aarch64-apple-ios; do
@@ -127,7 +118,6 @@ build_ios_static_libraries() {
             cargo rustc --manifest-path "$STONE_DIR/Cargo.toml" --target "$rust_target" --lib ${build_flag} --crate-type staticlib
     done
 
-    echo "$current_hash" > "$hash_file"
     echo "note: Gemstone iOS static libraries ready ($profile)"
 }
 
