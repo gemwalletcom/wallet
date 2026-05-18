@@ -34,7 +34,7 @@ struct FiatQuoteViewModel {
     }
 
     var amountText: String {
-        formatter.string(double: quote.cryptoAmount, symbol: asset.symbol)
+        NumericFormatter().string(quote.cryptoAmount, symbol: asset.symbol)
     }
 
     var rateText: String {

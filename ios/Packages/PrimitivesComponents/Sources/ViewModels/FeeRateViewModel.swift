@@ -9,8 +9,6 @@ import Style
 import SwiftUI
 
 public struct FeeRateViewModel: Identifiable {
-    static let formatter = CurrencyFormatter(currencyCode: .empty)
-
     public let feeRate: FeeRate
     public let unitType: FeeUnitType
     public let decimals: Int
@@ -54,7 +52,6 @@ public struct FeeRateViewModel: Identifiable {
             unit: unit,
             decimals: decimals,
             symbol: symbol,
-            formatter: Self.formatter,
         )
     }
 

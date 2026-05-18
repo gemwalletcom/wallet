@@ -176,7 +176,7 @@ extension AmountSceneViewModel {
 
     func onSelectAutoclose() {
         guard case let .perpetual(perpetual) = provider else { return }
-        let amount = currencyFormatter.double(from: amountInputModel.text) ?? .zero
+        let amount = NumericFormatter().double(from: amountInputModel.text) ?? .zero
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 

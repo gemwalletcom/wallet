@@ -26,7 +26,7 @@ public struct TotalValueViewModel {
 
     public var pnlPercentageText: String? {
         guard totalValue.pnlAmount != 0 else { return nil }
-        return CurrencyFormatter.percentSignLess.string(totalValue.pnlPercentage)
+        return PercentFormatter.unsigned.string(totalValue.pnlPercentage)
     }
 
     public var pnlColor: Color {

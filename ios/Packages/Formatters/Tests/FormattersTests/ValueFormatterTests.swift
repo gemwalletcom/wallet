@@ -180,27 +180,4 @@ final class ValueFormatterTests {
         #expect(formatter.string(4162, decimals: 18) == "0.000000000000004162")
     }
 
-    @Test
-    func testCompact() {
-        let formatter = ValueFormatter(locale: .US, style: .compact)
-
-        #expect(formatter.string(1, decimals: 0) == "1")
-        #expect(formatter.string(10, decimals: 0) == "10")
-        #expect(formatter.string(100, decimals: 0) == "100")
-        #expect(formatter.string(1000, decimals: 0) == "1,000")
-        #expect(formatter.string(1_000_000, decimals: 0) == "1,000,000")
-        #expect(formatter.string(0, decimals: 0) == "0")
-
-        #expect(formatter.string(15, decimals: 1) == "1.5")
-        #expect(formatter.string(123, decimals: 2) == "1.23")
-        #expect(formatter.string(1234, decimals: 3) == "1.23")
-
-        #expect(formatter.string(1, decimals: 1) == "0.1")
-        #expect(formatter.string(1, decimals: 2) == "0.01")
-        #expect(formatter.string(12, decimals: 2) == "0.12")
-
-        #expect(formatter.string(1_000_000, decimals: 6, currency: "USDT") == "1 USDT")
-        #expect(formatter.string(1_500_000, decimals: 6, currency: "USDT") == "1.5 USDT")
-        #expect(formatter.string(1_230_000, decimals: 6, currency: "USDT") == "1.23 USDT")
-    }
 }

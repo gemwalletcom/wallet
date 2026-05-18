@@ -42,7 +42,7 @@ struct RewardRedemptionOptionViewModel: Identifiable {
         case .asset, .giftAsset:
             guard let asset = option.asset else { return option.value }
             let value = BigInt(stringLiteral: option.value)
-            return ValueFormatter.compact.string(value, asset: asset)
+            return ValueFormatter.short.string(value, asset: asset)
         }
     }
 

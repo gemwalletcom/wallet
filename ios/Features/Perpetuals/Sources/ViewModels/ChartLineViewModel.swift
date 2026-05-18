@@ -8,7 +8,7 @@ import SwiftUI
 
 struct ChartLineViewModel: Identifiable {
     let line: ChartLine
-    let formatter: CurrencyFormatter
+    let formatter: NumericFormatter
 
     var id: String {
         "\(line.type)_\(line.price)"
@@ -25,7 +25,7 @@ struct ChartLineViewModel: Identifiable {
         case .entry: Localized.Charts.entry
         case .liquidation: Localized.Charts.liquidation
         }
-        let priceText = formatter.string(double: line.price)
+        let priceText = formatter.string(line.price)
         return "\(typeLabel) | \(priceText)"
     }
 

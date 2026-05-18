@@ -10,12 +10,12 @@ import SwiftUI
 final class CoinPriceRowViewModel {
     private let coin: CoinPrice
     private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter: CurrencyFormatter
+    private let percentFormatter: PercentFormatter
 
     init(
         coin: CoinPrice,
         currencyFormatter: CurrencyFormatter,
-        percentFormatter: CurrencyFormatter,
+        percentFormatter: PercentFormatter,
     ) {
         self.coin = coin
         self.currencyFormatter = currencyFormatter

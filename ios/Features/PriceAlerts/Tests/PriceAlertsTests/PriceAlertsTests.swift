@@ -40,6 +40,15 @@ struct SetPriceAlertViewModelTests {
     }
 
     @Test
+    func priceAlertDirection_largePriceWithGroupingSeparator() {
+        let viewModel = SetPriceAlertViewModel.mock()
+        viewModel.state.amount = "1233"
+        viewModel.setAlertDirection(for: .mock(price: 2119.15))
+
+        #expect(viewModel.state.alertDirection == .down)
+    }
+
+    @Test
     func priceAlertDirection_none() {
         let viewModel = SetPriceAlertViewModel.mock()
         viewModel.setAlertDirection(for: nil)

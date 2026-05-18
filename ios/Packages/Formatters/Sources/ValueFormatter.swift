@@ -6,7 +6,7 @@ import Primitives
 
 public struct ValueFormatter: Sendable {
     public enum Style: Sendable {
-        case short, compact, auto, full
+        case full, short, auto
     }
 
     private static let smallAmountThreshold = Decimal(sign: .plus, exponent: -1, significand: 1)
@@ -87,13 +87,10 @@ private extension ValueFormatter {
         switch (style, magnitude) {
         case (.full, _): .full
 
-        case (.short, Self.smallAmountThreshold...): .twoPlaces
-        case (.short, _): .fourPlaces
+        case (.short, Self.smallAmountThreshold...): .upToTwoPlaces
+        case (.short, _): .upToFourPlaces
 
-        case (.compact, Self.smallAmountThreshold...): .twoPlaces
-        case (.compact, _): .fourPlaces
-
-        case (.auto, 1...): .twoPlaces
+        case (.auto, 1...): .upToTwoPlaces
         case (.auto, Self.dustThreshold...): .fourSignificant
         case (.auto, _): .full
         }
@@ -104,9 +101,3 @@ private extension ValueFormatter {
     }
 }
 
-private extension NumberFormatStyleConfiguration.Precision {
-    static let full = fractionLength(0 ... 32)
-    static let twoPlaces = fractionLength(0 ... 2)
-    static let fourPlaces = fractionLength(0 ... 4)
-    static let fourSignificant = significantDigits(1 ... 4)
-}

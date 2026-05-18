@@ -21,17 +21,20 @@ struct CandlestickChartViewModel {
     private let lines: [ChartLineViewModel]
     private let period: ChartPeriod
     private let formatter: CurrencyFormatter
+    private let numericFormatter: NumericFormatter
 
     init(
         candles: [ChartCandleStick],
         period: ChartPeriod = .day,
         lines: [ChartLineViewModel] = [],
         formatter: CurrencyFormatter,
+        numericFormatter: NumericFormatter = NumericFormatter(),
     ) {
         self.candles = candles
         self.lines = lines
         self.period = period
         self.formatter = formatter
+        self.numericFormatter = numericFormatter
     }
 
     var xAxisRange: ClosedRange<Date> {
@@ -69,7 +72,7 @@ struct CandlestickChartViewModel {
     }
 
     func formattedPrice(_ price: Double) -> String {
-        formatter.string(double: price, symbol: nil)
+        numericFormatter.string(price)
     }
 
     var lineLabelOffsets: [CGFloat] {
@@ -103,7 +106,7 @@ struct CandlestickChartViewModel {
     }
 
     func tooltipModel(for candle: ChartCandleStick) -> CandleTooltipViewModel {
-        CandleTooltipViewModel(candle: candle, formatter: formatter)
+        CandleTooltipViewModel(candle: candle, formatter: numericFormatter)
     }
 
     func candleColor(for candle: ChartCandleStick) -> Color {

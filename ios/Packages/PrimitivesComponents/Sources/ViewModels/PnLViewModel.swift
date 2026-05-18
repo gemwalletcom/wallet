@@ -12,13 +12,13 @@ public struct PnLViewModel {
     private let pnl: Double?
     private let marginAmount: Double
     private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter: CurrencyFormatter
+    private let percentFormatter: PercentFormatter
 
     public init(
         pnl: Double?,
         marginAmount: Double,
         currencyFormatter: CurrencyFormatter,
-        percentFormatter: CurrencyFormatter,
+        percentFormatter: PercentFormatter,
     ) {
         self.pnl = pnl
         self.marginAmount = marginAmount

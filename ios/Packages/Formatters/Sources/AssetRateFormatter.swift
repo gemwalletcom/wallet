@@ -11,11 +11,14 @@ public struct AssetRateFormatter {
     }
 
     private let formatter: ValueFormatter
+    private let numericFormatter: NumericFormatter
 
     public init(
         formatter: ValueFormatter = ValueFormatter.full,
+        numericFormatter: NumericFormatter = NumericFormatter(),
     ) {
         self.formatter = formatter
+        self.numericFormatter = numericFormatter
     }
 
     public func rate(
@@ -34,8 +37,7 @@ public struct AssetRateFormatter {
         let quoteAmount = try formatter.double(from: quoteValue, decimals: quoteAsset.decimals.asInt)
 
         let amount = quoteAmount / baseAmount
-        let amountString = CurrencyFormatter(type: .currency, currencyCode: .empty)
-            .string(double: amount, symbol: quoteAsset.symbol)
+        let amountString = numericFormatter.string(amount, symbol: quoteAsset.symbol)
 
         return "1 \(baseAsset.symbol) ≈ \(amountString)"
     }

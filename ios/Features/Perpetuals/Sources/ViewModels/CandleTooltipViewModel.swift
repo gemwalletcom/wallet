@@ -13,9 +13,9 @@ public struct CandleTooltipViewModel {
     private static let volumeFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: Currency.usd.rawValue)
 
     private let candle: ChartCandleStick
-    private let formatter: CurrencyFormatter
+    private let formatter: NumericFormatter
 
-    public init(candle: ChartCandleStick, formatter: CurrencyFormatter) {
+    public init(candle: ChartCandleStick, formatter: NumericFormatter = NumericFormatter()) {
         self.candle = candle
         self.formatter = formatter
     }
@@ -23,28 +23,28 @@ public struct CandleTooltipViewModel {
     var openField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Charts.Price.open, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(double: candle.open), style: Self.subtitleStyle, lineLimit: 1),
+            value: TextValue(text: formatter.string(candle.open), style: Self.subtitleStyle, lineLimit: 1),
         )
     }
 
     var closeField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Charts.Price.close, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(double: candle.close), style: Self.subtitleStyle, lineLimit: 1),
+            value: TextValue(text: formatter.string(candle.close), style: Self.subtitleStyle, lineLimit: 1),
         )
     }
 
     var highField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Charts.Price.high, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(double: candle.high), style: Self.subtitleStyle, lineLimit: 1),
+            value: TextValue(text: formatter.string(candle.high), style: Self.subtitleStyle, lineLimit: 1),
         )
     }
 
     var lowField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Charts.Price.low, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: formatter.string(double: candle.low), style: Self.subtitleStyle, lineLimit: 1),
+            value: TextValue(text: formatter.string(candle.low), style: Self.subtitleStyle, lineLimit: 1),
         )
     }
 
@@ -52,7 +52,7 @@ public struct CandleTooltipViewModel {
         let change = PriceChangeCalculator.calculate(.percentage(from: candle.open, to: candle.close))
         return ListItemField(
             title: TextValue(text: Localized.Charts.Price.change, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: CurrencyFormatter.percent.string(change), style: TextStyle(font: .caption2.monospacedDigit(), color: PriceChangeColor.color(for: change), fontWeight: .semibold), lineLimit: 1),
+            value: TextValue(text: PercentFormatter.signed.string(change), style: TextStyle(font: .caption2.monospacedDigit(), color: PriceChangeColor.color(for: change), fontWeight: .semibold), lineLimit: 1),
         )
     }
 
