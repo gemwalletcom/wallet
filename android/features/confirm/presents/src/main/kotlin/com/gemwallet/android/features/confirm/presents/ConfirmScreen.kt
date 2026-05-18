@@ -39,6 +39,8 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
+import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.PerpetualType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -295,6 +297,10 @@ private fun ConfirmDetailElementRow(
             model = item.model,
             onClick = onClick,
         )
+        is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsSummaryItem(
+            model = item.model,
+            onClick = onClick,
+        )
     }
 }
 
@@ -310,6 +316,12 @@ private fun ConfirmDetailElementBottomSheet(
             model = item.model,
             onDismiss = onDismiss,
             showProviderSectionHeader = true,
+        )
+
+        is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsBottomSheet(
+            isVisible = true,
+            model = item.model,
+            onDismiss = onDismiss,
         )
 
         null -> Unit

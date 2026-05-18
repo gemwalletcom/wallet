@@ -21,6 +21,7 @@ import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
@@ -201,7 +202,8 @@ class ConfirmViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val detailElements = combine(request, assetsInfo, ::buildDetailElements)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
         request ?: return@combine emptyList()
@@ -331,7 +333,15 @@ class ConfirmViewModel @Inject constructor(
     ): List<ConfirmDetailElement> {
         return listOfNotNull(
             buildSwapDetailElement(request as? ConfirmParams.SwapParams, assetsInfo),
+            buildPerpetualDetailElement(request as? ConfirmParams.PerpetualParams),
         )
+    }
+
+    private fun buildPerpetualDetailElement(
+        params: ConfirmParams.PerpetualParams?,
+    ): ConfirmDetailElement.PerpetualDetails? {
+        val model = PerpetualConfirmDetailsUIModelFactory.create(params?.perpetualType ?: return null) ?: return null
+        return ConfirmDetailElement.PerpetualDetails(model)
     }
 
     private fun buildSwapDetailElement(
