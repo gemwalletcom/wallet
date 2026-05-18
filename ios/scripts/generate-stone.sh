@@ -119,13 +119,13 @@ build_ios_static_libraries() {
         return 0
     fi
 
-    pushd "$STONE_DIR" >/dev/null
     echo "note: Building Gemstone iOS static libraries ($profile)"
-    env -u MACOSX_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET -u XROS_DEPLOYMENT_TARGET \
-        -u SWIFT_DEBUG_INFORMATION_FORMAT -u SWIFT_DEBUG_INFORMATION_VERSION \
-        IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
-        cargo build --manifest-path "$STONE_DIR/Cargo.toml" --target aarch64-apple-ios-sim --target aarch64-apple-ios --lib ${build_flag}
-    popd >/dev/null
+    for rust_target in aarch64-apple-ios-sim aarch64-apple-ios; do
+        env -u MACOSX_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET -u XROS_DEPLOYMENT_TARGET \
+            -u SWIFT_DEBUG_INFORMATION_FORMAT -u SWIFT_DEBUG_INFORMATION_VERSION \
+            IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
+            cargo rustc --manifest-path "$STONE_DIR/Cargo.toml" --target "$rust_target" --lib ${build_flag} --crate-type staticlib
+    done
 
     echo "$current_hash" > "$hash_file"
     echo "note: Gemstone iOS static libraries ready ($profile)"

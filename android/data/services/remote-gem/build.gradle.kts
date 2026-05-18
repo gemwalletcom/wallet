@@ -59,9 +59,6 @@ dependencies {
     implementation(libs.ktx.core)
     implementation(libs.kotlinx.coroutines.android)
 
-    api(libs.tink)
-
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -63,7 +63,7 @@ _build action extra_flags="":
     -jobs {{BUILD_THREADS}} \
     -showBuildTimingSummary \
     {{ extra_flags }} \
-    "OTHER_LDFLAGS=\$(inherited) -L$PWD/../core/target/aarch64-apple-ios-sim/debug -lgemstone" \
+    "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 # Example: just build
@@ -113,7 +113,7 @@ _test action target="":
     -parallel-testing-enabled YES \
     -parallelizeTargets \
     -jobs {{ BUILD_THREADS }} \
-    "OTHER_LDFLAGS=\$(inherited) -L$PWD/../core/target/aarch64-apple-ios-sim/debug -lgemstone" \
+    "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 test-without-building: (_test "test-without-building")
@@ -134,7 +134,7 @@ _test-integration action: generate-stone
     -clonedSourcePackagesDirPath {{SPM_CACHE}} \
     -allowProvisioningUpdates \
     -allowProvisioningDeviceRegistration \
-    "OTHER_LDFLAGS=\$(inherited) -L$PWD/../core/target/aarch64-apple-ios-sim/debug -lgemstone" \
+    "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
     {{action}} | xcbeautify {{XCBEAUTIFY_ARGS}}
 
 test-integration: reset-simulator (_test-integration "test")
