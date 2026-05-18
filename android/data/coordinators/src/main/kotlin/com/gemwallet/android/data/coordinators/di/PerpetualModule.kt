@@ -25,6 +25,7 @@ import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.TogglePerpetualPinImpl
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.service.store.database.PricesDao
 import com.wallet.core.primitives.Chain
 import dagger.Module
 import dagger.Provides
@@ -40,10 +41,14 @@ object PerpetualModule {
     fun provideSyncPerpetuals(
         perpetualService: PerpetualService,
         perpetualRepository: PerpetualRepository,
+        pricesDao: PricesDao,
+        sessionRepository: SessionRepository,
     ): SyncPerpetuals {
         return SyncPerpetualsImpl(
             perpetualService = perpetualService,
             perpetualRepository = perpetualRepository,
+            pricesDao = pricesDao,
+            sessionRepository = sessionRepository,
             chains = listOf(Chain.HyperCore)
         )
     }
