@@ -87,8 +87,8 @@ private fun StakeResourceSection(provider: AmountStakeProvider) {
 
 @Composable
 private fun PerpetualLeverageSection(provider: AmountPerpetualProvider) {
+    val state = provider.leverageState.collectAsStateWithLifecycle().value ?: return
     var showLeverageSelect by remember { mutableStateOf(false) }
-    val state by provider.leverageState.collectAsStateWithLifecycle()
     PropertyItem(
         modifier = Modifier.clickable { showLeverageSelect = true },
         title = { PropertyTitleText(R.string.perpetual_leverage) },

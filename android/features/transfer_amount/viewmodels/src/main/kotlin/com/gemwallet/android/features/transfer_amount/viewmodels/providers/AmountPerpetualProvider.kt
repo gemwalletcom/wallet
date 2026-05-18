@@ -6,6 +6,7 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBala
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
+import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.getLeverage
 import com.gemwallet.android.domains.perpetual.perpetualLeverageOptions
 import com.gemwallet.android.ext.HypercoreUSDC
@@ -37,28 +38,35 @@ class AmountPerpetualProvider(
     scope: CoroutineScope,
 ) : AmountDataProvider {
 
-    override val title: AmountTitle = AmountTitle.Perpetual(params.direction)
+    override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
     override val canChangeValue: Boolean = true
     override val canSwitchInputType: Boolean = false
     override val reserveForFee: BigInteger = BigInteger.ZERO
+
+    private val isLeverageSelectable: Boolean =
+        params.positionAction is PerpetualPositionAction.Open
 
     private val perpetual = getPerpetual.getPerpetual(params.perpetualId)
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val userSelectedLeverage = MutableStateFlow<Int?>(null)
 
-    val leverageState: StateFlow<LeverageState> = combine(
-        perpetual.filterNotNull(),
-        userConfig.perpetualLeverage(),
-        userSelectedLeverage,
-    ) { current, preferred, override ->
-        val options = perpetualLeverageOptions.filter { it <= current.maxLeverage }
-        LeverageState(
-            current = getLeverage(desired = override ?: preferred, from = options),
-            options = options,
-            direction = params.direction,
-        )
-    }.stateIn(scope, SharingStarted.Eagerly, LeverageState(0, emptyList(), params.direction))
+    val leverageState: StateFlow<LeverageState?> = if (isLeverageSelectable) {
+        combine(
+            perpetual.filterNotNull(),
+            userConfig.perpetualLeverage(),
+            userSelectedLeverage,
+        ) { current, preferred, override ->
+            val options = perpetualLeverageOptions.filter { it <= current.maxLeverage }
+            LeverageState(
+                current = getLeverage(desired = override ?: preferred, from = options),
+                options = options,
+                direction = params.direction,
+            )
+        }.stateIn(scope, SharingStarted.Eagerly, null)
+    } else {
+        MutableStateFlow(null)
+    }
 
     fun setLeverage(value: Int) { userSelectedLeverage.value = value }
 
@@ -66,12 +74,13 @@ class AmountPerpetualProvider(
         perpetual.filterNotNull(),
         leverageState,
     ) { current, state ->
+        val leverage = state?.current ?: params.positionAction.data.leverage.toInt()
         BigInteger.valueOf(
             PerpetualFormatter.minimumOrderUsdAmount(
                 provider = current.provider,
                 price = current.price,
                 decimals = current.asset.decimals,
-                leverage = state.current,
+                leverage = leverage,
             ).toLong()
         )
     }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
@@ -80,12 +89,15 @@ class AmountPerpetualProvider(
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val availableBalance: StateFlow<BigInteger> = getPerpetualBalance.getBalance()
-        .combine(assetInfo.filterNotNull()) { balance, current ->
-            val available = balance?.available ?: 0.0
-            Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue
-        }
-        .stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
+    override val availableBalance: StateFlow<BigInteger> = when (val action = params.positionAction) {
+        is PerpetualPositionAction.Reduce -> MutableStateFlow(action.available)
+        else -> getPerpetualBalance.getBalance()
+            .combine(assetInfo.filterNotNull()) { balance, current ->
+                val available = balance?.available ?: 0.0
+                Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue
+            }
+            .stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
+    }
 
     override fun shouldReserveFee(isMaxAmount: Boolean): Boolean = false
 
@@ -96,7 +108,7 @@ class AmountPerpetualProvider(
             positionAction = params.positionAction,
             usdcAmount = amount.atomicValue,
             usdcDecimals = current.asset.decimals,
-            leverage = leverageState.value.current.toUByte(),
+            leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
         )
         return ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
             .perpetual(perpetualType)

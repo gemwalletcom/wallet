@@ -26,14 +26,15 @@ class AmountPerpetualProviderTest {
     fun `setLeverage updates the leverage flow`() {
         val provider = makeProvider()
         provider.setLeverage(10)
-        assertEquals(10, provider.leverage.value)
+        assertEquals(10, provider.leverageState.value?.current)
     }
 
     @Test
     fun `title carries the direction`() {
         val provider = makeProvider(direction = PerpetualDirection.Short)
         val title = provider.title as AmountTitle.Perpetual
-        assertEquals(PerpetualDirection.Short, title.direction)
+        val open = title.action as PerpetualPositionAction.Open
+        assertEquals(PerpetualDirection.Short, open.data.direction)
     }
 
     private fun makeProvider(direction: PerpetualDirection = PerpetualDirection.Long): AmountPerpetualProvider {
