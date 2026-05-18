@@ -150,16 +150,15 @@ public final class SetPriceAlertViewModel {
         price: Double?,
     ) -> PriceAlertDirection? {
         guard let price,
-              let priceValue = numericFormatter.double(from: numericFormatter.string(price)),
               let amountValue = numericFormatter.double(from: amount)
         else {
             return nil
         }
 
         switch amountValue {
-        case _ where amountValue > priceValue:
+        case _ where amountValue > price:
             return .up
-        case _ where amountValue < priceValue:
+        case _ where amountValue < price:
             return .down
         default:
             return nil
