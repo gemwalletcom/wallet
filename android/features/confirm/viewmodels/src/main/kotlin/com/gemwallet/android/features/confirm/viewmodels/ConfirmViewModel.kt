@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -194,6 +195,10 @@ class ConfirmViewModel @Inject constructor(
         )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val perpetualType = request
+        .map { (it as? ConfirmParams.PerpetualParams)?.perpetualType }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val detailElements = combine(request, assetsInfo, ::buildDetailElements)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

@@ -572,7 +572,7 @@ sealed class ConfirmParams() {
     ) : ConfirmParams() {
 
         override val shouldIgnoreValueCheck: Boolean
-            get() = false
+            get() = true
 
         override fun destination(): DestinationAddress = DestinationAddress.Hyperliquid
 

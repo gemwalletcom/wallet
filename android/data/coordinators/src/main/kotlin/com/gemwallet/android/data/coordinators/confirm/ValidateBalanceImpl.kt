@@ -49,7 +49,7 @@ class ValidateBalanceImpl : ValidateBalance {
             TransactionType.SmartContractCall -> TODO()
         }
 
-        if (assetBalance < totalAmount) {
+        if (!signerParams.input.shouldIgnoreValueCheck && assetBalance < totalAmount) {
             val label = "${assetInfo.asset.name} (${assetInfo.asset.symbol})"
             throw ConfirmError.InsufficientBalance(label)
         }

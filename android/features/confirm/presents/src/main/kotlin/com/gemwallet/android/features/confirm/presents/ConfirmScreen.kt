@@ -39,6 +39,8 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.perpetual.title
+import com.wallet.core.primitives.PerpetualType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
@@ -112,14 +114,9 @@ fun ConfirmScreen(
         cancelAction()
     }
 
+    val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = stringResource(
-            if (isWalletConnect) {
-                R.string.transfer_review_request
-            } else {
-                amountModel?.txType?.getTitle() ?: R.string.transfer_title
-            }
-        ),
+        title = confirmTitle(isWalletConnect, amountModel?.txType, perpetualType),
         closeIcon = isWalletConnect,
         onClose = { cancelAction() },
         mainAction = {
@@ -338,4 +335,15 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)
     is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
     is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
+}
+
+@Composable
+private fun confirmTitle(
+    isWalletConnect: Boolean,
+    txType: TransactionType?,
+    perpetualType: PerpetualType?,
+): String = when {
+    isWalletConnect -> stringResource(R.string.transfer_review_request)
+    perpetualType != null -> perpetualType.title()
+    else -> stringResource(txType?.getTitle() ?: R.string.transfer_title)
 }

@@ -48,8 +48,8 @@ fun AssetInfo.balance(
             Resource.Bandwidth, null -> balance.balance.frozen.toBigInteger()
         }
 
-        TransactionType.PerpetualOpenPosition -> context.perpetualBalance ?: BigInteger.ZERO
+        TransactionType.PerpetualOpenPosition,
         TransactionType.PerpetualClosePosition,
-        TransactionType.PerpetualModifyPosition -> throw IllegalArgumentException()
+        TransactionType.PerpetualModifyPosition -> context.perpetualBalance ?: BigInteger.ZERO
     }
 }
