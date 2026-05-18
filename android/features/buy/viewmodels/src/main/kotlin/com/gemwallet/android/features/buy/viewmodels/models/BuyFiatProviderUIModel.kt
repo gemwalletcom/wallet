@@ -7,6 +7,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuote
+import com.wallet.core.primitives.FiatQuoteType
 
 @Stable
 data class BuyFiatProviderUIModel(
@@ -27,13 +28,19 @@ data class BuyFiatProviderUIModel(
 fun FiatQuote.toProviderUIModel(
     asset: Asset,
     currency: Currency,
+    assetPrice: Double? = null,
 ) = BuyFiatProviderUIModel(
     provider = provider,
     asset = asset,
     cryptoAmount = cryptoAmount,
-    fiatFormatted = currency.format(fiatAmount),
+    fiatFormatted = currency.format(displayFiatAmount(assetPrice)),
     rate = asset.rateText(fiatAmount, cryptoAmount, currency),
 )
+
+private fun FiatQuote.displayFiatAmount(assetPrice: Double?): Double = when (type) {
+    FiatQuoteType.Buy -> assetPrice?.takeIf { it > 0.0 }?.let { it * cryptoAmount } ?: fiatAmount
+    FiatQuoteType.Sell -> fiatAmount
+}
 
 private fun Asset.rateText(fiatAmount: Double, cryptoAmount: Double, currency: Currency) =
     "1 $symbol ≈ ${currency.format(fiatAmount / cryptoAmount).format(currency.string, 2)}"

@@ -1,49 +1,40 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
+import com.gemwallet.android.model.format
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockFiatProvider
 import com.gemwallet.android.testkit.mockFiatQuote
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.FiatQuoteType
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BuyFiatProviderUIModelTest {
 
     private val testAsset = mockAsset()
-    private val testProvider = mockFiatProvider()
 
     @Test
-    fun `toProviderUIModel maps quote fields correctly`() {
-        val model = mockFiatQuote().toProviderUIModel(testAsset, Currency.USD)
+    fun `buy fiatFormatted is asset price times crypto amount`() {
+        val quote = mockFiatQuote(fiatAmount = 50.0, cryptoAmount = 0.000488)
 
-        assertEquals(testProvider, model.provider)
-        assertEquals(testAsset, model.asset)
-        assertEquals(0.17, model.cryptoAmount, 0.001)
+        val model = quote.toProviderUIModel(testAsset, Currency.USD, assetPrice = 100000.0)
+
+        assertEquals(Currency.USD.format(48.8), model.fiatFormatted)
     }
 
     @Test
-    fun `cryptoFormatted starts with approximately symbol`() {
-        val model = mockFiatQuote().toProviderUIModel(testAsset, Currency.USD)
-        assertTrue(model.cryptoFormatted.startsWith("≈"))
+    fun `buy fiatFormatted falls back to raw fiat amount when asset price is missing`() {
+        val quote = mockFiatQuote(fiatAmount = 50.0, cryptoAmount = 0.000488)
+
+        assertEquals(Currency.USD.format(50.0), quote.toProviderUIModel(testAsset, Currency.USD, null).fiatFormatted)
+        assertEquals(Currency.USD.format(50.0), quote.toProviderUIModel(testAsset, Currency.USD, 0.0).fiatFormatted)
     }
 
     @Test
-    fun `cryptoText contains asset symbol`() {
-        val model = mockFiatQuote().toProviderUIModel(testAsset, Currency.USD)
-        assertTrue(model.cryptoText.contains(testAsset.symbol))
-    }
+    fun `sell fiatFormatted ignores asset price and uses raw fiat amount`() {
+        val quote = mockFiatQuote(type = FiatQuoteType.Sell, fiatAmount = 48.0, cryptoAmount = 0.001)
 
-    @Test
-    fun `fiatFormatted is populated`() {
-        val model = mockFiatQuote().toProviderUIModel(testAsset, Currency.USD)
-        assertTrue(model.fiatFormatted.isNotEmpty())
-    }
+        val model = quote.toProviderUIModel(testAsset, Currency.USD, assetPrice = 100000.0)
 
-    @Test
-    fun `rate text contains asset symbol and approximately`() {
-        val model = mockFiatQuote().toProviderUIModel(testAsset, Currency.USD)
-        assertTrue(model.rate.contains(testAsset.symbol))
-        assertTrue(model.rate.contains("≈"))
+        assertEquals(Currency.USD.format(48.0), model.fiatFormatted)
     }
 }
