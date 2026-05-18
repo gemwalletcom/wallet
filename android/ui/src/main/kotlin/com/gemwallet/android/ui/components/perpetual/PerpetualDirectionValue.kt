@@ -14,6 +14,15 @@ fun PerpetualDirection.text(leverage: Int): String = when (this) {
 }
 
 @Composable
+fun PerpetualDirection.title(): String = when (this) {
+    PerpetualDirection.Long -> stringResource(R.string.perpetual_long)
+    PerpetualDirection.Short -> stringResource(R.string.perpetual_short)
+}
+
+@Composable
+fun PerpetualDirection.titleAndLeverage(leverage: Int): String = "${title()} ${leverage}x"
+
+@Composable
 fun PerpetualDirection.color(): Color = when (this) {
     PerpetualDirection.Short -> MaterialTheme.colorScheme.error
     PerpetualDirection.Long -> MaterialTheme.colorScheme.tertiary
