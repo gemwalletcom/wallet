@@ -1,6 +1,8 @@
 package com.gemwallet.android.domains.perpetual
 
+import com.gemwallet.android.testkit.mockPerpetualTransferData
 import com.wallet.core.primitives.PerpetualDirection
+import java.math.BigInteger
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -32,6 +34,23 @@ class PerpetualOrderFactoryTest {
                 slippage = case.slippagePercent,
             )
             assertEquals(case.toString(), case.expectedPrice, actual, 1e-9)
+        }
+    }
+
+    @Test
+    fun orderActionFor_mapsPositionActionToOrderAction() {
+        val transferData = mockPerpetualTransferData(direction = PerpetualDirection.Long)
+        val cases = listOf(
+            PerpetualPositionAction.Open(transferData) to PerpetualOrderFactory.OrderAction.Open,
+            PerpetualPositionAction.Increase(transferData) to PerpetualOrderFactory.OrderAction.Open,
+            PerpetualPositionAction.Reduce(
+                data = transferData,
+                available = BigInteger.ZERO,
+                positionDirection = PerpetualDirection.Long,
+            ) to PerpetualOrderFactory.OrderAction.Close,
+        )
+        cases.forEach { (action, expected) ->
+            assertEquals(action::class.simpleName, expected, PerpetualOrderFactory.orderActionFor(action))
         }
     }
 }
