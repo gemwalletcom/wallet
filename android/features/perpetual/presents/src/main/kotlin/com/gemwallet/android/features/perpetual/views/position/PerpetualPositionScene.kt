@@ -36,25 +36,19 @@ import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionId
 
 @Composable
-fun PerpetualPositionScene(
+internal fun PerpetualPositionScene(
     perpetual: PerpetualDetailsDataAggregate?,
     position: PerpetualPositionDetailsDataAggregate?,
     transactions: List<TransactionDataAggregate>,
     chartData: List<ChartCandleStick>,
     period: ChartPeriod,
-    onChartPeriodSelect: (ChartPeriod) -> Unit,
-    onOpenPosition: (PerpetualDirection) -> Unit,
-    onIncreasePosition: () -> Unit,
-    onReducePosition: () -> Unit,
-    onClosePosition: () -> Unit,
-    onTransaction: (TransactionId) -> Unit,
-    onClose: () -> Unit,
+    onAction: (PerpetualDetailsAction) -> Unit,
 ) {
     var showModifyDialog by remember { mutableStateOf(false) }
 
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
-        onClose = onClose,
+        onClose = { onAction(PerpetualDetailsAction.Close) },
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
@@ -66,24 +60,24 @@ fun PerpetualPositionScene(
                 liquidation = position?.liquidationValue,
                 stopLoss = position?.stopLoss,
                 takeProfit = position?.takeProfit,
-                onPeriodSelect = onChartPeriodSelect,
+                onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
             )
             positionProperties(position)
             item {
                 if (perpetual != null) {
                     if (position == null) {
-                        PerpetualActions(onOpenPosition)
+                        PerpetualActions { onAction(PerpetualDetailsAction.OpenPosition(it)) }
                     } else {
                         PerpetualPositionActions(
                             onModify = { showModifyDialog = true },
-                            onClose = onClosePosition,
+                            onClose = { onAction(PerpetualDetailsAction.ClosePosition) },
                         )
                     }
                 }
             }
             perpetual?.let { perpetualInfo(it) }
             if (transactions.isNotEmpty()) {
-                transactionsList(transactions, onTransaction)
+                transactionsList(transactions) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
             }
         }
     }
@@ -91,8 +85,8 @@ fun PerpetualPositionScene(
     PerpetualModifyBottomSheet(
         isVisible = showModifyDialog,
         onDismiss = { showModifyDialog = false },
-        onIncreasePosition = onIncreasePosition,
-        onReducePosition = onReducePosition,
+        onIncreasePosition = { onAction(PerpetualDetailsAction.IncreasePosition) },
+        onReducePosition = { onAction(PerpetualDetailsAction.ReducePosition) },
     )
 }
 
@@ -166,13 +160,7 @@ private fun PerpetualPositionScenePreview() {
             transactions = emptyList(),
             chartData = chartData,
             period = ChartPeriod.Day,
-            onChartPeriodSelect = {},
-            onOpenPosition = {},
-            onIncreasePosition = {},
-            onReducePosition = {},
-            onClosePosition = {},
-            onTransaction = {},
-            onClose = {}
+            onAction = {},
         )
     }
 }

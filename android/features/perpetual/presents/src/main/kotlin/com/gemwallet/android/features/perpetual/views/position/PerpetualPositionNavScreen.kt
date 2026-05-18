@@ -32,12 +32,16 @@ fun PerpetualPositionNavScreen(
         transactions = transactions,
         chartData = chart,
         period = period,
-        onClose = onClose,
-        onChartPeriodSelect = viewModel::period,
-        onOpenPosition = { direction -> viewModel.openPosition(direction, amountAction) },
-        onIncreasePosition = { viewModel.increasePosition(amountAction) },
-        onReducePosition = { viewModel.reducePosition(amountAction) },
-        onClosePosition = { viewModel.closePosition(confirmAction) },
-        onTransaction = onTransaction,
+        onAction = { action ->
+            when (action) {
+                PerpetualDetailsAction.Close -> onClose()
+                PerpetualDetailsAction.IncreasePosition -> viewModel.increasePosition(amountAction)
+                PerpetualDetailsAction.ReducePosition -> viewModel.reducePosition(amountAction)
+                PerpetualDetailsAction.ClosePosition -> viewModel.closePosition(confirmAction)
+                is PerpetualDetailsAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
+                is PerpetualDetailsAction.SelectChartPeriod -> viewModel.period(action.period)
+                is PerpetualDetailsAction.OpenTransaction -> onTransaction(action.transactionId)
+            }
+        },
     )
 }
