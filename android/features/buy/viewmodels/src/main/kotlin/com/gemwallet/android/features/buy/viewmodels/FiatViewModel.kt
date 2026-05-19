@@ -15,6 +15,7 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.model.AssetData
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.Fiat
 import com.gemwallet.android.model.hasAvailable
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
@@ -165,7 +166,7 @@ class FiatViewModel @Inject constructor(
             operation.clearQuotes()
             val amountParsed = amount.parseNumber().toDouble()
             val crypto = data.price?.price?.price?.let { price ->
-                Fiat(BigDecimal(amountParsed)).convert(data.asset.decimals, price).atomicValue
+                CryptoFiatConverter.toCrypto(Fiat(BigDecimal(amountParsed)), data.asset.decimals, price).atomicValue
             } ?: BigInteger.ZERO
             if (currentType == FiatQuoteType.Sell && crypto > data.balance.balance.available.toBigInteger()) {
                 operation.updateState(FiatSceneState.Error(BuyError.InsufficientBalance))

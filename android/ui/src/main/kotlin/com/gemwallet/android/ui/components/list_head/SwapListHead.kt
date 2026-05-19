@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -116,7 +117,9 @@ private fun SwapItem(
             )
             if (currency != null) {
                 Text(
-                    text = CurrencyFormatter(currency = currency).string(Crypto(value).convert(decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue),
+                    text = CurrencyFormatter(currency = currency).string(
+                        CryptoFiatConverter.toFiat(Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Start

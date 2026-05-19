@@ -15,6 +15,7 @@ import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.AmountInputType
@@ -178,7 +179,7 @@ class AmountViewModel @Inject constructor(
                 AmountInputType.Crypto -> {
                     AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
                     val value = input.parseNumber()
-                    val unit = Crypto(value, asset.decimals).convert(asset.decimals, price)
+                    val unit = CryptoFiatConverter.toFiat(Crypto(value, asset.decimals), asset.decimals, price)
                     currencyFormatter.string(unit.atomicValue)
                 }
                 AmountInputType.Fiat -> {

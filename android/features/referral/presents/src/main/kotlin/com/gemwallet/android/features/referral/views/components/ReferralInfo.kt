@@ -140,7 +140,7 @@ private fun RewardRedemptionOption.confirmationMessage(): String {
 
 private val RewardRedemptionOption.valueText: String
     get() = asset?.let {
-        ValueFormatter(style = ValueFormatter.Style.Compact).string(value.toBigInteger(), it)
+        ValueFormatter(style = ValueFormatter.Style.Short).string(value.toBigInteger(), it)
     } ?: ""
 
 private val RewardRedemptionOption.pointsText: String

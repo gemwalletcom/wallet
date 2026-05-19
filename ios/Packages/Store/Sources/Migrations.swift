@@ -23,6 +23,12 @@ struct Migrations {
         try? db.execute(sql: "DELETE FROM \(AssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
     }
 
+    private static func clearTables(_ db: Database, tableNames: [String]) throws {
+        for tableName in tableNames where try db.tableExists(tableName) {
+            try db.execute(sql: "DELETE FROM \(tableName)")
+        }
+    }
+
     mutating func run(dbQueue: DatabaseQueue) throws {
         migrator.registerMigration("Create all start table") { db in
             // wallet
@@ -474,6 +480,17 @@ struct Migrations {
             try db.execute(
                 sql: "UPDATE \(AddressRecord.databaseTableName) SET \(AddressRecord.Columns.type.name) = ? WHERE \(AddressRecord.Columns.type.name) IS NULL",
                 arguments: [AddressType.address.rawValue],
+            )
+        }
+
+        migrator.registerMigration("Clear NFT cache") { db in
+            try Self.clearTables(
+                db,
+                tableNames: [
+                    NFTAssetAssociationRecord.databaseTableName,
+                    NFTAssetRecord.databaseTableName,
+                    NFTCollectionRecord.databaseTableName,
+                ],
             )
         }
 

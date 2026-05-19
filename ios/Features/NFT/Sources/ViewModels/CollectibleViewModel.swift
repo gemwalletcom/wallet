@@ -306,7 +306,7 @@ extension CollectibleViewModel {
 // MARK: - Private
 
 extension CollectibleViewModel {
-    private static let enabledChainTypes: Set<ChainType> = [.ethereum]
+    private static let enabledChainTypes: Set<ChainType> = [.ethereum, .ton]
     private var contractValue: String {
         assetData.collection.contractAddress
     }

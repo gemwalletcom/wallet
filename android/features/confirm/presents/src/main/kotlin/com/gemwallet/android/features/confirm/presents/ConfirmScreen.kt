@@ -174,7 +174,7 @@ fun ConfirmScreen(
                     }
 
                     else -> AmountListHead(
-                        amount = amountModel?.amount ?: "",
+                        amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent,
                         icon = amountModel?.asset?.asset,
                     )

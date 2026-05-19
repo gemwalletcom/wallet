@@ -33,6 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.linkType
+import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
@@ -53,7 +54,7 @@ import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
-import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.LinkType
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
@@ -87,7 +88,7 @@ fun NFTDetailsScene(
             )
         },
         actions = {
-            if (model.asset.chain == Chain.Ethereum) {
+            if (model.asset.chain.toChainType() in enabledChainTypes) {
                 IconButton(onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) }) {
                     Icon(Icons.Default.ArrowUpward, contentDescription = "Send nft")
                 }
@@ -133,6 +134,8 @@ fun NFTDetailsScene(
         }
     }
 }
+
+private val enabledChainTypes: Set<ChainType> = setOf(ChainType.Ethereum, ChainType.Ton)
 
 private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
     item {

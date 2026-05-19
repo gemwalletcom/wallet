@@ -19,7 +19,6 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -69,8 +68,6 @@ class ConfirmViewModel @Inject constructor(
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-
-    private val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
 
     private val restart = MutableStateFlow(false)
     val state = MutableStateFlow<ConfirmState>(ConfirmState.Prepare)
@@ -177,22 +174,18 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val amount = Crypto(signerParams?.finalAmount ?: request.amount)
-        val price = assetInfo.price?.price?.price ?: 0.0
-        val currency = assetInfo.price?.currency ?: Currency.USD
-        val decimals = assetInfo.asset.decimals
-        val symbol = assetInfo.asset.symbol
 
         AmountUIModel(
             transactionType = request.getTransactionType(),
-            amount = formatter.string(amount.atomicValue, decimals, symbol),
-            amountEquivalent = CurrencyFormatter(currency = currency).string(amount.convert(decimals, price).atomicValue),
+            amount = amount.atomicValue,
             asset = assetInfo,
             fromAsset = assetInfo,
             fromAmount = amount.atomicValue.toString(),
             toAsset = toAssetInfo,
             toAmount = (request as? ConfirmParams.SwapParams)?.toAmount?.toString(),
             nftAsset = (request as? ConfirmParams.NftParams)?.nftAsset,
-            currency = currency,
+            price = assetInfo.price?.price?.price,
+            currency = assetInfo.price?.currency ?: Currency.USD,
         )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -217,8 +210,7 @@ class ConfirmViewModel @Inject constructor(
         if (amount == null || feeAssetInfo == null) {
             return@combine ""
         }
-        val feeAmount = Crypto(amount)
-        ValueFormatter(style = ValueFormatter.Style.Auto).string(feeAmount.atomicValue, feeAssetInfo.asset)
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(amount, feeAssetInfo.asset)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
@@ -229,14 +221,6 @@ class ConfirmViewModel @Inject constructor(
         } else if (amount == null || feeAssetInfo == null) {
             if (state is ConfirmState.Error) FeeUIModel.Error else FeeUIModel.Calculating
         } else {
-            val feeAmount = Crypto(amount)
-            val currency = feeAssetInfo.price?.currency ?: Currency.USD
-            val feeDecimals = feeAssetInfo.asset.decimals
-            val feeCrypto = formatter.string(feeAmount.atomicValue, feeAssetInfo.asset)
-            val feeFiat = feeAssetInfo.price?.let {
-                CurrencyFormatter(currency = currency).string(feeAmount.convert(feeDecimals, it.price.price).atomicValue) // TODO: Move to UI - Model
-            } ?: ""
-
             try {
                 val sendAssetInfo = assetsInfo.value?.getByAssetId(signerParams.input.assetId)
                 if (sendAssetInfo != null) {
@@ -253,9 +237,9 @@ class ConfirmViewModel @Inject constructor(
 
             FeeUIModel.FeeInfo(
                 amount = amount,
-                cryptoAmount = feeCrypto,
-                fiatAmount = feeFiat,
                 feeAsset = feeAssetInfo.asset,
+                price = feeAssetInfo.price?.price?.price,
+                currency = feeAssetInfo.price?.currency ?: Currency.USD,
                 priority = signerParams.fee().priority,
             )
         }
