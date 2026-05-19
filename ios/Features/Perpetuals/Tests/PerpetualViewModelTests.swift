@@ -24,7 +24,7 @@ struct PerpetualViewModelTests {
 
     @Test
     func fundingRateField() {
-        #expect(PerpetualViewModel(perpetual: .mock(funding: 0.0001)).fundingRateField.value.text.contains("%"))
+        #expect(PerpetualViewModel(perpetual: .mock(funding: 0.0013)).fundingRateField.value.text == "+11.39%")
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
@@ -45,7 +46,7 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val openInterest: String = Currency.USD.format(data.perpetual.openInterest)
 
-    override val funding: String = Currency.USD.format(data.perpetual.funding)
+    override val funding: String = (data.perpetual.funding * HOURS_PER_YEAR).formatAsPercentage()
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 
@@ -54,4 +55,8 @@ class PerpetualDetailsDataAggregateImpl(
     override val identifier: String = data.perpetual.identifier
 
     override val isIsolatedOnly: Boolean = data.perpetual.isIsolatedOnly
+
+    private companion object {
+        const val HOURS_PER_YEAR = 24 * 365
+    }
 }

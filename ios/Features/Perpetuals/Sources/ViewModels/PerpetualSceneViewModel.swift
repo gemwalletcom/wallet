@@ -230,7 +230,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onSelectFundingRateInfo() {
-        isPresentingInfoSheet = .fundingRate
+        isPresentingInfoSheet = .fundingApr
     }
 
     func onSelectFundingPaymentsInfo() {
