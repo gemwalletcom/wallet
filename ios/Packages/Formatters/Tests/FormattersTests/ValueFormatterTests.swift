@@ -21,7 +21,7 @@ final class ValueFormatterTests {
         #expect(formatter.string(1, decimals: 0) == "1")
 
         #expect(formatter.string(1992, decimals: 4) == "0.19")
-        #expect(formatter.string(99_999, decimals: 6) == "0.0999")
+        #expect(formatter.string(99999, decimals: 6) == "0.0999")
         #expect(formatter.string(1, decimals: 1) == "0.1")
         #expect(formatter.string(1, decimals: 2) == "0.01")
         #expect(formatter.string(1, decimals: 3) == "0.001")
@@ -179,5 +179,4 @@ final class ValueFormatterTests {
         #expect(formatter.string(1, decimals: 5) == "0.00001")
         #expect(formatter.string(4162, decimals: 18) == "0.000000000000004162")
     }
-
 }

@@ -20,6 +20,7 @@ public struct ListItemView: View {
         titleStyleExtra: TextStyle = ListItemModel.StyleDefaults.titleExtraStyle,
         subtitle: String? = nil,
         subtitleStyle: TextStyle = ListItemModel.StyleDefaults.subtitleStyle,
+        subtitleTagType: TitleTagType = .none,
         subtitleExtra: String? = nil,
         subtitleStyleExtra: TextStyle = ListItemModel.StyleDefaults.subtitleExtraStyle,
         imageStyle: ListItemImageStyle? = nil,
@@ -36,6 +37,7 @@ public struct ListItemView: View {
             titleStyleExtra: titleStyleExtra,
             subtitle: subtitle,
             subtitleStyle: subtitleStyle,
+            subtitleTagType: subtitleTagType,
             subtitleExtra: subtitleExtra,
             subtitleStyleExtra: subtitleStyleExtra,
             imageStyle: imageStyle,
@@ -54,6 +56,7 @@ public struct ListItemView: View {
         titleTag: TextValue? = nil,
         titleTagType: TitleTagType = .none,
         subtitle: TextValue? = nil,
+        subtitleTagType: TitleTagType = .none,
         subtitleExtra: TextValue? = nil,
         imageStyle: ListItemImageStyle? = nil,
         placeholders: [ListItemViewPlaceholderType] = [],
@@ -73,6 +76,7 @@ public struct ListItemView: View {
             subtitle: subtitle?.text,
             subtitleStyle: subtitle?.style ?? ListItemModel.StyleDefaults.subtitleStyle,
             subtitleLineLimit: subtitle?.lineLimit,
+            subtitleTagType: subtitleTagType,
             subtitleExtra: subtitleExtra?.text,
             subtitleStyleExtra: subtitleExtra?.style ?? ListItemModel.StyleDefaults.subtitleExtraStyle,
             subtitleExtraLineLimit: subtitleExtra?.lineLimit,
@@ -102,7 +106,11 @@ public struct ListItemView: View {
                     LoadingView(tint: model.loadingTintColor)
                 } else if let subtitle = model.subtitleView {
                     Spacer(minLength: .extraSmall)
-                    SubtitleView(subtitle: subtitle, subtitleExtra: model.subtitleExtraTextValue)
+                    SubtitleView(
+                        subtitle: subtitle,
+                        subtitleTagType: model.subtitleTagType,
+                        subtitleExtra: model.subtitleExtraTextValue,
+                    )
                 }
             }
         }
@@ -186,15 +194,28 @@ extension ListItemView {
 extension ListItemView {
     struct SubtitleView: View {
         let subtitle: TextValue
+        let subtitleTagType: TitleTagType
         let subtitleExtra: TextValue?
 
         var body: some View {
             VStack(alignment: .trailing, spacing: .tiny) {
-                Text(subtitle.text)
-                    .textStyle(subtitle.style)
-                    .multilineTextAlignment(.trailing)
-                    .lineLimit(subtitle.lineLimit)
-                    .truncationMode(.middle)
+                HStack(spacing: .tiny) {
+                    Text(subtitle.text)
+                        .textStyle(subtitle.style)
+                        .multilineTextAlignment(.trailing)
+                        .lineLimit(subtitle.lineLimit)
+                        .truncationMode(.middle)
+
+                    switch subtitleTagType {
+                    case .none:
+                        EmptyView()
+                    case let .progressView(scale):
+                        LoadingView(size: .small, tint: subtitle.style.color)
+                            .scaleEffect(scale)
+                    case let .image(image):
+                        image
+                    }
+                }
 
                 if let extra = subtitleExtra {
                     Text(extra.text)

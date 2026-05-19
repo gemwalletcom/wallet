@@ -167,7 +167,7 @@ fun ConfirmScreen(
                     amountModel?.txType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
 
                     else -> AmountListHead(
-                        amount = amountModel?.amount ?: "",
+                        amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent,
                         icon = amountModel?.asset?.asset,
                     )

@@ -13,7 +13,7 @@ final class CurrencyFormatterTests {
     let abbreviatedFormatterUK = CurrencyFormatter(type: .abbreviated, locale: .UK, currencyCode: Currency.gbp.rawValue)
 
     @Test
-    func testCurrency() {
+    func currency() {
         #expect(currencyFormatterUS.string(0) == "$0.00")
         #expect(currencyFormatterUS.string(11.12) == "$11.12")
         #expect(currencyFormatterUS.string(11) == "$11.00")

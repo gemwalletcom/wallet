@@ -38,7 +38,8 @@ public struct ValueFormatter: Sendable {
             return appendingCurrency("0", currency: currency)
         }
         if style == .short, abs(decimal) >= abbreviationThreshold,
-           let abbreviated = abbreviatedFormatter.string(from: decimal) {
+           let abbreviated = abbreviatedFormatter.string(from: decimal)
+        {
             return appendingCurrency(abbreviated, currency: currency)
         }
         return appendingCurrency(decimal.formatted(formatStyle(for: decimal)), currency: currency)
@@ -86,10 +87,8 @@ private extension ValueFormatter {
     func precision(for magnitude: Decimal) -> NumberFormatStyleConfiguration.Precision {
         switch (style, magnitude) {
         case (.full, _): .full
-
         case (.short, Self.smallAmountThreshold...): .upToTwoPlaces
         case (.short, _): .upToFourPlaces
-
         case (.auto, 1...): .upToTwoPlaces
         case (.auto, Self.dustThreshold...): .fourSignificant
         case (.auto, _): .full
@@ -100,4 +99,3 @@ private extension ValueFormatter {
         currency.isEmpty ? value : "\(value) \(currency)"
     }
 }
-

@@ -6,6 +6,7 @@ import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
@@ -14,6 +15,7 @@ import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
+import com.gemwallet.android.ext.toSwapProvider
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -21,7 +23,6 @@ import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.domains.asset.chain
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
@@ -32,7 +33,6 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
-import uniffi.gemstone.Explorer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +42,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
-import uniffi.gemstone.GemSwapper
+import uniffi.gemstone.Explorer
+import uniffi.gemstone.SwapProviderConfig
+import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -51,7 +53,6 @@ class GetTransactionDetailsImpl(
     private val transactionRepository: TransactionRepository,
     private val assetsRepository: AssetsRepository,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
-    private val gemSwapper: GemSwapper,
     private val createExplorer: (String) -> Explorer = ::Explorer,
 ) : GetTransactionDetails {
 
@@ -59,7 +60,7 @@ class GetTransactionDetailsImpl(
         return combine(
             sessionRepository.session().filterNotNull(),
             transactionRepository.getTransaction(id),
-        ) { session, data ->  Pair(session, data) }
+        ) { session, data -> Pair(session, data) }
             .flatMapLatest { (session, data) ->
                 val ids = data?.transaction?.getAssociatedAssetIds() ?: return@flatMapLatest emptyFlow()
                 val explorerInfo = getCurrentBlockExplorer.getBlockExplorerInfo(data.transaction).let { (url, name) ->
@@ -69,16 +70,24 @@ class GetTransactionDetailsImpl(
                 val addressExplorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(data.asset.chain)
                 assetsRepository.getAssetsInfo(ids).mapLatest { assets ->
                     val swapMetadata = data.transaction.getSwapMetadata()
-                    val provider = gemSwapper.getProviders().firstOrNull { it.protocolId ==  swapMetadata?.provider }
+                    val swapProvider = swapMetadata?.provider
+                        ?.toSwapProvider()
+                        ?.let { SwapProviderConfig.fromString(it.string).inner() }
                     TransactionDetailsAggregateImpl(
                         data = data,
                         associatedAssets = assets,
                         explorer = explorerInfo,
                         currency = session.currency,
-                        swapProvider = provider,
+                        swapProvider = swapProvider,
                         swapMetadata = swapMetadata,
-                        senderExplorerLink = BlockExplorerLink(addressExplorerName, chainExplorer.getAddressUrl(addressExplorerName, data.transaction.from)),
-                        recipientExplorerLink = BlockExplorerLink(addressExplorerName, chainExplorer.getAddressUrl(addressExplorerName, data.transaction.to)),
+                        senderExplorerLink = BlockExplorerLink(
+                            name = addressExplorerName,
+                            link = chainExplorer.getAddressUrl(addressExplorerName, data.transaction.from),
+                        ),
+                        recipientExplorerLink = BlockExplorerLink(
+                            name = addressExplorerName,
+                            link = chainExplorer.getAddressUrl(addressExplorerName, data.transaction.to),
+                        ),
                     )
                 }
             }
@@ -93,7 +102,7 @@ class TransactionDetailsAggregateImpl(
     private val swapMetadata: TransactionSwapMetadata? = null,
     override val explorer: TransactionDetailsValue.Explorer,
     override val currency: Currency,
-    swapProvider: SwapperProviderType? = null,
+    private val swapProvider: SwapperProviderType? = null,
     private val senderExplorerLink: BlockExplorerLink? = null,
     private val recipientExplorerLink: BlockExplorerLink? = null,
 ) : TransactionDetailsAggregate {
@@ -104,7 +113,6 @@ class TransactionDetailsAggregateImpl(
     override val type: TransactionType = data.transaction.type
     override val direction: TransactionDirection = data.transaction.direction
     override val state: TransactionState = data.transaction.state
-    private val swapProvider = swapProvider?.name
 
     override val amount: TransactionDetailsValue.Amount
         get() {
@@ -217,7 +225,7 @@ class TransactionDetailsAggregateImpl(
         TransactionType.EarnDeposit -> destinationAddress { address, name, explorerLink ->
             TransactionDetailsValue.Destination.ProviderAddress(address, name, explorerLink)
         }
-        TransactionType.Swap -> this@TransactionDetailsAggregateImpl.swapProvider?.let { TransactionDetailsValue.Destination.Provider(it) }
+        TransactionType.Swap -> this@TransactionDetailsAggregateImpl.swapProvider?.name?.let { TransactionDetailsValue.Destination.Provider(it) }
         TransactionType.Transfer,
         TransactionType.TransferNFT -> when (data.transaction.direction) {
             TransactionDirection.SelfTransfer,
@@ -237,19 +245,40 @@ class TransactionDetailsAggregateImpl(
     }
 
     override val valueGroups: List<ValueGroup<TransactionDetailsValue>>
-        get() = listOf(
-            ValueGroup(listOf(amount)),
-            ValueGroup(
-                listOfNotNull(
-                    date,
-                    status,
-                    destination,
-                    network
+        get() = buildList {
+            add(ValueGroup(listOf(amount)))
+            swapProgress?.let { add(ValueGroup(listOf(it))) }
+            add(
+                ValueGroup(
+                    listOfNotNull(
+                        date,
+                        status,
+                        destination,
+                        network,
+                    )
                 )
-            ),
-            ValueGroup(listOf(fee)),
-            ValueGroup(listOf(explorer))
-        )
+            )
+            add(ValueGroup(listOf(fee)))
+            add(ValueGroup(listOf(explorer)))
+        }
+
+    override val swapProgress: TransactionDetailsValue.SwapProgress?
+        get() {
+            if (data.transaction.type != TransactionType.Swap) return null
+
+            val metadata = swapMetadata ?: return null
+            val provider = swapProvider?.takeIf { it.mode.isCrossChain } ?: return null
+            val fromAsset = associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset ?: return null
+            val toAsset = associatedAssets.firstOrNull { it.id() == metadata.toAsset }?.asset ?: return null
+            if (fromAsset.id.chain == toAsset.id.chain) return null
+
+            return TransactionDetailsValue.SwapProgress(
+                fromAsset = fromAsset,
+                fromValue = metadata.fromValue,
+                providerName = provider.name,
+                state = data.transaction.state,
+            )
+        }
 
     private val participantAddress: String
         get() = when (data.transaction.direction) {
@@ -278,3 +307,11 @@ class TransactionDetailsAggregateImpl(
         .takeIf { it.isNotEmpty() }
         ?.let { build(it, participantAddressName, participantExplorerLink) }
 }
+
+private val SwapperProviderMode.isCrossChain: Boolean
+    get() = when (this) {
+        SwapperProviderMode.OnChain -> false
+        SwapperProviderMode.CrossChain,
+        SwapperProviderMode.Bridge,
+        is SwapperProviderMode.OmniChain -> true
+    }

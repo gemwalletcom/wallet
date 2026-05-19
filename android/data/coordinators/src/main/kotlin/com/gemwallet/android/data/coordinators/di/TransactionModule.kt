@@ -15,7 +15,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemSwapper
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -48,14 +47,12 @@ object TransactionModule {
         transactionRepository: TransactionRepository,
         assetsRepository: AssetsRepository,
         getCurrentBlockExplorer: GetCurrentBlockExplorer,
-        gemSwapper: GemSwapper,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             sessionRepository = sessionRepository,
             transactionRepository = transactionRepository,
             assetsRepository = assetsRepository,
             getCurrentBlockExplorer = getCurrentBlockExplorer,
-            gemSwapper = gemSwapper,
         )
     }
 }

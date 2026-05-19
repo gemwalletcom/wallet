@@ -7,6 +7,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuote
+import com.wallet.core.primitives.FiatQuoteType
 
 @Stable
 data class BuyFiatProviderUIModel(
@@ -27,15 +28,21 @@ data class BuyFiatProviderUIModel(
 fun FiatQuote.toProviderUIModel(
     asset: Asset,
     currency: Currency,
+    assetPrice: Double? = null,
 ): BuyFiatProviderUIModel {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     return BuyFiatProviderUIModel(
         provider = provider,
         asset = asset,
         cryptoAmount = cryptoAmount,
-        fiatFormatted = formatter.string(fiatAmount),
+        fiatFormatted = formatter.string(displayFiatAmount(assetPrice)),
         rate = "1 ${asset.symbol} ≈ ${formatter.string(fiatAmount / cryptoAmount)}",
     )
+}
+
+private fun FiatQuote.displayFiatAmount(assetPrice: Double?): Double = when (type) {
+    FiatQuoteType.Buy -> assetPrice?.takeIf { it > 0.0 }?.let { it * cryptoAmount } ?: fiatAmount
+    FiatQuoteType.Sell -> fiatAmount
 }
 
 

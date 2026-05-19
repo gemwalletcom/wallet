@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import Primitives
+import Style
 import SwiftUI
 
 struct ValidatorSelectionView: View {
@@ -21,20 +22,18 @@ struct ValidatorSelectionView: View {
     }
 
     var body: some View {
-        HStack {
-            ValidatorImageView(model: ValidatorViewModel(validator: value.value))
-            ListItemSelectionView(
-                title: value.title,
-                titleExtra: .none,
-                titleTag: .none,
-                titleTagType: .none,
-                subtitle: value.subtitle,
-                subtitleExtra: .none,
-                value: value.value.id,
-                selection: selection,
-            ) { _ in
-                action?(value.value)
+        Button {
+            action?(value.value)
+        } label: {
+            HStack {
+                ValidatorImageView(model: ValidatorViewModel(validator: value.value))
+                    .assetBadge(value.value.id == selection ? Images.Wallets.selected : nil)
+                ListItemView(
+                    title: value.title,
+                    subtitle: value.subtitle,
+                )
             }
         }
+        .contentShape(Rectangle())
     }
 }

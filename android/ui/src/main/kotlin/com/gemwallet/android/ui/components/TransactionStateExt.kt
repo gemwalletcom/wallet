@@ -26,11 +26,11 @@ fun TransactionState.statusLabelRes(): Int = when (this) {
 
 @StringRes
 fun TransactionState.statusInfoDescriptionRes(): Int = when (this) {
-    TransactionState.Pending -> R.string.info_transaction_pending_description
+    TransactionState.Pending,
+    TransactionState.InTransit -> R.string.info_transaction_pending_description
     TransactionState.Confirmed -> R.string.info_transaction_success_description
     TransactionState.Failed,
-    TransactionState.Reverted,
-    TransactionState.InTransit -> R.string.info_transaction_error_description
+    TransactionState.Reverted -> R.string.info_transaction_error_description
 }
 
 @DrawableRes
@@ -52,7 +52,7 @@ fun TransactionState.statusTone(): TransactionStateTone = when (this) {
 
 fun TransactionState.showsStatusBadge(): Boolean = this != TransactionState.Confirmed
 
-fun TransactionState.showsStatusProgress(): Boolean = this == TransactionState.Pending
+fun TransactionState.showsStatusProgress(): Boolean = statusTone() == TransactionStateTone.Pending
 
 @Composable
 fun TransactionState.statusColor(): Color = when (statusTone()) {

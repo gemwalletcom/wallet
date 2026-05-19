@@ -14,7 +14,6 @@ import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SwapProvider
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -29,7 +28,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import uniffi.gemstone.GemSwapper
 
 class GetTransactionDetailsImplTest {
 
@@ -37,7 +35,6 @@ class GetTransactionDetailsImplTest {
     private val transactionRepository = mockk<TransactionRepository>()
     private val assetsRepository = mockk<AssetsRepository>()
     private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>()
-    private val gemSwapper = mockk<GemSwapper>()
     private val explorer = mockk<uniffi.gemstone.Explorer>()
 
     private val subject = GetTransactionDetailsImpl(
@@ -45,7 +42,6 @@ class GetTransactionDetailsImplTest {
         transactionRepository = transactionRepository,
         assetsRepository = assetsRepository,
         getCurrentBlockExplorer = getCurrentBlockExplorer,
-        gemSwapper = gemSwapper,
         createExplorer = { explorer },
     )
 
@@ -67,7 +63,7 @@ class GetTransactionDetailsImplTest {
                     toAsset = asset.id,
                     fromValue = "1",
                     toValue = "2",
-                    provider = SwapProvider.NearIntents.string,
+                    provider = null,
                 ),
             ),
         )
@@ -91,7 +87,6 @@ class GetTransactionDetailsImplTest {
             "NEAR Intents",
         )
         every { getCurrentBlockExplorer.getCurrentBlockExplorer(Chain.Near) } returns "Near"
-        every { gemSwapper.getProviders() } returns emptyList()
         every { explorer.getAddressUrl("Near", any()) } answers { "https://nearblocks.io/address/${secondArg<String>()}" }
 
         val result = subject.getTransactionDetails(transaction.id).first()

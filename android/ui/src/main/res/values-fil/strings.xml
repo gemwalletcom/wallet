@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Kunin %s para sa %s!</string>
   <string name="transfer.sign_transaction.title">Pirmahan ang Transaksyon</string>
   <string name="recent_activity.title">Mga Kamakailan</string>
-  <string name="settings.preferences.app_icon">Icon ng App</string>
   <string name="rewards.pending.title">Bonus na Nakabinbin</string>
   <string name="rewards.pending.description">Makukuha sa %s</string>
   <string name="rewards.pending.description_ready">Handa na ang iyong bonus!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">I-refresh</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

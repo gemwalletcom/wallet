@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Dapatkan %s untuk %s!</string>
   <string name="transfer.sign_transaction.title">Tandatangan Transaksi</string>
   <string name="recent_activity.title">Terkini</string>
-  <string name="settings.preferences.app_icon">Ikon Aplikasi</string>
   <string name="rewards.pending.title">Bonus Tertunda</string>
   <string name="rewards.pending.description">Tersedia dalam %s</string>
   <string name="rewards.pending.description_ready">Bonus anda sudah siap!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">Segarkan semula</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

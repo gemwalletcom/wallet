@@ -43,7 +43,9 @@ public struct CurrencyFormatter: Sendable, Hashable {
 // MARK: - Private
 
 private extension CurrencyFormatter {
-    var abbreviatedFormatter: AbbreviatedFormatter { AbbreviatedFormatter(locale: locale) }
+    var abbreviatedFormatter: AbbreviatedFormatter {
+        AbbreviatedFormatter(locale: locale)
+    }
 
     func currencyString(_ value: Double) -> String {
         value.formatted(.currency(code: currencyCode).locale(locale).precision(precision(for: abs(value))))

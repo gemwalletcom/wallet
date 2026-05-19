@@ -39,6 +39,8 @@ public struct TransactionScene: View {
                 model: model,
                 action: self.model.onTransactionHeaderTap,
             )
+        case let .swapProgress(model):
+            TransactionSwapProgressView(model: model)
         case let .participant(model):
             AddressListItemView(model: model.addressViewModel)
         case let .network(title, subtitle, image):

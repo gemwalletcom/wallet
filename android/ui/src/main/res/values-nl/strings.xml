@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Krijgen %s voor %s!</string>
   <string name="transfer.sign_transaction.title">Transactie ondertekenen</string>
   <string name="recent_activity.title">Recente</string>
-  <string name="settings.preferences.app_icon">App-pictogram</string>
   <string name="rewards.pending.title">Bonus in afwachting</string>
   <string name="rewards.pending.description">Beschikbaar in %s</string>
   <string name="rewards.pending.description_ready">Je bonus staat klaar!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">Vernieuwen</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

@@ -143,7 +143,7 @@ final class FiatOperationViewModel {
 extension FiatOperationViewModel {
     private var selectedQuoteViewModel: FiatQuoteViewModel? {
         guard let selectedQuote else { return nil }
-        return FiatQuoteViewModel(asset: asset, quote: selectedQuote, selectedQuote: nil, formatter: currencyFormatter)
+        return FiatQuoteViewModel(asset: asset, quote: selectedQuote, formatter: currencyFormatter)
     }
 
     private func setLoadingState() {

@@ -76,6 +76,13 @@ sealed interface TransactionDetailsValue {
 
     class Status(val data: TransactionState) : TransactionDetailsValue
 
+    class SwapProgress(
+        val fromAsset: Asset,
+        val fromValue: String,
+        val providerName: String,
+        val state: TransactionState,
+    ) : TransactionDetailsValue
+
     class Memo(val data: String) : TransactionDetailsValue
 
     class Network(val data: Asset) : TransactionDetailsValue

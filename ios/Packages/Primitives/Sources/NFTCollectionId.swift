@@ -26,7 +26,7 @@ public struct NFTCollectionId: Equatable, Hashable, Sendable {
 extension NFTCollectionId: Codable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        self = try Self.from(id: try container.decode(String.self))
+        self = try Self.from(id: container.decode(String.self))
     }
 
     public func encode(to encoder: Encoder) throws {

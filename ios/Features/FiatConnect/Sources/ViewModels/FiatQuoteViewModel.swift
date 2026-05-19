@@ -9,7 +9,8 @@ import SwiftUI
 
 struct FiatQuoteViewModel {
     let quote: FiatQuote
-    let selectedQuote: FiatQuote?
+    let assetPrice: Double?
+    let isSelected: Bool
 
     private let asset: Asset
     private let formatter: CurrencyFormatter
@@ -17,12 +18,14 @@ struct FiatQuoteViewModel {
     init(
         asset: Asset,
         quote: FiatQuote,
-        selectedQuote: FiatQuote? = nil,
+        assetPrice: Double? = nil,
+        isSelected: Bool = false,
         formatter: CurrencyFormatter,
     ) {
         self.asset = asset
         self.quote = quote
-        self.selectedQuote = selectedQuote
+        self.assetPrice = assetPrice
+        self.isSelected = isSelected
         self.formatter = formatter
     }
 
@@ -39,17 +42,11 @@ struct FiatQuoteViewModel {
         return formatter.string(amount)
     }
 
-    private var isSelected: Bool {
-        selectedQuote?.provider == quote.provider
-    }
-
-    private var buyComparisonAmountText: String {
-        guard let selectedQuote, selectedQuote.cryptoAmount > 0 else {
+    private var priceText: String {
+        guard let assetPrice, assetPrice > 0 else {
             return formatter.string(quote.fiatAmount)
         }
-
-        let rate = selectedQuote.fiatAmount / selectedQuote.cryptoAmount
-        return formatter.string(rate * quote.cryptoAmount)
+        return formatter.string(assetPrice * quote.cryptoAmount)
     }
 }
 
@@ -79,7 +76,7 @@ extension FiatQuoteViewModel: SimpleListItemViewable {
 
     var subtitleExtra: String? {
         switch quote.type {
-        case .buy: buyComparisonAmountText
+        case .buy: priceText
         case .sell: formatter.string(quote.fiatAmount)
         }
     }

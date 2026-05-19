@@ -3,8 +3,6 @@ package com.gemwallet.android.ui.components.list_item
 import android.text.format.DateUtils
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +17,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
@@ -32,33 +29,10 @@ fun ValidatorItem(
     isSelected: Boolean = false,
     onClick: ((String) -> Unit)?
 ) {
-    ValidatorItem(
-        data = data,
-        listPosition = listPosition,
-        trailingIcon = {
-            if (isSelected) {
-                Spacer(modifier = Modifier.size(space4))
-                SelectionCheckmark()
-            }
-        },
-        onClick = onClick
-    )
-}
-
-@Composable
-fun ValidatorItem(
-    data: DelegationValidator,
-    listPosition: ListPosition,
-    trailingIcon: @Composable () -> Unit,
-    onClick: ((String) -> Unit)?
-) {
     ListItem(
         modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.id) },
         leading = {
-            IconWithBadge(
-                icon = data.getIconUrl(),
-                placeholder = data.name.firstOrNull()?.toString() ?: data.id.firstOrNull()?.toString() ?: "V",
-            )
+            ValidatorIcon(data = data, isSelected = isSelected)
         },
         title = {
             Text(
@@ -71,17 +45,38 @@ fun ValidatorItem(
         },
         listPosition = listPosition,
         trailing = {
-            Row (verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 ListItemSupportText(R.string.stake_apr, " ${data.formatApr()}")
-                trailingIcon()
             }
         },
     )
 }
 
+@Composable
+private fun ValidatorIcon(
+    data: DelegationValidator,
+    isSelected: Boolean,
+) {
+    if (isSelected) {
+        IconWithBadge(
+            icon = data.getIconUrl(),
+            placeholder = data.placeholder,
+            badge = { SelectionCheckmark() },
+        )
+    } else {
+        IconWithBadge(
+            icon = data.getIconUrl(),
+            placeholder = data.placeholder,
+        )
+    }
+}
+
 fun DelegationValidator.formatApr(): String {
     return apr.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
 }
+
+private val DelegationValidator.placeholder: String
+    get() = name.firstOrNull()?.toString() ?: id.firstOrNull()?.toString() ?: "V"
 
 fun DelegationValidator.getIconUrl(): String {
     return "${Constants.ASSETS_URL}/blockchains/${chain.string}/validators/${id}/logo.png"
