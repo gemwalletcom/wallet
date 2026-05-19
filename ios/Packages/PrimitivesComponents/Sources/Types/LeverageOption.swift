@@ -5,7 +5,7 @@ import Foundation
 import GemstonePrimitives
 
 public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
-    public static let allOptions: [LeverageOption] = Config.shared.perpetualConfig().leverageOptions.map { .init(value: $0) }
+    public static let allOptions: [LeverageOption] = PerpetualConfig.leverageOptions.map { .init(value: $0) }
 
     public let value: UInt8
 
@@ -27,9 +27,9 @@ public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
 
     public static func option(desiredValue: UInt8, from available: [LeverageOption]) -> LeverageOption {
         LeverageOption(
-            value: Config.shared.selectLeverage(
+            value: PerpetualConfig.selectLeverage(
                 desired: desiredValue,
-                options: Data(available.map { $0.value }),
+                options: available.map { $0.value },
             ),
         )
     }
