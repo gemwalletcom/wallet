@@ -17,10 +17,10 @@ enum class InputCurrency {
 
     InFiat {
         override fun getAmount(value: String, decimals: Int, price: Double): Crypto =
-            CryptoFiatConverter().toCrypto(Fiat(value.parseNumber()), decimals, price)
+            CryptoFiatConverter.toCrypto(Fiat(value.parseNumber()), decimals, price)
 
         override fun getInput(amount: Crypto?, decimals: Int, price: Double): String =
-            amount?.let { CryptoFiatConverter().toFiat(it, decimals, price).atomicValue }
+            amount?.let { CryptoFiatConverter.toFiat(it, decimals, price).atomicValue }
                 ?.stripTrailingZeros()?.toPlainString()
                 ?: ""
     };

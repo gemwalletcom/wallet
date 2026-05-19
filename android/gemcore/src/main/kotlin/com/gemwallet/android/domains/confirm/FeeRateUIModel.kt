@@ -52,7 +52,7 @@ data class FeeRateUIModel(
     private fun fiatText(): String? {
         val priceInfo = feeAsset.price ?: return null
         val amount = feeAmount ?: return null
-        val fiat = CryptoFiatConverter().toFiat(Crypto(amount), feeAsset.asset.decimals, priceInfo.price.price)
+        val fiat = CryptoFiatConverter.toFiat(Crypto(amount), feeAsset.asset.decimals, priceInfo.price.price)
         return CurrencyFormatter(currency = priceInfo.currency).string(fiat.atomicValue)
     }
 

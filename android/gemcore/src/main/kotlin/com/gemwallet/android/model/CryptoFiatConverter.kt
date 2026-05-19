@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
 
-class CryptoFiatConverter {
+object CryptoFiatConverter {
     fun toFiat(crypto: Crypto, decimals: Int, price: Double): Fiat {
         val result = crypto.atomicValue.toBigDecimal()
             .divide(BigDecimal.TEN.pow(decimals), MathContext.DECIMAL128)

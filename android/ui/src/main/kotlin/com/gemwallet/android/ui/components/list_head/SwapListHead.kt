@@ -118,7 +118,7 @@ private fun SwapItem(
             if (currency != null) {
                 Text(
                     text = CurrencyFormatter(currency = currency).string(
-                        CryptoFiatConverter().toFiat(Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue
+                        CryptoFiatConverter.toFiat(Crypto(value), decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,

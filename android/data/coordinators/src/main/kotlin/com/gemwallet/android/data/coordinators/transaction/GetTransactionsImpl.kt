@@ -110,7 +110,7 @@ class TransactionDataAggregateImpl(
             } ?: ""
         }
         TransactionType.PerpetualOpenPosition -> CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(
-            CryptoFiatConverter().toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
+            CryptoFiatConverter.toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
         )
         TransactionType.PerpetualClosePosition -> pnl?.let {
             PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)).string(it)

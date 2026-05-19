@@ -178,7 +178,7 @@ class AmountViewModel @Inject constructor(
                 AmountInputType.Crypto -> {
                     AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
                     val value = input.parseNumber()
-                    val unit = CryptoFiatConverter().toFiat(Crypto(value, asset.decimals), asset.decimals, price)
+                    val unit = CryptoFiatConverter.toFiat(Crypto(value, asset.decimals), asset.decimals, price)
                     currencyFormatter.string(unit.atomicValue)
                 }
                 AmountInputType.Fiat -> {
