@@ -42,7 +42,7 @@ class PerpetualPositionDataAggregateImpl(val data: PerpetualPositionData) : Perp
     override val leverage: Int = data.position.leverage.toInt()
     override val marginAmount: String = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(data.position.marginAmount)
     override val pnlWithPercentage: String
-        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount, dynamicPlace = true)
+        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
     override val pnlState: ValueDirection
         get() = data.position.pnl.toValueDirection()
 }

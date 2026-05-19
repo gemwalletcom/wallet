@@ -73,7 +73,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
     override val takeProfit: Double? = data.position.takeProfit?.price
 
     override val pnlWithPercentage: String
-        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount, dynamicPlace = true)
+        get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
 
     override val pnlState: ValueDirection
         get() = data.position.pnl.toValueDirection()
