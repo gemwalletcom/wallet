@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.transaction.values
 
+import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
@@ -86,6 +87,10 @@ sealed interface TransactionDetailsValue {
     class Memo(val data: String) : TransactionDetailsValue
 
     class Network(val data: Asset) : TransactionDetailsValue
+
+    class Pnl(val value: String, val direction: ValueDirection) : TransactionDetailsValue
+
+    class Price(val data: String) : TransactionDetailsValue
 
     class Explorer(val url: String, val name: String) : TransactionDetailsValue
 }

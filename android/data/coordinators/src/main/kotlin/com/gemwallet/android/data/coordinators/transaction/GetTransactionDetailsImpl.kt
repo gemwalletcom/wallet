@@ -7,12 +7,14 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
+import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
 import com.gemwallet.android.ext.toSwapProvider
@@ -197,6 +199,17 @@ class TransactionDetailsAggregateImpl(
 
     override val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
+    private val perpetualMetadata = data.transaction.getPerpetualMetadata()
+    private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+
+    override val pnl: TransactionDetailsValue.Pnl? = perpetualMetadata?.pnl
+        ?.takeIf { it != 0.0 }
+        ?.let { TransactionDetailsValue.Pnl(value = "${if (it >= 0) "+" else ""}${usdFormatter.string(it)}", direction = it.toValueDirection()) }
+
+    override val price: TransactionDetailsValue.Price? = perpetualMetadata?.price
+        ?.takeIf { it > 0 }
+        ?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
+
     override val destination: TransactionDetailsValue.Destination? = when (data.transaction.type) {
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
@@ -255,6 +268,8 @@ class TransactionDetailsAggregateImpl(
                         status,
                         destination,
                         network,
+                        pnl,
+                        price,
                     )
                 )
             )
