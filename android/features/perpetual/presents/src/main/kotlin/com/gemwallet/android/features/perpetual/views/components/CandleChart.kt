@@ -30,7 +30,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.format
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PeriodsPanel
@@ -123,26 +123,19 @@ private fun CandleChart(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(paddingDefault),
     ) {
-        val point = if (data.isEmpty()) {
-            null
-        } else {
-            if (price == null) data.last() else price
+        val point = price ?: data.lastOrNull()
+        val base = data.firstOrNull()?.close
+        if (point != null && base != null && base != 0.0) {
+            val periodChange = (point.close / base - 1.0) * 100.0
+            PriceInfo(
+                priceValue = Currency.USD.format(point.close, dynamicPlace = true),
+                changedPercentages = periodChange.formatAsPercentage(),
+                state = periodChange.toValueDirection(),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                internalPadding = space8,
+            )
         }
-        PriceInfo(
-            priceValue = Currency.USD.format(point?.close ?: 0.0), // TODO: Out to entity
-            changedPercentages = data.firstOrNull()?.let { periodStart ->
-                point?.let { it.close / (periodStart.open * 0.01) - 100.0}?.formatAsPercentage() ?: ""
-            } ?: "",
-            state = when {
-                (point?.close ?: 0.0) - (point?.open ?: 0.0) < 0 -> ValueDirection.Down
-                (point?.close ?: 0.0) - (point?.open ?: 0.0) > 0 -> ValueDirection.Up
-                else -> ValueDirection.None
-
-            },
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            internalPadding = space8
-        )
         Box(
             modifier = Modifier.fillMaxWidth().height(200.dp)
         ) {
