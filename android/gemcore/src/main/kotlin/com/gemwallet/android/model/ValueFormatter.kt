@@ -29,6 +29,10 @@ class ValueFormatter(
             return appendCurrency(abbreviated(value), currency)
         }
 
+        if (style == Style.Short && value.abs() < DUST_THRESHOLD) {
+            return appendCurrency("<${formattedDustThreshold()}", currency)
+        }
+
         val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
             roundingMode = RoundingMode.DOWN
         }
@@ -49,6 +53,14 @@ class ValueFormatter(
         val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
         formatter.maximumFractionDigits = 2
         return formatter.format(decimal)
+    }
+
+    private fun formattedDustThreshold(): String {
+        val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
+            minimumFractionDigits = 4
+            maximumFractionDigits = 4
+        }
+        return formatter.format(DUST_THRESHOLD)
     }
 
     private fun appendCurrency(value: String, currency: String): String =

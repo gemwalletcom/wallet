@@ -37,10 +37,11 @@ public struct ValueFormatter: Sendable {
         if value.isZero {
             return appendingCurrency("0", currency: currency)
         }
-        if style == .short, abs(decimal) >= abbreviationThreshold,
-           let abbreviated = abbreviatedFormatter.string(from: decimal)
-        {
+        if style == .short, abs(decimal) >= abbreviationThreshold, let abbreviated = abbreviatedFormatter.string(from: decimal) {
             return appendingCurrency(abbreviated, currency: currency)
+        }
+        if style == .short, abs(decimal) < Self.dustThreshold {
+            return appendingCurrency("<\(formattedDustThreshold)", currency: currency)
         }
         return appendingCurrency(decimal.formatted(formatStyle(for: decimal)), currency: currency)
     }
@@ -74,6 +75,14 @@ public struct ValueFormatter: Sendable {
 private extension ValueFormatter {
     var abbreviatedFormatter: AbbreviatedFormatter {
         AbbreviatedFormatter(locale: locale, threshold: abbreviationThreshold)
+    }
+
+    var formattedDustThreshold: String {
+        Self.dustThreshold.formatted(
+            Decimal.FormatStyle()
+                .locale(locale)
+                .precision(.fractionLength(4))
+        )
     }
 
     func formatStyle(for decimal: Decimal) -> Decimal.FormatStyle {
