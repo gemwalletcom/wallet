@@ -14,7 +14,7 @@ class ValueFormatter(
     private val locale: Locale = Locale.getDefault(),
     private val abbreviationThreshold: BigDecimal = ABBREVIATION_THRESHOLD,
 ) {
-    enum class Style { Short, Compact, Auto, Full }
+    enum class Style { Full, Short, Auto }
 
     fun string(value: BigInteger, asset: Asset): String =
         string(value, decimals = asset.decimals, currency = asset.symbol)
@@ -38,7 +38,6 @@ class ValueFormatter(
     private fun precision(magnitude: BigDecimal): Precision = when (style) {
         Style.Full -> Precision.full
         Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
-        Style.Compact -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
         Style.Auto -> when {
             magnitude >= BigDecimal.ONE -> Precision.upToTwoPlaces
             magnitude >= DUST_THRESHOLD -> Precision.fourSignificant

@@ -28,16 +28,6 @@ class ValueFormatterTest {
     }
 
     @Test
-    fun compact() {
-        val f = ValueFormatter(style = ValueFormatter.Style.Compact, locale = Locale.US)
-
-        assertEquals("0", f.string(BigInteger.ZERO, decimals = 0))
-        assertEquals("5 USDT", f.string(BigInteger.valueOf(5_000_000L), decimals = 6, currency = "USDT"))
-        assertEquals("1.5 USDT", f.string(BigInteger.valueOf(1_500_000L), decimals = 6, currency = "USDT"))
-        assertEquals("0.012 ETH", f.string(BigInteger("12000000000000000"), decimals = 18, currency = "ETH"))
-    }
-
-    @Test
     fun auto() {
         val f = ValueFormatter(style = ValueFormatter.Style.Auto, locale = Locale.US)
 
