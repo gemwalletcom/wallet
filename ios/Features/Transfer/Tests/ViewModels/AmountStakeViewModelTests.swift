@@ -99,15 +99,15 @@ struct AmountStakeViewModelTests {
     func availableValueForFreezeUnfreeze() {
         let tronData = AssetData.mock(
             asset: .mockTron(),
-            balance: .mock(available: 1_000, frozen: 2_000, locked: 3_000),
+            balance: .mock(available: 1000, frozen: 2000, locked: 3000),
         )
         let freeze = AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth))
         let unfreezeBandwidth = AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.bandwidth))
         let unfreezeEnergy = AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy))
 
-        #expect(freeze.availableValue(from: tronData) == 1_000)
-        #expect(unfreezeBandwidth.availableValue(from: tronData) == 2_000)
-        #expect(unfreezeEnergy.availableValue(from: tronData) == 3_000)
+        #expect(freeze.availableValue(from: tronData) == 1000)
+        #expect(unfreezeBandwidth.availableValue(from: tronData) == 2000)
+        #expect(unfreezeEnergy.availableValue(from: tronData) == 3000)
     }
 
     @Test

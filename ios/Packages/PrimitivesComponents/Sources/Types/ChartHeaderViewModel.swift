@@ -63,9 +63,9 @@ public struct ChartHeaderViewModel {
         switch type {
         case .priceChange:
             guard headerValue != nil, priceChangePercentage != 0 else { return nil }
-            return "(\(CurrencyFormatter.percentSignLess.string(priceChangePercentage)))"
+            return "(\(PercentFormatter.unsigned.string(priceChangePercentage)))"
         case .price:
-            return CurrencyFormatter.percent.string(priceChangePercentage)
+            return PercentFormatter.signed.string(priceChangePercentage)
         }
     }
 

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -207,6 +208,23 @@ final class TransactionViewModelTests {
         )
 
         #expect(model.titleExtraTextValue == nil)
+    }
+
+    @Test
+    func titleTagShowsProgressForActiveStates() {
+        let pendingModel = TransactionViewModel.mock(state: .pending)
+        if case .progressView = pendingModel.titleTagType {
+        } else {
+            Issue.record("Expected progress indicator for pending title tag")
+        }
+        #expect(pendingModel.titleTagTextValue?.text == TransactionStateViewModel(state: .pending).title)
+
+        let inTransitModel = TransactionViewModel.mock(state: .inTransit)
+        if case .progressView = inTransitModel.titleTagType {
+        } else {
+            Issue.record("Expected progress indicator for in-transit title tag")
+        }
+        #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit).title)
     }
 
     func testTransactionTitle(expectedTitle: String, transaction: Transaction) {

@@ -5,6 +5,6 @@ import java.math.BigDecimal
 
 interface CryptoFormattedUIModel : CryptoAmountUIModel, AssetUIModel {
     val cryptoFormatted: String
-        get() = ValueFormatter(style = ValueFormatter.Style.Short)
+        get() = ValueFormatter(style = ValueFormatter.Style.Auto)
             .string(BigDecimal.valueOf(cryptoAmount), asset.symbol)
 }

@@ -548,7 +548,7 @@ sealed class ConfirmParams() {
 
             override fun toDto(): GemTransactionInputType = Stake(
                 asset = asset.toGem(),
-                stakeType = GemStakeType.Freeze(
+                stakeType = GemStakeType.Unfreeze(
                     resource = when (resource) {
                         Resource.Energy -> GemResource.ENERGY
                         Resource.Bandwidth -> GemResource.BANDWIDTH

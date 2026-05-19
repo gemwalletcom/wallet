@@ -34,7 +34,6 @@ struct TransactionHeaderViewModel {
         case .swap: false
         }
     }
-
 }
 
 // MARK: - ItemModelProvidable

@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">得る %s のために %s!</string>
   <string name="transfer.sign_transaction.title">トランザクションに署名</string>
   <string name="recent_activity.title">最近</string>
-  <string name="settings.preferences.app_icon">アプリアイコン</string>
   <string name="rewards.pending.title">ボーナス保留中</string>
   <string name="rewards.pending.description">入手可能な %s</string>
   <string name="rewards.pending.description_ready">ボーナスの準備ができました!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">更新</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

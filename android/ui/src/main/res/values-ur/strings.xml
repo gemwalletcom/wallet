@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">حاصل کریں۔ %s کے لیے %s!</string>
   <string name="transfer.sign_transaction.title">لین دین پر دستخط کریں۔</string>
   <string name="recent_activity.title">حالیہ</string>
-  <string name="settings.preferences.app_icon">ایپ آئیکن</string>
   <string name="rewards.pending.title">بونس زیر التواء</string>
   <string name="rewards.pending.description">میں دستیاب ہے۔ %s</string>
   <string name="rewards.pending.description_ready">آپ کا بونس تیار ہے!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">ریفریش کریں۔</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

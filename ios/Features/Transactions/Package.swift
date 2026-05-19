@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Localization", path: "../../Packages/Localization"),
+        .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
@@ -34,6 +35,7 @@ let package = Package(
                 .product(name: "BigInt", package: "BigInt"),
                 "Primitives",
                 "Localization",
+                "Formatters",
                 "Store",
                 "Style",
                 "Components",

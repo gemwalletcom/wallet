@@ -200,7 +200,7 @@ class FiatViewModel @Inject constructor(
 
     val providers = combine(assetInfoUIModel.filterNotNull(), quotes) { asset, quotes ->
         quotes.map { quote ->
-            quote.toProviderUIModel(asset.asset, currency)
+            quote.toProviderUIModel(asset.asset, currency, asset.assetInfo.price?.price?.price)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

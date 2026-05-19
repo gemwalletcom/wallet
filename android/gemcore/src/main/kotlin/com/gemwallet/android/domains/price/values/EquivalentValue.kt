@@ -3,7 +3,7 @@ package com.gemwallet.android.domains.price.values
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 
 interface EquivalentValue {
@@ -16,7 +16,7 @@ interface EquivalentValue {
         return if (priceValue == null || !priceValue.isFinite()) {
             ""
         } else {
-            currency.format(priceValue, dynamicPlace = true)
+            CurrencyFormatter(currency = currency).string(priceValue)
         }
     }
 

@@ -14,14 +14,14 @@ public struct AutocloseViewModel {
     private let price: Double?
     private let estimator: AutocloseEstimator
     private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter: CurrencyFormatter
+    private let percentFormatter: PercentFormatter
 
     public init(
         type: TpslType,
         price: Double?,
         estimator: AutocloseEstimator,
         currencyFormatter: CurrencyFormatter,
-        percentFormatter: CurrencyFormatter,
+        percentFormatter: PercentFormatter,
     ) {
         self.type = type
         self.price = price

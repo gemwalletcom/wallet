@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Ottenere %s per %s!</string>
   <string name="transfer.sign_transaction.title">Firma la transazione</string>
   <string name="recent_activity.title">Recenti</string>
-  <string name="settings.preferences.app_icon">Icona dell\'app</string>
   <string name="rewards.pending.title">Bonus in sospeso</string>
   <string name="rewards.pending.description">Disponibile in %s</string>
   <string name="rewards.pending.description_ready">Il tuo bonus è pronto!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">Rinfrescato</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

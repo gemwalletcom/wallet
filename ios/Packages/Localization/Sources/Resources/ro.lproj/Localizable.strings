@@ -567,3 +567,5 @@
 "common.refresh" = "Reîmprospăta";
 "perpetual.margin.cross" = "Cross";
 "perpetual.margin.isolated" = "Isolated";
+"transaction.status.completed" = "Completed";
+"transaction.status.inprogress" = "In Progress";

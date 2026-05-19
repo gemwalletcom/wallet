@@ -12,7 +12,7 @@ public extension AutocloseViewModel {
         positionSize: Double = 10.0,
         leverage: UInt8 = 5,
         currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: "USD"),
-        percentFormatter: CurrencyFormatter = .percent,
+        percentFormatter: PercentFormatter = .signed,
     ) -> AutocloseViewModel {
         AutocloseViewModel(
             type: type,

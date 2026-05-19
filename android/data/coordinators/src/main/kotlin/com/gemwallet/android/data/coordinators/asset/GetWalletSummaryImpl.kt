@@ -12,7 +12,7 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ext.isSwapSupport
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
@@ -74,14 +74,15 @@ internal fun buildWalletSummaryDisplayState(
     totalValue: BigDecimal,
     totalChangedValue: BigDecimal,
 ): WalletSummaryDisplayState {
+    val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     if (totalValue.compareTo(BigDecimal.ZERO) <= 0) {
         return WalletSummaryDisplayState(
-            totalValue = currency.format(BigDecimal.ZERO),
+            totalValue = formatter.string(BigDecimal.ZERO),
             changedValue = null,
         )
     }
     return WalletSummaryDisplayState(
-        totalValue = currency.format(totalValue),
+        totalValue = formatter.string(totalValue),
         changedValue = WalletSummaryEquivalentValue(
             currency = currency,
             value = totalChangedValue.toDouble(),
@@ -113,7 +114,7 @@ internal class WalletSummaryEquivalentValue(
     override val valueFormatted: String
         get() {
             val amount = value?.takeIf(Double::isFinite) ?: return ""
-            val formatted = currency.format(amount)
+            val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
             return if (amount > 0) "+$formatted" else formatted
         }
 

@@ -5,7 +5,7 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance as PerpetualBalanceUi
 import com.gemwallet.android.ext.HypercoreUSDC
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualBalance
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,8 +31,9 @@ class GetPerpetualBalancesImpl(
 }
 
 class PerpetualBalanceImpl(val balance: PerpetualBalance) : PerpetualBalanceUi {
-    override val deposit: String get() = Currency.USD.format(balance.reserved)
-    override val available: String get() = Currency.USD.format(balance.available)
-    override val withdrawable: String get() = Currency.USD.format(balance.withdrawable)
-    override val total: String get() = Currency.USD.format(balance.available + balance.reserved)
+    private val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+    override val deposit: String get() = formatter.string(balance.reserved)
+    override val available: String get() = formatter.string(balance.available)
+    override val withdrawable: String get() = formatter.string(balance.withdrawable)
+    override val total: String get() = formatter.string(balance.available + balance.reserved)
 }

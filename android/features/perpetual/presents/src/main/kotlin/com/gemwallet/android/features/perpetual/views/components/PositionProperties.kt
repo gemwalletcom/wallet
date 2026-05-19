@@ -4,7 +4,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -94,5 +94,5 @@ private fun PerpetualMarginType.title(): String {
 }
 
 private fun Double?.formatTriggerOrder(label: String): String? {
-    return this?.let { "$label: ${Currency.USD.format(it, dynamicPlace = true)}" }
+    return this?.let { "$label: ${CurrencyFormatter(currency = Currency.USD).string(it)}" }
 }

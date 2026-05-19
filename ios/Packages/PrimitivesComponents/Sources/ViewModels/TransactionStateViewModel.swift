@@ -53,4 +53,11 @@ public struct TransactionStateViewModel {
         case .failed, .reverted: Colors.red.opacity(.light)
         }
     }
+
+    public var showsProgress: Bool {
+        switch state {
+        case .pending, .inTransit: true
+        case .confirmed, .failed, .reverted: false
+        }
+    }
 }

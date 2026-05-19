@@ -13,7 +13,7 @@ import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.shouldDisplay
 import com.gemwallet.android.model.AssetPriceInfo
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -82,9 +82,11 @@ class PriceAlertDataAggregateImpl(
     }
 
     override val price: String
-        get() = priceAlert.price?.let {
-            Currency.entries.firstOrNull { it.string == priceAlert.currency }?.format(it, dynamicPlace = true) ?: ""
-        } ?: assetPrice?.let { it.currency.format(it.price.price, dynamicPlace = true) }.orEmpty()
+        get() = priceAlert.price?.let { value ->
+            Currency.entries.firstOrNull { it.string == priceAlert.currency }
+                ?.let { CurrencyFormatter(currency = it).string(value) }
+                ?: ""
+        } ?: assetPrice?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) }.orEmpty()
 
     override val percentage: String
         get() = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)

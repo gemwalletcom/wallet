@@ -3,8 +3,7 @@ package com.gemwallet.android.ui.models.swap
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.ValueFormatter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -203,7 +202,8 @@ class SwapDetailsUIModelFactoryTest {
     )
 
     private fun formattedReceiveAmount(atomicValue: String) =
-        receiveAsset.asset.format(Crypto(atomicValue), 2, dynamicPlace = true)
+        ValueFormatter(style = ValueFormatter.Style.Auto)
+            .string(java.math.BigInteger(atomicValue), receiveAsset.asset)
 
     private companion object {
         const val DEFAULT_FROM_VALUE = "1000000000000000000"

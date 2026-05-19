@@ -4,7 +4,7 @@ import android.text.format.DateUtils
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
 import uniffi.gemstone.Config
@@ -58,7 +58,7 @@ fun AssetInfo.formatFiat(value: BigDecimal): String {
         return ""
     }
 
-    return price?.currency?.format(value, dynamicPlace = true) ?: ""
+    return price?.currency?.let { CurrencyFormatter(currency = it).string(value) } ?: ""
 }
 
 fun AssetInfo.isMemoSupport() = asset.isMemoSupport()

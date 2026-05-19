@@ -6,7 +6,7 @@ import Primitives
 
 public struct ValueFormatter: Sendable {
     public enum Style: Sendable {
-        case short, compact, auto, full
+        case full, short, auto
     }
 
     private static let smallAmountThreshold = Decimal(sign: .plus, exponent: -1, significand: 1)
@@ -38,7 +38,8 @@ public struct ValueFormatter: Sendable {
             return appendingCurrency("0", currency: currency)
         }
         if style == .short, abs(decimal) >= abbreviationThreshold,
-           let abbreviated = abbreviatedFormatter.string(from: decimal) {
+           let abbreviated = abbreviatedFormatter.string(from: decimal)
+        {
             return appendingCurrency(abbreviated, currency: currency)
         }
         return appendingCurrency(decimal.formatted(formatStyle(for: decimal)), currency: currency)
@@ -86,14 +87,9 @@ private extension ValueFormatter {
     func precision(for magnitude: Decimal) -> NumberFormatStyleConfiguration.Precision {
         switch (style, magnitude) {
         case (.full, _): .full
-
-        case (.short, Self.smallAmountThreshold...): .twoPlaces
-        case (.short, _): .fourPlaces
-
-        case (.compact, Self.smallAmountThreshold...): .twoPlaces
-        case (.compact, _): .fourPlaces
-
-        case (.auto, 1...): .twoPlaces
+        case (.short, Self.smallAmountThreshold...): .upToTwoPlaces
+        case (.short, _): .upToFourPlaces
+        case (.auto, 1...): .upToTwoPlaces
         case (.auto, Self.dustThreshold...): .fourSignificant
         case (.auto, _): .full
         }
@@ -102,11 +98,4 @@ private extension ValueFormatter {
     func appendingCurrency(_ value: String, currency: String) -> String {
         currency.isEmpty ? value : "\(value) \(currency)"
     }
-}
-
-private extension NumberFormatStyleConfiguration.Precision {
-    static let full = fractionLength(0 ... 32)
-    static let twoPlaces = fractionLength(0 ... 2)
-    static let fourPlaces = fractionLength(0 ... 4)
-    static let fourSignificant = significantDigits(1 ... 4)
 }

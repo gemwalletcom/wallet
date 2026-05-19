@@ -5,8 +5,8 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetPriceDataAggregate
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,7 +41,7 @@ internal fun AssetInfo.toAssetInfoDataAggregate(
     } else {
         priceValue
             ?.takeUnless { it == 0.0 }
-            ?.let { currency.format(assetBalance.totalAmount * it, dynamicPlace = true) }
+            ?.let { CurrencyFormatter(currency = currency).string(assetBalance.totalAmount * it) }
             .orEmpty()
     }
     val price = assetPrice?.let {

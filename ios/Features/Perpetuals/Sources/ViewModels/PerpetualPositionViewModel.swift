@@ -12,7 +12,7 @@ import SwiftUI
 public struct PerpetualPositionViewModel {
     public let data: PerpetualPositionData
     private let currencyFormatter: CurrencyFormatter
-    private let percentFormatter: CurrencyFormatter
+    private let percentFormatter = PercentFormatter.signed
     private let autocloseFormatter: AutocloseFormatter
 
     public init(
@@ -21,7 +21,6 @@ public struct PerpetualPositionViewModel {
     ) {
         self.data = data
         currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
-        percentFormatter = CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
         autocloseFormatter = AutocloseFormatter(
             currencyFormatter: currencyFormatter,
             takeProfitLabel: Localized.Charts.takeProfit,

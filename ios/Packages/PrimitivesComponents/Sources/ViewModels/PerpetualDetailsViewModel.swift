@@ -39,8 +39,9 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 
     private let type: PerpetualDetailsType
     private let currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue)
-    private let percentFormatter = CurrencyFormatter(type: .percent, currencyCode: Currency.usd.rawValue)
-    private let percentSignLessFormatter = CurrencyFormatter.percentSignLess
+    private let numericFormatter = NumericFormatter()
+    private let percentFormatter = PercentFormatter.signed
+    private let percentSignLessFormatter = PercentFormatter.unsigned
     private let autocloseFormatter = AutocloseFormatter(
         takeProfitLabel: Localized.Charts.takeProfit,
         stopLossLabel: Localized.Charts.stopLoss,
@@ -141,8 +142,8 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
-            takeProfit: data.takeProfit.flatMap { currencyFormatter.double(from: $0) },
-            stopLoss: data.stopLoss.flatMap { currencyFormatter.double(from: $0) },
+            takeProfit: data.takeProfit.flatMap { numericFormatter.double(from: $0) },
+            stopLoss: data.stopLoss.flatMap { numericFormatter.double(from: $0) },
         )
     }
 

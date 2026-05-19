@@ -9,9 +9,9 @@ import Style
 
 public struct AllTimeValueViewModel: Sendable {
     private let priceFormatter: CurrencyFormatter
-    private let percentFormatter: CurrencyFormatter
+    private let percentFormatter: PercentFormatter
 
-    public init(priceFormatter: CurrencyFormatter, percentFormatter: CurrencyFormatter) {
+    public init(priceFormatter: CurrencyFormatter, percentFormatter: PercentFormatter) {
         self.priceFormatter = priceFormatter
         self.percentFormatter = percentFormatter
     }

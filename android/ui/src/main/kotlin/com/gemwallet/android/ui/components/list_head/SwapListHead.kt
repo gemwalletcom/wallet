@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
@@ -116,7 +116,7 @@ private fun SwapItem(
             )
             if (currency != null) {
                 Text(
-                    text = currency.format(Crypto(value).convert(decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue, dynamicPlace = true),
+                    text = CurrencyFormatter(currency = currency).string(Crypto(value).convert(decimals, assetInfo.price?.price?.price ?: 0.0).atomicValue),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Start

@@ -150,11 +150,7 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleTagType: TitleTagType {
-        switch transaction.transaction.state {
-        case .confirmed: .none
-        case .pending, .inTransit: .progressView()
-        case .failed, .reverted: .none // TODO: Image
-        }
+        TransactionStateViewModel(state: transaction.transaction.state).showsProgress ? .progressView() : .none
     }
 
     public var titleTagTextValue: TextValue? {

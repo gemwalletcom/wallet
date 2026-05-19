@@ -27,26 +27,32 @@ struct FiatQuoteViewModelTests {
     }
 
     @Test
-    func fiatEquivalentTextUsesSelectedQuoteRate() {
-        let selectedQuote = FiatQuote.mock(fiatAmount: 50, cryptoAmount: 0.025)
-        let quote = FiatQuote.mock(fiatAmount: 50, cryptoAmount: 0.02)
-        let model = FiatQuoteViewModel(asset: .mock(), quote: quote, selectedQuote: selectedQuote, formatter: usFormatter)
+    func buyFiatTextIsAssetPriceTimesCryptoAmount() {
+        let quote = FiatQuote.mock(fiatAmount: 50, cryptoAmount: 0.000488)
+        let model = FiatQuoteViewModel(asset: .mock(), quote: quote, assetPrice: 100_000, formatter: usFormatter)
 
-        #expect(model.subtitleExtra == "$40.00")
+        #expect(model.subtitleExtra == "$48.80")
     }
 
     @Test
-    func sellSecondaryAmountTextUsesQuoteFiatAmount() {
-        let selectedQuote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 0.04937, type: .sell)
+    func buyFiatTextFallsBackToRawAmountWhenAssetPriceMissing() {
+        let quote = FiatQuote.mock(fiatAmount: 50, cryptoAmount: 0.000488)
+
+        #expect(FiatQuoteViewModel(asset: .mock(), quote: quote, assetPrice: nil, formatter: usFormatter).subtitleExtra == "$50.00")
+        #expect(FiatQuoteViewModel(asset: .mock(), quote: quote, assetPrice: 0, formatter: usFormatter).subtitleExtra == "$50.00")
+    }
+
+    @Test
+    func sellFiatTextUsesRawQuoteFiatAmount() {
         let quote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 0.05117, type: .sell)
-        let model = FiatQuoteViewModel(asset: .mock(), quote: quote, selectedQuote: selectedQuote, formatter: usFormatter)
+        let model = FiatQuoteViewModel(asset: .mock(), quote: quote, assetPrice: 100_000, formatter: usFormatter)
 
         #expect(model.subtitleExtra == "$100.00")
     }
 
     @Test
     func testRateText() {
-        #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 0, cryptoAmount: 0), formatter: usFormatter).rateText == "NaN")
+        #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 0, cryptoAmount: 0), formatter: usFormatter).rateText == "$NaN")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 10.123, cryptoAmount: 15.12), formatter: usFormatter).rateText == "$0.6695")
         #expect(FiatQuoteViewModel(asset: .mock(), quote: .mock(fiatAmount: 50, cryptoAmount: 0.0018), formatter: usFormatter).rateText == "$27,777.78")
 

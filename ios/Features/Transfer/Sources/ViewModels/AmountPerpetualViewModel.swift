@@ -24,6 +24,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     let leverageSelection: SelectionState<LeverageOption>?
     let leverageTextStyle: TextStyle
     let currencyFormatter: CurrencyFormatter
+    private let numericFormatter = NumericFormatter()
 
     var takeProfit: String?
     var stopLoss: String?
@@ -63,8 +64,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             takeProfitLabel: Localized.Charts.takeProfit,
             stopLossLabel: Localized.Charts.stopLoss,
         ).format(
-            takeProfit: takeProfit.flatMap { currencyFormatter.double(from: $0) },
-            stopLoss: stopLoss.flatMap { currencyFormatter.double(from: $0) },
+            takeProfit: takeProfit.flatMap { numericFormatter.double(from: $0) },
+            stopLoss: stopLoss.flatMap { numericFormatter.double(from: $0) },
         )
     }
 
@@ -125,10 +126,10 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             usdcDecimals: asset.decimals.asInt,
             leverage: leverage,
             takeProfit: takeProfit
-                .flatMap { currencyFormatter.double(from: $0) }
+                .flatMap { numericFormatter.double(from: $0) }
                 .map { formatter.formatPrice($0, decimals: transferData.asset.decimals) },
             stopLoss: stopLoss
-                .flatMap { currencyFormatter.double(from: $0) }
+                .flatMap { numericFormatter.double(from: $0) }
                 .map { formatter.formatPrice($0, decimals: transferData.asset.decimals) },
         )
 

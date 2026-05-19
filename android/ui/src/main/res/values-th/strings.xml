@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">รับ %s สำหรับ %s-</string>
   <string name="transfer.sign_transaction.title">ลงนามในธุรกรรม</string>
   <string name="recent_activity.title">ล่าสุด</string>
-  <string name="settings.preferences.app_icon">ไอคอนแอป</string>
   <string name="rewards.pending.title">โบนัสรออนุมัติ</string>
   <string name="rewards.pending.description">มีจำหน่ายใน %s</string>
   <string name="rewards.pending.description_ready">โบนัสของคุณพร้อมแล้ว!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">รีเฟรช</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

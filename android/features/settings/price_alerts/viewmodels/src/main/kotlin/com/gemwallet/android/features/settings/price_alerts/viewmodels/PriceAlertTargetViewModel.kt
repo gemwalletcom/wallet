@@ -12,7 +12,7 @@ import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -52,20 +52,14 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetInfo = assetsRepository.getAssetInfo(assetId)
     val currency = assetInfo.map { it?.price?.currency ?: Currency.USD }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
-    val currentPrice = assetInfo.map { assetInfo ->
-        assetInfo?.price?.let { it.currency.format(it.price.price, dynamicPlace = true) } ?: ""
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+    val currentPrice = assetInfo.map { info ->
+        info?.price?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) } ?: ""
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
     val currentPriceValue = assetInfo.map { it?.price?.price?.price ?: 0.0 }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
 
     val asset: StateFlow<Asset?> = assetInfo.map { it?.asset }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val priceFormatted: StateFlow<String> = assetInfo.map { info ->
-        val priceInfo = info?.price ?: return@map ""
-        priceInfo.currency.format(priceInfo.price.price, dynamicPlace = true)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val priceChangeFormatted: StateFlow<String> = assetInfo.map {
         it?.price?.price?.priceChangePercentage24h.formatAsPercentage()
@@ -75,11 +69,11 @@ class PriceAlertTargetViewModel @Inject constructor(
         it?.price?.price?.priceChangePercentage24h.toValueDirection()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ValueDirection.None)
 
-    val priceSuggestions: StateFlow<List<Pair<String, String>>> = combine(currentPriceValue, currency) { price, currency ->
+    val priceSuggestions: StateFlow<List<Pair<String, String>>> = combine(currentPriceValue, currency) { price, cur ->
         if (price <= 0.0) return@combine emptyList()
+        val fmt = CurrencyFormatter(currency = cur)
         priceAlertFormatter.roundedValues(price, suggestionOffsetPercent).map { value ->
-            val formatted = currency.format(BigDecimal.valueOf(value), dynamicPlace = true)
-            formatted to value.toBigDecimal().stripTrailingZeros().toPlainString()
+            fmt.string(BigDecimal.valueOf(value)) to value.toBigDecimal().stripTrailingZeros().toPlainString()
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

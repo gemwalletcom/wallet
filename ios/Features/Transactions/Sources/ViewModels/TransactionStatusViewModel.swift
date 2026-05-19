@@ -31,9 +31,9 @@ extension TransactionStatusViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
         .listItem(ListItemModel(
             title: Localized.Transaction.status,
-            titleTagType: state == .pending ? .progressView() : .image(stateViewModel.stateImage),
             subtitle: stateViewModel.title,
             subtitleStyle: TextStyle(font: .callout, color: stateViewModel.color),
+            subtitleTagType: stateViewModel.showsProgress ? .progressView() : .none,
             infoAction: onInfoAction,
         ))
     }

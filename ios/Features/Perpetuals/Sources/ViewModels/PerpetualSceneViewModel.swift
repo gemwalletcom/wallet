@@ -168,7 +168,7 @@ public final class PerpetualSceneViewModel {
             price.map {
                 ChartLineViewModel(
                     line: ChartLine(type: type, price: $0),
-                    formatter: CurrencyFormatter(type: .currency, currencyCode: .empty),
+                    formatter: NumericFormatter(),
                 )
             }
         }
