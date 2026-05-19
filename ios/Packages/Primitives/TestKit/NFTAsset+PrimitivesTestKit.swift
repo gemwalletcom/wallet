@@ -32,4 +32,3 @@ public extension NFTAsset {
         )
     }
 }
-

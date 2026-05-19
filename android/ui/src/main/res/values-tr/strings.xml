@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Elde etmek %s için %s!</string>
   <string name="transfer.sign_transaction.title">İmza İşlemi</string>
   <string name="recent_activity.title">Son Haberler</string>
-  <string name="settings.preferences.app_icon">Uygulama Simgesi</string>
   <string name="rewards.pending.title">Bonus Beklemede</string>
   <string name="rewards.pending.description">Mevcuttur %s</string>
   <string name="rewards.pending.description_ready">Bonusunuz hazır!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">Yenile</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

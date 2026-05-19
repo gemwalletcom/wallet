@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">পান %s জন্য %s!</string>
   <string name="transfer.sign_transaction.title">লেনদেন স্বাক্ষর করুন</string>
   <string name="recent_activity.title">সাম্প্রতিক</string>
-  <string name="settings.preferences.app_icon">অ্যাপ আইকন</string>
   <string name="rewards.pending.title">বোনাস মুলতুবি</string>
   <string name="rewards.pending.description">পাওয়া যাচ্ছে %s</string>
   <string name="rewards.pending.description_ready">আপনার বোনাস প্রস্তুত!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">রিফ্রেশ</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

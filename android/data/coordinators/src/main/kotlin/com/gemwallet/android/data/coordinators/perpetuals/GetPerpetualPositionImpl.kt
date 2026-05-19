@@ -5,8 +5,8 @@ import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
-import com.gemwallet.android.model.format
-import com.gemwallet.android.model.formatPnl
+import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
@@ -27,20 +27,25 @@ class GetPerpetualPositionImpl @Inject constructor(
 class PerpetualPositionDetailsDataAggregateImpl(
     private val data: PerpetualPositionData,
 ) : PerpetualPositionDetailsDataAggregate {
-    override val size: String = Currency.USD.format(data.position.sizeValue)
+    private val amountFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+    private val priceFormatter = CurrencyFormatter(currency = Currency.USD)
 
-    override val entryPrice: String = Currency.USD.format(data.position.entryPrice, dynamicPlace = true)
+    override val size: String = amountFormatter.string(data.position.sizeValue)
+
+    override val entryPrice: String = priceFormatter.string(data.position.entryPrice)
 
     override val liquidationPrice: String = data.position.liquidationPrice
         ?.takeIf { it > 0.0 }
-        ?.let { Currency.USD.format(it, dynamicPlace = true) }
+        ?.let { priceFormatter.string(it) }
         ?: ""
 
     override val marginType: PerpetualMarginType = data.position.marginType
 
     private val fundingPaymentsValue = data.position.funding?.toDouble()
 
-    override val fundingPayments: String = fundingPaymentsValue?.let { Currency.USD.formatPnl(it, dynamicPlace = true) } ?: "-"
+    override val fundingPayments: String = fundingPaymentsValue
+        ?.let { PriceChangeFormatter(priceFormatter).string(it) }
+        ?: "-"
 
     override val fundingPaymentsDirection: ValueDirection = fundingPaymentsValue.toValueDirection()
 
@@ -56,7 +61,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val leverage: Int = data.position.leverage.toInt()
 
-    override val marginAmount: String = Currency.USD.format(data.position.marginAmount)
+    override val marginAmount: String = amountFormatter.string(data.position.marginAmount)
 
     override val entryValue: Double? = data.position.entryPrice
 

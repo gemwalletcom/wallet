@@ -40,7 +40,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.features.swap.viewmodels.models.toError
 import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
@@ -187,7 +187,7 @@ class SwapViewModel @Inject constructor(
     val toEquivalentFormatted = quote.mapLatest { quote ->
             quote?.receive
                 ?.price?.takeIf { it.price.price > 0 }
-                ?.currency?.format(quote.receiveEquivalent, dynamicPlace = true)
+                ?.currency?.let { CurrencyFormatter(currency = it).string(quote.receiveEquivalent) }
                 ?: ""
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")

@@ -58,6 +58,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     public var sections: [ListSection<TransactionItem>] {
         [
             ListSection(type: .header, [.header]),
+            ListSection(type: .swapProgress, [.swapProgress]),
             ListSection(type: .swapAction, [.swapButton]),
             ListSection(type: .details, [.date, .status, .participant, .memo, .network, .pnl, .price, .provider]),
             ListSection(type: .fee, [.fee]),
@@ -68,6 +69,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
         switch item {
         case .header: headerViewModel
+        case .swapProgress: TransactionSwapProgressViewModel(transaction: transactionExtended)
         case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)

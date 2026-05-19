@@ -16,7 +16,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.AmountInputType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -44,7 +44,7 @@ class AmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val formatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+    private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
@@ -60,7 +60,7 @@ class AmountViewModel @Inject constructor(
         provider.availableBalance,
         provider.assetInfo,
     ) { balance, current ->
-        current?.asset?.let { formatter.string(balance, it) }.orEmpty()
+        current?.asset?.let { valueFormatter.string(balance, it) }.orEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val reserveForFeeFormatted: StateFlow<String?> = combine(
@@ -68,7 +68,7 @@ class AmountViewModel @Inject constructor(
         maxAmount,
     ) { current, isMax ->
         if (!provider.shouldReserveFee(isMax) || provider.reserveForFee.signum() == 0) null
-        else current?.asset?.let { formatter.string(provider.reserveForFee, it) }
+        else current?.asset?.let { valueFormatter.string(provider.reserveForFee, it) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val amountEquivalent: StateFlow<String> = combine(
@@ -170,25 +170,28 @@ class AmountViewModel @Inject constructor(
         asset: Asset,
         price: Double,
         currency: Currency,
-    ): String = try {
-        when (direction) {
-            AmountInputType.Crypto -> {
-                AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
-                val parsed = input.parseNumber()
-                val unit = Crypto(parsed, asset.decimals).convert(asset.decimals, price)
-                currency.format(unit.atomicValue)
+    ): String {
+        val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
+        return try {
+            when (direction) {
+                AmountInputType.Crypto -> {
+                    AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
+                    val value = input.parseNumber()
+                    val unit = Crypto(value, asset.decimals).convert(asset.decimals, price)
+                    currencyFormatter.string(unit.atomicValue)
+                }
+                AmountInputType.Fiat -> {
+                    val value = input.parseNumber()
+                    val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
+                    AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
+                    valueFormatter.string(crypto, asset.symbol)
+                }
             }
-            AmountInputType.Fiat -> {
-                val value = input.parseNumber()
-                val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
-                AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
-                formatter.string(crypto, asset.symbol)
+        } catch (_: Throwable) {
+            when (direction) {
+                AmountInputType.Crypto -> currencyFormatter.string(0.0)
+                AmountInputType.Fiat -> valueFormatter.string(BigInteger.ZERO, asset)
             }
-        }
-    } catch (_: Throwable) {
-        when (direction) {
-            AmountInputType.Crypto -> currency.format(0.0)
-            AmountInputType.Fiat -> formatter.string(BigInteger.ZERO, asset)
         }
     }
 }

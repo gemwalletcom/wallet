@@ -6,7 +6,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
@@ -39,7 +39,7 @@ class PerpetualPositionDataAggregateImpl(val data: PerpetualPositionData) : Perp
     override val name: String = data.perpetual.name
     override val direction: PerpetualDirection = data.position.direction
     override val leverage: Int = data.position.leverage.toInt()
-    override val marginAmount: String = Currency.USD.format(data.position.marginAmount)
+    override val marginAmount: String = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(data.position.marginAmount)
     override val pnlWithPercentage: String
         get() = formatPnlWithPercentage(data.position.pnl, data.position.marginAmount)
     override val pnlState: ValueDirection

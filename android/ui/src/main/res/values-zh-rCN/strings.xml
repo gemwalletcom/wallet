@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">得到 %s 为了 %s！</string>
   <string name="transfer.sign_transaction.title">签署交易</string>
   <string name="recent_activity.title">近期</string>
-  <string name="settings.preferences.app_icon">应用图标</string>
   <string name="rewards.pending.title">奖金待发放</string>
   <string name="rewards.pending.description">有售 %s</string>
   <string name="rewards.pending.description_ready">您的奖金已发放！</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">刷新</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

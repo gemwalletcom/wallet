@@ -10,7 +10,7 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -79,8 +79,9 @@ class PerpetualMarketViewModel @Inject constructor(
 }
 
 private object EmptyPerpetualBalance : PerpetualBalance {
-    override val deposit: String = Currency.USD.format(0.0)
-    override val available: String = Currency.USD.format(0.0)
-    override val withdrawable: String = Currency.USD.format(0.0)
-    override val total: String = Currency.USD.format(0.0)
+    private val zero = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(0.0)
+    override val deposit: String = zero
+    override val available: String = zero
+    override val withdrawable: String = zero
+    override val total: String = zero
 }

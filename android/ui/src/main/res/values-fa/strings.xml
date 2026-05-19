@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">دریافت %s برای %s!</string>
   <string name="transfer.sign_transaction.title">ثبت تراکنش</string>
   <string name="recent_activity.title">تازه‌ها</string>
-  <string name="settings.preferences.app_icon">آیکون برنامه</string>
   <string name="rewards.pending.title">پاداش در انتظار</string>
   <string name="rewards.pending.description">موجود در %s</string>
   <string name="rewards.pending.description_ready">جایزه شما آماده است!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">تازه کردن</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

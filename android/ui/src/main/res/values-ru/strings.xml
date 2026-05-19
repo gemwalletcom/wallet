@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Получить %s за %s!</string>
   <string name="transfer.sign_transaction.title">Подписать транзакцию</string>
   <string name="recent_activity.title">Последние</string>
-  <string name="settings.preferences.app_icon">Иконка приложения</string>
   <string name="rewards.pending.title">Ожидается выплата бонуса</string>
   <string name="rewards.pending.description">Доступно в %s</string>
   <string name="rewards.pending.description_ready">Ваш бонус готов!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">Обновить</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Завершено</string>
+  <string name="transaction.status.inprogress">В процессе</string>
 </resources>

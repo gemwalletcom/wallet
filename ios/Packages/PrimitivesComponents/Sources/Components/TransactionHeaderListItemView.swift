@@ -24,8 +24,8 @@ public struct TransactionHeaderListItemView: View {
         model: TransactionHeaderItemModel,
         action: TransactionHeaderActionHandler? = nil,
     ) {
-        self.headerType = model.headerType
-        self.showClearHeader = model.showClearHeader
+        headerType = model.headerType
+        showClearHeader = model.showClearHeader
         self.action = action
     }
 

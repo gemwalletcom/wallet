@@ -19,7 +19,7 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.format
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
@@ -183,7 +183,7 @@ class ConfirmViewModel @Inject constructor(
         AmountUIModel(
             txType = request.getTxType(),
             amount = formatter.string(amount.atomicValue, decimals, symbol),
-            amountEquivalent = currency.format(amount.convert(decimals, price).atomicValue, dynamicPlace = true),
+            amountEquivalent = CurrencyFormatter(currency = currency).string(amount.convert(decimals, price).atomicValue),
             asset = assetInfo,
             fromAsset = assetInfo,
             fromAmount = amount.atomicValue.toString(),
@@ -227,7 +227,7 @@ class ConfirmViewModel @Inject constructor(
             val feeDecimals = feeAssetInfo.asset.decimals
             val feeCrypto = formatter.string(feeAmount.atomicValue, feeAssetInfo.asset)
             val feeFiat = feeAssetInfo.price?.let {
-                currency.format(feeAmount.convert(feeDecimals, it.price.price).atomicValue, dynamicPlace = true) // TODO: Move to UI - Model
+                CurrencyFormatter(currency = currency).string(feeAmount.convert(feeDecimals, it.price.price).atomicValue) // TODO: Move to UI - Model
             } ?: ""
 
             try {

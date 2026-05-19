@@ -8,6 +8,7 @@ import SwiftUI
 
 public enum TransactionSectionType: String, Identifiable, Equatable {
     case header
+    case swapProgress
     case swapAction
     case details
     case fee
@@ -20,6 +21,7 @@ public enum TransactionSectionType: String, Identifiable, Equatable {
 
 public enum TransactionItem: Identifiable, Equatable, Sendable {
     case header
+    case swapProgress
     case swapButton
     case date
     case status
@@ -41,6 +43,7 @@ public enum TransactionItemModel {
     case listItem(ListItemModel)
     case fee(ListItemModel)
     case header(TransactionHeaderItemModel)
+    case swapProgress(TransactionSwapProgressItemModel)
     case participant(TransactionParticipantItemModel)
     case network(title: String, subtitle: String, image: AssetImage)
     case pnl(title: String, value: String, color: Color)

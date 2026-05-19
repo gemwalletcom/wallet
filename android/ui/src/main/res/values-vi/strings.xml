@@ -530,7 +530,6 @@
   <string name="rewards.confirm_redeem" formatted="false">Lấy %s vì %s!</string>
   <string name="transfer.sign_transaction.title">Ký giao dịch</string>
   <string name="recent_activity.title">Gần đây</string>
-  <string name="settings.preferences.app_icon">Biểu tượng ứng dụng</string>
   <string name="rewards.pending.title">Tiền thưởng đang chờ xử lý</string>
   <string name="rewards.pending.description">Có sẵn trong %s</string>
   <string name="rewards.pending.description_ready">Phần thưởng của bạn đã sẵn sàng!</string>
@@ -591,4 +590,6 @@
   <string name="common.refresh">Làm cho khỏe lại</string>
   <string name="perpetual.margin.cross">Cross</string>
   <string name="perpetual.margin.isolated">Isolated</string>
+  <string name="transaction.status.completed">Completed</string>
+  <string name="transaction.status.inprogress">In Progress</string>
 </resources>

@@ -1397,10 +1397,14 @@ public enum Localized {
       return Localized.tr("Localizable", "transaction.view_on", String(describing: p1), fallback: "View on %@")
     }
     public enum Status {
+      /// Completed
+      public static let completed = Localized.tr("Localizable", "transaction.status.completed", fallback: "Completed")
       /// Successful
       public static let confirmed = Localized.tr("Localizable", "transaction.status.confirmed", fallback: "Successful")
       /// Failed
       public static let failed = Localized.tr("Localizable", "transaction.status.failed", fallback: "Failed")
+      /// In Progress
+      public static let inprogress = Localized.tr("Localizable", "transaction.status.inprogress", fallback: "In Progress")
       /// Pending
       public static let pending = Localized.tr("Localizable", "transaction.status.pending", fallback: "Pending")
       /// Reverted

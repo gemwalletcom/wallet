@@ -23,7 +23,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
 
     init(asset: Asset, type: AmountStakeType) {
         self.asset = asset
-        self.action = type
+        action = type
         selection = Self.makeSelection(type: type)
     }
 
@@ -195,8 +195,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt) throws -> TransferData {
-        TransferData(
-            type: .stake(asset, try getStakeType()),
+        try TransferData(
+            type: .stake(asset, getStakeType()),
             recipientData: recipientData(),
             value: value,
             canChangeValue: canChangeValue,

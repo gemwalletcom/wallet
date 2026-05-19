@@ -29,9 +29,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.model.format
+import com.gemwallet.android.features.perpetual.views.models.CandlePriceInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PeriodsPanel
 import com.gemwallet.android.ui.components.list_item.PriceInfo
@@ -123,22 +121,12 @@ private fun CandleChart(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(paddingDefault),
     ) {
-        val point = if (data.isEmpty()) {
-            null
-        } else {
-            if (price == null) data.last() else price
-        }
+        val point = if (data.isEmpty()) null else price ?: data.last()
+        val priceInfo = CandlePriceInfo.from(point, data)
         PriceInfo(
-            priceValue = Currency.USD.format(point?.close ?: 0.0), // TODO: Out to entity
-            changedPercentages = data.firstOrNull()?.let { periodStart ->
-                point?.let { it.close / (periodStart.open * 0.01) - 100.0}?.formatAsPercentage() ?: ""
-            } ?: "",
-            state = when {
-                (point?.close ?: 0.0) - (point?.open ?: 0.0) < 0 -> ValueDirection.Down
-                (point?.close ?: 0.0) - (point?.open ?: 0.0) > 0 -> ValueDirection.Up
-                else -> ValueDirection.None
-
-            },
+            priceValue = priceInfo.priceValue,
+            changedPercentages = priceInfo.changedPercentages,
+            state = priceInfo.state,
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
             internalPadding = space8

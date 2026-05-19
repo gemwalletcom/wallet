@@ -39,7 +39,8 @@ public struct NFTService: Sendable {
 
     public func getOrFetchAssetData(assetId: NFTAssetId) async throws -> NFTAssetData {
         if let asset = try nftStore.getAsset(assetId: assetId),
-           let collection = try nftStore.getCollection(collectionId: asset.collectionId) {
+           let collection = try nftStore.getCollection(collectionId: asset.collectionId)
+        {
             return NFTAssetData(collection: collection, asset: asset)
         }
         let assetData = try await apiService.getDeviceNFTAsset(assetId: assetId)
