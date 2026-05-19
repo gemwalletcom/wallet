@@ -28,8 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.formatLeverage
-import com.gemwallet.android.domains.perpetual.perpetualLeverageOptions
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -144,7 +144,7 @@ fun PreferencesScene(
                                 onDismissRequest = { showLeveragePicker = false },
                                 containerColor = MaterialTheme.colorScheme.background,
                             ) {
-                                perpetualLeverageOptions.forEach { value ->
+                                PerpetualConfig.leverageOptions.forEach { value ->
                                     DropdownMenuItem(
                                         text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {

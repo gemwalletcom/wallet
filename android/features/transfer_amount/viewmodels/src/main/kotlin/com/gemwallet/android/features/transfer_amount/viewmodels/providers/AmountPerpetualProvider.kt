@@ -5,10 +5,9 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.domains.perpetual.LeverageState
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
-import com.gemwallet.android.domains.perpetual.getLeverage
-import com.gemwallet.android.domains.perpetual.perpetualLeverageOptions
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
@@ -56,9 +55,10 @@ class AmountPerpetualProvider(
             userConfig.perpetualLeverage(),
             userSelectedLeverage,
         ) { current, preferred, override ->
-            val options = perpetualLeverageOptions.filter { it <= current.maxLeverage }
+            val options = PerpetualConfig.leverageOptions
+                .filter { it <= current.maxLeverage.toInt() }
             LeverageState(
-                current = getLeverage(desired = override ?: preferred, from = options),
+                current = PerpetualConfig.selectLeverage(override ?: preferred, options),
                 options = options,
                 direction = params.direction,
             )

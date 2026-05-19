@@ -2,9 +2,10 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 
 public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
-    public static let allOptions: [LeverageOption] = [1, 2, 3, 5, 10, 20, 25, 30, 40, 50].map { .init(value: $0) }
+    public static let allOptions: [LeverageOption] = Config.shared.perpetualConfig().leverageOptions.map { .init(value: UInt8(clamping: $0)) }
 
     public let value: UInt8
 
@@ -25,6 +26,12 @@ public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
     }
 
     public static func option(desiredValue: UInt8, from available: [LeverageOption]) -> LeverageOption {
-        available.filter { $0.value <= desiredValue }.max() ?? available.min() ?? allOptions[0]
+        let selected = Config.shared.selectLeverage(
+            desired: Int32(desiredValue),
+            from: available.map { Int32($0.value) },
+        )
+        return available.first(where: { Int32($0.value) == selected })
+            ?? available.min()
+            ?? allOptions[0]
     }
 }

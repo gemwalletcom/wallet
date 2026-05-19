@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.cases.device.GetPushEnabled
 import com.gemwallet.android.cases.device.SwitchPushEnabled
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.domains.perpetual.perpetualLeverageDefault
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
@@ -59,7 +59,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val perpetualLeverage = userConfig.perpetualLeverage()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, perpetualLeverageDefault)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultLeverage)
 
     fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         userConfig.setPerpetualEnabled(enabled)

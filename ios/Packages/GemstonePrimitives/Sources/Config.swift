@@ -4,6 +4,7 @@ import Foundation
 import typealias Gemstone.ChainConfig
 import class Gemstone.Config
 import enum Gemstone.DocsUrl
+import struct Gemstone.PerpetualConfig
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
 import enum Gemstone.SocialUrl
@@ -17,6 +18,10 @@ public extension Config {
 
     func swapConfig() -> SwapConfig {
         getSwapConfig()
+    }
+
+    func perpetualConfig() -> PerpetualConfig {
+        getPerpetualConfig()
     }
 }
 

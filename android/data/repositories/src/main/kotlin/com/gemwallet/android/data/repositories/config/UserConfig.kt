@@ -10,12 +10,12 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.gemwallet.android.domains.perpetual.perpetualLeverageDefault
 import com.gemwallet.android.cases.config.GetLockInterval
 import com.gemwallet.android.cases.config.HideWelcomeBanner
 import com.gemwallet.android.cases.config.IsWelcomeBannerHidden
 import com.gemwallet.android.cases.config.SetLockInterval
 import com.gemwallet.android.model.AppUpdateInfo
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -73,7 +73,7 @@ class UserConfig(
     }
 
     fun perpetualLeverage(): Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Key.PerpetualLeverage] ?: perpetualLeverageDefault }
+        .map { preferences -> preferences[Key.PerpetualLeverage] ?: PerpetualConfig.defaultLeverage }
 
     suspend fun setPerpetualLeverage(value: Int) {
         context.dataStore.edit { preferences ->
