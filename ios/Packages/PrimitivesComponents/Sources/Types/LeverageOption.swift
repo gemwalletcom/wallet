@@ -26,12 +26,11 @@ public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
     }
 
     public static func option(desiredValue: UInt8, from available: [LeverageOption]) -> LeverageOption {
-        let selected = Config.shared.selectLeverage(
-            desired: desiredValue,
-            options: Data(available.map { $0.value }),
+        LeverageOption(
+            value: Config.shared.selectLeverage(
+                desired: desiredValue,
+                options: Data(available.map { $0.value }),
+            ),
         )
-        return available.first(where: { $0.value == selected })
-            ?? available.min()
-            ?? allOptions[0]
     }
 }
