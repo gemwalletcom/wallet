@@ -567,3 +567,7 @@
 "common.refresh" = "Refresh";
 "perpetual.margin.cross" = "Cross";
 "perpetual.margin.isolated" = "Isolated";
+"transaction.status.completed" = "Completed";
+"transaction.status.inprogress" = "In Progress";
+"info.funding_apr.title" = "Funding APR";
+"info.funding_apr.description" = "The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.";

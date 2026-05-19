@@ -134,10 +134,10 @@ public enum InfoSheetModelFactory {
                 description: Localized.Info.Transaction.Pending.description,
                 image: .image(Images.Logo.logo),
             )
-        case .fundingRate:
+        case .fundingApr:
             return InfoSheetModel(
-                title: Localized.Info.FundingRate.title,
-                description: Localized.Info.FundingRate.description,
+                title: Localized.Info.FundingApr.title,
+                description: Localized.Info.FundingApr.description,
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.perpetualsFundingRate)),
             )

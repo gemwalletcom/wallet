@@ -31,7 +31,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case stakingReservedFees(image: AssetImage)
     case pendingUnconfirmedBalance
     // perpetuals
-    case fundingRate
+    case fundingApr
     case fundingPayments
     case liquidationPrice
     case openInterest
@@ -62,7 +62,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case .stakingReservedFees: "stakingReservedFees"
         case .pendingUnconfirmedBalance: "pendingUnconfirmedBalance"
         case .noQuote: "noQuote"
-        case .fundingRate: "fundingRate"
+        case .fundingApr: "fundingApr"
         case .fundingPayments: "fundingPayments"
         case .liquidationPrice: "liquidationPrice"
         case .openInterest: "openInterest"
