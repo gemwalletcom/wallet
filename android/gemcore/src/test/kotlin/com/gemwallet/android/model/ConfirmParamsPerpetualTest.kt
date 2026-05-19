@@ -79,22 +79,22 @@ class ConfirmParamsPerpetualTest {
     }
 
     @Test
-    fun getTxType_mapsEachPerpetualVariantCorrectly() {
+    fun getTransactionType_mapsEachPerpetualVariantCorrectly() {
         assertEquals(
             TransactionType.PerpetualOpenPosition,
-            perpetualParams(PerpetualType.Open(mockPerpetualConfirmData())).getTxType(),
+            perpetualParams(PerpetualType.Open(mockPerpetualConfirmData())).getTransactionType(),
         )
         assertEquals(
             TransactionType.PerpetualClosePosition,
-            perpetualParams(PerpetualType.Close(mockPerpetualConfirmData())).getTxType(),
+            perpetualParams(PerpetualType.Close(mockPerpetualConfirmData())).getTransactionType(),
         )
         assertEquals(
             TransactionType.PerpetualModifyPosition,
-            perpetualParams(PerpetualType.Increase(mockPerpetualConfirmData())).getTxType(),
+            perpetualParams(PerpetualType.Increase(mockPerpetualConfirmData())).getTransactionType(),
         )
         assertEquals(
             TransactionType.PerpetualModifyPosition,
-            perpetualParams(PerpetualType.Reduce(mockPerpetualReduceData())).getTxType(),
+            perpetualParams(PerpetualType.Reduce(mockPerpetualReduceData())).getTransactionType(),
         )
     }
 }

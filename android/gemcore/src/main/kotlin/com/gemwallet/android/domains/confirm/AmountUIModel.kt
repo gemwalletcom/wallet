@@ -6,7 +6,7 @@ import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionType
 
 class AmountUIModel(
-    val txType: TransactionType,
+    val transactionType: TransactionType,
     val amount: String,
     val amountEquivalent: String,
     val asset: AssetInfo,

@@ -118,7 +118,7 @@ fun ConfirmScreen(
 
     val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = confirmTitle(isWalletConnect, amountModel?.txType, perpetualType),
+        title = confirmTitle(isWalletConnect, amountModel?.transactionType, perpetualType),
         closeIcon = isWalletConnect,
         onClose = { cancelAction() },
         mainAction = {
@@ -152,7 +152,7 @@ fun ConfirmScreen(
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
-                    amountModel?.txType == TransactionType.Swap -> {
+                    amountModel?.transactionType == TransactionType.Swap -> {
                         val model = requireNotNull(amountModel)
                         SwapListHead(
                             fromAsset = model.fromAsset,
@@ -163,7 +163,7 @@ fun ConfirmScreen(
                         )
                     }
 
-                    amountModel?.txType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
+                    amountModel?.transactionType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
 
                     perpetualType != null -> {
                         val asset = amountModel?.asset?.asset
@@ -364,10 +364,10 @@ fun ConfirmError.toLabel() = when (this) {
 @Composable
 private fun confirmTitle(
     isWalletConnect: Boolean,
-    txType: TransactionType?,
+    transactionType: TransactionType?,
     perpetualType: PerpetualType?,
 ): String = when {
     isWalletConnect -> stringResource(R.string.transfer_review_request)
     perpetualType != null -> perpetualType.title()
-    else -> stringResource(txType?.getTitle() ?: R.string.transfer_title)
+    else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
 }

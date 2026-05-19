@@ -24,7 +24,7 @@ class ValidateBalanceImpl : ValidateBalance {
         val amount = signerParams.finalAmount
         val feeAmount = signerParams.fee().amount
 
-        val totalAmount = when (signerParams.input.getTxType()) {
+        val totalAmount = when (signerParams.input.getTransactionType()) {
             TransactionType.Transfer,
             TransactionType.Swap,
             TransactionType.TokenApproval,

@@ -183,7 +183,7 @@ class ConfirmViewModel @Inject constructor(
         val symbol = assetInfo.asset.symbol
 
         AmountUIModel(
-            txType = request.getTxType(),
+            transactionType = request.getTransactionType(),
             amount = formatter.string(amount.atomicValue, decimals, symbol),
             amountEquivalent = CurrencyFormatter(currency = currency).string(amount.convert(decimals, price).atomicValue),
             asset = assetInfo,
@@ -308,10 +308,10 @@ class ConfirmViewModel @Inject constructor(
                 feeAssetInfo,
                 getBalance(assetInfo, signerParams.input),
             )
-            val txHash = confirmTransaction(signerParams, session, assetInfo, viewModelScope)
-            state.update { ConfirmState.Result(txHash = txHash) }
+            val transactionHash = confirmTransaction(signerParams, session, assetInfo, viewModelScope)
+            state.update { ConfirmState.Result(transactionHash = transactionHash) }
             viewModelScope.launch(Dispatchers.Main) {
-                finishAction(txHash)
+                finishAction(transactionHash)
             }
         } catch (err: Throwable) {
             state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }

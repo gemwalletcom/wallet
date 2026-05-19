@@ -587,7 +587,7 @@ sealed class ConfirmParams() {
         return Base64.getEncoder().encodeToString(json.toByteArray()).urlEncode()
     }
 
-    fun getTxType() : TransactionType {
+    fun getTransactionType() : TransactionType {
         return when (this) {
             is TransferParams -> TransactionType.Transfer
             is TokenApprovalParams -> TransactionType.TokenApproval

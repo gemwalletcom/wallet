@@ -55,12 +55,12 @@ class ConfirmTransactionImpl(
 
         var lastHash = ""
         for (sign in signs) {
-            val txHash = broadcastService.send(account, sign, signerParams.input.getTxType())
+            val transactionHash = broadcastService.send(account, sign, signerParams.input.getTransactionType())
             if (!sign.contentEquals(signs.last())) {
                 delay(500)
             } else {
-                lastHash = txHash
-                addTransaction(txHash, signerParams, assetInfo, account, session)
+                lastHash = transactionHash
+                addTransaction(transactionHash, signerParams, assetInfo, account, session)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }
         }
@@ -92,7 +92,7 @@ class ConfirmTransactionImpl(
     }
 
     private suspend fun addTransaction(
-        txHash: String,
+        transactionHash: String,
         signerParams: SignerParams,
         assetInfo: AssetInfo,
         account: Account,
@@ -101,7 +101,7 @@ class ConfirmTransactionImpl(
         val destinationAddress = signerParams.input.destination()?.address ?: ""
 
         createTransactionsCase.createTransaction(
-            hash = txHash,
+            hash = transactionHash,
             walletId = session.wallet.id,
             assetId = assetInfo.id(),
             owner = account,
@@ -110,7 +110,7 @@ class ConfirmTransactionImpl(
             fee = signerParams.fee(),
             amount = signerParams.finalAmount,
             memo = signerParams.input.memo() ?: "",
-            type = signerParams.input.getTxType(),
+            type = signerParams.input.getTransactionType(),
             metadata = assembleMetadata(signerParams),
             direction = if (destinationAddress == account.address) {
                 TransactionDirection.SelfTransfer

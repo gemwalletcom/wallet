@@ -17,10 +17,10 @@ data class TransactionBalanceContext(
 )
 
 fun AssetInfo.balance(
-    txType: TransactionType,
+    transactionType: TransactionType,
     context: TransactionBalanceContext = TransactionBalanceContext(),
 ): BigInteger {
-    return when (txType) {
+    return when (transactionType) {
         TransactionType.Transfer,
         TransactionType.Swap,
         TransactionType.TokenApproval,
