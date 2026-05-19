@@ -180,8 +180,9 @@ fun ConfirmScreen(
                     )
                 }
             }
+            val sectionSize = displayTxProperties.size + detailElements.size
             itemsIndexed(displayTxProperties) { index, item ->
-                val listPosition = ListPosition.getPosition(index, displayTxProperties.size)
+                val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
                     is ConfirmProperty.Destination -> PropertyDestination(item, listPosition)
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
@@ -189,11 +190,11 @@ fun ConfirmScreen(
                     is ConfirmProperty.Source -> PropertyItem(R.string.common_wallet, item.data, listPosition = listPosition)
                 }
             }
-            items(
-                items = detailElements,
-            ) { item ->
+            itemsIndexed(detailElements) { index, item ->
+                val listPosition = ListPosition.getPosition(displayTxProperties.size + index, sectionSize)
                 ConfirmDetailElementRow(
                     item = item,
+                    listPosition = listPosition,
                     onClick = { selectedDetailElement = item },
                 )
             }
@@ -290,16 +291,19 @@ fun ConfirmScreen(
 @Composable
 private fun ConfirmDetailElementRow(
     item: ConfirmDetailElement,
+    listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
     when (item) {
         is ConfirmDetailElement.SwapDetails -> SwapDetailsSummaryItem(
             model = item.model,
             onClick = onClick,
+            listPosition = listPosition,
         )
         is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsSummaryItem(
             model = item.model,
             onClick = onClick,
+            listPosition = listPosition,
         )
     }
 }

@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.theme.space2
 fun PerpetualDetailsSummaryItem(
     model: PerpetualConfirmDetailsUIModel,
     onClick: () -> Unit,
+    listPosition: ListPosition = ListPosition.Single,
 ) {
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
@@ -39,7 +40,7 @@ fun PerpetualDetailsSummaryItem(
                 badge = { DataBadgeChevron() },
             )
         },
-        listPosition = ListPosition.Single,
+        listPosition = listPosition,
     )
 }
 
