@@ -4,6 +4,7 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
+import com.gemwallet.android.model.compactFormatter
 import com.gemwallet.android.model.format
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -42,9 +43,9 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val name: String = data.perpetual.name
 
-    override val dayVolume: String = Currency.USD.format(data.perpetual.volume24h)
+    override val dayVolume: String = Currency.USD.compactFormatter(data.perpetual.volume24h)
 
-    override val openInterest: String = Currency.USD.format(data.perpetual.openInterest)
+    override val openInterest: String = Currency.USD.compactFormatter(data.perpetual.openInterest)
 
     override val funding: String = (data.perpetual.funding * HOURS_PER_YEAR).formatAsPercentage()
 
