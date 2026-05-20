@@ -15,6 +15,7 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.features.activities.presents.details.components.DestinationPropertyItem
 import com.gemwallet.android.features.activities.presents.details.components.SwapProgressItem
 import com.gemwallet.android.features.activities.presents.details.components.TransactionExplorer
+import com.gemwallet.android.features.activities.presents.details.components.TransactionRateProperty
 import com.gemwallet.android.features.activities.presents.details.components.TransactionStatusProperty
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -99,6 +100,7 @@ internal fun TransactionDetailsScene(
                         )
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
+                        is TransactionDetailsValue.Rate -> TransactionRateProperty(item, position)
                         is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
                     }
                 }

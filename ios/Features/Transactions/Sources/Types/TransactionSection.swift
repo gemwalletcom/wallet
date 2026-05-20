@@ -27,6 +27,7 @@ public enum TransactionItem: Identifiable, Equatable, Sendable {
     case status
     case participant
     case memo
+    case rate
     case network
     case pnl
     case price
@@ -45,6 +46,7 @@ public enum TransactionItemModel {
     case header(TransactionHeaderItemModel)
     case swapProgress(TransactionSwapProgressItemModel)
     case participant(TransactionParticipantItemModel)
+    case rate(title: String, value: String)
     case network(title: String, subtitle: String, image: AssetImage)
     case pnl(title: String, value: String, color: Color)
     case price(title: String, value: String)

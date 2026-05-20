@@ -3,6 +3,7 @@
 import BigInt
 import Components
 import ExplorerService
+import Formatters
 import Foundation
 import InfoSheet
 import Preferences
@@ -24,6 +25,7 @@ public final class TransactionSceneViewModel {
     }
 
     var isPresentingTransactionSheet: TransactionSheetType?
+    private var rateDirection: AssetRateFormatter.Direction = .direct
 
     public init(
         transaction: TransactionExtended,
@@ -60,7 +62,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
             ListSection(type: .header, [.header]),
             ListSection(type: .swapProgress, [.swapProgress]),
             ListSection(type: .swapAction, [.swapButton]),
-            ListSection(type: .details, [.date, .status, .participant, .memo, .network, .pnl, .price, .provider]),
+            ListSection(type: .details, [.date, .status, .participant, .memo, .rate, .network, .pnl, .price, .provider]),
             ListSection(type: .fee, [.fee]),
             ListSection(type: .explorer, [.explorerLink]),
         ]
@@ -75,6 +77,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
         case .participant: TransactionParticipantViewModel(transactionViewModel: model)
         case .memo: TransactionMemoViewModel(transaction: model.transaction.transaction)
+        case .rate: TransactionRateViewModel(transaction: model.transaction, direction: rateDirection)
         case .network: TransactionNetworkViewModel(chain: model.transaction.asset.chain)
         case .pnl: TransactionPnlViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self))
         case .price: TransactionPriceViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self))
@@ -103,6 +106,13 @@ extension TransactionSceneViewModel {
             return
         }
         onHeaderAction(.swap(fromAssetId: fromAssetId, toAssetId: toAssetId))
+    }
+
+    func switchRateDirection() {
+        switch rateDirection {
+        case .direct: rateDirection = .inverse
+        case .inverse: rateDirection = .direct
+        }
     }
 
     func onSelectShare() {
