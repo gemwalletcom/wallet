@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
@@ -31,8 +32,10 @@ class GetPerpetualImpl @Inject constructor(
 }
 
 class PerpetualDetailsDataAggregateImpl(
-    private val data: PerpetualData
+    private val data: PerpetualData,
 ) : PerpetualDetailsDataAggregate {
+    private val abbreviatedFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD)
+
     override val id: String = data.perpetual.id
 
     override val provider: PerpetualProvider = data.perpetual.provider
@@ -41,13 +44,11 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val name: String = data.perpetual.name
 
-    private val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
+    override val dayVolume: String = abbreviatedFormatter.string(data.perpetual.volume24h)
 
-    override val dayVolume: String = formatter.string(data.perpetual.volume24h)
+    override val openInterest: String = abbreviatedFormatter.string(data.perpetual.openInterest)
 
-    override val openInterest: String = formatter.string(data.perpetual.openInterest)
-
-    override val funding: String = formatter.string(data.perpetual.funding)
+    override val funding: String = (data.perpetual.funding * HOURS_PER_YEAR).formatAsPercentage()
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 
@@ -56,4 +57,8 @@ class PerpetualDetailsDataAggregateImpl(
     override val identifier: String = data.perpetual.identifier
 
     override val isIsolatedOnly: Boolean = data.perpetual.isIsolatedOnly
+
+    private companion object {
+        const val HOURS_PER_YEAR = 24 * 365
+    }
 }

@@ -27,12 +27,13 @@ final class ValueFormatterTests {
         #expect(formatter.string(1, decimals: 3) == "0.001")
 
         #expect(formatter.string(1, decimals: 4) == "0.0001")
-        #expect(formatter.string(1, decimals: 5) == "0")
-        #expect(formatter.string(1, decimals: 6) == "0")
+        #expect(formatter.string(1, decimals: 5) == "<0.0001")
+        #expect(formatter.string(1, decimals: 6) == "<0.0001")
         #expect(formatter.string(12_345_678_910, decimals: 6) == "12.35K")
 
         #expect(formatter.string(7_758_980_129_936_940, decimals: 18, currency: "BNB") == "0.0077 BNB")
         #expect(formatter.string(2_737_071, decimals: 8, currency: "BTC") == "0.0273 BTC")
+        #expect(formatter.string(629, decimals: 8, currency: "WBTC") == "<0.0001 WBTC")
     }
 
     @Test

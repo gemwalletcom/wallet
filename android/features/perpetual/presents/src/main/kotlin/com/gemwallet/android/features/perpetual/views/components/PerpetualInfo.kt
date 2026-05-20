@@ -25,9 +25,9 @@ fun LazyListScope.perpetualInfo(data: PerpetualDetailsDataAggregate) {
             listPosition = ListPosition.Middle,
         )
         PropertyItem(
-            title = stringResource(R.string.info_funding_rate_title),
+            title = stringResource(R.string.info_funding_apr_title),
             data = data.funding,
-            info = InfoSheetEntity.FundingInfo,
+            info = InfoSheetEntity.FundingAprInfo,
             listPosition = ListPosition.Last,
         )
     }

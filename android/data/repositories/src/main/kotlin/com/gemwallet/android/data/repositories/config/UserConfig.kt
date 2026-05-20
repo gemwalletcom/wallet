@@ -15,6 +15,7 @@ import com.gemwallet.android.cases.config.HideWelcomeBanner
 import com.gemwallet.android.cases.config.IsWelcomeBannerHidden
 import com.gemwallet.android.cases.config.SetLockInterval
 import com.gemwallet.android.model.AppUpdateInfo
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -72,7 +73,7 @@ class UserConfig(
     }
 
     fun perpetualLeverage(): Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Key.PerpetualLeverage] ?: PERPETUAL_LEVERAGE_DEFAULT }
+        .map { preferences -> preferences[Key.PerpetualLeverage] ?: PerpetualConfig.defaultLeverage }
 
     suspend fun setPerpetualLeverage(value: Int) {
         context.dataStore.edit { preferences ->
@@ -207,8 +208,4 @@ class UserConfig(
         val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
     }
 
-    companion object {
-        const val PERPETUAL_LEVERAGE_DEFAULT = 5
-        val PERPETUAL_LEVERAGE_OPTIONS = listOf(1, 2, 3, 5, 10, 20, 25, 30, 40, 50)
-    }
 }

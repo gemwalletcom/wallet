@@ -39,6 +39,10 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
+import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
+import com.gemwallet.android.ui.components.perpetual.title
+import com.wallet.core.primitives.PerpetualType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
@@ -112,14 +116,9 @@ fun ConfirmScreen(
         cancelAction()
     }
 
+    val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = stringResource(
-            if (isWalletConnect) {
-                R.string.transfer_review_request
-            } else {
-                amountModel?.txType?.getTitle() ?: R.string.transfer_title
-            }
-        ),
+        title = confirmTitle(isWalletConnect, amountModel?.transactionType, perpetualType),
         closeIcon = isWalletConnect,
         onClose = { cancelAction() },
         mainAction = {
@@ -153,7 +152,7 @@ fun ConfirmScreen(
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
-                    amountModel?.txType == TransactionType.Swap -> {
+                    amountModel?.transactionType == TransactionType.Swap -> {
                         val model = requireNotNull(amountModel)
                         SwapListHead(
                             fromAsset = model.fromAsset,
@@ -164,7 +163,15 @@ fun ConfirmScreen(
                         )
                     }
 
-                    amountModel?.txType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
+                    amountModel?.transactionType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
+
+                    perpetualType != null -> {
+                        val asset = amountModel?.asset?.asset
+                        AmountListHead(
+                            amount = asset?.symbol.orEmpty(),
+                            icon = asset,
+                        )
+                    }
 
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
@@ -173,8 +180,9 @@ fun ConfirmScreen(
                     )
                 }
             }
+            val sectionSize = displayTxProperties.size + detailElements.size
             itemsIndexed(displayTxProperties) { index, item ->
-                val listPosition = ListPosition.getPosition(index, displayTxProperties.size)
+                val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
                     is ConfirmProperty.Destination -> PropertyDestination(item, listPosition)
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
@@ -182,11 +190,11 @@ fun ConfirmScreen(
                     is ConfirmProperty.Source -> PropertyItem(R.string.common_wallet, item.data, listPosition = listPosition)
                 }
             }
-            items(
-                items = detailElements,
-            ) { item ->
+            itemsIndexed(detailElements) { index, item ->
+                val listPosition = ListPosition.getPosition(displayTxProperties.size + index, sectionSize)
                 ConfirmDetailElementRow(
                     item = item,
+                    listPosition = listPosition,
                     onClick = { selectedDetailElement = item },
                 )
             }
@@ -283,12 +291,19 @@ fun ConfirmScreen(
 @Composable
 private fun ConfirmDetailElementRow(
     item: ConfirmDetailElement,
+    listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
     when (item) {
         is ConfirmDetailElement.SwapDetails -> SwapDetailsSummaryItem(
             model = item.model,
             onClick = onClick,
+            listPosition = listPosition,
+        )
+        is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsSummaryItem(
+            model = item.model,
+            onClick = onClick,
+            listPosition = listPosition,
         )
     }
 }
@@ -305,6 +320,12 @@ private fun ConfirmDetailElementBottomSheet(
             model = item.model,
             onDismiss = onDismiss,
             showProviderSectionHeader = true,
+        )
+
+        is ConfirmDetailElement.PerpetualDetails -> PerpetualDetailsBottomSheet(
+            isVisible = true,
+            model = item.model,
+            onDismiss = onDismiss,
         )
 
         null -> Unit
@@ -338,4 +359,15 @@ fun ConfirmError.toLabel() = when (this) {
     is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)
     is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
     is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
+}
+
+@Composable
+private fun confirmTitle(
+    isWalletConnect: Boolean,
+    transactionType: TransactionType?,
+    perpetualType: PerpetualType?,
+): String = when {
+    isWalletConnect -> stringResource(R.string.transfer_review_request)
+    perpetualType != null -> perpetualType.title()
+    else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
 }

@@ -24,7 +24,8 @@ class ValueFormatterTest {
         assertEquals("0.19 HYPE", f.string(BigInteger("199200000000000000"), decimals = 18, currency = "HYPE"))
         assertEquals("0.0999 ETH", f.string(BigInteger.valueOf(99_900L), decimals = 6, currency = "ETH"))
         assertEquals("0.0006 BTC", f.string(BigInteger.valueOf(60_000L), decimals = 8, currency = "BTC"))
-        assertEquals("0 BTC", f.string(BigInteger.ONE, decimals = 8, currency = "BTC"))
+        assertEquals("<0.0001 BTC", f.string(BigInteger.ONE, decimals = 8, currency = "BTC"))
+        assertEquals("<0.0001 WBTC", f.string(BigInteger.valueOf(629L), decimals = 8, currency = "WBTC"))
     }
 
     @Test

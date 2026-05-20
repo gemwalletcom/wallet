@@ -26,7 +26,7 @@ class TransactionBalanceService @Inject constructor(
 ) {
 
     suspend fun getBalance(assetInfo: AssetInfo, params: ConfirmParams): BigInteger {
-        return assetInfo.balance(params.getTxType(), getContext(assetInfo, params))
+        return assetInfo.balance(params.getTransactionType(), getContext(assetInfo, params))
     }
 
     suspend fun getContext(assetInfo: AssetInfo, params: ConfirmParams): TransactionBalanceContext {
@@ -38,7 +38,7 @@ class TransactionBalanceService @Inject constructor(
             is ConfirmParams.Stake.RewardsParams -> TransactionBalanceContext(
                 rewardsBalance = getRewardsBalance(assetInfo),
             )
-            is ConfirmParams.PerpetualParams.Open -> TransactionBalanceContext(
+            is ConfirmParams.PerpetualParams -> TransactionBalanceContext(
                 perpetualBalance = getPerpetualBalance(assetInfo),
             )
             else -> TransactionBalanceContext()
@@ -62,7 +62,7 @@ class TransactionBalanceService @Inject constructor(
         resource: Resource? = null,
     ): BigInteger {
         return assetInfo.balance(
-            txType = params.transactionType,
+            transactionType = params.transactionType,
             context = getContext(assetInfo, params, delegation, resource),
         )
     }

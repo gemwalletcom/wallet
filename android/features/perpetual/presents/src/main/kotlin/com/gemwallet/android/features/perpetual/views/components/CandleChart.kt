@@ -74,7 +74,6 @@ import com.patrykandpatrick.vico.core.common.shape.DashedShape
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.min
@@ -121,16 +120,17 @@ private fun CandleChart(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(paddingDefault),
     ) {
-        val point = if (data.isEmpty()) null else price ?: data.last()
-        val priceInfo = CandlePriceInfo.from(point, data)
-        PriceInfo(
-            priceValue = priceInfo.priceValue,
-            changedPercentages = priceInfo.changedPercentages,
-            state = priceInfo.state,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            internalPadding = space8
-        )
+        val point = price ?: data.lastOrNull()
+        CandlePriceInfo.from(point, data)?.let { priceInfo ->
+            PriceInfo(
+                priceValue = priceInfo.priceValue,
+                changedPercentages = priceInfo.changedPercentages,
+                state = priceInfo.state,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                internalPadding = space8,
+            )
+        }
         Box(
             modifier = Modifier.fillMaxWidth().height(200.dp)
         ) {
