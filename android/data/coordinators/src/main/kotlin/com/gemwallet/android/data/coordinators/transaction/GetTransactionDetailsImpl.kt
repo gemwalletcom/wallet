@@ -254,6 +254,7 @@ class TransactionDetailsAggregateImpl(
         get() = buildList {
             add(ValueGroup(listOf(amount)))
             swapProgress?.let { add(ValueGroup(listOf(it))) }
+            swapAgain?.let { add(ValueGroup(listOf(it))) }
             add(
                 ValueGroup(
                     listOfNotNull(
@@ -286,6 +287,18 @@ class TransactionDetailsAggregateImpl(
                 fromValue = metadata.fromValue,
                 providerName = provider.name,
                 state = data.transaction.state,
+            )
+        }
+
+    override val swapAgain: TransactionDetailsValue.SwapAgain?
+        get() {
+            if (data.transaction.type != TransactionType.Swap) return null
+            if (data.transaction.state != TransactionState.Confirmed) return null
+            val metadata = swapMetadata ?: return null
+
+            return TransactionDetailsValue.SwapAgain(
+                fromAssetId = metadata.fromAsset,
+                toAssetId = metadata.toAsset,
             )
         }
 

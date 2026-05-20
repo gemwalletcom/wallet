@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.transaction.values
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
@@ -82,6 +83,11 @@ sealed interface TransactionDetailsValue {
         val fromValue: String,
         val providerName: String,
         val state: TransactionState,
+    ) : TransactionDetailsValue
+
+    class SwapAgain(
+        val fromAssetId: AssetId,
+        val toAssetId: AssetId,
     ) : TransactionDetailsValue
 
     class Memo(val data: String) : TransactionDetailsValue
