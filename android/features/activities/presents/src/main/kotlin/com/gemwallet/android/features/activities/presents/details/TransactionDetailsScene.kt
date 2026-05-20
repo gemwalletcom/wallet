@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
@@ -26,6 +27,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
 import com.gemwallet.android.ui.components.screen.Scene
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 
 @Composable
@@ -90,6 +92,11 @@ internal fun TransactionDetailsScene(
                             onClick = { onAction(TransactionDetailsAction.ShowFeeDetails) },
                         )
                         is TransactionDetailsValue.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = position)
+                        is TransactionDetailsValue.ResourceType -> PropertyItem(
+                            R.string.stake_resource,
+                            item.data.resourceTitle(),
+                            listPosition = position,
+                        )
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
                         is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
@@ -121,4 +128,10 @@ private fun TransactionDetailsAggregate.amountAction(asset: Asset): TransactionD
         TransactionType.EarnDeposit,
         TransactionType.EarnWithdraw -> null
     }
+}
+
+@Composable
+private fun Resource.resourceTitle(): String = when (this) {
+    Resource.Bandwidth -> stringResource(R.string.stake_resource_bandwidth)
+    Resource.Energy -> stringResource(R.string.stake_resource_energy)
 }

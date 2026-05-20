@@ -135,7 +135,7 @@ fun NFTDetailsScene(
     }
 }
 
-private val enabledChainTypes: Set<ChainType> = setOf(ChainType.Ethereum, ChainType.Ton)
+private val enabledChainTypes: Set<ChainType> = setOf(ChainType.Ethereum, ChainType.Ton, ChainType.Solana)
 
 private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
     item {

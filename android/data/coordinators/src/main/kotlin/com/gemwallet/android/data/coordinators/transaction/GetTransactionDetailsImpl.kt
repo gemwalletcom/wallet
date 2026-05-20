@@ -13,6 +13,7 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
+import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
 import com.gemwallet.android.ext.toSwapProvider
@@ -195,6 +196,11 @@ class TransactionDetailsAggregateImpl(
         ?.takeIf { it.isNotEmpty() }
         ?.let { TransactionDetailsValue.Memo(it) }
 
+    override val resourceType: TransactionDetailsValue.ResourceType? = data.transaction
+        .getResourceMetadata()
+        ?.resourceType
+        ?.let { TransactionDetailsValue.ResourceType(it) }
+
     override val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
     override val destination: TransactionDetailsValue.Destination? = when (data.transaction.type) {
@@ -254,6 +260,7 @@ class TransactionDetailsAggregateImpl(
                         date,
                         status,
                         destination,
+                        resourceType,
                         network,
                     )
                 )
@@ -268,9 +275,11 @@ class TransactionDetailsAggregateImpl(
 
             val metadata = swapMetadata ?: return null
             val provider = swapProvider?.takeIf { it.mode.isCrossChain } ?: return null
-            val fromAsset = associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset ?: return null
-            val toAsset = associatedAssets.firstOrNull { it.id() == metadata.toAsset }?.asset ?: return null
-            if (fromAsset.id.chain == toAsset.id.chain) return null
+
+            val fromAsset = data.assets.firstOrNull { it.id == metadata.fromAsset }
+                ?: associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset
+                ?: data.asset.takeIf { it.id == metadata.fromAsset }
+                ?: return null
 
             return TransactionDetailsValue.SwapProgress(
                 fromAsset = fromAsset,
