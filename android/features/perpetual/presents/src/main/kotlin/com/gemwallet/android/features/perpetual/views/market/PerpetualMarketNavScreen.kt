@@ -27,6 +27,8 @@ fun PerpetualMarketNavScreen(
         snapshotFlow { query.text.toString() }.collect(viewModel::setQuery)
     }
 
+    LaunchedEffect(Unit) { viewModel.fetch() }
+
     PerpetualMarketScene(
         sceneState = sceneState,
         balance = balance,
@@ -34,11 +36,15 @@ fun PerpetualMarketNavScreen(
         pinnedPerpetuals = pinnedPerpetuals,
         positions = positions,
         query = query,
-        onRefresh = viewModel::onRefresh,
-        onPin = viewModel::onTogglePin,
-        onClose = onCancel,
-        onWithdraw = {},
-        onDeposit = {},
-        onClick = onOpenPerpetualDetails
+        onAction = { action ->
+            when (action) {
+                PerpetualMarketAction.Refresh -> viewModel.onRefresh()
+                PerpetualMarketAction.Close -> onCancel()
+                PerpetualMarketAction.Withdraw -> Unit
+                PerpetualMarketAction.Deposit -> Unit
+                is PerpetualMarketAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
+                is PerpetualMarketAction.OpenPerpetual -> onOpenPerpetualDetails(action.assetId)
+            }
+        },
     )
 }

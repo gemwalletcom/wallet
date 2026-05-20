@@ -15,6 +15,7 @@ import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
@@ -90,8 +91,9 @@ class AmountViewModel @Inject constructor(
             amountInputType,
             provider.assetInfo,
             provider.availableBalance,
-        ) { input, type, current, balance ->
-            ValidationInputs(input, type, current?.asset, balance)
+            provider.minimumValue,
+        ) { input, type, current, balance, minimum ->
+            ValidationInputs(input, type, current?.asset, balance, minimum)
         }
             .mapLatest { validate(it) }
             .onEach { amountError.value = it }
@@ -131,7 +133,7 @@ class AmountViewModel @Inject constructor(
             try {
                 val current = provider.assetInfo.value ?: return@launch
                 val asset = current.asset
-                AmountValidation.validateAmount(asset, amount, provider.minimumValue)
+                AmountValidation.validateAmount(asset, amount, provider.minimumValue.value)
                 val price = current.price?.price?.price ?: 0.0
                 val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
                 val available = provider.availableBalance.value.toBigDecimal().movePointLeft(asset.decimals)
@@ -153,7 +155,7 @@ class AmountViewModel @Inject constructor(
         val asset = inputs.asset ?: return AmountError.None
         val current = provider.assetInfo.value ?: return AmountError.None
         return try {
-            AmountValidation.validateAmount(asset, inputs.amount, provider.minimumValue)
+            AmountValidation.validateAmount(asset, inputs.amount, inputs.minimumValue)
             val price = current.price?.price?.price ?: 0.0
             val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
             val available = inputs.availableBalance.toBigDecimal().movePointLeft(asset.decimals)
@@ -177,11 +179,11 @@ class AmountViewModel @Inject constructor(
                 AmountInputType.Crypto -> {
                     AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
                     val value = input.parseNumber()
-                    val unit = Crypto(value, asset.decimals).convert(asset.decimals, price)
+                    val unit = CryptoFiatConverter.toFiat(Crypto(value, asset.decimals), asset.decimals, price)
                     currencyFormatter.string(unit.atomicValue)
                 }
                 AmountInputType.Fiat -> {
-                    val crypto = ValueConverter().convertToAmount(input, price, asset.decimals)
+                    val crypto = ValueConverter.convertToAmount(input, price, asset.decimals)
                     AmountValidation.validateAmount(asset, crypto.value(asset.decimals).toPlainString(), BigInteger.ZERO)
                     valueFormatter.string(crypto.atomicValue, asset.decimals, asset.symbol)
                 }
@@ -200,4 +202,5 @@ private data class ValidationInputs(
     val inputType: AmountInputType,
     val asset: Asset?,
     val availableBalance: BigInteger,
+    val minimumValue: BigInteger,
 )

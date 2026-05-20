@@ -14,7 +14,7 @@ class ValueFormatter(
     private val locale: Locale = Locale.getDefault(),
     private val abbreviationThreshold: BigDecimal = ABBREVIATION_THRESHOLD,
 ) {
-    enum class Style { Short, Compact, Auto, Full }
+    enum class Style { Full, Short, Auto }
 
     fun string(value: BigInteger, asset: Asset): String =
         string(value, decimals = asset.decimals, currency = asset.symbol)
@@ -29,6 +29,10 @@ class ValueFormatter(
             return appendCurrency(abbreviated(value), currency)
         }
 
+        if (style == Style.Short && value.abs() < DUST_THRESHOLD) {
+            return appendCurrency("<${formattedDustThreshold()}", currency)
+        }
+
         val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
             roundingMode = RoundingMode.DOWN
         }
@@ -38,7 +42,6 @@ class ValueFormatter(
     private fun precision(magnitude: BigDecimal): Precision = when (style) {
         Style.Full -> Precision.full
         Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
-        Style.Compact -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
         Style.Auto -> when {
             magnitude >= BigDecimal.ONE -> Precision.upToTwoPlaces
             magnitude >= DUST_THRESHOLD -> Precision.fourSignificant
@@ -50,6 +53,14 @@ class ValueFormatter(
         val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
         formatter.maximumFractionDigits = 2
         return formatter.format(decimal)
+    }
+
+    private fun formattedDustThreshold(): String {
+        val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
+            minimumFractionDigits = 4
+            maximumFractionDigits = 4
+        }
+        return formatter.format(DUST_THRESHOLD)
     }
 
     private fun appendCurrency(value: String, currency: String): String =

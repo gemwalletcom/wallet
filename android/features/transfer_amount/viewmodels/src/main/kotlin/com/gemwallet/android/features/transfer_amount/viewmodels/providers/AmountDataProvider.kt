@@ -12,11 +12,11 @@ sealed interface AmountDataProvider {
     val canChangeValue: Boolean
     val showsAssetBalance: Boolean get() = canChangeValue
     val canSwitchInputType: Boolean
-    val minimumValue: BigInteger
     val reserveForFee: BigInteger
 
     val assetInfo: StateFlow<AssetInfo?>
     val availableBalance: StateFlow<BigInteger>
+    val minimumValue: StateFlow<BigInteger>
 
     fun shouldReserveFee(isMaxAmount: Boolean): Boolean
     suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams

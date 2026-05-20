@@ -8,11 +8,12 @@ public extension GemTransactionLoadMetadata {
         switch self {
         case .none:
             .none
-        case let .solana(senderTokenAddress, recipientTokenAddress, tokenProgram, blockHash):
+        case let .solana(senderTokenAddress, recipientTokenAddress, tokenProgram, nft, blockHash):
             .solana(
                 senderTokenAddress: senderTokenAddress,
                 recipientTokenAddress: recipientTokenAddress,
                 tokenProgram: tokenProgram?.map(),
+                nft: nft?.map(),
                 blockHash: blockHash,
             )
         case let .ton(senderTokenAddress, recipientTokenAddress, sequence):
@@ -82,11 +83,12 @@ public extension TransactionLoadMetadata {
         switch self {
         case .none:
             .none
-        case let .solana(senderTokenAddress, recipientTokenAddress, tokenProgram, blockHash):
+        case let .solana(senderTokenAddress, recipientTokenAddress, tokenProgram, nft, blockHash):
             .solana(
                 senderTokenAddress: senderTokenAddress,
                 recipientTokenAddress: recipientTokenAddress,
                 tokenProgram: tokenProgram?.map(),
+                nft: nft?.map(),
                 blockHash: blockHash,
             )
         case let .ton(senderTokenAddress, recipientTokenAddress, sequence):

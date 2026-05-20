@@ -7,18 +7,22 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
+import com.gemwallet.android.ext.getPerpetualMetadata
+import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
 import com.gemwallet.android.ext.toSwapProvider
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
@@ -140,7 +144,7 @@ class TransactionDetailsAggregateImpl(
                 else -> {
                     val value = Crypto(data.transaction.value.toBigInteger())
                     val fiat = data.price?.price?.let {
-                        CurrencyFormatter(currency = currency).string(value.convert(asset.decimals, it).atomicValue)
+                        CurrencyFormatter(currency = currency).string(CryptoFiatConverter.toFiat(value, asset.decimals, it).atomicValue)
                     } ?: ""
 
                     val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
@@ -179,7 +183,7 @@ class TransactionDetailsAggregateImpl(
             val feeCrypto = ValueFormatter(style = ValueFormatter.Style.Full)
                 .string(fee.atomicValue, data.feeAsset)
             val feeFiat = data.feePrice?.price?.let {
-                CurrencyFormatter(currency = currency).string(fee.convert(data.feeAsset.decimals, it).atomicValue)
+                CurrencyFormatter(currency = currency).string(CryptoFiatConverter.toFiat(fee, data.feeAsset.decimals, it).atomicValue)
             } ?: ""
             return TransactionDetailsValue.Fee(data.feeAsset, feeCrypto, feeFiat)
         }
@@ -194,7 +198,23 @@ class TransactionDetailsAggregateImpl(
         ?.takeIf { it.isNotEmpty() }
         ?.let { TransactionDetailsValue.Memo(it) }
 
+    override val resourceType: TransactionDetailsValue.ResourceType? = data.transaction
+        .getResourceMetadata()
+        ?.resourceType
+        ?.let { TransactionDetailsValue.ResourceType(it) }
+
     override val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
+
+    private val perpetualMetadata = data.transaction.getPerpetualMetadata()
+    private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+
+    override val pnl: TransactionDetailsValue.Pnl? = perpetualMetadata?.pnl
+        ?.takeIf { it != 0.0 }
+        ?.let { TransactionDetailsValue.Pnl(value = "${if (it >= 0) "+" else ""}${usdFormatter.string(it)}", direction = it.toValueDirection()) }
+
+    override val price: TransactionDetailsValue.Price? = perpetualMetadata?.price
+        ?.takeIf { it > 0 }
+        ?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
 
     override val destination: TransactionDetailsValue.Destination? = when (data.transaction.type) {
         TransactionType.StakeUndelegate,
@@ -253,7 +273,10 @@ class TransactionDetailsAggregateImpl(
                         date,
                         status,
                         destination,
+                        resourceType,
                         network,
+                        pnl,
+                        price,
                     )
                 )
             )
@@ -267,9 +290,11 @@ class TransactionDetailsAggregateImpl(
 
             val metadata = swapMetadata ?: return null
             val provider = swapProvider?.takeIf { it.mode.isCrossChain } ?: return null
-            val fromAsset = associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset ?: return null
-            val toAsset = associatedAssets.firstOrNull { it.id() == metadata.toAsset }?.asset ?: return null
-            if (fromAsset.id.chain == toAsset.id.chain) return null
+
+            val fromAsset = data.assets.firstOrNull { it.id == metadata.fromAsset }
+                ?: associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset
+                ?: data.asset.takeIf { it.id == metadata.fromAsset }
+                ?: return null
 
             return TransactionDetailsValue.SwapProgress(
                 fromAsset = fromAsset,

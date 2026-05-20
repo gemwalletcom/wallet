@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.features.transfer_amount.presents.dialogs.SelectLeverageDialog
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
@@ -25,6 +26,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.PropertyValidatorItem
+import com.gemwallet.android.ui.components.perpetual.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Resource
 
@@ -85,18 +87,23 @@ private fun StakeResourceSection(provider: AmountStakeProvider) {
 
 @Composable
 private fun PerpetualLeverageSection(provider: AmountPerpetualProvider) {
+    val state = provider.leverageState.collectAsStateWithLifecycle().value ?: return
     var showLeverageSelect by remember { mutableStateOf(false) }
-    val leverage by provider.leverage.collectAsStateWithLifecycle()
-    val available by provider.availableLeverages.collectAsStateWithLifecycle()
     PropertyItem(
         modifier = Modifier.clickable { showLeverageSelect = true },
         title = { PropertyTitleText(R.string.perpetual_leverage) },
-        data = { PropertyDataText("${leverage}x", badge = { DataBadgeChevron() }) },
+        data = {
+            PropertyDataText(
+                text = state.current.formatLeverage(),
+                color = state.direction.color(),
+                badge = { DataBadgeChevron() },
+            )
+        },
         listPosition = ListPosition.Single,
     )
     SelectLeverageDialog(
         isVisible = showLeverageSelect,
-        leverages = available,
+        leverages = state.options,
         onDismiss = { showLeverageSelect = false },
         onSelect = provider::setLeverage,
     )

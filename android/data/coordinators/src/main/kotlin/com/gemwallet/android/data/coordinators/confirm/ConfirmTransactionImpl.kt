@@ -16,6 +16,7 @@ import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
+import com.wallet.core.primitives.TransactionResourceTypeMetadata
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.TransactionSwapMetadata
@@ -55,12 +56,12 @@ class ConfirmTransactionImpl(
 
         var lastHash = ""
         for (sign in signs) {
-            val txHash = broadcastService.send(account, sign, signerParams.input.getTxType())
+            val transactionHash = broadcastService.send(account, sign, signerParams.input.getTransactionType())
             if (!sign.contentEquals(signs.last())) {
                 delay(500)
             } else {
-                lastHash = txHash
-                addTransaction(txHash, signerParams, assetInfo, account, session)
+                lastHash = transactionHash
+                addTransaction(transactionHash, signerParams, assetInfo, account, session)
                 scope.launch(Dispatchers.IO) { addRecent(assetInfo, signerParams.input) }
             }
         }
@@ -92,7 +93,7 @@ class ConfirmTransactionImpl(
     }
 
     private suspend fun addTransaction(
-        txHash: String,
+        transactionHash: String,
         signerParams: SignerParams,
         assetInfo: AssetInfo,
         account: Account,
@@ -101,7 +102,7 @@ class ConfirmTransactionImpl(
         val destinationAddress = signerParams.input.destination()?.address ?: ""
 
         createTransactionsCase.createTransaction(
-            hash = txHash,
+            hash = transactionHash,
             walletId = session.wallet.id,
             assetId = assetInfo.id(),
             owner = account,
@@ -110,7 +111,7 @@ class ConfirmTransactionImpl(
             fee = signerParams.fee(),
             amount = signerParams.finalAmount,
             memo = signerParams.input.memo() ?: "",
-            type = signerParams.input.getTxType(),
+            type = signerParams.input.getTransactionType(),
             metadata = assembleMetadata(signerParams),
             direction = if (destinationAddress == account.address) {
                 TransactionDirection.SelfTransfer
@@ -138,22 +139,31 @@ class ConfirmTransactionImpl(
         } catch (_: Throwable) {}
     }
 
-    private fun assembleMetadata(signerParams: SignerParams) = when (val input = signerParams.input) {
-        is ConfirmParams.SwapParams -> {
-            jsonEncoder.encodeToString(
-                TransactionSwapMetadata(
-                    fromAsset = input.fromAsset.id,
-                    toAsset = input.toAsset.id,
-                    fromValue = input.fromAmount.toString(),
-                    toValue = input.toAmount.toString(),
-                    provider = input.protocolId,
-                )
-            )
-        }
-        is ConfirmParams.NftParams -> jsonEncoder.encodeToString(
-            TransactionNFTTransferMetadata(input.nftAsset.id, input.nftAsset.name)
-        )
-        else -> null
-    }
+    private fun assembleMetadata(signerParams: SignerParams) =
+        signerParams.input.toTransactionMetadataJson()
 
+}
+
+internal fun ConfirmParams.toTransactionMetadataJson(): String? = when (this) {
+    is ConfirmParams.SwapParams -> {
+        jsonEncoder.encodeToString(
+            TransactionSwapMetadata(
+                fromAsset = fromAsset.id,
+                toAsset = toAsset.id,
+                fromValue = fromAmount.toString(),
+                toValue = toAmount.toString(),
+                provider = protocolId,
+            )
+        )
+    }
+    is ConfirmParams.NftParams -> jsonEncoder.encodeToString(
+        TransactionNFTTransferMetadata(nftAsset.id, nftAsset.name)
+    )
+    is ConfirmParams.Stake.Freeze -> jsonEncoder.encodeToString(
+        TransactionResourceTypeMetadata(resource)
+    )
+    is ConfirmParams.Stake.Unfreeze -> jsonEncoder.encodeToString(
+        TransactionResourceTypeMetadata(resource)
+    )
+    else -> null
 }

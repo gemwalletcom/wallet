@@ -10,7 +10,7 @@ sealed interface AmountScreenState {
 
     class Loaded(
         val error: AmountError,
-        val txType: TransactionType,
+        val transactionType: TransactionType,
         val assetId: AssetId,
         val assetSymbol: String,
         val assetIcon: String,

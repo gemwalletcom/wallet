@@ -12,8 +12,10 @@ import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getPerpetualMetadata
+import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
@@ -21,6 +23,7 @@ import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
@@ -109,7 +112,7 @@ class TransactionDataAggregateImpl(
             } ?: ""
         }
         TransactionType.PerpetualOpenPosition -> CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD).string(
-            Crypto(data.transaction.value).convert(HypercoreUSDC.decimals, price = 1.0).atomicValue,
+            CryptoFiatConverter.toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
         )
         TransactionType.PerpetualClosePosition -> pnl?.let {
             PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)).string(it)
@@ -152,6 +155,8 @@ class TransactionDataAggregateImpl(
     override val perpetualPrice: Double? = perpetualMetadata?.price?.takeIf { it > 0 }
 
     override val pnl: Double? = perpetualMetadata?.pnl
+
+    override val resourceType: Resource? = data.transaction.getResourceMetadata()?.resourceType
 
     override val state: TransactionState = data.transaction.state
     override val createdAt: Long = data.transaction.createdAt

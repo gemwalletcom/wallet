@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
@@ -51,7 +52,7 @@ data class FeeRateUIModel(
     private fun fiatText(): String? {
         val priceInfo = feeAsset.price ?: return null
         val amount = feeAmount ?: return null
-        val fiat = Crypto(amount).convert(feeAsset.asset.decimals, priceInfo.price.price)
+        val fiat = CryptoFiatConverter.toFiat(Crypto(amount), feeAsset.asset.decimals, priceInfo.price.price)
         return CurrencyFormatter(currency = priceInfo.currency).string(fiat.atomicValue)
     }
 

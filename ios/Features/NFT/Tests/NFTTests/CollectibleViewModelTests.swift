@@ -100,6 +100,12 @@ struct CollectibleViewModelTests {
         )
         #expect(enabledModel.isSendEnabled == true)
 
+        let tonModel = CollectibleViewModel.mock(
+            wallet: .mock(type: .multicoin),
+            assetData: .mock(asset: .mock(chain: .ton)),
+        )
+        #expect(tonModel.isSendEnabled == true)
+
         let viewOnlyModel = CollectibleViewModel.mock(
             wallet: .mock(type: .view),
             assetData: .mock(asset: .mock(chain: .ethereum)),

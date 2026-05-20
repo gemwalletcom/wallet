@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.perpetuals
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
+import com.gemwallet.android.domains.perpetual.formatPnlWithPercentage
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.CurrencyFormatter
