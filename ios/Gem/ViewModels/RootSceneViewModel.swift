@@ -7,6 +7,7 @@ import ConnectionsService
 import DeviceService
 import EventPresenterService
 import Foundation
+import GemstonePrimitives
 import Localization
 import LockManager
 import NameService
@@ -150,7 +151,7 @@ extension RootSceneViewModel {
             switch action {
             case let .walletConnect(walletConnectAction):
                 try await handleWalletConnect(walletConnectAction)
-            case .asset, .swap, .perpetuals, .rewards, .gift, .buy, .sell, .setPriceAlert:
+            case .deeplink:
                 await navigationHandler.handle(action)
             }
         } catch {

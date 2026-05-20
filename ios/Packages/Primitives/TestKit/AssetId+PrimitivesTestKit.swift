@@ -18,6 +18,10 @@ public extension AssetId {
         AssetId(chain: .ethereum, tokenId: .none)
     }
 
+    static func mockEthereumUSDT() -> AssetId {
+        AssetId(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")
+    }
+
     static func mockSolana() -> AssetId {
         AssetId(chain: .solana, tokenId: .none)
     }

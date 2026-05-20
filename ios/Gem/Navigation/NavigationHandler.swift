@@ -58,9 +58,13 @@ final class NavigationHandler: Sendable {
 extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
-        case .walletConnect:
-            return
+        case .walletConnect: break
+        case let .deeplink(deeplink): try await handleDeepLink(deeplink)
+        }
+    }
 
+    private func handleDeepLink(_ deeplink: DeepLink) async throws {
+        switch deeplink {
         case let .asset(assetId):
             try await navigateToAsset(assetId)
 
@@ -90,7 +94,7 @@ extension NavigationHandler {
             return
         }
 
-        selectTab(for: action.selectTab)
+        selectTab(for: deeplink.selectTab)
     }
 }
 
@@ -217,11 +221,11 @@ extension NavigationHandler {
 
 // MARK: - TabItem Selection
 
-private extension URLAction {
+private extension DeepLink {
     var selectTab: TabItem? {
         switch self {
         case .asset, .perpetuals: .wallet
-        case .swap, .buy, .sell, .setPriceAlert, .walletConnect: nil
+        case .swap, .buy, .sell, .setPriceAlert: nil
         case .rewards, .gift: .settings
         }
     }

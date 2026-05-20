@@ -5,6 +5,7 @@ import BalanceService
 import BannerService
 import Components
 import ExplorerService
+import GemstonePrimitives
 import Localization
 import Preferences
 import PriceAlertService
@@ -380,7 +381,7 @@ public extension AssetSceneViewModel {
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
-                UIApplication.shared.open(DeepLink.perpetuals.localUrl)
+                UIApplication.shared.open(DeepLink.perpetuals.gemUrl)
                 preferences.isPerpetualEnabled = true
             }
         case let .button(bannerButton):

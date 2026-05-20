@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.WalletConnectLink
+import uniffi.gemstone.walletConnectDecodeUrl
 import javax.inject.Inject
 
 internal sealed interface PendingNavigation {
@@ -37,11 +39,11 @@ class PendingNavigationCoordinator @Inject constructor(
         val pendingIntent = (_pendingNavigation.value as? PendingNavigation.RawIntent)?.intent ?: return
         val uri = pendingIntent.dataString
 
-        uri?.toWalletConnectLink()?.let { link ->
+        uri?.let(::walletConnectDecodeUrl)?.let { link ->
             when (link) {
-                is WalletConnectLink.Pairing -> walletConnect.onPairing(link.uri)
+                is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
                 WalletConnectLink.Request -> walletConnect.onRequest()
-                WalletConnectLink.Session -> Unit
+                is WalletConnectLink.Session -> Unit
             }
             replace(pendingIntent, replacement = null)
             return
