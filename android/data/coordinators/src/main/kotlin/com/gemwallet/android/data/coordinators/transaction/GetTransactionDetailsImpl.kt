@@ -7,12 +7,14 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.getNftMetadata
+import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.ext.getWalletConnectOutputAction
@@ -203,6 +205,17 @@ class TransactionDetailsAggregateImpl(
 
     override val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
+    private val perpetualMetadata = data.transaction.getPerpetualMetadata()
+    private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+
+    override val pnl: TransactionDetailsValue.Pnl? = perpetualMetadata?.pnl
+        ?.takeIf { it != 0.0 }
+        ?.let { TransactionDetailsValue.Pnl(value = "${if (it >= 0) "+" else ""}${usdFormatter.string(it)}", direction = it.toValueDirection()) }
+
+    override val price: TransactionDetailsValue.Price? = perpetualMetadata?.price
+        ?.takeIf { it > 0 }
+        ?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
+
     override val destination: TransactionDetailsValue.Destination? = when (data.transaction.type) {
         TransactionType.StakeUndelegate,
         TransactionType.StakeRewards,
@@ -254,6 +267,7 @@ class TransactionDetailsAggregateImpl(
         get() = buildList {
             add(ValueGroup(listOf(amount)))
             swapProgress?.let { add(ValueGroup(listOf(it))) }
+            swapAgain?.let { add(ValueGroup(listOf(it))) }
             add(
                 ValueGroup(
                     listOfNotNull(
@@ -262,6 +276,8 @@ class TransactionDetailsAggregateImpl(
                         destination,
                         resourceType,
                         network,
+                        pnl,
+                        price,
                     )
                 )
             )
@@ -286,6 +302,18 @@ class TransactionDetailsAggregateImpl(
                 fromValue = metadata.fromValue,
                 providerName = provider.name,
                 state = data.transaction.state,
+            )
+        }
+
+    override val swapAgain: TransactionDetailsValue.SwapAgain?
+        get() {
+            if (data.transaction.type != TransactionType.Swap) return null
+            if (data.transaction.state != TransactionState.Confirmed) return null
+            val metadata = swapMetadata ?: return null
+
+            return TransactionDetailsValue.SwapAgain(
+                fromAssetId = metadata.fromAsset,
+                toAssetId = metadata.toAsset,
             )
         }
 

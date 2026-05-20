@@ -10,6 +10,7 @@ import com.gemwallet.android.model.Crypto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -29,8 +30,9 @@ class AmountTransferProvider(
     override val title: AmountTitle = AmountTitle.Send
     override val canChangeValue: Boolean = true
     override val canSwitchInputType: Boolean = true
-    override val minimumValue: BigInteger = BigInteger.ZERO
     override val reserveForFee: BigInteger = BigInteger.ZERO
+
+    override val minimumValue: StateFlow<BigInteger> = MutableStateFlow(BigInteger.ZERO)
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)

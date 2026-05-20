@@ -3,6 +3,10 @@ package com.gemwallet.android.features.perpetual.views.position
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -16,6 +20,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.features.perpetual.views.components.CandleChart
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
+import com.gemwallet.android.features.perpetual.views.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionActions
 import com.gemwallet.android.features.perpetual.views.components.perpetualInfo
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
@@ -31,20 +36,19 @@ import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionId
 
 @Composable
-fun PerpetualPositionScene(
+internal fun PerpetualPositionScene(
     perpetual: PerpetualDetailsDataAggregate?,
     position: PerpetualPositionDetailsDataAggregate?,
     transactions: List<TransactionDataAggregate>,
     chartData: List<ChartCandleStick>,
     period: ChartPeriod,
-    onChartPeriodSelect: (ChartPeriod) -> Unit,
-    onOpenPosition: (PerpetualDirection) -> Unit,
-    onTransaction: (TransactionId) -> Unit,
-    onClose: () -> Unit,
+    onAction: (PerpetualDetailsAction) -> Unit,
 ) {
+    var showModifyDialog by remember { mutableStateOf(false) }
+
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
-        onClose = onClose,
+        onClose = { onAction(PerpetualDetailsAction.Close) },
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize()
@@ -56,24 +60,34 @@ fun PerpetualPositionScene(
                 liquidation = position?.liquidationValue,
                 stopLoss = position?.stopLoss,
                 takeProfit = position?.takeProfit,
-                onPeriodSelect = onChartPeriodSelect,
+                onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
             )
             positionProperties(position)
             item {
                 if (perpetual != null) {
                     if (position == null) {
-                        PerpetualActions(onOpenPosition)
+                        PerpetualActions { onAction(PerpetualDetailsAction.OpenPosition(it)) }
                     } else {
-                        PerpetualPositionActions({}) {}
+                        PerpetualPositionActions(
+                            onModify = { showModifyDialog = true },
+                            onClose = { onAction(PerpetualDetailsAction.ClosePosition) },
+                        )
                     }
                 }
             }
             perpetual?.let { perpetualInfo(it) }
             if (transactions.isNotEmpty()) {
-                transactionsList(transactions, onTransaction)
+                transactionsList(transactions) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
             }
         }
     }
+
+    PerpetualModifyBottomSheet(
+        isVisible = showModifyDialog,
+        onDismiss = { showModifyDialog = false },
+        onIncreasePosition = { onAction(PerpetualDetailsAction.IncreasePosition) },
+        onReducePosition = { onAction(PerpetualDetailsAction.ReducePosition) },
+    )
 }
 
 @Preview
@@ -146,10 +160,7 @@ private fun PerpetualPositionScenePreview() {
             transactions = emptyList(),
             chartData = chartData,
             period = ChartPeriod.Day,
-            onChartPeriodSelect = {},
-            onOpenPosition = {},
-            onTransaction = {},
-            onClose = {}
+            onAction = {},
         )
     }
 }

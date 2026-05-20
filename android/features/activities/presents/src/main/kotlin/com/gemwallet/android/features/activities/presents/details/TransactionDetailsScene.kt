@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.activities.presents.details
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -17,15 +18,19 @@ import com.gemwallet.android.features.activities.presents.details.components.Swa
 import com.gemwallet.android.features.activities.presents.details.components.TransactionExplorer
 import com.gemwallet.android.features.activities.presents.details.components.TransactionStatusProperty
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
+import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.theme.padding16
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
@@ -98,8 +103,22 @@ internal fun TransactionDetailsScene(
                             listPosition = position,
                         )
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
+                        is TransactionDetailsValue.Pnl -> PropertyItem(stringResource(R.string.perpetual_pnl), item.value, dataColor = item.direction.color(), listPosition = position)
+                        is TransactionDetailsValue.Price -> PropertyItem(R.string.asset_price, item.data, listPosition = position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
                         is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
+                        is TransactionDetailsValue.SwapAgain -> MainActionButton(
+                            title = stringResource(R.string.transaction_swap_again),
+                            modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),
+                            onClick = {
+                                onAction(
+                                    TransactionDetailsAction.OpenSwap(
+                                        fromAssetId = item.fromAssetId,
+                                        toAssetId = item.toAssetId,
+                                    )
+                                )
+                            },
+                        )
                     }
                 }
             }

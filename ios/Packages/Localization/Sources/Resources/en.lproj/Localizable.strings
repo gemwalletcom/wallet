@@ -385,8 +385,6 @@
 "info.account_minimum_balance.title" = "Minimum balance";
 "asset.buy_asset" = "Buy %@";
 "wallet.import_address_warning" = "You can view balances and transactions for this address, but **cannot send or sell funds**.";
-"info.stake_minimum_amount.title" = "Minimum Amount";
-"info.stake_minimum_amount.description" = "On the %@ network, the minimum staking requirement is %@.";
 "asset.add_to_wallet" = "Add to wallet";
 "asset.hide_from_wallet" = "Hide from wallet";
 "common.details" = "Details";
@@ -569,3 +567,8 @@
 "perpetual.margin.isolated" = "Isolated";
 "transaction.status.completed" = "Completed";
 "transaction.status.inprogress" = "In Progress";
+"info.funding_apr.title" = "Funding APR";
+"info.funding_apr.description" = "The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.";
+"info.minimum_amount.title" = "Minimum Amount";
+"info.minimum_amount.description" = "On the %@ network, the minimum amount for this transaction is %@.";
+"transaction.status.refunded" = "Refunded";

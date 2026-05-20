@@ -424,7 +424,8 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals("1000000000000000000", progress?.fromValue)
         Assert.assertEquals("NEAR Intents", progress?.providerName)
         Assert.assertEquals(TransactionState.Confirmed, progress?.state)
-        Assert.assertEquals(5, aggregate.valueGroups.size)
+        Assert.assertEquals(6, aggregate.valueGroups.size)
+        Assert.assertTrue(aggregate.valueGroups[2].items.single() is TransactionDetailsValue.SwapAgain)
     }
 
     @Test
@@ -541,6 +542,83 @@ class TransactionDetailsAggregateImplTest {
 
         Assert.assertNotNull(aggregate.swapProgress)
         Assert.assertEquals(5, aggregate.valueGroups.size)
+    }
+
+    @Test
+    fun testSwapAgain_confirmedSwap() {
+        val swapMetadata = TransactionSwapMetadata(
+            fromAsset = ethAsset.id,
+            toAsset = usdtAsset.id,
+            fromValue = "1000000000000000000",
+            toValue = "3000000000",
+            provider = SwapProvider.UniswapV3.string,
+        )
+        val transaction = createTransaction(
+            type = TransactionType.Swap,
+            state = TransactionState.Confirmed,
+            assetId = ethAsset.id,
+            metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
+        )
+        val aggregate = createAggregate(
+            data = createTransactionExtended(transaction, asset = ethAsset, assets = listOf(ethAsset, usdtAsset)),
+            associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(usdtAsset)),
+            swapMetadata = swapMetadata,
+        )
+
+        val swapAgain = aggregate.swapAgain
+        Assert.assertNotNull(swapAgain)
+        Assert.assertEquals(ethAsset.id, swapAgain?.fromAssetId)
+        Assert.assertEquals(usdtAsset.id, swapAgain?.toAssetId)
+        Assert.assertTrue(aggregate.valueGroups.any { it.items.singleOrNull() is TransactionDetailsValue.SwapAgain })
+    }
+
+    @Test
+    fun testSwapAgain_hiddenForPendingSwap() {
+        val swapMetadata = TransactionSwapMetadata(
+            fromAsset = ethAsset.id,
+            toAsset = usdtAsset.id,
+            fromValue = "1000000000000000000",
+            toValue = "3000000000",
+        )
+        val transaction = createTransaction(
+            type = TransactionType.Swap,
+            state = TransactionState.Pending,
+            assetId = ethAsset.id,
+            metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
+        )
+        val aggregate = createAggregate(
+            data = createTransactionExtended(transaction, asset = ethAsset),
+            swapMetadata = swapMetadata,
+        )
+
+        Assert.assertNull(aggregate.swapAgain)
+        Assert.assertFalse(aggregate.valueGroups.any { it.items.singleOrNull() is TransactionDetailsValue.SwapAgain })
+    }
+
+    @Test
+    fun testSwapAgain_hiddenForMissingMetadata() {
+        val transaction = createTransaction(
+            type = TransactionType.Swap,
+            state = TransactionState.Confirmed,
+            metadata = null,
+        )
+        val aggregate = createAggregate(
+            data = createTransactionExtended(transaction, asset = ethAsset),
+            swapMetadata = null,
+        )
+
+        Assert.assertNull(aggregate.swapAgain)
+    }
+
+    @Test
+    fun testSwapAgain_hiddenForNonSwapTransaction() {
+        val transaction = createTransaction(
+            type = TransactionType.Transfer,
+            state = TransactionState.Confirmed,
+        )
+        val aggregate = createAggregate(createTransactionExtended(transaction))
+
+        Assert.assertNull(aggregate.swapAgain)
     }
 
     @Test

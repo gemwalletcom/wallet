@@ -92,11 +92,12 @@ public final class AmountSceneViewModel {
     }
 
     var balanceText: String {
-        ValueFormatter(style: .auto).string(
+        let value = ValueFormatter(style: .auto).string(
             provider.availableValue(from: assetData),
             decimals: asset.decimals.asInt,
             currency: asset.symbol,
         )
+        return Localized.Transfer.balance(value)
     }
 
     var actionButtonState: ButtonState {
@@ -213,7 +214,7 @@ extension AmountSceneViewModel {
         }
         return { [weak self] in
             guard let self else { return }
-            isPresentingSheet = .infoAction(.stakeMinimumAmount(asset, required: required, action: onSelectBuy))
+            isPresentingSheet = .infoAction(.minimumAmount(asset, required: required, action: onSelectBuy))
         }
     }
 }

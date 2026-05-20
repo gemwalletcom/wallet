@@ -52,19 +52,14 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 
 @Composable
-fun PerpetualMarketScene(
+internal fun PerpetualMarketScene(
     sceneState: PerpetualMarketSceneState,
     balance: PerpetualBalance,
     positions: List<PerpetualPositionDataAggregate>,
     unpinnedPerpetuals: List<PerpetualDataAggregate>,
     pinnedPerpetuals: List<PerpetualDataAggregate>,
     query: TextFieldState,
-    onRefresh: () -> Unit,
-    onWithdraw: () -> Unit,
-    onDeposit: () -> Unit,
-    onPin: (String) -> Unit,
-    onClick: (AssetId) -> Unit,
-    onClose: () -> Unit,
+    onAction: (PerpetualMarketAction) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
     val longPressedAsset = remember { mutableStateOf<String?>(null) }
@@ -86,7 +81,7 @@ fun PerpetualMarketScene(
                 query.clearText()
                 isSearching = false
             } else {
-                onClose()
+                onAction(PerpetualMarketAction.Close)
             }
         },
         actions = {
@@ -99,7 +94,7 @@ fun PerpetualMarketScene(
     ) {
         PullToRefreshBox(
             isRefreshing = sceneState.isRefreshing,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(PerpetualMarketAction.Refresh) },
             state = pullToRefreshState,
             indicator = {
                 Indicator(
@@ -123,8 +118,8 @@ fun PerpetualMarketScene(
                             )
                         ) {
                             MarketHeadActions(
-                                onWithdraw = onWithdraw,
-                                onDeposit = onDeposit
+                                onWithdraw = { onAction(PerpetualMarketAction.Withdraw) },
+                                onDeposit = { onAction(PerpetualMarketAction.Deposit) },
                             )
                         }
                     }
@@ -135,7 +130,7 @@ fun PerpetualMarketScene(
                         PerpetualPositionItem(
                             data = item,
                             listPosition = position,
-                            modifier = Modifier.clickable { onClick(item.asset.id) }
+                            modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset.id)) }
                         )
                     }
                 }
@@ -149,8 +144,8 @@ fun PerpetualMarketScene(
                             item = item,
                             listPosition = position,
                             longPressState = longPressedAsset,
-                            onTogglePin = onPin,
-                            onClick = onClick,
+                            onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(it)) },
                         )
                     }
                 }
@@ -162,8 +157,8 @@ fun PerpetualMarketScene(
                         item = item,
                         listPosition = position,
                         longPressState = longPressedAsset,
-                        onTogglePin = onPin,
-                        onClick = onClick,
+                        onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                        onClick = { onAction(PerpetualMarketAction.OpenPerpetual(it)) },
                     )
                 }
             }
@@ -350,12 +345,7 @@ fun PreviewPerpetualMarketScene() {
                     override val isPinned: Boolean = false
                 },
             ),
-            onWithdraw = {},
-            onDeposit = {},
-            onClose = {},
-            onPin = {},
-            onClick = {},
-            onRefresh = {},
+            onAction = {},
         )
     }
 }

@@ -17,10 +17,10 @@ data class TransactionBalanceContext(
 )
 
 fun AssetInfo.balance(
-    txType: TransactionType,
+    transactionType: TransactionType,
     context: TransactionBalanceContext = TransactionBalanceContext(),
 ): BigInteger {
-    return when (txType) {
+    return when (transactionType) {
         TransactionType.Transfer,
         TransactionType.Swap,
         TransactionType.TokenApproval,
@@ -48,8 +48,8 @@ fun AssetInfo.balance(
             Resource.Bandwidth, null -> balance.balance.frozen.toBigInteger()
         }
 
-        TransactionType.PerpetualOpenPosition -> context.perpetualBalance ?: BigInteger.ZERO
+        TransactionType.PerpetualOpenPosition,
         TransactionType.PerpetualClosePosition,
-        TransactionType.PerpetualModifyPosition -> throw IllegalArgumentException()
+        TransactionType.PerpetualModifyPosition -> context.perpetualBalance ?: BigInteger.ZERO
     }
 }

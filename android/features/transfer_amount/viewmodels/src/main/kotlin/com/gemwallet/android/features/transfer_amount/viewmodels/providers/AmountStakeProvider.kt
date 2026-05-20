@@ -74,8 +74,8 @@ class AmountStakeProvider(
             else -> canChangeValue
         }
 
-    override val minimumValue: BigInteger
-        get() = when (params) {
+    override val minimumValue: StateFlow<BigInteger> = MutableStateFlow(
+        when (params) {
             is AmountParams.Stake.Delegate,
             is AmountParams.Stake.Freeze ->
                 BigInteger.valueOf(stakeConfig.minAmount.toLong())
@@ -88,6 +88,7 @@ class AmountStakeProvider(
             is AmountParams.Stake.Rewards,
             is AmountParams.Stake.Unfreeze -> BigInteger.ZERO
         }
+    )
 
     override val reserveForFee: BigInteger
         get() = when (params) {
@@ -213,7 +214,7 @@ class AmountStakeProvider(
         return when (params) {
             is AmountParams.Stake.Delegate, is AmountParams.Stake.Freeze -> {
                 val maxAfterFee = (availableBalance.value - reserveForFee).max(BigInteger.ZERO)
-                maxAfterFee > minimumValue
+                maxAfterFee > minimumValue.value
             }
             else -> false
         }
