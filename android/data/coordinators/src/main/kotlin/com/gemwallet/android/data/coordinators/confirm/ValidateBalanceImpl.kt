@@ -46,7 +46,7 @@ class ValidateBalanceImpl : ValidateBalance {
             TransactionType.PerpetualOpenPosition,
             TransactionType.PerpetualClosePosition,
             TransactionType.PerpetualModifyPosition -> amount
-            TransactionType.SmartContractCall -> TODO()
+            TransactionType.SmartContractCall -> amount
         }
 
         if (!signerParams.input.shouldIgnoreValueCheck && assetBalance < totalAmount) {
