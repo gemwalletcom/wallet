@@ -396,7 +396,7 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
-    fun testSwapProgress_confirmedCrossChain() {
+    fun testSwapProgress_hiddenForConfirmedCrossChain() {
         val swapMetadata = TransactionSwapMetadata(
             fromAsset = ethAsset.id,
             toAsset = btcAsset.id,
@@ -457,6 +457,38 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals("1000000000000000000", progress?.fromValue)
         Assert.assertEquals("NEAR Intents", progress?.providerName)
         Assert.assertEquals(TransactionState.Failed, progress?.state)
+        Assert.assertEquals(5, aggregate.valueGroups.size)
+    }
+
+    @Test
+    fun testSwapProgress_revertedCrossChain() {
+        val swapMetadata = TransactionSwapMetadata(
+            fromAsset = ethAsset.id,
+            toAsset = btcAsset.id,
+            fromValue = "1000000000000000000",
+            toValue = "100000000",
+            provider = SwapProvider.NearIntents.string,
+        )
+        val metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata)
+        val transaction = createTransaction(
+            type = TransactionType.Swap,
+            state = TransactionState.Reverted,
+            assetId = ethAsset.id,
+            metadata = metadata,
+        )
+        val aggregate = createAggregate(
+            data = createTransactionExtended(transaction, asset = ethAsset, assets = listOf(ethAsset, btcAsset)),
+            associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(btcAsset)),
+            swapMetadata = swapMetadata,
+            swapProvider = createSwapProvider(),
+        )
+
+        val progress = aggregate.swapProgress
+        Assert.assertNotNull(progress)
+        Assert.assertEquals(ethAsset, progress?.fromAsset)
+        Assert.assertEquals("1000000000000000000", progress?.fromValue)
+        Assert.assertEquals("NEAR Intents", progress?.providerName)
+        Assert.assertEquals(TransactionState.Reverted, progress?.state)
         Assert.assertEquals(5, aggregate.valueGroups.size)
     }
 

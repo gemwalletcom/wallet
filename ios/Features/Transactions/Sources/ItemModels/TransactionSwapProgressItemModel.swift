@@ -11,6 +11,7 @@ public struct TransactionSwapProgressItemModel: Equatable {
             case pending
             case waiting
             case failed
+            case refunded
         }
 
         public let title: String
@@ -47,6 +48,7 @@ extension TransactionSwapProgressItemModel.Step.Status {
         case .pending: Localized.Transaction.Status.inprogress
         case .waiting: nil
         case .failed: Localized.Transaction.Status.failed
+        case .refunded: Localized.Transaction.Status.refunded
         }
     }
 
@@ -56,6 +58,7 @@ extension TransactionSwapProgressItemModel.Step.Status {
         case .pending: Colors.blue
         case .waiting: Colors.gray
         case .failed: Colors.red
+        case .refunded: Colors.orange
         }
     }
 
@@ -66,13 +69,13 @@ extension TransactionSwapProgressItemModel.Step.Status {
     var lineColor: Color {
         switch self {
         case .completed: Colors.green
-        case .pending, .waiting, .failed: Colors.gray.opacity(.medium)
+        case .pending, .waiting, .failed, .refunded: Colors.gray.opacity(.medium)
         }
     }
 
     var markerBackground: Color {
         switch self {
-        case .completed, .failed: background
+        case .completed, .failed, .refunded: background
         case .pending, .waiting: .clear
         }
     }

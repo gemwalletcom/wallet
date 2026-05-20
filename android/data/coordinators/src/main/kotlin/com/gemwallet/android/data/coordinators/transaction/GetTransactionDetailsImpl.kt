@@ -288,6 +288,7 @@ class TransactionDetailsAggregateImpl(
     override val swapProgress: TransactionDetailsValue.SwapProgress?
         get() {
             if (data.transaction.type != TransactionType.Swap) return null
+            if (data.transaction.state == TransactionState.Confirmed) return null
 
             val metadata = swapMetadata ?: return null
             val provider = swapProvider?.takeIf { it.mode.isCrossChain } ?: return null
