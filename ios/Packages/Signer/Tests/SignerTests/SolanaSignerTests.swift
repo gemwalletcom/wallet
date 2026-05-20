@@ -27,6 +27,7 @@ struct SolanaSignerTests {
                 senderTokenAddress: nil,
                 recipientTokenAddress: nil,
                 tokenProgram: nil,
+                nft: nil,
                 blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
             ),
         )
@@ -51,6 +52,7 @@ struct SolanaSignerTests {
                 senderTokenAddress: "DVWPV7brSbPDkA7a3qdn6UJsVc3J3DyhQhjNaZeZqwzo",
                 recipientTokenAddress: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
                 tokenProgram: .token,
+                nft: nil,
                 blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
             ),
         )
@@ -75,6 +77,7 @@ struct SolanaSignerTests {
                 senderTokenAddress: "DVWPV7brSbPDkA7a3qdn6UJsVc3J3DyhQhjNaZeZqwzo",
                 recipientTokenAddress: nil,
                 tokenProgram: .token,
+                nft: nil,
                 blockHash: "8ntZRPm8pbf4R4pTWsVnTdgqXA35yYXSz8TxUzwBhXEK",
             ),
         )
