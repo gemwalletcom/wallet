@@ -364,6 +364,7 @@ struct TransactionSceneViewModelTests {
             TransactionItem.status,
             TransactionItem.participant,
             TransactionItem.memo,
+            TransactionItem.rate,
             TransactionItem.network,
             TransactionItem.pnl,
             TransactionItem.price,
