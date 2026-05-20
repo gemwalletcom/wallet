@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.ext.urlDecode
 import com.gemwallet.android.ext.urlEncode
 import com.gemwallet.android.serializer.jsonEncoder
@@ -98,9 +99,15 @@ sealed interface AmountParams {
     data class Perpetual(
         override val assetId: AssetId,
         val perpetualId: String,
-        val direction: PerpetualDirection,
+        val positionAction: PerpetualPositionAction,
     ) : AmountParams {
-        override val transactionType: TransactionType get() = TransactionType.PerpetualOpenPosition
+        val direction: PerpetualDirection get() = positionAction.data.direction
+
+        override val transactionType: TransactionType get() = when (positionAction) {
+            is PerpetualPositionAction.Open -> TransactionType.PerpetualOpenPosition
+            is PerpetualPositionAction.Increase,
+            is PerpetualPositionAction.Reduce -> TransactionType.PerpetualModifyPosition
+        }
     }
 
     companion object {

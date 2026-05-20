@@ -92,11 +92,12 @@ public final class AmountSceneViewModel {
     }
 
     var balanceText: String {
-        ValueFormatter(style: .auto).string(
+        let value = ValueFormatter(style: .auto).string(
             provider.availableValue(from: assetData),
             decimals: asset.decimals.asInt,
             currency: asset.symbol,
         )
+        return Localized.Transfer.balance(value)
     }
 
     var actionButtonState: ButtonState {

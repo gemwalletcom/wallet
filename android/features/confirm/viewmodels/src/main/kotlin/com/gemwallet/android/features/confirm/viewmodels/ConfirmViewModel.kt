@@ -20,6 +20,7 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
@@ -42,6 +43,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -174,7 +176,7 @@ class ConfirmViewModel @Inject constructor(
         val amount = Crypto(signerParams?.finalAmount ?: request.amount)
 
         AmountUIModel(
-            txType = request.getTxType(),
+            transactionType = request.getTransactionType(),
             amount = amount.atomicValue,
             asset = assetInfo,
             fromAsset = assetInfo,
@@ -188,8 +190,13 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val perpetualType = request
+        .map { (it as? ConfirmParams.PerpetualParams)?.perpetualType }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val detailElements = combine(request, assetsInfo, ::buildDetailElements)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
         request ?: return@combine emptyList()
@@ -285,10 +292,10 @@ class ConfirmViewModel @Inject constructor(
                 feeAssetInfo,
                 getBalance(assetInfo, signerParams.input),
             )
-            val txHash = confirmTransaction(signerParams, session, assetInfo, viewModelScope)
-            state.update { ConfirmState.Result(txHash = txHash) }
+            val transactionHash = confirmTransaction(signerParams, session, assetInfo, viewModelScope)
+            state.update { ConfirmState.Result(transactionHash = transactionHash) }
             viewModelScope.launch(Dispatchers.Main) {
-                finishAction(txHash)
+                finishAction(transactionHash)
             }
         } catch (err: Throwable) {
             state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }
@@ -310,7 +317,15 @@ class ConfirmViewModel @Inject constructor(
     ): List<ConfirmDetailElement> {
         return listOfNotNull(
             buildSwapDetailElement(request as? ConfirmParams.SwapParams, assetsInfo),
+            buildPerpetualDetailElement(request as? ConfirmParams.PerpetualParams),
         )
+    }
+
+    private fun buildPerpetualDetailElement(
+        params: ConfirmParams.PerpetualParams?,
+    ): ConfirmDetailElement.PerpetualDetails? {
+        val model = PerpetualConfirmDetailsUIModelFactory.create(params?.perpetualType ?: return null) ?: return null
+        return ConfirmDetailElement.PerpetualDetails(model)
     }
 
     private fun buildSwapDetailElement(

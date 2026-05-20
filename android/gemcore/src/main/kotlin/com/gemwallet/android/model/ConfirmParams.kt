@@ -3,6 +3,7 @@ package com.gemwallet.android.model
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.toGem
 import com.gemwallet.android.domains.confirm.toGem
+import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.domains.stake.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
@@ -10,7 +11,6 @@ import com.gemwallet.android.ext.urlDecode
 import com.gemwallet.android.ext.urlEncode
 import com.gemwallet.android.math.decodeHex
 import com.gemwallet.android.math.has0xPrefix
-import com.gemwallet.android.model.ConfirmParams.PerpetualParams.OrderAction
 import com.gemwallet.android.serializer.BigIntegerSerializer
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Account
@@ -20,15 +20,13 @@ import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualMarginType
-import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.swap.ApprovalData
 import kotlinx.serialization.Serializable
 import org.json.JSONObject
 import uniffi.gemstone.GemAccountDataType
-import com.wallet.core.primitives.swap.ApprovalData
 import uniffi.gemstone.GemApprovalData
 import uniffi.gemstone.GemResource
 import uniffi.gemstone.GemStakeType
@@ -37,27 +35,11 @@ import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
-import uniffi.gemstone.PerpetualConfirmData
-import uniffi.gemstone.PerpetualType
-import uniffi.gemstone.PerpetualType.Close
-import uniffi.gemstone.PerpetualType.Increase
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.TransferDataOutputAction
 import uniffi.gemstone.TransferDataOutputType
 import java.math.BigInteger
 import java.util.Base64
-import kotlin.Boolean
-import kotlin.Double
-import kotlin.Error
-import kotlin.IllegalArgumentException
-import kotlin.IllegalStateException
-import kotlin.Int
-import kotlin.String
-import kotlin.TODO
-import kotlin.UInt
-import kotlin.hashCode
-import kotlin.let
-import kotlin.toUByte
 
 @Serializable
 sealed class ConfirmParams() {
@@ -150,51 +132,8 @@ sealed class ConfirmParams() {
             return Stake.Unfreeze(asset, from, amount, resource)
         }
 
-        fun perpetualOrder(
-            perpetualId: String,
-            perpetualProvider: PerpetualProvider,
-            perpetualPrice: Double,
-            perpetualIdentifier: String,
-            action: OrderAction,
-            leverage: Int,
-            baseAsset: Asset, // USD
-            direction: PerpetualDirection,
-            marginType: PerpetualMarginType,
-            slippage: Double = 2.0,
-        ): PerpetualParams {
-            val marginAmount = Crypto(amount).value(baseAsset.decimals).toDouble()
-            val fiatValue = marginAmount * leverage
-            val assetSize = fiatValue / perpetualPrice
-
-            val slippageFraction = slippage / 100.0
-            val slippageMultiplier = when (direction) {
-                PerpetualDirection.Short -> 1.0 - slippageFraction
-                PerpetualDirection.Long -> 1.0 + slippageFraction
-            }
-
-            val order = PerpetualParams.Order(
-                perpetualId = perpetualId,
-                provider = perpetualProvider,
-                direction = direction,
-                marginType = marginType,
-                baseAsset = baseAsset,
-                assetIndex = perpetualIdentifier.toInt(),
-                fiatValue = fiatValue,
-                size = assetSize,
-                slippage = slippageMultiplier,
-                leverage = leverage,
-                marketPrice = perpetualPrice,
-                marginAmount = marginAmount,
-                takeProfit = null,
-                stopLoss = null
-            )
-
-            return when (action) {
-                OrderAction.Open -> PerpetualParams.Open(asset, from, amount, useMaxAmount, order)
-                OrderAction.Close -> PerpetualParams.Close(asset, from, amount, useMaxAmount, order)
-                OrderAction.Increase, OrderAction.Decrease -> PerpetualParams.Modify(asset, from, amount, useMaxAmount, action, order)
-            }
-        }
+        fun perpetual(perpetualType: PerpetualType): PerpetualParams =
+            PerpetualParams(asset, from, amount, useMaxAmount, perpetualType)
     }
 
     abstract fun toDto(): GemTransactionInputType
@@ -624,95 +563,23 @@ sealed class ConfirmParams() {
     }
 
     @Serializable
-    sealed class PerpetualParams : ConfirmParams() {
+    data class PerpetualParams(
+        override val asset: Asset,
+        override val from: Account,
+        @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
+        override val useMaxAmount: Boolean = false,
+        val perpetualType: PerpetualType,
+    ) : ConfirmParams() {
 
         override val shouldIgnoreValueCheck: Boolean
-            get() = false
+            get() = true
 
-        enum class OrderAction {
-            Open,
-            Close,
-            Increase,
-            Decrease,
-        }
+        override fun destination(): DestinationAddress = DestinationAddress.Hyperliquid
 
-        @Serializable
-        class Order(
-            val perpetualId: String,
-            val provider: PerpetualProvider,
-            val direction: PerpetualDirection,
-            val marginType: PerpetualMarginType,
-            val baseAsset: Asset,
-            val assetIndex: Int,
-//            val price: String,
-            val fiatValue: Double,
-            val size: Double,
-            val slippage: Double,
-            val leverage: Int,
-            val marketPrice: Double,
-            val marginAmount: Double,
-            val takeProfit: String?,
-            val stopLoss: String?
+        override fun toDto(): GemTransactionInputType = GemTransactionInputType.Perpetual(
+            asset = asset.toGem(),
+            perpetualType = perpetualType.toGem(),
         )
-
-        @Serializable
-        class Open(
-            override val asset: Asset,
-            override val from: Account,
-            @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
-            override val useMaxAmount: Boolean = false,
-            val order: Order,
-        ) : PerpetualParams() {
-
-            override fun toDto(): GemTransactionInputType = GemTransactionInputType.Perpetual(
-                asset = asset.toGem(),
-                perpetualType = PerpetualType.Open(
-                    v1 = order.toGem()
-                ) as PerpetualType
-            )
-
-        }
-
-        @Serializable
-        class Close(
-            override val asset: Asset,
-            override val from: Account,
-            @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
-            override val useMaxAmount: Boolean = false,
-            val order: Order,
-        ) : PerpetualParams() {
-
-            override fun toDto(): GemTransactionInputType = GemTransactionInputType.Perpetual(
-                asset = asset.toGem(),
-                perpetualType = Close(
-                    v1 = order.toGem()
-                )
-            )
-        }
-
-        @Serializable
-        class Modify(
-            override val asset: Asset,
-            override val from: Account,
-            @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
-            override val useMaxAmount: Boolean = false,
-            val action: OrderAction,
-            val order: Order,
-        ) : PerpetualParams() {
-
-            override fun toDto(): GemTransactionInputType = when (action) {
-                OrderAction.Increase -> Perpetual(
-                    asset = asset.toGem(),
-                    perpetualType = Increase(
-                        v1 = order.toGem()
-                    )
-                )
-
-                OrderAction.Open -> TODO()
-                OrderAction.Close -> TODO()
-                OrderAction.Decrease -> TODO()
-            }
-        }
     }
 
     fun pack(): String? {
@@ -720,7 +587,7 @@ sealed class ConfirmParams() {
         return Base64.getEncoder().encodeToString(json.toByteArray()).urlEncode()
     }
 
-    fun getTxType() : TransactionType {
+    fun getTransactionType() : TransactionType {
         return when (this) {
             is TransferParams -> TransactionType.Transfer
             is TokenApprovalParams -> TransactionType.TokenApproval
@@ -735,9 +602,13 @@ sealed class ConfirmParams() {
             is Stake.Freeze -> TransactionType.StakeFreeze
             is Stake.Unfreeze -> TransactionType.StakeUnfreeze
             is Stake -> throw IllegalArgumentException("Invalid stake parameter")
-            is PerpetualParams.Open -> TransactionType.PerpetualOpenPosition
-            is PerpetualParams.Close -> TransactionType.PerpetualClosePosition
-            is PerpetualParams.Modify -> TransactionType.PerpetualModifyPosition
+            is PerpetualParams -> when (perpetualType) {
+                is PerpetualType.Open -> TransactionType.PerpetualOpenPosition
+                is PerpetualType.Close -> TransactionType.PerpetualClosePosition
+                is PerpetualType.Increase,
+                is PerpetualType.Reduce,
+                is PerpetualType.Modify -> TransactionType.PerpetualModifyPosition
+            }
         }
     }
 
@@ -772,9 +643,7 @@ sealed class ConfirmParams() {
                     Stake.Unfreeze::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.Unfreeze>(json)
                     Activate::class.qualifiedName -> jsonEncoder.decodeFromString<Activate>(json)
                     NftParams::class.qualifiedName -> jsonEncoder.decodeFromString<NftParams>(json)
-                    PerpetualParams.Open::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Open>(json)
-                    PerpetualParams.Close::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Close>(json)
-                    PerpetualParams.Modify::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams.Modify>(json)
+                    PerpetualParams::class.qualifiedName -> jsonEncoder.decodeFromString<PerpetualParams>(json)
                     else -> null
                 }
             }.getOrNull()
@@ -791,26 +660,3 @@ fun GemApprovalData.toModel(): ApprovalData {
     )
 }
 
-fun ConfirmParams.PerpetualParams.Order.toGem() = PerpetualConfirmData(
-    direction = when (direction) {
-        PerpetualDirection.Long -> uniffi.gemstone.PerpetualDirection.LONG
-        PerpetualDirection.Short -> uniffi.gemstone.PerpetualDirection.SHORT
-    },
-    marginType = when (marginType) {
-        PerpetualMarginType.Cross -> uniffi.gemstone.GemPerpetualMarginType.CROSS
-        PerpetualMarginType.Isolated -> uniffi.gemstone.GemPerpetualMarginType.ISOLATED
-    },
-    baseAsset = baseAsset.toGem(),
-    assetIndex = assetIndex,
-    price = marketPrice.toString(),
-    fiatValue = fiatValue,
-    size = size.toString(),
-    slippage = slippage,
-    leverage = leverage.toUByte(),
-    pnl = null,
-    entryPrice = null,
-    marketPrice = marketPrice,
-    marginAmount = marginAmount,
-    takeProfit = takeProfit,
-    stopLoss = stopLoss,
-)

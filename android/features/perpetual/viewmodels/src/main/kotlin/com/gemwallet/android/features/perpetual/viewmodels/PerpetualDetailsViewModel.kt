@@ -3,14 +3,19 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
+import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +31,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,6 +42,8 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetualChartData: GetPerpetualChartData,
     private val getTransactions: GetTransactions,
     private val syncAssetTransactions: SyncAssetTransactions,
+    private val syncPerpetualPositions: SyncPerpetualPositions,
+    private val buildPerpetualParams: BuildPerpetualParams,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -84,5 +92,39 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     fun period(period: ChartPeriod) {
         this.period.update { period }
+    }
+
+    fun fetch() {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncPerpetualPositions.syncPerpetualPositions()
+        }
+    }
+
+    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.open(perpetualId, direction)?.let(amountAction::invoke)
+        }
+    }
+
+    fun increasePosition(amountAction: AmountTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.increase(perpetualId)?.let(amountAction::invoke)
+        }
+    }
+
+    fun reducePosition(amountAction: AmountTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.reduce(perpetualId)?.let(amountAction::invoke)
+        }
+    }
+
+    fun closePosition(confirmAction: ConfirmTransactionAction) {
+        val perpetualId = perpetual.value?.id ?: return
+        viewModelScope.launch {
+            buildPerpetualParams.close(perpetualId)?.let(confirmAction::invoke)
+        }
     }
 }

@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
+import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -134,7 +136,7 @@ fun PreferencesScene(
                         listPosition = ListPosition.Last,
                         trailingContent = {
                             PropertyDataText(
-                                text = "${perpetualLeverage}x",
+                                text = perpetualLeverage.formatLeverage(),
                                 badge = { DataBadgeChevron() },
                             )
                             DropdownMenu(
@@ -142,7 +144,7 @@ fun PreferencesScene(
                                 onDismissRequest = { showLeveragePicker = false },
                                 containerColor = MaterialTheme.colorScheme.background,
                             ) {
-                                viewModel.perpetualLeverageOptions.forEach { value ->
+                                PerpetualConfig.leverageOptions.forEach { value ->
                                     DropdownMenuItem(
                                         text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -152,7 +154,7 @@ fun PreferencesScene(
                                                     Spacer(modifier = Modifier.size(compactIconSize))
                                                 }
                                                 Spacer4()
-                                                Text("${value}x")
+                                                Text(value.formatLeverage())
                                             }
                                         },
                                         onClick = {

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
+import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
@@ -11,6 +12,7 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPos
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
 import com.gemwallet.android.blockchain.services.PerpetualService
+import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalanceImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalancesImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartDataImpl
@@ -23,6 +25,7 @@ import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.TogglePerpetualPinImpl
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.service.store.database.PricesDao
 import com.wallet.core.primitives.Chain
 import dagger.Module
 import dagger.Provides
@@ -38,10 +41,14 @@ object PerpetualModule {
     fun provideSyncPerpetuals(
         perpetualService: PerpetualService,
         perpetualRepository: PerpetualRepository,
+        pricesDao: PricesDao,
+        sessionRepository: SessionRepository,
     ): SyncPerpetuals {
         return SyncPerpetualsImpl(
             perpetualService = perpetualService,
             perpetualRepository = perpetualRepository,
+            pricesDao = pricesDao,
+            sessionRepository = sessionRepository,
             chains = listOf(Chain.HyperCore)
         )
     }
@@ -143,6 +150,18 @@ object PerpetualModule {
     ): GetPerpetualChartData {
         return GetPerpetualChartDataImpl(
             perpetualService = perpetualService,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideBuildPerpetualParams(
+        perpetualRepository: PerpetualRepository,
+        sessionRepository: SessionRepository,
+    ): BuildPerpetualParams {
+        return BuildPerpetualParamsImpl(
+            perpetualRepository = perpetualRepository,
+            sessionRepository = sessionRepository,
         )
     }
 }

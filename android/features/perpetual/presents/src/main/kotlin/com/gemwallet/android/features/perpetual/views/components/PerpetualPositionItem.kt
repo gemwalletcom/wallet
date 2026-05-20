@@ -11,8 +11,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.features.perpetual.views.models.color
-import com.gemwallet.android.features.perpetual.views.models.text
+import com.gemwallet.android.ui.components.perpetual.color
+import com.gemwallet.android.ui.components.perpetual.text
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults

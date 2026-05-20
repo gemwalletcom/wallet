@@ -91,8 +91,9 @@ class AmountViewModel @Inject constructor(
             amountInputType,
             provider.assetInfo,
             provider.availableBalance,
-        ) { input, type, current, balance ->
-            ValidationInputs(input, type, current?.asset, balance)
+            provider.minimumValue,
+        ) { input, type, current, balance, minimum ->
+            ValidationInputs(input, type, current?.asset, balance, minimum)
         }
             .mapLatest { validate(it) }
             .onEach { amountError.value = it }
@@ -132,7 +133,7 @@ class AmountViewModel @Inject constructor(
             try {
                 val current = provider.assetInfo.value ?: return@launch
                 val asset = current.asset
-                AmountValidation.validateAmount(asset, amount, provider.minimumValue)
+                AmountValidation.validateAmount(asset, amount, provider.minimumValue.value)
                 val price = current.price?.price?.price ?: 0.0
                 val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
                 val available = provider.availableBalance.value.toBigDecimal().movePointLeft(asset.decimals)
@@ -154,7 +155,7 @@ class AmountViewModel @Inject constructor(
         val asset = inputs.asset ?: return AmountError.None
         val current = provider.assetInfo.value ?: return AmountError.None
         return try {
-            AmountValidation.validateAmount(asset, inputs.amount, provider.minimumValue)
+            AmountValidation.validateAmount(asset, inputs.amount, inputs.minimumValue)
             val price = current.price?.price?.price ?: 0.0
             val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
             val available = inputs.availableBalance.toBigDecimal().movePointLeft(asset.decimals)
@@ -202,4 +203,5 @@ private data class ValidationInputs(
     val inputType: AmountInputType,
     val asset: Asset?,
     val availableBalance: BigInteger,
+    val minimumValue: BigInteger,
 )

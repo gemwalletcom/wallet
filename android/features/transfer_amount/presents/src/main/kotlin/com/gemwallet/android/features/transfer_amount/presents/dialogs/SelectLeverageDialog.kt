@@ -5,6 +5,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.domains.perpetual.formatLeverage
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -20,13 +23,14 @@ fun SelectLeverageDialog(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
+        title = stringResource(R.string.perpetual_leverage),
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxWidth()
         ) {
             itemsPositioned(leverages) { position, item ->
                 PropertyItem(
-                    action = "${item}x",
+                    action = item.formatLeverage(),
                     listPosition = position,
                 ) {
                     onSelect(item)

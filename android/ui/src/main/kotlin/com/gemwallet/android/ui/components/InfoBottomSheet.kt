@@ -183,10 +183,10 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingPayments) },
     )
 
-    object FundingInfo : InfoSheetEntity(
+    object FundingAprInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
-        title = R.string.info_funding_rate_title,
-        description = R.string.info_funding_rate_description,
+        title = R.string.info_funding_apr_title,
+        description = R.string.info_funding_apr_description,
         infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingRate) },
     )
 

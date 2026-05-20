@@ -11,7 +11,7 @@ import com.wallet.core.primitives.TransactionType
 import java.math.BigInteger
 
 class AmountUIModel(
-    val txType: TransactionType,
+    val transactionType: TransactionType,
     val amount: BigInteger,
     val asset: AssetInfo,
     val fromAsset: AssetInfo,

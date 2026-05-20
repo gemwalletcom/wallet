@@ -24,7 +24,7 @@ class ValidateBalanceImpl : ValidateBalance {
         val amount = signerParams.finalAmount
         val feeAmount = signerParams.fee().amount
 
-        val totalAmount = when (signerParams.input.getTxType()) {
+        val totalAmount = when (signerParams.input.getTransactionType()) {
             TransactionType.Transfer,
             TransactionType.Swap,
             TransactionType.TokenApproval,
@@ -42,14 +42,14 @@ class ValidateBalanceImpl : ValidateBalance {
             TransactionType.StakeWithdraw,
             TransactionType.EarnWithdraw,
             TransactionType.StakeUnfreeze,
-            TransactionType.TransferNFT -> amount
-            TransactionType.SmartContractCall,
+            TransactionType.TransferNFT,
             TransactionType.PerpetualOpenPosition,
             TransactionType.PerpetualClosePosition,
-            TransactionType.PerpetualModifyPosition -> TODO()
+            TransactionType.PerpetualModifyPosition -> amount
+            TransactionType.SmartContractCall -> amount
         }
 
-        if (assetBalance < totalAmount) {
+        if (!signerParams.input.shouldIgnoreValueCheck && assetBalance < totalAmount) {
             val label = "${assetInfo.asset.name} (${assetInfo.asset.symbol})"
             throw ConfirmError.InsufficientBalance(label)
         }

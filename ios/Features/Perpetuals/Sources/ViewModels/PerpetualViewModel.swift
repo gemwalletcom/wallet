@@ -14,13 +14,6 @@ public struct PerpetualViewModel {
     private let marketValueFormatter: CurrencyFormatter
     private let priceFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
-    private let fundingRateFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 5
-        return formatter
-    }()
 
     public init(perpetual: Perpetual, currencyStyle: CurrencyFormatterType = .abbreviated) {
         self.perpetual = perpetual
@@ -45,12 +38,8 @@ public struct PerpetualViewModel {
     }
 
     public var fundingRateField: ListItemField {
-        let text: String = if let formattedNumber = fundingRateFormatter.string(from: NSNumber(value: perpetual.funding)) {
-            "\(formattedNumber)%"
-        } else {
-            percentFormatter.string(perpetual.funding)
-        }
-        return ListItemField(title: Localized.Info.FundingRate.title, value: text)
+        let annualized = perpetual.funding * 24 * 365
+        return ListItemField(title: Localized.Info.FundingApr.title, value: percentFormatter.string(annualized))
     }
 
     public var priceText: String {
