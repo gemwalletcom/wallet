@@ -573,6 +573,12 @@ public enum Localized {
       /// Fully Diluted Valuation
       public static let title = Localized.tr("Localizable", "info.fully_diluted_valuation.title", fallback: "Fully Diluted Valuation")
     }
+    public enum FundingApr {
+      /// The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.
+      public static let description = Localized.tr("Localizable", "info.funding_apr.description", fallback: "The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.")
+      /// Funding APR
+      public static let title = Localized.tr("Localizable", "info.funding_apr.title", fallback: "Funding APR")
+    }
     public enum FundingPayments {
       /// Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.
       public static let description = Localized.tr("Localizable", "info.funding_payments.description", fallback: "Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.")
@@ -618,6 +624,18 @@ public enum Localized {
       public static let description = Localized.tr("Localizable", "info.max_supply.description", fallback: "The maximum number of coins that will ever exist.")
       /// Max Supply
       public static let title = Localized.tr("Localizable", "info.max_supply.title", fallback: "Max Supply")
+    }
+    public enum MinimumAmount {
+      /// On the %@ network, the minimum perpetual order is %@.
+      public static func perpetualDescription(_ p1: Any, _ p2: Any) -> String {
+        return Localized.tr("Localizable", "info.minimum_amount.perpetual_description", String(describing: p1), String(describing: p2), fallback: "On the %@ network, the minimum perpetual order is %@.")
+      }
+      /// On the %@ network, the minimum staking requirement is %@.
+      public static func stakeDescription(_ p1: Any, _ p2: Any) -> String {
+        return Localized.tr("Localizable", "info.minimum_amount.stake_description", String(describing: p1), String(describing: p2), fallback: "On the %@ network, the minimum staking requirement is %@.")
+      }
+      /// Minimum Amount
+      public static let title = Localized.tr("Localizable", "info.minimum_amount.title", fallback: "Minimum Amount")
     }
     public enum NetworkFee {
       /// Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees varies based on network usage.
