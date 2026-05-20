@@ -626,13 +626,9 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "info.max_supply.title", fallback: "Max Supply")
     }
     public enum MinimumAmount {
-      /// On the %@ network, the minimum perpetual order is %@.
-      public static func perpetualDescription(_ p1: Any, _ p2: Any) -> String {
-        return Localized.tr("Localizable", "info.minimum_amount.perpetual_description", String(describing: p1), String(describing: p2), fallback: "On the %@ network, the minimum perpetual order is %@.")
-      }
-      /// On the %@ network, the minimum staking requirement is %@.
-      public static func stakeDescription(_ p1: Any, _ p2: Any) -> String {
-        return Localized.tr("Localizable", "info.minimum_amount.stake_description", String(describing: p1), String(describing: p2), fallback: "On the %@ network, the minimum staking requirement is %@.")
+      /// On the %@ network, the minimum amount for this transaction is %@.
+      public static func description(_ p1: Any, _ p2: Any) -> String {
+        return Localized.tr("Localizable", "info.minimum_amount.description", String(describing: p1), String(describing: p2), fallback: "On the %@ network, the minimum amount for this transaction is %@.")
       }
       /// Minimum Amount
       public static let title = Localized.tr("Localizable", "info.minimum_amount.title", fallback: "Minimum Amount")
@@ -680,14 +676,6 @@ public enum Localized {
         /// Reserved for Network Fee
         public static let title = Localized.tr("Localizable", "info.stake.reserved.title", fallback: "Reserved for Network Fee")
       }
-    }
-    public enum StakeMinimumAmount {
-      /// On the %@ network, the minimum staking requirement is %@.
-      public static func description(_ p1: Any, _ p2: Any) -> String {
-        return Localized.tr("Localizable", "info.stake_minimum_amount.description", String(describing: p1), String(describing: p2), fallback: "On the %@ network, the minimum staking requirement is %@.")
-      }
-      /// Minimum Amount
-      public static let title = Localized.tr("Localizable", "info.stake_minimum_amount.title", fallback: "Minimum Amount")
     }
     public enum TotalSupply {
       /// The total number of coins that exist, including locked or reserved coins.
@@ -1425,6 +1413,8 @@ public enum Localized {
       public static let inprogress = Localized.tr("Localizable", "transaction.status.inprogress", fallback: "In Progress")
       /// Pending
       public static let pending = Localized.tr("Localizable", "transaction.status.pending", fallback: "Pending")
+      /// Refunded
+      public static let refunded = Localized.tr("Localizable", "transaction.status.refunded", fallback: "Refunded")
       /// Reverted
       public static let reverted = Localized.tr("Localizable", "transaction.status.reverted", fallback: "Reverted")
     }

@@ -406,8 +406,6 @@
   <string name="info.account_minimum_balance.title">Minimum balance</string>
   <string name="asset.buy_asset">Buy %s</string>
   <string name="wallet.import_address_warning">You can view balances and transactions for this address, but **cannot send or sell funds**.</string>
-  <string name="info.stake_minimum_amount.title">Minimum Amount</string>
-  <string name="info.stake_minimum_amount.description" formatted="false">On the %s network, the minimum staking requirement is %s.</string>
   <string name="asset.add_to_wallet">Add to wallet</string>
   <string name="asset.hide_from_wallet">Hide from wallet</string>
   <string name="common.details">Details</string>
@@ -594,4 +592,7 @@
   <string name="transaction.status.inprogress">In Progress</string>
   <string name="info.funding_apr.title">Funding APR</string>
   <string name="info.funding_apr.description">The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.</string>
+  <string name="info.minimum_amount.title">Minimum Amount</string>
+  <string name="info.minimum_amount.description" formatted="false">On the %s network, the minimum amount for this transaction is %s.</string>
+  <string name="transaction.status.refunded">Refunded</string>
 </resources>

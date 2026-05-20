@@ -208,27 +208,18 @@ extension AmountSceneViewModel {
 
     func infoAction(for error: Error) -> (() -> Void)? {
         guard let transferError = error as? TransferError,
-              case let .minimumAmount(asset, required) = transferError,
-              let type = minimumAmountType(for: provider)
+              case let .minimumAmount(asset, required) = transferError
         else {
             return nil
         }
         return { [weak self] in
             guard let self else { return }
-            isPresentingSheet = .infoAction(.minimumAmount(asset, required: required, type: type, action: onSelectBuy))
+            isPresentingSheet = .infoAction(.minimumAmount(asset, required: required, action: onSelectBuy))
         }
     }
 }
 
 private extension AmountSceneViewModel {
-    func minimumAmountType(for provider: AmountDataProvider) -> MinimumAmountType? {
-        switch provider {
-        case .perpetual: .perpetual
-        case .stake: .stake
-        case .earn, .transfer: nil
-        }
-    }
-
     func setMax() {
         amountInputType = .asset
         amountInputModel.update(text: maxBalance)
