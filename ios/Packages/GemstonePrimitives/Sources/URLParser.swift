@@ -19,12 +19,8 @@ public enum URLParser {
 
         let deeplink: DeepLink = switch deeplinkDecodeUrl(url: url.absoluteString) {
         case let .asset(assetId): try .asset(AssetId(id: assetId))
-        case let .swap(fromAssetId, toAssetId): try .swap(AssetId(id: fromAssetId), toAssetId.map { try AssetId(id: $0) })
         case let .rewards(code): .rewards(code: code)
         case let .gift(code): .gift(code: code)
-        case let .buy(assetId, amount): try .buy(AssetId(id: assetId), amount: amount.map { Int($0) })
-        case let .sell(assetId, amount): try .sell(AssetId(id: assetId), amount: amount.map { Int($0) })
-        case let .setPriceAlert(assetId, price): try .setPriceAlert(AssetId(id: assetId), price: price)
         case .perpetuals: .perpetuals
         case .none: throw URLParserError.invalidURL(url)
         }

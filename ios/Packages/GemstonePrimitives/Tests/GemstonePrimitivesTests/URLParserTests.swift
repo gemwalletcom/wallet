@@ -10,13 +10,9 @@ struct URLParserTests {
     func deeplink() throws {
         #expect(try URLParser.from(url: #require(DeepLinkMock.assetBitcoin.asURL)) == .deeplink(.asset(.mock())))
         #expect(try URLParser.from(url: #require(DeepLinkMock.assetEthereumToken.asURL)) == .deeplink(.asset(.mockEthereumUSDT())))
-        #expect(try URLParser.from(url: #require(DeepLinkMock.swap.asURL)) == .deeplink(.swap(.mockEthereum(), .mockEthereumUSDT())))
         #expect(try URLParser.from(url: #require(DeepLinkMock.perpetualsGem.asURL)) == .deeplink(.perpetuals))
         #expect(try URLParser.from(url: #require(DeepLinkMock.rewards.asURL)) == .deeplink(.rewards(code: "gemcoder")))
         #expect(try URLParser.from(url: #require(DeepLinkMock.giftGem.asURL)) == .deeplink(.gift(code: nil)))
-        #expect(try URLParser.from(url: #require(DeepLinkMock.buy.asURL)) == .deeplink(.buy(.mock(), amount: 100)))
-        #expect(try URLParser.from(url: #require(DeepLinkMock.sell.asURL)) == .deeplink(.sell(.mockEthereum(), amount: nil)))
-        #expect(try URLParser.from(url: #require(DeepLinkMock.setPriceAlert.asURL)) == .deeplink(.setPriceAlert(.mock(), price: 2.5)))
     }
 
     @Test
