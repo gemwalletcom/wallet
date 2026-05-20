@@ -114,7 +114,8 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
 
     override suspend fun setPinned(perpetualId: PerpetualId, isPinned: Boolean) {}
 
-    private fun perpId(symbol: String) = PerpetualId(provider = PerpetualProvider.Hypercore, symbol = symbol)
+    private fun hypercorePerpetualId(symbol: String): PerpetualId =
+        PerpetualId(provider = PerpetualProvider.Hypercore, symbol = symbol)
 
     private fun getSamplePerpetuals(): List<PerpetualData> {
         val btcAsset = Asset(
@@ -240,7 +241,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         return listOf(
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("BTC-PERP"),
+                    id = hypercorePerpetualId("BTC-PERP"),
                     name = "Bitcoin Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Bitcoin),
@@ -258,7 +259,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("ETH-PERP"),
+                    id = hypercorePerpetualId("ETH-PERP"),
                     name = "Ethereum Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Ethereum),
@@ -276,7 +277,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("SOL-PERP"),
+                    id = hypercorePerpetualId("SOL-PERP"),
                     name = "Solana Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Solana),
@@ -294,7 +295,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("BNB-PERP"),
+                    id = hypercorePerpetualId("BNB-PERP"),
                     name = "BNB Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.SmartChain),
@@ -312,7 +313,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("MATIC-PERP"),
+                    id = hypercorePerpetualId("MATIC-PERP"),
                     name = "Polygon Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Polygon),
@@ -330,7 +331,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("AVAX-PERP"),
+                    id = hypercorePerpetualId("AVAX-PERP"),
                     name = "Avalanche Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.AvalancheC),
@@ -348,7 +349,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("ADA-PERP"),
+                    id = hypercorePerpetualId("ADA-PERP"),
                     name = "Cardano Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Cardano),
@@ -366,7 +367,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("USDT-PERP"),
+                    id = hypercorePerpetualId("USDT-PERP"),
                     name = "Tether Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Ethereum, "0xdac17f958d2ee523a2206206994597c13d831ec7"),
@@ -384,7 +385,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("USDC-PERP"),
+                    id = hypercorePerpetualId("USDC-PERP"),
                     name = "USD Coin Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Ethereum, "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"),
@@ -402,7 +403,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("LINK-PERP"),
+                    id = hypercorePerpetualId("LINK-PERP"),
                     name = "Chainlink Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Ethereum, "0x514910771af9ca656af840dff83e8264ecf986ca"),
@@ -420,7 +421,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("UNI-PERP"),
+                    id = hypercorePerpetualId("UNI-PERP"),
                     name = "Uniswap Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Ethereum, "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"),
@@ -438,7 +439,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("AAVE-PERP"),
+                    id = hypercorePerpetualId("AAVE-PERP"),
                     name = "Aave Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Ethereum, "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9"),
@@ -456,7 +457,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("CAKE-PERP"),
+                    id = hypercorePerpetualId("CAKE-PERP"),
                     name = "PancakeSwap Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.SmartChain, "0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"),
@@ -474,7 +475,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("RAY-PERP"),
+                    id = hypercorePerpetualId("RAY-PERP"),
                     name = "Raydium Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Solana, "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R"),
@@ -492,7 +493,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
             ),
             PerpetualData(
                 perpetual = Perpetual(
-                    id = perpId("ORCA-PERP"),
+                    id = hypercorePerpetualId("ORCA-PERP"),
                     name = "Orca Perpetual",
                     provider = PerpetualProvider.Hypercore,
                     assetId = AssetId(Chain.Solana, "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE"),
@@ -555,9 +556,9 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
         }
 
         return mapOf(
-            perpId("BTC-PERP").toIdentifier() to btcChartData,
-            perpId("ETH-PERP").toIdentifier() to ethChartData,
-            perpId("SOL-PERP").toIdentifier() to solChartData
+            hypercorePerpetualId("BTC-PERP").toIdentifier() to btcChartData,
+            hypercorePerpetualId("ETH-PERP").toIdentifier() to ethChartData,
+            hypercorePerpetualId("SOL-PERP").toIdentifier() to solChartData
         )
     }
 }
