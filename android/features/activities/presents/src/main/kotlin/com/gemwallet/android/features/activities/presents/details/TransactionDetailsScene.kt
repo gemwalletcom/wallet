@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
 import com.gemwallet.android.ui.components.screen.Scene
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 
 @Composable
@@ -92,6 +93,11 @@ internal fun TransactionDetailsScene(
                             onClick = { onAction(TransactionDetailsAction.ShowFeeDetails) },
                         )
                         is TransactionDetailsValue.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = position)
+                        is TransactionDetailsValue.ResourceType -> PropertyItem(
+                            R.string.stake_resource,
+                            item.data.resourceTitle(),
+                            listPosition = position,
+                        )
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
                         is TransactionDetailsValue.Pnl -> PropertyItem(stringResource(R.string.perpetual_pnl), item.value, dataColor = item.direction.color(), listPosition = position)
                         is TransactionDetailsValue.Price -> PropertyItem(R.string.asset_price, item.data, listPosition = position)
@@ -125,4 +131,10 @@ private fun TransactionDetailsAggregate.amountAction(asset: Asset): TransactionD
         TransactionType.EarnDeposit,
         TransactionType.EarnWithdraw -> null
     }
+}
+
+@Composable
+private fun Resource.resourceTitle(): String = when (this) {
+    Resource.Bandwidth -> stringResource(R.string.stake_resource_bandwidth)
+    Resource.Energy -> stringResource(R.string.stake_resource_energy)
 }

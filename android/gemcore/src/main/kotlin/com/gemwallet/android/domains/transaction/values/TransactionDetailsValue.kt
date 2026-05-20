@@ -6,6 +6,7 @@ import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
 
@@ -85,6 +86,8 @@ sealed interface TransactionDetailsValue {
     ) : TransactionDetailsValue
 
     class Memo(val data: String) : TransactionDetailsValue
+
+    class ResourceType(val data: Resource) : TransactionDetailsValue
 
     class Network(val data: Asset) : TransactionDetailsValue
 
