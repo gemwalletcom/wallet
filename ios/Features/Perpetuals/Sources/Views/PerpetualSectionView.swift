@@ -5,13 +5,13 @@ import SwiftUI
 
 struct PerpetualSectionView: View {
     let perpetuals: [PerpetualData]
-    let onPin: (String, Bool) -> Void
+    let onPin: (PerpetualId, Bool) -> Void
     let onSelect: (Asset) -> Void
     let emptyText: String?
 
     init(
         perpetuals: [PerpetualData],
-        onPin: @escaping (String, Bool) -> Void,
+        onPin: @escaping (PerpetualId, Bool) -> Void,
         onSelect: @escaping (Asset) -> Void,
         emptyText: String? = nil,
     ) {

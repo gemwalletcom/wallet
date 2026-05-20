@@ -2,10 +2,11 @@ package com.gemwallet.android.domains.perpetual.aggregates
 
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.PerpetualId
 
 interface PerpetualDataAggregate {
 
-    val id: String
+    val id: PerpetualId
 
     val name: String
 

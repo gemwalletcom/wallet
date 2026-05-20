@@ -7,6 +7,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -29,7 +30,7 @@ class GetPerpetualsImpl @Inject constructor(
         }
     ) : com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate {
 
-        override val id: String = data.perpetual.id
+        override val id: PerpetualId = data.perpetual.id
 
         override val asset: Asset = data.asset
 

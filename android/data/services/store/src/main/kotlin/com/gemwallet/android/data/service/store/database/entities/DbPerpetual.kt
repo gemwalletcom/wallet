@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPerpetualId
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualMetadata
@@ -82,7 +83,7 @@ data class DbPerpetualData(
 
 fun DbPerpetual.toDTO(): Perpetual? {
     return Perpetual(
-        id = id,
+        id = id.toPerpetualId() ?: return null,
         name = name,
         provider = provider,
         assetId = assetId.toAssetId() ?: return null,
@@ -99,7 +100,7 @@ fun DbPerpetual.toDTO(): Perpetual? {
 
 fun Perpetual.toDB(isPinned: Boolean = false): DbPerpetual {
     return DbPerpetual(
-        id = id,
+        id = id.toIdentifier(),
         name = name,
         provider = provider,
         assetId = assetId.toIdentifier(),

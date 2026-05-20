@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.Relation
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPerpetualId
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualOrderType
@@ -100,7 +101,7 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition? {
 
     return PerpetualPosition(
         id = id,
-        perpetualId = perpetualId,
+        perpetualId = perpetualId.toPerpetualId() ?: return null,
         assetId = assetId.toAssetId() ?: return null,
         size = size,
         sizeValue = sizeValue,
@@ -121,7 +122,7 @@ fun PerpetualPosition.toDB(walletId: String, updatedAt: Long = System.currentTim
     return DbPerpetualPosition(
         id = id,
         walletId = walletId,
-        perpetualId = perpetualId,
+        perpetualId = perpetualId.toIdentifier(),
         assetId = assetId.toIdentifier(),
         size = size,
         sizeValue = sizeValue,

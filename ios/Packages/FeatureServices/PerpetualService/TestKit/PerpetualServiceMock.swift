@@ -19,7 +19,7 @@ public struct PerpetualServiceMock: PerpetualServiceable {
         PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil)
     }
 
-    public func setPinned(_: Bool, perpetualId _: String) throws {}
+    public func setPinned(_: Bool, perpetualId _: PerpetualId) throws {}
 
     public func getPositions(walletId _: WalletId, address _: String) async throws {}
 }

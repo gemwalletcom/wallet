@@ -33,7 +33,7 @@ data class PerpetualTriggerOrder (
 @Serializable
 data class PerpetualPosition (
 	val id: String,
-	val perpetualId: String,
+	val perpetualId: PerpetualId,
 	val assetId: AssetId,
 	val size: Double,
 	val sizeValue: Double,

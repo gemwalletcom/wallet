@@ -30,14 +30,16 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualProvider
 
 @Composable
 fun PerpetualItem(
     item: PerpetualDataAggregate,
     modifier: Modifier = Modifier,
     listPosition: ListPosition = ListPosition.Single,
-    longPressState: MutableState<String?>,
-    onTogglePin: (String) -> Unit,
+    longPressState: MutableState<PerpetualId?>,
+    onTogglePin: (PerpetualId) -> Unit,
     onClick: (AssetId) -> Unit,
 ) {
     DropDownContextItem(
@@ -107,7 +109,7 @@ fun PerpetualItem(
 @Composable
 private fun PerpetualItemPreview() {
     val sampleData = object : PerpetualDataAggregate {
-        override val id = "BTC-PERP"
+        override val id = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val name = "Bitcoin Perpetual"
         override val asset = Asset(
             id = AssetId(Chain.Bitcoin),

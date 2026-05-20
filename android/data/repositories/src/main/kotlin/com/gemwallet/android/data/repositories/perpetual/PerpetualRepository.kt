@@ -5,6 +5,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.WalletId
@@ -15,13 +16,13 @@ interface PerpetualRepository {
 
     fun getPerpetuals(query: String? = null): Flow<List<PerpetualData>>
 
-    fun getPerpetual(perpetualId: String): Flow<PerpetualData?>
+    fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?>
 
     fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?>
 
     suspend fun putPerpetualChartData(data: List<ChartCandleStick>)
 
-    fun getPerpetualChartData(perpetualId: String): Flow<List<ChartCandleStick>>
+    fun getPerpetualChartData(perpetualId: PerpetualId): Flow<List<ChartCandleStick>>
 
     suspend fun diffPositions(walletId: WalletId, items: List<PerpetualPosition>)
 
@@ -29,7 +30,7 @@ interface PerpetualRepository {
 
     fun getPositionByPositionId(id: String): Flow<PerpetualPositionData?>
 
-    fun getPositionByPerpetualId(id: String): Flow<PerpetualPositionData?>
+    fun getPositionByPerpetualId(id: PerpetualId): Flow<PerpetualPositionData?>
 
     suspend fun putAsset(asset: Asset)
 
@@ -37,5 +38,5 @@ interface PerpetualRepository {
 
     fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?>
 
-    suspend fun setPinned(perpetualId: String, isPinned: Boolean)
+    suspend fun setPinned(perpetualId: PerpetualId, isPinned: Boolean)
 }

@@ -36,8 +36,8 @@ struct WalletSearchRequestTests {
         let store = PerpetualStore(db: db)
         let searchStore = SearchStore(db: db)
 
-        let ethPerpetual = Perpetual.mock(id: "hypercore_ETH-USD", name: "ETH-USD", assetId: AssetId(chain: .ethereum))
-        let btcPerpetual = Perpetual.mock(id: "hypercore_BTC-USD", name: "BTC-USD", assetId: AssetId(chain: .bitcoin))
+        let ethPerpetual = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "ETH-USD"), name: "ETH-USD", assetId: AssetId(chain: .ethereum))
+        let btcPerpetual = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC-USD"), name: "BTC-USD", assetId: AssetId(chain: .bitcoin))
         try store.upsertPerpetuals([ethPerpetual, btcPerpetual])
 
         try db.dbQueue.read { db in
@@ -46,7 +46,7 @@ struct WalletSearchRequestTests {
         }
 
         let query = "perp priority"
-        try searchStore.add(type: .perpetual, query: query, ids: [btcPerpetual.id, ethPerpetual.id])
+        try searchStore.add(type: .perpetual, query: query, ids: [btcPerpetual.id.identifier, ethPerpetual.id.identifier])
 
         try db.dbQueue.read { db in
             let result = try WalletSearchRequest(walletId: .mock(), searchBy: query).fetch(db)

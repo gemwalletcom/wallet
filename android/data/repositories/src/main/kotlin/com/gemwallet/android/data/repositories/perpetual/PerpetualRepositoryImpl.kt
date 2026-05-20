@@ -15,6 +15,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.PerpetualBalance
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.WalletId
@@ -45,8 +46,8 @@ class PerpetualRepositoryImpl(
             asset.symbol.contains(needle, ignoreCase = true) ||
             asset.name.contains(needle, ignoreCase = true)
 
-    override fun getPerpetual(perpetualId: String): Flow<PerpetualData?> {
-        return perpetualDao.getPerpetual(perpetualId).map { it?.toDTO() }
+    override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> {
+        return perpetualDao.getPerpetual(perpetualId.toIdentifier()).map { it?.toDTO() }
     }
 
     override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualData?> {
@@ -57,7 +58,7 @@ class PerpetualRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override fun getPerpetualChartData(perpetualId: String): Flow<List<ChartCandleStick>> {
+    override fun getPerpetualChartData(perpetualId: PerpetualId): Flow<List<ChartCandleStick>> {
         TODO("Not yet implemented")
     }
 
@@ -73,8 +74,8 @@ class PerpetualRepositoryImpl(
         return perpetualPositionDao.getPositionData(id).map { it?.toDTO() }
     }
 
-    override fun getPositionByPerpetualId(id: String): Flow<PerpetualPositionData?> {
-        return perpetualPositionDao.getPositionDataByPerpetual(id).map { it?.toDTO() }
+    override fun getPositionByPerpetualId(id: PerpetualId): Flow<PerpetualPositionData?> {
+        return perpetualPositionDao.getPositionDataByPerpetual(id.toIdentifier()).map { it?.toDTO() }
     }
 
     override suspend fun putAsset(asset: Asset) {
@@ -104,7 +105,7 @@ class PerpetualRepositoryImpl(
             .map { it?.let { PerpetualBalance(available = it.available, reserved = it.reserved, withdrawable = it.withdrawable) } }
     }
 
-    override suspend fun setPinned(perpetualId: String, isPinned: Boolean) {
-        perpetualDao.setPinned(perpetualId, isPinned)
+    override suspend fun setPinned(perpetualId: PerpetualId, isPinned: Boolean) {
+        perpetualDao.setPinned(perpetualId.toIdentifier(), isPinned)
     }
 }

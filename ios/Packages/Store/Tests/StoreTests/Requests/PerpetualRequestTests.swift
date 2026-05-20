@@ -15,7 +15,7 @@ struct PerpetualRequestTests {
         let perpetual = Perpetual.mock(assetId: eth, price: 2500.0, maxLeverage: 100, isIsolatedOnly: true)
 
         try store.upsertPerpetuals([perpetual])
-        try store.setPinned(for: [perpetual.id], value: true)
+        try store.setPinned(for: [perpetual.id.identifier], value: true)
 
         try db.dbQueue.read { db in
             let result = try PerpetualRequest(assetId: eth).fetch(db)
@@ -43,7 +43,7 @@ struct PerpetualRequestTests {
         let store = PerpetualStore(db: db)
 
         let existing = Perpetual.mock(
-            id: "hypercore_ETH",
+            id: PerpetualId(provider: .hypercore, symbol: "ETH"),
             name: "ETH",
             assetId: oldAssetId,
             isIsolatedOnly: false,
@@ -58,7 +58,7 @@ struct PerpetualRequestTests {
         )
 
         try store.upsertPerpetuals([existing])
-        try store.setPinned(for: [existing.id], value: true)
+        try store.setPinned(for: [existing.id.identifier], value: true)
         try store.upsertPerpetuals([updated])
 
         try db.dbQueue.read { db in
@@ -83,7 +83,7 @@ struct PerpetualRequestTests {
         let store = PerpetualStore(db: db)
         let eth = AssetId(chain: .ethereum)
         let perpetual = Perpetual.mock(
-            id: "hypercore_ETH",
+            id: PerpetualId(provider: .hypercore, symbol: "ETH"),
             name: "ETH",
             assetId: eth,
         )

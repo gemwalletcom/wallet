@@ -4,6 +4,6 @@ import Foundation
 
 extension PerpetualData: Identifiable {
     public var id: String {
-        perpetual.id
+        perpetual.id.identifier
     }
 }

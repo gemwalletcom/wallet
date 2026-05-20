@@ -13,6 +13,7 @@ import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualType
@@ -25,20 +26,20 @@ class BuildPerpetualParamsImpl(
     private val sessionRepository: SessionRepository,
 ) : BuildPerpetualParams {
 
-    override suspend fun open(perpetualId: String, direction: PerpetualDirection): AmountParams.Perpetual? {
+    override suspend fun open(perpetualId: PerpetualId, direction: PerpetualDirection): AmountParams.Perpetual? {
         val data = getPerpetual(perpetualId) ?: return null
         val transferData = createTransferData(data, direction, data.perpetual.maxLeverage, data.perpetual.marginType()) ?: return null
         return createAmountParams(data, PerpetualPositionAction.Open(transferData))
     }
 
-    override suspend fun increase(perpetualId: String): AmountParams.Perpetual? {
+    override suspend fun increase(perpetualId: PerpetualId): AmountParams.Perpetual? {
         val data = getPerpetual(perpetualId) ?: return null
         val position = getPosition(perpetualId) ?: return null
         val transferData = createTransferData(data, position.direction, position.leverage, position.marginType) ?: return null
         return createAmountParams(data, PerpetualPositionAction.Increase(transferData))
     }
 
-    override suspend fun reduce(perpetualId: String): AmountParams.Perpetual? {
+    override suspend fun reduce(perpetualId: PerpetualId): AmountParams.Perpetual? {
         val data = getPerpetual(perpetualId) ?: return null
         val position = getPosition(perpetualId) ?: return null
         val transferData = createTransferData(data, position.direction, position.leverage, position.marginType) ?: return null
@@ -46,7 +47,7 @@ class BuildPerpetualParamsImpl(
         return createAmountParams(data, PerpetualPositionAction.Reduce(transferData, available, position.direction))
     }
 
-    override suspend fun close(perpetualId: String): ConfirmParams.PerpetualParams? {
+    override suspend fun close(perpetualId: PerpetualId): ConfirmParams.PerpetualParams? {
         val data = getPerpetual(perpetualId) ?: return null
         val position = getPosition(perpetualId) ?: return null
         val assetIndex = data.perpetual.identifier.toIntOrNull() ?: return null
@@ -62,10 +63,10 @@ class BuildPerpetualParamsImpl(
             .perpetual(PerpetualType.Close(confirmData))
     }
 
-    private suspend fun getPerpetual(perpetualId: String): PerpetualData? =
+    private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =
         perpetualRepository.getPerpetual(perpetualId).firstOrNull()
 
-    private suspend fun getPosition(perpetualId: String): PerpetualPosition? =
+    private suspend fun getPosition(perpetualId: PerpetualId): PerpetualPosition? =
         perpetualRepository.getPositionByPerpetualId(perpetualId).firstOrNull()?.position
 
     private fun createTransferData(
