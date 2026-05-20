@@ -31,7 +31,7 @@ fun PropertyAssetInfoItem(
     ListItem(
         leading = { AssetIcon(asset) },
         title = { ListItemTitleText(asset.name) },
-        subtitle = { ListItemSupportText(stringResource(id = R.string.transfer_balance, availableAmount)) },
+        subtitle = { ListItemSupportText(availableAmount) },
         listPosition = ListPosition.Single,
         trailing = {
             Button(
