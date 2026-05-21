@@ -16,9 +16,9 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.Deeplink
+import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
-import uniffi.gemstone.deeplinkDecodeUrl
-import uniffi.gemstone.walletConnectDecodeUrl
+import uniffi.gemstone.urlAction
 
 class PendingNavigationCoordinatorTest {
 
@@ -42,7 +42,7 @@ class PendingNavigationCoordinatorTest {
     fun resolve_walletConnectPairing_invokesPairingHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "wc:abc@2?relay-protocol=irn"
-        every { walletConnectDecodeUrl(uri) } returns WalletConnectLink.Connect(uri)
+        every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Connect(uri))
         coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(handler)
@@ -55,7 +55,7 @@ class PendingNavigationCoordinatorTest {
     fun resolve_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "gem://wc?requestId=42"
-        every { walletConnectDecodeUrl(uri) } returns WalletConnectLink.Request
+        every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Request)
         coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(handler)
@@ -67,8 +67,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun resolve_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
-        every { walletConnectDecodeUrl(uri) } returns null
-        every { deeplinkDecodeUrl(uri) } returns Deeplink.Rewards(code = "gemcoder")
+        every { urlAction(uri) } returns UrlAction.Deeplink(Deeplink.Rewards(code = "gemcoder"))
         coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(NoOpWalletConnect)
@@ -80,8 +79,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun resolve_unknownIntentWithoutNotificationPayload_clears() = runTest {
         val uri = "https://example.com/unknown"
-        every { walletConnectDecodeUrl(uri) } returns null
-        every { deeplinkDecodeUrl(uri) } returns null
+        every { urlAction(uri) } returns null
         coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(NoOpWalletConnect)

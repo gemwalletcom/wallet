@@ -73,9 +73,6 @@ extension NavigationHandler {
 
         case let .rewards(code):
             navigationState.settings.append(Scenes.Referral(code: code))
-
-        case let .gift(code):
-            navigationState.settings.append(Scenes.Referral(code: nil, giftCode: code))
         }
 
         selectTab(for: deeplink.selectTab)
@@ -199,7 +196,7 @@ private extension DeepLink {
     var selectTab: TabItem? {
         switch self {
         case .asset, .perpetuals: .wallet
-        case .rewards, .gift: .settings
+        case .rewards: .settings
         }
     }
 }

@@ -25,7 +25,6 @@ public final class RewardsViewModel: Sendable {
     private let rewardsService: RewardsServiceable
     private let assetsEnabler: any AssetsEnabler
     private let activateCode: String?
-    private let giftCode: String?
 
     private(set) var selectedWallet: Wallet
     private(set) var wallets: [Wallet]
@@ -41,14 +40,12 @@ public final class RewardsViewModel: Sendable {
         wallet: Wallet,
         wallets: [Wallet],
         activateCode: String? = nil,
-        giftCode: String? = nil,
     ) {
         self.rewardsService = rewardsService
         self.assetsEnabler = assetsEnabler
         selectedWallet = wallet
         self.wallets = wallets
         self.activateCode = activateCode
-        self.giftCode = giftCode
     }
 
     // MARK: - UI Properties
@@ -243,13 +240,6 @@ public final class RewardsViewModel: Sendable {
 
         if wallets.count == 1, activateCode != nil {
             await useReferralCode()
-        } else if giftCode != nil {
-            do {
-                let option = try await getRewardRedemptionOption()
-                showRedemptionAlert(for: option)
-            } catch {
-                showError(error.localizedDescription)
-            }
         } else if let code = activateCode {
             isPresentingSheet = .activateCode(code: code)
         }
@@ -275,13 +265,6 @@ public final class RewardsViewModel: Sendable {
         } catch {
             showError(error.localizedDescription)
         }
-    }
-
-    private func getRewardRedemptionOption() async throws -> RewardRedemptionOption {
-        guard let code = giftCode else {
-            throw AnyError("no gift code")
-        }
-        return try await rewardsService.getRedemptionOption(code: code)
     }
 
     func canRedeem(option: RewardRedemptionOption) -> Bool {

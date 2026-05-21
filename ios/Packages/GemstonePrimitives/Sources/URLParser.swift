@@ -1,10 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.Deeplink
-import func Gemstone.deeplinkDecodeUrl
-import func Gemstone.walletConnectDecodeUrl
-import enum Gemstone.WalletConnectLink
+import enum Gemstone.UrlAction
+import func Gemstone.urlAction
 import Primitives
 
 enum URLParserError: Error {
@@ -13,17 +11,9 @@ enum URLParserError: Error {
 
 public enum URLParser {
     public static func from(url: URL) throws -> URLAction {
-        if let walletConnectLink = walletConnectDecodeUrl(url: url.absoluteString) {
-            return .walletConnect(walletConnectLink.map())
+        guard let action = urlAction(url: url.absoluteString) else {
+            throw URLParserError.invalidURL(url)
         }
-
-        let deeplink: DeepLink = switch deeplinkDecodeUrl(url: url.absoluteString) {
-        case let .asset(assetId): try .asset(AssetId(id: assetId))
-        case let .rewards(code): .rewards(code: code)
-        case let .gift(code): .gift(code: code)
-        case .perpetuals: .perpetuals
-        case .none: throw URLParserError.invalidURL(url)
-        }
-        return .deeplink(deeplink)
+        return try action.map()
     }
 }

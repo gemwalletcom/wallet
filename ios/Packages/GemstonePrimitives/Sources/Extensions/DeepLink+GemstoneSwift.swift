@@ -18,7 +18,16 @@ public extension Primitives.DeepLink {
         case let .asset(assetId): .asset(assetId: assetId.identifier)
         case .perpetuals: .perpetuals
         case let .rewards(code): .rewards(code: code)
-        case let .gift(code): .gift(code: code)
+        }
+    }
+}
+
+public extension Gemstone.Deeplink {
+    func map() throws -> Primitives.DeepLink {
+        switch self {
+        case let .asset(assetId): try .asset(AssetId(id: assetId))
+        case .perpetuals: .perpetuals
+        case let .rewards(code): .rewards(code: code)
         }
     }
 }

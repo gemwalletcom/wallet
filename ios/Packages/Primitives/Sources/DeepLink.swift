@@ -6,5 +6,4 @@ public enum DeepLink: Equatable, Sendable {
     case asset(AssetId)
     case perpetuals
     case rewards(code: String?)
-    case gift(code: String?)
 }
