@@ -138,6 +138,7 @@ private fun Timeline(
             SwapProgressStatus.Pending,
             SwapProgressStatus.Waiting,
             SwapProgressStatus.Failed,
+            SwapProgressStatus.Reverted,
             SwapProgressStatus.Refunded -> MaterialTheme.colorScheme.outlineVariant
         }
 
@@ -166,6 +167,7 @@ private fun ProgressMarker(status: SwapProgressStatus) {
             when (status) {
                 SwapProgressStatus.Completed,
                 SwapProgressStatus.Failed,
+                SwapProgressStatus.Reverted,
                 SwapProgressStatus.Refunded -> Modifier.background(color.copy(alpha = alpha10), CircleShape)
                 SwapProgressStatus.Pending,
                 SwapProgressStatus.Waiting -> Modifier
@@ -198,6 +200,7 @@ private fun ProgressMarker(status: SwapProgressStatus) {
                 }
             }
             SwapProgressStatus.Failed,
+            SwapProgressStatus.Reverted,
             SwapProgressStatus.Refunded -> Icon(
                 modifier = Modifier.size(compactIconSize),
                 imageVector = Icons.Default.Close,
@@ -248,8 +251,8 @@ internal fun TransactionState.swapProgressStatuses(): SwapProgressStatuses {
             swap = SwapProgressStatus.Failed,
         )
         TransactionState.Reverted -> SwapProgressStatuses(
-            transfer = SwapProgressStatus.Completed,
-            swap = SwapProgressStatus.Refunded,
+            transfer = SwapProgressStatus.Reverted,
+            swap = SwapProgressStatus.Waiting,
         )
     }
 }
@@ -259,6 +262,7 @@ internal enum class SwapProgressStatus {
     Pending,
     Waiting,
     Failed,
+    Reverted,
     Refunded,
 }
 
@@ -269,6 +273,7 @@ internal fun SwapProgressStatus.labelRes(): Int? {
         SwapProgressStatus.Pending -> R.string.transaction_status_inprogress
         SwapProgressStatus.Waiting -> null
         SwapProgressStatus.Failed -> R.string.transaction_status_failed
+        SwapProgressStatus.Reverted -> R.string.transaction_status_reverted
         SwapProgressStatus.Refunded -> R.string.transaction_status_refunded
     }
 }
@@ -280,6 +285,7 @@ private fun SwapProgressStatus.color(): Color {
         SwapProgressStatus.Pending -> MaterialTheme.colorScheme.primary
         SwapProgressStatus.Waiting -> MaterialTheme.colorScheme.outlineVariant
         SwapProgressStatus.Failed -> MaterialTheme.colorScheme.error
+        SwapProgressStatus.Reverted -> MaterialTheme.colorScheme.error
         SwapProgressStatus.Refunded -> pendingColor
     }
 }

@@ -68,8 +68,8 @@ extension TransactionSwapProgressViewModel {
             transferStatus = .completed
             swapStatus = .failed
         case .reverted:
-            transferStatus = .completed
-            swapStatus = .refunded
+            transferStatus = .reverted
+            swapStatus = .waiting
         }
 
         return TransactionSwapProgressItemModel(

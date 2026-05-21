@@ -79,6 +79,8 @@ sealed interface TransactionDetailsValue {
 
     class Status(val data: TransactionState) : TransactionDetailsValue
 
+    class Rate(val forward: String, val reverse: String) : TransactionDetailsValue
+
     class SwapProgress(
         val fromAsset: Asset,
         val fromValue: String,

@@ -219,7 +219,7 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
-    func swapProgressItemModel_revertedCrossChain() {
+    func swapProgressItemModel_revertedCrossChainShowsSourceReverted() {
         let fromAsset = Asset.mockEthereum()
         let toAsset = Asset.mockNear()
         let model = TransactionSceneViewModel.swapProgressMock(
@@ -229,11 +229,12 @@ struct TransactionSceneViewModelTests {
         )
 
         if case let .swapProgress(progress) = model.item(for: TransactionItem.swapProgress) {
-            #expect(progress.transfer.status == .completed)
+            #expect(progress.transfer.status == .reverted)
+            #expect(progress.transfer.status.tagTitle == Localized.Transaction.Status.reverted)
             #expect(progress.swap.title == Localized.Wallet.swap)
             #expect(progress.swap.subtitle == "NEAR Intents")
-            #expect(progress.swap.status == .refunded)
-            #expect(progress.swap.status.tagTitle == Localized.Transaction.Status.refunded)
+            #expect(progress.swap.status == .waiting)
+            #expect(progress.swap.status.tagTitle == nil)
         } else {
             Issue.record("Expected swap progress for reverted cross-chain swap")
         }
@@ -379,6 +380,7 @@ struct TransactionSceneViewModelTests {
             TransactionItem.status,
             TransactionItem.participant,
             TransactionItem.memo,
+            TransactionItem.rate,
             TransactionItem.network,
             TransactionItem.pnl,
             TransactionItem.price,

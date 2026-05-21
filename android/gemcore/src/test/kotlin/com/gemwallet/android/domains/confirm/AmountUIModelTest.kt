@@ -25,7 +25,7 @@ class AmountUIModelTest {
     }
 
     private fun model(price: Double?) = AmountUIModel(
-        txType = TransactionType.Transfer,
+        transactionType = TransactionType.Transfer,
         amount = BigInteger("1000000000"),
         asset = mockAssetInfo(asset = mockAssetSolana()),
         fromAsset = mockAssetInfo(asset = mockAssetSolana()),

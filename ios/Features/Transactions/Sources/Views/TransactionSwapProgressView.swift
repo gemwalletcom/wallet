@@ -82,6 +82,11 @@ struct TransactionSwapProgressView: View {
                     .font(.app.footnote)
                     .fontWeight(.semibold)
                     .foregroundStyle(status.color)
+            case .reverted:
+                Images.System.xmark
+                    .font(.app.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(status.color)
             case .refunded:
                 Images.System.arrowSwap
                     .font(.app.footnote)

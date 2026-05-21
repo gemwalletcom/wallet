@@ -43,6 +43,12 @@ public struct TransactionScene: View {
             TransactionSwapProgressView(model: model)
         case let .participant(model):
             AddressListItemView(model: model.addressViewModel)
+        case let .rate(title, value):
+            ListItemRotateView(
+                title: title,
+                subtitle: value,
+                action: model.switchRateDirection,
+            )
         case let .network(title, subtitle, image):
             ListItemImageView(
                 title: title,

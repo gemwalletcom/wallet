@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.models
 import com.gemwallet.android.math.parseNumber
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.Fiat
+import com.gemwallet.android.model.ValueConverter
 
 enum class AmountInputType {
     Crypto {
@@ -15,7 +15,7 @@ enum class AmountInputType {
     },
     Fiat {
         override fun getAmount(value: String, decimals: Int, price: Double): Crypto =
-            CryptoFiatConverter.toCrypto(Fiat(value.parseNumber()), decimals, price)
+            ValueConverter.convertToAmount(value, price, decimals)
 
         override fun getInput(amount: Crypto?, decimals: Int, price: Double): String =
             amount?.let { CryptoFiatConverter.toFiat(it, decimals, price).atomicValue }
