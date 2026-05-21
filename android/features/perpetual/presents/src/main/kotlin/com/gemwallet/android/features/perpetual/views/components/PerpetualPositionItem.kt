@@ -31,6 +31,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualProvider
 
 @Composable
 fun PerpetualPositionItem(
@@ -73,7 +75,7 @@ private fun PerpetualPositionLongItemPreview() {
 
     val sampleData = object : PerpetualPositionDataAggregate {
         override val positionId: String = "pos_btc_001"
-        override val perpetualId: String = "BTC-PERP"
+        override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
         override val name: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Long
@@ -101,7 +103,7 @@ private fun PerpetualPositionShortItemPreview() {
 
     val sampleData = object : PerpetualPositionDataAggregate {
         override val positionId: String = "pos_btc_001"
-        override val perpetualId: String = "BTC-PERP"
+        override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
         override val name: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Short

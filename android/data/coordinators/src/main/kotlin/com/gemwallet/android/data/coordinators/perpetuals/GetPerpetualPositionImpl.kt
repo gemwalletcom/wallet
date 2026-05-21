@@ -11,6 +11,7 @@ import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualPositionData
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class GetPerpetualPositionImpl @Inject constructor(
     private val perpetualRepository: PerpetualRepository
 ) : GetPerpetualPosition {
-    override fun getPositionByPerpetual(id: String): Flow<PerpetualPositionDetailsDataAggregate?> {
+    override fun getPositionByPerpetual(id: PerpetualId): Flow<PerpetualPositionDetailsDataAggregate?> {
         return perpetualRepository.getPositionByPerpetualId(id).map { PerpetualPositionDetailsDataAggregateImpl(it ?: return@map null) }
     }
 }
@@ -52,7 +53,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val positionId: String = data.position.id
 
-    override val perpetualId: String = data.position.perpetualId
+    override val perpetualId: PerpetualId = data.position.perpetualId
 
     override val asset: Asset = data.asset
 

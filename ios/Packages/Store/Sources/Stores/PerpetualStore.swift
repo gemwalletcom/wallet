@@ -16,7 +16,7 @@ public struct PerpetualStore: Sendable {
             for perpetual in perpetuals {
                 try perpetual.record.insert(db, onConflict: .ignore)
                 try PerpetualRecord
-                    .filter(PerpetualRecord.Columns.id == perpetual.id)
+                    .filter(PerpetualRecord.Columns.id == perpetual.id.identifier)
                     .updateAll(
                         db,
                         PerpetualRecord.Columns.name.set(to: perpetual.name),

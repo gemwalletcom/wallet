@@ -600,7 +600,6 @@ class SwapViewModelTest {
                     bps = 50u,
                     mode = SwapperSlippageMode.AUTO,
                 ),
-                fee = null,
                 useMaxAmount = false,
             ),
         ),

@@ -2,7 +2,7 @@ import Foundation
 
 extension PerpetualPositionData: Identifiable {
     public var id: String {
-        perpetual.id
+        perpetual.id.identifier
     }
 
     public var perpetualData: PerpetualData {

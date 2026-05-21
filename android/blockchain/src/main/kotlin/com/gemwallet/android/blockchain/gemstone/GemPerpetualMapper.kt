@@ -2,6 +2,7 @@ package com.gemwallet.android.blockchain.gemstone
 
 import com.gemwallet.android.domains.asset.toDTO
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toPerpetualId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualBalance
@@ -25,7 +26,7 @@ import uniffi.gemstone.GemPerpetualTriggerOrder
 internal fun GemPerpetualData.toDTO(): PerpetualData? {
     return PerpetualData(
         perpetual = Perpetual(
-            id = perpetual.id,
+            id = perpetual.id.toPerpetualId() ?: return null,
             name = perpetual.name,
             provider = perpetual.provider.toDTO(),
             assetId = perpetual.assetId.toAssetId() ?: return null,
@@ -59,7 +60,7 @@ internal fun GemPerpetualPositionsSummary.toDTO(): PerpetualPositionsSummary {
 internal fun GemPerpetualPosition.toDTO(): PerpetualPosition? {
     return PerpetualPosition(
         id = id,
-        perpetualId = perpetualId,
+        perpetualId = perpetualId.toPerpetualId() ?: return null,
         assetId = assetId.toAssetId() ?: return null,
         size = size,
         sizeValue = sizeValue,

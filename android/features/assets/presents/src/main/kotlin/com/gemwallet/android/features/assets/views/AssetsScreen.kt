@@ -26,6 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -98,8 +100,13 @@ fun AssetsScreen(
     }
 
     val currentWalletId by viewModel.currentWalletId.collectAsStateWithLifecycle()
+    var previousWalletId by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(currentWalletId) {
-        if (currentWalletId != null) listState.scrollToItem(0)
+        val walletId = currentWalletId?.id ?: return@LaunchedEffect
+        if (previousWalletId != null && previousWalletId != walletId) {
+            listState.scrollToItem(0)
+        }
+        previousWalletId = walletId
     }
 
     Scaffold(

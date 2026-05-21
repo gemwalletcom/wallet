@@ -4,11 +4,12 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMetadata
 import com.wallet.core.primitives.PerpetualProvider
 
 fun mockPerpetual(
-    id: String = "hypercore_TON",
+    id: PerpetualId = PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "TON"),
     name: String = "TON",
     provider: PerpetualProvider = PerpetualProvider.Hypercore,
     assetId: AssetId = mockAsset().id,

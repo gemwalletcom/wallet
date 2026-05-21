@@ -47,12 +47,14 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
+import com.gemwallet.android.ui.components.list_item.walletItemIconModel
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
@@ -187,7 +189,17 @@ fun ConfirmScreen(
                     is ConfirmProperty.Destination -> PropertyDestination(item, listPosition)
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
                     is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)
-                    is ConfirmProperty.Source -> PropertyItem(R.string.common_wallet, item.data, listPosition = listPosition)
+                    is ConfirmProperty.Source -> PropertyItem(
+                        title = { PropertyTitleText(R.string.common_wallet) },
+                        data = {
+                            val walletIcon = walletItemIconModel(item.walletType, item.walletChain)
+                            PropertyDataText(
+                                text = item.data,
+                                badge = walletIcon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
+                            )
+                        },
+                        listPosition = listPosition,
+                    )
                 }
             }
             itemsIndexed(detailElements) { index, item ->

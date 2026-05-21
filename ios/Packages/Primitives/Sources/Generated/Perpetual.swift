@@ -44,7 +44,7 @@ public struct CancelOrderData: Codable, Equatable, Hashable, Sendable {
 }
 
 public struct Perpetual: Codable, Equatable, Hashable, Sendable {
-	public let id: String
+	public let id: PerpetualId
 	public let name: String
 	public let provider: PerpetualProvider
 	public let assetId: AssetId
@@ -57,7 +57,7 @@ public struct Perpetual: Codable, Equatable, Hashable, Sendable {
 	public let maxLeverage: UInt8
 	public let isIsolatedOnly: Bool
 
-	public init(id: String, name: String, provider: PerpetualProvider, assetId: AssetId, identifier: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double, maxLeverage: UInt8, isIsolatedOnly: Bool) {
+	public init(id: PerpetualId, name: String, provider: PerpetualProvider, assetId: AssetId, identifier: String, price: Double, pricePercentChange24h: Double, openInterest: Double, volume24h: Double, funding: Double, maxLeverage: UInt8, isIsolatedOnly: Bool) {
 		self.id = id
 		self.name = name
 		self.provider = provider
@@ -87,10 +87,10 @@ public struct PerpetualBalance: Codable, Equatable, Hashable, Sendable {
 
 public struct PerpetualBasic: Codable, Equatable, Hashable, Sendable {
 	public let assetId: AssetId
-	public let perpetualId: String
+	public let perpetualId: PerpetualId
 	public let provider: PerpetualProvider
 
-	public init(assetId: AssetId, perpetualId: String, provider: PerpetualProvider) {
+	public init(assetId: AssetId, perpetualId: PerpetualId, provider: PerpetualProvider) {
 		self.assetId = assetId
 		self.perpetualId = perpetualId
 		self.provider = provider

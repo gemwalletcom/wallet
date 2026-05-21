@@ -31,6 +31,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionId
@@ -102,7 +103,7 @@ private fun PerpetualPositionScenePreview() {
     )
 
     val samplePerpetual = object : PerpetualDetailsDataAggregate {
-        override val id: String = "BTC-PERP"
+        override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val provider: PerpetualProvider = PerpetualProvider.Hypercore
         override val asset: Asset = sampleAsset
         override val name: String = "Bitcoin Perpetual"
@@ -117,7 +118,7 @@ private fun PerpetualPositionScenePreview() {
 
     val samplePosition = object : PerpetualPositionDetailsDataAggregate {
         override val positionId: String = "pos-btc-001"
-        override val perpetualId: String = "BTC-PERP"
+        override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
         override val name: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Long

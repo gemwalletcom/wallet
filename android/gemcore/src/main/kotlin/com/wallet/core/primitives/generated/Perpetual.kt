@@ -36,7 +36,7 @@ data class CancelOrderData (
 
 @Serializable
 data class Perpetual (
-	val id: String,
+	val id: PerpetualId,
 	val name: String,
 	val provider: PerpetualProvider,
 	val assetId: AssetId,
@@ -60,7 +60,7 @@ data class PerpetualBalance (
 @Serializable
 data class PerpetualBasic (
 	val assetId: AssetId,
-	val perpetualId: String,
+	val perpetualId: PerpetualId,
 	val provider: PerpetualProvider
 )
 

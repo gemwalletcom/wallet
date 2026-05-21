@@ -23,7 +23,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
         static let isPinned = Column("isPinned")
     }
 
-    var id: String
+    var id: PerpetualId
     var name: String
     var provider: PerpetualProvider
     var assetId: AssetId
@@ -38,7 +38,7 @@ struct PerpetualRecord: Codable, TableRecord, FetchableRecord, PersistableRecord
     var isPinned: Bool
 
     init(
-        id: String,
+        id: PerpetualId,
         name: String,
         provider: PerpetualProvider,
         assetId: AssetId,

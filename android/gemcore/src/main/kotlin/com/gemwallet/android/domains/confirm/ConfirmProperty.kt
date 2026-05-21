@@ -4,10 +4,12 @@ import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationValidator
+import com.wallet.core.primitives.WalletType
 
 sealed interface ConfirmProperty {
-    class Source(val data: String) : ConfirmProperty
+    class Source(val data: String, val walletType: WalletType, val walletChain: Chain?) : ConfirmProperty
     class Network(val data: Asset) : ConfirmProperty
     class Memo(val data: String) : ConfirmProperty
 

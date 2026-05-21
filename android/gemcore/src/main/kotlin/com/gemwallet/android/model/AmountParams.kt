@@ -6,6 +6,7 @@ import com.gemwallet.android.ext.urlEncode
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 import kotlinx.serialization.SerialName
@@ -98,7 +99,7 @@ sealed interface AmountParams {
     @SerialName("perpetual")
     data class Perpetual(
         override val assetId: AssetId,
-        val perpetualId: String,
+        val perpetualId: PerpetualId,
         val positionAction: PerpetualPositionAction,
     ) : AmountParams {
         val direction: PerpetualDirection get() = positionAction.data.direction
