@@ -16,6 +16,7 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.features.activities.presents.details.components.DestinationPropertyItem
 import com.gemwallet.android.features.activities.presents.details.components.SwapProgressItem
 import com.gemwallet.android.features.activities.presents.details.components.TransactionExplorer
+import com.gemwallet.android.features.activities.presents.details.components.TransactionRateProperty
 import com.gemwallet.android.features.activities.presents.details.components.TransactionStatusProperty
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -106,6 +107,7 @@ internal fun TransactionDetailsScene(
                         is TransactionDetailsValue.Pnl -> PropertyItem(stringResource(R.string.perpetual_pnl), item.value, dataColor = item.direction.color(), listPosition = position)
                         is TransactionDetailsValue.Price -> PropertyItem(R.string.asset_price, item.data, listPosition = position)
                         is TransactionDetailsValue.Status -> TransactionStatusProperty(data.asset, item, position)
+                        is TransactionDetailsValue.Rate -> TransactionRateProperty(item, position)
                         is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
                         is TransactionDetailsValue.SwapAgain -> MainActionButton(
                             title = stringResource(R.string.transaction_swap_again),
