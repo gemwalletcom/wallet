@@ -784,6 +784,34 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
+    fun testRate() {
+        val swapMetadata = TransactionSwapMetadata(
+            fromAsset = ethAsset.id,
+            toAsset = usdtAsset.id,
+            fromValue = "1000000000000000000",
+            toValue = "3000000000",
+            provider = SwapProvider.UniswapV3.string,
+        )
+        val swapTransaction = createTransaction(
+            type = TransactionType.Swap,
+            assetId = ethAsset.id,
+            metadata = jsonEncoder.encodeToString(TransactionSwapMetadata.serializer(), swapMetadata),
+        )
+        val swapAggregate = createAggregate(
+            data = createTransactionExtended(swapTransaction, asset = ethAsset, assets = listOf(ethAsset, usdtAsset)),
+            associatedAssets = listOf(createAssetInfo(ethAsset), createAssetInfo(usdtAsset)),
+            swapMetadata = swapMetadata,
+        )
+
+        val rate = swapAggregate.rate
+        Assert.assertNotNull(rate)
+        Assert.assertTrue(rate!!.forward.startsWith("1 ETH"))
+        Assert.assertTrue(rate.reverse.startsWith("1 USDT"))
+
+        Assert.assertNull(createAggregate(createTransactionExtended(createTransaction())).rate)
+    }
+
+    @Test
     fun testMemo_present() {
         val transaction = createTransaction(memo = "Test memo")
         val extended = createTransactionExtended(transaction)

@@ -8,6 +8,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.transactions.TransactionRepository
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
@@ -268,14 +269,18 @@ class TransactionDetailsAggregateImpl(
             add(ValueGroup(listOf(amount)))
             swapProgress?.let { add(ValueGroup(listOf(it))) }
             swapAgain?.let { add(ValueGroup(listOf(it))) }
+            val providerDestination = destination as? TransactionDetailsValue.Destination.Provider
+            val addressDestination = if (providerDestination == null) destination else null
             add(
                 ValueGroup(
                     listOfNotNull(
                         date,
                         status,
-                        destination,
+                        rate,
+                        addressDestination,
                         resourceType,
                         network,
+                        providerDestination,
                         pnl,
                         price,
                     )
@@ -304,6 +309,25 @@ class TransactionDetailsAggregateImpl(
                 providerName = provider.name,
                 state = data.transaction.state,
             )
+        }
+
+    override val rate: TransactionDetailsValue.Rate?
+        get() {
+            val metadata = swapMetadata ?: return null
+            val fromAsset = associatedAssets.firstOrNull { it.id() == metadata.fromAsset }?.asset ?: return null
+            val toAsset = associatedAssets.firstOrNull { it.id() == metadata.toAsset }?.asset ?: return null
+            return try {
+                val fromAmount = Crypto(metadata.fromValue).value(fromAsset.decimals)
+                val toAmount = Crypto(metadata.toValue).value(toAsset.decimals)
+                if (fromAmount.signum() == 0 || toAmount.signum() == 0) return null
+                val formatter = AssetRateFormatter()
+                TransactionDetailsValue.Rate(
+                    forward = formatter.format(fromAsset, toAsset, fromAmount, toAmount, AssetRateFormatter.Direction.Direct),
+                    reverse = formatter.format(fromAsset, toAsset, fromAmount, toAmount, AssetRateFormatter.Direction.Inverse),
+                )
+            } catch (_: Throwable) {
+                null
+            }
         }
 
     override val swapAgain: TransactionDetailsValue.SwapAgain?

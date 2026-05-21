@@ -16,6 +16,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
+import com.gemwallet.android.model.ValueConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.AmountInputType
@@ -35,7 +36,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigInteger
-import java.math.MathContext
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -183,10 +183,9 @@ class AmountViewModel @Inject constructor(
                     currencyFormatter.string(unit.atomicValue)
                 }
                 AmountInputType.Fiat -> {
-                    val value = input.parseNumber()
-                    val crypto = value.divide(price.toBigDecimal(), MathContext.DECIMAL128)
-                    AmountValidation.validateAmount(asset, crypto.toString(), BigInteger.ZERO)
-                    valueFormatter.string(crypto, asset.symbol)
+                    val crypto = ValueConverter.convertToAmount(input, price, asset.decimals)
+                    AmountValidation.validateAmount(asset, crypto.value(asset.decimals).toPlainString(), BigInteger.ZERO)
+                    valueFormatter.string(crypto.atomicValue, asset.decimals, asset.symbol)
                 }
             }
         } catch (_: Throwable) {
