@@ -4,8 +4,10 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.testkit.mockAsset
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualPosition
+import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import io.mockk.every
@@ -149,7 +151,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         }
         val position = mockk<PerpetualPosition> {
             every { id } returns "pos-ton"
-            every { perpetualId } returns "TON-PERP"
+            every { perpetualId } returns PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "TON")
             every { size } returns 0.0
             every { this@mockk.sizeValue } returns sizeValue
             every { leverage } returns 10.toUByte()
