@@ -278,6 +278,7 @@ class SignService : SignClient {
 
     override fun supported(chain: Chain): Boolean {
         return when (chain.toChainType()) {
+            ChainType.Bitcoin,
             ChainType.Ethereum,
             ChainType.Solana,
             ChainType.Aptos,
@@ -292,7 +293,6 @@ class SignService : SignClient {
             ChainType.Xrp,
             ChainType.Cardano,
             ChainType.Tron -> true
-            else -> false
         }
     }
 

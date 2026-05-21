@@ -21,8 +21,9 @@ data class ZCashChainData(
     val branchId: String,
 ) : ChainSignData {
     override fun toDto(): GemTransactionLoadMetadata {
-        return GemTransactionLoadMetadata.Bitcoin(
-            utxo.toGem()
+        return GemTransactionLoadMetadata.Zcash(
+            utxo.toGem(),
+            branchId,
         )
     }
 }

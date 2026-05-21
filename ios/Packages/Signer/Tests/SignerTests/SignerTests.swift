@@ -16,4 +16,11 @@ struct SignerTests {
 
         #expect(type(of: signer) == ChainSigner.self)
     }
+
+    @Test
+    func bitcoinUsesChainSigner() {
+        let signer = Signer(wallet: .mock(), keystore: LocalKeystore.mock()).signer(for: .bitcoin)
+
+        #expect(type(of: signer) == ChainSigner.self)
+    }
 }

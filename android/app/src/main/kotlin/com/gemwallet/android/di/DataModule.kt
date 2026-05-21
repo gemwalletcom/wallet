@@ -1,18 +1,13 @@
 package com.gemwallet.android.di
 
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.device.SyncDeviceInfo
-import com.gemwallet.android.ext.available
-import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.services.SyncService
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,26 +40,7 @@ object DataModule {
     @Provides
     @Singleton
     fun provideSignService(): SignClientProxy = SignClientProxy(
-        clients = Chain.available().mapNotNull {
-            when (it.toChainType()) {
-                ChainType.Bitcoin -> BitcoinSignClient(it)
-
-                ChainType.Ethereum,
-                ChainType.Solana,
-                ChainType.Aptos,
-                ChainType.Sui,
-                ChainType.HyperCore,
-                ChainType.Near,
-                ChainType.Algorand,
-                ChainType.Stellar,
-                ChainType.Cosmos,
-                ChainType.Ton,
-                ChainType.Polkadot,
-                ChainType.Xrp,
-                ChainType.Cardano,
-                ChainType.Tron -> return@mapNotNull null
-            }
-        } + listOf(SignService()),
+        clients = listOf(SignService()),
     )
 
     @Singleton
