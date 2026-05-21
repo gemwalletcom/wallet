@@ -23,26 +23,13 @@ fun PropertyDestination(
 
     when (model) {
         is ConfirmProperty.Destination.Transfer -> {
-            val domain = model.domain
-            if (domain != null) {
-                PropertyItem(
-                    title = { PropertyTitleText(R.string.transaction_recipient) },
-                    data = {
-                        Column(horizontalAlignment = Alignment.End) {
-                            Row(horizontalArrangement = Arrangement.End) { PropertyDataText(model.displayData()) }
-                        }
-                    },
-                    listPosition = listPosition,
-                )
-            } else {
-                AddressPropertyItem(
-                    title = R.string.transaction_recipient,
-                    displayText = AddressFormatter(model.address).value(),
-                    copyValue = model.address,
-                    explorerLink = model.explorerLink,
-                    listPosition = listPosition,
-                )
-            }
+            AddressPropertyItem(
+                title = R.string.transaction_recipient,
+                displayText = model.domain ?: AddressFormatter(model.address).value(),
+                copyValue = model.address,
+                explorerLink = model.explorerLink,
+                listPosition = listPosition,
+            )
         }
         is ConfirmProperty.Destination.Stake -> {
             val address = model.address
