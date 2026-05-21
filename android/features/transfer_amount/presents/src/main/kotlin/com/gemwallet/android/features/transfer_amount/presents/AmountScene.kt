@@ -43,8 +43,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha50
-import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -143,9 +142,9 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
             .fillMaxWidth()
             .listItem()
             .clickable { showInfoSheet = true }
-            .padding(horizontal = paddingDefault, vertical = paddingSmall),
+            .padding(paddingMiddle),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+        horizontalArrangement = Arrangement.spacedBy(paddingMiddle),
     ) {
         Icon(
             modifier = Modifier.size(smallIconSize),
