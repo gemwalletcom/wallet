@@ -50,6 +50,8 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualProvider
 
 @Composable
 internal fun PerpetualMarketScene(
@@ -62,7 +64,7 @@ internal fun PerpetualMarketScene(
     onAction: (PerpetualMarketAction) -> Unit,
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
-    val longPressedAsset = remember { mutableStateOf<String?>(null) }
+    val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
     var isSearching by remember { mutableStateOf(false) }
 
     Scene(
@@ -182,7 +184,7 @@ fun PreviewPerpetualMarketScene() {
             positions = listOf(
                 object : PerpetualPositionDataAggregate {
                     override val positionId: String = "pos_btc_001"
-                    override val perpetualId: String = "BTC-PERP"
+                    override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val asset: Asset = Asset(
                         id = AssetId(Chain.Bitcoin),
                         name = "Bitcoin",
@@ -199,7 +201,7 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualPositionDataAggregate {
                     override val positionId: String = "pos_eth_002"
-                    override val perpetualId: String = "ETH-PERP"
+                    override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val asset: Asset = Asset(
                         id = AssetId(Chain.Ethereum),
                         name = "Ethereum",
@@ -217,7 +219,7 @@ fun PreviewPerpetualMarketScene() {
             ),
             unpinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
-                    override val id: String = "BTC-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val name: String = "BTC/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
@@ -235,7 +237,7 @@ fun PreviewPerpetualMarketScene() {
                     override val isPinned: Boolean = false
                 },
                 object : PerpetualDataAggregate {
-                    override val id: String = "ETH-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val name: String = "ETH/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
@@ -253,7 +255,7 @@ fun PreviewPerpetualMarketScene() {
                     override val isPinned: Boolean = false
                 },
                 object : PerpetualDataAggregate {
-                    override val id: String = "SOL-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "SOL")
                     override val name: String = "SOL/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
@@ -271,7 +273,7 @@ fun PreviewPerpetualMarketScene() {
                     override val isPinned: Boolean = false
                 },
                 object : PerpetualDataAggregate {
-                    override val id: String = "AVAX-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "AVAX")
                     override val name: String = "AVAX/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
@@ -289,7 +291,7 @@ fun PreviewPerpetualMarketScene() {
                     override val isPinned: Boolean = false
                 },
                 object : PerpetualDataAggregate {
-                    override val id: String = "LINK-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "LINK")
                     override val name: String = "LINK/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
@@ -309,7 +311,7 @@ fun PreviewPerpetualMarketScene() {
             ),
             pinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
-                    override val id: String = "BTC-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val name: String = "BTC/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
@@ -327,7 +329,7 @@ fun PreviewPerpetualMarketScene() {
                     override val isPinned: Boolean = false
                 },
                 object : PerpetualDataAggregate {
-                    override val id: String = "ETH-PERP"
+                    override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val name: String = "ETH/USD"
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD

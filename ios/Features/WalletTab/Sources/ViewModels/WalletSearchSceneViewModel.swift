@@ -259,7 +259,7 @@ extension WalletSearchSceneViewModel {
         }
     }
 
-    func onSelectPinPerpetual(_ perpetualId: String, value: Bool) {
+    func onSelectPinPerpetual(_ perpetualId: PerpetualId, value: Bool) {
         do {
             try perpetualService.setPinned(value, perpetualId: perpetualId)
             if let name = searchResult.perpetuals.first(where: { $0.perpetual.id == perpetualId })?.perpetual.name {

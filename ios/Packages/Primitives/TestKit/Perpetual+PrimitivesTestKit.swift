@@ -5,7 +5,7 @@ import Primitives
 
 public extension Perpetual {
     static func mock(
-        id: String = "hypercore_ETH-USD",
+        id: PerpetualId = PerpetualId(provider: .hypercore, symbol: "ETH-USD"),
         name: String = "ETH-USD",
         provider: PerpetualProvider = .hypercore,
         assetId: AssetId = AssetId(chain: .ethereum, tokenId: nil),

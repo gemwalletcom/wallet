@@ -57,8 +57,8 @@ public struct PerpetualService: PerpetualServiceable {
         try await provider.getPortfolio(address: address)
     }
 
-    public func setPinned(_ isPinned: Bool, perpetualId: String) throws {
-        try store.setPinned(for: [perpetualId], value: isPinned)
+    public func setPinned(_ isPinned: Bool, perpetualId: PerpetualId) throws {
+        try store.setPinned(for: [perpetualId.identifier], value: isPinned)
     }
 
     public func getPositions(walletId: WalletId, address: String) async throws {

@@ -29,7 +29,7 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
 
     var id: String
     var walletId: String
-    var perpetualId: String
+    var perpetualId: PerpetualId
     var assetId: AssetId
     var size: Double
     var sizeValue: Double
@@ -48,7 +48,7 @@ struct PerpetualPositionRecord: Codable, TableRecord, FetchableRecord, Persistab
     init(
         id: String,
         walletId: String,
-        perpetualId: String,
+        perpetualId: PerpetualId,
         assetId: AssetId,
         size: Double,
         sizeValue: Double,

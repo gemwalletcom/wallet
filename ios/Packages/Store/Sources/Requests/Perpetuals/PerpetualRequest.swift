@@ -31,7 +31,7 @@ public extension PerpetualData {
     static var empty: PerpetualData {
         PerpetualData(
             perpetual: Perpetual(
-                id: "",
+                id: PerpetualId(provider: .hypercore, symbol: ""),
                 name: "",
                 provider: .hypercore,
                 assetId: AssetId(chain: .bitcoin, tokenId: nil),

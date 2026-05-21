@@ -181,7 +181,7 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onPinPerpetual(_ perpetualId: String, value: Bool) {
+    func onPinPerpetual(_ perpetualId: PerpetualId, value: Bool) {
         do {
             try perpetualService.setPinned(value, perpetualId: perpetualId)
         } catch {

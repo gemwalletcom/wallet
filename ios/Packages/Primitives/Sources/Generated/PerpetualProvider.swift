@@ -4,6 +4,6 @@
 
 import Foundation
 
-public enum PerpetualProvider: String, Codable, Equatable, Sendable {
+public enum PerpetualProvider: String, Codable, Equatable, Hashable, Sendable {
 	case hypercore
 }

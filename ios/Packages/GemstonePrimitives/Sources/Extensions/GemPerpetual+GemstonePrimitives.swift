@@ -7,7 +7,7 @@ import Primitives
 public extension GemPerpetual {
     func map() throws -> Primitives.Perpetual {
         try Perpetual(
-            id: id,
+            id: PerpetualId.from(id: id),
             name: name,
             provider: provider.map(),
             assetId: AssetId(id: assetId),

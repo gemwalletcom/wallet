@@ -7,6 +7,6 @@ public protocol PerpetualServiceable: Sendable {
     func updateMarkets() async throws
     func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick]
     func portfolio(address: String) async throws -> PerpetualPortfolio
-    func setPinned(_ isPinned: Bool, perpetualId: String) throws
+    func setPinned(_ isPinned: Bool, perpetualId: PerpetualId) throws
     func getPositions(walletId: WalletId, address: String) async throws
 }

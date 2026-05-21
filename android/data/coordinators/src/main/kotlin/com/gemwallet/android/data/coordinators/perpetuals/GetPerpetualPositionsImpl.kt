@@ -11,6 +11,7 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPositionData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -35,7 +36,7 @@ class GetPerpetualPositionsImpl @Inject constructor(
 
 class PerpetualPositionDataAggregateImpl(val data: PerpetualPositionData) : PerpetualPositionDataAggregate {
     override val positionId: String = data.position.id
-    override val perpetualId: String = data.perpetual.id
+    override val perpetualId: PerpetualId = data.perpetual.id
     override val asset: Asset = data.asset
     override val name: String = data.perpetual.name
     override val direction: PerpetualDirection = data.position.direction

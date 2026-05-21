@@ -6,7 +6,7 @@ import Primitives
 public extension PerpetualPosition {
     static func mock(
         id: String = "test-id",
-        perpetualId: String = "test-perpetual-id",
+        perpetualId: PerpetualId = PerpetualId(provider: .hypercore, symbol: "test"),
         assetId: AssetId = AssetId(chain: .bitcoin, tokenId: nil),
         size: Double = 100,
         sizeValue: Double = 5000,

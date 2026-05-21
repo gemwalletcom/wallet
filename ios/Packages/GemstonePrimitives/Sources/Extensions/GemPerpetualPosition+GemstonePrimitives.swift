@@ -8,7 +8,7 @@ public extension GemPerpetualPosition {
     func map() throws -> PerpetualPosition {
         try PerpetualPosition(
             id: id,
-            perpetualId: perpetualId,
+            perpetualId: PerpetualId.from(id: perpetualId),
             assetId: AssetId(id: assetId),
             size: size,
             sizeValue: sizeValue,
@@ -30,7 +30,7 @@ public extension PerpetualPosition {
     func map() -> GemPerpetualPosition {
         GemPerpetualPosition(
             id: id,
-            perpetualId: perpetualId,
+            perpetualId: perpetualId.identifier,
             assetId: assetId.identifier,
             size: size,
             sizeValue: sizeValue,

@@ -5,9 +5,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.Relation
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
@@ -49,8 +49,8 @@ import com.wallet.core.primitives.PerpetualTriggerOrder
 data class DbPerpetualPosition(
     val id: String,
     val walletId: String,
-    val perpetualId: String,
-    val assetId: String,
+    val perpetualId: PerpetualId,
+    val assetId: AssetId,
     val size: Double,
     val sizeValue: Double,
     val leverage: Int,
@@ -81,7 +81,7 @@ data class DbPerpetualPositionData(
     val asset: DbAsset,
 )
 
-fun DbPerpetualPosition.toDto(): PerpetualPosition? {
+fun DbPerpetualPosition.toDto(): PerpetualPosition {
     val takeProfitTrigger = if (takeProfitType != null && takeProfitPrice != null && takeProfitOrderId != null) {
         PerpetualTriggerOrder(
             price = takeProfitPrice,
@@ -101,7 +101,7 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition? {
     return PerpetualPosition(
         id = id,
         perpetualId = perpetualId,
-        assetId = assetId.toAssetId() ?: return null,
+        assetId = assetId,
         size = size,
         sizeValue = sizeValue,
         leverage = leverage.toUByte(),
@@ -117,36 +117,35 @@ fun DbPerpetualPosition.toDto(): PerpetualPosition? {
     )
 }
 
-fun PerpetualPosition.toDB(walletId: String, updatedAt: Long = System.currentTimeMillis()): DbPerpetualPosition {
-    return DbPerpetualPosition(
-        id = id,
-        walletId = walletId,
-        perpetualId = perpetualId,
-        assetId = assetId.toIdentifier(),
-        size = size,
-        sizeValue = sizeValue,
-        leverage = leverage.toInt(),
-        entryPrice = entryPrice,
-        liquidationPrice = liquidationPrice,
-        marginType = marginType,
-        direction = direction,
-        marginAmount = marginAmount,
-        takeProfitPrice = takeProfit?.price,
-        takeProfitType = takeProfit?.order_type,
-        takeProfitOrderId = takeProfit?.order_id,
-        stopLossPrice = stopLoss?.price,
-        stopLossType = stopLoss?.order_type,
-        stopLossOrderId = stopLoss?.order_id,
-        pnl = pnl,
-        funding = funding,
-        updatedAt = updatedAt,
-    )
-}
+fun PerpetualPosition.toDB(walletId: String, updatedAt: Long = System.currentTimeMillis()): DbPerpetualPosition = DbPerpetualPosition(
+    id = id,
+    walletId = walletId,
+    perpetualId = perpetualId,
+    assetId = assetId,
+    size = size,
+    sizeValue = sizeValue,
+    leverage = leverage.toInt(),
+    entryPrice = entryPrice,
+    liquidationPrice = liquidationPrice,
+    marginType = marginType,
+    direction = direction,
+    marginAmount = marginAmount,
+    takeProfitPrice = takeProfit?.price,
+    takeProfitType = takeProfit?.order_type,
+    takeProfitOrderId = takeProfit?.order_id,
+    stopLossPrice = stopLoss?.price,
+    stopLossType = stopLoss?.order_type,
+    stopLossOrderId = stopLoss?.order_id,
+    pnl = pnl,
+    funding = funding,
+    updatedAt = updatedAt,
+)
 
 fun DbPerpetualPositionData.toDTO(): PerpetualPositionData? {
+    val asset = asset.toDTO() ?: return null
     return PerpetualPositionData(
-        perpetual = perpetual.toDTO() ?: return null,
-        asset = asset.toDTO() ?: return null,
-        position = position.toDto() ?: return null,
+        perpetual = perpetual.toDTO(),
+        asset = asset,
+        position = position.toDto(),
     )
 }

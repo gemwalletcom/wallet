@@ -60,7 +60,7 @@ public struct WalletSearchService: Sendable {
         let searchKey = tag.map { query.isEmpty ? "tag:\($0.rawValue)" : query } ?? query
         try searchStore.add(type: .asset, query: searchKey, ids: response.assets.map(\.asset.id.identifier))
         if tag == nil {
-            try searchStore.add(type: .perpetual, query: searchKey, ids: response.perpetuals.map(\.perpetual.id))
+            try searchStore.add(type: .perpetual, query: searchKey, ids: response.perpetuals.map(\.perpetual.id.identifier))
         }
     }
 }

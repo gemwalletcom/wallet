@@ -12,6 +12,7 @@ import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -79,7 +80,7 @@ class PerpetualMarketViewModel @Inject constructor(
         }
     }
 
-    fun onTogglePin(perpetualId: String) {
+    fun onTogglePin(perpetualId: PerpetualId) {
         togglePin.togglePin(perpetualId)
     }
 }

@@ -9,13 +9,13 @@ import SwiftUI
 public struct PerpetualListItem: View {
     let perpetualData: PerpetualData
     let currencyStyle: CurrencyFormatterType
-    let onPin: (String, Bool) -> Void
+    let onPin: (PerpetualId, Bool) -> Void
     let onSelect: (Asset) -> Void
 
     public init(
         perpetualData: PerpetualData,
         currencyStyle: CurrencyFormatterType = .abbreviated,
-        onPin: @escaping (String, Bool) -> Void,
+        onPin: @escaping (PerpetualId, Bool) -> Void,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.perpetualData = perpetualData

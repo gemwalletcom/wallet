@@ -9,6 +9,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,7 @@ class GetPerpetualImpl @Inject constructor(
     private val perpetualRepository: PerpetualRepository
 ) : GetPerpetual {
 
-    override fun getPerpetual(perpetualId: String): Flow<PerpetualDetailsDataAggregate?> {
+    override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualDetailsDataAggregate?> {
         return perpetualRepository.getPerpetual(perpetualId).map {
             PerpetualDetailsDataAggregateImpl(it ?: return@map null)
         }
@@ -36,7 +37,7 @@ class PerpetualDetailsDataAggregateImpl(
 ) : PerpetualDetailsDataAggregate {
     private val abbreviatedFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD)
 
-    override val id: String = data.perpetual.id
+    override val id: PerpetualId = data.perpetual.id
 
     override val provider: PerpetualProvider = data.perpetual.provider
 
