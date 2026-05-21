@@ -40,7 +40,6 @@ class GetSwapQuotesImpl(
             value = amount,
             options = SwapperOptions(
                 slippage = getDefaultSlippage(from.chain.string),
-                fee = Config().getSwapConfig().referralFee,
                 useMaxAmount = useMaxAmount,
             )
         )

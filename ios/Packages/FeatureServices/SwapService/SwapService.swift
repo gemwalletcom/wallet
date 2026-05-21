@@ -13,7 +13,6 @@ import struct Gemstone.SwapperOptions
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperQuoteAsset
 import struct Gemstone.SwapperQuoteRequest
-import struct Gemstone.SwapReferralFees
 import GemstonePrimitives
 import NativeProviderService
 import Primitives
@@ -23,7 +22,6 @@ import enum Primitives.EVMChain
 
 public final class SwapService: Sendable, SwappableChainsProvider {
     private let swapper: GemSwapperProtocol
-    private let swapConfig = GemstoneConfig.shared.getSwapConfig()
 
     public init(swapper: GemSwapperProtocol) {
         self.swapper = swapper
@@ -31,11 +29,6 @@ public final class SwapService: Sendable, SwappableChainsProvider {
 
     public convenience init(nodeProvider: any NodeURLFetchable) {
         self.init(swapper: GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider)))
-    }
-
-    private func getReferralFees() -> SwapReferralFees {
-        // TODO: In the future fees could be based on the asset you are swapping
-        swapConfig.referralFee
     }
 
     public func supportedChains() -> [Chain] {
@@ -60,7 +53,6 @@ public final class SwapService: Sendable, SwappableChainsProvider {
             value: value,
             options: SwapperOptions(
                 slippage: getDefaultSlippage(chain: fromAsset.id.chain.rawValue),
-                fee: getReferralFees(),
                 useMaxAmount: useMaxAmount,
             ),
         )

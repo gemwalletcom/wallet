@@ -12,7 +12,6 @@ extension SwapperOptions {
                 bps: 50,
                 mode: .auto,
             ),
-            fee: nil,
             useMaxAmount: false,
         )
     }
