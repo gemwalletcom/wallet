@@ -10,10 +10,9 @@ extension SwapperOptions {
         SwapperOptions(
             slippage: SwapperSlippage(
                 bps: 50,
-                mode: .auto,
+                mode: .auto
             ),
-            fee: nil,
-            useMaxAmount: false,
+            useMaxAmount: false
         )
     }
 }
