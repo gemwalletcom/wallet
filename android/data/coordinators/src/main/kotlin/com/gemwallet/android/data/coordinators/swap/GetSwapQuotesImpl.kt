@@ -4,7 +4,6 @@ import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
-import uniffi.gemstone.Config
 import uniffi.gemstone.GemSwapper
 import uniffi.gemstone.SwapperOptions
 import uniffi.gemstone.SwapperQuote
