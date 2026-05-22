@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbAssetInfo
@@ -92,17 +93,28 @@ interface AssetsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(asset: List<DbAsset>)
 
+    @Upsert
+    suspend fun upsert(asset: DbAsset)
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertBalance(balance: DbBalance)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(links: List<DbAssetLink>, market: DbAssetMarket)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addLinks(links: List<DbAssetLink>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun setMarket(market: DbAssetMarket)
+
+    @Transaction
+    suspend fun upsertAssetMetadata(
+        asset: DbAsset,
+        links: List<DbAssetLink>,
+        market: DbAssetMarket?,
+    ) {
+        upsert(asset)
+        addLinks(links)
+        market?.let { setMarket(it) }
+    }
 
     @Query("""
         UPDATE balances SET
@@ -169,9 +181,6 @@ interface AssetsDao {
             listPosition = balance.listPosition,
         )
     }
-
-    @Update
-    fun update(asset: DbAsset)
 
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAssets(assets: List<DbAssetBasicUpdate>)

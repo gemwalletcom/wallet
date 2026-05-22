@@ -173,7 +173,7 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun updateAssetMetadata_storesLinksPriceAndMarketFromAssetResponse() = runBlocking {
+    fun saveAssetMetadata_storesLinksPriceAndMarketFromAssetResponse() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
@@ -207,17 +207,15 @@ class AssetsRepositoryTest {
         coEvery { pricesDao.getByAssets(listOf("solana")) } returns emptyList()
 
         val subject = createSubject()
-        subject.updateAssetMetadata(assetFull)
+        subject.saveAssetMetadata(assetFull)
 
         val linksSlot = slot<List<DbAssetLink>>()
         val assetSlot = slot<DbAsset>()
         val priceSlot = slot<DbPrice>()
         val marketSlot = slot<DbAssetMarket>()
 
-        coVerify { assetsDao.update(capture(assetSlot)) }
-        coVerify { assetsDao.addLinks(capture(linksSlot)) }
+        coVerify { assetsDao.upsertAssetMetadata(capture(assetSlot), capture(linksSlot), capture(marketSlot)) }
         coVerify { pricesDao.insert(capture(priceSlot)) }
-        coVerify { assetsDao.setMarket(capture(marketSlot)) }
 
         assertEquals("solana", assetSlot.captured.id)
         assertEquals(false, assetSlot.captured.isSwapEnabled)
@@ -236,6 +234,31 @@ class AssetsRepositoryTest {
         assertEquals(100.0, marketSlot.captured.totalVolume ?: 0.0, 0.0)
         assertEquals(150.0, marketSlot.captured.allTimeHigh ?: 0.0, 0.0)
         assertEquals(25.0, marketSlot.captured.allTimeLow ?: 0.0, 0.0)
+    }
+
+    @Test
+    fun saveAssetMetadata_persistsUnknownAssetAndMarketInOneAtomicCall() = runBlocking {
+        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
+        every { sessionRepository.session() } returns sessionFlow
+
+        val asset = mockAssetSolanaUSDC()
+        val assetFull = mockAssetFull(
+            asset = asset,
+            market = mockAssetMarket(marketCap = 1_000.0),
+        )
+        coEvery { sessionRepository.getCurrentCurrency() } returns Currency.USD
+        every { pricesDao.getRates(Currency.USD) } returns flowOf(null)
+
+        val subject = createSubject()
+        subject.saveAssetMetadata(assetFull)
+
+        val assetSlot = slot<DbAsset>()
+        val marketSlot = slot<DbAssetMarket>()
+        coVerify(exactly = 1) { assetsDao.upsertAssetMetadata(capture(assetSlot), any(), capture(marketSlot)) }
+        coVerify(exactly = 0) { assetsDao.setMarket(any()) }
+
+        assertEquals(asset.id.toIdentifier(), assetSlot.captured.id)
+        assertEquals(asset.id.toIdentifier(), marketSlot.captured.assetId)
     }
 
     @Test

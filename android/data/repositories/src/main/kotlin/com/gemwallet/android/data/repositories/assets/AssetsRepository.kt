@@ -128,7 +128,7 @@ class AssetsRepository @Inject constructor(
         getAssetsInfo().firstOrNull()?.updateBalances()?.awaitAll()
     }
 
-    suspend fun updateAssetMetadata(assetFull: AssetFull) = withContext(Dispatchers.IO) {
+    suspend fun saveAssetMetadata(assetFull: AssetFull) = withContext(Dispatchers.IO) {
         val assetId = assetFull.asset.id
         val assetIdIdentifier = assetId.toIdentifier()
         val currency = sessionRepository.getCurrentCurrency()
@@ -140,16 +140,14 @@ class AssetsRepository @Inject constructor(
             updatedAt = System.currentTimeMillis(),
         )
         val linkRecords = assetFull.links.toAssetLinkRecord(assetId)
-        assetsDao.update(record)
-        runCatching { assetsDao.addLinks(linkRecords) }
-            .onFailure { Log.e(TAG, "Failed to update asset links for $assetIdIdentifier", it) }
+        val marketRecord = rate?.let { assetFull.toMarketRecord(it.rate) }
+        assetsDao.upsertAssetMetadata(record, linkRecords, marketRecord)
         rate?.let { fiatRate ->
             val currentPrice = pricesDao.getByAssets(listOf(assetIdIdentifier)).firstOrNull()
             val priceRecord = assetFull.toPriceRecord(fiatRate)
             if (priceRecord != null && (currentPrice == null || currentPrice.currency != priceRecord.currency || currentPrice.value == null)) {
                 pricesDao.insert(priceRecord)
             }
-            assetFull.toMarketRecord(fiatRate.rate)?.let { assetsDao.setMarket(it) }
         }
     }
 
