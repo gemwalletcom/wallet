@@ -9,6 +9,7 @@ import com.gemwallet.android.cases.transactions.SaveTransactions
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.ext.currentTimestamp
 import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.identifier
 import com.wallet.core.primitives.AssetId
@@ -68,6 +69,4 @@ class SyncTransactionsImpl @Inject constructor(
         saveTransactions.saveTransactions(walletId = wallet.id, response.transactions)
         saveAddressNames.saveAddressNames(response.addressNames)
     }
-
-    private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000
 }

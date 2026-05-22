@@ -41,6 +41,7 @@ import com.gemwallet.android.ui.navigation.routes.perpetualScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipientInput
 import com.gemwallet.android.ui.navigation.routes.referral
+import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
 import com.gemwallet.android.ui.navigation.routes.swap
@@ -195,15 +196,21 @@ fun WalletNavGraph(
             )
 
             settingsScreen(
-                onCurrencies = navigator::openCurrencies,
-                onNetworks = navigator::openNetworks,
-                onPriceAlerts = { navigator.openPriceAlerts() },
-                onAddPriceAlertTarget = navigator::openAddPriceAlertTarget,
-                onPriceAlertTargetComplete = navigator::popWithToast,
-                onChart = navigator::openAssetChart,
+                onAction = { action ->
+                    when (action) {
+                        SettingsAction.Currencies -> navigator.openCurrencies()
+                        SettingsAction.Networks -> navigator.openNetworks()
+                        SettingsAction.PriceAlerts -> navigator.openPriceAlerts()
+                        is SettingsAction.AddPriceAlertTarget -> navigator.openAddPriceAlertTarget(action.assetId)
+                        is SettingsAction.PriceAlertTargetComplete -> navigator.popWithToast(action.message)
+                        is SettingsAction.Chart -> navigator.openAssetChart(action.assetId)
+                        SettingsAction.InAppNotifications -> navigator.openInAppNotifications()
+                        is SettingsAction.OpenNotificationUrl -> navigator.openNotificationUrl(action.url)
+                        SettingsAction.Cancel -> onCancel()
+                    }
+                },
                 toastMessage = navigator::toastMessage,
                 onToastShown = navigator::clearToastMessage,
-                onCancel = onCancel,
             )
 
             acceptTermsScreen(

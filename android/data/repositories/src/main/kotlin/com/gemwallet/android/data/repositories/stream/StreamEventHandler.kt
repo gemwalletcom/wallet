@@ -9,6 +9,7 @@ import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toDTO
@@ -21,6 +22,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
 import com.wallet.core.primitives.StreamBalanceUpdate
 import com.wallet.core.primitives.StreamEvent
+import com.wallet.core.primitives.StreamNotificationlUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
 import com.wallet.core.primitives.WebSocketPricePayload
@@ -36,6 +38,7 @@ class StreamEventHandler(
     private val walletsRepository: WalletsRepository,
     private val assetsDao: AssetsDao,
     private val updateBalances: UpdateBalances,
+    private val inAppNotificationsDao: InAppNotificationsDao,
 ) {
 
     suspend fun handle(event: StreamEvent) {
@@ -46,7 +49,7 @@ class StreamEventHandler(
             is StreamEvent.PriceAlerts -> perform { handlePriceAlerts() }
             is StreamEvent.Nft -> perform { handleNft(event.data) }
             is StreamEvent.Perpetual -> { }
-            is StreamEvent.InAppNotification -> { }
+            is StreamEvent.InAppNotification -> perform { handleInAppNotification(event.data) }
             is StreamEvent.FiatTransaction -> perform { handleFiatTransaction(event.data) }
         }
     }
@@ -104,6 +107,10 @@ class StreamEventHandler(
 
     private suspend fun handleFiatTransaction(update: StreamWalletUpdate) {
         syncFiatTransactions.get()(update.walletId)
+    }
+
+    private suspend fun handleInAppNotification(update: StreamNotificationlUpdate) {
+        inAppNotificationsDao.put(listOf(update.notification.toRecord()))
     }
 
     companion object {

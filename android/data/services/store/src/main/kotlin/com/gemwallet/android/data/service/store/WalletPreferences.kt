@@ -20,6 +20,10 @@ class WalletPreferences(context: Context, walletId: String) {
         get() = store.getLong(KEY_ASSETS_TIMESTAMP)
         set(value) = store.putLong(KEY_ASSETS_TIMESTAMP, value)
 
+    var notificationsTimestamp: Long
+        get() = store.getLong(KEY_NOTIFICATIONS_TIMESTAMP)
+        set(value) = store.putLong(KEY_NOTIFICATIONS_TIMESTAMP, value)
+
     var completeInitialWalletConfiguration: Boolean
         get() = store.getBoolean(KEY_COMPLETE_INITIAL_WALLET_CONFIGURATION)
         set(value) = store.putBoolean(KEY_COMPLETE_INITIAL_WALLET_CONFIGURATION, value)
@@ -40,6 +44,7 @@ class WalletPreferences(context: Context, walletId: String) {
 
     companion object {
         private const val KEY_ASSETS_TIMESTAMP = "assets_timestamp"
+        private const val KEY_NOTIFICATIONS_TIMESTAMP = "notifications_timestamp"
         private const val KEY_TRANSACTIONS_TIMESTAMP = "transactions_timestamp"
         private const val KEY_TRANSACTIONS_FOR_ASSET = "transactions_for_asset"
         private const val KEY_COMPLETE_INITIAL_WALLET_CONFIGURATION = "complete_initial_wallet_configuration"

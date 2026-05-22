@@ -239,6 +239,8 @@ dependencies {
     implementation(project(":features:settings:currency:viewmodels"))
     implementation(project(":features:settings:develop:presents"))
     implementation(project(":features:settings:develop:viewmodels"))
+    implementation(project(":features:settings:in_app_notifications:presents"))
+    implementation(project(":features:settings:in_app_notifications:viewmodels"))
     implementation(project(":features:settings:networks:presents"))
     implementation(project(":features:settings:networks:viewmodels"))
     implementation(project(":features:settings:price_alerts:presents"))

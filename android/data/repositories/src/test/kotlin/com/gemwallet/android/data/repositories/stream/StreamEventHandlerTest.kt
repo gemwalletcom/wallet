@@ -8,12 +8,17 @@ import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.CoreListItem
+import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.StreamEvent
+import com.wallet.core.primitives.StreamNotificationlUpdate
 import com.wallet.core.primitives.StreamPriceAlertUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
@@ -37,6 +42,7 @@ class StreamEventHandlerTest {
     private val walletsRepository = mockk<WalletsRepository>()
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
+    private val inAppNotificationsDao = mockk<InAppNotificationsDao>(relaxed = true)
 
     private val handler = StreamEventHandler(
         pricesDao = pricesDao,
@@ -48,6 +54,7 @@ class StreamEventHandlerTest {
         walletsRepository = walletsRepository,
         assetsDao = assetsDao,
         updateBalances = updateBalances,
+        inAppNotificationsDao = inAppNotificationsDao,
     )
 
     private val walletId = mockWalletId("w1")
@@ -95,6 +102,24 @@ class StreamEventHandlerTest {
 
         coVerify { syncFiat(walletId) }
         coVerify(exactly = 0) { walletsRepository.getWallet(any()) }
+    }
+
+    @Test
+    fun `in-app notification event stores notification`() = runTest {
+        val notification = InAppNotification(
+            walletId = walletId,
+            readAt = null,
+            createdAt = 1_000L,
+            item = CoreListItem(id = "n1", title = "Title"),
+        )
+
+        handler.handle(
+            StreamEvent.InAppNotification(
+                StreamNotificationlUpdate(walletId = walletId, notification = notification)
+            )
+        )
+
+        coVerify { inAppNotificationsDao.put(listOf(notification.toRecord())) }
     }
 
     @Test

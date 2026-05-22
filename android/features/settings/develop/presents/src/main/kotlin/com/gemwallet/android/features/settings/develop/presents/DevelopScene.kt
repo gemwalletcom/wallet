@@ -10,12 +10,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.features.settings.develop.viewmodels.DevelopViewModel
 
 @Composable
 fun DevelopScene(
+    onInAppNotifications: () -> Unit,
     onCancel: () -> Unit,
     viewModel: DevelopViewModel = hiltViewModel(),
 ) {
@@ -27,6 +29,12 @@ fun DevelopScene(
         onClose = onCancel,
     ) {
         LazyColumn {
+            item {
+                LinkItem(
+                    title = "In-App Notifications",
+                    onClick = onInAppNotifications,
+                )
+            }
             item {
                 PropertyItem(
                     "Reset transactions",

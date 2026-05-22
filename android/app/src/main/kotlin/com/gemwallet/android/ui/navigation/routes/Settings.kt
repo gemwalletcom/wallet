@@ -6,6 +6,8 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.settings.aboutus.presents.AboutUsScreen
 import com.gemwallet.android.features.settings.currency.presents.CurrenciesScene
 import com.gemwallet.android.features.settings.develop.presents.DevelopScene
+import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsAction
+import com.gemwallet.android.features.settings.in_app_notifications.presents.InAppNotificationsScene
 import com.gemwallet.android.features.settings.networks.presents.NetworksScreen
 import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertTargetNavScreen
 import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlertsNavScreen
@@ -28,6 +30,9 @@ data object SecurityRoute : NavKey
 
 @Serializable
 data object DevelopRoute : NavKey
+
+@Serializable
+data object InAppNotificationsRoute : NavKey
 
 @Serializable
 data object AboutusRoute : NavKey
@@ -54,16 +59,12 @@ data object PreferencesRoute : NavKey
 data object NotificationsRoute : NavKey
 
 fun EntryProviderScope<NavKey>.settingsScreen(
-    onCurrencies: () -> Unit,
-    onNetworks: () -> Unit,
-    onPriceAlerts: () -> Unit,
-    onAddPriceAlertTarget: (AssetId) -> Unit,
-    onPriceAlertTargetComplete: (String) -> Unit,
-    onChart: (AssetId) -> Unit,
+    onAction: (SettingsAction) -> Unit,
     toastMessage: (NavKey) -> String?,
     onToastShown: (NavKey) -> Unit,
-    onCancel: () -> Unit,
 ) {
+    val onCancel = { onAction(SettingsAction.Cancel) }
+
     entry<CurrenciesRoute> {
         CurrenciesScene(onCancel = onCancel)
     }
@@ -73,7 +74,22 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     }
 
     entry<DevelopRoute> {
-        DevelopScene(onCancel = onCancel)
+        DevelopScene(
+            onInAppNotifications = { onAction(SettingsAction.InAppNotifications) },
+            onCancel = onCancel,
+        )
+    }
+
+    entry<InAppNotificationsRoute> {
+        InAppNotificationsScene(
+            onAction = { action ->
+                when (action) {
+                    InAppNotificationsAction.Cancel -> onAction(SettingsAction.Cancel)
+                    is InAppNotificationsAction.OpenUrl ->
+                        onAction(SettingsAction.OpenNotificationUrl(action.url))
+                }
+            },
+        )
     }
 
     entry<AboutusRoute> {
@@ -88,9 +104,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(
         priceAlertsScreenContent(
             toastMessage = toastMessage(key),
             onToastShown = { onToastShown(key) },
-            onChart = onChart,
-            onAddPriceAlertTarget = onAddPriceAlertTarget,
-            onCancel = onCancel,
+            onAction = onAction,
         )
     }
 
@@ -100,29 +114,30 @@ fun EntryProviderScope<NavKey>.settingsScreen(
         priceAlertsScreenContent(
             toastMessage = toastMessage(key),
             onToastShown = { onToastShown(key) },
-            onChart = onChart,
-            onAddPriceAlertTarget = onAddPriceAlertTarget,
-            onCancel = onCancel,
+            onAction = onAction,
         )
     }
 
     entry<AddPriceAlertTargetRoute>(
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) {
-        PriceAlertTargetNavScreen(onCancel = onCancel, onComplete = onPriceAlertTargetComplete)
+        PriceAlertTargetNavScreen(
+            onCancel = onCancel,
+            onComplete = { onAction(SettingsAction.PriceAlertTargetComplete(it)) },
+        )
     }
 
     entry<NotificationsRoute> {
         NotificationsScene(
-            onPriceAlerts = onPriceAlerts,
+            onPriceAlerts = { onAction(SettingsAction.PriceAlerts) },
             onCancel = onCancel,
         )
     }
 
     entry<PreferencesRoute> {
         PreferencesScene(
-            onNetworks = onNetworks,
-            onCurrencies = onCurrencies,
+            onNetworks = { onAction(SettingsAction.Networks) },
+            onCurrencies = { onAction(SettingsAction.Currencies) },
             onCancel = onCancel,
         )
     }
@@ -136,15 +151,13 @@ fun EntryProviderScope<NavKey>.settingsScreen(
 private fun priceAlertsScreenContent(
     toastMessage: String?,
     onToastShown: () -> Unit,
-    onChart: (AssetId) -> Unit,
-    onAddPriceAlertTarget: (AssetId) -> Unit,
-    onCancel: () -> Unit,
+    onAction: (SettingsAction) -> Unit,
 ) {
     PriceAlertsNavScreen(
         toastMessage = toastMessage,
         onToastShown = onToastShown,
-        onChart = onChart,
-        onAddPriceAlertTarget = onAddPriceAlertTarget,
-        onCancel = onCancel,
+        onChart = { onAction(SettingsAction.Chart(it)) },
+        onAddPriceAlertTarget = { onAction(SettingsAction.AddPriceAlertTarget(it)) },
+        onCancel = { onAction(SettingsAction.Cancel) },
     )
 }
