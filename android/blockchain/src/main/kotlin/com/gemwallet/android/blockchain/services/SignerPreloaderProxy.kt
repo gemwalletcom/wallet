@@ -1,16 +1,13 @@
 package com.gemwallet.android.blockchain.services
 
-import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinGatewayEstimateFee
 import com.gemwallet.android.blockchain.gemstone.selectFeeRate
 import com.gemwallet.android.blockchain.gemstone.toChainData
 import com.gemwallet.android.blockchain.gemstone.toFee
-import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.SignerParams
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -69,7 +66,7 @@ class SignerPreloaderProxy(
                 isMaxValue = params.useMaxAmount,
                 metadata = metadata,
             ),
-            provider = getEstimateFee(chain)
+            provider = EmptyEstimateFeeProvider
         )
         val fee = chain.toFee(feeAssetId, selectedPriority, result.fee)
         val chainData = result.metadata.toChainData()
@@ -81,27 +78,7 @@ class SignerPreloaderProxy(
         )
     }
 
-    private fun getEstimateFee(chain: Chain): GemGatewayEstimateFee {
-        return when (chain.toChainType()) {
-            ChainType.Bitcoin -> BitcoinGatewayEstimateFee()
-            ChainType.Ethereum,
-            ChainType.Cardano,
-            ChainType.Solana,
-            ChainType.Cosmos,
-            ChainType.Ton,
-            ChainType.Tron,
-            ChainType.Aptos,
-            ChainType.Sui,
-            ChainType.Xrp,
-            ChainType.Near,
-            ChainType.Stellar,
-            ChainType.Algorand,
-            ChainType.Polkadot,
-            ChainType.HyperCore -> StubGatewayEstimateFee
-        }
-    }
-
-    private object StubGatewayEstimateFee : GemGatewayEstimateFee {
+    private object EmptyEstimateFeeProvider : GemGatewayEstimateFee {
         override suspend fun getFee(
             chain: uniffi.gemstone.Chain,
             input: GemTransactionLoadInput

@@ -7,6 +7,7 @@ import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletIm
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
+import com.gemwallet.android.blockchain.operators.GemstoneValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
@@ -18,7 +19,6 @@ import com.gemwallet.android.blockchain.operators.walletcore.WCDeleteKeyStoreOpe
 import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCStorePhraseOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.walletcore.WCValidatePhraseOperator
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.wallet.ImportWalletService
@@ -41,7 +41,7 @@ object InteractsModule {
 
     @Singleton
     @Provides
-    fun provideValidateAddressInteract(): ValidateAddressOperator = WCValidateAddressOperator()
+    fun provideValidateAddressInteract(): ValidateAddressOperator = GemstoneValidateAddressOperator()
 
     @Singleton
     @Provides

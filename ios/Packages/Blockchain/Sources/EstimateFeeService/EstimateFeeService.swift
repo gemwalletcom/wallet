@@ -7,11 +7,8 @@ import Primitives
 struct EstimateFeeService {
     init() {}
 
-    func provider(chain: Primitives.Chain) throws -> any GemGatewayEstimateFee {
-        switch chain.type {
-        case .bitcoin: try BitcoinService(chain: BitcoinChain(id: chain.rawValue))
-        default: EmptyService()
-        }
+    func provider(chain _: Primitives.Chain) -> any GemGatewayEstimateFee {
+        EmptyService()
     }
 
     func getFee(chain: Gemstone.Chain, input: Gemstone.GemTransactionLoadInput) async throws -> Gemstone.GemTransactionLoadFee? {

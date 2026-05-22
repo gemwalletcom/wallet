@@ -69,17 +69,6 @@ final class Chain_WalletCorePrimitiveTests {
     }
 
     @Test
-    func testIsValidAddress() {
-        // Expect addresses to be valid
-        #expect(Chain.mock(.ethereum).isValidAddress("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5"))
-        #expect(Chain.mock(.ethereum).isValidAddress("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5"))
-
-        // Expect addresses to be invalid
-        #expect(!Chain.mock(.ethereum).isValidAddress("0x123"))
-        #expect(!Chain.mock(.ethereum).isValidAddress("0x123"))
-    }
-
-    @Test
     func testChecksumAddress() {
         let bitocoinAddress = "bc1qr6f065nr70x4gl6ja9lm5wfj7xkhdv2sq04q23"
         let evmAddress = "0xd41fdb03ba84762dd66a0af1a6c8540ff1ba5dfb"

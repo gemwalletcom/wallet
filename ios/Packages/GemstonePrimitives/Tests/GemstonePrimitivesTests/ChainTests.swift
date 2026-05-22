@@ -16,4 +16,12 @@ final class ChainTests {
         #expect(Chain.ethereum.transactionTimeoutSeconds == 1440)
         #expect(Chain.solana.transactionTimeoutSeconds == 75)
     }
+
+    @Test
+    func addressValidation() {
+        #expect(Chain.ethereum.isValidAddress("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5"))
+        #expect(!Chain.ethereum.isValidAddress("0x123"))
+        #expect(Chain.cardano.isValidAddress("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23"))
+        #expect(!Chain.cardano.isValidAddress("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk2x"))
+    }
 }
