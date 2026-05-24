@@ -24,7 +24,7 @@ public enum TransactionHeaderTypeBuilder {
                 return .amount(showFiat: true)
             case .swap:
                 guard let metadata, let input = SwapMetadataViewModel(metadata: metadata).headerInput else {
-                    fatalError("swapMetadata is missed")
+                    return .amount(showFiat: true)
                 }
                 return .swap(input)
             case .assetActivation:
