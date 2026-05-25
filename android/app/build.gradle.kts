@@ -282,8 +282,6 @@ dependencies {
     implementation(libs.androidx.security.crypto)
     // Auth
     implementation(libs.androidx.biometric)
-    // Chart
-    implementation(libs.vico.m3)
 
     implementation(libs.reorderable)
 

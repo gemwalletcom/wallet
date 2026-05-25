@@ -16,7 +16,6 @@ reorderable = "3.1.0"
 walletconnect = "1.6.13"
 biometric = "1.2.0-alpha05"
 coilCompose = "3.4.0"
-vico = "2.4.3"
 zxing-core = "3.5.4"
 coreKtx = "1.18.0"
 coreSplashscreen = "1.2.0"
@@ -104,9 +103,6 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging", versio
 okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 retrofit-converter-kotlin-serializer = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "retrofit" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-
-# chart
-vico-m3 = { module = "com.patrykandpatrick.vico:compose-m3", version.ref = "vico" }
 
 # wallet connect
 walletconnect-bom = { module = "com.reown:android-bom", version.ref = "walletconnect" }
