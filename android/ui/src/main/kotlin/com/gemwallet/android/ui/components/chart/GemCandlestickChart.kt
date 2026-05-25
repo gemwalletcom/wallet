@@ -46,6 +46,7 @@ import com.gemwallet.android.ui.models.chart.ChartReferenceLineRole
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
+import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
@@ -69,8 +70,10 @@ private object CandlestickMetrics {
     val selectionDashLength = space4
     val selectionDotOuterRadius = space6
     val selectionDotBorderWidth = 2.dp
-    val badgeHorizontalPadding = space4
-    val badgeVerticalPadding = space2
+    val currentPriceBadgeHorizontalPadding = space2
+    val currentPriceBadgeVerticalPadding = space1
+    val referenceBadgeHorizontalPadding = space4
+    val referenceBadgeVerticalPadding = space4
     val badgeCornerRadius = space4
     val referenceLabelHorizontalGap = space4
     val axisLabelSize = 11.sp
@@ -120,8 +123,10 @@ fun GemCandlestickChart(
     val selectionDashLengthPx = with(density) { CandlestickMetrics.selectionDashLength.toPx() }
     val selectionDotOuterRadiusPx = with(density) { CandlestickMetrics.selectionDotOuterRadius.toPx() }
     val selectionDotBorderPx = with(density) { CandlestickMetrics.selectionDotBorderWidth.toPx() }
-    val badgeHorizontalPaddingPx = with(density) { CandlestickMetrics.badgeHorizontalPadding.toPx() }
-    val badgeVerticalPaddingPx = with(density) { CandlestickMetrics.badgeVerticalPadding.toPx() }
+    val currentPriceBadgeHorizontalPaddingPx = with(density) { CandlestickMetrics.currentPriceBadgeHorizontalPadding.toPx() }
+    val currentPriceBadgeVerticalPaddingPx = with(density) { CandlestickMetrics.currentPriceBadgeVerticalPadding.toPx() }
+    val referenceBadgeHorizontalPaddingPx = with(density) { CandlestickMetrics.referenceBadgeHorizontalPadding.toPx() }
+    val referenceBadgeVerticalPaddingPx = with(density) { CandlestickMetrics.referenceBadgeVerticalPadding.toPx() }
     val badgeCornerRadiusPx = with(density) { CandlestickMetrics.badgeCornerRadius.toPx() }
     val referenceLabelGapPx = with(density) { CandlestickMetrics.referenceLabelHorizontalGap.toPx() }
     val topPaddingPx = with(density) { CandlestickMetrics.topPadding.toPx() }
@@ -216,8 +221,8 @@ fun GemCandlestickChart(
                 labelStyle = whiteLabelStyle,
                 labelPaddingPx = labelPaddingPx,
                 labelHorizontalGapPx = referenceLabelGapPx,
-                badgeHorizontalPaddingPx = badgeHorizontalPaddingPx,
-                badgeVerticalPaddingPx = badgeVerticalPaddingPx,
+                badgeHorizontalPaddingPx = referenceBadgeHorizontalPaddingPx,
+                badgeVerticalPaddingPx = referenceBadgeVerticalPaddingPx,
                 badgeCornerRadiusPx = badgeCornerRadiusPx,
                 textMeasurer = textMeasurer,
             )
@@ -229,8 +234,8 @@ fun GemCandlestickChart(
                 plotBottom = plotBottom,
                 plotRight = plotRight,
                 labelPaddingPx = labelPaddingPx,
-                badgeHorizontalPaddingPx = badgeHorizontalPaddingPx,
-                badgeVerticalPaddingPx = badgeVerticalPaddingPx,
+                badgeHorizontalPaddingPx = currentPriceBadgeHorizontalPaddingPx,
+                badgeVerticalPaddingPx = currentPriceBadgeVerticalPaddingPx,
                 badgeCornerRadiusPx = badgeCornerRadiusPx,
                 labelStyle = whiteLabelStyle,
                 upColor = upColor,

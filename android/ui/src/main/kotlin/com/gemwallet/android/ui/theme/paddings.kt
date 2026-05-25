@@ -22,6 +22,7 @@ val iconSize = 32.dp
 val actionIconSize = 54.dp
 
 val space0 = 0.dp
+val space1 = 1.dp
 val space2 = 2.dp
 val space6 = 6.dp
 val space4 = 4.dp
