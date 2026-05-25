@@ -139,7 +139,7 @@ fun AmountListHead(
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.secondary,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.W400,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
                 changedValue?.let { value ->
@@ -365,9 +365,9 @@ fun AmountHeadAction(
         )
         Text(
             text = title,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.W400,
+                fontWeight = FontWeight.Medium,
             ),
             autoSize = ActionTextAutoSize(
                 minFontSize = 8.sp,

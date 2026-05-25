@@ -10,4 +10,5 @@ object Emoji {
     const val checkmark = "✅"
     const val reject = "❌"
     const val rocket = "\uD83D\uDE80"
+    const val moneyBag = "\uD83D\uDCB0"
 }
