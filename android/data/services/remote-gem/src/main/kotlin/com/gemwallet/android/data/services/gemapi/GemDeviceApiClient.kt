@@ -21,19 +21,18 @@ import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
 import com.wallet.core.primitives.Transaction
+import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSubscription
 import com.wallet.core.primitives.WalletSubscriptionChains
 import com.wallet.core.primitives.WalletConfigurationResult
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.HTTP
-import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-const val WALLET_ID_HEADER = "x-wallet-id"
+import retrofit2.http.Tag
 
 interface GemDeviceApiClient {
 
@@ -76,33 +75,33 @@ interface GemDeviceApiClient {
 
     // Rewards
     @GET("/v2/devices/rewards")
-    suspend fun getRewards(@Header(WALLET_ID_HEADER) walletId: String): Rewards?
+    suspend fun getRewards(@Tag walletId: WalletId): Rewards?
 
     @GET("/v2/devices/rewards/events")
-    suspend fun getRewardsEvents(@Header(WALLET_ID_HEADER) walletId: String): List<RewardEvent>
+    suspend fun getRewardsEvents(@Tag walletId: WalletId): List<RewardEvent>
 
     @GET("/v2/devices/rewards/redemptions/{code}")
     suspend fun getRedemptionOption(@Path("code") code: String): RewardRedemptionOption
 
     @POST("/v2/devices/rewards/referrals/create")
-    suspend fun createReferral(@Header(WALLET_ID_HEADER) walletId: String, @Body body: AuthenticatedRequest<ReferralCode>): Rewards?
+    suspend fun createReferral(@Tag walletId: WalletId, @Body body: AuthenticatedRequest<ReferralCode>): Rewards?
 
     @POST("/v2/devices/rewards/referrals/use")
-    suspend fun useReferralCode(@Header(WALLET_ID_HEADER) walletId: String, @Body body: AuthenticatedRequest<ReferralCode>): Boolean
+    suspend fun useReferralCode(@Tag walletId: WalletId, @Body body: AuthenticatedRequest<ReferralCode>): Boolean
 
     @POST("/v2/devices/rewards/redeem")
-    suspend fun redeem(@Header(WALLET_ID_HEADER) walletId: String, @Body request: AuthenticatedRequest<RedemptionRequest>): RedemptionResult
+    suspend fun redeem(@Tag walletId: WalletId, @Body request: AuthenticatedRequest<RedemptionRequest>): RedemptionResult
 
     // Transactions
     @GET("/v2/devices/transactions")
     suspend fun getTransactions(
-        @Header(WALLET_ID_HEADER) walletId: String,
+        @Tag walletId: WalletId,
         @Query("from_timestamp") from: Long,
     ): TransactionsResponse?
 
     @GET("/v2/devices/transactions")
     suspend fun getTransactions(
-        @Header(WALLET_ID_HEADER) walletId: String,
+        @Tag walletId: WalletId,
         @Query("asset_id") assetId: String,
         @Query("from_timestamp") from: Long,
     ): TransactionsResponse?
@@ -114,21 +113,21 @@ interface GemDeviceApiClient {
     suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction
 
     @GET("/v2/devices/wallet_configuration")
-    suspend fun getWalletConfiguration(@Header(WALLET_ID_HEADER) walletId: String): WalletConfigurationResult
+    suspend fun getWalletConfiguration(@Tag walletId: WalletId): WalletConfigurationResult
 
     // Assets
     @GET("/v2/devices/assets")
-    suspend fun getAssets(@Header(WALLET_ID_HEADER) walletId: String, @Query("from_timestamp") fromTimestamp: Long): List<String>
+    suspend fun getAssets(@Tag walletId: WalletId, @Query("from_timestamp") fromTimestamp: Long): List<String>
 
     // NFT
     @GET("/v2/devices/nft_assets")
-    suspend fun getNFTs(@Header(WALLET_ID_HEADER) walletId: String): List<NFTData>?
+    suspend fun getNFTs(@Tag walletId: WalletId): List<NFTData>?
 
     @GET("/v2/devices/nft_assets/{asset_id}")
     suspend fun getNFT(@Path("asset_id") assetId: String): NFTAssetData
 
     @POST("/v2/devices/nft_assets/{asset_id}/refresh")
-    suspend fun refreshNftAsset(@Header(WALLET_ID_HEADER) walletId: String, @Path("asset_id") assetId: String): Boolean
+    suspend fun refreshNftAsset(@Tag walletId: WalletId, @Path("asset_id") assetId: String): Boolean
 
     // AUTH
     @GET("/v2/devices/auth/nonce")
@@ -143,7 +142,7 @@ interface GemDeviceApiClient {
 
     @GET("/v2/devices/fiat/quotes/{type}/{asset_id}")
     suspend fun getFiatQuotes(
-        @Header(WALLET_ID_HEADER) walletId: String,
+        @Tag walletId: WalletId,
         @Path("type") type: String,
         @Path("asset_id") assetId: String,
         @Query("amount") amount: Double,
@@ -152,13 +151,13 @@ interface GemDeviceApiClient {
 
     @GET("/v2/devices/fiat/quotes/{quote_id}/url")
     suspend fun getFiatQuoteUrl(
-        @Header(WALLET_ID_HEADER) walletId: String,
+        @Tag walletId: WalletId,
         @Path("quote_id") quoteId: String
     ): FiatQuoteUrl?
 
     @GET("/v2/devices/fiat/transactions")
     suspend fun getFiatTransactions(
-        @Header(WALLET_ID_HEADER) walletId: String,
+        @Tag walletId: WalletId,
     ): List<FiatTransactionData>
 
 }

@@ -10,7 +10,7 @@ class GetRewardsImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
 ) : GetRewards {
     override suspend fun getRewards(walletId: WalletId): Rewards {
-        val response = gemDeviceApiClient.getRewards(walletId.id)
+        val response = gemDeviceApiClient.getRewards(walletId)
         if (response?.code == null) {
             throw ReferralError.NotCreated
         }

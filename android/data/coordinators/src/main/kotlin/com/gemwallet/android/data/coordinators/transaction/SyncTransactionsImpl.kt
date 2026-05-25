@@ -29,8 +29,8 @@ class SyncTransactionsImpl @Inject constructor(
 ) : SyncTransactions, SyncAssetTransactions {
 
     override suspend fun syncTransactions(wallet: Wallet) {
-        val walletId = wallet.id.id
-        val preferences = walletPreferencesFactory.create(walletId)
+        val walletId = wallet.id
+        val preferences = walletPreferencesFactory.create(walletId.id)
         val response = runCatching {
             gemDeviceApiClient.getTransactions(walletId, preferences.transactionsTimestamp)
         }.getOrNull() ?: return
@@ -46,8 +46,8 @@ class SyncTransactionsImpl @Inject constructor(
     }
 
     private suspend fun syncAssetTransactions(wallet: Wallet, assetId: AssetId) {
-        val walletId = wallet.id.id
-        val preferences = walletPreferencesFactory.create(walletId)
+        val walletId = wallet.id
+        val preferences = walletPreferencesFactory.create(walletId.id)
         val assetIdentifier = assetId.identifier
         val timestamp = preferences.transactionsForAssetTimestamp(assetIdentifier)
         val response = runCatching {

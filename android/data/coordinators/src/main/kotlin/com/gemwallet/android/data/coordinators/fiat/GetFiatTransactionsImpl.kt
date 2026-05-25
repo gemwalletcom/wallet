@@ -9,6 +9,6 @@ class GetFiatTransactionsImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
 ) : GetFiatTransactions {
     override suspend fun invoke(walletId: WalletId): List<FiatTransactionData> {
-        return gemDeviceApiClient.getFiatTransactions(walletId.id)
+        return gemDeviceApiClient.getFiatTransactions(walletId)
     }
 }

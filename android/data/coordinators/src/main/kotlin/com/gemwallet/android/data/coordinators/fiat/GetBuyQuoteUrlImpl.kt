@@ -13,7 +13,7 @@ class GetBuyQuoteUrlImpl(
     override suspend fun invoke(quoteId: String, walletId: WalletId): String? {
         return try {
             gemDeviceApiClient.getFiatQuoteUrl(
-                walletId = walletId.id,
+                walletId = walletId,
                 quoteId = quoteId,
             )?.redirectUrl
         } catch (_: Exception) {

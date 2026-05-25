@@ -27,7 +27,7 @@ class GetBuyQuotesImpl(
                 assetId = asset.id.toIdentifier(),
                 amount = amount,
                 currency = fiatCurrency,
-                walletId = walletId.id,
+                walletId = walletId,
                 type = type.string,
             )?.quotes ?: throw IOException()
         } catch (err: Exception) {

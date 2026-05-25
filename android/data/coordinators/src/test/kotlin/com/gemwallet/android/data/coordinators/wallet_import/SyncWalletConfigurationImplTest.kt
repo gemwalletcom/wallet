@@ -38,7 +38,7 @@ class SyncWalletConfigurationImplTest {
 
     @Test
     fun sync_addsMultisigBannerForEachReturnedAccountAndMarksComplete() = runTest {
-        coEvery { gemDeviceApiClient.getWalletConfiguration("wallet-1") } returns WalletConfigurationResult(
+        coEvery { gemDeviceApiClient.getWalletConfiguration(walletId) } returns WalletConfigurationResult(
             walletId = walletId,
             configuration = WalletConfiguration(
                 multiSignatureAccounts = listOf(
@@ -71,7 +71,7 @@ class SyncWalletConfigurationImplTest {
 
     @Test
     fun sync_doesNothingWhenMultiSignatureAccountsIsEmpty() = runTest {
-        coEvery { gemDeviceApiClient.getWalletConfiguration("wallet-1") } returns WalletConfigurationResult(
+        coEvery { gemDeviceApiClient.getWalletConfiguration(walletId) } returns WalletConfigurationResult(
             walletId = walletId,
             configuration = WalletConfiguration(multiSignatureAccounts = emptyList()),
         )
@@ -84,7 +84,7 @@ class SyncWalletConfigurationImplTest {
 
     @Test
     fun sync_swallowsApiFailuresAndDoesNotMarkComplete() = runTest {
-        coEvery { gemDeviceApiClient.getWalletConfiguration("wallet-1") } throws RuntimeException("network down")
+        coEvery { gemDeviceApiClient.getWalletConfiguration(walletId) } throws RuntimeException("network down")
 
         subject.sync(walletId)
 
