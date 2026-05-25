@@ -23,6 +23,7 @@ import com.gemwallet.android.features.perpetual.views.components.positionPropert
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -42,6 +43,7 @@ internal fun PerpetualPositionScene(
     position: PerpetualPositionDetailsDataAggregate?,
     transactions: List<TransactionDataAggregate>,
     chartData: List<ChartCandleStick>,
+    chartState: ChartViewState,
     period: ChartPeriod,
     onAction: (PerpetualDetailsAction) -> Unit,
 ) {
@@ -57,6 +59,7 @@ internal fun PerpetualPositionScene(
             item {
                 PerpetualChartSection(
                     data = chartData,
+                    chartState = chartState,
                     period = period,
                     entry = position?.entryValue,
                     liquidation = position?.liquidationValue,
@@ -162,6 +165,7 @@ private fun PerpetualPositionScenePreview() {
             position = samplePosition,
             transactions = emptyList(),
             chartData = chartData,
+            chartState = ChartViewState.Ready,
             period = ChartPeriod.Day,
             onAction = {},
         )

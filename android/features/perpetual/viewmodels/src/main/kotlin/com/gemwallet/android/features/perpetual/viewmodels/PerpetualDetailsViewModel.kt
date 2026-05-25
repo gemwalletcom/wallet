@@ -14,6 +14,7 @@ import com.gemwallet.android.application.transactions.coordinators.TransactionsR
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
@@ -23,11 +24,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -91,19 +95,23 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     val period = MutableStateFlow(ChartPeriod.Day)
 
+    private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
+    val chartState: StateFlow<ChartViewState> = viewState.asStateFlow()
+
     private val ticker = tickerFlow(ChartRefreshIntervalMillis) {
         viewModelScope.launch(Dispatchers.IO) { syncPerpetualPositions.syncPerpetualPositions() }
     }
 
     val chart = period
+        .onEach { viewState.value = ChartViewState.Loading }
         .flatMapLatest { period ->
             flow {
-                emit(emptyList<com.wallet.core.primitives.ChartCandleStick>())
                 emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
-                ticker.collect {
-                    emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
-                }
+                ticker.collect { emit(getPerpetualChartData.getPerpetualChartData(assetId, period)) }
             }
+        }
+        .onEach { candles ->
+            viewState.value = if (candles.isEmpty()) ChartViewState.Empty else ChartViewState.Ready
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), emptyList())

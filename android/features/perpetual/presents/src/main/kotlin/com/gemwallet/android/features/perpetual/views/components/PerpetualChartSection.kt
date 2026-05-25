@@ -39,6 +39,7 @@ private val TooltipRightSafeArea = 96.dp
 @Composable
 internal fun PerpetualChartSection(
     data: List<ChartCandleStick>,
+    chartState: ChartViewState,
     period: ChartPeriod,
     entry: Double? = null,
     liquidation: Double? = null,
@@ -97,10 +98,8 @@ internal fun PerpetualChartSection(
         selectedCandle?.let { CandlestickTooltipUIModel.from(it, numericString, volumeString) }
     }
 
-    val frameState = if (chartUIModel == null) ChartViewState.Loading else ChartViewState.Ready
-
     ChartStateView(
-        state = frameState,
+        state = chartState,
         header = headerUIModel,
         period = period,
         onPeriodSelect = onPeriodSelect,
