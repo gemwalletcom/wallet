@@ -89,7 +89,7 @@ internal fun GemPerpetualPosition.toDTO(): PerpetualPosition? {
 
 internal fun GemChartCandleStick.toDTO(): ChartCandleStick {
     return ChartCandleStick(
-        date = date,
+        date = date * 1_000L,
         open = open,
         high = high,
         low = low,

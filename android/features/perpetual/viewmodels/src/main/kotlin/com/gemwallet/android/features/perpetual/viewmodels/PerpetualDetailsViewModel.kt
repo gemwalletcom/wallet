@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -86,7 +85,12 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     val period = MutableStateFlow(ChartPeriod.Day)
     val chart = period
-        .mapLatest { period -> getPerpetualChartData.getPerpetualChartData(assetId, period) }
+        .flatMapLatest { period ->
+            flow {
+                emit(emptyList<com.wallet.core.primitives.ChartCandleStick>())
+                emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+            }
+        }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

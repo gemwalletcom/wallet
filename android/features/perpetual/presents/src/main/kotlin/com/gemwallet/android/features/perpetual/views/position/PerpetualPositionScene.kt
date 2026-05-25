@@ -14,16 +14,16 @@ import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAg
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
-import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.features.perpetual.views.components.CandleChart
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
+import com.gemwallet.android.features.perpetual.views.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetual.views.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionActions
 import com.gemwallet.android.features.perpetual.views.components.perpetualInfo
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
+import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -54,15 +54,17 @@ internal fun PerpetualPositionScene(
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
-            CandleChart(
-                data = chartData,
-                period = period,
-                entry = position?.entryValue,
-                liquidation = position?.liquidationValue,
-                stopLoss = position?.stopLoss,
-                takeProfit = position?.takeProfit,
-                onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
-            )
+            item {
+                PerpetualChartSection(
+                    data = chartData,
+                    period = period,
+                    entry = position?.entryValue,
+                    liquidation = position?.liquidationValue,
+                    stopLoss = position?.stopLoss,
+                    takeProfit = position?.takeProfit,
+                    onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
+                )
+            }
             positionProperties(position)
             item {
                 if (perpetual != null) {
