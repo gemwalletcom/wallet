@@ -11,6 +11,7 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPos
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.requireAssetId
@@ -45,6 +46,11 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val buildPerpetualParams: BuildPerpetualParams,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private companion object {
+        const val ChartRefreshIntervalMillis = 60_000L
+        const val SubscriptionGraceMillis = 5_000L
+    }
 
     private val assetId = savedStateHandle.requireAssetId()
 
@@ -84,15 +90,23 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val period = MutableStateFlow(ChartPeriod.Day)
+
+    private val ticker = tickerFlow(ChartRefreshIntervalMillis) {
+        viewModelScope.launch(Dispatchers.IO) { syncPerpetualPositions.syncPerpetualPositions() }
+    }
+
     val chart = period
         .flatMapLatest { period ->
             flow {
                 emit(emptyList<com.wallet.core.primitives.ChartCandleStick>())
                 emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+                ticker.collect {
+                    emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+                }
             }
         }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), emptyList())
 
     fun period(period: ChartPeriod) {
         this.period.update { period }
