@@ -8,6 +8,7 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
@@ -42,7 +43,7 @@ class ChartViewModel internal constructor(
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Day)
-    private val viewState = MutableStateFlow(ChartUIModel.State.ViewState.Loading)
+    private val viewState = MutableStateFlow(ChartViewState.Loading)
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
 
@@ -60,11 +61,11 @@ class ChartViewModel internal constructor(
         .mapLatest { (period, currency) ->
             try {
                 val prices = request(period, currency)
-                viewState.value = if (prices.isEmpty()) ChartUIModel.State.ViewState.Empty else ChartUIModel.State.ViewState.Ready
+                viewState.value = if (prices.size < 2) ChartViewState.Empty else ChartViewState.Ready
                 prices
             } catch (_: Exception) {
                 currentCoroutineContext().ensureActive()
-                viewState.value = ChartUIModel.State.ViewState.Empty
+                viewState.value = ChartViewState.Empty
                 emptyList()
             } finally {
                 refreshState.value = false
@@ -91,12 +92,12 @@ class ChartViewModel internal constructor(
             return
         }
         selectedPeriod.value = period
-        viewState.value = ChartUIModel.State.ViewState.Loading
+        viewState.value = ChartViewState.Loading
     }
 
     fun refresh() {
         refreshState.value = true
-        viewState.value = ChartUIModel.State.ViewState.Loading
+        viewState.value = ChartViewState.Loading
         refreshTrigger.value = refreshTrigger.value + 1
     }
 

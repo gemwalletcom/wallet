@@ -6,6 +6,7 @@ import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.components.chart.ChartPoint
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
@@ -27,10 +28,8 @@ data class ChartUIModel(
 
     data class State(
         val period: ChartPeriod = ChartPeriod.Day,
-        val viewState: ViewState = ViewState.Loading,
-    ) {
-        enum class ViewState { Loading, Empty, Ready }
-    }
+        val viewState: ChartViewState = ChartViewState.Loading,
+    )
 }
 
 internal fun ChartUIModel.Companion.from(
