@@ -42,12 +42,12 @@ class ChartViewModel internal constructor(
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Day)
-    private val chartState = MutableStateFlow(ChartState())
+    private val viewState = MutableStateFlow(ChartUIModel.State.ViewState.Loading)
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
 
-    val chartUIState = combine(selectedPeriod, chartState) { period, state ->
-        ChartUIModel.State(state.loading, period, state.empty)
+    val chartUIState = combine(selectedPeriod, viewState) { period, viewState ->
+        ChartUIModel.State(period = period, viewState = viewState)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel.State())
 
     val isRefreshing = refreshState.asStateFlow()
@@ -60,11 +60,11 @@ class ChartViewModel internal constructor(
         .mapLatest { (period, currency) ->
             try {
                 val prices = request(period, currency)
-                chartState.update { it.copy(loading = false, empty = prices.isEmpty()) }
+                viewState.value = if (prices.isEmpty()) ChartUIModel.State.ViewState.Empty else ChartUIModel.State.ViewState.Ready
                 prices
             } catch (_: Exception) {
                 currentCoroutineContext().ensureActive()
-                chartState.update { it.copy(loading = false, empty = true) }
+                viewState.value = ChartUIModel.State.ViewState.Empty
                 emptyList()
             } finally {
                 refreshState.value = false
@@ -91,12 +91,12 @@ class ChartViewModel internal constructor(
             return
         }
         selectedPeriod.value = period
-        chartState.update { ChartState(loading = true, empty = false) }
+        viewState.value = ChartUIModel.State.ViewState.Loading
     }
 
     fun refresh() {
         refreshState.value = true
-        chartState.update { ChartState(loading = true, empty = false) }
+        viewState.value = ChartUIModel.State.ViewState.Loading
         refreshTrigger.value = refreshTrigger.value + 1
     }
 
@@ -113,8 +113,4 @@ class ChartViewModel internal constructor(
         assetId = savedStateHandle.requireAssetId(),
     )
 
-    private data class ChartState(
-        val loading: Boolean = true,
-        val empty: Boolean = false,
-    )
 }

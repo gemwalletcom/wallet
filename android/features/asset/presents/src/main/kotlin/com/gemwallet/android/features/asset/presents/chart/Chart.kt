@@ -1,9 +1,7 @@
 package com.gemwallet.android.features.asset.presents.chart
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,26 +19,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.math.getRelativeDate
+import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
+import com.gemwallet.android.features.asset.viewmodels.chart.models.PricePoint
+import com.gemwallet.android.features.asset.viewmodels.chart.models.chartHeader
+import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PeriodsPanel
+import com.gemwallet.android.ui.components.chart.ChartHeader
 import com.gemwallet.android.ui.components.chart.GemLineChart
-import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.theme.defaultPadding
+import com.gemwallet.android.ui.theme.chartFrameHeight
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
-import com.gemwallet.android.features.asset.viewmodels.chart.models.PricePoint
-import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
-
-private object ChartSceneMetrics {
-    val frameHeight = 320.dp
-    val dateRowHeight = 16.dp
-}
 
 @Composable
 fun Chart(
@@ -56,23 +50,22 @@ fun Chart(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(ChartSceneMetrics.frameHeight),
+                    .height(chartFrameHeight),
             ) {
                 val chartPoints = uiModel.chartPoints
-                val isReady = !state.loading && state.period == uiModel.period && chartPoints.isNotEmpty()
-                val point: PricePoint? = if (!isReady) {
-                    null
+                val isReady = state.viewState == ChartUIModel.State.ViewState.Ready && state.period == uiModel.period && chartPoints.isNotEmpty()
+                val selectedPoint: PricePoint? = if (isReady) {
+                    selectedIndex?.let { chartPoints.getOrNull(it) }
                 } else {
-                    val idx = selectedIndex
-                    if (idx != null && idx in chartPoints.indices) chartPoints[idx]
-                    else uiModel.currentPoint ?: chartPoints.lastOrNull()
+                    null
                 }
 
-                ChartHeader(
-                    point = point,
-                    isScrubbing = selectedIndex != null && point != null,
-                    modifier = Modifier.padding(top = paddingSmall, bottom = space4),
-                )
+                chartHeader(uiModel, selectedPoint)?.let {
+                    ChartHeader(
+                        model = it,
+                        modifier = Modifier.padding(top = paddingSmall, bottom = space4),
+                    )
+                }
 
                 Box(
                     modifier = Modifier
@@ -80,13 +73,13 @@ fun Chart(
                         .fillMaxWidth(),
                 ) {
                     when {
-                        state.loading || state.period != uiModel.period -> {
+                        state.viewState == ChartUIModel.State.ViewState.Loading || state.period != uiModel.period -> {
                             CircularProgressIndicator20(
                                 modifier = Modifier.align(Alignment.Center),
                                 color = MaterialTheme.colorScheme.primary,
                             )
                         }
-                        state.empty -> ChartError()
+                        state.viewState == ChartUIModel.State.ViewState.Empty -> ChartError()
                         uiModel.renderPoints.size >= 2 -> {
                             GemLineChart(
                                 points = uiModel.renderPoints,
@@ -108,47 +101,6 @@ fun Chart(
 }
 
 @Composable
-private fun ChartHeader(
-    point: PricePoint?,
-    isScrubbing: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(space4),
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(space4),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = point?.yLabel ?: "",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            if (point != null && point.percentage.isNotEmpty()) {
-                Text(
-                    text = point.percentage,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = point.priceState.color(),
-                )
-            }
-        }
-
-        Box(modifier = Modifier.height(ChartSceneMetrics.dateRowHeight), contentAlignment = Alignment.Center) {
-            if (isScrubbing && point != null) {
-                Text(
-                    text = getRelativeDate(point.timestamp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun ChartError() {
     Box(
         modifier = Modifier
@@ -162,3 +114,4 @@ fun ChartError() {
         )
     }
 }
+
