@@ -24,7 +24,7 @@ public enum TransactionHeaderTypeBuilder {
                 return .amount(showFiat: true)
             case .swap:
                 guard let metadata, let input = SwapMetadataViewModel(metadata: metadata).headerInput else {
-                    fatalError("swapMetadata is missed")
+                    return .amount(showFiat: true)
                 }
                 return .swap(input)
             case .assetActivation:
@@ -57,9 +57,7 @@ public enum TransactionHeaderTypeBuilder {
                  .withdrawal,
                  .stake,
                  .generic:
-                return .amount(
-                    showFiat: true,
-                )
+                return .amount(showFiat: true)
             case .tokenApprove:
                 return .assetImage
             case let .transferNft(asset):
@@ -67,9 +65,7 @@ public enum TransactionHeaderTypeBuilder {
             case let .account(_, type):
                 switch type {
                 case .activate:
-                    return .amount(
-                        showFiat: false,
-                    )
+                    return .amount(showFiat: false)
                 }
             case let .swap(fromAsset, toAsset, data):
                 let assetPrices = (metadata?.assetPrices ?? [:]).map { assetId, price in
@@ -91,7 +87,7 @@ public enum TransactionHeaderTypeBuilder {
                 )
 
                 guard let input = model.headerInput else {
-                    fatalError("fromAsset & toAsset missed")
+                    return .amount(showFiat: true)
                 }
                 return .swap(input)
             case .perpetual:

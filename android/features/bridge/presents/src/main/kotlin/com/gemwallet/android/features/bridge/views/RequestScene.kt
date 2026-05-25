@@ -1,20 +1,9 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.gemwallet.android.features.bridge.views
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -36,15 +25,11 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.models.ListPosition
@@ -167,68 +152,29 @@ private fun SignMessageScene(
             }
 
             if (!request.hasPayload) {
-                textMessage(request.plainMessage)
+                walletConnectTextMessage(request.plainMessage)
             }
         }
 
         when (sheetType) {
             SignMessageSheetType.Details -> {
-                ModalBottomSheet(
+                WalletConnectPayloadDetailsSheet(
+                    primaryFields = request.primaryPayloadFields,
+                    secondaryFields = request.secondaryPayloadFields,
+                    onViewFullMessage = { sheetType = SignMessageSheetType.FullMessage },
                     onDismissRequest = { sheetType = null },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    title = stringResource(R.string.common_details),
-                ) {
-                    LazyColumn {
-                        simulationPayloadDetailsContent(
-                            primaryFields = request.primaryPayloadFields,
-                            secondaryFields = request.secondaryPayloadFields,
-                        )
-                        item {
-                            PropertyItem(
-                                action = R.string.sign_message_view_full_message,
-                                listPosition = ListPosition.Single,
-                                onClick = { sheetType = SignMessageSheetType.FullMessage },
-                            )
-                        }
-                    }
-                }
+                )
             }
 
             SignMessageSheetType.FullMessage -> {
-                ModalBottomSheet(
+                WalletConnectFullMessageSheet(
+                    message = request.plainMessage,
                     onDismissRequest = { sheetType = null },
-                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-                    title = stringResource(R.string.sign_message_view_full_message),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(paddingDefault)
-                    ) {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = request.plainMessage
-                        )
-                    }
-                }
+                )
             }
 
             null -> Unit
         }
-    }
-}
-
-private fun LazyListScope.textMessage(message: String) {
-    item {
-        SubheaderItem(R.string.sign_message_message)
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .listItem()
-                .padding(paddingDefault),
-            text = message,
-        )
     }
 }
 

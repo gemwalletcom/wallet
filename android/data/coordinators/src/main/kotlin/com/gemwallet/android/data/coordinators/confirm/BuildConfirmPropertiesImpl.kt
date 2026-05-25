@@ -32,7 +32,7 @@ class BuildConfirmPropertiesImpl(
         val explorerName = getCurrentBlockExplorer.getCurrentBlockExplorer(chain)
         val chainExplorer = Explorer(chain.string)
         return mutableListOf<ConfirmProperty?>().apply {
-            add(ConfirmProperty.Source(assetInfo.walletName))
+            add(ConfirmProperty.Source(assetInfo.walletName, assetInfo.walletType, assetInfo.owner?.chain))
             val addressName = request.destination()?.address
                 ?.takeIf { it.isNotEmpty() }
                 ?.let { getAddressName.getAddressName(chain, it) }

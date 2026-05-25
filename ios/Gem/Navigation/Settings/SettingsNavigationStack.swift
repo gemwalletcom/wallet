@@ -177,7 +177,6 @@ struct SettingsNavigationStack: View {
                             wallet: wallet,
                             wallets: wallets,
                             activateCode: scene.code,
-                            giftCode: scene.giftCode,
                         ),
                     )
                 }

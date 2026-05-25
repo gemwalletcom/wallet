@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.bridge.views.AuthRequestScene
 import com.gemwallet.android.features.bridge.views.ProposalScene
 import com.gemwallet.android.features.bridge.views.RequestScene
 import com.gemwallet.android.ui.R
@@ -118,7 +119,11 @@ private fun WalletConnectOverlay(
                     viewModel.rejectSessionRequest(event.request)
                 }
             }
-            is WalletConnectIntent.AuthRequest,
+            is WalletConnectIntent.AuthRequest -> {
+                if (event.verifyContext == null) {
+                    viewModel.rejectSessionAuthenticate(event.request)
+                }
+            }
             is WalletConnectIntent.ConnectionState,
             WalletConnectIntent.Idle,
             WalletConnectIntent.Cancel -> Unit
@@ -129,11 +134,19 @@ private fun WalletConnectOverlay(
         modifier = Modifier.navigationBarsPadding(),
     ) {
         when (val event = walletConnect) {
-            is WalletConnectIntent.AuthRequest,
             is WalletConnectIntent.ConnectionState,
             WalletConnectIntent.Idle,
             WalletConnectIntent.Cancel,
             WalletConnectIntent.SessionDelete -> Unit
+            is WalletConnectIntent.AuthRequest -> {
+                event.verifyContext?.let { verifyContext ->
+                    AuthRequestScene(
+                        request = event.request,
+                        verifyContext = verifyContext,
+                        onCancel = viewModel::onCancel,
+                    )
+                }
+            }
             is WalletConnectIntent.SessionProposal -> {
                 event.verifyContext?.let { verifyContext ->
                     ProposalScene(

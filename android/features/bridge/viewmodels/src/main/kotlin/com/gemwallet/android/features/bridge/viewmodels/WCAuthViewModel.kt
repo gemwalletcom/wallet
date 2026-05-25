@@ -1,0 +1,409 @@
+package com.gemwallet.android.features.bridge.viewmodels
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.blockchain.gemstone.toPrimitives
+import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
+import com.gemwallet.android.data.repositories.bridge.BridgesRepository
+import com.gemwallet.android.data.repositories.bridge.ChainNamespace
+import com.gemwallet.android.data.repositories.bridge.getNamespace
+import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toChainType
+import com.gemwallet.android.ext.walletConnectAppName
+import com.gemwallet.android.ext.walletConnectIcon
+import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
+import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
+import com.gemwallet.android.ui.models.PayloadField
+import com.reown.android.Core
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
+import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ChainType
+import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletType
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import uniffi.gemstone.MessageSigner
+import uniffi.gemstone.SignDigestType
+import uniffi.gemstone.SignMessage
+import uniffi.gemstone.WalletConnect
+import uniffi.gemstone.WalletConnectionVerificationStatus
+import java.util.Arrays
+import javax.inject.Inject
+
+@HiltViewModel
+class WCAuthViewModel @Inject constructor(
+    private val sessionRepository: SessionRepository,
+    private val bridgesRepository: BridgesRepository,
+    private val walletsRepository: WalletsRepository,
+    private val passwordStore: PasswordStore,
+    private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
+) : ViewModel() {
+
+    private val walletConnect = WalletConnect()
+    private var authRequest: Wallet.Model.SessionAuthenticate? = null
+    private var hasResponded = false
+    private var isApproving = false
+
+    private val _state = MutableStateFlow<AuthSceneState>(AuthSceneState.Loading)
+    val state: StateFlow<AuthSceneState> = _state.asStateFlow()
+
+    fun onRequest(
+        request: Wallet.Model.SessionAuthenticate,
+        verifyContext: Wallet.Model.VerifyContext,
+    ) {
+        authRequest = request
+        hasResponded = false
+        isApproving = false
+        _state.update { AuthSceneState.Loading }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val validation = validateSession(request.participant.metadata, verifyContext)
+                if (!isActiveRequest(request)) {
+                    return@launch
+                }
+                when (validation) {
+                    WalletConnectionVerificationStatus.INVALID,
+                    WalletConnectionVerificationStatus.MALICIOUS -> {
+                        rejectRequest(request, AuthSceneState.ScamCanceled)
+                        return@launch
+                    }
+                    WalletConnectionVerificationStatus.UNKNOWN,
+                    WalletConnectionVerificationStatus.VERIFIED -> Unit
+                }
+
+                val availableWallets = (walletsRepository.getAll().firstOrNull() ?: emptyList())
+                    .filter { wallet ->
+                        wallet.type != WalletType.View && supportedAccounts(wallet, request).isNotEmpty()
+                    }
+                    .sortedBy { it.type }
+
+                if (!isActiveRequest(request)) {
+                    return@launch
+                }
+                if (availableWallets.isEmpty()) {
+                    rejectRequest(request, AuthSceneState.Error("Requested chains are not supported"))
+                    return@launch
+                }
+
+                val currentWallet = sessionRepository.session().firstOrNull()?.wallet
+                val selectedWallet = availableWallets.firstOrNull { currentWallet?.id == it.id } ?: availableWallets.first()
+                val approval = buildApproval(request, selectedWallet)
+
+                if (!isActiveRequest(request)) {
+                    return@launch
+                }
+                _state.update {
+                    AuthSceneState.Request(
+                        peer = request.toSessionUI(),
+                        availableWallets = availableWallets,
+                        selectedWallet = selectedWallet,
+                        approval = approval,
+                    )
+                }
+            } catch (err: Throwable) {
+                if (isActiveRequest(request)) {
+                    rejectRequest(request, AuthSceneState.Error(err.message ?: "Authentication failed"))
+                }
+            }
+        }
+    }
+
+    fun onWalletSelected(walletId: WalletId) {
+        val current = _state.value as? AuthSceneState.Request ?: return
+        if (current.isApproving) {
+            return
+        }
+        val wallet = current.availableWallets.firstOrNull { it.id == walletId } ?: return
+        val request = authRequest ?: return
+        val approval = runCatching {
+            buildApproval(request, wallet)
+        }.getOrElse { err ->
+            _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
+            return
+        }
+
+        _state.update {
+            current.copy(
+                selectedWallet = wallet,
+                approval = approval,
+            )
+        }
+    }
+
+    fun onApprove() {
+        val request = authRequest ?: return
+        val approval = (_state.value as? AuthSceneState.Request)?.approval ?: return
+        if (hasResponded || isApproving) {
+            return
+        }
+        isApproving = true
+        _state.update { state ->
+            (state as? AuthSceneState.Request)?.copy(isApproving = true) ?: state
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            var privateKey: ByteArray? = null
+            try {
+                if (!isActiveRequest(request)) {
+                    return@launch
+                }
+                privateKey = loadPrivateKeyOperator(
+                    approval.wallet,
+                    approval.account.chain,
+                    passwordStore.getPassword(approval.wallet.id.id),
+                )
+                val signature = signAuthMessage(
+                    chain = approval.account.chain,
+                    message = approval.message,
+                    privateKey = privateKey,
+                )
+                if (!isActiveRequest(request)) {
+                    return@launch
+                }
+                val authObject = WalletKit.generateAuthObject(
+                    payloadParams = approval.payloadParams,
+                    issuer = approval.issuer,
+                    signature = Wallet.Model.Cacao.Signature(
+                        t = "eip191",
+                        s = signature,
+                    ),
+                )
+                bridgesRepository.approveAuthentication(
+                    wallet = approval.wallet,
+                    request = request,
+                    auths = listOf(authObject),
+                    onSuccess = {
+                        if (authRequest?.id == request.id) {
+                            hasResponded = true
+                            isApproving = false
+                            _state.update { AuthSceneState.Canceled }
+                        }
+                    },
+                    onError = { message ->
+                        if (authRequest?.id == request.id) {
+                            isApproving = false
+                            _state.update { AuthSceneState.Error(message) }
+                        }
+                    },
+                )
+            } catch (err: Throwable) {
+                if (authRequest?.id == request.id) {
+                    isApproving = false
+                    _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
+                }
+            } finally {
+                privateKey?.let { Arrays.fill(it, 0) }
+            }
+        }
+    }
+
+    fun onReject() {
+        if (isApproving) {
+            return
+        }
+        val request = authRequest
+        if (request == null) {
+            _state.update { AuthSceneState.Canceled }
+            return
+        }
+        if (hasResponded) {
+            _state.update { AuthSceneState.Canceled }
+            return
+        }
+        hasResponded = true
+        bridgesRepository.rejectAuthentication(request)
+        _state.update { AuthSceneState.Canceled }
+    }
+
+    private fun rejectRequest(
+        request: Wallet.Model.SessionAuthenticate,
+        state: AuthSceneState,
+    ) {
+        if (!isActiveRequest(request)) {
+            return
+        }
+        hasResponded = true
+        isApproving = false
+        bridgesRepository.rejectAuthentication(request)
+        _state.update { state }
+    }
+
+    private fun isActiveRequest(request: Wallet.Model.SessionAuthenticate): Boolean {
+        return authRequest?.id == request.id && !hasResponded
+    }
+
+    private fun validateSession(
+        metadata: Core.Model.AppMetaData?,
+        verifyContext: Wallet.Model.VerifyContext,
+    ): WalletConnectionVerificationStatus {
+        return walletConnect.validateOrigin(
+            metadataUrl = metadata?.url ?: "",
+            origin = verifyContext.origin,
+            validation = verifyContext.map(),
+        )
+    }
+
+    private fun buildApproval(
+        request: Wallet.Model.SessionAuthenticate,
+        wallet: com.wallet.core.primitives.Wallet,
+    ): AuthApproval {
+        val supportedAccounts = supportedAccounts(wallet, request)
+        val selectedAccount = supportedAccounts.firstOrNull()
+            ?: throw IllegalStateException("Requested chains are not supported")
+        val supportedChains = supportedAccounts.map { it.chainId }.distinct()
+        val payloadParams = WalletKit.generateAuthPayloadParams(
+            payloadParams = request.payloadParams,
+            supportedChains = supportedChains,
+            supportedMethods = ChainNamespace.Eip155.methods.map { it.string },
+        )
+        val issuer = selectedAccount.issuer
+        val message = WalletKit.formatAuthMessage(
+            Wallet.Params.FormatAuthMessage(
+                payloadParams = payloadParams,
+                issuer = issuer,
+            )
+        )
+        val payloadPreview = payloadPreview(selectedAccount.account.chain, message)
+
+        return AuthApproval(
+            wallet = wallet,
+            account = selectedAccount.account,
+            payloadParams = payloadParams,
+            issuer = issuer,
+            message = message,
+            primaryPayloadFields = payloadPreview.primaryFields,
+            secondaryPayloadFields = payloadPreview.secondaryFields,
+        )
+    }
+
+    private fun supportedAccounts(
+        wallet: com.wallet.core.primitives.Wallet,
+        request: Wallet.Model.SessionAuthenticate,
+    ): List<AuthAccount> {
+        val requestedChains = request.payloadParams.chains.toSet()
+        if (requestedChains.isEmpty()) {
+            return emptyList()
+        }
+
+        return requestedChains.mapNotNull { chainId ->
+            val chain = Chain.getNamespace(chainId) ?: return@mapNotNull null
+            if (chain.toChainType() != ChainType.Ethereum) {
+                return@mapNotNull null
+            }
+            val account = wallet.getAccount(chain) ?: return@mapNotNull null
+            AuthAccount(account = account, chainId = chainId)
+        }
+    }
+
+    private fun payloadPreview(
+        chain: Chain,
+        message: String,
+    ): AuthPayloadPreview {
+        val signer = MessageSigner(
+            SignMessage(
+                chain = chain.string,
+                signType = SignDigestType.SIWE,
+                data = message.toByteArray(),
+            )
+        )
+        return try {
+            signer.payloadPreview(emptyList())?.let { preview ->
+                AuthPayloadPreview(
+                    primaryFields = preview.primary.map { PayloadField(it.toPrimitives()) },
+                    secondaryFields = preview.secondary.map { PayloadField(it.toPrimitives()) },
+                )
+            } ?: AuthPayloadPreview()
+        } catch (_: Throwable) {
+            AuthPayloadPreview()
+        } finally {
+            signer.close()
+        }
+    }
+
+    private fun signAuthMessage(
+        chain: Chain,
+        message: String,
+        privateKey: ByteArray,
+    ): String {
+        val signer = MessageSigner(
+            SignMessage(
+                chain = chain.string,
+                signType = SignDigestType.SIWE,
+                data = message.toByteArray(),
+            )
+        )
+        return try {
+            signer.sign(privateKey)
+        } finally {
+            signer.close()
+        }
+    }
+
+    private fun Wallet.Model.SessionAuthenticate.toSessionUI(): SessionUI {
+        val metadata = participant.metadata
+        return WalletConnectionSessionAppMetadata(
+            name = walletConnectAppName(metadata?.name, metadata?.url),
+            description = metadata?.description ?: "",
+            url = metadata?.url ?: "",
+            icon = metadata?.icons.walletConnectIcon(),
+        ).toSessionUI()
+    }
+
+}
+
+sealed interface AuthSceneState {
+
+    data object Loading : AuthSceneState
+
+    data object Canceled : AuthSceneState
+
+    data object ScamCanceled : AuthSceneState
+
+    class Error(val message: String) : AuthSceneState
+
+    data class Request(
+        val peer: SessionUI,
+        val availableWallets: List<com.wallet.core.primitives.Wallet>,
+        val selectedWallet: com.wallet.core.primitives.Wallet,
+        val approval: AuthApproval,
+        val isApproving: Boolean = false,
+    ) : AuthSceneState
+}
+
+data class AuthApproval(
+    val wallet: com.wallet.core.primitives.Wallet,
+    val account: Account,
+    val payloadParams: Wallet.Model.PayloadAuthRequestParams,
+    val issuer: String,
+    val message: String,
+    val primaryPayloadFields: List<PayloadField>,
+    val secondaryPayloadFields: List<PayloadField>,
+) {
+    val chain: Chain get() = account.chain
+    val hasPayload: Boolean get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
+}
+
+private data class AuthAccount(
+    val account: Account,
+    val chainId: String,
+) {
+    val issuer: String get() = "did:pkh:$chainId:${account.address}"
+}
+
+private data class AuthPayloadPreview(
+    val primaryFields: List<PayloadField> = emptyList(),
+    val secondaryFields: List<PayloadField> = emptyList(),
+)

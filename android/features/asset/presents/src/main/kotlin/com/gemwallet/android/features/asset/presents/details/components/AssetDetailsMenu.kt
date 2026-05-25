@@ -25,8 +25,11 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
+import uniffi.gemstone.Deeplink
+import uniffi.gemstone.deeplinkBuildUrl
 
 @Composable
 fun RowScope.AssetDetailsMenu(
@@ -47,11 +50,13 @@ fun RowScope.AssetDetailsMenu(
     val onShare = fun () {
         val type = "text/plain"
         val subject = "${uiState.assetInfo.owner?.chain}\n${uiState.assetInfo.asset.symbol}"
+        val assetId = uiState.asset.id
+        val shareUrl = deeplinkBuildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
 
         val intent = Intent(Intent.ACTION_SEND)
         intent.type = type
         intent.putExtra(Intent.EXTRA_SUBJECT, subject)
-        intent.putExtra(Intent.EXTRA_TEXT, uiState.assetInfo.owner?.address)
+        intent.putExtra(Intent.EXTRA_TEXT, shareUrl)
 
         context.startActivity(Intent.createChooser(intent, shareTitle))
     }

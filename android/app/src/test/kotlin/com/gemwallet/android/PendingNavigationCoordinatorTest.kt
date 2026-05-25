@@ -7,15 +7,29 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.Deeplink
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.WalletConnectLink
+import uniffi.gemstone.urlAction
 
 class PendingNavigationCoordinatorTest {
 
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
     private val coordinator = PendingNavigationCoordinator(notificationNavigation)
+
+    @Before
+    fun setUp() = mockkStatic("uniffi.gemstone.GemstoneKt")
+
+    @After
+    fun tearDown() = unmockkStatic("uniffi.gemstone.GemstoneKt")
 
     @Test
     fun resolve_withoutPendingIntent_isNoOp() = runTest {
@@ -27,18 +41,22 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun resolve_walletConnectPairing_invokesPairingHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
-        coordinator.setPendingIntentForTest(intent(uri = "wc:abc@2?relay-protocol=irn"))
+        val uri = "wc:abc@2?relay-protocol=irn"
+        every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Connect(uri))
+        coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(handler)
 
-        assertEquals(listOf("pairing:wc:abc@2?relay-protocol=irn"), handler.events)
+        assertEquals(listOf("pairing:$uri"), handler.events)
         assertNull("intent must be cleared after handing off to wallet connect", coordinator.pendingNavigation.value)
     }
 
     @Test
     fun resolve_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
-        coordinator.setPendingIntentForTest(intent(uri = "gem://wc?requestId=42"))
+        val uri = "gem://wc?requestId=42"
+        every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Request)
+        coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(handler)
 
@@ -48,7 +66,9 @@ class PendingNavigationCoordinatorTest {
 
     @Test
     fun resolve_webDeepLink_storesRoute() = runTest {
-        coordinator.setPendingIntentForTest(intent(uri = "https://gemwallet.com/join/gemcoder"))
+        val uri = "https://gemwallet.com/join/gemcoder"
+        every { urlAction(uri) } returns UrlAction.Deeplink(Deeplink.Rewards(code = "gemcoder"))
+        coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(NoOpWalletConnect)
 
@@ -58,7 +78,9 @@ class PendingNavigationCoordinatorTest {
 
     @Test
     fun resolve_unknownIntentWithoutNotificationPayload_clears() = runTest {
-        coordinator.setPendingIntentForTest(intent(uri = "https://example.com/unknown"))
+        val uri = "https://example.com/unknown"
+        every { urlAction(uri) } returns null
+        coordinator.setPendingIntentForTest(intent(uri = uri))
 
         coordinator.resolve(NoOpWalletConnect)
 

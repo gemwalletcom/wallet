@@ -13,3 +13,13 @@ fun WalletConnectionSessionAppMetadata.toGem() = GemWalletConnectionSessionAppMe
 
 val WalletConnectionSessionAppMetadata.shortName: String
     get() = walletConnectAppShortName(toGem())
+
+fun List<String>?.walletConnectIcon(): String {
+    return this?.firstOrNull { it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }
+        ?: this?.firstOrNull()
+        ?: ""
+}
+
+fun walletConnectAppName(name: String?, url: String?): String {
+    return name?.takeIf { it.isNotBlank() } ?: url?.getShortUrl().orEmpty()
+}

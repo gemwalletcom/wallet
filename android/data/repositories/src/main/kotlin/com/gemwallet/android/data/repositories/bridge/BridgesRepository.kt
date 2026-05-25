@@ -8,6 +8,8 @@ import com.gemwallet.android.data.service.store.database.ConnectionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.walletConnectAppName
+import com.gemwallet.android.ext.walletConnectIcon
 import com.reown.android.Core
 import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
@@ -269,41 +271,104 @@ class BridgesRepository(
         )
     }
 
+    fun approveAuthentication(
+        wallet: com.wallet.core.primitives.Wallet,
+        request: Wallet.Model.SessionAuthenticate,
+        auths: List<Wallet.Model.Cacao>,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        WalletKit.approveSessionAuthenticate(
+            params = Wallet.Params.ApproveSessionAuthenticate(
+                id = request.id,
+                auths = auths,
+            ),
+            onSuccess = {
+                scope.launch(Dispatchers.IO) { addConnection(wallet, request) }
+                onSuccess()
+            },
+            onError = { error ->
+                onError(error.throwable.message ?: "Authentication failed")
+            },
+        )
+    }
+
+    fun rejectAuthentication(
+        request: Wallet.Model.SessionAuthenticate,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {},
+    ) {
+        WalletKit.rejectSessionAuthenticate(
+            params = Wallet.Params.RejectSessionAuthenticate(
+                id = request.id,
+                reason = "Reject Session Authentication",
+            ),
+            onSuccess = {
+                onSuccess()
+            },
+            onError = {
+                onError(it.throwable.message ?: "")
+            },
+        )
+    }
+
     private fun getPendingSessionProposal(proposal: Wallet.Model.SessionProposal): Wallet.Model.SessionProposal? {
         val proposalPublicKey = proposal.proposerPublicKey
         return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposalPublicKey }
     }
 
-    private suspend fun addConnection(wallet: com.wallet.core.primitives.Wallet, proposal: Wallet.Model.SessionProposal): Boolean {
+    private suspend fun addConnection(wallet: com.wallet.core.primitives.Wallet, proposal: Wallet.Model.SessionProposal) {
+        addConnection(
+            wallet = wallet,
+            sessionId = proposal.pairingTopic,
+            metadata = sessionProposalMetadata(proposal),
+            redirect = proposal.redirect,
+        )
+    }
+
+    private suspend fun addConnection(wallet: com.wallet.core.primitives.Wallet, request: Wallet.Model.SessionAuthenticate) {
+        val metadata = request.participant.metadata
+        addConnection(
+            wallet = wallet,
+            sessionId = request.pairingTopic,
+            metadata = metadata.toConnectionMetadata(),
+            redirect = metadata?.redirect,
+        )
+    }
+
+    private suspend fun addConnection(
+        wallet: com.wallet.core.primitives.Wallet,
+        sessionId: String,
+        metadata: WalletConnectionSessionAppMetadata,
+        redirect: String?,
+    ) {
         connectionsDao.insert(
             DbConnection(
                 id = UUID.randomUUID().toString(),
                 walletId = wallet.id.id,
-                sessionId = proposal.pairingTopic,
+                sessionId = sessionId,
                 state = WalletConnectionState.Active,
                 createdAt = System.currentTimeMillis(),
                 expireAt = System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000),
-                appName = proposal.name,
-                appDescription = proposal.description,
-                appUrl = proposal.url,
-                appIcon = proposal.icons.map { it.toString() }.firstOrNull{ it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }
-                    ?: proposal.icons.map { it.toString() }.firstOrNull() ?: "",
-                redirectNative = proposal.redirect,
-                redirectUniversal = proposal.redirect,
+                appName = metadata.name,
+                appDescription = metadata.description,
+                appUrl = metadata.url,
+                appIcon = metadata.icon,
+                redirectNative = redirect,
+                redirectUniversal = redirect,
             )
         )
-        return true
     }
 
     private suspend fun updateSession(session: Wallet.Model.Session) {
-        val room = connectionsDao.getBySessionId(session.pairingTopic)
+        val room = connectionsDao.getBySessionId(session.pairingTopic) ?: return
         connectionsDao.update(
             room.copy(
                 expireAt = System.currentTimeMillis() + session.expiry,
-                appName = session.metaData?.name ?: "DApp",
+                appName = walletConnectAppName(session.metaData?.name, session.metaData?.url),
                 appDescription = session.metaData?.description ?: "",
                 appUrl = session.metaData?.url ?: "",
-                appIcon = session.metaData?.getIcon() ?: "",
+                appIcon = session.metaData?.icons.walletConnectIcon(),
                 redirectNative = session.redirect,
             )
         )
@@ -328,15 +393,20 @@ class BridgesRepository(
             }
     }
 
-    private fun Core.Model.AppMetaData.getIcon()
-        = icons.firstOrNull{ it.endsWith("png", true) || it.endsWith("jpg", true) }
-            ?: icons.firstOrNull()
-            ?: ""
-
-    private fun Core.Model.AppMetaData.toConnectionMetadata(): WalletConnectionSessionAppMetadata = WalletConnectionSessionAppMetadata(
-        name = name,
-        description = description,
-        url = url,
-        icon = getIcon(),
+    private fun Core.Model.AppMetaData?.toConnectionMetadata(): WalletConnectionSessionAppMetadata = WalletConnectionSessionAppMetadata(
+        name = walletConnectAppName(this?.name, this?.url),
+        description = this?.description ?: "",
+        url = this?.url ?: "",
+        icon = this?.icons.walletConnectIcon(),
     )
+
+    private fun sessionProposalMetadata(proposal: Wallet.Model.SessionProposal): WalletConnectionSessionAppMetadata {
+        val icons = proposal.icons.map { it.toString() }
+        return WalletConnectionSessionAppMetadata(
+            name = walletConnectAppName(proposal.name, proposal.url),
+            description = proposal.description,
+            url = proposal.url,
+            icon = icons.walletConnectIcon(),
+        )
+    }
 }

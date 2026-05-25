@@ -1,18 +1,25 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -25,7 +32,7 @@ import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoButton
+import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
@@ -35,8 +42,9 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoI
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.alpha50
+import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 
@@ -112,23 +120,47 @@ fun AmountScene(
                     )
                 }
             }
-            item { additionParams?.invoke() }
             reserveForFee?.let {
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().listItem().padding(horizontal = paddingDefault, vertical = paddingSmall),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(paddingSmall),
-                    ) {
-                        InfoButton(InfoSheetEntity.ReserveForFee(asset.getIconUrl()))
-                        Text(text = stringResource(R.string.transfer_reserved_fees, it))
-                    }
+                    ReserveForFeeItem(asset = asset, reserveForFee = it)
                 }
             }
+            item { additionParams?.invoke() }
         }
     }
 
     LaunchedEffect(Unit) {
         try { focusRequester.requestFocus() } catch (_: Throwable) {}
+    }
+}
+
+@Composable
+private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
+    var showInfoSheet by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .listItem()
+            .clickable { showInfoSheet = true }
+            .padding(paddingMiddle),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingMiddle),
+    ) {
+        Icon(
+            modifier = Modifier.size(smallIconSize),
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
+        )
+        Text(
+            text = stringResource(R.string.transfer_reserved_fees, reserveForFee),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+    }
+    if (showInfoSheet) {
+        InfoBottomSheet(InfoSheetEntity.ReserveForFee(asset.getIconUrl())) {
+            showInfoSheet = false
+        }
     }
 }

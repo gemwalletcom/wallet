@@ -57,6 +57,11 @@ class WalletConnectViewModel @Inject constructor(
         bridgesRepository.rejectConnection(proposal, onSuccess = {}, onError = {})
         onCancel()
     }
+
+    fun rejectSessionAuthenticate(request: Wallet.Model.SessionAuthenticate) {
+        bridgesRepository.rejectAuthentication(request, onSuccess = {}, onError = {})
+        onCancel()
+    }
 }
 
 sealed interface WalletConnectIntent {

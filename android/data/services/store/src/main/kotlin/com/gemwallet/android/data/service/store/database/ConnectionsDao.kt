@@ -27,7 +27,7 @@ interface ConnectionsDao {
     fun getConnection(connectionId: String): Flow<DbConnection?>
 
     @Query("SELECT * FROM room_connection WHERE session_id = :sessionId")
-    suspend fun getBySessionId(sessionId: String): DbConnection
+    suspend fun getBySessionId(sessionId: String): DbConnection?
 
     @Query("DELETE FROM room_connection WHERE id = :id")
     suspend fun delete(id: String)

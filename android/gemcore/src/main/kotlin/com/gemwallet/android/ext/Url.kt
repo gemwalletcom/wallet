@@ -3,11 +3,22 @@ package com.gemwallet.android.ext
 import java.net.URI
 
 fun String.getShortUrl(): String? {
-    try {
-        val uri = URI(this)
-        val host: String? = uri.host
-        return host?.removePrefix("www.")
-    } catch (e: Exception) {
+    val value = trim()
+    if (value.isEmpty()) {
         return null
     }
+    val host = try {
+        URI(value).host
+    } catch (_: Exception) {
+        null
+    }
+    val fallbackHost = value
+        .substringAfter("://", value)
+        .substringBefore("/")
+        .substringBefore("?")
+        .substringBefore("#")
+
+    return (host ?: fallbackHost)
+        .takeIf { it.isNotBlank() }
+        ?.removePrefix("www.")
 }

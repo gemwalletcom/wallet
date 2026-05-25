@@ -35,7 +35,7 @@ class SyncAssetInfoImpl(
             async { assetsRepository.updateBalances(assetId) }
             async {
                 val assetFull = loadAssetMetadata(assetId) ?: return@async
-                assetsRepository.updateAssetMetadata(assetFull)
+                assetsRepository.saveAssetMetadata(assetFull)
             }
         }
     }

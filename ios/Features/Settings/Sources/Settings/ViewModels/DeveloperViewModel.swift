@@ -5,6 +5,7 @@ import BannerService
 import BigInt
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import PerpetualService
 import Preferences
@@ -292,7 +293,7 @@ public final class DeveloperViewModel {
 
     func deeplink(deeplink: DeepLink) {
         Task { @MainActor in
-            await UIApplication.shared.open(deeplink.localUrl, options: [:])
+            await UIApplication.shared.open(deeplink.gemUrl, options: [:])
         }
     }
 }

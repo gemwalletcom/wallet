@@ -34,7 +34,6 @@ public enum GemDeviceAPI: TargetType {
 
     case getDeviceRewards(walletId: WalletId)
     case getDeviceRewardsEvents(walletId: WalletId)
-    case getDeviceRedemptionOption(code: String)
     case createDeviceReferral(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>)
     case useDeviceReferralCode(walletId: WalletId, request: AuthenticatedRequest<ReferralCode>)
     case redeemDeviceRewards(walletId: WalletId, request: AuthenticatedRequest<RedemptionRequest>)
@@ -70,7 +69,6 @@ public enum GemDeviceAPI: TargetType {
              .getDeviceToken,
              .getDeviceRewards,
              .getDeviceRewardsEvents,
-             .getDeviceRedemptionOption,
              .getNotifications,
              .isDeviceRegistered,
              .getFiatAssets,
@@ -147,8 +145,6 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/rewards"
         case .getDeviceRewardsEvents:
             return "/v2/devices/rewards/events"
-        case let .getDeviceRedemptionOption(code):
-            return "/v2/devices/rewards/redemptions/\(code)"
         case .createDeviceReferral:
             return "/v2/devices/rewards/referrals/create"
         case .useDeviceReferralCode:
@@ -209,7 +205,6 @@ public enum GemDeviceAPI: TargetType {
              .getDeviceToken,
              .getDeviceRewards,
              .getDeviceRewardsEvents,
-             .getDeviceRedemptionOption,
              .getNotifications,
              .markNotificationsRead,
              .getTransactions,

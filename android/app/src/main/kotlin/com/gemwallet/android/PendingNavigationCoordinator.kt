@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.WalletConnectLink
+import uniffi.gemstone.urlAction
 import javax.inject.Inject
 
 internal sealed interface PendingNavigation {
@@ -37,19 +40,23 @@ class PendingNavigationCoordinator @Inject constructor(
         val pendingIntent = (_pendingNavigation.value as? PendingNavigation.RawIntent)?.intent ?: return
         val uri = pendingIntent.dataString
 
-        uri?.toWalletConnectLink()?.let { link ->
-            when (link) {
-                is WalletConnectLink.Pairing -> walletConnect.onPairing(link.uri)
-                WalletConnectLink.Request -> walletConnect.onRequest()
-                WalletConnectLink.Session -> Unit
+        when (val action = uri?.let(::urlAction)) {
+            is UrlAction.WalletConnect -> {
+                when (val link = action.link) {
+                    is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
+                    WalletConnectLink.Request -> walletConnect.onRequest()
+                    is WalletConnectLink.Session -> Unit
+                }
+                replace(pendingIntent, replacement = null)
+                return
             }
-            replace(pendingIntent, replacement = null)
-            return
-        }
-
-        uri?.toWebDeepLinkRoute()?.let { route ->
-            replace(pendingIntent, PendingNavigation.Route(route))
-            return
+            is UrlAction.Deeplink -> {
+                action.deeplink.toRoute()?.let { route ->
+                    replace(pendingIntent, PendingNavigation.Route(route))
+                    return
+                }
+            }
+            null -> Unit
         }
 
         if (!pendingIntent.hasNotificationPayload()) {

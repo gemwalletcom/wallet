@@ -15,9 +15,10 @@ class AmountParamsPerpetualTest {
 
     private val assetId = mockAssetHyperCoreUBTC().id
     private val transferData = mockPerpetualTransferData()
+    private val perpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP")
 
     private fun perpetual(positionAction: PerpetualPositionAction): AmountParams.Perpetual =
-        AmountParams.Perpetual(assetId, PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "BTC-PERP"), positionAction)
+        AmountParams.Perpetual(assetId, perpetualId, positionAction)
 
     @Test
     fun transactionType_isOpenPositionForOpenAction() {

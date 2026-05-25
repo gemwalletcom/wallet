@@ -86,7 +86,7 @@ class SyncAssetInfoImplTest {
             )
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
-        coVerify { assetsRepository.updateAssetMetadata(assetFull) }
+        coVerify { assetsRepository.saveAssetMetadata(assetFull) }
         coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 
@@ -115,7 +115,7 @@ class SyncAssetInfoImplTest {
             )
         }
         coVerify { assetsRepository.updateBalances(asset.id) }
-        coVerify { assetsRepository.updateAssetMetadata(assetFull) }
+        coVerify { assetsRepository.saveAssetMetadata(assetFull) }
         coVerify { streamSubscriptionService.addAssetIds(listOf(asset.id)) }
     }
 }

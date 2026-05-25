@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
@@ -8,11 +7,12 @@ import com.gemwallet.android.data.repositories.bridge.getChainNameSpace
 import com.gemwallet.android.data.repositories.bridge.getReference
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.shortName
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
-import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
+import com.gemwallet.android.ext.walletConnectAppName
+import com.gemwallet.android.ext.walletConnectIcon
 import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.reown.walletkit.client.Wallet
+import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,7 +40,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val bridgesRepository: BridgesRepository,
     private val walletsRepository: WalletsRepository,
 ) : ViewModel() {
-    
+
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
 
     private val _proposal = MutableStateFlow<Wallet.Model.SessionProposal?>(null)
@@ -48,16 +48,12 @@ class ProposalSceneViewModel @Inject constructor(
     val proposal = _proposal.map {
         it ?: return@map null
         val icons = it.icons.map { it.toString() }
-        SessionUI(
-            id = "",
-            icon = icons
-                .firstOrNull{ it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }
-                ?: icons.firstOrNull()
-                ?: "",
-            name = WalletConnectionSessionAppMetadata(it.name, it.description, it.url, "").shortName,
+        WalletConnectionSessionAppMetadata(
+            name = walletConnectAppName(it.name, it.url),
             description = it.description,
-            uri = it.url.toUri().host ?: "",
-        )
+            url = it.url,
+            icon = icons.walletConnectIcon(),
+        ).toSessionUI()
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

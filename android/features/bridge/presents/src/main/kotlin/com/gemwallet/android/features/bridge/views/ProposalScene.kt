@@ -11,8 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -38,14 +36,12 @@ import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLay
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.WalletItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.components.color
@@ -106,7 +102,6 @@ fun ProposalScene(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Proposal(
     peer: SessionUI,
@@ -186,26 +181,13 @@ private fun Proposal(
         }
     }
 
-    ModalBottomSheet(
+    WalletSelectionSheet(
         isVisible = isShowSelectWallets,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
+        wallets = availableWallets,
+        selectedWalletId = selectedWallet?.id,
+        onWalletSelected = onWalletSelected,
         onDismissRequest = { isShowSelectWallets = false },
-    ) {
-        LazyColumn {
-            item { SubheaderItem(R.string.wallets_title) }
-            itemsIndexed(availableWallets) { index, item ->
-                WalletItem(
-                    wallet = item,
-                    isCurrent = item.id == selectedWallet?.id,
-                    listPosition = ListPosition.getPosition(index, availableWallets.size),
-                    modifier = Modifier.clickable {
-                        onWalletSelected(item.id)
-                        isShowSelectWallets = false
-                    }
-                )
-            }
-        }
-    }
+    )
 }
 
 private fun LazyListScope.permissionsContent() {

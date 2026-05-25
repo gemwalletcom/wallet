@@ -58,39 +58,24 @@ final class NavigationHandler: Sendable {
 extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
-        case .walletConnect:
-            return
+        case .walletConnect: break
+        case let .deeplink(deeplink): try await handleDeepLink(deeplink)
+        }
+    }
 
+    private func handleDeepLink(_ deeplink: DeepLink) async throws {
+        switch deeplink {
         case let .asset(assetId):
             try await navigateToAsset(assetId)
-
-        case let .swap(fromId, toId):
-            try await presentSwap(from: fromId, to: toId)
-            return
 
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
 
         case let .rewards(code):
             navigationState.settings.append(Scenes.Referral(code: code))
-
-        case let .gift(code):
-            navigationState.settings.append(Scenes.Referral(code: nil, giftCode: code))
-
-        case let .buy(assetId, amount):
-            try await presentBuy(assetId: assetId, amount: amount)
-            return
-
-        case let .sell(assetId, amount):
-            try await presentSell(assetId: assetId, amount: amount)
-            return
-
-        case let .setPriceAlert(assetId, price):
-            try await presentSetPriceAlert(assetId: assetId, price: price)
-            return
         }
 
-        selectTab(for: action.selectTab)
+        selectTab(for: deeplink.selectTab)
     }
 }
 
@@ -194,16 +179,6 @@ extension NavigationHandler {
         try presentAssetInput(type: .buy(asset, amount: amount), for: asset)
     }
 
-    private func presentSell(assetId: AssetId, amount: Int?) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
-        try presentAssetInput(type: .sell(asset, amount: amount), for: asset)
-    }
-
-    private func presentSetPriceAlert(assetId: AssetId, price: Double?) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
-        presenter.isPresentingPriceAlert.wrappedValue = SetPriceAlertInput(asset: asset, price: price)
-    }
-
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) throws {
         guard let wallet else { return }
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
@@ -217,12 +192,11 @@ extension NavigationHandler {
 
 // MARK: - TabItem Selection
 
-private extension URLAction {
+private extension DeepLink {
     var selectTab: TabItem? {
         switch self {
         case .asset, .perpetuals: .wallet
-        case .swap, .buy, .sell, .setPriceAlert, .walletConnect: nil
-        case .rewards, .gift: .settings
+        case .rewards: .settings
         }
     }
 }

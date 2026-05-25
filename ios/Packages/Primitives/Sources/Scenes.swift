@@ -165,11 +165,9 @@ public enum Scenes {
 
     public struct Referral: Hashable, Codable {
         public let code: String?
-        public let giftCode: String?
 
-        public init(code: String? = nil, giftCode: String? = nil) {
+        public init(code: String? = nil) {
             self.code = code
-            self.giftCode = giftCode
         }
     }
 

@@ -102,11 +102,13 @@ final class ChatwootWebViewModel: NSObject, Sendable {
         let device = UIDevice.current.modelName
         let currency = Preferences.standard.currency
         let appVersion = Bundle.main.releaseVersionNumber
+        let currentPlatformStore = platformStore
         return """
         window.addEventListener('chatwoot:ready', function () {
           window.$chatwoot.setCustomAttributes({
             device_id: '\(deviceId)',
             platform: 'ios',
+            platform_store: '\(currentPlatformStore.rawValue)',
             os: '\(os)',
             device: '\(device)',
             currency: '\(currency)',
@@ -118,6 +120,14 @@ final class ChatwootWebViewModel: NSObject, Sendable {
 
     private var toggleChatScript: String {
         "window.$chatwoot.toggle(open);"
+    }
+
+    private var platformStore: PlatformStore {
+        #if targetEnvironment(simulator)
+            .local
+        #else
+            .appStore
+        #endif
     }
 
     private var sdkSourceURL: String {
