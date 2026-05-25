@@ -38,15 +38,9 @@ class CurrencyFormatter(
             currencyFormatter.format(value, precision(value.abs()))
         }
 
-    private fun precision(magnitude: BigDecimal): Precision = when {
-        type == Type.Fiat -> Precision.twoPlaces
-        magnitude < DUST_THRESHOLD || magnitude >= SMALL_THRESHOLD -> Precision.twoPlaces
-        else -> Precision.fourSignificant
-    }
-
-    private companion object {
-        val SMALL_THRESHOLD: BigDecimal = BigDecimal("0.99")
-        val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0000000001")
-        val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(10_000)
-    }
+    private fun precision(magnitude: BigDecimal): Precision =
+        when {
+            type == Type.Fiat -> Precision.twoPlaces
+            else -> adaptivePrecision(magnitude)
+        }
 }
