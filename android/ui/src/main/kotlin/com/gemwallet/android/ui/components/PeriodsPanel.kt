@@ -40,8 +40,7 @@ fun PeriodsPanel(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ChartPeriod.entries.forEach {
-            val label = it.getLabel() ?: return@forEach
-            PeriodButton(label, it == period) { onSelect(it) }
+            PeriodButton(it.title(), it == period) { onSelect(it) }
         }
     }
 }
@@ -78,7 +77,7 @@ private fun RowScope.PeriodButton(title: String, isSelected: Boolean, onClick: (
 }
 
 @Composable
-private fun ChartPeriod.getLabel(): String? {
+fun ChartPeriod.title(): String {
     val strId = when (this) {
         ChartPeriod.Hour -> R.string.charts_hour
         ChartPeriod.Day -> R.string.charts_day
@@ -89,3 +88,4 @@ private fun ChartPeriod.getLabel(): String? {
     }
     return stringResource(id = strId)
 }
+
