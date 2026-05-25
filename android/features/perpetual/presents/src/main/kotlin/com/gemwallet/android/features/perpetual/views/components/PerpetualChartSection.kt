@@ -3,14 +3,9 @@ package com.gemwallet.android.features.perpetual.views.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,19 +20,16 @@ import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.PeriodsPanel
 import com.gemwallet.android.ui.components.chart.CandlestickTooltip
-import com.gemwallet.android.ui.components.chart.ChartHeader
+import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemCandlestickChart
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineRole
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
-import com.gemwallet.android.ui.theme.chartFrameHeight
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
@@ -68,7 +60,6 @@ internal fun PerpetualChartSection(
     val currencyString: (Double) -> String = remember(currencyFormatter) { currencyFormatter::string }
     val numericString: (Double) -> String = remember(numericFormatter) { { numericFormatter.string(it) } }
     val volumeString: (Double) -> String = remember(volumeFormatter) { volumeFormatter::string }
-
 
     val entryLabel = stringResource(R.string.charts_entry)
     val liquidationLabel = stringResource(R.string.charts_liquidation)
@@ -106,42 +97,27 @@ internal fun PerpetualChartSection(
         selectedCandle?.let { CandlestickTooltipUIModel.from(it, numericString, volumeString) }
     }
 
-    Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.fillMaxWidth().height(chartFrameHeight)) {
-            if (chartUIModel == null) {
-                CircularProgressIndicator20(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    headerUIModel?.let {
-                        ChartHeader(
-                            model = it,
-                            modifier = Modifier.padding(top = paddingSmall, bottom = space4),
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(bottom = paddingSmall),
-                    ) {
-                        GemCandlestickChart(
-                            model = chartUIModel,
-                            selectedIndex = safeSelectedIndex,
-                            onSelectionChanged = { selectedIndex = it },
-                        )
-                        TooltipOverlay(
-                            visible = tooltipUIModel != null,
-                            tooltip = tooltipUIModel,
-                            alignToStart = isSelectedRightHalf,
-                        )
-                    }
-                }
-            }
+    val frameState = if (chartUIModel == null) ChartViewState.Loading else ChartViewState.Ready
+
+    ChartStateView(
+        state = frameState,
+        header = headerUIModel,
+        period = period,
+        onPeriodSelect = onPeriodSelect,
+        modifier = modifier,
+    ) {
+        if (chartUIModel != null) {
+            GemCandlestickChart(
+                model = chartUIModel,
+                selectedIndex = safeSelectedIndex,
+                onSelectionChanged = { selectedIndex = it },
+            )
+            TooltipOverlay(
+                visible = tooltipUIModel != null,
+                tooltip = tooltipUIModel,
+                alignToStart = isSelectedRightHalf,
+            )
         }
-        PeriodsPanel(period, onPeriodSelect)
     }
 }
 
@@ -166,4 +142,3 @@ private fun BoxScope.TooltipOverlay(
         tooltip?.let { CandlestickTooltip(model = it) }
     }
 }
-
