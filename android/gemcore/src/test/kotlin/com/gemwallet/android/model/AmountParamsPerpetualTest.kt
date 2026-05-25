@@ -4,6 +4,8 @@ import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockPerpetualTransferData
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -15,7 +17,7 @@ class AmountParamsPerpetualTest {
     private val transferData = mockPerpetualTransferData()
 
     private fun perpetual(positionAction: PerpetualPositionAction): AmountParams.Perpetual =
-        AmountParams.Perpetual(assetId, "BTC-PERP", positionAction)
+        AmountParams.Perpetual(assetId, PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "BTC-PERP"), positionAction)
 
     @Test
     fun transactionType_isOpenPositionForOpenAction() {
