@@ -7,20 +7,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PeriodsPanel
+import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.theme.chartFrameHeight
-import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.ChartPeriod
@@ -53,7 +54,16 @@ fun ChartStateView(
                         modifier = Modifier.align(Alignment.Center),
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    ChartViewState.Empty -> ChartEmptyState()
+                    ChartViewState.Empty -> EmptyStateView(
+                        modifier = Modifier.fillMaxSize(),
+                        title = stringResource(R.string.common_not_available),
+                        icon = painterResource(R.drawable.empty_activity),
+                    )
+                    ChartViewState.Error -> EmptyStateView(
+                        modifier = Modifier.fillMaxSize(),
+                        title = stringResource(R.string.errors_no_data_available),
+                        iconVector = Icons.Outlined.Warning,
+                    )
                     ChartViewState.Ready -> chartBody()
                 }
             }
@@ -62,13 +72,3 @@ fun ChartStateView(
     }
 }
 
-@Composable
-private fun ChartEmptyState() {
-    Box(modifier = Modifier.fillMaxSize().defaultPadding()) {
-        Text(
-            modifier = Modifier.align(Alignment.Center),
-            textAlign = TextAlign.Center,
-            text = stringResource(R.string.errors_error_occured),
-        )
-    }
-}

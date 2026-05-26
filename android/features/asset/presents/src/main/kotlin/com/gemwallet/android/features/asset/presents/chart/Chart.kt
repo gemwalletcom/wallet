@@ -24,17 +24,19 @@ fun Chart(viewModel: ChartViewModel = hiltViewModel()) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
-        val chartPoints = uiModel.chartPoints
-        val isReady = state.viewState == ChartViewState.Ready && state.period == uiModel.period && chartPoints.isNotEmpty()
-        val selectedPoint: PricePoint? = if (isReady) selectedIndex?.let { chartPoints.getOrNull(it) } else null
-
-        val frameState = when {
+        val displayState = when {
             state.period != uiModel.period -> ChartViewState.Loading
             else -> state.viewState
         }
+        val chartPoints = uiModel.chartPoints
+        val selectedPoint: PricePoint? = if (displayState == ChartViewState.Ready) {
+            selectedIndex?.let { chartPoints.getOrNull(it) }
+        } else {
+            null
+        }
 
         ChartStateView(
-            state = frameState,
+            state = displayState,
             header = chartHeader(uiModel, selectedPoint),
             period = state.period,
             onPeriodSelect = viewModel::setPeriod,
