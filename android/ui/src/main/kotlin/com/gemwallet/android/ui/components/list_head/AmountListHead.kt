@@ -72,6 +72,7 @@ import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.actionIconGlyphSize
 import com.gemwallet.android.ui.theme.actionIconSize
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.headerIconSize
@@ -346,23 +347,26 @@ fun AmountHeadAction(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(paddingSmall / (fontSize.value * 0.5f))
     ) {
-        Icon(
+        Box(
             modifier = Modifier
                 .requiredSize(actionIconSize)
                 .background(
                     color = MaterialTheme.colorScheme.primary.copy(
                         alpha = if (enabled) 1f else alpha50,
                     ),
-                    shape = CircleShape
-                )
-                .padding(paddingDefault)
-            ,
-            imageVector = imageVector,
-            tint = MaterialTheme.colorScheme.onPrimary.copy(
-                alpha = if (enabled) 1f else alpha50,
-            ),
-            contentDescription = contentDescription,
-        )
+                    shape = CircleShape,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                modifier = Modifier.size(actionIconGlyphSize),
+                imageVector = imageVector,
+                tint = MaterialTheme.colorScheme.onPrimary.copy(
+                    alpha = if (enabled) 1f else alpha50,
+                ),
+                contentDescription = contentDescription,
+            )
+        }
         Text(
             text = title,
             color = MaterialTheme.colorScheme.secondary,
