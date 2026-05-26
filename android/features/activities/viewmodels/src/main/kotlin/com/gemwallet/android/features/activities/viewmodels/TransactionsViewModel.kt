@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -50,16 +52,16 @@ class TransactionsViewModel @Inject constructor(
     private var lastSyncedWalletId: WalletId? = null
 
     val transactions = combine(
-        getTransactions.transactions(),
         chainsFilter,
         typeFilter,
-    ) { items, chains, types ->
-        val allowedTypes = types.flatMap { it.types }.toSet()
-        items.filter {
-            (chains.isEmpty() || it.asset.id.chain in chains) &&
-                (allowedTypes.isEmpty() || it.type in allowedTypes)
+    ) { chains, types ->
+        buildList<TransactionsRequestFilter> {
+            if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
+            val allowedTypes = types.flatMap { it.types }
+            if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))
         }
     }
+    .flatMapLatest { filters -> getTransactions.getTransactions(filters) }
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,

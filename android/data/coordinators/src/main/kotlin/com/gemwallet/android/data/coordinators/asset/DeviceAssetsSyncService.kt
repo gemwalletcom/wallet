@@ -28,9 +28,10 @@ class DeviceAssetsSyncService @Inject constructor(
 ) {
 
     suspend fun sync(walletId: String) {
+        val walletIdentifier = WalletId(walletId)
         val preferences = walletPreferencesFactory.create(walletId)
         val assetIds = gemDeviceApiClient.getAssets(
-            walletId = walletId,
+            walletId = walletIdentifier,
             fromTimestamp = preferences.assetsTimestamp,
         ).mapNotNull(String::toAssetId)
             .distinct()
@@ -40,7 +41,7 @@ class DeviceAssetsSyncService @Inject constructor(
             return
         }
 
-        val wallet = walletsRepository.getWallet(WalletId(walletId)).firstOrNull() ?: return
+        val wallet = walletsRepository.getWallet(walletIdentifier).firstOrNull() ?: return
         val existingAssetIds = assetsRepository.hasWalletAssets(wallet.id.id, assetIds)
         val missingAssetIds = assetIds.filterNot(existingAssetIds::contains)
 

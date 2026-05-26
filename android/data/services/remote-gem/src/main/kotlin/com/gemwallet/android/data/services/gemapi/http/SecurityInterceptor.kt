@@ -1,25 +1,31 @@
 package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.wallet.core.primitives.WalletId
 import okhttp3.Interceptor
 import okhttp3.Protocol
 import okhttp3.Response
 import okio.Buffer
 
-class SecurityInterceptor(
-    private val getDeviceId: GetDeviceId,
+class SecurityInterceptor internal constructor(
+    private val signer: DeviceRequestSigner,
 ) : Interceptor {
 
-    private val signer = DeviceRequestSigner(getDeviceId)
+    constructor(getDeviceId: GetDeviceId) : this(DeviceRequestSigner(getDeviceId))
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val body = request.body?.let {
             val buffer = Buffer()
             it.writeTo(buffer)
-            buffer.readUtf8().toByteArray()
+            buffer.readByteArray()
         }
-        val signature = signer.sign(request.method, request.url.encodedPath, body)
+        val signature = signer.sign(
+            method = request.method,
+            path = request.url.encodedPath,
+            body = body,
+            walletId = request.tag(WalletId::class.java)?.id.orEmpty(),
+        )
         return try {
             val builder = request.newBuilder()
             signature.toHeaders().forEach { (key, value) -> builder.header(key, value) }

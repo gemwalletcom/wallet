@@ -15,6 +15,7 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.wallet.core.primitives.WalletId
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,7 +31,7 @@ object WalletImportModule {
     fun provideGetAvailableAssetIds(
         gemDeviceApiClient: GemDeviceApiClient,
     ): GetAvailableAssetIds = GetAvailableAssetIds { walletId ->
-        gemDeviceApiClient.getAssets(walletId = walletId, fromTimestamp = 0)
+        gemDeviceApiClient.getAssets(walletId = WalletId(walletId), fromTimestamp = 0)
     }
 
     @Provides

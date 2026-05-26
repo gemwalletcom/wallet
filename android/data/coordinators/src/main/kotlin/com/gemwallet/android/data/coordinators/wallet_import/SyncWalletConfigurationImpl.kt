@@ -18,7 +18,7 @@ class SyncWalletConfigurationImpl(
         val preferences = walletPreferencesFactory.create(walletId.id)
         if (preferences.completeInitialWalletConfiguration) return
 
-        val configuration = runCatching { gemDeviceApiClient.getWalletConfiguration(walletId.id).configuration }
+        val configuration = runCatching { gemDeviceApiClient.getWalletConfiguration(walletId).configuration }
             .getOrNull() ?: return
 
         configuration.multiSignatureAccounts.forEach { account ->

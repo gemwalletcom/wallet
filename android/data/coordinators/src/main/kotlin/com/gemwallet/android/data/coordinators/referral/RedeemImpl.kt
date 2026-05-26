@@ -31,7 +31,7 @@ class RedeemImpl(
             throw ReferralError.InsufficientPoints
         }
         val result = gemDeviceApiClient.redeem(
-            walletId = wallet.id.id,
+            walletId = wallet.id,
             request = AuthenticatedRequest(
                 auth = authPayload,
                 data = RedemptionRequest(option.id)

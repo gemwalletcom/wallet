@@ -23,7 +23,7 @@ class CreateReferralImpl(
         val account = wallet.getAccount(Chain.referralChain) ?: throw ReferralError.BadWallet
         val authPayload = getAuthPayload.getAuthPayload(wallet, account.chain)
         return gemDeviceApiClient.createReferral(
-            walletId = wallet.id.id,
+            walletId = wallet.id,
             body = AuthenticatedRequest(
                 auth = authPayload,
                 data = ReferralCode(

@@ -35,7 +35,7 @@ class NftRepository(
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun sync(walletId: WalletId) {
-        val nftData = gemDeviceApiClient.getNFTs(walletId = walletId.id).orEmpty()
+        val nftData = gemDeviceApiClient.getNFTs(walletId = walletId).orEmpty()
         val collections = nftData.map { it.collection.toDb() }
         val assets = nftData.flatMap { it.assets }.map { it.toDb() }
         val associations = assets.map { DbNFTAssociation(walletId = walletId.id, assetId = it.id) }
@@ -44,7 +44,7 @@ class NftRepository(
 
     @Throws(HttpException::class, IOException::class)
     override suspend fun refreshNftAsset(wallet: Wallet, assetId: NFTAssetId) {
-        gemDeviceApiClient.refreshNftAsset(wallet.id.id, assetId.toIdentifier())
+        gemDeviceApiClient.refreshNftAsset(wallet.id, assetId.toIdentifier())
     }
 
     override fun getListNft(walletId: WalletId, collectionId: String?): Flow<List<NFTData>> {
