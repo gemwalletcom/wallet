@@ -100,20 +100,26 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
     val chartState: StateFlow<ChartViewState> = viewState.asStateFlow()
 
+    private val refreshTrigger = MutableStateFlow(0L)
+    private val refreshState = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
+
     private val ticker = tickerFlow(ChartRefreshIntervalMillis) {
         viewModelScope.launch(Dispatchers.IO) { syncPerpetualPositions.syncPerpetualPositions() }
     }
 
-    val chart = period
+    val chart = combine(period, refreshTrigger) { period, _ -> period }
         .onEach { viewState.value = ChartViewState.Loading }
         .flatMapLatest { period ->
             flow {
                 try {
                     emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+                    refreshState.value = false
                     ticker.collect { emit(getPerpetualChartData.getPerpetualChartData(assetId, period)) }
                 } catch (e: Exception) {
                     currentCoroutineContext().ensureActive()
                     viewState.value = ChartViewState.Error
+                    refreshState.value = false
                 }
             }
         }
@@ -128,6 +134,8 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun fetch() {
+        refreshState.value = true
+        refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
             syncPerpetualPositions.syncPerpetualPositions()
         }

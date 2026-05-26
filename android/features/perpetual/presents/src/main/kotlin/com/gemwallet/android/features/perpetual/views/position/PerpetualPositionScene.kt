@@ -2,11 +2,16 @@ package com.gemwallet.android.features.perpetual.views.position
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,45 +50,61 @@ internal fun PerpetualPositionScene(
     chartData: List<ChartCandleStick>,
     chartState: ChartViewState,
     period: ChartPeriod,
+    isRefreshing: Boolean,
     onAction: (PerpetualDetailsAction) -> Unit,
 ) {
     var showModifyDialog by remember { mutableStateOf(false) }
+    val pullToRefreshState = rememberPullToRefreshState()
 
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
         onClose = { onAction(PerpetualDetailsAction.Close) },
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            item {
-                PerpetualChartSection(
-                    data = chartData,
-                    chartState = chartState,
-                    period = period,
-                    entry = position?.entryValue,
-                    liquidation = position?.liquidationValue,
-                    stopLoss = position?.stopLoss,
-                    takeProfit = position?.takeProfit,
-                    onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = { onAction(PerpetualDetailsAction.Refresh) },
+            state = pullToRefreshState,
+            indicator = {
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = isRefreshing,
+                    state = pullToRefreshState,
+                    containerColor = MaterialTheme.colorScheme.background,
                 )
-            }
-            positionProperties(position)
-            item {
-                if (perpetual != null) {
-                    if (position == null) {
-                        PerpetualActions { onAction(PerpetualDetailsAction.OpenPosition(it)) }
-                    } else {
-                        PerpetualPositionActions(
-                            onModify = { showModifyDialog = true },
-                            onClose = { onAction(PerpetualDetailsAction.ClosePosition) },
-                        )
+            },
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    PerpetualChartSection(
+                        data = chartData,
+                        chartState = chartState,
+                        period = period,
+                        entry = position?.entryValue,
+                        liquidation = position?.liquidationValue,
+                        stopLoss = position?.stopLoss,
+                        takeProfit = position?.takeProfit,
+                        onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
+                    )
+                }
+                positionProperties(position)
+                item {
+                    if (perpetual != null) {
+                        if (position == null) {
+                            PerpetualActions { onAction(PerpetualDetailsAction.OpenPosition(it)) }
+                        } else {
+                            PerpetualPositionActions(
+                                onModify = { showModifyDialog = true },
+                                onClose = { onAction(PerpetualDetailsAction.ClosePosition) },
+                            )
+                        }
                     }
                 }
-            }
-            perpetual?.let { perpetualInfo(it) }
-            if (transactions.isNotEmpty()) {
-                transactionsList(transactions) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
+                perpetual?.let { perpetualInfo(it) }
+                if (transactions.isNotEmpty()) {
+                    transactionsList(transactions) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
+                }
             }
         }
     }
@@ -167,6 +188,7 @@ private fun PerpetualPositionScenePreview() {
             chartData = chartData,
             chartState = ChartViewState.Ready,
             period = ChartPeriod.Day,
+            isRefreshing = false,
             onAction = {},
         )
     }
