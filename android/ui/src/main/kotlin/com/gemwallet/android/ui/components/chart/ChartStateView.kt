@@ -41,7 +41,7 @@ fun ChartStateView(
         Column(
             modifier = Modifier.fillMaxWidth().height(chartFrameHeight),
         ) {
-            header?.let {
+            header?.takeIf { state == ChartViewState.Ready }?.let {
                 ChartHeader(
                     model = it,
                     modifier = Modifier.padding(top = paddingSmall, bottom = space4),
