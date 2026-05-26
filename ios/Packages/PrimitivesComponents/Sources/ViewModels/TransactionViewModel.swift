@@ -67,7 +67,7 @@ public struct TransactionViewModel: Sendable {
              .stakeUnfreeze,
              .perpetualModifyPosition,
              .earnDeposit,
-             .earnWithdraw: .none
+             .earnWithdraw: AssetIdViewModel(assetId: assetId).assetImage.chainPlaceholder
         }
     }
 
