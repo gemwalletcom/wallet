@@ -14,6 +14,7 @@ import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
+import Style
 import SwiftUI
 import TransactionsService
 
@@ -117,6 +118,14 @@ public final class PerpetualSceneViewModel {
 
     public var transactionsSectionTitle: String {
         Localized.Activity.title
+    }
+
+    public var emptyChartTitle: String {
+        Localized.Common.notAvailable
+    }
+
+    public var emptyChartImage: Image {
+        Images.EmptyContent.activity
     }
 
     public var closePositionTitle: String {

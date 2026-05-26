@@ -23,7 +23,8 @@ public struct PerpetualScene: View {
                 VStack {
                     VStack {
                         switch model.state {
-                        case .noData: StateEmptyView.noData()
+                        case .noData:
+                            StateEmptyView(title: model.emptyChartTitle, image: model.emptyChartImage)
                         case .loading: LoadingView()
                         case let .data(data):
                             CandlestickChartView(
