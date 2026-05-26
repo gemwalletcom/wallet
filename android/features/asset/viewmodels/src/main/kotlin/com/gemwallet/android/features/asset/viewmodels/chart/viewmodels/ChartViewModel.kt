@@ -43,7 +43,7 @@ class ChartViewModel internal constructor(
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Day)
-    private val viewState = MutableStateFlow(ChartViewState.Loading)
+    private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
 
@@ -63,9 +63,9 @@ class ChartViewModel internal constructor(
                 val prices = request(period, currency)
                 viewState.value = if (prices.size < 2) ChartViewState.Empty else ChartViewState.Ready
                 prices
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
-                viewState.value = ChartViewState.Empty
+                viewState.value = ChartViewState.Error
                 emptyList()
             } finally {
                 refreshState.value = false

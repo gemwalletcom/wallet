@@ -22,6 +22,8 @@ import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -106,8 +108,13 @@ class PerpetualDetailsViewModel @Inject constructor(
         .onEach { viewState.value = ChartViewState.Loading }
         .flatMapLatest { period ->
             flow {
-                emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
-                ticker.collect { emit(getPerpetualChartData.getPerpetualChartData(assetId, period)) }
+                try {
+                    emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+                    ticker.collect { emit(getPerpetualChartData.getPerpetualChartData(assetId, period)) }
+                } catch (e: Exception) {
+                    currentCoroutineContext().ensureActive()
+                    viewState.value = ChartViewState.Error
+                }
             }
         }
         .onEach { candles ->

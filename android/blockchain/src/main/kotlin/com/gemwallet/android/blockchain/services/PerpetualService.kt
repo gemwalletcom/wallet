@@ -30,11 +30,6 @@ class PerpetualService(
     }
 
     suspend fun getCandleSticks(chain: Chain = Chain.HyperCore, symbol: String, period: ChartPeriod): List<ChartCandleStick> {
-        val response = try {
-            gateway.getPerpetualCandlesticks(chain.string, symbol, period.string)
-        } catch (_: Throwable) {
-            return emptyList()
-        }
-        return response.map { it.toDTO() }
+        return gateway.getPerpetualCandlesticks(chain.string, symbol, period.string).map { it.toDTO() }
     }
 }

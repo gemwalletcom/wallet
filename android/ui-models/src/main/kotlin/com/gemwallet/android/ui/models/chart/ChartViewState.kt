@@ -1,3 +1,8 @@
 package com.gemwallet.android.ui.models.chart
 
-enum class ChartViewState { Loading, Empty, Ready }
+sealed interface ChartViewState {
+    data object Loading : ChartViewState
+    data object Empty : ChartViewState
+    data object Error : ChartViewState
+    data object Ready : ChartViewState
+}
