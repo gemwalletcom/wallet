@@ -15,6 +15,8 @@ import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualModifyConfirmData
+import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualType
 import kotlinx.coroutines.flow.firstOrNull
@@ -61,6 +63,27 @@ class BuildPerpetualParamsImpl(
         )
         return ConfirmParams.Builder(data.asset, account)
             .perpetual(PerpetualType.Close(confirmData))
+    }
+
+    override suspend fun modify(
+        perpetualId: PerpetualId,
+        modifyTypes: List<PerpetualModifyPositionType>,
+        takeProfitOrderId: ULong?,
+        stopLossOrderId: ULong?,
+    ): ConfirmParams.PerpetualParams? {
+        if (modifyTypes.isEmpty()) return null
+        val data = getPerpetual(perpetualId) ?: return null
+        val assetIndex = data.perpetual.identifier.toIntOrNull() ?: return null
+        val account = sessionRepository.session().value?.wallet?.hyperliquidAccount ?: return null
+        val confirmData = PerpetualModifyConfirmData(
+            baseAsset = HypercoreUSDC,
+            assetIndex = assetIndex,
+            modifyTypes = modifyTypes,
+            takeProfitOrderId = takeProfitOrderId?.toLong(),
+            stopLossOrderId = stopLossOrderId?.toLong(),
+        )
+        return ConfirmParams.Builder(data.asset, account)
+            .perpetual(PerpetualType.Modify(confirmData))
     }
 
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =
