@@ -10,6 +10,7 @@ internal sealed interface PerpetualDetailsAction {
     data object IncreasePosition : PerpetualDetailsAction
     data object ReducePosition : PerpetualDetailsAction
     data object ClosePosition : PerpetualDetailsAction
+    data object Autoclose : PerpetualDetailsAction
     data class OpenPosition(val direction: PerpetualDirection) : PerpetualDetailsAction
     data class SelectChartPeriod(val period: ChartPeriod) : PerpetualDetailsAction
     data class OpenTransaction(val transactionId: TransactionId) : PerpetualDetailsAction

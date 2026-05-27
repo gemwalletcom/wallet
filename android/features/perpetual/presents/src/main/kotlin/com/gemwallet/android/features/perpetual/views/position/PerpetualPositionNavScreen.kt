@@ -5,7 +5,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualDetailsViewModel
+import com.gemwallet.android.features.perpetual.views.autoclose.AutocloseSheet
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.wallet.core.primitives.TransactionId
@@ -17,6 +19,7 @@ fun PerpetualPositionNavScreen(
     onClose: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
+    autocloseViewModel: AutocloseViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) { viewModel.fetch() }
 
@@ -27,6 +30,7 @@ fun PerpetualPositionNavScreen(
     val chartState by viewModel.chartState.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val autocloseVisible by autocloseViewModel.isVisible.collectAsStateWithLifecycle()
 
     PerpetualPositionScene(
         perpetual = perpetual,
@@ -39,14 +43,22 @@ fun PerpetualPositionNavScreen(
         onAction = { action ->
             when (action) {
                 PerpetualDetailsAction.Close -> onClose()
-                PerpetualDetailsAction.Refresh -> viewModel.fetch()
+                PerpetualDetailsAction.Refresh -> viewModel.refresh()
                 PerpetualDetailsAction.IncreasePosition -> viewModel.increasePosition(amountAction)
                 PerpetualDetailsAction.ReducePosition -> viewModel.reducePosition(amountAction)
                 PerpetualDetailsAction.ClosePosition -> viewModel.closePosition(confirmAction)
+                PerpetualDetailsAction.Autoclose -> autocloseViewModel.show()
                 is PerpetualDetailsAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
                 is PerpetualDetailsAction.SelectChartPeriod -> viewModel.period(action.period)
                 is PerpetualDetailsAction.OpenTransaction -> onTransaction(action.transactionId)
             }
         },
+    )
+
+    AutocloseSheet(
+        isVisible = autocloseVisible,
+        confirmAction = confirmAction,
+        onDismiss = autocloseViewModel::dismiss,
+        viewModel = autocloseViewModel,
     )
 }

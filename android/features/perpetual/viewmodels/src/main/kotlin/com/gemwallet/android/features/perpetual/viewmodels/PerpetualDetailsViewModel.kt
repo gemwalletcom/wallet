@@ -58,7 +58,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         const val SubscriptionGraceMillis = 5_000L
     }
 
-    private val assetId = savedStateHandle.requireAssetId()
+    val assetId = savedStateHandle.requireAssetId()
 
     private val transactionFilters = listOf(
         TransactionsRequestFilter.Asset(assetId),
@@ -134,11 +134,15 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun fetch() {
-        refreshState.value = true
         refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
             syncPerpetualPositions.syncPerpetualPositions()
         }
+    }
+
+    fun refresh() {
+        refreshState.value = true
+        fetch()
     }
 
     fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) {

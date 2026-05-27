@@ -8,12 +8,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualMarketViewModel
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.models.actions.AssetIdAction
 
 @Composable
 fun PerpetualMarketNavScreen(
     onCancel: () -> Unit,
-    onOpenPerpetualDetails: (AssetId) -> Unit,
+    onOpenPerpetualDetails: AssetIdAction,
     viewModel: PerpetualMarketViewModel = hiltViewModel(),
 ) {
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
