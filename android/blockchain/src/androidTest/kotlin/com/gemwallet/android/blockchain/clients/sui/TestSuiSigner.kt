@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.clients.sui
 
 import com.gemwallet.android.blockchain.includeLibs
+import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.math.toHexString
 import com.gemwallet.android.model.ConfirmParams
@@ -32,7 +33,7 @@ class TestSuiSigner {
         val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.SUI)
         val from = hdWallet.getAddressForCoin(CoinType.SUI)
-        val signer = SuiSignClient(Chain.Sui)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signNativeTransfer(
@@ -79,7 +80,7 @@ class TestSuiSigner {
         val hdWallet = HDWallet(TEST_PHRASE, "")
         val privateKey = hdWallet.getKeyForCoin(CoinType.SUI)
         val from = hdWallet.getAddressForCoin(CoinType.SUI)
-        val signer = SuiSignClient(Chain.Sui)
+        val signer = SignService()
 
         val sign = runBlocking {
             signer.signTokenTransfer(
