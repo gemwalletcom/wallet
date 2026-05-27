@@ -12,7 +12,7 @@ fun PerpetualType.title(): String = when (this) {
     is PerpetualType.Increase -> stringResource(R.string.perpetual_increase_direction, directionLabel(content.direction))
     is PerpetualType.Reduce -> stringResource(R.string.perpetual_reduce_direction, directionLabel(content.positionDirection))
     is PerpetualType.Close -> stringResource(R.string.perpetual_close_position)
-    is PerpetualType.Modify -> stringResource(R.string.perpetual_modify)
+    is PerpetualType.Modify -> stringResource(R.string.perpetual_modify_position)
 }
 
 @Composable

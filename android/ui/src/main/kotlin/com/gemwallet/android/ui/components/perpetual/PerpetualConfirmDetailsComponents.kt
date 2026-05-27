@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.perpetual
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -9,10 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -22,7 +17,6 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModel
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModel.Action
-import com.gemwallet.android.ui.theme.space2
 
 @Composable
 fun PerpetualDetailsSummaryItem(
@@ -82,9 +76,14 @@ fun PerpetualDetailsBottomSheet(
                 data = model.sizeText,
                 listPosition = ListPosition.Last,
             )
-            model.autoclose?.let { AutocloseRow(it) }
+            model.autoclose?.let {
+                AutocloseSummaryRow(
+                    takeProfitText = it.takeProfitText,
+                    stopLossText = it.stopLossText,
+                )
+            }
             PropertyItem(
-                title = stringResource(R.string.price_alerts_set_alert_current_price),
+                title = stringResource(R.string.perpetual_market_price),
                 data = model.marketPriceText,
                 listPosition = ListPosition.First,
             )
@@ -102,24 +101,6 @@ fun PerpetualDetailsBottomSheet(
             )
         }
     }
-}
-
-@Composable
-private fun AutocloseRow(autoclose: PerpetualConfirmDetailsUIModel.Autoclose) {
-    val lines = listOfNotNull(
-        autoclose.takeProfitText?.let { "${stringResource(R.string.charts_take_profit)}: $it" },
-        autoclose.stopLossText?.let { "${stringResource(R.string.charts_stop_loss)}: $it" },
-    )
-    ListItem(
-        listPosition = ListPosition.Single,
-        minHeight = ListItemDefaults.defaultMinHeight,
-        title = { ListItemTitleText(text = stringResource(R.string.perpetual_auto_close)) },
-        subtitle = {
-            Column(verticalArrangement = Arrangement.spacedBy(space2)) {
-                lines.forEach { ListItemSupportText(it) }
-            }
-        },
-    )
 }
 
 @Composable
