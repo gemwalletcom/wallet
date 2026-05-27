@@ -20,7 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigInteger
 
 class AmountPerpetualProviderTest {
 
@@ -39,7 +43,34 @@ class AmountPerpetualProviderTest {
         assertEquals(PerpetualDirection.Short, open.data.direction)
     }
 
-    private fun makeProvider(direction: PerpetualDirection = PerpetualDirection.Long): AmountPerpetualProvider {
+    @Test
+    fun `setTakeProfit and setStopLoss normalize empty and null to null`() {
+        val provider = makeProvider()
+        provider.setTakeProfit("65000")
+        provider.setStopLoss("55000")
+        provider.setTakeProfit("")
+        provider.setStopLoss(null)
+        assertNull(provider.takeProfit.value)
+        assertNull(provider.stopLoss.value)
+    }
+
+    @Test
+    fun `showsAutoclose is true for Open and false for Reduce`() {
+        assertTrue(makeProvider().showsAutoclose)
+        val reduce = makeProvider(positionAction = PerpetualPositionAction.Reduce(
+            data = mockPerpetualTransferData(direction = PerpetualDirection.Long),
+            available = BigInteger.TEN,
+            positionDirection = PerpetualDirection.Long,
+        ))
+        assertFalse(reduce.showsAutoclose)
+    }
+
+    private fun makeProvider(
+        direction: PerpetualDirection = PerpetualDirection.Long,
+        positionAction: PerpetualPositionAction = PerpetualPositionAction.Open(
+            mockPerpetualTransferData(direction = direction),
+        ),
+    ): AmountPerpetualProvider {
         val asset = mockAssetCosmos()
         val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
@@ -56,9 +87,6 @@ class AmountPerpetualProviderTest {
         val getPerpetualBalance = mockk<GetPerpetualBalance>(relaxed = true) {
             every { getBalance() } returns flowOf(null)
         }
-        val positionAction = PerpetualPositionAction.Open(
-            mockPerpetualTransferData(direction = direction),
-        )
         return AmountPerpetualProvider(
             params = AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
             userConfig = userConfig,

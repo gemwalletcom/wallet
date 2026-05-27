@@ -78,7 +78,13 @@ fun AmountScreen(
                 onInputTypeClick = viewModel::switchInputType,
                 onMaxAmount = viewModel::onMaxAmount,
                 onCancel = onCancel,
-                additionParams = { ProviderExtras(provider, onPickValidator = { isSelectValidator = true }) },
+                additionParams = {
+                    ProviderExtras(
+                        provider = provider,
+                        amount = viewModel.amount,
+                        onPickValidator = { isSelectValidator = true },
+                    )
+                },
             )
         }
     }

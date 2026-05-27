@@ -8,6 +8,8 @@ import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
+import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
@@ -15,6 +17,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.wallet.core.primitives.PerpetualDirection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,8 +47,30 @@ class AmountPerpetualProvider(
     private val isLeverageSelectable: Boolean =
         params.positionAction is PerpetualPositionAction.Open
 
-    private val perpetual = getPerpetual.getPerpetual(params.perpetualId)
-        .stateIn(scope, SharingStarted.Eagerly, null)
+    val perpetual: StateFlow<PerpetualDetailsDataAggregate?> =
+        getPerpetual.getPerpetual(params.perpetualId)
+            .stateIn(scope, SharingStarted.Eagerly, null)
+
+    val direction: PerpetualDirection = params.direction
+
+    private val takeProfitInput = MutableStateFlow<String?>(null)
+    private val stopLossInput = MutableStateFlow<String?>(null)
+
+    val takeProfit: StateFlow<String?> = takeProfitInput
+    val stopLoss: StateFlow<String?> = stopLossInput
+
+    fun setTakeProfit(value: String?) {
+        takeProfitInput.value = value?.takeIf { it.isNotEmpty() }
+    }
+
+    fun setStopLoss(value: String?) {
+        stopLossInput.value = value?.takeIf { it.isNotEmpty() }
+    }
+
+    private val isAutocloseEnabled: Boolean =
+        params.positionAction is PerpetualPositionAction.Open
+
+    val showsAutoclose: Boolean = isAutocloseEnabled
 
     private val userSelectedLeverage = MutableStateFlow<Int?>(null)
 
@@ -68,6 +93,20 @@ class AmountPerpetualProvider(
     }
 
     fun setLeverage(value: Int) { userSelectedLeverage.value = value }
+
+    fun estimatorFor(amount: String): AutocloseEstimator {
+        val market = perpetual.value
+        val leverage = (leverageState.value?.current ?: market?.maxLeverage ?: 1).coerceAtLeast(1)
+        val marketPrice = market?.price ?: 0.0
+        val usdAmount = amount.toDoubleOrNull() ?: 0.0
+        val positionSize = if (marketPrice > 0.0) (usdAmount * leverage) / marketPrice else 0.0
+        return AutocloseEstimator(
+            entryPrice = marketPrice,
+            positionSize = positionSize,
+            direction = direction,
+            leverage = leverage.toUByte(),
+        )
+    }
 
     override val minimumValue: StateFlow<BigInteger> = combine(
         perpetual.filterNotNull(),
@@ -109,8 +148,23 @@ class AmountPerpetualProvider(
             usdcAmount = amount.atomicValue,
             usdcDecimals = current.asset.decimals,
             leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
+            takeProfit = formatTriggerForOrder(takeProfitInput.value, perpetualMarket),
+            stopLoss = formatTriggerForOrder(stopLossInput.value, perpetualMarket),
         )
         return ConfirmParams.Builder(perpetualMarket.asset, owner, amount.atomicValue, isMax)
             .perpetual(perpetualType)
+    }
+
+    private fun formatTriggerForOrder(
+        text: String?,
+        data: PerpetualDetailsDataAggregate,
+    ): String? {
+        if (!isAutocloseEnabled) return null
+        val price = text?.toDoubleOrNull() ?: return null
+        return PerpetualFormatter.formatPrice(
+            provider = data.provider,
+            price = price,
+            decimals = data.asset.decimals,
+        )
     }
 }
