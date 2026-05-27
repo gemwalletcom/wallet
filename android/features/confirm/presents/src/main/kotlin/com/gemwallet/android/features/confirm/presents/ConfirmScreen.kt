@@ -39,6 +39,7 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
@@ -317,6 +318,11 @@ private fun ConfirmDetailElementRow(
             onClick = onClick,
             listPosition = listPosition,
         )
+        is ConfirmDetailElement.PerpetualModifyAutoclose -> AutocloseSummaryRow(
+            takeProfitText = item.takeProfitText,
+            stopLossText = item.stopLossText,
+            listPosition = listPosition,
+        )
     }
 }
 
@@ -339,6 +345,8 @@ private fun ConfirmDetailElementBottomSheet(
             model = item.model,
             onDismiss = onDismiss,
         )
+
+        is ConfirmDetailElement.PerpetualModifyAutoclose -> Unit
 
         null -> Unit
     }

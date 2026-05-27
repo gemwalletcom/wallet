@@ -27,11 +27,13 @@ import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.domains.confirm.AmountUIModel
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
+import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.FeePriority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -323,9 +325,10 @@ class ConfirmViewModel @Inject constructor(
 
     private fun buildPerpetualDetailElement(
         params: ConfirmParams.PerpetualParams?,
-    ): ConfirmDetailElement.PerpetualDetails? {
-        val model = PerpetualConfirmDetailsUIModelFactory.create(params?.perpetualType ?: return null) ?: return null
-        return ConfirmDetailElement.PerpetualDetails(model)
+    ): ConfirmDetailElement? = when (val type = params?.perpetualType) {
+        null -> null
+        is PerpetualType.Modify -> PerpetualModifyAutocloseFactory.create(type.content)
+        else -> PerpetualConfirmDetailsUIModelFactory.create(type)?.let(ConfirmDetailElement::PerpetualDetails)
     }
 
     private fun buildSwapDetailElement(
