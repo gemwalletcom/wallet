@@ -7,20 +7,26 @@ import org.junit.Test
 class HexTest {
 
     @Test
-    fun encodeHexReturnsUnprefixedLowercaseString() {
-        assertEquals("0a1fff", byteArrayOf(0x0a, 0x1f, 0xff.toByte()).encodeHex())
+    fun hexReturnsUnprefixedLowercaseString() {
+        assertEquals("0a1fff", byteArrayOf(0x0a, 0x1f, 0xff.toByte()).hex)
     }
 
     @Test
-    fun encodeHexWith0xReturnsPrefixedLowercaseString() {
-        assertEquals("0x0a1fff", byteArrayOf(0x0a, 0x1f, 0xff.toByte()).encodeHexWith0x())
+    fun hexAppend0xReturnsPrefixedLowercaseString() {
+        assertEquals("0x0a1fff", byteArrayOf(0x0a, 0x1f, 0xff.toByte()).hex.append0x())
     }
 
     @Test
-    fun decodeHexAcceptsPrefixedAndUnprefixedStrings() {
+    fun remove0xReturnsUnprefixedString() {
+        assertEquals("0a1fff", "0x0a1fff".remove0x())
+        assertEquals("0a1fff", "0a1fff".remove0x())
+    }
+
+    @Test
+    fun fromHexAcceptsPrefixedAndUnprefixedStrings() {
         val bytes = byteArrayOf(0x0a, 0x1f, 0xff.toByte())
 
-        assertArrayEquals(bytes, "0a1fff".decodeHex())
-        assertArrayEquals(bytes, "0x0a1fff".decodeHex())
+        assertArrayEquals(bytes, "0a1fff".fromHex())
+        assertArrayEquals(bytes, "0x0a1fff".fromHex())
     }
 }

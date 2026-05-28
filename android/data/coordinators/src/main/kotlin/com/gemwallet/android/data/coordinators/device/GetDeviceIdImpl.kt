@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.device
 
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.math.encodeHex
+import com.gemwallet.android.math.hex
 import kotlinx.coroutines.runBlocking
 import wallet.core.jni.Curve
 import wallet.core.jni.HDWallet
@@ -25,8 +25,8 @@ class GetDeviceIdImpl(
         } catch (_: Throwable) {}
 
         val deviceKey = HDWallet(128, "").getMasterKey(Curve.ED25519)
-        val privateKey = deviceKey.data().encodeHex()
-        val publicKey = deviceKey.publicKeyEd25519.data().encodeHex()
+        val privateKey = deviceKey.data().hex
+        val publicKey = deviceKey.publicKeyEd25519.data().hex
 
         store.putValue(Keys.PrivateKey, privateKey)
         store.putValue(Keys.PublicKey, publicKey)

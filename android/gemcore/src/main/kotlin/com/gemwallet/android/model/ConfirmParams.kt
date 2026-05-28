@@ -9,7 +9,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ext.urlDecode
 import com.gemwallet.android.ext.urlEncode
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.serializer.BigIntegerSerializer
 import com.gemwallet.android.serializer.jsonEncoder
@@ -191,7 +191,7 @@ sealed class ConfirmParams() {
                     data = memo?.let { data ->
                         if (data.has0xPrefix()) {
                             try {
-                                return@let data.decodeHex()
+                                return@let data.fromHex()
                             } catch (_: Error) { }
                         }
                         data.toByteArray()
