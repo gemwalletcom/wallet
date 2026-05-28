@@ -182,7 +182,6 @@ class WCAuthViewModel @Inject constructor(
                     ),
                 )
                 bridgesRepository.approveAuthentication(
-                    wallet = approval.wallet,
                     request = request,
                     auths = listOf(authObject),
                     onSuccess = {
