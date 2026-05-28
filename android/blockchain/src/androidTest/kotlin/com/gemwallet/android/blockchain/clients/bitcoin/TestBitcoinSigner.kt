@@ -3,7 +3,8 @@ package com.gemwallet.android.blockchain.clients.bitcoin
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -116,7 +117,7 @@ class TestBitcoinSigner {
 
         assertEquals(
             "0x3d3a733a3078456537453943634662353239663263314363303243304165613861436564374563376539384235653a302f312f303a67313a3530",
-            input.outputOpReturn.toByteArray().toHexString()
+            input.outputOpReturn.toByteArray().hex.append0x()
         )
     }
 }

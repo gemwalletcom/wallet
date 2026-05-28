@@ -6,7 +6,7 @@ import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.SignClientProxy
 import com.gemwallet.android.ext.nowSeconds
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.Config
 import uniffi.gemstone.FetchQuoteData
@@ -53,7 +53,7 @@ class GetSwapQuoteDataImpl(
                 chain = chain,
                 input = permit2Json.toByteArray(),
                 privateKey = key,
-            ).decodeHex()
+            ).fromHex()
         } finally {
             Arrays.fill(key, 0)
         }

@@ -2,8 +2,9 @@ package com.gemwallet.android.blockchain.clients.bitcoin
 
 import com.gemwallet.android.blockchain.clients.SignClient
 import com.gemwallet.android.blockchain.operators.walletcore.WCChainTypeProxy
-import com.gemwallet.android.math.decodeHex
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
+import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.model.ChainSignData
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
@@ -67,7 +68,7 @@ class BitcoinSignClient(
             SwapProvider.Chainflip.string -> {
                 signingInput.outputOpReturnIndex = Bitcoin.OutputIndex.newBuilder().apply { index = 1 }.build()
                 signingInput.outputOpReturn = try {
-                    ByteString.copyFrom(params.swapData.decodeHex())
+                    ByteString.copyFrom(params.swapData.fromHex())
                 } catch (_: Throwable) {
                     throw Exception("Invalid Chainflip swap data")
                 }
@@ -129,7 +130,7 @@ class BitcoinSignClient(
                     redeemScript.matchPayToWitnessPublicKeyHash()
                 } else {
                     redeemScript.matchPayToPubkeyHash()
-                }.toHexString()
+                }.hex.append0x()
                 putScripts(keyHash, ByteString.copyFrom(redeemScript.data()))
             }
         }
@@ -165,7 +166,7 @@ class BitcoinSignClient(
                     redeemScript.matchPayToWitnessPublicKeyHash()
                 } else {
                     redeemScript.matchPayToPubkeyHash()
-                }.toHexString()
+                }.hex.append0x()
                 putScripts(keyHash, ByteString.copyFrom(redeemScript.data()))
             }
             this.addPrivateKey(ByteString.copyFrom(privateKey))
@@ -185,7 +186,7 @@ class BitcoinSignClient(
             this.fee = fee
             this.change = change
             this.addAllUtxos(chainData.utxo.getUtxoTransactions(params.from.address, coinType))
-            this.branchId = ByteString.copyFrom(chainData.branchId.decodeHex().apply { reverse() })
+            this.branchId = ByteString.copyFrom(chainData.branchId.fromHex().apply { reverse() })
         }.build()
 
         return signingInput
@@ -199,7 +200,7 @@ class BitcoinSignClient(
         if (output.errorMessage.isNotEmpty()) {
             throw IllegalStateException(output.errorMessage)
         }
-        return listOf(output.encoded.toByteArray().toHexString("").toByteArray())
+        return listOf(output.encoded.toByteArray().hex.toByteArray())
     }
 
     override fun supported(chain: Chain): Boolean = this.chain == chain
@@ -208,7 +209,7 @@ class BitcoinSignClient(
 fun List<UTXO>.getUtxoTransactions(address: String, coinType: CoinType): List<Bitcoin.UnspentTransaction> {
     return map { utxo ->
         Bitcoin.UnspentTransaction.newBuilder().apply {
-            val hash = utxo.transaction_id.decodeHex()
+            val hash = utxo.transaction_id.fromHex()
             hash.reverse()
             this.outPoint = Bitcoin.OutPoint.newBuilder().apply {
                 this.hash = ByteString.copyFrom(hash)

@@ -7,17 +7,20 @@ public struct TransferData: Identifiable, Sendable, Hashable {
     public let type: TransferDataType
     public let recipientData: RecipientData
     public let value: BigInt
+    public let minimumValue: BigInt?
     public let canChangeValue: Bool
 
     public init(
         type: TransferDataType,
         recipientData: RecipientData,
         value: BigInt,
+        minimumValue: BigInt? = nil,
         canChangeValue: Bool = true,
     ) {
         self.type = type
         self.recipientData = recipientData
         self.value = value
+        self.minimumValue = minimumValue
         self.canChangeValue = canChangeValue
     }
 

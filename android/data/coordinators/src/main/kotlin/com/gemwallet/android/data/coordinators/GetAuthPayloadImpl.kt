@@ -8,7 +8,8 @@ import com.gemwallet.android.blockchain.operators.walletcore.WCChainTypeProxy
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import com.wallet.core.primitives.AuthPayload
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -42,7 +43,7 @@ class GetAuthPayloadImpl(
             )
 
             val signature = PrivateKey(key).sign(message.hash, WCChainTypeProxy()(chain).curve())
-                .toHexString()
+                .hex.append0x()
             return AuthPayload(
                 deviceId = deviceId,
                 chain = account.chain,

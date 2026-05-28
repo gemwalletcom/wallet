@@ -5,7 +5,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.SecurityStore
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.aead.AeadConfig
@@ -28,14 +30,14 @@ class TinkSecurityStore(
     override suspend fun getValue(key: Any): String {
         return context.dataStore.data.map { preferences -> preferences[stringPreferencesKey(key.toString())] }
             .firstOrNull()?.let {
-                String(getAead().decrypt(it.decodeHex(), null))
+                String(getAead().decrypt(it.fromHex(), null))
             } ?: throw IllegalStateException("Data not found")
     }
 
     override suspend fun putValue(key: Any, value: String) {
         context.dataStore.edit { preferences ->
             val data = getAead().encrypt(value.toByteArray(), null)
-            preferences[stringPreferencesKey(key.toString())] = data.toHexString()
+            preferences[stringPreferencesKey(key.toString())] = data.hex.append0x()
         }
     }
 

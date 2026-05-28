@@ -47,7 +47,8 @@ class BitcoinGatewayEstimateFee : GemGatewayEstimateFee {
             destinationAddress = destinationAddress,
             amount = amount,
             bytePrice = bytePrice,
-            utxos = utxos
+            utxos = utxos,
+            isMaxValue = input.isMaxValue,
         )
 
         return GemTransactionLoadFee(
@@ -72,6 +73,7 @@ class BitcoinGatewayEstimateFee : GemGatewayEstimateFee {
         amount: Long,
         bytePrice: Long,
         utxos: List<UTXO>,
+        isMaxValue: Boolean,
     ): BigInteger {
         val coinType = WCChainTypeProxy().invoke(chain)
         val total = utxos.map { it.value.toLong() }.fold(0L) { x, y -> x + y }
@@ -82,7 +84,7 @@ class BitcoinGatewayEstimateFee : GemGatewayEstimateFee {
             this.hashType = BitcoinSigHashType.ALL.value()
             this.byteFee = bytePrice
             this.amount = amount
-            this.useMaxAmount = total == amount
+            this.useMaxAmount = isMaxValue
             this.coinType = coinType.value()
             this.toAddress = destinationAddress
             this.changeAddress = senderAddress
@@ -98,15 +100,12 @@ class BitcoinGatewayEstimateFee : GemGatewayEstimateFee {
             else -> throw GatewayException.PlatformException(plan.error.name)
         }
 
-        val selectedUtxos: MutableList<UTXO> = mutableListOf()
-        for (raw in plan.utxosList) {
-            input.utxoList?.indexOfFirst { it == raw }?.let {
-                selectedUtxos.add(utxos[it])
-            }
+        val hasSelectedUtxos = plan.utxosList.any { raw ->
+            input.utxoList?.any { it == raw } == true
         }
-        if (utxos.isNotEmpty() && selectedUtxos.isEmpty() && amount != total && amount <= total) {
-            return calcFee(chain, senderAddress, destinationAddress, total, bytePrice, utxos)
+        if (utxos.isNotEmpty() && !hasSelectedUtxos && amount != total && amount <= total) {
+            return calcFee(chain, senderAddress, destinationAddress, total, bytePrice, utxos, isMaxValue)
         }
-        return BigInteger.valueOf(plan.fee/* / bytePrice*/) //
+        return BigInteger.valueOf(plan.fee)
     }
 }

@@ -60,6 +60,7 @@ struct SwapSignerTests {
             quote: SwapQuote(
                 fromAddress: walletAddress,
                 fromValue: fromValue,
+                minFromValue: nil,
                 toAddress: destinationAddress,
                 toValue: "2000",
                 providerData: SwapProviderData(

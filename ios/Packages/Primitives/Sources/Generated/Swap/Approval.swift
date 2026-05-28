@@ -33,6 +33,7 @@ public struct SwapProviderData: Codable, Equatable, Hashable, Sendable {
 public struct SwapQuote: Codable, Equatable, Hashable, Sendable {
 	public let fromAddress: String
 	public let fromValue: String
+	public let minFromValue: String?
 	public let toAddress: String
 	public let toValue: String
 	public let providerData: SwapProviderData
@@ -40,9 +41,10 @@ public struct SwapQuote: Codable, Equatable, Hashable, Sendable {
 	public let etaInSeconds: UInt32?
 	public let useMaxAmount: Bool?
 
-	public init(fromAddress: String, fromValue: String, toAddress: String, toValue: String, providerData: SwapProviderData, slippageBps: UInt32, etaInSeconds: UInt32?, useMaxAmount: Bool?) {
+	public init(fromAddress: String, fromValue: String, minFromValue: String?, toAddress: String, toValue: String, providerData: SwapProviderData, slippageBps: UInt32, etaInSeconds: UInt32?, useMaxAmount: Bool?) {
 		self.fromAddress = fromAddress
 		self.fromValue = fromValue
+		self.minFromValue = minFromValue
 		self.toAddress = toAddress
 		self.toValue = toValue
 		self.providerData = providerData

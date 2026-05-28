@@ -26,6 +26,7 @@ data class SwapProviderData (
 data class SwapQuote (
 	val fromAddress: String,
 	val fromValue: String,
+	val minFromValue: String? = null,
 	val toAddress: String,
 	val toValue: String,
 	val providerData: SwapProviderData,

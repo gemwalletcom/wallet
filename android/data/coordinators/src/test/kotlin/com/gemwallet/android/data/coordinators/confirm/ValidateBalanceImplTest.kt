@@ -24,6 +24,8 @@ import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemSwapQuoteDataType
+import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
 class ValidateBalanceImplTest {
@@ -126,6 +128,36 @@ class ValidateBalanceImplTest {
         val info = assetInfo(walletAvailable = "10000000")
 
         validate(params, finalAmount = transferAmount, info = info, assetBalance = BigInteger("10000000"))
+    }
+
+    @Test
+    fun `swap below quoted minimum throws`() {
+        val swapAmount = BigInteger.valueOf(9_990_000L)
+        val params = ConfirmParams.SwapParams(
+            from = account,
+            fromAsset = asset,
+            fromAmount = swapAmount + feeAmount,
+            minFromAmount = swapAmount + BigInteger.ONE,
+            toAsset = asset,
+            toAmount = BigInteger.ONE,
+            swapData = "",
+            memo = null,
+            providerId = SwapperProvider.NEAR_INTENTS,
+            providerName = "NEAR Intents",
+            protocol = "NEAR Intents",
+            protocolId = "near-intents",
+            toAddress = "recipient",
+            value = "0",
+            slippageBps = 50u,
+            etaInSeconds = null,
+            dataType = GemSwapQuoteDataType.TRANSFER,
+            useMaxAmount = true,
+        )
+        val info = assetInfo(walletAvailable = "10000000")
+
+        assertThrows(ConfirmError.InsufficientBalance::class.java) {
+            validate(params, finalAmount = swapAmount, info = info, assetBalance = BigInteger("10000000"))
+        }
     }
 
     private fun assetInfo(walletAvailable: String) = mockAssetInfo(

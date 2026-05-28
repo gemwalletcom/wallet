@@ -1,7 +1,7 @@
 package com.gemwallet.android.blockchain.operators.walletcore
 
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -16,9 +16,9 @@ class WCLoadPrivateKeyOperator(
         val coinType = WCChainTypeProxy().invoke(chain)
         val store = StoredKey.load("$keyStoreDir/${wallet.id.id}")
         val privateKey = if (wallet.type == WalletType.PrivateKey) {
-            PrivateKey(store.decryptPrivateKey(password.decodeHex()))
+            PrivateKey(store.decryptPrivateKey(password.fromHex()))
         } else {
-            store.wallet(password.decodeHex()).let {
+            store.wallet(password.fromHex()).let {
                 when (chain) {
                     Chain.Solana -> it.getKeyDerivation(coinType, Derivation.SOLANASOLANA)
                     else -> it.getKey(coinType, coinType.derivationPath())

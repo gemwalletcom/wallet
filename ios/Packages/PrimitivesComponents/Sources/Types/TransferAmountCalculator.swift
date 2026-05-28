@@ -28,6 +28,14 @@ public struct TransferAmountCalculator {
     }
 
     func calculate(input: TransferAmountInput) throws(TransferAmountCalculatorError) -> TransferAmount {
+        let amount = try calculateAmount(input: input)
+        if let minimumValue = input.minimumValue, amount.value < minimumValue {
+            throw TransferAmountCalculatorError.insufficientBalance(input.asset)
+        }
+        return amount
+    }
+
+    private func calculateAmount(input: TransferAmountInput) throws(TransferAmountCalculatorError) -> TransferAmount {
         if input.assetBalance.available == 0, !input.ignoreValueCheck {
             guard input.fee.isZero else {
                 throw TransferAmountCalculatorError.insufficientBalance(input.asset)

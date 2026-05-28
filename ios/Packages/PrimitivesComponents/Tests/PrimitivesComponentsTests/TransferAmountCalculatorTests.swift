@@ -152,6 +152,24 @@ struct TransferAmountCalculatorTests {
     }
 
     @Test
+    func transferCoinBelowMinimumAfterFee() {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(coinAsset)) {
+            try service.calculate(input: TransferAmountInput(
+                asset: coinAsset,
+                assetBalance: Balance(available: 100),
+                value: BigInt(100),
+                availableValue: BigInt(100),
+                assetFee: coinAsset.feeAsset,
+                assetFeeBalance: Balance(available: BigInt(100)),
+                fee: BigInt(2),
+                canChangeValue: true,
+                ignoreValueCheck: false,
+                minimumValue: BigInt(99),
+            ))
+        }
+    }
+
+    @Test
     func claimRewards() {
         #expect(throws: Never.self) {
             let result = try service.calculate(input: TransferAmountInput(

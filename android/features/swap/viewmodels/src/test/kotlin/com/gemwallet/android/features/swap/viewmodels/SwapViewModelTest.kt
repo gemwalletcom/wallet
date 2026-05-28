@@ -563,6 +563,7 @@ class SwapViewModelTest {
         toValue: String = "2500000",
     ) = SwapperQuote(
         fromValue = fromValue,
+        minFromValue = null,
         toValue = toValue,
         data = SwapperProviderData(
             provider = SwapperProviderType(
