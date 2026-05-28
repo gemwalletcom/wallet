@@ -7,8 +7,6 @@ import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -22,7 +20,7 @@ class ConnectionViewModel @Inject constructor(
 
     private val connectionId = savedState.requireString(RouteArgument.ConnectionId)
 
-    val connection = flow { emitAll(bridgesRepository.getConnections(connectionId)) }
+    val connection = bridgesRepository.getConnection(connectionId)
         .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
 
     fun disconnect(onSuccess: () -> Unit) {
