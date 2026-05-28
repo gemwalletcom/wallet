@@ -3,7 +3,7 @@ package com.gemwallet.android.blockchain.clients.sui
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.encodeHexWith0x
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -72,7 +72,7 @@ class TestSuiSigner {
                 "14141415148683941514141414141415f4149696a4d44515a786859764c4564762f5439317349553" +
                 "2653544545471546954522b5835314b48354531626372594b376131544d652b746178336c792b657" +
                 "5716257363048734c4657623944672f767732542f475153664243524d424a44476f30546d5734543" +
-                "1366b393252684d4d4a69305577782b6b57664e36386f743770513d3d", sign.first().toHexString())
+                "1366b393252684d4d4a69305577782b6b57664e36386f743770513d3d", sign.first().encodeHexWith0x())
     }
 
     @Test
@@ -128,6 +128,6 @@ class TestSuiSigner {
                 "263766530354c3030576f2b757a2f48586365656b622f6a6b303676386d4f41352f797872692f534" +
                 "f466675653430354d573968307a61556c7131676f754e6634624d4f694c6a594e726c39315267716" +
                 "64243524d424a44476f30546d57345431366b393252684d4d4a69305577782b6b57664e36386f743" +
-                "770513d3d", sign.first().toHexString())
+                "770513d3d", sign.first().encodeHexWith0x())
     }
 }

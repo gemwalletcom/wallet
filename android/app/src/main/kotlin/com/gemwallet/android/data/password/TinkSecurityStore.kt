@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.encodeHexWith0x
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.aead.AeadConfig
@@ -35,7 +36,7 @@ class TinkSecurityStore(
     override suspend fun putValue(key: Any, value: String) {
         context.dataStore.edit { preferences ->
             val data = getAead().encrypt(value.toByteArray(), null)
-            preferences[stringPreferencesKey(key.toString())] = data.toHexString()
+            preferences[stringPreferencesKey(key.toString())] = data.encodeHexWith0x()
         }
     }
 

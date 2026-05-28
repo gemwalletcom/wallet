@@ -9,8 +9,9 @@ fun Byte.toHex(): String { // Add Tests
     return HEX_CHARS[i.shr(4) and 0x0f].toString() + HEX_CHARS[i and 0x0f].toString()
 }
 
-fun ByteArray.toHexString(prefix: String = "0x"): String =
-    prefix + joinToString("") { it.toHex() }
+fun ByteArray.encodeHex(): String = joinToString("") { it.toHex() }
+
+fun ByteArray.encodeHexWith0x(): String = "0x${encodeHex()}"
 
 fun String.has0xPrefix() = startsWith("0x")
 
@@ -24,10 +25,10 @@ fun Char.hexToBin(): Int = when (this) {
 }
 
 fun String.decodeHex(): ByteArray {
-    if ((length % 2) != 0) {
+    val value = clean0xPrefix()
+    if ((value.length % 2) != 0) {
         throw IllegalArgumentException("hex-string must have even number of digits")
     }
-    val value = if (startsWith("0x")) substring(2) else this
     return ByteArray(value.length / 2).apply {
         var i = 0
         while (i < value.length) {

@@ -14,7 +14,7 @@ import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.encodeHexWith0x
 import com.gemwallet.android.model.ImportType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -111,7 +111,7 @@ class PhraseAddressImportWalletService(
             if (!PrivateKey.isValid(data, WCChainTypeProxy().invoke(chain).curve())) {
                 throw Exception()
             }
-            data.toHexString()
+            data.encodeHexWith0x()
         } catch (_: Throwable) {
             throw ImportError.InvalidationPrivateKey
         }
