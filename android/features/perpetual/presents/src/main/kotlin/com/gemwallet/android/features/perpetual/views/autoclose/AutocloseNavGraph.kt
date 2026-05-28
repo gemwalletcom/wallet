@@ -118,7 +118,7 @@ private fun AutocloseNavGraphContent(
 
     NavDisplay(
         entries = decoratedEntries,
-        modifier = Modifier.fillMaxHeight(),
+        modifier = Modifier.fillMaxHeight(0.95f),
         onBack = {
             if (backStack.size > 1) popInternal() else onDismiss()
         },
