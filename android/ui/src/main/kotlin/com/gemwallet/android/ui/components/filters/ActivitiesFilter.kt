@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +27,7 @@ import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.gemwallet.android.ui.theme.iconSize
@@ -93,7 +92,7 @@ fun TransactionsFilter(
                             trailing = {
                                 Icon(
                                     modifier = Modifier.size(iconSize),
-                                    imageVector = Icons.AutoMirrored.Default.Article,
+                                    imageVector = AppIcons.Article,
                                     contentDescription = null,
                                 )
                             }

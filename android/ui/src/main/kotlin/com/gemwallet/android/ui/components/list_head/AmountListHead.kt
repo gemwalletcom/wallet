@@ -20,13 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.modifiers.TextAutoSizeLayoutScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Autorenew
-import androidx.compose.material.icons.filled.QrCode2
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -68,6 +61,7 @@ import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
@@ -218,7 +212,7 @@ fun AssetHeadActions(
             AmountHeadAction(
                 modifier = Modifier.weight(1f),
                 title = stringResource(id = R.string.wallet_send),
-                imageVector = Icons.AutoMirrored.Default.Send,
+                imageVector = AppIcons.Send,
                 enabled = transferEnabled && operationsEnabled,
                 contentDescription = stringResource(id = R.string.wallet_send),
                 fontSize = actionFontSize,
@@ -232,7 +226,7 @@ fun AssetHeadActions(
             AmountHeadAction(
                 modifier = Modifier.weight(1f),
                 title = stringResource(id = R.string.wallet_receive),
-                imageVector = Icons.Default.QrCode2,
+                imageVector = AppIcons.Receive,
                 enabled = operationsEnabled,
                 contentDescription = stringResource(id = R.string.wallet_receive),
                 fontSize = actionFontSize,
@@ -247,7 +241,7 @@ fun AssetHeadActions(
                 modifier = Modifier.weight(1f)
                 .testTag("assetBuy"),
                 title = stringResource(id = R.string.wallet_buy),
-                imageVector = Icons.Default.AttachMoney,
+                imageVector = AppIcons.Buy,
                 enabled = operationsEnabled,
                 contentDescription = stringResource(id = R.string.wallet_buy),
                 fontSize = actionFontSize,
@@ -261,7 +255,7 @@ fun AssetHeadActions(
             AmountHeadAction(
                 modifier = Modifier.weight(1f),
                 title = stringResource(id = R.string.wallet_swap),
-                imageVector = Icons.Default.Autorenew,
+                imageVector = AppIcons.Swap,
                 enabled = operationsEnabled,
                 contentDescription = stringResource(id = R.string.wallet_swap),
                 fontSize = actionFontSize,
@@ -298,7 +292,7 @@ private fun AssetWatchOnly() {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = Icons.Default.Visibility,
+                imageVector = AppIcons.Visibility,
                 contentDescription = null,
             )
             Spacer8()
@@ -317,7 +311,7 @@ private fun AssetWatchOnly() {
                 onClick = openWatchWalletInfo,
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Info,
+                    imageVector = AppIcons.InfoOutlined,
                     contentDescription = stringResource(R.string.common_learn_more),
                 )
             }

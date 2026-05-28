@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.CurrencyBitcoin
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
 import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -45,7 +43,7 @@ fun WelcomeBanner(
         ) {
             Icon(
                 modifier = Modifier.size(listItemIconSize),
-                imageVector = Icons.Default.CurrencyBitcoin,
+                imageVector = AppIcons.CurrencyBitcoin,
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.onSurface
             )
@@ -85,7 +83,7 @@ fun WelcomeBanner(
             onClick = onClose,
         ) {
             Icon(
-                imageVector = Icons.Default.Close,
+                imageVector = AppIcons.Close,
                 contentDescription = null,
             )
         }

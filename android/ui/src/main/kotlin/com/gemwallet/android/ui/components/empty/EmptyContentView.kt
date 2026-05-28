@@ -1,13 +1,12 @@
 package com.gemwallet.android.ui.components.empty
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 
 @Composable
 fun EmptyContentView(
@@ -76,9 +75,10 @@ private fun EmptyContentType.icon() = when (this) {
     is EmptyContentType.Recents -> painterResource(R.drawable.empty_activity)
 }
 
+@Composable
 private fun EmptyContentType.iconVector(): ImageVector? = when (this) {
     is EmptyContentType.SearchAssets, is EmptyContentType.SearchActivity,
-    is EmptyContentType.SearchNetworks -> Icons.Default.Search
+    is EmptyContentType.SearchNetworks -> AppIcons.Search
     else -> null
 }
 

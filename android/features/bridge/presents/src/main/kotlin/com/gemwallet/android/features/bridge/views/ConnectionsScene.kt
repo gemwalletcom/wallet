@@ -3,10 +3,6 @@ package com.gemwallet.android.features.bridge.views
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -39,6 +35,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
@@ -71,7 +68,7 @@ fun ConnectionsScene(
         snackbar = snackbar,
         actions = {
             IconButton(onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.WalletConnect)) }) {
-                Icon(imageVector = Icons.Outlined.Info, contentDescription = "WC_INFO")
+                Icon(imageVector = AppIcons.InfoOutlined, contentDescription = "WC_INFO")
             }
         },
         onClose = onCancel,
@@ -88,7 +85,7 @@ fun ConnectionsScene(
                     },
                     leading = {
                         Icon(
-                            imageVector = Icons.Default.ContentPaste,
+                            imageVector = AppIcons.ContentPaste,
                             contentDescription = "paste_uri",
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
@@ -102,7 +99,7 @@ fun ConnectionsScene(
                     modifier = Modifier.clickable { scannerShowed = true },
                     leading = {
                         Icon(
-                            imageVector = Icons.Default.QrCodeScanner,
+                            imageVector = AppIcons.QrCodeScanner,
                             contentDescription = "scan_qr",
                             tint = MaterialTheme.colorScheme.onSurface,
                         )

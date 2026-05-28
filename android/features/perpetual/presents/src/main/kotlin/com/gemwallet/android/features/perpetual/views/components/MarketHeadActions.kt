@@ -2,9 +2,6 @@ package com.gemwallet.android.features.perpetual.views.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountHeadAction
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 
@@ -33,7 +31,7 @@ fun MarketHeadActions(
         AmountHeadAction(
             modifier = Modifier.weight(1f),
             title = stringResource(id = R.string.wallet_withdraw),
-            imageVector = Icons.Default.ArrowUpward,
+            imageVector = AppIcons.Withdraw,
             contentDescription = "withdraw",
             fontSize = actionFontSize,
             onNextFontSize = {
@@ -44,7 +42,7 @@ fun MarketHeadActions(
         AmountHeadAction(
             modifier = Modifier.weight(1f),
             title = stringResource(id = R.string.wallet_deposit),
-            imageVector = Icons.Default.Add,
+            imageVector = AppIcons.Deposit,
             contentDescription = "deposit",
             fontSize = actionFontSize,
             onNextFontSize = {

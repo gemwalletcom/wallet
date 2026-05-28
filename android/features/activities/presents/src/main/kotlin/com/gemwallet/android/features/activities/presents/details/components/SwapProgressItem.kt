@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +34,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.compactIconSize
@@ -182,7 +180,7 @@ private fun ProgressMarker(status: SwapProgressStatus) {
         when (status) {
             SwapProgressStatus.Completed -> Icon(
                 modifier = Modifier.size(compactIconSize),
-                imageVector = Icons.Default.Check,
+                imageVector = AppIcons.Check,
                 contentDescription = null,
                 tint = color,
             )
@@ -203,7 +201,7 @@ private fun ProgressMarker(status: SwapProgressStatus) {
             SwapProgressStatus.Reverted,
             SwapProgressStatus.Refunded -> Icon(
                 modifier = Modifier.size(compactIconSize),
-                imageVector = Icons.Default.Close,
+                imageVector = AppIcons.Close,
                 contentDescription = null,
                 tint = color,
             )

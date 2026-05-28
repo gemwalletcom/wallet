@@ -2,8 +2,6 @@ package com.gemwallet.android.features.perpetual.views.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +21,7 @@ import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.PriceInfo
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.Asset
@@ -58,7 +57,7 @@ fun PerpetualItem(
                 text = { Text(text = stringResource(id = if (item.isPinned) R.string.common_unpin else R.string.common_pin)) },
                 trailingIcon = {
                     if (item.isPinned) Icon(painterResource(R.drawable.keep_off), "unpin")
-                    else Icon(Icons.Default.PushPin, "pin")
+                    else Icon(AppIcons.PushPin, "pin")
 
                 },
                 onClick = {

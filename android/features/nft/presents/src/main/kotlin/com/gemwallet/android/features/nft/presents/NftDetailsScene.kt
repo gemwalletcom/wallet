@@ -9,10 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -43,6 +39,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.theme.compactIconSize
@@ -90,11 +87,11 @@ fun NFTDetailsScene(
         actions = {
             if (model.asset.chain.toChainType() in enabledChainTypes) {
                 IconButton(onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) }) {
-                    Icon(Icons.Default.ArrowUpward, contentDescription = "Send nft")
+                    Icon(AppIcons.ArrowUpward, contentDescription = "Send nft")
                 }
             }
             IconButton(onClick = { isMenuExpanded = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.wallet_more))
+                Icon(AppIcons.MoreVert, contentDescription = stringResource(R.string.wallet_more))
             }
             DropdownMenu(
                 expanded = isMenuExpanded,
@@ -102,7 +99,7 @@ fun NFTDetailsScene(
             ) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_refresh)) },
-                    leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
+                    leadingIcon = { Icon(AppIcons.Refresh, contentDescription = null) },
                     onClick = {
                         isMenuExpanded = false
                         scope.launch {

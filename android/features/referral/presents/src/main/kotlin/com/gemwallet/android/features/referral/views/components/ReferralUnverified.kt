@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,6 +15,7 @@ import com.gemwallet.android.features.referral.viewmodels.RewardsUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -37,7 +36,7 @@ internal fun LazyListScope.referralUnverified(uiState: RewardsUIState) {
                 trailing = {
                     Icon(
                         modifier = Modifier.size(tinyIconSize),
-                        imageVector = Icons.Default.Info,
+                        imageVector = AppIcons.Info,
                         tint = pendingColor,
                         contentDescription = "",
                     )

@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -35,6 +33,7 @@ import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
@@ -149,7 +148,7 @@ fun PreferencesScene(
                                         text = {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 if (value == perpetualLeverage) {
-                                                    Icon(Icons.Default.Check, null, modifier = Modifier.size(compactIconSize))
+                                                    Icon(AppIcons.Check, null, modifier = Modifier.size(compactIconSize))
                                                 } else {
                                                     Spacer(modifier = Modifier.size(compactIconSize))
                                                 }

@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +28,7 @@ import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.dateGroupedList
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 
@@ -63,7 +62,7 @@ fun RecentsBottomSheet(
                     modifier = Modifier.align(Alignment.CenterStart),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = AppIcons.Close,
                         contentDescription = null,
                     )
                 }

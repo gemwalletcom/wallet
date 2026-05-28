@@ -3,11 +3,6 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -22,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
 
 @Immutable
@@ -63,7 +59,7 @@ fun rememberAssetContextMenuItems(
                     titleRes = if (isPinned) R.string.common_unpin else R.string.common_pin,
                     icon = {
                         if (isPinned) Icon(painterResource(R.drawable.keep_off), null)
-                        else Icon(Icons.Default.PushPin, null)
+                        else Icon(AppIcons.PushPin, null)
                     },
                     onClick = { cb(assetId) },
                 )
@@ -71,21 +67,21 @@ fun rememberAssetContextMenuItems(
             actions.onHide?.let { cb ->
                 AssetContextMenuItem(
                     titleRes = R.string.common_hide,
-                    icon = { Icon(Icons.Default.VisibilityOff, null) },
+                    icon = { Icon(AppIcons.VisibilityOff, null) },
                     onClick = { cb(assetId) },
                 )
             },
             actions.onAddToWallet?.takeUnless { isBalanceEnabled }?.let { cb ->
                 AssetContextMenuItem(
                     titleRes = R.string.asset_add_to_wallet,
-                    icon = { Icon(Icons.Default.AddCircleOutline, null) },
+                    icon = { Icon(AppIcons.AddCircleOutlined, null) },
                     onClick = { cb(assetId) },
                 )
             },
             address?.takeUnless(String::isEmpty)?.let { addr ->
                 AssetContextMenuItem(
                     titleRes = R.string.wallet_copy_address,
-                    icon = { Icon(Icons.Default.ContentCopy, null) },
+                    icon = { Icon(AppIcons.ContentCopy, null) },
                     onClick = { clipboard.setPlainText(context, addr) },
                 )
             },

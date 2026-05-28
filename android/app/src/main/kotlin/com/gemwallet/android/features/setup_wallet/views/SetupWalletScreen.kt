@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -24,6 +22,7 @@ import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.supportIcon
 import com.gemwallet.android.ui.components.list_item.walletItemIconModel
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
@@ -48,7 +47,7 @@ fun SetupWalletScreen(
         backHandle = true,
         actions = {
             IconButton(onClick = handleDone) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "")
+                Icon(imageVector = AppIcons.Check, contentDescription = "")
             }
         },
         mainAction = {

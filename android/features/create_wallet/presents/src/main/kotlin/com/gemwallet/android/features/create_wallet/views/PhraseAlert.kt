@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -30,6 +28,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.CenteredDescriptionText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Emoji
@@ -64,7 +63,7 @@ fun PhraseAlertDialog(
             IconButton(
                 { uriHandler.open(context, AppUrl.docs(DocsUrl.WhatIsSecretPhrase)) }
             ) {
-                Icon(Icons.Outlined.Info, "")
+                Icon(AppIcons.InfoOutlined, "")
             }
         },
         onClose = { onCancel() }

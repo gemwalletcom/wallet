@@ -16,9 +16,6 @@ import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowCircleDown
-import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +45,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -198,8 +196,8 @@ fun PriceAlertTargetScene(
                                         onDirection(direction)
                                     },
                                     imageVector = when (direction) {
-                                        PriceAlertDirection.Up -> Icons.Default.ArrowCircleUp
-                                        PriceAlertDirection.Down -> Icons.Default.ArrowCircleDown
+                                        PriceAlertDirection.Up -> AppIcons.ArrowCircleUp
+                                        PriceAlertDirection.Down -> AppIcons.ArrowCircleDown
                                     },
                                     contentDescription = "",
                                     tint = when (direction) {

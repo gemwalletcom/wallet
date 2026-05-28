@@ -3,8 +3,6 @@ package com.gemwallet.android.features.settings.networks.presents
 import android.icu.text.DecimalFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,6 +17,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -75,7 +74,7 @@ internal fun NodeItem(
             ActionIcon(
                 onClick = onDelete,
                 backgroundColor = MaterialTheme.colorScheme.error,
-                icon = Icons.Default.Delete,
+                icon = AppIcons.Delete,
                 contentDescription = stringResource(R.string.common_delete),
             )
         },

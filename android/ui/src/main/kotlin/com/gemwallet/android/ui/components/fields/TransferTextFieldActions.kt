@@ -2,16 +2,13 @@ package com.gemwallet.android.ui.components.fields
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.icons.AppIcons
 
 private val IconButtonSize = 36.dp
 
@@ -25,7 +22,7 @@ fun TransferTextFieldActions(
     if (value.isNotEmpty()) {
         IconButton(modifier = Modifier.size(IconButtonSize), onClick = onClean) {
             Icon(
-                imageVector = Icons.Default.Clear,
+                imageVector = AppIcons.Close,
                 contentDescription = "clear",
                 tint = MaterialTheme.colorScheme.onSurface,
             )
@@ -36,7 +33,7 @@ fun TransferTextFieldActions(
         if (paste != null) {
             IconButton(modifier = Modifier.size(IconButtonSize), onClick = paste) {
                 Icon(
-                    imageVector = Icons.Default.ContentPaste,
+                    imageVector = AppIcons.ContentPaste,
                     contentDescription = "paste",
                     tint = MaterialTheme.colorScheme.onSurface,
                 )
@@ -45,7 +42,7 @@ fun TransferTextFieldActions(
         if (qrScanner != null) {
             IconButton(modifier = Modifier.size(IconButtonSize), onClick = qrScanner) {
                 Icon(
-                    imageVector = Icons.Default.QrCodeScanner,
+                    imageVector = AppIcons.QrCodeScanner,
                     contentDescription = "scan_address",
                     tint = MaterialTheme.colorScheme.onSurface,
                 )

@@ -1,8 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +13,7 @@ import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
@@ -104,7 +103,7 @@ private fun WalletEditButton(
 ) {
     IconButton(onClick = onClick) {
         Icon(
-            imageVector = Icons.Outlined.Settings,
+            imageVector = AppIcons.SettingsOutlined,
             contentDescription = "edit",
             tint = MaterialTheme.colorScheme.secondary,
         )

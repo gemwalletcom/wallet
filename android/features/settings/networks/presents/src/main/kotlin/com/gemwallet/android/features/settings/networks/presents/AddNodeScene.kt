@@ -3,9 +3,6 @@ package com.gemwallet.android.features.settings.networks.presents
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +36,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
@@ -103,13 +101,13 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
                         badge = {
                             if (status.inSync) {
                                 Icon(
-                                    imageVector = Icons.Default.CheckCircleOutline,
+                                    imageVector = AppIcons.CheckCircleOutlined,
                                     tint = MaterialTheme.colorScheme.tertiary,
                                     contentDescription = ""
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.Cancel,
+                                    imageVector = AppIcons.Cancel,
                                     tint = MaterialTheme.colorScheme.error,
                                     contentDescription = ""
                                 )

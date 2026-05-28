@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.banner.views
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -9,6 +7,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Emoji
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
@@ -70,7 +69,7 @@ internal fun bannerItemUIModel(
     }
     val icon: BannerIcon = when (banner.event) {
         BannerEvent.Stake -> BannerIcon.Emoji(Emoji.moneyBag)
-        BannerEvent.AccountBlockedMultiSignature -> BannerIcon.Vector(Icons.Outlined.Warning)
+        BannerEvent.AccountBlockedMultiSignature -> BannerIcon.Vector(AppIcons.Warning)
         else -> BannerIcon.Url(
             asset?.getIconUrl()
                 ?: "android.resource://com.gemwallet.android/${R.drawable.brandmark}",

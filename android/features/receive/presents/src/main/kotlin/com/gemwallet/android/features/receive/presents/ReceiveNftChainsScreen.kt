@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.receive.presents
 
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -18,6 +16,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.SelectChain
+import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.Chain
 
 @Composable
@@ -38,7 +37,7 @@ fun ReceiveNftChainsScreen(
                 IconButton(
                     onClick = { clipboardManager.setPlainText(context, viewModel.addressFor(chain)) },
                 ) {
-                    Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null)
+                    Icon(imageVector = AppIcons.ContentCopy, contentDescription = null)
                 }
                 DataBadgeChevron()
             }

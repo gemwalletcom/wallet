@@ -10,9 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 
 @Composable
@@ -68,7 +66,7 @@ fun SearchBar(
                 )
             }
             IconButton(onClick = focusRequester::requestFocus) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "search")
+                Icon(imageVector = AppIcons.Search, contentDescription = "search")
             }
             if (query.text.isNotEmpty()) {
                 IconButton(
@@ -77,7 +75,7 @@ fun SearchBar(
                         query.clearText()
                     }
                 ) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                    Icon(imageVector = AppIcons.Close, contentDescription = "Clear")
                 }
             }
         }

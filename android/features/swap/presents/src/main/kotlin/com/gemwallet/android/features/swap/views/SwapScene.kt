@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +26,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
 import com.gemwallet.android.features.swap.views.components.SwapAction
 import com.gemwallet.android.features.swap.views.components.SwapError
 import com.gemwallet.android.features.swap.views.components.SwapItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.space0
@@ -95,7 +94,7 @@ internal fun SwapScene(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = Icons.Default.SwapVert,
+                            imageVector = AppIcons.SwapVert,
                             contentDescription = stringResource(R.string.wallet_swap),
                         )
                     }

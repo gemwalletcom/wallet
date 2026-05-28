@@ -10,11 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ElectricBolt
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
@@ -49,6 +44,7 @@ import com.gemwallet.android.features.nft.presents.NftListNavScreen
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
@@ -90,53 +86,39 @@ fun MainScreen(
         }
     }
 
-    val walletLabel = stringResource(R.string.common_wallet)
-    val collectionsLabel = stringResource(R.string.nft_collections)
-    val activitiesLabel = stringResource(R.string.activity_title)
-    val settingsLabel = stringResource(R.string.settings_title)
-
     LaunchedEffect(collectionsAvailable, currentTab.value) {
         if (!collectionsAvailable && currentTab.value == nftRoute) {
             currentTab.value = assetsRoute
         }
     }
 
-    val navItems = remember(
-        pendingCount,
-        collectionsAvailable,
-        walletLabel,
-        collectionsLabel,
-        activitiesLabel,
-        settingsLabel,
-    ) {
-        listOfNotNull(
-            BottomNavItem(
-                label = walletLabel,
-                icon = Icons.Default.Wallet,
-                route = assetsRoute,
-                testTag = "mainTab",
-            ),
-            if (collectionsAvailable) BottomNavItem(
-                label = collectionsLabel,
-                icon = Icons.Default.EmojiEvents,
-                route = nftRoute,
-                testTag = "nftTab",
-            ) else null,
-            BottomNavItem(
-                label = activitiesLabel,
-                icon = Icons.Default.ElectricBolt,
-                route = transactionsRoute,
-                badge = pendingCount,
-                testTag = "activitiesTab",
-            ),
-            BottomNavItem(
-                label = settingsLabel,
-                icon = Icons.Default.Settings,
-                route = settingsRoute,
-                testTag = "settingsTab",
-            ),
-        )
-    }
+    val navItems = listOfNotNull(
+        BottomNavItem(
+            label = stringResource(R.string.common_wallet),
+            icon = AppIcons.Wallet,
+            route = assetsRoute,
+            testTag = "mainTab",
+        ),
+        if (collectionsAvailable) BottomNavItem(
+            label = stringResource(R.string.nft_collections),
+            icon = AppIcons.EmojiEvents,
+            route = nftRoute,
+            testTag = "nftTab",
+        ) else null,
+        BottomNavItem(
+            label = stringResource(R.string.activity_title),
+            icon = AppIcons.ElectricBolt,
+            route = transactionsRoute,
+            badge = pendingCount,
+            testTag = "activitiesTab",
+        ),
+        BottomNavItem(
+            label = stringResource(R.string.settings_title),
+            icon = AppIcons.Settings,
+            route = settingsRoute,
+            testTag = "settingsTab",
+        ),
+    )
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {

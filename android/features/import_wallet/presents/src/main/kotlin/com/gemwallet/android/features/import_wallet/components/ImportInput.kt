@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +44,7 @@ import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
 import com.wallet.core.primitives.NameRecord
@@ -151,7 +149,7 @@ internal fun ImportInput(
                 if (uiState.isFail) {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Default.Error,
+                        imageVector = AppIcons.Error,
                         contentDescription = "Name is resolved",
                         tint = MaterialTheme.colorScheme.error,
                     )
@@ -167,7 +165,7 @@ internal fun ImportInput(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .testTag("paste"),
-                imageVector = Icons.Default.ContentPaste,
+                imageVector = AppIcons.ContentPaste,
                 text = stringResource(id = R.string.common_paste),
             ) {
                 val newValue = clipboardManager.getPlainText() ?: ""

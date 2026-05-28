@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +19,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
@@ -125,7 +124,7 @@ internal fun LazyListScope.referralHead(
                 canInvite -> MainActionButton(
                     onClick = onShare
                 ) {
-                    Icon(Icons.Default.Share, contentDescription = "share")
+                    Icon(AppIcons.Share, contentDescription = "share")
                     Spacer8()
                     Text(stringResource(R.string.rewards_invite_friends_title))
                 }

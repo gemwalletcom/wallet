@@ -3,10 +3,6 @@ package com.gemwallet.android.features.wallets.presents.views.components
 import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +17,7 @@ import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.WalletId
 
@@ -58,16 +55,16 @@ internal fun LazyListScope.wallets(
             menuItems = {
                 WalletDropDownItem(
                     if (item.isPinned) R.string.common_unpin else R.string.common_pin,
-                    if (item.isPinned) R.drawable.keep_off else Icons.Default.PushPin,
+                    if (item.isPinned) R.drawable.keep_off else AppIcons.PushPin,
                 ) {
                     onTogglePin(walletId)
                     longPressedWallet.value = ""
                 }
-                WalletDropDownItem(R.string.common_wallet, Icons.Default.Settings) {
+                WalletDropDownItem(R.string.common_wallet, AppIcons.Settings) {
                     onEdit(walletId)
                     longPressedWallet.value = ""
                 }
-                WalletDropDownItem(R.string.common_delete, Icons.Default.Delete, MaterialTheme.colorScheme.error) {
+                WalletDropDownItem(R.string.common_delete, AppIcons.Delete, MaterialTheme.colorScheme.error) {
                     onDeleteWallet(walletId)
                     longPressedWallet.value = ""
                 }

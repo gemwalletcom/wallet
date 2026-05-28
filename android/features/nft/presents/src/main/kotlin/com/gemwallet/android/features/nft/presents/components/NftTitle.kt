@@ -3,8 +3,6 @@ package com.gemwallet.android.features.nft.presents.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.VerificationStatus
@@ -37,7 +36,7 @@ fun NftTitle(
         )
         if (status == VerificationStatus.Verified) {
             Icon(
-                imageVector = Icons.Outlined.Verified,
+                imageVector = AppIcons.Verified,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(iconSize),

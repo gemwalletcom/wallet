@@ -17,8 +17,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -59,6 +57,7 @@ import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -203,7 +202,7 @@ fun AssetSelectScene(
             if (availableChains.isNotEmpty()) {
                 IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
                     Icon(
-                        imageVector = Icons.Default.FilterAlt,
+                        imageVector = AppIcons.FilterAlt,
                         tint = if (chainsFilter.isEmpty() && !balanceFilter)
                             LocalContentColor.current
                         else

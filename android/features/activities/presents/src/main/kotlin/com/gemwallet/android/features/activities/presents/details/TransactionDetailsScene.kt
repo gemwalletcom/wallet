@@ -3,8 +3,6 @@ package com.gemwallet.android.features.activities.presents.details
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -30,6 +28,7 @@ import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Asset
@@ -45,7 +44,7 @@ internal fun TransactionDetailsScene(
         title = data.getTitle(),
         actions = {
             IconButton(onClick = { onAction(TransactionDetailsAction.Share) }) {
-                Icon(Icons.Default.Share, "")
+                Icon(AppIcons.Share, "")
             }
         },
         onClose = { onAction(TransactionDetailsAction.Close) },

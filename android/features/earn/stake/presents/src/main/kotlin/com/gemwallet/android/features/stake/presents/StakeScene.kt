@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +29,7 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.R
@@ -79,7 +78,7 @@ fun StakeScene(
         actions = {
             stakeInfoUrl?.let { url ->
                 IconButton(onClick = { uriHandler.open(context, url) }) {
-                    Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
+                    Icon(imageVector = AppIcons.InfoOutlined, contentDescription = null)
                 }
             }
         },

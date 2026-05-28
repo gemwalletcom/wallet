@@ -2,9 +2,6 @@ package com.gemwallet.android.features.asset.presents.details.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -14,6 +11,7 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 
 fun LazyListScope.manageAssetItem(
@@ -31,7 +29,7 @@ fun LazyListScope.manageAssetItem(
             title = {
                 PropertyTitleText(
                     R.string.common_pin,
-                    trailing = { Icon(Icons.Default.PushPin, stringResource(R.string.common_pin)) }
+                    trailing = { Icon(AppIcons.PushPin, stringResource(R.string.common_pin)) }
                 )
             },
             data = {
@@ -50,7 +48,7 @@ fun LazyListScope.manageAssetItem(
                 PropertyTitleText(
                     R.string.asset_add_to_wallet,
                     trailing = {
-                        Icon(Icons.Default.AddCircleOutline, stringResource(R.string.asset_add_to_wallet))
+                        Icon(AppIcons.AddCircleOutlined, stringResource(R.string.asset_add_to_wallet))
                     }
                 )
             },

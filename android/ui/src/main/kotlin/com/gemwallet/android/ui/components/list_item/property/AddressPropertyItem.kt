@@ -1,8 +1,6 @@
 package com.gemwallet.android.ui.components.list_item.property
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -18,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.BlockExplorerLink
@@ -56,7 +55,7 @@ fun AddressPropertyItem(
         menuItems = {
             DropdownMenuItem(
                 text = { Text(text = stringResource(id = R.string.wallet_copy_address)) },
-                trailingIcon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
+                trailingIcon = { Icon(AppIcons.ContentCopy, contentDescription = null) },
                 onClick = {
                     isExpanded = false
                     clipboardManager.setPlainText(context, copyValue)
