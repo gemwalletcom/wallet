@@ -307,7 +307,7 @@ class BridgesRepository(
                 sessionId = session.topic,
                 state = WalletConnectionState.Active,
                 createdAt = System.currentTimeMillis(),
-                expireAt = System.currentTimeMillis() + session.expiry,
+                expireAt = session.expiry * 1000L,
                 appName = walletConnectAppName(session.metaData?.name, session.metaData?.url),
                 appDescription = session.metaData?.description ?: "",
                 appUrl = session.metaData?.url ?: "",
