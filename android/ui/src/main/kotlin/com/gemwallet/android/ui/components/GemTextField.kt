@@ -14,11 +14,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
@@ -43,6 +49,10 @@ fun GemTextField(
     listPosition: ListPosition = ListPosition.Single,
 ) {
     val hasFloatingLabel = value.isNotEmpty() && label.isNotEmpty()
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+    if (textFieldValue.text != value) {
+        textFieldValue = TextFieldValue(value, TextRange(value.length))
+    }
 
     Column(
         modifier = modifier
@@ -57,8 +67,11 @@ fun GemTextField(
         ) {
             BasicTextField(
                 modifier = Modifier.weight(1f),
-                value = value,
-                onValueChange = onValueChange,
+                value = textFieldValue,
+                onValueChange = { next ->
+                    textFieldValue = next
+                    if (next.text != value) onValueChange(next.text)
+                },
                 readOnly = readOnly,
                 singleLine = singleLine,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
