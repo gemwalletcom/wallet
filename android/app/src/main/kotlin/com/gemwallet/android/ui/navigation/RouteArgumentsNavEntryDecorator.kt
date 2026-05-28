@@ -3,18 +3,11 @@ package com.gemwallet.android.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.lifecycle.DEFAULT_ARGS_KEY
-import androidx.lifecycle.HasDefaultViewModelProviderFactory
-import androidx.lifecycle.SAVED_STATE_REGISTRY_OWNER_KEY
-import androidx.lifecycle.SavedStateViewModelFactory
-import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.enableSavedStateHandles
 import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.lifecycle.viewmodel.MutableCreationExtras
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavEntryDecorator
@@ -23,12 +16,12 @@ import androidx.navigation3.runtime.NavMetadataKey
 import androidx.navigation3.runtime.get
 import androidx.navigation3.runtime.metadata
 import androidx.savedstate.SavedState
-import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.compose.LocalSavedStateRegistryOwner
 import androidx.savedstate.savedState
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
 import com.wallet.core.primitives.AssetId
 import kotlin.reflect.KClass
 
@@ -110,7 +103,7 @@ private fun rememberEntryViewModelStoreOwner(
         entryViewModelStores.store(contentKey)
     }
     return remember(parent, store, defaultArgs, savedStateRegistryOwner) {
-        RouteArgumentsViewModelStoreOwner(
+        NavEntryViewModelStoreOwner(
             parent = parent,
             store = store,
             savedStateRegistryOwner = checkNotNull(savedStateRegistryOwner) {
@@ -158,43 +151,6 @@ private object EntryViewModelStoresFactory : ViewModelProvider.Factory {
     }
 }
 
-private class RouteArgumentsViewModelStoreOwner(
-    private val parent: ViewModelStoreOwner,
-    private val store: ViewModelStore,
-    private val savedStateRegistryOwner: SavedStateRegistryOwner,
-    private val defaultArgs: SavedState,
-) : ViewModelStoreOwner,
-    SavedStateRegistryOwner,
-    HasDefaultViewModelProviderFactory {
-
-    init {
-        enableSavedStateHandles()
-    }
-
-    override val viewModelStore: ViewModelStore
-        get() = store
-
-    override val savedStateRegistry: SavedStateRegistry
-        get() = savedStateRegistryOwner.savedStateRegistry
-
-    override val lifecycle
-        get() = savedStateRegistryOwner.lifecycle
-
-    override val defaultViewModelProviderFactory: ViewModelProvider.Factory
-        get() = (parent as? HasDefaultViewModelProviderFactory)?.defaultViewModelProviderFactory
-            ?: SavedStateViewModelFactory()
-
-    override val defaultViewModelCreationExtras: CreationExtras
-        get() = MutableCreationExtras(
-            (parent as? HasDefaultViewModelProviderFactory)?.defaultViewModelCreationExtras
-                ?: CreationExtras.Empty
-        ).apply {
-            this[SAVED_STATE_REGISTRY_OWNER_KEY] = this@RouteArgumentsViewModelStoreOwner
-            this[VIEW_MODEL_STORE_OWNER_KEY] = this@RouteArgumentsViewModelStoreOwner
-            this[DEFAULT_ARGS_KEY] = defaultArgs
-        }
-}
-
 internal fun NavEntry<NavKey>.withOccurrenceContentKey(
     key: NavKey,
     occurrence: Int,
@@ -209,3 +165,4 @@ internal fun NavEntry<NavKey>.withOccurrenceContentKey(
         entry.Content()
     }
 }
+
