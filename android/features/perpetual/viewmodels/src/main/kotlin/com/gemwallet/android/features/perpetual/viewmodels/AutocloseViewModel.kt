@@ -10,7 +10,7 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
-import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
@@ -20,10 +20,11 @@ import com.wallet.core.primitives.TpslType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -54,11 +55,8 @@ class AutocloseViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _isVisible = MutableStateFlow(false)
-    val isVisible: StateFlow<Boolean> = _isVisible.asStateFlow()
-
-    fun show() { _isVisible.value = true }
-    fun dismiss() { _isVisible.value = false }
+    private val _confirmRequests = MutableSharedFlow<ConfirmParams.PerpetualParams>(extraBufferCapacity = 1)
+    val confirmRequests: SharedFlow<ConfirmParams.PerpetualParams> = _confirmRequests
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)
@@ -108,7 +106,7 @@ class AutocloseViewModel @Inject constructor(
         }
     }
 
-    fun onConfirm(confirmAction: ConfirmTransactionAction) {
+    fun onConfirm() {
         submitAttempted.value = true
         val position = position.value ?: return
         val perpetualId = position.perpetual.id
@@ -124,7 +122,7 @@ class AutocloseViewModel @Inject constructor(
                 modifyTypes = modifyTypes,
                 takeProfitOrderId = takeProfitField.orderId,
                 stopLossOrderId = stopLossField.orderId,
-            )?.let(confirmAction::invoke)
+            )?.let { _confirmRequests.tryEmit(it) }
         }
     }
 
