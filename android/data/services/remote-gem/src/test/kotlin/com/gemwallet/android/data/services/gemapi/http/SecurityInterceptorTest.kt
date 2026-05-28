@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.services.gemapi.http
 
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
+import com.gemwallet.android.data.services.gemapi.DeviceKeyPairFixture
 import com.wallet.core.primitives.WalletId
 import java.util.Base64
 import java.util.concurrent.TimeUnit
@@ -22,10 +22,7 @@ class SecurityInterceptorTest {
     fun interceptSignsWalletIdFromRequestTagAndBody() {
         var hashedBody: ByteArray? = null
         val signer = DeviceRequestSigner(
-            getDeviceId = FakeSecurityGetDeviceId(
-                deviceId = "publickeyhex",
-                deviceKey = "privatekeyhex",
-            ),
+            getDeviceId = mockGetDeviceId(),
             bodyHash = { body ->
                 hashedBody = body
                 "bodyhash"
@@ -46,7 +43,7 @@ class SecurityInterceptorTest {
         val authorization = signedRequest.header("Authorization")!!
         val payload = String(Base64.getDecoder().decode(authorization.removePrefix("Gem ")))
 
-        assertEquals("publickeyhex.123.multicoin_0xabc.bodyhash.signaturehex", payload)
+        assertEquals("${DeviceKeyPairFixture.publicKeyHex}.123.multicoin_0xabc.bodyhash.signaturehex", payload)
         assertNull(signedRequest.header("x-wallet-id"))
         assertEquals(body, hashedBody!!.toString(Charsets.UTF_8))
     }
@@ -84,13 +81,4 @@ private class FakeChain(
     override fun writeTimeoutMillis(): Int = 0
 
     override fun withWriteTimeout(timeout: Int, unit: TimeUnit): Interceptor.Chain = this
-}
-
-private class FakeSecurityGetDeviceId(
-    private val deviceId: String,
-    private val deviceKey: String,
-) : GetDeviceId {
-    override fun getDeviceId(): String = deviceId
-
-    override fun getDeviceKey(): String = deviceKey
 }

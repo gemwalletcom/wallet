@@ -4,19 +4,17 @@ import com.gemwallet.android.application.GetAuthPayload
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCChainTypeProxy
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
-import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.math.append0x
-import com.gemwallet.android.math.hex
+import com.gemwallet.android.ext.referralChain
 import com.wallet.core.primitives.AuthPayload
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemAuthNonce
-import wallet.core.jni.PrivateKey
-import java.util.Arrays
+import uniffi.gemstone.createAuthMessage
+import uniffi.gemstone.signAuthMessageHash
 import java.io.IOException
+import java.util.Arrays
 
 class GetAuthPayloadImpl(
     private val gemDeviceApiClient: GemDeviceApiClient,
@@ -25,7 +23,8 @@ class GetAuthPayloadImpl(
     private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
 ) : GetAuthPayload {
 
-    override suspend fun getAuthPayload(wallet: Wallet, chain: Chain): AuthPayload {
+    override suspend fun getAuthPayload(wallet: Wallet): AuthPayload {
+        val chain = Chain.referralChain
         val account = wallet.getAccount(chain) ?: throw Exception() // TODO
         val deviceId = getDeviceId.getDeviceId()
         val key = loadPrivateKeyOperator(
@@ -36,14 +35,12 @@ class GetAuthPayloadImpl(
 
         try {
             val nonce = gemDeviceApiClient.getAuthNonce() ?: throw IOException("Auth nonce unavailable")
-            val message = uniffi.gemstone.createAuthMessage(
-                chain = Chain.Ethereum.string,
+            val message = createAuthMessage(
                 address = account.address,
                 authNonce = GemAuthNonce(nonce.nonce, nonce.timestamp)
             )
 
-            val signature = PrivateKey(key).sign(message.hash, WCChainTypeProxy()(chain).curve())
-                .hex.append0x()
+            val signature = signAuthMessageHash(message.hash, key)
             return AuthPayload(
                 deviceId = deviceId,
                 chain = account.chain,

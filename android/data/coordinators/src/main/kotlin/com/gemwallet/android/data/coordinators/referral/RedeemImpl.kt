@@ -7,9 +7,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.referralChain
 import com.wallet.core.primitives.AuthenticatedRequest
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RedemptionRequest
 import com.wallet.core.primitives.RedemptionResult
 import com.wallet.core.primitives.RewardRedemptionOption
@@ -25,8 +23,7 @@ class RedeemImpl(
 ) : Redeem {
 
     override suspend fun redeem(wallet: Wallet, rewards: Rewards, option: RewardRedemptionOption): RedemptionResult {
-        val account = wallet.getAccount(Chain.referralChain) ?: throw ReferralError.BadWallet
-        val authPayload = getAuthPayload.getAuthPayload(wallet, account.chain)
+        val authPayload = getAuthPayload.getAuthPayload(wallet)
         if (rewards.points < option.points) {
             throw ReferralError.InsufficientPoints
         }
