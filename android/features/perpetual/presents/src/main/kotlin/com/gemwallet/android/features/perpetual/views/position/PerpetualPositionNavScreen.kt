@@ -24,17 +24,22 @@ fun PerpetualPositionNavScreen(
     val position by viewModel.position.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
+    val chartState by viewModel.chartState.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     PerpetualPositionScene(
         perpetual = perpetual,
         position = position,
         transactions = transactions,
         chartData = chart,
+        chartState = chartState,
         period = period,
+        isRefreshing = isRefreshing,
         onAction = { action ->
             when (action) {
                 PerpetualDetailsAction.Close -> onClose()
+                PerpetualDetailsAction.Refresh -> viewModel.fetch()
                 PerpetualDetailsAction.IncreasePosition -> viewModel.increasePosition(amountAction)
                 PerpetualDetailsAction.ReducePosition -> viewModel.reducePosition(amountAction)
                 PerpetualDetailsAction.ClosePosition -> viewModel.closePosition(confirmAction)

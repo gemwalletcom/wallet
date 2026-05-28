@@ -11,6 +11,7 @@ public extension Gemstone.SwapperQuote {
         try Primitives.SwapQuote(
             fromAddress: request.walletAddress,
             fromValue: fromValue,
+            minFromValue: minFromValue,
             toAddress: request.destinationAddress,
             toValue: toValue,
             providerData: data.provider.map(),

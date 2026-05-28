@@ -1,7 +1,7 @@
 package com.gemwallet.android.blockchain.operators.walletcore
 
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
@@ -43,7 +43,7 @@ class WCCreateAccountOperator : CreateAccountOperator {
 
     private fun createFromPrivateKey(data: String, chain: Chain): Account {
         val coinType = WCChainTypeProxy().invoke(chain = chain)
-        val privateKey = PrivateKey(data.decodeHex())
+        val privateKey = PrivateKey(data.fromHex())
         val publicKey = privateKey.getPublicKey(coinType)
         val rawAddress = AnyAddress(publicKey, coinType).description()
         val address = shortAddress(rawAddress, chain.string)

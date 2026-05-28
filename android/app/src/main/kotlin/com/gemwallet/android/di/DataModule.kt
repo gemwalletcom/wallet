@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.blockchain.clients.bitcoin.BitcoinSignClient
-import com.gemwallet.android.blockchain.clients.sui.SuiSignClient
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignClientProxy

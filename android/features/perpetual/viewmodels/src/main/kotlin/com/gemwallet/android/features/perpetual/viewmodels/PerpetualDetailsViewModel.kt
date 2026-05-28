@@ -11,8 +11,10 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPos
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
@@ -20,14 +22,18 @@ import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -46,6 +52,11 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val buildPerpetualParams: BuildPerpetualParams,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private companion object {
+        const val ChartRefreshIntervalMillis = 60_000L
+        const val SubscriptionGraceMillis = 5_000L
+    }
 
     private val assetId = savedStateHandle.requireAssetId()
 
@@ -85,16 +96,46 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val period = MutableStateFlow(ChartPeriod.Day)
-    val chart = period
-        .mapLatest { period -> getPerpetualChartData.getPerpetualChartData(assetId, period) }
+
+    private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
+    val chartState: StateFlow<ChartViewState> = viewState.asStateFlow()
+
+    private val refreshTrigger = MutableStateFlow(0L)
+    private val refreshState = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
+
+    private val ticker = tickerFlow(ChartRefreshIntervalMillis) {
+        viewModelScope.launch(Dispatchers.IO) { syncPerpetualPositions.syncPerpetualPositions() }
+    }
+
+    val chart = combine(period, refreshTrigger) { period, _ -> period }
+        .onEach { viewState.value = ChartViewState.Loading }
+        .flatMapLatest { period ->
+            flow {
+                try {
+                    emit(getPerpetualChartData.getPerpetualChartData(assetId, period))
+                    refreshState.value = false
+                    ticker.collect { emit(getPerpetualChartData.getPerpetualChartData(assetId, period)) }
+                } catch (e: Exception) {
+                    currentCoroutineContext().ensureActive()
+                    viewState.value = ChartViewState.Error
+                    refreshState.value = false
+                }
+            }
+        }
+        .onEach { candles ->
+            viewState.value = if (candles.isEmpty()) ChartViewState.Empty else ChartViewState.Ready
+        }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), emptyList())
 
     fun period(period: ChartPeriod) {
         this.period.update { period }
     }
 
     fun fetch() {
+        refreshState.value = true
+        refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
             syncPerpetualPositions.syncPerpetualPositions()
         }

@@ -7,7 +7,8 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import java.security.SecureRandom
 
 class PreferencePasswordStore(
@@ -20,9 +21,9 @@ class PreferencePasswordStore(
         val password = ByteArray(32)
         random.nextBytes(password)
         getStore().edit(commit = true) {
-            putString(key, password.toHexString())
+            putString(key, password.hex.append0x())
         }
-        return password.toHexString()
+        return password.hex.append0x()
     }
 
     override fun removePassword(key: String): Boolean =

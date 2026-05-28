@@ -8,6 +8,7 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
@@ -42,12 +43,12 @@ class ChartViewModel internal constructor(
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val selectedPeriod = MutableStateFlow(ChartPeriod.Day)
-    private val chartState = MutableStateFlow(ChartState())
+    private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
 
-    val chartUIState = combine(selectedPeriod, chartState) { period, state ->
-        ChartUIModel.State(state.loading, period, state.empty)
+    val chartUIState = combine(selectedPeriod, viewState) { period, viewState ->
+        ChartUIModel.State(period = period, viewState = viewState)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIModel.State())
 
     val isRefreshing = refreshState.asStateFlow()
@@ -60,11 +61,11 @@ class ChartViewModel internal constructor(
         .mapLatest { (period, currency) ->
             try {
                 val prices = request(period, currency)
-                chartState.update { it.copy(loading = false, empty = prices.isEmpty()) }
+                viewState.value = if (prices.size < 2) ChartViewState.Empty else ChartViewState.Ready
                 prices
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
-                chartState.update { it.copy(loading = false, empty = true) }
+                viewState.value = ChartViewState.Error
                 emptyList()
             } finally {
                 refreshState.value = false
@@ -91,12 +92,12 @@ class ChartViewModel internal constructor(
             return
         }
         selectedPeriod.value = period
-        chartState.update { ChartState(loading = true, empty = false) }
+        viewState.value = ChartViewState.Loading
     }
 
     fun refresh() {
         refreshState.value = true
-        chartState.update { ChartState(loading = true, empty = false) }
+        viewState.value = ChartViewState.Loading
         refreshTrigger.value = refreshTrigger.value + 1
     }
 
@@ -113,8 +114,4 @@ class ChartViewModel internal constructor(
         assetId = savedStateHandle.requireAssetId(),
     )
 
-    private data class ChartState(
-        val loading: Boolean = true,
-        val empty: Boolean = false,
-    )
 }

@@ -3,7 +3,8 @@ package com.gemwallet.android.blockchain.clients.near
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -66,6 +67,6 @@ class TestNearSigner {
                 "656749536e3842414141414178416e4141414141414141414141414141414141414141785855714" +
                 "76e7459566e574b703550475347674d585461616a466e75326869536c4363475757654953655551" +
                 "505355765247464933742b7a57565a4f37796e626d78456945586552434c46584d4262464d736b4" +
-                "443513d3d", sign.first().toHexString())
+                "443513d3d", sign.first().hex.append0x())
     }
 }

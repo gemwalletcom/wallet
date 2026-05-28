@@ -59,9 +59,6 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 
-
-    implementation(libs.vico.m3)
-
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 

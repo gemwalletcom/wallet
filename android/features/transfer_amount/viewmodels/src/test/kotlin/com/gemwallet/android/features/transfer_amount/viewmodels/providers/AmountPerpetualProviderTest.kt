@@ -11,6 +11,8 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockPerpetualTransferData
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.PerpetualProvider
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +60,7 @@ class AmountPerpetualProviderTest {
             mockPerpetualTransferData(direction = direction),
         )
         return AmountPerpetualProvider(
-            params = AmountParams.Perpetual(asset.id, "BTC-PERP", positionAction),
+            params = AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
             userConfig = userConfig,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,

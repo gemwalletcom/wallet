@@ -28,8 +28,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 771
-        versionName = "2.72"
+        versionCode = 773
+        versionName = "2.74"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -282,8 +282,6 @@ dependencies {
     implementation(libs.androidx.security.crypto)
     // Auth
     implementation(libs.androidx.biometric)
-    // Chart
-    implementation(libs.vico.m3)
 
     implementation(libs.reorderable)
 

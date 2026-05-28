@@ -9,6 +9,7 @@ public extension Gemstone.GemSwapQuote {
         try Primitives.SwapQuote(
             fromAddress: fromAddress,
             fromValue: fromValue,
+            minFromValue: minFromValue,
             toAddress: toAddress,
             toValue: toValue,
             providerData: providerData.map(),
@@ -24,6 +25,7 @@ extension Primitives.SwapQuote {
         try Gemstone.GemSwapQuote(
             fromAddress: fromAddress,
             fromValue: fromValue,
+            minFromValue: minFromValue,
             toAddress: toAddress,
             toValue: toValue,
             providerData: providerData.map(),

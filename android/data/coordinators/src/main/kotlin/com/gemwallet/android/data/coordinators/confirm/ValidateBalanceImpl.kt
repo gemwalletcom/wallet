@@ -50,8 +50,11 @@ class ValidateBalanceImpl : ValidateBalance {
         }
 
         if (!signerParams.input.shouldIgnoreValueCheck && assetBalance < totalAmount) {
-            val label = "${assetInfo.asset.name} (${assetInfo.asset.symbol})"
-            throw ConfirmError.InsufficientBalance(label)
+            throw insufficientBalance(assetInfo)
+        }
+        val minimumAmount = signerParams.input.minimumAmount
+        if (minimumAmount != null && amount < minimumAmount) {
+            throw insufficientBalance(assetInfo)
         }
         if (feeAssetInfo.balance.balance.available.toBigInteger() < feeAmount) {
             throw ConfirmError.InsufficientFee(chain = feeAssetInfo.asset.chain)
@@ -66,5 +69,9 @@ class ValidateBalanceImpl : ValidateBalance {
             && (feeAssetInfo.balance.balance.available.toBigInteger() - totalAmount).let { it > -MAX_256 && it < BigInteger.valueOf(minimumAssetBalance) }) {
             throw ConfirmError.MinimumAccountBalanceTooLow(asset = feeAssetInfo.asset, required = minimumAssetBalance)
         }
+    }
+
+    private fun insufficientBalance(assetInfo: AssetInfo): ConfirmError.InsufficientBalance {
+        return ConfirmError.InsufficientBalance("${assetInfo.asset.name} (${assetInfo.asset.symbol})")
     }
 }

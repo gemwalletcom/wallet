@@ -27,3 +27,15 @@ internal fun DecimalFormat.format(value: BigDecimal, precision: Precision): Stri
         maximumFractionDigits = Int.MAX_VALUE
     }.format(value.round(MathContext(precision.max, roundingMode)).stripTrailingZeros())
 }
+
+internal fun adaptivePrecision(magnitude: BigDecimal): Precision =
+    if (magnitude < DUST_THRESHOLD || magnitude >= SMALL_VALUE_THRESHOLD) {
+        Precision.twoPlaces
+    } else {
+        Precision.fourSignificant
+    }
+
+internal val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(10_000)
+
+private val SMALL_VALUE_THRESHOLD: BigDecimal = BigDecimal("0.99")
+private val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0000000001")

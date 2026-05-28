@@ -4,7 +4,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -77,7 +78,7 @@ class TestAptosSigner {
                 "3862393039666537306137383539393434323330656234306566353061623236306130623931663" +
                 "9356336323263646365376366373138353233653565656235323664336661356438393635646431" +
                 "333966333637303930653562303031222c2274797065223a22656432353531395f7369676e61747" +
-                "57265227d7d", sign.first().toHexString())
+                "57265227d7d", sign.first().hex.append0x())
     }
 
     @Test
@@ -127,6 +128,6 @@ class TestAptosSigner {
                 "6565643537613263353832613131363834303331313065383030346636623436666236343039663" +
                 "0393233386339663164363330643936623965663731653532663362643037326466396432353131" +
                 "343430313461356366666437643137643164303062222c2274797065223a22656432353531395f7" +
-                "369676e6174757265227d7d", sign.first().toHexString())
+                "369676e6174757265227d7d", sign.first().hex.append0x())
     }
 }

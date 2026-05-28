@@ -4,7 +4,8 @@ import com.gemwallet.android.blockchain.clients.stellar.StellarChainData
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.math.toHexString
+import com.gemwallet.android.math.append0x
+import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -63,6 +64,6 @@ class TestStellarSigner {
                 "e36716b324934364643494e4a4e386142586f61306967414141414141414141414141414a7841414" +
                 "14141414141414141586f6130696741414142414b366e522b67544956464c7347454831776f42496" +
                 "252514f4f56334863745975742f4b7972316e4c62424d34527952674370327576664f7954354c326" +
-                "94d45507554797861726533515a446b544d62734756417142413d3d", sign.first().toHexString())
+                "94d45507554797861726533515a446b544d62734756417142413d3d", sign.first().hex.append0x())
     }
 }

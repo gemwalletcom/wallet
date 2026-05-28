@@ -13,6 +13,7 @@ fun ConfirmParams.SwapParams.toGem(): GemSwapData {
             fromAddress = from.address,
             toAddress = toAddress,
             fromValue = fromAmount.toString(),
+            minFromValue = minFromAmount?.toString(),
             toValue = toAmount.toString(),
             providerData = GemSwapProviderData(
                 provider = providerId,

@@ -1,7 +1,7 @@
 package com.gemwallet.android.blockchain.operators.walletcore
 
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import wallet.core.jni.CoinType
@@ -16,13 +16,13 @@ class WCStorePhraseOperator(
         val storedKey = if (wallet.type == WalletType.PrivateKey) {
             val coinType = coinTypeProxy(wallet.accounts.firstOrNull()?.chain ?: throw IllegalArgumentException())
             StoredKey.importPrivateKey(
-                data.decodeHex(),
+                data.fromHex(),
                 walletId,
-                password.decodeHex(),
+                password.fromHex(),
                 coinType,
             )
         } else {
-            StoredKey.importHDWallet(data, walletId, password.decodeHex(), CoinType.BITCOIN)
+            StoredKey.importHDWallet(data, walletId, password.fromHex(), CoinType.BITCOIN)
         }
         storedKey.store("$keyStoreDir/$walletId")
         Result.success(true)

@@ -35,6 +35,7 @@ class BuildSwapConfirmParamsImpl(
             fromAsset = pay.asset,
             toAsset = receive.asset,
             fromAmount = BigInteger(quote.fromValue),
+            minFromAmount = quote.minFromValue?.toBigIntegerOrNull(),
             toAmount = BigInteger(quote.toValue),
             swapData = swapData.data,
             providerId = quote.data.provider.id,

@@ -9,7 +9,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ext.urlDecode
 import com.gemwallet.android.ext.urlEncode
-import com.gemwallet.android.math.decodeHex
+import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.serializer.BigIntegerSerializer
 import com.gemwallet.android.serializer.jsonEncoder
@@ -54,6 +54,9 @@ sealed class ConfirmParams() {
     abstract val useMaxAmount: Boolean
 
     abstract val shouldIgnoreValueCheck: Boolean
+
+    open val minimumAmount: BigInteger?
+        get() = null
 
     val assetId: AssetId get() = asset.id
 
@@ -188,7 +191,7 @@ sealed class ConfirmParams() {
                     data = memo?.let { data ->
                         if (data.has0xPrefix()) {
                             try {
-                                return@let data.decodeHex()
+                                return@let data.fromHex()
                             } catch (_: Error) { }
                         }
                         data.toByteArray()
@@ -297,6 +300,7 @@ sealed class ConfirmParams() {
         override val from: Account,
         val fromAsset: Asset,
         @Serializable(BigIntegerSerializer::class) val fromAmount: BigInteger,
+        @Serializable(BigIntegerSerializer::class) val minFromAmount: BigInteger? = null,
         val toAsset: Asset,
         @Serializable(BigIntegerSerializer::class) val toAmount: BigInteger,
         val swapData: String,
@@ -320,6 +324,9 @@ sealed class ConfirmParams() {
 
         override val amount: BigInteger
             get() = fromAmount
+
+        override val minimumAmount: BigInteger?
+            get() = minFromAmount
 
         override val shouldIgnoreValueCheck: Boolean
             get() = false
@@ -659,4 +666,3 @@ fun GemApprovalData.toModel(): ApprovalData {
         isUnlimited = this.isUnlimited,
     )
 }
-

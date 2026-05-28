@@ -61,7 +61,7 @@ class BuildChartUIModelTest {
             period = ChartPeriod.Day,
             currency = Currency.USD,
         )
-        assertEquals("+4.20%", model.currentPoint!!.percentage)
+        assertEquals(4.2, model.currentPoint!!.priceChangePercentage, 0.0001)
     }
 
     @Test
@@ -72,7 +72,7 @@ class BuildChartUIModelTest {
             period = ChartPeriod.Week,
             currency = Currency.USD,
         )
-        assertEquals("+100.00%", model.currentPoint!!.percentage)
+        assertEquals(100.0, model.currentPoint!!.priceChangePercentage, 0.0001)
     }
 
     @Test
@@ -84,7 +84,7 @@ class BuildChartUIModelTest {
             currency = Currency.USD,
         )
         assertNotNull(model.currentPoint)
-        assertEquals("+0.00%", model.currentPoint!!.percentage)
+        assertEquals(0.0, model.currentPoint!!.priceChangePercentage, 0.0001)
     }
 
     @Test

@@ -15,6 +15,7 @@ public struct TransferAmountInput {
     public let fee: BigInt
     public let canChangeValue: Bool
     public let ignoreValueCheck: Bool // in some cases like claim rewards we should ignore checking total balance
+    public let minimumValue: BigInt?
 
     public init(
         asset: Asset,
@@ -35,6 +36,7 @@ public struct TransferAmountInput {
         self.fee = fee
         canChangeValue = transferData.canChangeValue
         ignoreValueCheck = transferData.type.shouldIgnoreValueCheck
+        minimumValue = transferData.minimumValue
     }
 
     public init(
@@ -47,6 +49,7 @@ public struct TransferAmountInput {
         fee: BigInt,
         canChangeValue: Bool,
         ignoreValueCheck: Bool,
+        minimumValue: BigInt? = nil,
     ) {
         self.asset = asset
         self.assetBalance = assetBalance
@@ -57,6 +60,7 @@ public struct TransferAmountInput {
         self.fee = fee
         self.canChangeValue = canChangeValue
         self.ignoreValueCheck = ignoreValueCheck
+        self.minimumValue = minimumValue
     }
 
     public var isMaxValue: Bool {

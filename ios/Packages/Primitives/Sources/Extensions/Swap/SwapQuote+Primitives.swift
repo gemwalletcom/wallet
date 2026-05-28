@@ -11,4 +11,8 @@ public extension SwapQuote {
     var fromValueBigInt: BigInt {
         (try? BigInt.from(string: fromValue)) ?? .zero
     }
+
+    var minFromValueBigInt: BigInt? {
+        minFromValue.flatMap { try? BigInt.from(string: $0) }
+    }
 }

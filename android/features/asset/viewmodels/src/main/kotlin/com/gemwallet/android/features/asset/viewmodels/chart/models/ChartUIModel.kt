@@ -1,32 +1,34 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
-import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.components.chart.ChartPoint
+import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
 
-class ChartUIModel(
+data class ChartUIModel(
     val period: ChartPeriod = ChartPeriod.Day,
     val currentPoint: PricePoint? = null,
     val chartPoints: List<PricePoint> = emptyList(),
+    internal val priceFormatter: (Double) -> String = { "" },
 ) {
     val renderPoints: List<ChartPoint> by lazy {
         chartPoints.mapIndexed { index, point -> ChartPoint(x = index.toFloat(), y = point.y) }
     }
 
-    val minLabel: String? by lazy { chartPoints.minByOrNull { it.y }?.yLabel }
-    val maxLabel: String? by lazy { chartPoints.maxByOrNull { it.y }?.yLabel }
+    val minLabel: String? by lazy { chartPoints.minByOrNull { it.y }?.price?.let(priceFormatter) }
+    val maxLabel: String? by lazy { chartPoints.maxByOrNull { it.y }?.price?.let(priceFormatter) }
 
-    companion object
+    companion object {}
 
-    class State(
-        val loading: Boolean = true,
+    data class State(
         val period: ChartPeriod = ChartPeriod.Day,
-        val empty: Boolean = false,
+        val viewState: ChartViewState = ChartViewState.Loading,
     )
 }
 
@@ -38,31 +40,29 @@ internal fun ChartUIModel.Companion.from(
 ): ChartUIModel {
     val basePrice = prices.firstOrNull { it.value != 0.0f }?.value ?: 0.0f
     val currencyFormatter = CurrencyFormatter(currency = currency)
+    val priceFormatter: (Double) -> String = currencyFormatter::string
     val historicalPoints = prices.map { chartValue ->
-        val changePercent = percentageChange(basePrice, chartValue.value.toDouble())
         PricePoint(
             y = chartValue.value,
-            yLabel = currencyFormatter.string(chartValue.value.toDouble()),
+            price = chartValue.value.toDouble(),
+            priceChangePercentage = PriceChange.percentage(from = basePrice.toDouble(), to = chartValue.value.toDouble()),
             timestamp = chartValue.timestamp * 1000L,
-            percentage = changePercent.formatAsPercentage(),
-            priceState = changePercent.toValueDirection(),
         )
     }
     val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0) * 1000L
-    val currentPoint = priceInfo
+    val currentPoint: PricePoint? = priceInfo
         ?.takeIf { historicalPoints.isNotEmpty() && it.price.updatedAt >= lastTimestampMillis }
-        ?.let { info ->
+        ?.let { assetInfo ->
             val changePercent = if (period == ChartPeriod.Day) {
-                info.price.priceChangePercentage24h
+                assetInfo.price.priceChangePercentage24h
             } else {
-                percentageChange(basePrice, info.price.price)
+                PriceChange.percentage(from = basePrice.toDouble(), to = assetInfo.price.price)
             }
             PricePoint(
-                y = info.price.price.toFloat(),
-                yLabel = currencyFormatter.string(info.price.price),
+                y = assetInfo.price.price.toFloat(),
+                price = assetInfo.price.price,
+                priceChangePercentage = changePercent,
                 timestamp = System.currentTimeMillis(),
-                percentage = changePercent.formatAsPercentage(),
-                priceState = changePercent.toValueDirection(),
             )
         }
 
@@ -70,10 +70,17 @@ internal fun ChartUIModel.Companion.from(
         period = period,
         currentPoint = currentPoint,
         chartPoints = historicalPoints + listOfNotNull(currentPoint),
+        priceFormatter = priceFormatter,
     )
 }
 
-private fun percentageChange(basePrice: Float, currentPrice: Double): Double {
-    if (basePrice == 0.0f) return 0.0
-    return (currentPrice - basePrice) / basePrice * 100.0
+fun chartHeader(uiModel: ChartUIModel, selectedPoint: PricePoint?): ChartHeaderUIModel? {
+    val target = selectedPoint ?: uiModel.chartPoints.lastOrNull() ?: return null
+    return ChartHeaderUIModel.build(
+        price = target.price,
+        priceChangePercentage = target.priceChangePercentage,
+        timestamp = selectedPoint?.timestamp,
+        priceFormatter = uiModel.priceFormatter,
+        dateFormatter = ::getRelativeDate,
+    )
 }

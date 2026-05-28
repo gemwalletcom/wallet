@@ -26,7 +26,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
+import com.gemwallet.android.ui.models.chart.ChartViewState
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
@@ -69,7 +70,7 @@ class ChartViewModelTest {
 
         assertEquals(prices.size, uiModel.chartPoints.size)
         assertNull(uiModel.currentPoint)
-        assertFalse(viewModel.chartUIState.value.loading)
+        assertEquals(ChartViewState.Ready, viewModel.chartUIState.value.viewState)
     }
 
     @Test
@@ -100,7 +101,7 @@ class ChartViewModelTest {
             getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD)
         }
         assertEquals(prices.size, uiModel.chartPoints.size)
-        assertFalse(viewModel.chartUIState.value.loading)
+        assertEquals(ChartViewState.Ready, viewModel.chartUIState.value.viewState)
     }
 
     private fun createViewModel(tokenInfoFlow: MutableStateFlow<AssetInfo?>): ChartViewModel {

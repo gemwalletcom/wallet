@@ -6,6 +6,7 @@ import Primitives
 public extension SwapQuote {
     static func mock(
         fromValue: String = "1000000000000000000",
+        minFromValue: String? = nil,
         toValue: String = "2000000000000000000",
         providerData: SwapProviderData = .mock(),
         walletAddress: String = "0x0000000000000000000000000000000000000000",
@@ -15,6 +16,7 @@ public extension SwapQuote {
         SwapQuote(
             fromAddress: walletAddress,
             fromValue: fromValue,
+            minFromValue: minFromValue,
             toAddress: walletAddress,
             toValue: toValue,
             providerData: providerData,
