@@ -18,7 +18,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.CoreListItem
 import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.StreamEvent
-import com.wallet.core.primitives.StreamNotificationlUpdate
+import com.wallet.core.primitives.StreamNotificationUpdate
 import com.wallet.core.primitives.StreamPriceAlertUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
@@ -115,7 +115,7 @@ class StreamEventHandlerTest {
 
         handler.handle(
             StreamEvent.InAppNotification(
-                StreamNotificationlUpdate(walletId = walletId, notification = notification)
+                StreamNotificationUpdate(walletId = walletId, notification = notification)
             )
         )
 

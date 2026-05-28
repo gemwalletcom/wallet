@@ -22,7 +22,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
 import com.wallet.core.primitives.StreamBalanceUpdate
 import com.wallet.core.primitives.StreamEvent
-import com.wallet.core.primitives.StreamNotificationlUpdate
+import com.wallet.core.primitives.StreamNotificationUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
 import com.wallet.core.primitives.WebSocketPricePayload
@@ -109,7 +109,7 @@ class StreamEventHandler(
         syncFiatTransactions.get()(update.walletId)
     }
 
-    private suspend fun handleInAppNotification(update: StreamNotificationlUpdate) {
+    private suspend fun handleInAppNotification(update: StreamNotificationUpdate) {
         inAppNotificationsDao.put(listOf(update.notification.toRecord()))
     }
 
