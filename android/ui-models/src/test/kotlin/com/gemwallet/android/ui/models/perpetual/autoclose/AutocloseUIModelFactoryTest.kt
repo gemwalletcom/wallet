@@ -21,6 +21,20 @@ class AutocloseUIModelFactoryTest {
     }
 
     @Test
+    fun pnlSuppressedWhenFieldHasError() {
+        val invalid = mockAutocloseField(TpslType.TakeProfit, price = 50.0, error = AutocloseError.TriggerMustBeHigher)
+        val model = AutocloseUIModelFactory.create(
+            position = mockPerpetualPositionData(
+                position = mockPerpetualPosition(direction = PerpetualDirection.Long, entryPrice = 100.0, leverage = 5u),
+            ),
+            takeProfit = invalid,
+            stopLoss = mockAutocloseField(TpslType.StopLoss),
+            confirmEnabled = false,
+        )
+        assertEquals("-", model.takeProfit.pnlText)
+    }
+
+    @Test
     fun errorSuppressedUntilShowErrorsSet() {
         val invalidTakeProfit = mockAutocloseField(TpslType.TakeProfit, price = 50.0, error = AutocloseError.TriggerMustBeHigher)
         val hidden = AutocloseUIModelFactory.create(

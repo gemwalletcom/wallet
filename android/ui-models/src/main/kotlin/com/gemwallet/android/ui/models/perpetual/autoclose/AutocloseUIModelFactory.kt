@@ -50,8 +50,9 @@ object AutocloseUIModelFactory {
         estimator: AutocloseEstimator,
         showErrors: Boolean = true,
     ): AutocloseUIModel.Field {
-        val pnl = field.price?.let(estimator::pnl)
-        val roe = field.price?.let(estimator::roe)
+        val priceForEstimation = field.price.takeIf { field.error == null }
+        val pnl = priceForEstimation?.let(estimator::pnl)
+        val roe = priceForEstimation?.let(estimator::roe)
         val isProfit = pnl?.let { it >= 0.0 } ?: (field.type == TpslType.TakeProfit)
         return AutocloseUIModel.Field(
             type = field.type,
