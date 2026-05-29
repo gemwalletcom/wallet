@@ -62,15 +62,16 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func fiatValueNilForNonNativeFeeType() throws {
+    func fiatValueForNonNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(chain: .ethereum)
         let price = Price(price: 3000.0, priceChangePercentage24h: 0, updatedAt: Date())
 
         model.update(rates: [.defaultRate()], feeAssetPrice: price)
+        model.update(feeAmount: BigInt(21_000_000_000_000))
 
         let feeRateVM = try #require(model.feeRatesViewModels.first)
 
-        #expect(model.fiatValueForRate(feeRateVM) == nil)
+        #expect(model.fiatValueForRate(feeRateVM) != nil)
     }
 
     @Test

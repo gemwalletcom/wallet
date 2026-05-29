@@ -37,7 +37,7 @@ class FeeRateUIModelTest {
     }
 
     @Test
-    fun nativeFeeChainShowsFiatAsPrimaryAndEmptyFiat() {
+    fun nativeFeeChainShowsCryptoAmountAndFiat() {
         val assetInfo = mockAssetInfo(asset = mockAssetEthereum())
             .copy(price = mockAssetPriceInfo(price = 1.0))
         val selectedRate = GemFeeRate(
@@ -55,12 +55,12 @@ class FeeRateUIModelTest {
             selectedFeeAmount = BigInteger("1000000000000000000"),
         )
 
-        assertEquals("$1.00", model.price)
-        assertEquals("", model.fiatValue)
+        assertEquals("0.000000000000000001 ETH", model.price)
+        assertEquals("$1.00", model.fiatValue)
     }
 
     @Test
-    fun feeRateReturnsEmptyWithoutLoadedFee() {
+    fun nativeFeeChainShowsCryptoAmountWithoutFiatWhenFeeNotLoaded() {
         val model = FeeRateUIModel(
             feeRate = GemFeeRate(
                 priority = FeePriority.Normal.string,
@@ -70,7 +70,7 @@ class FeeRateUIModelTest {
             feeUnitType = FeeUnitType.Native,
         )
 
-        assertEquals("", model.price)
+        assertEquals("0.000000000000000001 ETH", model.price)
         assertEquals("", model.fiatValue)
     }
 }

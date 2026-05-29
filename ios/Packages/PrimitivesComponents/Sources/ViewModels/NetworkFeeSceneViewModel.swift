@@ -74,7 +74,7 @@ public final class NetworkFeeSceneViewModel {
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
         switch chain.feeUnitType {
         case .native: display(for: rate.feeRate.gasPriceType.totalFee).fiat?.text
-        case .gwei, .satVb: nil
+        case .gwei, .satVb: feeAmount(for: rate.feeRate).flatMap { display(for: $0).fiat?.text }
         }
     }
 
