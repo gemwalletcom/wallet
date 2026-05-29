@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.components.list_item.property.AddressPropertyIte
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
@@ -125,6 +126,7 @@ fun NFTDetailsScene(
                 )
             }
             item { Spacer(Modifier.height(paddingSmall)) }
+            verificationStatusItem(model.collection.status)
             generalInfo(model)
             nftAttributes(model.attributes)
             nftLinks(model.collection.links) { uriHandler.openUri(it) }
