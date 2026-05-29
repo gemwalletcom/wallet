@@ -20,19 +20,19 @@ interface ConnectionsDao {
     @Update
     suspend fun update(connection: DbConnection)
 
-    @Query("SELECT * FROM room_connection")
+    @Query("SELECT * FROM wallets_connections")
     fun getAll(): Flow<List<DbConnection>>
 
-    @Query("SELECT * FROM room_connection WHERE id = :connectionId")
+    @Query("SELECT * FROM wallets_connections WHERE id = :connectionId")
     fun getConnection(connectionId: String): Flow<DbConnection?>
 
-    @Query("SELECT * FROM room_connection WHERE session_id = :sessionId")
+    @Query("SELECT * FROM wallets_connections WHERE session_id = :sessionId")
     suspend fun getBySessionId(sessionId: String): DbConnection?
 
-    @Query("DELETE FROM room_connection WHERE id = :id")
+    @Query("DELETE FROM wallets_connections WHERE id = :id")
     suspend fun delete(id: String)
 
-    @Query("DELETE FROM room_connection")
+    @Query("DELETE FROM wallets_connections")
     suspend fun deleteAll()
 
     @Delete

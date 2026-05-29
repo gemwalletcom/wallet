@@ -2,19 +2,29 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionSession
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.wallet.core.primitives.WalletConnectionState
 
-@Entity(tableName = "room_connection")
+@Entity(
+    tableName = "wallets_connections",
+    foreignKeys = [
+        ForeignKey(DbWallet::class, ["id"], ["wallet_id"], onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE),
+    ],
+    indices = [Index("wallet_id")],
+)
 data class DbConnection(
     @PrimaryKey val id: String,
     @ColumnInfo("wallet_id") val walletId: String,
     @ColumnInfo("session_id") val sessionId: String,
     val state: WalletConnectionState,
+    val chains: List<Chain>,
     @ColumnInfo("created_at") val createdAt: Long,
     @ColumnInfo("expire_at") val expireAt: Long,
     @ColumnInfo("app_name") val appName: String,
@@ -34,7 +44,7 @@ fun DbConnection.toDTO(wallet: Wallet): WalletConnection {
             state = state,
             createdAt = createdAt,
             expireAt = expireAt,
-            chains = emptyList(),
+            chains = chains,
             metadata = WalletConnectionSessionAppMetadata(
                 name = appName,
                 description = appDescription,
@@ -50,6 +60,7 @@ fun WalletConnection.toRecord(): DbConnection {
         id = session.id,
         sessionId = session.id,
         state = session.state,
+        chains = session.chains,
         createdAt = session.createdAt,
         expireAt = session.expireAt,
         appName = session.metadata.name,

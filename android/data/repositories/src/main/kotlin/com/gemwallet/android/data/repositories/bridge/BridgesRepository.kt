@@ -20,7 +20,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnection
 import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionState
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -118,19 +117,9 @@ class BridgesRepository(
 
     suspend fun getConnectionByTopic(topic: String): WalletConnection? {
         val record = connectionsDao.getBySessionId(topic) ?: return null
-        val session = activeSessions().firstOrNull { it.topic == topic } ?: return null
         val wallet = walletsRepository.getAll().firstOrNull()
             ?.firstOrNull { it.id.id == record.walletId } ?: return null
-        val connection = record.toDTO(wallet)
-        val chains = session.namespaces.values
-            .flatMap { it.chains ?: emptyList() }
-            .mapNotNull { Chain.getNamespace(it) }
-        return connection.copy(
-            session = connection.session.copy(
-                chains = chains,
-                metadata = session.metaData?.toConnectionMetadata() ?: connection.session.metadata,
-            )
-        )
+        return record.toDTO(wallet)
     }
 
     fun getConnection(connectionId: String): Flow<WalletConnection?> {
@@ -300,12 +289,16 @@ class BridgesRepository(
 
     private suspend fun addConnection(session: Wallet.Model.Session) {
         val wallet = resolveWallet(session) ?: return
+        val chains = session.namespaces.values
+            .flatMap { it.chains ?: emptyList() }
+            .mapNotNull { Chain.getNamespace(it) }
         connectionsDao.insert(
             DbConnection(
                 id = session.topic,
                 walletId = wallet.id.id,
                 sessionId = session.topic,
                 state = WalletConnectionState.Active,
+                chains = chains,
                 createdAt = System.currentTimeMillis(),
                 expireAt = session.expiry * 1000L,
                 appName = walletConnectAppName(session.metaData?.name, session.metaData?.url),
@@ -348,12 +341,5 @@ class BridgesRepository(
                 )
             }
     }
-
-    private fun Core.Model.AppMetaData?.toConnectionMetadata(): WalletConnectionSessionAppMetadata = WalletConnectionSessionAppMetadata(
-        name = walletConnectAppName(this?.name, this?.url),
-        description = this?.description ?: "",
-        url = this?.url ?: "",
-        icon = this?.icons.walletConnectIcon(),
-    )
 
 }
