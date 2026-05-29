@@ -308,7 +308,7 @@ interface AssetsDao {
             AND assetRank > 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE)
-            ORDER BY balanceFiatTotalAmount DESC, assetRank DESC
+            ORDER BY assetRank DESC
         """)
     fun swapSearch(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 
@@ -320,7 +320,7 @@ interface AssetsDao {
             (chain IN (:byChains) OR id IN (:byAssets) )
             AND assetRank > 0
             AND assets_priority.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, assets_priority.priority ASC, assetRank DESC
+            ORDER BY assets_priority.priority ASC, assetRank DESC
         """)
     fun swapSearchWithPriority(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 
