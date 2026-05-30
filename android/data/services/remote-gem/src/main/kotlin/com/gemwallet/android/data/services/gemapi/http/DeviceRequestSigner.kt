@@ -2,8 +2,7 @@ package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.data.services.gemapi.DeviceKeyPair
-import com.gemwallet.android.math.hex
-import java.security.MessageDigest
+import com.gemwallet.android.math.sha256Hex
 import java.util.Base64
 
 data class DeviceSignature(
@@ -19,7 +18,7 @@ class DeviceRequestSigner(
 ) {
     private val deviceKeyPair = DeviceKeyPair.fromHex(getDeviceId.getDeviceKey())
     private var bodyHash: (ByteArray) -> String = { body: ByteArray ->
-        sha256Hex(body)
+        body.sha256Hex()
     }
     private var signMessage: (DeviceKeyPair, ByteArray) -> String = { deviceKeyPair, message ->
         deviceKeyPair.sign(message)
@@ -40,7 +39,7 @@ class DeviceRequestSigner(
 
     internal constructor(
         getDeviceId: GetDeviceId,
-        bodyHash: (ByteArray) -> String = { body -> sha256Hex(body) },
+        bodyHash: (ByteArray) -> String = { body -> body.sha256Hex() },
         signMessage: (DeviceKeyPair, ByteArray) -> String = { deviceKeyPair, message ->
             deviceKeyPair.sign(message)
         },
@@ -50,8 +49,4 @@ class DeviceRequestSigner(
         this.signMessage = signMessage
         this.currentTimeMillis = currentTimeMillis
     }
-}
-
-private fun sha256Hex(body: ByteArray): String {
-    return MessageDigest.getInstance("SHA-256").digest(body).hex
 }

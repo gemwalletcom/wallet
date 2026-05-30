@@ -10,12 +10,12 @@ internal fun mockDeviceRequestSigner(
     currentTimeMillis = currentTimeMillis,
 )
 
-internal fun mockGetDeviceId(): GetDeviceId = FakeGetDeviceId(
+internal fun mockGetDeviceId(): GetDeviceId = MockGetDeviceId(
     deviceId = DeviceKeyPairFixture.publicKeyHex,
     deviceKey = DeviceKeyPairFixture.privateKeyHex,
 )
 
-private class FakeGetDeviceId(
+private class MockGetDeviceId(
     private val deviceId: String,
     private val deviceKey: String,
 ) : GetDeviceId {

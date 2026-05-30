@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.data.services.gemapi.DeviceKeyPairFixture
+import com.gemwallet.android.testkit.mockMulticoinWalletId
 import java.util.Base64
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -27,7 +28,7 @@ class DeviceRequestSignerTest {
             },
             currentTimeMillis = { 123L },
         )
-        val walletId = "multicoin_0xabc"
+        val walletId = mockMulticoinWalletId().id
         val body = """{"device":"android"}""".toByteArray()
 
         val signature = signer.sign(
@@ -49,7 +50,7 @@ class DeviceRequestSignerTest {
 
     @Test
     fun signUsesEd25519AndSha256() {
-        val walletId = "multicoin_0xabc"
+        val walletId = mockMulticoinWalletId().id
         val signer = mockDeviceRequestSigner()
 
         val signature = signer.sign(

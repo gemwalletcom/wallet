@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.data.services.gemapi.DeviceKeyPairFixture
+import com.gemwallet.android.testkit.mockMulticoinWalletId
 import com.wallet.core.primitives.WalletId
 import java.util.Base64
 import java.util.concurrent.TimeUnit
@@ -30,11 +31,12 @@ class SecurityInterceptorTest {
             signMessage = { _, _ -> "signaturehex" },
             currentTimeMillis = { 123L },
         )
+        val walletId = mockMulticoinWalletId()
         val body = """{"device":"android"}"""
         val request = Request.Builder()
             .url("https://api.gemwallet.com/v2/devices/rewards")
             .post(body.toRequestBody("application/json".toMediaType()))
-            .tag(WalletId::class.java, WalletId("multicoin_0xabc"))
+            .tag(WalletId::class.java, walletId)
             .build()
 
         val chain = FakeChain(request)
@@ -43,7 +45,7 @@ class SecurityInterceptorTest {
         val authorization = signedRequest.header("Authorization")!!
         val payload = String(Base64.getDecoder().decode(authorization.removePrefix("Gem ")))
 
-        assertEquals("${DeviceKeyPairFixture.publicKeyHex}.123.multicoin_0xabc.bodyhash.signaturehex", payload)
+        assertEquals("${DeviceKeyPairFixture.publicKeyHex}.123.${walletId.id}.bodyhash.signaturehex", payload)
         assertNull(signedRequest.header("x-wallet-id"))
         assertEquals(body, hashedBody!!.toString(Charsets.UTF_8))
     }
