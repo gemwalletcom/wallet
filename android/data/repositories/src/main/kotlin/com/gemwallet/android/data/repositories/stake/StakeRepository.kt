@@ -3,6 +3,7 @@ package com.gemwallet.android.data.repositories.stake
 import com.gemwallet.android.blockchain.services.StakeService
 import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.service.store.database.StakeDao
+import com.gemwallet.android.domains.asset.SYSTEM_VALIDATOR_ID
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -30,14 +31,8 @@ class StakeRepository(
     private val recommendedValidators = Config().getValidators()
 
     override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String, apr: Double) = withContext(Dispatchers.IO) {
-        val validators = stakeDao.getValidators(assetId.toIdentifier(), StakeProviderType.Stake).first()
-        if (validators.isEmpty()) {
-            syncValidators(assetId, apr)
-            syncDelegations(walletId, assetId, address)
-        } else {
-            syncDelegations(walletId, assetId, address)
-            syncValidators(assetId, apr)
-        }
+        syncValidators(assetId, apr)
+        syncDelegations(walletId, assetId, address)
     }
 
     fun getRecommendValidators(assetId: AssetId): List<String> {
@@ -98,8 +93,12 @@ class StakeRepository(
         if (deleteIds.isNotEmpty()) {
             stakeDao.deleteDelegations(walletId.id, deleteIds)
         }
-        if (incoming.isNotEmpty()) {
-            stakeDao.upsertDelegations(incoming)
+        val validatorIds = stakeDao.getValidators(assetId.toIdentifier(), StakeProviderType.Stake).first()
+            .map { it.id }
+            .toSet()
+        val upsertable = incoming.filter { validatorIds.contains(it.validatorId) }
+        if (upsertable.isNotEmpty()) {
+            stakeDao.upsertDelegations(upsertable)
         }
     }
 }
@@ -116,6 +115,6 @@ internal fun pickRecommendedValidator(
 
 internal fun selectableValidators(validators: List<DelegationValidator>): List<DelegationValidator> {
     return validators
-        .filter { it.isActive && it.name.isNotEmpty() }
+        .filter { it.isActive && it.name.isNotEmpty() && it.id != SYSTEM_VALIDATOR_ID }
         .sortedByDescending { it.apr }
 }

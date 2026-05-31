@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.Constants
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -38,7 +38,7 @@ fun DelegationItem(
         listPosition = listPosition,
         leading = {
             IconWithBadge(
-                icon = "${Constants.ASSETS_URL}/blockchains/${delegation.validator.chain.string}/validators/${delegation.validator.id}/logo.png",
+                icon = delegation.validator.getIconUrl(),
                 placeholder = delegation.validator.name.firstOrNull()?.toString() ?: delegation.validator.id.firstOrNull()?.toString() ?: "",
             )
         },
