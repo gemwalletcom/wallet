@@ -262,10 +262,7 @@ async fn collect_image_attachments(state: &AppState, files: &[SlackFile]) -> Vec
 
 fn strip_mention(text: &str) -> String {
     let mut s = text.trim_start();
-    loop {
-        let Some(rest) = s.strip_prefix("<@") else {
-            break;
-        };
+    while let Some(rest) = s.strip_prefix("<@") {
         let Some(end) = rest.find('>') else {
             break;
         };
