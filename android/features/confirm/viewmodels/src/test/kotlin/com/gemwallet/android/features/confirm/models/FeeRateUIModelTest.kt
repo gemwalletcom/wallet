@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.confirm
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockAssetSolana
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
 import org.junit.Assert.assertEquals
@@ -37,26 +38,23 @@ class FeeRateUIModelTest {
     }
 
     @Test
-    fun nativeFeeChainShowsCryptoAmountAndFiat() {
-        val assetInfo = mockAssetInfo(asset = mockAssetEthereum())
-            .copy(price = mockAssetPriceInfo(price = 1.0))
+    fun nativeFeeChainScalesCryptoFromSelectedLoadedFee() {
+        val assetInfo = mockAssetInfo(asset = mockAssetSolana())
         val selectedRate = GemFeeRate(
             priority = FeePriority.Normal.string,
-            gasPriceType = GemGasPriceType.Regular(gasPrice = "1"),
+            gasPriceType = GemGasPriceType.Regular(gasPrice = "110"),
         )
-        val model = FeeRateUIModel(
-            feeRate = GemFeeRate(
-                priority = FeePriority.Normal.string,
-                gasPriceType = GemGasPriceType.Regular(gasPrice = "1"),
-            ),
+        fun model(priority: FeePriority, gasPrice: String) = FeeRateUIModel(
+            feeRate = GemFeeRate(priority = priority.string, gasPriceType = GemGasPriceType.Regular(gasPrice = gasPrice)),
             feeAsset = assetInfo,
             feeUnitType = FeeUnitType.Native,
             selectedRate = selectedRate,
-            selectedFeeAmount = BigInteger("1000000000000000000"),
+            selectedFeeAmount = BigInteger("110000"),
         )
 
-        assertEquals("0.000000000000000001 ETH", model.price)
-        assertEquals("$1.00", model.fiatValue)
+        assertEquals("0.0001 SOL", model(FeePriority.Slow, "100").price)
+        assertEquals("0.00011 SOL", model(FeePriority.Normal, "110").price)
+        assertEquals("0.0002 SOL", model(FeePriority.Fast, "200").price)
     }
 
     @Test

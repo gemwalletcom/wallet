@@ -64,7 +64,9 @@ data class FeeRateUIModel(
             .string(feeRate.gasPriceType.totalFee(), decimals, symbol)
     }
 
-    private fun nativeAmountText(): String =
-        ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(feeRate.gasPriceType.totalFee(), feeAsset.asset.decimals, feeAsset.asset.symbol)
+    private fun nativeAmountText(): String {
+        val amount = feeAmount ?: feeRate.gasPriceType.totalFee()
+        return ValueFormatter(style = ValueFormatter.Style.Auto)
+            .string(amount, feeAsset.asset.decimals, feeAsset.asset.symbol)
+    }
 }
