@@ -19,6 +19,4 @@ class AutocloseValidator(
         if (onCorrectSide) return null
         return if (mustBeAbove) AutocloseError.TriggerMustBeHigher else AutocloseError.TriggerMustBeLower
     }
-
-    fun isValid(price: Double?): Boolean = price != null && error(price) == null
 }

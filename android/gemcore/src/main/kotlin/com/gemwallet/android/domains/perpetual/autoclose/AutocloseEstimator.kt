@@ -30,7 +30,7 @@ class AutocloseEstimator(
         }
     }
 
-    fun priceChangePercent(price: Double): Double {
+    private fun priceChangePercent(price: Double): Double {
         val raw = PriceChange.percentage(from = entryPrice, to = price)
         return if (direction == PerpetualDirection.Short) -raw else raw
     }
