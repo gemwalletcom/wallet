@@ -54,6 +54,30 @@ impl DelegationBalance {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegatorHistoryEntry {
+    pub time: u64,
+    pub delta: DelegatorDelta,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegatorDelta {
+    pub withdrawal: Option<DelegatorWithdrawal>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegatorWithdrawal {
+    pub amount: String,
+    pub phase: WithdrawalPhase,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum WithdrawalPhase {
+    Initiated,
+    Finalized,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Validator {
     pub validator: String,

@@ -77,7 +77,7 @@ class DelegationViewModel @Inject constructor(
             .getValidatorUrl(getCurrentBlockExplorer.getCurrentBlockExplorer(chain), delegation.validator.id)
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
-            DelegationProperty.Apr(delegation.validator),
+            delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },
             DelegationProperty.TransactionStatus(delegation.base.state, delegation.validator.isActive),
             delegation.base.state
                 .takeIf {
