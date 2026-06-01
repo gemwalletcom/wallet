@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.ImageFormat
 import android.net.Uri
+import android.util.Size
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,6 +61,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
+import com.google.zxing.LuminanceSource
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.RGBLuminanceSource
@@ -69,6 +71,8 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.paymentDecodeUrl
 import java.nio.ByteBuffer
 import kotlin.math.min
+
+private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -273,6 +277,16 @@ fun QRScanner(listener: (String) -> Unit) {
                 }
             val imageAnalyzer = androidx.camera.core.ImageAnalysis.Builder()
                 .setBackpressureStrategy(androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setResolutionSelector(
+                    androidx.camera.core.resolutionselector.ResolutionSelector.Builder()
+                        .setResolutionStrategy(
+                            androidx.camera.core.resolutionselector.ResolutionStrategy(
+                                QR_ANALYSIS_RESOLUTION,
+                                androidx.camera.core.resolutionselector.ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                            )
+                        )
+                        .build()
+                )
                 .build()
                 .also { imageAnalysis ->
                     imageAnalysis.setAnalyzer(
@@ -314,6 +328,11 @@ private class QRCodeAnalyzer(
         ImageFormat.YUV_422_888,
         ImageFormat.YUV_444_888
     )
+    private val reader = MultiFormatReader()
+    private val hints = mapOf(
+        DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+        DecodeHintType.TRY_HARDER to true,
+    )
 
     override fun analyze(imageProxy: androidx.camera.core.ImageProxy) {
         if (imageProxy.format !in supportedImageFormats) {
@@ -330,21 +349,19 @@ private class QRCodeAnalyzer(
             imageProxy.height,
             false
         )
-        val binaryBmp = BinaryBitmap(HybridBinarizer(source))
         try {
-            val result = MultiFormatReader().apply {
-                setHints(
-                    mapOf(DecodeHintType.POSSIBLE_FORMATS to arrayListOf(BarcodeFormat.QR_CODE))
-                )
-            }.decode(binaryBmp)
-            callback(result.text)
-        } catch (_: Exception) {
-//            Quite
+            val text = tryDecode(source) ?: tryDecode(source.invert())
+            text?.let(callback)
         } finally {
             imageProxy.close()
         }
     }
 
+    private fun tryDecode(source: LuminanceSource): String? = try {
+        reader.decode(BinaryBitmap(HybridBinarizer(source)), hints).text
+    } catch (_: Exception) {
+        null
+    }
 }
 
 @Composable
