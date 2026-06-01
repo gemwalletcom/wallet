@@ -2,8 +2,6 @@ package com.gemwallet.android.features.perpetual.views.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,10 +11,10 @@ import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetai
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
@@ -103,8 +101,7 @@ private fun AutocloseRow(
                     else -> ListItemSupportText("-")
                 }
             }
-            Spacer(Modifier.width(paddingMiddle))
-            ChevronIcon()
+            DataBadgeChevron()
         },
         listPosition = ListPosition.Middle,
     )

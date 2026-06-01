@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +24,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -36,7 +33,6 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.PropertyValidatorItem
 import com.gemwallet.android.ui.components.perpetual.color
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.paddingMiddle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 
@@ -141,8 +137,7 @@ private fun PerpetualAutocloseSection(provider: AmountPerpetualProvider, amount:
         },
         data = {
             AutocloseRowValue(takeProfit = takeProfit, stopLoss = stopLoss)
-            Spacer(Modifier.width(paddingMiddle))
-            ChevronIcon()
+            DataBadgeChevron()
         },
         listPosition = ListPosition.Single,
     )
@@ -155,12 +150,14 @@ private fun PerpetualAutocloseSection(provider: AmountPerpetualProvider, amount:
     )
 }
 
+private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
+
 @Composable
 private fun AutocloseRowValue(takeProfit: String?, stopLoss: String?) {
     val tpLabel = stringResource(R.string.charts_take_profit)
     val slLabel = stringResource(R.string.charts_stop_loss)
-    val tpText = takeProfit?.toDoubleOrNull()?.let { "$tpLabel: ${CurrencyFormatter(currency = Currency.USD).string(it)}" }
-    val slText = stopLoss?.toDoubleOrNull()?.let { "$slLabel: ${CurrencyFormatter(currency = Currency.USD).string(it)}" }
+    val tpText = takeProfit?.toDoubleOrNull()?.let { "$tpLabel: ${usdFormatter.string(it)}" }
+    val slText = stopLoss?.toDoubleOrNull()?.let { "$slLabel: ${usdFormatter.string(it)}" }
     Column(horizontalAlignment = Alignment.End) {
         when {
             tpText != null && slText != null -> {
