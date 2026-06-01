@@ -22,7 +22,6 @@ public struct TransactionView: View {
             subtitleExtra: model.subtitleExtraTextValue,
             imageStyle: .asset(assetImage: model.assetImage),
         )
-        .explorerContext(model.explorerContext)
     }
 }
 
