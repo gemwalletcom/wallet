@@ -1,0 +1,109 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use async_trait::async_trait;
+use gem_hypercore::core::{actions::user::spot_send::SpotSend, hypercore::transfer_to_hyper_evm_typed_data};
+use number_formatter::BigNumberFormatter;
+
+use primitives::{
+    Chain,
+    asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
+    contract_constants::HYPERCORE_SYSTEM_ADDRESS,
+    known_assets::{HYPERCORE_HYPE, HYPEREVM_HYPE},
+    swap::{SwapResult, SwapStatus},
+};
+
+use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+
+use super::spot::scale_quote_value;
+
+#[derive(Debug)]
+pub struct HyperCoreBridge {
+    provider: ProviderType,
+}
+
+impl HyperCoreBridge {
+    pub fn new() -> Self {
+        Self {
+            provider: ProviderType::new(SwapperProvider::Hyperliquid),
+        }
+    }
+}
+
+impl Default for HyperCoreBridge {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[async_trait]
+impl Swapper for HyperCoreBridge {
+    fn provider(&self) -> &ProviderType {
+        &self.provider
+    }
+
+    fn supported_assets(&self) -> Vec<SwapperChainAsset> {
+        vec![
+            SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_HYPE.id.clone()]),
+            SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_HYPE.id.clone()]),
+        ]
+    }
+
+    async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        let to_value = scale_quote_value(&request.value, request.from_asset.decimals, request.to_asset.decimals)?;
+
+        let quote = Quote {
+            from_value: request.value.clone(),
+            min_from_value: None,
+            to_value,
+            data: ProviderData {
+                provider: self.provider.clone(),
+                slippage_bps: 0,
+                routes: vec![Route {
+                    input: request.from_asset.asset_id(),
+                    output: request.to_asset.asset_id(),
+                    route_data: "".to_string(),
+                }],
+            },
+            request: request.clone(),
+            eta_in_seconds: None,
+        };
+
+        Ok(quote)
+    }
+
+    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+        match quote.request.from_asset.asset_id().chain {
+            Chain::HyperCore => {
+                let decimals: i32 = quote.request.from_asset.decimals.try_into().unwrap();
+                let amount = BigNumberFormatter::value(&quote.request.value, decimals)?;
+                let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time went backwards").as_millis() as u64;
+
+                let spot_send = SpotSend::new(amount, HYPERCORE_SYSTEM_ADDRESS.to_string(), timestamp, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());
+                let typed_data = transfer_to_hyper_evm_typed_data(spot_send);
+
+                Ok(SwapperQuoteData::new_contract(
+                    HYPERCORE_SYSTEM_ADDRESS.to_string(),
+                    quote.request.value.clone(),
+                    typed_data,
+                    None,
+                    None,
+                ))
+            }
+            Chain::Hyperliquid => Ok(SwapperQuoteData::new_contract(
+                HYPERCORE_SYSTEM_ADDRESS.to_string(),
+                quote.request.value.clone(),
+                "0x".to_string(),
+                None,
+                None,
+            )),
+            _ => Err(SwapperError::NotSupportedChain),
+        }
+    }
+
+    async fn get_swap_result(&self, _chain: Chain, _transaction_hash: &str) -> Result<SwapResult, SwapperError> {
+        Ok(SwapResult {
+            status: SwapStatus::Completed,
+            metadata: None,
+        })
+    }
+}

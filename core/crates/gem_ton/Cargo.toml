@@ -1,0 +1,45 @@
+[package]
+name = "gem_ton"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = [
+    "dep:async-trait",
+    "dep:gem_client",
+    "dep:chain_traits",
+    "dep:futures",
+]
+tvm = ["dep:gem_hash"]
+signer = ["tvm", "dep:signer"]
+reqwest = ["gem_client/reqwest"]
+chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+
+[dependencies]
+hex = { workspace = true }
+crc = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+primitives = { path = "../primitives" }
+num-bigint = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
+
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
+
+# Optional RPC dependencies
+async-trait = { workspace = true, optional = true }
+gem_client = { path = "../gem_client", optional = true }
+chain_traits = { path = "../chain_traits", optional = true }
+futures = { workspace = true, optional = true }
+
+# Optional signer dependencies
+signer = { path = "../signer", optional = true }
+gem_hash = { path = "../gem_hash", optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+reqwest = { workspace = true }
+settings = { path = "../settings", features = ["testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }

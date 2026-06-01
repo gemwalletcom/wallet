@@ -1,0 +1,67 @@
+{
+  "traces": [
+    {
+      "is_incomplete": false,
+      "actions": [
+        {
+          "success": true,
+          "type": "jetton_swap",
+          "details": {
+            "dex": "stonfi_v2",
+            "sender": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+            "asset_in": "0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE",
+            "asset_out": null,
+            "dex_incoming_transfer": {
+              "asset": "0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE",
+              "source": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+              "destination": "0:92E1411AE546892F33B2C8A89EA90390D8FF4CFBB917A643B91E73F706FDB9D1",
+              "source_jetton_wallet": "0:2E69040C5FC04447E609A572762D67C5EC6555BED5CBB38A34C3D63EC0326E00",
+              "destination_jetton_wallet": "0:922D627D7D8EDBD00E4E23BDB0C54A76EE5E1F46573A1AF4417857FA3E23E91F",
+              "amount": "1000000"
+            },
+            "dex_outgoing_transfer": {
+              "asset": null,
+              "source": "0:92E1411AE546892F33B2C8A89EA90390D8FF4CFBB917A643B91E73F706FDB9D1",
+              "destination": "0:F1FBE8D453D3D4B4796D3D8657EF0773222D123D8DCA67C9EF3ACD2266F40977",
+              "source_jetton_wallet": null,
+              "destination_jetton_wallet": null,
+              "amount": "476299454"
+            },
+            "peer_swaps": []
+          }
+        }
+      ],
+      "transactions_order": [
+        "UGYU1HNmqagLqgYKobcgssWuXRjWirScE8StY12h4N8="
+      ],
+      "transactions": {
+        "UGYU1HNmqagLqgYKobcgssWuXRjWirScE8StY12h4N8=": {
+          "hash": "UGYU1HNmqagLqgYKobcgssWuXRjWirScE8StY12h4N8=",
+          "now": 1778820554,
+          "total_fees": "768090",
+          "description": {
+            "aborted": false,
+            "compute_ph": { "success": true, "exit_code": 0 },
+            "action": { "success": true }
+          },
+          "out_msgs": [
+            {
+              "source": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+              "destination": "0:2E69040C5FC04447E609A572762D67C5EC6555BED5CBB38A34C3D63EC0326E00",
+              "value": "540000000",
+              "opcode": "0x0f8a7ea5",
+              "comment": null,
+              "decoded_body": null
+            }
+          ],
+          "in_msg": {
+            "source": null,
+            "destination": "0:33A14A5A9406979D59B9328898591660B8B1736342B11632EFDCC911AB9057CF",
+            "value": null,
+            "opcode": "0x9c7256a1"
+          }
+        }
+      }
+    }
+  ]
+}

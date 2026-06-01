@@ -1,0 +1,248 @@
+use chrono::{NaiveDateTime, TimeZone, Utc};
+use diesel::prelude::*;
+use primitives::rewards::{RewardRedemption, RewardRedemptionOption};
+use primitives::{Asset, RewardEvent};
+
+use crate::sql_types::{AssetId, IpUsageType, Platform, PlatformStore, RedemptionStatus, RewardEventType, RewardRedemptionType, RewardStatus};
+
+#[derive(Debug, Queryable, Selectable, Clone)]
+#[diesel(table_name = crate::schema::rewards)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct RewardsRow {
+    pub username: String,
+    pub status: RewardStatus,
+    pub level: Option<String>,
+    pub points: i32,
+    pub referrer_username: Option<String>,
+    pub referral_count: i32,
+    pub device_id: i32,
+    pub comment: Option<String>,
+    pub disable_reason: Option<String>,
+    pub verify_after: Option<NaiveDateTime>,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards)]
+pub struct NewRewardsRow {
+    pub username: String,
+    pub status: RewardStatus,
+    pub level: Option<String>,
+    pub points: i32,
+    pub referrer_username: Option<String>,
+    pub referral_count: i32,
+    pub device_id: i32,
+    pub comment: Option<String>,
+    pub disable_reason: Option<String>,
+    pub verify_after: Option<NaiveDateTime>,
+}
+
+impl NewRewardsRow {
+    pub fn new(username: String, device_id: i32) -> Self {
+        Self {
+            username,
+            status: RewardStatus::Unverified,
+            level: None,
+            points: 0,
+            referrer_username: None,
+            referral_count: 0,
+            device_id,
+            comment: None,
+            disable_reason: None,
+            verify_after: None,
+        }
+    }
+}
+
+#[derive(Debug, Queryable, Selectable, Clone)]
+#[diesel(table_name = crate::schema::rewards_referrals)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct RewardReferralRow {
+    pub id: i32,
+    pub referrer_username: String,
+    pub referred_username: String,
+    pub referred_device_id: i32,
+    pub risk_signal_id: i32,
+    pub verified_at: Option<NaiveDateTime>,
+    pub updated_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards_referrals)]
+pub struct NewRewardReferralRow {
+    pub referrer_username: String,
+    pub referred_username: String,
+    pub referred_device_id: i32,
+    pub risk_signal_id: i32,
+    pub verified_at: Option<NaiveDateTime>,
+}
+
+#[derive(Debug, Queryable, Selectable, Clone)]
+#[diesel(table_name = crate::schema::rewards_events)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct RewardEventRow {
+    pub id: i32,
+    pub username: String,
+    pub event_type: RewardEventType,
+    pub created_at: NaiveDateTime,
+}
+
+impl RewardEventRow {
+    pub fn as_primitive(&self) -> RewardEvent {
+        let event = self.event_type.0;
+        RewardEvent {
+            username: self.username.clone(),
+            points: event.points(),
+            event,
+            created_at: Utc.from_utc_datetime(&self.created_at),
+        }
+    }
+}
+
+#[derive(Debug, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards_events)]
+pub struct NewRewardEventRow {
+    pub username: String,
+    pub event_type: RewardEventType,
+}
+
+#[derive(Debug, Queryable, Selectable, Clone)]
+#[diesel(table_name = crate::schema::rewards_redemptions)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct RewardRedemptionRow {
+    pub id: i32,
+    pub username: String,
+    pub option_id: String,
+    pub device_id: i32,
+    pub wallet_id: i32,
+    pub transaction_id: Option<String>,
+    pub status: RedemptionStatus,
+    pub error: Option<String>,
+    pub updated_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
+}
+
+impl RewardRedemptionRow {
+    pub fn as_primitive(&self, option: RewardRedemptionOption) -> RewardRedemption {
+        RewardRedemption {
+            id: self.id,
+            option,
+            status: *self.status,
+            transaction_id: self.transaction_id.clone(),
+            created_at: Utc.from_utc_datetime(&self.created_at),
+        }
+    }
+}
+
+#[derive(Debug, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards_redemptions)]
+pub struct NewRewardRedemptionRow {
+    pub username: String,
+    pub option_id: String,
+    pub device_id: i32,
+    pub wallet_id: i32,
+    pub status: RedemptionStatus,
+}
+
+#[derive(Debug, Queryable, Selectable, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards_redemption_options)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct RewardRedemptionOptionRow {
+    pub id: String,
+    pub redemption_type: RewardRedemptionType,
+    pub points: i32,
+    pub asset_id: Option<AssetId>,
+    pub value: String,
+    pub remaining: Option<i32>,
+    pub updated_at: chrono::NaiveDateTime,
+    pub created_at: chrono::NaiveDateTime,
+}
+
+impl RewardRedemptionOptionRow {
+    pub fn as_primitive(&self, asset: Option<Asset>) -> RewardRedemptionOption {
+        RewardRedemptionOption {
+            id: self.id.clone(),
+            redemption_type: *self.redemption_type,
+            points: self.points,
+            asset,
+            value: self.value.clone(),
+            remaining: self.remaining,
+        }
+    }
+}
+
+use crate::models::AssetRow;
+
+#[derive(Debug, Clone)]
+pub struct RedemptionOptionFull {
+    pub option: RewardRedemptionOptionRow,
+    pub asset: Option<AssetRow>,
+}
+
+impl RedemptionOptionFull {
+    pub fn new(option: RewardRedemptionOptionRow, asset: Option<AssetRow>) -> Self {
+        Self { option, asset }
+    }
+
+    pub fn as_primitive(&self) -> RewardRedemptionOption {
+        self.option.as_primitive(self.asset.as_ref().map(|a| a.as_primitive()))
+    }
+}
+
+#[derive(Debug, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards_referral_attempts)]
+pub struct ReferralAttemptRow {
+    pub referrer_username: String,
+    pub wallet_id: i32,
+    pub device_id: i32,
+    pub risk_signal_id: Option<i32>,
+    pub reason: String,
+}
+
+#[derive(Debug, Queryable, Selectable, Clone)]
+#[diesel(table_name = crate::schema::rewards_risk_signals)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct RiskSignalRow {
+    pub id: i32,
+    pub fingerprint: String,
+    pub referrer_username: String,
+    pub device_id: i32,
+    pub device_platform: Platform,
+    pub device_platform_store: PlatformStore,
+    pub device_os: String,
+    pub device_model: String,
+    pub device_locale: String,
+    pub device_currency: String,
+    pub ip_address: String,
+    pub ip_country_code: String,
+    pub ip_usage_type: IpUsageType,
+    pub ip_isp: String,
+    pub ip_abuse_score: i32,
+    pub risk_score: i32,
+    pub user_agent: String,
+    pub metadata: Option<serde_json::Value>,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug, Insertable, Clone)]
+#[diesel(table_name = crate::schema::rewards_risk_signals)]
+pub struct NewRiskSignalRow {
+    pub fingerprint: String,
+    pub referrer_username: String,
+    pub device_id: i32,
+    pub device_platform: Platform,
+    pub device_platform_store: PlatformStore,
+    pub device_os: String,
+    pub device_model: String,
+    pub device_locale: String,
+    pub device_currency: String,
+    pub ip_address: String,
+    pub ip_country_code: String,
+    pub ip_usage_type: IpUsageType,
+    pub ip_isp: String,
+    pub ip_abuse_score: i32,
+    pub risk_score: i32,
+    pub user_agent: String,
+    pub metadata: Option<serde_json::Value>,
+}

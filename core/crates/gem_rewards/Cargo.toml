@@ -1,0 +1,24 @@
+[package]
+name = "gem_rewards"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+primitives = { path = "../primitives" }
+storage = { path = "../storage" }
+cacher = { path = "../cacher" }
+localizer = { path = "../localizer" }
+gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest", "signer"] }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+chain_traits = { path = "../chain_traits" }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+alloy-primitives = { workspace = true }
+num-traits = { workspace = true }
+gem_hash = { path = "../gem_hash" }
+hex = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+regex = { workspace = true }
+async-trait = { workspace = true }

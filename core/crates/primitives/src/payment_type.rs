@@ -1,0 +1,20 @@
+use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumString};
+use typeshare::typeshare;
+
+#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+#[derive(Default)]
+pub enum PaymentType {
+    #[default]
+    Card,
+    GooglePay,
+    ApplePay,
+    CashApp,
+    Venmo,
+    Sepa,
+    Ach,
+    Wire,
+}

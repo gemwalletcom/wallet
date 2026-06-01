@@ -1,0 +1,13 @@
+[package]
+name = "api_connector"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+reqwest = { workspace = true }
+chrono = { workspace = true }
+primitives = { path = "../primitives" }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }

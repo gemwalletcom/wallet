@@ -1,0 +1,371 @@
+mod admin;
+mod assets;
+mod auth;
+mod catchers;
+mod chain;
+mod config;
+mod devices;
+mod fiat;
+mod markets;
+mod model;
+mod nft;
+mod params;
+mod prices;
+mod referral;
+mod responders;
+mod status;
+mod swap;
+mod webhooks;
+mod websocket;
+mod websocket_prices;
+mod websocket_stream;
+
+use gem_tracing::info_with_fields;
+use std::{str::FromStr, sync::Arc};
+use strum::IntoEnumIterator;
+
+use ::fiat::FiatClient;
+use ::fiat::FiatProviderFactory;
+use ::nft::{NFTClient, NFTProviderClient, NFTProviderConfig};
+use admin::AdminConfig;
+use api_connector::PusherClient;
+use assets::{AssetsClient, SearchClient};
+use cacher::CacherClient;
+use config::ConfigClient;
+use devices::DevicesClient;
+use devices::{
+    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, ScanProviderFactory, TransactionsClient,
+    WalletConfigurationClient, WalletsClient,
+};
+use gem_auth::AuthClient;
+use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
+use model::APIService;
+use name_resolver::NameProviderFactory;
+use name_resolver::client::{Client as NameClient, NameConfig};
+use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
+use primitives::PriceConfig;
+use rocket::tokio::sync::Mutex;
+use rocket::{Build, Rocket, catchers, routes};
+use search_index::SearchIndexClient;
+use settings::Settings;
+use settings_chain::{ChainProviders, ProviderFactory};
+use storage::Database;
+use streamer::{StreamProducer, StreamProducerConfig};
+use swap::SwapClient;
+use swapper::okx::{OkxClientConfig, OkxProvider};
+use swapper::swapper::GemSwapper;
+use webhooks::WebhooksClient;
+use websocket_prices::PriceObserverConfig;
+
+fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
+    let rocket = rocket
+        .mount("/", routes![status::get_status, status::get_health])
+        .mount(
+            "/v1",
+            routes![
+                prices::get_price,
+                prices::get_assets_prices,
+                prices::get_charts,
+                prices::get_fiat_rates,
+                devices::get_fiat_quotes_v1,
+                fiat::get_fiat_order_v1,
+                webhooks::create_webhook,
+                config::get_config,
+                assets::get_asset,
+                assets::get_assets,
+                assets::get_assets_search,
+                assets::get_search,
+                chain::block::get_latest_block_number,
+                chain::block::get_block_transactions,
+                chain::block::get_block_transactions_finalize,
+                chain::swap::get_swap_result,
+                chain::swap::get_swap_quote,
+                chain::swap::get_vault_addresses,
+                swap::get_swap_assets,
+                nft::get_nft_asset_preview,
+                nft::get_nft_asset_resource,
+                nft::get_nft_collection_preview,
+                markets::get_markets,
+                chain::staking::get_validators,
+                chain::staking::get_staking_apy,
+                chain::token::get_token,
+                chain::address::get_balances,
+                chain::address::get_assets,
+                chain::address::get_transactions,
+                chain::nft::get_nfts,
+                chain::nft::get_nft_asset,
+                chain::nft::get_nft_collection,
+                chain::transaction::get_transaction,
+                chain::transaction::get_transaction_status,
+                referral::get_rewards_leaderboard,
+                swap::post_near_intents_quote,
+                swap::okx::post_okx_quote,
+                swap::okx::post_okx_quote_data,
+            ],
+        )
+        .mount(
+            "/v2",
+            routes![
+                devices::get_device_fiat_transactions_v2,
+                devices::get_device_fiat_assets_v2,
+                devices::get_fiat_quotes_v2,
+                devices::get_fiat_quote_v2,
+                devices::get_fiat_quote_url_v2,
+                devices::add_device_v2,
+                devices::get_device_v2,
+                devices::is_device_registered_v2,
+                devices::update_device_v2,
+                devices::send_push_notification_device_v2,
+                devices::report_device_nft_v2,
+                devices::scan_device_transaction_v2,
+                devices::get_device_assets_v2,
+                devices::get_device_wallet_configuration_v2,
+                devices::get_device_name_resolve_v2,
+                devices::get_device_transaction_v2,
+                devices::get_device_transaction_by_id_v2,
+                devices::get_device_transactions_v2,
+                devices::get_device_address_names_v2,
+                devices::get_device_nft_assets_v2,
+                devices::get_device_nft_asset_v2,
+                devices::refresh_device_nft_asset_v2,
+                devices::get_device_rewards_v2,
+                devices::get_device_rewards_events_v2,
+                devices::get_device_rewards_redemption_v2,
+                devices::create_device_referral_v2,
+                devices::use_device_referral_code_v2,
+                devices::redeem_device_rewards_v2,
+                devices::get_device_notifications_v2,
+                devices::mark_device_notifications_read_v2,
+                devices::get_device_subscriptions_v2,
+                devices::add_device_subscriptions_v2,
+                devices::delete_device_subscriptions_v2,
+                devices::get_device_price_alerts_v2,
+                devices::add_device_price_alerts_v2,
+                devices::delete_device_price_alerts_v2,
+                devices::get_auth_nonce_v2,
+                devices::get_device_token_v2,
+                devices::get_device_portfolio_assets_v2,
+            ],
+        )
+        .register("/", catchers![catchers::default_catcher]);
+
+    if admin_enabled {
+        rocket.mount(
+            "/v1/admin",
+            routes![
+                admin::assets::add_asset,
+                admin::transactions::add_transaction,
+                admin::prices::add_price,
+                admin::nft::update_nft_asset,
+                admin::nft::update_nft_collection,
+            ],
+        )
+    } else {
+        rocket
+    }
+}
+
+async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::error::Error + Send + Sync>> {
+    let redis_url = settings.redis.url.as_str();
+    let postgres_url = settings.postgres.url.as_str();
+    let settings_clone = settings.clone();
+
+    let database = Database::new(postgres_url, settings.postgres.pool);
+    let cacher_client = CacherClient::new(redis_url).await;
+    let config_cacher = storage::ConfigCacher::new(database.clone());
+    let price_config = PriceConfig {
+        primary_price_max_age: config_cacher.get_duration(primitives::ConfigKey::PricePrimaryMaxAge)?,
+    };
+
+    let price_client = PriceClient::new(database.clone(), cacher_client.clone());
+    let charts_client = ChartClient::new(database.clone(), price_config);
+    let config_client = ConfigClient::new(database.clone());
+    let price_alert_client = PriceAlertClient::new(database.clone());
+    let name_config = NameConfig {
+        max_name_length: settings_clone.name.max_name_length,
+    };
+    let providers = NameProviderFactory::create_providers(settings_clone.clone());
+    let name_client = NameClient::new(providers, name_config);
+
+    let chain_client = chain::ChainClient::new(ChainProviders::new(ProviderFactory::new_providers(&settings)));
+    let portfolio_client = PortfolioClient::new(database.clone(), price_config);
+    let endpoints = ProviderFactory::get_chain_endpoints(&settings);
+    let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
+    let swapper = Arc::new(GemSwapper::new(native_provider.clone()));
+
+    let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
+    let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
+    let pusher_client = PusherClient::new(settings.pusher.url.clone(), settings.pusher.ios.topic.clone());
+    let devices_client = DevicesClient::new(database.clone(), pusher_client.clone());
+    let transactions_client = TransactionsClient::new(database.clone());
+    let address_names_client = AddressNamesClient::new(database.clone());
+    let stream_producer = StreamProducer::new(&rabbitmq_config, "api", streamer::no_shutdown()).await.unwrap();
+    let wallets_client = WalletsClient::new(database.clone(), stream_producer.clone());
+
+    let security_providers = ScanProviderFactory::create_providers(&settings_clone);
+    let scan_client = ScanClient::new(database.clone(), security_providers);
+    let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::new(ProviderFactory::new_providers(&settings)), cacher_client.clone());
+    let assets_client = AssetsClient::new(database.clone(), price_config);
+    let search_index_client = SearchIndexClient::new(&settings_clone.meilisearch.url.clone(), &settings_clone.meilisearch.key.clone());
+    let search_client = SearchClient::new(&search_index_client, price_client.clone());
+    let swap_client = SwapClient::new(database.clone());
+    let fiat_providers = FiatProviderFactory::new_providers(settings_clone.clone());
+    let fiat_ip_check_client = FiatProviderFactory::new_ip_check_client(settings_clone.clone());
+    let fiat_client = FiatClient::new(
+        database.clone(),
+        cacher_client.clone(),
+        fiat_providers,
+        fiat_ip_check_client.clone(),
+        stream_producer.clone(),
+    );
+    let fiat_quotes_client = FiatQuotesClient::new(database.clone(), fiat_client);
+    let nft_config = NFTProviderConfig::new(
+        settings.nft.opensea.key.secret.clone(),
+        settings.nft.magiceden.key.secret.clone(),
+        settings.chains.ton.url.clone(),
+    );
+    let nft_client = NFTClient::from_config(database.clone(), nft_config.clone(), settings.nft.url.clone());
+    let nft_provider_client = NFTProviderClient::new(nft_config);
+    let auth_client = Arc::new(AuthClient::new(cacher_client.clone()));
+    let markets_client = MarketsClient::new(database.clone(), cacher_client.clone());
+    let webhooks_client = WebhooksClient::new(stream_producer.clone());
+    let ip_check_providers: Vec<Arc<dyn IpCheckProvider>> = vec![
+        Arc::new(AbuseIPDBClient::new(settings.ip.abuseipdb.url.clone(), settings.ip.abuseipdb.key.secret.clone())),
+        Arc::new(IpApiClient::new(settings.ip.ipapi.url.clone(), settings.ip.ipapi.key.secret.clone())),
+    ];
+    let ip_security_client = IpSecurityClient::new(ip_check_providers, cacher_client.clone());
+    let rewards_client = RewardsClient::new(database.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
+    let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
+    let notifications_client = NotificationsClient::new(database.clone());
+    let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
+    let okx_provider = OkxProvider::new(
+        OkxClientConfig {
+            api_key: settings.swap.okx.key.public.clone(),
+            secret_key: settings.swap.okx.key.secret.clone(),
+            passphrase: settings.swap.okx.passphrase.clone(),
+            project: settings.swap.okx.project.clone(),
+        },
+        native_provider.clone(),
+    );
+    let jwt_config = devices::auth_config::JwtConfig {
+        secret: settings.api.auth.jwt.secret.clone(),
+        expiry: settings.api.auth.jwt.expiry,
+    };
+    let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.enabled, settings.api.auth.tolerance, jwt_config);
+    let mut rocket = rocket::build()
+        .manage(auth_config)
+        .manage(database)
+        .manage(Mutex::new(fiat_quotes_client))
+        .manage(Mutex::new(price_client))
+        .manage(Mutex::new(charts_client))
+        .manage(Mutex::new(config_client))
+        .manage(Mutex::new(name_client))
+        .manage(Mutex::new(devices_client))
+        .manage(Mutex::new(assets_client))
+        .manage(Mutex::new(search_client))
+        .manage(Mutex::new(transactions_client))
+        .manage(Mutex::new(address_names_client))
+        .manage(wallet_configuration_client)
+        .manage(Mutex::new(scan_client))
+        .manage(Mutex::new(swap_client))
+        .manage(nft_client)
+        .manage(nft_provider_client)
+        .manage(Mutex::new(price_alert_client))
+        .manage(Mutex::new(chain_client))
+        .manage(swapper)
+        .manage(Mutex::new(markets_client))
+        .manage(Mutex::new(webhooks_client))
+        .manage(Mutex::new(rewards_client))
+        .manage(Mutex::new(redemption_client))
+        .manage(Mutex::new(wallets_client))
+        .manage(Mutex::new(notifications_client))
+        .manage(Mutex::new(near_intents_client))
+        .manage(okx_provider)
+        .manage(Mutex::new(portfolio_client))
+        .manage(auth_client)
+        .manage(stream_producer);
+
+    if settings.api.admin.enabled {
+        rocket = rocket.manage(AdminConfig {
+            token: settings.api.admin.token.clone(),
+        });
+    }
+
+    Ok(mount_routes(rocket, settings.api.admin.enabled))
+}
+
+async fn rocket_ws_prices(settings: Settings) -> Rocket<Build> {
+    let cacher_client = CacherClient::new(&settings.redis.url).await;
+    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
+    let price_client = PriceClient::new(database, cacher_client);
+    let price_observer_config = PriceObserverConfig {
+        redis_url: settings.redis.url.clone(),
+    };
+    rocket::build()
+        .manage(Arc::new(Mutex::new(price_client)))
+        .manage(Arc::new(price_observer_config))
+        .mount("/", routes![websocket_prices::ws_health])
+        .mount("/v1/ws", routes![websocket_prices::ws_prices])
+        .register("/", catchers![catchers::default_catcher])
+}
+
+async fn rocket_ws_stream(settings: Settings) -> Rocket<Build> {
+    let cacher_client = CacherClient::new(&settings.redis.url).await;
+    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
+    let price_client = PriceClient::new(database.clone(), cacher_client);
+    let stream_observer_config = websocket_stream::StreamObserverConfig {
+        redis_url: settings.redis.url.clone(),
+    };
+
+    let jwt_config = devices::auth_config::JwtConfig {
+        secret: settings.api.auth.jwt.secret.clone(),
+        expiry: settings.api.auth.jwt.expiry,
+    };
+    let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.enabled, settings.api.auth.tolerance, jwt_config);
+
+    rocket::build()
+        .manage(auth_config)
+        .manage(database)
+        .manage(Arc::new(Mutex::new(price_client)))
+        .manage(Arc::new(stream_observer_config))
+        .mount("/v2/devices", routes![websocket_stream::ws_stream])
+        .mount("/", routes![websocket_stream::ws_health])
+        .register("/", catchers![catchers::default_catcher])
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let settings = Settings::new()?;
+
+    let service = match std::env::args().nth(1) {
+        Some(arg) => APIService::from_str(&arg).unwrap_or_else(|_| {
+            let services: Vec<_> = APIService::iter().map(|s| format!("api {}", s.as_ref())).collect();
+            panic!("unknown service: {arg}\nAvailable:\n {}", services.join("\n "))
+        }),
+        None => APIService::Api,
+    };
+
+    info_with_fields!("api start service", service = service.as_ref());
+
+    let rocket = match service {
+        APIService::Api => rocket_api(settings).await?,
+        APIService::WebsocketPrices => rocket_ws_prices(settings).await,
+        APIService::WebsocketStream => rocket_ws_stream(settings).await,
+    };
+    rocket.launch().await?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[rocket::async_test]
+    async fn test_no_route_collisions() {
+        let rocket = mount_routes(rocket::build(), true);
+        if let Err(e) = rocket.ignite().await {
+            let error = format!("{:?}", e);
+            assert!(!error.contains("Collisions"), "Route collisions detected: {error}");
+        }
+    }
+}

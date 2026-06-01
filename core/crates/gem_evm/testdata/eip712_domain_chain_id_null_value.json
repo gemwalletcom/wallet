@@ -1,0 +1,18 @@
+{
+  "domain": {
+    "name": "Test",
+    "chainId": null
+  },
+  "message": {
+    "content": "Hello"
+  },
+  "primaryType": "Message",
+  "types": {
+    "EIP712Domain": [
+      { "name": "name", "type": "string" }
+    ],
+    "Message": [
+      { "name": "content", "type": "string" }
+    ]
+  }
+}

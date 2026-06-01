@@ -1,0 +1,21 @@
+default:
+    @just --list
+
+build:
+    cargo build --release -p agent
+
+run:
+    cargo run -p agent
+
+repl agent:
+    cargo run -p agent --bin repl -- {{agent}}
+
+format:
+    cargo fmt -p agent
+
+lint:
+    cargo fmt -p agent -- --check
+    cargo clippy -p agent --all-targets -- -D warnings
+
+test:
+    cargo test -p agent

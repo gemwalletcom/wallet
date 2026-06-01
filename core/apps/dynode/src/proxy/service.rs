@@ -1,0 +1,490 @@
+use crate::cache::{CacheProvider, RequestCache};
+use crate::config::{ChainConfig, HeadersConfig, Url};
+use crate::jsonrpc_types::{JsonRpcRequest, JsonRpcResponse, RequestType};
+use crate::metrics::Metrics;
+use crate::proxy::CachedResponse;
+use crate::proxy::jsonrpc::JsonRpcHandler;
+use crate::proxy::proxy_request::ProxyRequest;
+use crate::proxy::request_builder::RequestBuilder;
+use crate::proxy::request_url::RequestUrl;
+use crate::proxy::response_builder::{ProxyResponse, ResponseBuilder};
+use crate::webhook::DynodeBroadcastWebhookClient;
+use futures::channel::oneshot;
+use gem_tracing::{DurationMs, info_with_fields};
+use primitives::Chain;
+use reqwest::Method;
+use reqwest::StatusCode;
+use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName};
+use settings_chain::BroadcastProviders;
+use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
+use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::RwLock;
+
+struct CacheStoreInfo {
+    id: String,
+    chain: Chain,
+    host: String,
+    method: String,
+    path: String,
+    elapsed: Duration,
+    request_type: RequestType,
+}
+
+type InflightWaiters = HashMap<String, Vec<oneshot::Sender<Result<CachedResponse, String>>>>;
+
+#[derive(Clone)]
+pub struct ProxyRequestService {
+    pub metrics: Metrics,
+    pub cache: RequestCache,
+    pub client: reqwest::Client,
+    pub forward_headers: Arc<HashSet<HeaderName>>,
+    pub inflight_requests: Arc<RwLock<InflightWaiters>>,
+    pub headers_config: HeadersConfig,
+    pub broadcast_webhook: DynodeBroadcastWebhookClient,
+    pub broadcast_providers: Arc<BroadcastProviders>,
+}
+
+#[derive(Debug, Clone)]
+pub struct NodeDomain {
+    pub url: Url,
+    pub config: ChainConfig,
+}
+
+impl NodeDomain {
+    pub fn new(url: Url, config: ChainConfig) -> Self {
+        Self { url, config }
+    }
+}
+
+impl ProxyRequestService {
+    pub fn new(
+        metrics: Metrics,
+        cache: RequestCache,
+        client: reqwest::Client,
+        headers_config: HeadersConfig,
+        broadcast_webhook: DynodeBroadcastWebhookClient,
+        broadcast_providers: Arc<BroadcastProviders>,
+    ) -> Self {
+        let forward_headers: Arc<HashSet<HeaderName>> = Arc::new(headers_config.forward.iter().filter_map(|s| HeaderName::from_str(s).ok()).collect());
+
+        Self {
+            metrics,
+            cache,
+            client,
+            forward_headers,
+            inflight_requests: Arc::new(RwLock::new(HashMap::new())),
+            headers_config,
+            broadcast_webhook,
+            broadcast_providers,
+        }
+    }
+
+    fn build_headers(&self, host: &str, original: &HeaderMap) -> HeaderMap {
+        let mut headers = RequestBuilder::filter_headers(original, &self.forward_headers);
+
+        if let Some(names) = self.headers_config.get_domain_headers(host) {
+            for name in names {
+                if let Ok(key) = HeaderName::from_str(name)
+                    && let Some(value) = original.get(&key)
+                {
+                    headers.insert(key, value.clone());
+                }
+            }
+        }
+
+        headers
+    }
+
+    fn log_incoming_request(request: &ProxyRequest, request_type: &RequestType) {
+        let request_id = request.id.as_str();
+        let chain = request.chain.as_ref();
+        let method = request.method.as_str();
+        let uri = request.path.as_str();
+        let user_agent = request.user_agent.as_str();
+
+        match request_type {
+            RequestType::JsonRpc(_) => {
+                info_with_fields!(
+                    "Incoming request",
+                    id = request_id,
+                    chain = chain,
+                    method = method,
+                    uri = uri,
+                    rpc_method = &request_type.get_methods_list(),
+                    user_agent = user_agent,
+                );
+            }
+            RequestType::Regular { .. } => {
+                info_with_fields!("Incoming request", id = request_id, chain = chain, method = method, uri = uri, user_agent = user_agent,);
+            }
+        }
+    }
+
+    fn add_proxy_response_metrics(metrics: &Metrics, request: &ProxyRequest, methods_for_metrics: &[String], host: &str, status: u16) {
+        for method_name in methods_for_metrics {
+            metrics.add_proxy_response(request.chain.as_ref(), method_name, host, status, request.elapsed().as_millis());
+        }
+    }
+
+    pub async fn handle_request(&self, request: ProxyRequest, node_domain: &NodeDomain) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
+        let chain = request.chain;
+        let request_type = request.request_type();
+
+        let rpc_method = match request_type {
+            RequestType::JsonRpc(JsonRpcRequest::Single(call)) => Some(call.method.as_str()),
+            _ => None,
+        };
+
+        let resolved_url = node_domain.config.resolve_url(&node_domain.url, rpc_method, Some(&request.path));
+        let url = RequestUrl::from_parts(resolved_url, &request.path_with_query);
+        let headers = self.build_headers(url.url.host_str().unwrap_or_default(), &request.headers);
+
+        self.metrics.add_proxy_request(request.chain.as_ref());
+
+        Self::log_incoming_request(&request, request_type);
+
+        let cache_ttl = self.cache.should_cache_request(&chain, request_type);
+        let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host, &request.path_with_query));
+        let inflight_key = self
+            .cache
+            .should_inflight_request(&chain, request_type)
+            .then(|| request_type.cache_key(&request.host, &request.path_with_query))
+            .flatten();
+
+        let methods_for_metrics = request_type.get_methods_for_metrics();
+        self.metrics.add_proxy_request_batch(request.chain.as_ref(), &methods_for_metrics);
+
+        if let Some(key) = &cache_key
+            && let Some(result) = Self::try_cache_hit(&self.cache, key, &request, &url, &self.metrics, request_type, &methods_for_metrics).await
+        {
+            return result;
+        }
+
+        if let Some(key) = &inflight_key
+            && let Some(result) = Self::try_inflight_hit(&self.inflight_requests, key, &request, &url, &self.metrics, &methods_for_metrics).await
+        {
+            return result;
+        }
+
+        if let RequestType::JsonRpc(rpc_request) = request_type {
+            return JsonRpcHandler::handle_request(
+                rpc_request,
+                &request,
+                &self.cache,
+                &self.metrics,
+                &url,
+                &self.client,
+                &headers,
+                &self.broadcast_webhook,
+                &self.broadcast_providers,
+            )
+            .await;
+        }
+
+        let response = match Self::proxy_pass_get_data(request.method.clone(), request.body.clone(), url.clone(), &self.client, headers).await {
+            Ok(response) => response,
+            Err(error) => {
+                if let Some(key) = &inflight_key {
+                    Self::release_inflight(&self.inflight_requests, key, Err(error.to_string())).await;
+                }
+                return Err(error);
+            }
+        };
+        let status = response.status().as_u16();
+        let content_type = response
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .unwrap_or(request_type.content_type())
+            .to_string();
+
+        let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
+        let (processed_response, body_bytes) = match Self::proxy_pass_response(response, &self.forward_headers, upstream_headers).await {
+            Ok(result) => result,
+            Err(error) => {
+                if let Some(key) = &inflight_key {
+                    Self::release_inflight(&self.inflight_requests, key, Err(error.to_string())).await;
+                }
+                return Err(error);
+            }
+        };
+
+        let remote_host = url.url.host_str().unwrap_or_default();
+        Self::add_proxy_response_metrics(&self.metrics, &request, &methods_for_metrics, remote_host, status);
+
+        self.broadcast_webhook.notify_broadcast(&request, status, &body_bytes, &self.broadcast_providers);
+
+        if let Some(key) = &inflight_key {
+            Self::release_inflight(
+                &self.inflight_requests,
+                key,
+                Ok(CachedResponse::new(body_bytes.clone(), status, content_type, Duration::ZERO)),
+            )
+            .await;
+        }
+
+        info_with_fields!(
+            "Proxy response",
+            id = request.id.as_str(),
+            chain = request.chain.as_ref(),
+            remote_host = remote_host,
+            method = request.method.as_str(),
+            uri = request.path.as_str(),
+            status = status,
+            latency = DurationMs(request.elapsed()),
+        );
+
+        if status == StatusCode::OK.as_u16()
+            && let (Some(ttl), Some(key)) = (cache_ttl, cache_key)
+        {
+            let store_info = CacheStoreInfo {
+                id: request.id.clone(),
+                chain: request.chain,
+                host: request.host.clone(),
+                method: request.method.to_string(),
+                path: request.path.clone(),
+                elapsed: request.elapsed(),
+                request_type: request_type.clone(),
+            };
+            let cache_clone = self.cache.clone();
+            tokio::spawn(async move {
+                if let Err(err) = Self::store_cache(status, ttl, key, body_bytes, store_info, cache_clone).await {
+                    gem_tracing::error_with_fields!("Failed to store cache", err.as_ref(),);
+                }
+            });
+        }
+
+        Ok(processed_response)
+    }
+
+    async fn try_cache_hit(
+        cache: &RequestCache,
+        cache_key: &str,
+        request: &ProxyRequest,
+        url: &RequestUrl,
+        metrics: &Metrics,
+        request_type: &RequestType,
+        methods_for_metrics: &[String],
+    ) -> Option<Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>>> {
+        if let Some(cached) = cache.get(&request.chain, cache_key).await {
+            for method_name in methods_for_metrics {
+                metrics.add_cache_hit(request.chain.as_ref(), method_name);
+            }
+
+            info_with_fields!(
+                "Cache HIT",
+                id = request.id.as_str(),
+                chain = request.chain.as_ref(),
+                host = &request.host,
+                method = &methods_for_metrics.join(",")
+            );
+
+            let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
+            let status = cached.status;
+
+            let response = match request_type {
+                RequestType::JsonRpc(JsonRpcRequest::Single(original_call)) => {
+                    let data = cached.to_jsonrpc_response(original_call);
+                    ResponseBuilder::build_with_headers(data, cached.status, &cached.content_type, upstream_headers)
+                }
+                RequestType::Regular { .. } => Ok(ResponseBuilder::build_cached_with_headers(cached.clone(), upstream_headers)),
+                RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => return None,
+            };
+
+            Self::add_proxy_response_metrics(metrics, request, methods_for_metrics, url.url.host_str().unwrap_or_default(), status);
+
+            Some(response)
+        } else {
+            for method_name in methods_for_metrics {
+                metrics.add_cache_miss(request.chain.as_ref(), method_name);
+            }
+            None
+        }
+    }
+
+    async fn try_inflight_hit(
+        inflight_requests: &Arc<RwLock<InflightWaiters>>,
+        inflight_key: &str,
+        request: &ProxyRequest,
+        url: &RequestUrl,
+        metrics: &Metrics,
+        methods_for_metrics: &[String],
+    ) -> Option<Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>>> {
+        let receiver = {
+            let mut guard = inflight_requests.write().await;
+            if let Some(waiters) = guard.get_mut(inflight_key) {
+                let (sender, receiver) = oneshot::channel();
+                waiters.push(sender);
+                for method_name in methods_for_metrics {
+                    metrics.add_inflight_hit(request.chain.as_ref(), method_name);
+                }
+                Some(receiver)
+            } else {
+                guard.insert(inflight_key.to_string(), Vec::new());
+                for method_name in methods_for_metrics {
+                    metrics.add_inflight_miss(request.chain.as_ref(), method_name);
+                }
+                None
+            }
+        };
+
+        let receiver = receiver?;
+        let cached = match receiver.await {
+            Ok(Ok(cached)) => cached,
+            Ok(Err(error)) => return Some(Err(std::io::Error::other(error).into())),
+            Err(_) => return Some(Err(std::io::Error::other("In-flight request canceled").into())),
+        };
+
+        info_with_fields!(
+            "In-flight HIT",
+            id = request.id.as_str(),
+            chain = request.chain.as_ref(),
+            host = &request.host,
+            method = &methods_for_metrics.join(",")
+        );
+
+        let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
+        Self::add_proxy_response_metrics(metrics, request, methods_for_metrics, url.url.host_str().unwrap_or_default(), cached.status);
+        Some(Ok(ResponseBuilder::build_cached_with_headers(cached, upstream_headers)))
+    }
+
+    async fn release_inflight(inflight_requests: &Arc<RwLock<InflightWaiters>>, inflight_key: &str, result: Result<CachedResponse, String>) {
+        let waiters = {
+            let mut guard = inflight_requests.write().await;
+            guard.remove(inflight_key).unwrap_or_default()
+        };
+        for waiter in waiters {
+            let _ = waiter.send(result.clone());
+        }
+    }
+
+    async fn store_cache(
+        status: u16,
+        cache_ttl: Duration,
+        cache_key: String,
+        body_bytes: Vec<u8>,
+        info: CacheStoreInfo,
+        cache: RequestCache,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let content_type = info.request_type.content_type().to_string();
+        let body_size = body_bytes.len();
+
+        let cached = match &info.request_type {
+            RequestType::JsonRpc(_) => {
+                let json_response = serde_json::from_slice::<JsonRpcResponse>(&body_bytes)?;
+                let result_bytes = serde_json::to_string(&json_response.result).unwrap_or_default().into_bytes();
+                CachedResponse::new(result_bytes, status, content_type, cache_ttl)
+            }
+            RequestType::Regular { .. } => CachedResponse::new(body_bytes, status, content_type, cache_ttl),
+        };
+
+        cache.set(&info.chain, cache_key, cached, cache_ttl).await;
+
+        info_with_fields!(
+            "Cache SET",
+            id = info.id.as_str(),
+            chain = info.chain.as_ref(),
+            host = &info.host,
+            method = info.method.as_str(),
+            path = &info.path,
+            ttl_ms = cache_ttl.as_millis(),
+            size_bytes = body_size,
+            latency = DurationMs(info.elapsed),
+        );
+
+        Ok(())
+    }
+
+    async fn proxy_pass_response(
+        response: reqwest::Response,
+        forward_headers: &HashSet<HeaderName>,
+        additional_headers: HeaderMap,
+    ) -> Result<(ProxyResponse, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
+        let resp_headers = response.headers().clone();
+        let status = response.status().as_u16();
+        let body = response.bytes().await?.to_vec();
+
+        let mut headers = RequestBuilder::filter_headers(&resp_headers, forward_headers);
+        headers.extend(additional_headers);
+
+        Ok((ProxyResponse::new(status, headers, body.clone()), body))
+    }
+
+    async fn proxy_pass_get_data(
+        method: Method,
+        body: Vec<u8>,
+        url: RequestUrl,
+        client: &reqwest::Client,
+        headers: HeaderMap,
+    ) -> Result<reqwest::Response, Box<dyn std::error::Error + Send + Sync>> {
+        let request = RequestBuilder::build(&method, &url, body, headers)?;
+        Ok(client.execute(request).await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cache::RequestCache;
+    use crate::config::{CacheConfig, HeadersConfig, MetricsConfig};
+    use crate::metrics::Metrics;
+    use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use primitives::Chain;
+    use reqwest::header;
+    use settings_chain::BroadcastProviders;
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    fn create_service(headers_config: HeadersConfig) -> ProxyRequestService {
+        let metrics = Metrics::new(MetricsConfig::default());
+        ProxyRequestService::new(
+            metrics.clone(),
+            RequestCache::new(CacheConfig::default()),
+            reqwest::Client::new(),
+            headers_config,
+            DynodeBroadcastWebhookClient::disabled(),
+            Arc::new(BroadcastProviders::from_chains([Chain::Ethereum])),
+        )
+    }
+
+    #[test]
+    fn test_build_headers_with_domain_config() {
+        let mut domains = HashMap::new();
+        domains.insert("example.com".to_string(), vec![header::USER_AGENT.to_string()]);
+
+        let service = create_service(HeadersConfig {
+            forward: vec![header::CONTENT_TYPE.to_string()],
+            domains,
+        });
+
+        let mut original = HeaderMap::new();
+        original.insert(header::CONTENT_TYPE, header::HeaderValue::from_static(JSON_CONTENT_TYPE));
+        original.insert(header::USER_AGENT, header::HeaderValue::from_static("TestAgent/1.0"));
+        original.insert("x-drop", header::HeaderValue::from_static("dropped"));
+
+        let headers = service.build_headers("example.com", &original);
+
+        assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), JSON_CONTENT_TYPE);
+        assert_eq!(headers.get(header::USER_AGENT).unwrap(), "TestAgent/1.0");
+        assert!(headers.get("x-drop").is_none());
+    }
+
+    #[test]
+    fn test_build_headers_without_domain_config() {
+        let service = create_service(HeadersConfig {
+            forward: vec![header::CONTENT_TYPE.to_string()],
+            domains: HashMap::new(),
+        });
+
+        let mut original = HeaderMap::new();
+        original.insert(header::CONTENT_TYPE, header::HeaderValue::from_static(JSON_CONTENT_TYPE));
+        original.insert(header::USER_AGENT, header::HeaderValue::from_static("TestAgent/1.0"));
+
+        let headers = service.build_headers("example.com", &original);
+
+        assert_eq!(headers.get(header::CONTENT_TYPE).unwrap(), JSON_CONTENT_TYPE);
+        assert!(headers.get(header::USER_AGENT).is_none());
+    }
+}

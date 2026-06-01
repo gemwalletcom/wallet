@@ -1,0 +1,65 @@
+use async_trait::async_trait;
+use chain_traits::{ChainTransactions, TransactionsRequest};
+use std::error::Error;
+
+use gem_client::Client;
+use primitives::Transaction;
+
+use crate::{
+    provider::transactions_mapper::{map_transaction_by_hash, map_transactions},
+    rpc::client::AlgorandClient,
+};
+
+#[async_trait]
+impl<C: Client> ChainTransactions for AlgorandClient<C> {
+    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let block = self.indexer.get_block(block).await?;
+        Ok(map_transactions(block.transactions))
+    }
+
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let TransactionsRequest { address, .. } = request;
+        let transactions = self.indexer.get_account_transactions(&address).await?;
+        Ok(map_transactions(transactions.transactions))
+    }
+
+    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let transaction = self.indexer.get_transaction(&hash).await?;
+        Ok(map_transaction_by_hash(transaction))
+    }
+}
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
+mod chain_integration_tests {
+    use crate::provider::testkit::*;
+    use chain_traits::{ChainState, ChainTransactions, TransactionsRequest};
+
+    #[tokio::test]
+    async fn test_algorand_get_transactions_by_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_algorand_test_client();
+        let latest_block = client.get_block_latest_number().await?;
+        let transactions = client.get_transactions_by_block(latest_block - 1).await?;
+        println!("Transactions in block {}: {}", latest_block - 1, transactions.len());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_algorand_get_transactions_by_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_algorand_test_client();
+        let transactions = client.get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string())).await?;
+        println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
+
+        assert!(!transactions.is_empty());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_algorand_get_transaction_by_hash() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_algorand_test_client();
+        let transaction = client.get_transaction_by_hash(TEST_TRANSACTION_ID.to_string()).await?.unwrap();
+
+        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        Ok(())
+    }
+}

@@ -1,0 +1,25 @@
+[package]
+name = "nft"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+futures.workspace = true
+async-trait = { workspace = true }
+
+primitives = { path = "../primitives" }
+storage = { path = "../storage" }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_evm = { path = "../gem_evm" }
+gem_ton = { path = "../gem_ton", features = ["rpc"] }
+
+settings = { path = "../settings", optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[features]
+nft_integration_tests = ["dep:settings"]

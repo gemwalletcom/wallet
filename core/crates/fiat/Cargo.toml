@@ -1,0 +1,38 @@
+[package]
+name = "fiat"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+url = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
+ring = { workspace = true }
+pem-rfc7468 = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+hex = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+
+settings = { path = "../settings" }
+storage = { path = "../storage" }
+primitives = { path = "../primitives" }
+chain_primitives = { path = "../chain_primitives" }
+serde_serializers = { path = "../serde_serializers" }
+number_formatter = { path = "../number_formatter" }
+cacher = { path = "../cacher" }
+streamer = { path = "../streamer" }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_tracing = { path = "../tracing" }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+
+[features]
+# Feature flag for integration tests
+fiat_integration_tests = ["primitives/testkit"]

@@ -1,0 +1,35 @@
+[package]
+name = "gem_algorand"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client"]
+signer = ["dep:hex", "dep:num-traits"]
+reqwest = ["gem_client/reqwest"]
+chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
+num-bigint = { workspace = true }
+num-traits = { workspace = true, optional = true }
+
+chrono = { workspace = true, optional = true }
+
+primitives = { path = "../primitives" }
+chain_traits = { path = "../chain_traits", optional = true }
+gem_client = { path = "../gem_client", optional = true }
+gem_hash = { path = "../gem_hash" }
+hex = { workspace = true, optional = true }
+signer = { path = "../signer" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+reqwest = { workspace = true }
+settings = { path = "../settings", features = ["testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }
+hex = { workspace = true }

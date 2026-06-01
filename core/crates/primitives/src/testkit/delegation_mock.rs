@@ -1,0 +1,97 @@
+use crate::{AssetId, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator};
+use num_bigint::BigUint;
+
+impl Delegation {
+    pub fn mock() -> Self {
+        Delegation {
+            base: DelegationBase::mock(),
+            validator: DelegationValidator::mock(),
+            price: None,
+        }
+    }
+
+    pub fn mock_base(base: DelegationBase) -> Self {
+        Delegation {
+            base,
+            validator: DelegationValidator::mock(),
+            price: None,
+        }
+    }
+
+    pub fn mock_tron(validator_id: &str) -> Self {
+        let validator_id = validator_id.to_string();
+        Delegation {
+            base: DelegationBase {
+                asset_id: AssetId::from_chain(Chain::Tron),
+                state: DelegationState::Active,
+                balance: BigUint::from(0u32),
+                shares: BigUint::from(0u32),
+                rewards: BigUint::from(0u32),
+                completion_date: None,
+                delegation_id: validator_id.clone(),
+                validator_id: validator_id.clone(),
+            },
+            validator: DelegationValidator::stake(Chain::Tron, validator_id.clone(), validator_id, true, 0.0, 0.0),
+            price: None,
+        }
+    }
+
+    pub fn mock_osmosis(validator_id: &str) -> Self {
+        Delegation {
+            base: DelegationBase {
+                asset_id: AssetId::from_chain(Chain::Osmosis),
+                state: DelegationState::Active,
+                balance: BigUint::from(10u32),
+                shares: BigUint::from(0u32),
+                rewards: BigUint::from(0u32),
+                completion_date: None,
+                delegation_id: "25053096".to_string(),
+                validator_id: validator_id.to_string(),
+            },
+            validator: DelegationValidator::mock_osmosis(validator_id),
+            price: None,
+        }
+    }
+
+    pub fn mock_with_id(delegation_id: String) -> Self {
+        Delegation::mock_base(DelegationBase::mock_with_id(delegation_id))
+    }
+}
+
+impl DelegationBase {
+    pub fn mock() -> Self {
+        DelegationBase {
+            asset_id: AssetId::from_chain(Chain::Sui),
+            state: DelegationState::Active,
+            balance: BigUint::from(1000000000u64),
+            shares: BigUint::from(1000000000u64),
+            rewards: BigUint::from(0u64),
+            completion_date: None,
+            delegation_id: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+            validator_id: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+        }
+    }
+
+    pub fn mock_with_id(delegation_id: String) -> Self {
+        DelegationBase {
+            asset_id: AssetId::from_chain(Chain::Sui),
+            state: DelegationState::Active,
+            balance: BigUint::from(1000000000u64),
+            shares: BigUint::from(1000000000u64),
+            rewards: BigUint::from(0u64),
+            completion_date: None,
+            delegation_id,
+            validator_id: "0x1234567890abcdef1234567890abcdef12345678".to_string(),
+        }
+    }
+}
+
+impl DelegationValidator {
+    pub fn mock() -> Self {
+        DelegationValidator::stake(Chain::Sui, "validator1".to_string(), "Test Validator".to_string(), true, 0.05, 0.08)
+    }
+
+    pub fn mock_osmosis(id: &str) -> Self {
+        DelegationValidator::stake(Chain::Osmosis, id.to_string(), String::new(), true, 1.0, 9.0)
+    }
+}

@@ -1,0 +1,1 @@
+drop table parser_state;

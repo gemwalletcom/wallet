@@ -1,0 +1,179 @@
+use crate::{GasPriceType, SignerError};
+use num_bigint::BigInt;
+use num_traits::ToPrimitive;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use strum::{AsRefStr, Display, EnumString};
+
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, Display, EnumString, PartialEq, Eq, Hash)]
+pub enum FeeOption {
+    TokenAccountCreation,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionFee {
+    pub fee: BigInt,
+    pub gas_price_type: GasPriceType,
+    pub gas_limit: BigInt,
+    pub options: HashMap<FeeOption, BigInt>,
+}
+
+impl Default for TransactionFee {
+    fn default() -> Self {
+        Self {
+            fee: BigInt::from(0),
+            gas_price_type: GasPriceType::regular(BigInt::from(0)),
+            gas_limit: BigInt::from(0),
+            options: HashMap::new(),
+        }
+    }
+}
+
+impl TransactionFee {
+    pub fn new_from_fee(fee: BigInt) -> Self {
+        Self {
+            fee: fee.clone(),
+            gas_price_type: GasPriceType::regular(fee),
+            gas_limit: BigInt::from(0),
+            options: HashMap::new(),
+        }
+    }
+
+    pub fn new_from_gas_price_and_limit(gas_price: BigInt, gas_limit: BigInt) -> Self {
+        Self {
+            fee: gas_price.clone() * &gas_limit,
+            gas_price_type: GasPriceType::regular(gas_price),
+            gas_limit,
+            options: HashMap::new(),
+        }
+    }
+
+    pub fn new_from_fee_with_option(fee: BigInt, option: FeeOption, option_value: BigInt) -> Self {
+        Self {
+            fee: fee.clone() + option_value.clone(),
+            gas_price_type: GasPriceType::regular(fee.clone()),
+            gas_limit: BigInt::from(0),
+            options: HashMap::from([(option, option_value)]),
+        }
+    }
+
+    pub fn new_gas_price_type(gas_price_type: GasPriceType, base_fee: BigInt, gas_limit: BigInt, options: HashMap<FeeOption, BigInt>) -> Self {
+        Self {
+            fee: base_fee + options.values().sum::<BigInt>(),
+            gas_price_type,
+            gas_limit,
+            options,
+        }
+    }
+
+    pub fn calculate(gas_limit: u64, gas_price_type: &GasPriceType) -> Self {
+        let gas_limit = BigInt::from(gas_limit);
+        let gas_price = gas_price_type.gas_price();
+        let total_fee = gas_price.clone() * &gas_limit;
+
+        Self {
+            fee: total_fee,
+            gas_price_type: gas_price_type.clone(),
+            gas_limit,
+            options: HashMap::new(),
+        }
+    }
+
+    pub fn gas_limit(&self) -> Result<u64, SignerError> {
+        let gas_limit = self.gas_limit.to_u64().ok_or_else(|| SignerError::invalid_input("invalid gas limit"))?;
+
+        if gas_limit == 0 {
+            return SignerError::invalid_input_err("missing gas limit");
+        }
+
+        Ok(gas_limit)
+    }
+
+    pub fn gas_price_u64(&self) -> Result<u64, SignerError> {
+        self.gas_price_type.gas_price().to_u64().ok_or_else(|| SignerError::invalid_input("invalid gas price"))
+    }
+
+    pub fn priority_fee_u64(&self) -> Result<u64, SignerError> {
+        self.gas_price_type
+            .priority_fee()
+            .to_u64()
+            .ok_or_else(|| SignerError::invalid_input("invalid priority fee"))
+    }
+
+    pub fn unit_price_u64(&self) -> Result<u64, SignerError> {
+        self.gas_price_type.unit_price().to_u64().ok_or_else(|| SignerError::invalid_input("invalid unit price"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_transaction_fee_calculate() {
+        let gas_price_type = GasPriceType::regular(BigInt::from(100u64));
+        let gas_limit = 1000u64;
+
+        let fee = TransactionFee::calculate(gas_limit, &gas_price_type);
+
+        assert_eq!(fee.fee, BigInt::from(100000u64)); // 100 * 1000
+        assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(100u64));
+        assert_eq!(fee.gas_limit, BigInt::from(1000u64));
+    }
+
+    #[test]
+    fn test_new_gas_price_type() {
+        // Without options
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(200)), BigInt::from(50000), BigInt::from(500), HashMap::new());
+        assert_eq!(fee.fee, BigInt::from(50000));
+        assert_eq!(fee.gas_limit, BigInt::from(500));
+
+        // With options
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::regular(BigInt::from(150)),
+            BigInt::from(30000),
+            BigInt::from(400),
+            HashMap::from([(FeeOption::TokenAccountCreation, BigInt::from(5000))]),
+        );
+        assert_eq!(fee.fee, BigInt::from(35000)); // 30000 + 5000
+
+        // With EIP-1559
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::eip1559(BigInt::from(300), BigInt::from(10)),
+            BigInt::from(60000),
+            BigInt::from(200),
+            HashMap::new(),
+        );
+        assert_eq!(fee.gas_price_type.priority_fee(), BigInt::from(10));
+    }
+
+    #[test]
+    fn test_new_from_fee_with_option() {
+        let base_fee = BigInt::from(10000);
+        let option_value = BigInt::from(2500);
+
+        let fee = TransactionFee::new_from_fee_with_option(base_fee.clone(), FeeOption::TokenAccountCreation, option_value.clone());
+
+        assert_eq!(fee.fee, BigInt::from(12500)); // 10000 + 2500
+        assert_eq!(fee.gas_price_type.gas_price(), base_fee);
+        assert_eq!(fee.gas_limit, BigInt::from(0));
+        assert_eq!(fee.options.get(&FeeOption::TokenAccountCreation), Some(&option_value));
+    }
+
+    #[test]
+    fn test_fee_accessors() {
+        let fee = TransactionFee::new_gas_price_type(GasPriceType::regular(BigInt::from(7u64)), BigInt::from(70u64), BigInt::from(10u64), HashMap::new());
+        assert_eq!(fee.gas_limit().unwrap(), 10);
+        assert_eq!(fee.gas_price_u64().unwrap(), 7);
+
+        let fee = TransactionFee::new_gas_price_type(
+            GasPriceType::solana(BigInt::from(7u64), BigInt::from(3u64), BigInt::from(2u64)),
+            BigInt::from(10u64),
+            BigInt::from(1u64),
+            HashMap::new(),
+        );
+        assert_eq!(fee.unit_price_u64().unwrap(), 2);
+
+        assert_eq!(TransactionFee::default().gas_limit().unwrap_err().to_string(), "Invalid input: missing gas limit");
+    }
+}

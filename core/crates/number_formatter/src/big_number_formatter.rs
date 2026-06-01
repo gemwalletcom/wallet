@@ -1,0 +1,214 @@
+use bigdecimal::{BigDecimal, RoundingMode, ToPrimitive};
+use num_bigint::{BigInt, BigUint};
+use std::str::FromStr;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum NumberFormatterError {
+    InvalidNumber(String),
+    ConversionError(String),
+}
+
+impl std::fmt::Display for NumberFormatterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidNumber(msg) => write!(f, "Invalid number: {}", msg),
+            Self::ConversionError(msg) => write!(f, "Conversion error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for NumberFormatterError {}
+
+impl From<NumberFormatterError> for String {
+    fn from(error: NumberFormatterError) -> Self {
+        error.to_string()
+    }
+}
+
+pub struct BigNumberFormatter {}
+
+impl BigNumberFormatter {
+    pub fn big_decimal_value(value: &str, decimals: u32) -> Result<BigDecimal, NumberFormatterError> {
+        let mut decimal = BigDecimal::from_str(value).map_err(|e| NumberFormatterError::InvalidNumber(e.to_string()))?;
+        let exp = BigInt::from(10).pow(decimals);
+        decimal = decimal / BigDecimal::from(exp);
+        Ok(decimal)
+    }
+
+    pub fn value_as_f64(value: &str, decimals: u32) -> Result<f64, NumberFormatterError> {
+        Self::big_decimal_value(value, decimals)?
+            .to_f64()
+            .ok_or_else(|| NumberFormatterError::ConversionError("Cannot convert to f64".to_string()))
+    }
+
+    pub fn value_as_u64(value: &str, decimals: u32) -> Result<u64, NumberFormatterError> {
+        Self::big_decimal_value(value, decimals)?
+            .to_u64()
+            .ok_or_else(|| NumberFormatterError::ConversionError("Cannot convert to u64".to_string()))
+    }
+
+    pub fn value(value: &str, decimals: i32) -> Result<String, NumberFormatterError> {
+        let decimal = Self::big_decimal_value(value, decimals as u32)?;
+        Ok(decimal.to_string())
+    }
+
+    pub fn value_from_amount(amount: &str, decimals: u32) -> Result<String, NumberFormatterError> {
+        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
+        let multiplier = BigInt::from(10).pow(decimals);
+        let multiplier_decimal = BigDecimal::from(multiplier);
+        let scaled_value = big_decimal * multiplier_decimal;
+        Ok(scaled_value.with_scale(0).to_string())
+    }
+
+    pub fn value_from_amount_truncated(amount: &str, decimals: u32) -> Result<String, NumberFormatterError> {
+        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
+        if big_decimal < 0 {
+            return Err(NumberFormatterError::InvalidNumber(amount.to_string()));
+        }
+        let truncated = big_decimal.with_scale_round(i64::from(decimals), RoundingMode::Down);
+        Self::value_from_amount(&truncated.to_string(), decimals)
+    }
+
+    pub fn f64_as_value(amount: f64, decimals: u32) -> Option<String> {
+        Self::value_from_amount(&amount.to_string(), decimals).ok()
+    }
+
+    pub fn value_from_amount_biguint(amount: &str, decimals: u32) -> Result<BigUint, NumberFormatterError> {
+        let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
+        let multiplier = BigInt::from(10).pow(decimals);
+        let multiplier_decimal = BigDecimal::from(multiplier);
+        let scaled_value = big_decimal * multiplier_decimal;
+        let scaled_string = scaled_value.with_scale(0).to_string();
+        scaled_string.parse::<BigUint>().map_err(|_| NumberFormatterError::ConversionError(scaled_string))
+    }
+
+    pub fn decimal_to_string(value: &BigDecimal, max_scale: u32) -> String {
+        value.round(max_scale as i64).normalized().to_string()
+    }
+
+    pub fn ratio(numerator: &BigUint, denominator: &BigUint) -> f64 {
+        if *denominator == BigUint::from(0u32) {
+            return 0.0;
+        }
+        let precision = BigUint::from(1_000_000u64);
+        let scaled = numerator * &precision / denominator;
+        let scaled_u64 = u64::try_from(&scaled).unwrap_or(u64::MAX);
+        scaled_u64 as f64 / 1_000_000.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bigdecimal::BigDecimal;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_value() {
+        // Test case 1: Valid input
+        let result = BigNumberFormatter::value("123456", 3).unwrap();
+        assert_eq!(result, "123.456");
+
+        // Test case 2: Input with more decimals than specified
+        let result = BigNumberFormatter::value("789123456", 4).unwrap();
+        assert_eq!(result, "78912.3456");
+
+        // Test case 3: Input with fewer decimals than specified
+        let result = BigNumberFormatter::value("4567", 4).unwrap();
+        assert_eq!(result, "0.4567");
+
+        // Test case 4: u256 input
+        let result = BigNumberFormatter::value("115792089237316195423570985008687907853269984665640564039457000000000000000000", 18).unwrap();
+        assert_eq!(result, "115792089237316195423570985008687907853269984665640564039457");
+
+        let result = BigNumberFormatter::value("abc", 2);
+        assert!(result.is_err());
+
+        // Test case 6: Output return small value
+        let result = BigNumberFormatter::value("1640000000000000", 18).unwrap();
+        assert_eq!(result, "0.00164");
+    }
+
+    #[test]
+    fn test_value_from_amount() {
+        // Test case 1: Valid input
+        let result = BigNumberFormatter::value_from_amount("1.123", 3).unwrap();
+        assert_eq!(result, "1123");
+
+        let result = BigNumberFormatter::value_from_amount("332131212.2321312", 8).unwrap();
+        assert_eq!(result, "33213121223213120");
+
+        let result = BigNumberFormatter::value_from_amount("0", 0).unwrap();
+        assert_eq!(result, "0");
+
+        // Test case 2: Invalid input
+        let result = BigNumberFormatter::value_from_amount("invalid", 3);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), NumberFormatterError::InvalidNumber("invalid".to_string()));
+    }
+
+    #[test]
+    fn test_value_from_amount_truncated() {
+        assert_eq!(BigNumberFormatter::value_from_amount_truncated("1.183818719", 8).unwrap(), "118381871");
+        assert_eq!(
+            BigNumberFormatter::value_from_amount_truncated("123456789012345678.123456789", 18).unwrap(),
+            "123456789012345678123456789000000000"
+        );
+        assert_eq!(
+            BigNumberFormatter::value_from_amount_truncated("-1", 9),
+            Err(NumberFormatterError::InvalidNumber("-1".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_decimal_to_string() {
+        let decimal = BigDecimal::from_str("1.123456789").unwrap();
+        assert_eq!(BigNumberFormatter::decimal_to_string(&decimal, 6), "1.123457");
+
+        let decimal = BigDecimal::from_str("0.000001234").unwrap();
+        assert_eq!(BigNumberFormatter::decimal_to_string(&decimal, 6), "0.000001");
+
+        let decimal = BigDecimal::from_str("2.5").unwrap();
+        assert_eq!(BigNumberFormatter::decimal_to_string(&decimal, 6), "2.5");
+
+        let decimal = BigDecimal::from_str("10").unwrap();
+        assert_eq!(BigNumberFormatter::decimal_to_string(&decimal, 6), "10");
+    }
+
+    #[test]
+    fn test_ratio() {
+        assert_eq!(BigNumberFormatter::ratio(&BigUint::from(1u32), &BigUint::from(2u32)), 0.5);
+        assert_eq!(BigNumberFormatter::ratio(&BigUint::from(1u32), &BigUint::from(4u32)), 0.25);
+        assert_eq!(BigNumberFormatter::ratio(&BigUint::from(0u32), &BigUint::from(100u32)), 0.0);
+        assert_eq!(BigNumberFormatter::ratio(&BigUint::from(100u32), &BigUint::from(0u32)), 0.0);
+        assert_eq!(BigNumberFormatter::ratio(&BigUint::from(1u32), &BigUint::from(100u32)), 0.01);
+        assert_eq!(BigNumberFormatter::ratio(&BigUint::from(3u32), &BigUint::from(100u32)), 0.03);
+
+        let large_num = BigUint::from(1_000_000_000u64);
+        let large_den = BigUint::from(10_000_000_000u64);
+        assert_eq!(BigNumberFormatter::ratio(&large_num, &large_den), 0.1);
+    }
+
+    #[test]
+    fn test_value_from_amount_biguint() {
+        // Test case 1: Valid input
+        let result = BigNumberFormatter::value_from_amount_biguint("1.123", 3).unwrap();
+        assert_eq!(result, BigUint::from(1123u32));
+
+        let result = BigNumberFormatter::value_from_amount_biguint("332131212.2321312", 8).unwrap();
+        assert_eq!(result, BigUint::from(33213121223213120_u64));
+
+        let result = BigNumberFormatter::value_from_amount_biguint("0", 0).unwrap();
+        assert_eq!(result, BigUint::from(0u32));
+
+        // Test case 2: Large numbers
+        let result = BigNumberFormatter::value_from_amount_biguint("1000000000000", 18).unwrap();
+        let expected = "1000000000000000000000000000000".parse::<BigUint>().unwrap();
+        assert_eq!(result, expected);
+
+        // Test case 3: Invalid input
+        let result = BigNumberFormatter::value_from_amount_biguint("invalid", 3);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), NumberFormatterError::InvalidNumber("invalid".to_string()));
+    }
+}

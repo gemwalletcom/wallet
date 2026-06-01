@@ -1,0 +1,14 @@
+[package]
+name = "coingecko"
+edition = { workspace = true }
+version = { workspace = true }
+
+[features]
+testkit = []
+
+[dependencies]
+serde = { workspace = true }
+primitives = { path = "../primitives" }
+chrono = { workspace = true }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+reqwest = { workspace = true }

@@ -1,0 +1,10 @@
+[package]
+name = "job_runner"
+version ={ workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+tokio = { workspace = true, features = ["sync", "time"] }
+async-trait = { workspace = true }
+
+gem_tracing = { path = "../tracing" }

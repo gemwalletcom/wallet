@@ -1,0 +1,22 @@
+{
+    "event": "TRANSACTION_STATUS_CHANGED",
+    "data": {
+        "partnerTransactionId": "59b799d4-dc8c-458d-b9c7-292726ab6255",
+        "quote": {
+            "quoteId": "59b799d4-dc8c-458d-b9c7-292726ab6255"
+        },
+        "transaction": {
+            "invoice": "PB25095868675TX8",
+            "status": "started",
+            "flow": "buyCrypto"
+        },
+        "amountFrom": {
+            "amount": "50.00",
+            "currency": "USD"
+        },
+        "amountTo": {
+            "amount": "0.22726373",
+            "currency": "SOL"
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+  "domain": {
+    "name": "Test",
+    "chainId": 1
+  },
+  "message": {
+    "accountIndex": 1
+  },
+  "primaryType": "AccountRegistration",
+  "types": {
+    "EIP712Domain": [
+      { "name": "name", "type": "string" },
+      { "name": "chainId", "type": "uint256" }
+    ],
+    "AccountRegistration": [
+      { "name": "accountIndex", "type": "int8" }
+    ]
+  }
+}

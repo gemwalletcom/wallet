@@ -1,0 +1,18 @@
+pub mod action;
+pub mod balance;
+pub mod candlestick;
+pub mod metadata;
+pub mod order;
+pub mod perp_dex;
+pub mod portfolio;
+pub mod position;
+pub mod referral;
+pub mod response;
+pub mod spot;
+pub mod timestamp;
+pub mod token;
+pub mod transaction_id;
+pub mod user;
+pub mod websocket;
+
+pub type UInt64 = u64;

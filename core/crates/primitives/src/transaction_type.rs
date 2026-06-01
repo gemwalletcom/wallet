@@ -1,0 +1,42 @@
+use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
+use typeshare::typeshare;
+
+#[derive(Debug, Clone, Serialize, Deserialize, EnumString, AsRefStr, PartialEq, EnumIter)]
+#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+#[derive(Default)]
+pub enum TransactionType {
+    #[default]
+    Transfer,
+    #[serde(rename = "transferNFT")]
+    #[strum(serialize = "transferNFT")]
+    TransferNFT,
+    Swap,
+    TokenApproval,
+    StakeDelegate,
+    StakeUndelegate,
+    StakeRewards,
+    StakeRedelegate,
+    StakeWithdraw,
+    StakeFreeze,
+    StakeUnfreeze,
+    AssetActivation,
+    SmartContractCall,
+    PerpetualOpenPosition,
+    PerpetualClosePosition,
+    PerpetualModifyPosition,
+    EarnDeposit,
+    EarnWithdraw,
+}
+
+impl TransactionType {
+    pub fn all() -> Vec<Self> {
+        Self::iter().collect::<Vec<_>>()
+    }
+
+    pub fn staking_types() -> Vec<Self> {
+        vec![Self::StakeDelegate, Self::StakeUndelegate, Self::StakeRedelegate, Self::StakeRewards]
+    }
+}

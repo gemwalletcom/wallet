@@ -1,0 +1,48 @@
+use std::error::Error;
+
+use async_trait::async_trait;
+use cacher::{CacheKey, CacherClient};
+use primitives::{Chain, Transaction};
+use settings_chain::{ChainProviders, TransactionsRequest};
+use storage::Database;
+use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
+
+pub struct FetchAddressTransactionsConsumer {
+    #[allow(dead_code)]
+    pub database: Database,
+    pub providers: ChainProviders,
+    pub producer: StreamProducer,
+    pub cacher: CacherClient,
+}
+
+impl FetchAddressTransactionsConsumer {
+    pub fn new(database: Database, providers: ChainProviders, producer: StreamProducer, cacher: CacherClient) -> Self {
+        Self {
+            database,
+            providers,
+            producer,
+            cacher,
+        }
+    }
+
+    pub async fn process_result(&self, chain: Chain, transactions: Vec<Transaction>) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.producer.publish_transactions(TransactionsPayload::new(chain, transactions.clone())).await
+    }
+}
+
+#[async_trait]
+impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsConsumer {
+    async fn should_process(&self, payload: ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.cacher
+            .can_process_cached(CacheKey::FetchAddressTransactions(payload.value.chain.as_ref(), &payload.value.address))
+            .await
+    }
+    async fn process(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let transactions = self
+            .providers
+            .get_transactions_by_address(payload.value.chain, TransactionsRequest::new(payload.value.address.clone()))
+            .await?;
+        let _ = self.process_result(payload.value.chain, transactions.clone()).await;
+        Ok(transactions.len())
+    }
+}

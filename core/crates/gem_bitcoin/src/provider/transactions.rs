@@ -1,0 +1,102 @@
+use async_trait::async_trait;
+use chain_traits::{ChainTransactions, TransactionsRequest};
+use primitives::Transaction;
+use std::error::Error;
+
+use gem_client::Client;
+
+use crate::{
+    models::Address,
+    provider::transactions_mapper::{map_transaction, map_transactions},
+    rpc::client::BitcoinClient,
+};
+
+#[async_trait]
+impl<C: Client> ChainTransactions for BitcoinClient<C> {
+    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let mut transactions = Vec::new();
+        let mut page = 1;
+
+        loop {
+            let block = self.get_block(block, page).await?;
+
+            transactions.extend(map_transactions(self.get_chain(), block.txs));
+
+            if block.total_pages == block.page {
+                break;
+            }
+
+            page += 1;
+        }
+
+        Ok(transactions)
+    }
+
+    async fn get_transaction_by_hash(&self, hash: String) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
+        let transaction = self.get_transaction(&hash).await?;
+        if transaction.block_height <= 0 || transaction.block_time <= 0 {
+            return Ok(None);
+        }
+
+        Ok(map_transaction(self.get_chain(), &transaction))
+    }
+
+    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let TransactionsRequest { address, limit, .. } = request;
+        let address = Address::new(&address, self.get_chain()).full();
+        let address_details = self.get_address_details(&address, limit.unwrap_or(25)).await?;
+        let transactions = address_details.transactions.unwrap_or_default();
+        Ok(map_transactions(self.get_chain(), transactions))
+    }
+}
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
+mod chain_integration_tests {
+    use crate::provider::testkit::*;
+    use chain_traits::{ChainState, ChainTransactionState, ChainTransactions, TransactionsRequest};
+    use primitives::{TransactionState, TransactionStateRequest};
+
+    #[tokio::test]
+    async fn test_bitcoin_get_transactions_status() {
+        let bitcoin_client = create_bitcoin_test_client();
+
+        let request = TransactionStateRequest::mock_with_id(TEST_TRANSACTION_ID);
+        let update = bitcoin_client.get_transaction_status(request).await.unwrap();
+
+        println!("State: {:?}", update.state);
+        assert!(update.state == TransactionState::Confirmed);
+    }
+
+    #[tokio::test]
+    async fn test_bitcoin_get_transactions_by_block() {
+        let bitcoin_client = create_bitcoin_test_client();
+
+        let latest_block = bitcoin_client.get_block_latest_number().await.unwrap();
+        let transactions = bitcoin_client.get_transactions_by_block(latest_block).await.unwrap();
+
+        println!("Latest block: {}, transactions count: {}", latest_block, transactions.len());
+        assert!(latest_block > 0);
+    }
+
+    #[tokio::test]
+    async fn test_bitcoin_get_transactions_by_address() {
+        let bitcoin_client = create_bitcoin_test_client();
+
+        let transactions = bitcoin_client
+            .get_transactions_by_address(TransactionsRequest::new(TEST_ADDRESS.to_string()))
+            .await
+            .unwrap();
+
+        println!("Address: {}, transactions count: {}", TEST_ADDRESS, transactions.len());
+
+        assert!(!transactions.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_bitcoin_get_transaction_by_hash() {
+        let bitcoin_client = create_bitcoin_test_client();
+        let transaction = bitcoin_client.get_transaction_by_hash(TEST_TRANSACTION_ID.to_string()).await.unwrap().unwrap();
+
+        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+    }
+}

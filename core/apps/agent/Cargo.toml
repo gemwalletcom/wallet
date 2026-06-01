@@ -1,0 +1,32 @@
+[package]
+name = "agent"
+edition = { workspace = true }
+version = { workspace = true }
+description = "Gem Wallet's internal Slack/Chatwoot agent engine over Socket Mode."
+
+[dependencies]
+serde_serializers = { path = "../../crates/serde_serializers" }
+gem_tracing = { path = "../../crates/tracing" }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+base64 = { workspace = true }
+strum = { workspace = true }
+config = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true, features = ["process", "io-util", "time", "signal", "net"] }
+
+rig = { version = "0.37", features = ["rmcp"] }
+rig-sqlite = "0.2.6"
+rig-fastembed = "0.4.1"
+rusqlite = { version = "0.32", features = ["bundled"] }
+tokio-rusqlite = { version = "0.6", features = ["bundled"] }
+sqlite-vec = "0.1"
+
+tokio-tungstenite = { version = "0.29.0", default-features = false, features = ["connect", "rustls-tls-native-roots"] }
+futures-util = { version = "0.3.32", default-features = false, features = ["sink"] }
+
+axum = { version = "0.8.9", default-features = false, features = ["http1", "tokio"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+
+rmcp = { version = "1.7.0", default-features = false, features = ["client", "transport-streamable-http-client", "transport-streamable-http-client-reqwest"] }

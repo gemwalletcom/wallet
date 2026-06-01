@@ -1,0 +1,19 @@
+[package]
+name = "primitives"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+testkit = []
+
+[dependencies]
+typeshare = { version = "1.0.5" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+strum = { workspace = true }
+url = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+hex = { workspace = true }

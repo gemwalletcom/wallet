@@ -1,0 +1,321 @@
+use std::error::Error;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use redis::{AsyncCommands, Client, aio::ConnectionManager};
+
+mod error;
+mod keys;
+pub use error::*;
+pub use keys::*;
+
+#[derive(Clone)]
+pub struct CacherClient {
+    connection: ConnectionManager,
+}
+
+impl CacherClient {
+    pub async fn new(redis_url: &str) -> Self {
+        let client = Client::open(redis_url).expect("invalid redis url");
+        let connection = ConnectionManager::new(client).await.expect("failed to connect to redis");
+        Self { connection }
+    }
+
+    pub async fn set_values(&self, values: Vec<(String, String)>) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if values.is_empty() {
+            return Ok(0);
+        }
+        self.connection.clone().mset::<String, String, ()>(values.as_slice()).await?;
+        Ok(values.len())
+    }
+
+    pub async fn set_values_with_publish(&self, values: Vec<(String, String)>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let values = values.into_iter().map(|(key, value)| (key, value, ttl_seconds)).collect();
+        self.set_serialized_values_with_ttl_and_publish(values, true).await
+    }
+
+    pub async fn set_value_with_ttl(&self, key: &str, value: String, seconds: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set_serialized_value(key, value, Some(seconds)).await
+    }
+
+    pub async fn set_values_with_ttl<T: serde::Serialize>(&self, values: Vec<(&str, &T)>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let values = values
+            .into_iter()
+            .map(|(key, value)| serde_json::to_string(value).map(|serialized| (key.to_string(), serialized, ttl_seconds)))
+            .collect::<Result<Vec<_>, _>>()?;
+        self.set_serialized_values_with_ttl(values).await
+    }
+
+    pub async fn set_value<T: serde::Serialize>(&self, key: &str, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set_serialized_value(key, serde_json::to_string(value)?, None).await
+    }
+
+    pub async fn get_value<T: serde::de::DeserializeOwned>(&self, key: &str) -> Result<T, Box<dyn Error + Send + Sync>> {
+        let value: Option<String> = self.connection.clone().get(key).await?;
+        match value {
+            Some(s) => Ok(serde_json::from_str(&s)?),
+            None => Err(Box::new(CacheError::KeyNotFound(key.to_string()))),
+        }
+    }
+
+    pub async fn get_value_optional<T: serde::de::DeserializeOwned>(&self, key: &str) -> Result<Option<T>, Box<dyn Error + Send + Sync>> {
+        let value: Option<String> = self.connection.clone().get(key).await?;
+        match value {
+            Some(serialized) => Ok(Some(serde_json::from_str(&serialized)?)),
+            None => Ok(None),
+        }
+    }
+
+    pub async fn get_values<T, I>(&self, keys: Vec<String>) -> Result<T, Box<dyn Error + Send + Sync>>
+    where
+        I: serde::de::DeserializeOwned,
+        T: FromIterator<I>,
+    {
+        if keys.is_empty() {
+            return Ok(std::iter::empty::<I>().collect());
+        }
+        let result: Vec<Option<String>> = self.connection.clone().mget(keys).await?;
+        let values: T = result.into_iter().flatten().filter_map(|value| serde_json::from_str::<I>(&value).ok()).collect();
+        Ok(values)
+    }
+
+    pub async fn get_or_set_value<T, F, Fut>(&self, key: &str, fetch_fn: F, ttl_seconds: Option<u64>) -> Result<T, Box<dyn Error + Send + Sync>>
+    where
+        T: serde::de::DeserializeOwned + serde::Serialize,
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
+    {
+        if let Ok(cached_value) = self.get_value::<T>(key).await {
+            return Ok(cached_value);
+        }
+
+        let fresh_value = fetch_fn().await?;
+
+        let serialized = serde_json::to_string(&fresh_value)?;
+        self.set_serialized_value(key, serialized, ttl_seconds).await?;
+
+        Ok(fresh_value)
+    }
+
+    pub async fn can_process_now(&self, key: &str, ttl_seconds: u64) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let last_processed: u64 = self.get_or_set_value(key, || async { Ok(now) }, Some(ttl_seconds)).await?;
+        Ok(last_processed == now)
+    }
+
+    pub async fn delete(&self, key: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        Ok(self.connection.clone().del::<&str, i64>(key).await? > 0)
+    }
+
+    pub async fn increment(&self, key: &str) -> Result<i64, Box<dyn Error + Send + Sync>> {
+        Ok(self.connection.clone().incr(key, 1).await?)
+    }
+
+    pub async fn increment_with_ttl(&self, key: &str, ttl: i64) -> Result<i64, Box<dyn Error + Send + Sync>> {
+        let mut pipe = redis::pipe();
+        pipe.atomic();
+        pipe.cmd("INCR").arg(key);
+        pipe.cmd("EXPIRE").arg(key).arg(ttl).arg("NX");
+        let results: (i64, i64) = pipe.query_async(&mut self.connection.clone()).await?;
+        Ok(results.0)
+    }
+
+    pub async fn get_counter(&self, key: &str) -> Result<i64, Box<dyn Error + Send + Sync>> {
+        Ok(self.connection.clone().get::<&str, Option<i64>>(key).await?.unwrap_or(0))
+    }
+
+    // CacheKey-aware methods
+    pub async fn set_cached<T: serde::Serialize>(&self, key: CacheKey<'_>, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set_values_with_ttl(vec![(&key.key(), value)], key.ttl() as i64).await?;
+        Ok(())
+    }
+
+    pub async fn get_cached<T: serde::de::DeserializeOwned>(&self, key: CacheKey<'_>) -> Result<T, Box<dyn Error + Send + Sync>> {
+        self.get_value(&key.key()).await
+    }
+
+    pub async fn get_cached_optional<T: serde::de::DeserializeOwned>(&self, key: CacheKey<'_>) -> Result<Option<T>, Box<dyn Error + Send + Sync>> {
+        self.get_value_optional(&key.key()).await
+    }
+
+    pub async fn set_values_cached<T: serde::Serialize>(&self, entries: &[(CacheKey<'_>, &T)]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let values = entries
+            .iter()
+            .map(|(key, value)| serde_json::to_string(value).map(|serialized| (key.key(), serialized, key.ttl() as i64)))
+            .collect::<Result<Vec<_>, _>>()?;
+        self.set_serialized_values_with_ttl(values).await
+    }
+
+    pub async fn get_or_set_cached<T, F, Fut>(&self, key: CacheKey<'_>, fetch_fn: F) -> Result<T, Box<dyn Error + Send + Sync>>
+    where
+        T: serde::de::DeserializeOwned + serde::Serialize,
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
+    {
+        self.get_or_set_value(&key.key(), fetch_fn, Some(key.ttl())).await
+    }
+
+    pub async fn increment_cached(&self, key: CacheKey<'_>) -> Result<i64, Box<dyn Error + Send + Sync>> {
+        self.increment_with_ttl(&key.key(), key.ttl() as i64).await
+    }
+
+    pub async fn get_cached_counter(&self, key: CacheKey<'_>) -> Result<i64, Box<dyn Error + Send + Sync>> {
+        self.get_counter(&key.key()).await
+    }
+
+    pub async fn add_to_set_cached(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(0);
+        }
+        let key_str = key.key();
+        let ttl = key.ttl() as i64;
+        let mut pipe = redis::pipe();
+        pipe.atomic();
+        pipe.cmd("SADD").arg(&key_str).arg(members);
+        pipe.cmd("EXPIRE").arg(&key_str).arg(ttl);
+        pipe.cmd("SCARD").arg(&key_str);
+        let (_, _, count): (usize, bool, usize) = pipe.query_async(&mut self.connection.clone()).await?;
+        Ok(count)
+    }
+
+    pub async fn remove_from_set_cached(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(0);
+        }
+
+        Ok(self.connection.clone().srem(key.key(), members).await?)
+    }
+
+    pub async fn add_to_sorted_set_cached(&self, key: CacheKey<'_>, members: &[(String, f64)]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(0);
+        }
+
+        let key_str = key.key();
+        let ttl = key.ttl() as i64;
+        let mut pipe = redis::pipe();
+        pipe.atomic();
+        for (member, score) in members {
+            pipe.cmd("ZADD").arg(&key_str).arg(score).arg(member).ignore();
+        }
+        pipe.cmd("EXPIRE").arg(&key_str).arg(ttl).ignore();
+        pipe.cmd("ZCARD").arg(&key_str);
+        let (count,): (usize,) = pipe.query_async(&mut self.connection.clone()).await?;
+        Ok(count)
+    }
+
+    pub async fn remove_from_sorted_set_cached(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(0);
+        }
+
+        Ok(redis::cmd("ZREM").arg(key.key()).arg(members).query_async(&mut self.connection.clone()).await?)
+    }
+
+    pub async fn get_set_members_cached(&self, keys: Vec<String>) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+        Ok(self.get_set_members_grouped(keys).await?.into_iter().flatten().collect())
+    }
+
+    pub async fn get_set_members_grouped(&self, keys: Vec<String>) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
+        if keys.is_empty() {
+            return Ok(vec![]);
+        }
+        let mut pipe = redis::pipe();
+        for key in &keys {
+            pipe.cmd("SMEMBERS").arg(key);
+        }
+        Ok(pipe.query_async(&mut self.connection.clone()).await?)
+    }
+
+    pub async fn can_process_cached(&self, key: CacheKey<'_>) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.can_process_now(&key.key(), key.ttl()).await
+    }
+
+    pub async fn set_i64(&self, key: &str, value: i64, ttl_seconds: u64) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.connection.clone().set_ex::<&str, i64, ()>(key, value, ttl_seconds).await?;
+        Ok(())
+    }
+
+    pub async fn get_i64(&self, key: &str) -> Result<Option<i64>, Box<dyn Error + Send + Sync>> {
+        Ok(self.connection.clone().get::<&str, Option<i64>>(key).await?)
+    }
+
+    pub async fn sorted_set_incr_with_expire(&self, key: &str, members: &[String], ttl: i64) -> Result<(), Box<dyn Error + Send + Sync>> {
+        if members.is_empty() {
+            return Ok(());
+        }
+        let mut pipe = redis::pipe();
+        for member in members {
+            pipe.cmd("ZINCRBY").arg(key).arg(1).arg(member).ignore();
+        }
+        pipe.cmd("EXPIRE").arg(key).arg(ttl).ignore();
+        pipe.query_async::<()>(&mut self.connection.clone()).await?;
+        Ok(())
+    }
+
+    pub async fn publish<T: serde::Serialize>(&self, channel: &str, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let message = serde_json::to_string(value)?;
+        self.connection.clone().publish::<&str, &str, ()>(channel, &message).await?;
+        Ok(())
+    }
+
+    pub async fn keys(&self, pattern: &str) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+        Ok(redis::cmd("KEYS").arg(pattern).query_async(&mut self.connection.clone()).await?)
+    }
+
+    pub async fn sorted_set_range_by_score(&self, key: &str, min: f64, max: f64, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+        Ok(redis::cmd("ZRANGEBYSCORE")
+            .arg(key)
+            .arg(min)
+            .arg(max)
+            .arg("LIMIT")
+            .arg(0)
+            .arg(limit)
+            .query_async(&mut self.connection.clone())
+            .await?)
+    }
+
+    pub async fn sorted_set_card(&self, key: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        Ok(redis::cmd("ZCARD").arg(key).query_async(&mut self.connection.clone()).await?)
+    }
+
+    pub async fn sorted_set_range_with_scores(&self, key: &str, start: isize, stop: isize) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>> {
+        Ok(redis::cmd("ZRANGE")
+            .arg(key)
+            .arg(start)
+            .arg(stop)
+            .arg("WITHSCORES")
+            .query_async(&mut self.connection.clone())
+            .await?)
+    }
+
+    async fn set_serialized_values_with_ttl(&self, values: Vec<(String, String, i64)>) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        self.set_serialized_values_with_ttl_and_publish(values, false).await
+    }
+
+    async fn set_serialized_values_with_ttl_and_publish(&self, values: Vec<(String, String, i64)>, publish: bool) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        if values.is_empty() {
+            return Ok(0);
+        }
+        let mut pipe = redis::pipe();
+        for (key, serialized, ttl_seconds) in &values {
+            pipe.cmd("SET").arg(key).arg(serialized).arg("EX").arg(ttl_seconds).ignore();
+            if publish {
+                pipe.cmd("PUBLISH").arg(key).arg(serialized).ignore();
+            }
+        }
+        pipe.query_async::<()>(&mut self.connection.clone()).await?;
+        Ok(values.len())
+    }
+
+    async fn set_serialized_value(&self, key: &str, serialized: String, ttl_seconds: Option<u64>) -> Result<(), Box<dyn Error + Send + Sync>> {
+        match ttl_seconds {
+            Some(ttl) => {
+                self.connection.clone().set_ex::<&str, String, ()>(key, serialized, ttl).await?;
+            }
+            None => {
+                self.connection.clone().set::<&str, String, ()>(key, serialized).await?;
+            }
+        }
+        Ok(())
+    }
+}

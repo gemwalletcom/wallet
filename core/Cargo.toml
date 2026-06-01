@@ -1,0 +1,136 @@
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+license = "MIT"
+homepage = "https://gemwallet.com/"
+description = "Gem Wallet Core library in Rust"
+repository = "https://github.com/gemwalletcom/wallet"
+documentation = "https://github.com/gemwalletcom"
+
+[workspace]
+resolver = "3"
+members = [
+    "apps/agent",
+    "apps/api",
+    "apps/daemon",
+    "apps/dynode",
+
+    "bin/cli",
+    "bin/img-downloader",
+    "bin/generate",
+    "bin/uniffi-*",
+    "bin/gas-bench",
+
+    "gemstone",
+
+    "crates/primitives",
+    "crates/fiat",
+    "crates/cacher",
+    "crates/name_resolver",
+    "crates/api_connector",
+    "crates/settings",
+    "crates/settings_chain",
+    "crates/pricer",
+    "crates/chain_primitives",
+    "crates/chain_traits",
+
+    "crates/security_*",
+    "crates/gem_*",
+    "crates/signer",
+    "crates/simulation",
+
+    "crates/localizer",
+    "crates/job_runner",
+    "crates/metrics",
+    "crates/search_index",
+    "crates/nft",
+    "crates/in_app_notifications",
+    "crates/serde_serializers",
+    "crates/number_formatter",
+    "crates/prices",
+    "crates/portfolio",
+    "crates/streamer",
+    "crates/swapper",
+    "crates/tracing",
+    "crates/support",
+    "crates/yielder",
+]
+
+[workspace.dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = { version = "1.0.149", features = ["preserve_order"] }
+serde_urlencoded = { version = "0.7.1" }
+
+tokio = { version = "1.52.0", features = ["macros", "rt-multi-thread"] }
+reqwest = { version = "0.13.4", features = [
+    "json",
+    "gzip",
+    "brotli",
+    "deflate",
+    "http2",
+    "query",
+] }
+
+url = { version = "2.5.8" }
+config = { version = "0.15.19", features = ["yaml"] }
+rocket = { version = "0.5.1", features = ["json"] }
+rocket_ws = { version = "0.1.1" }
+
+async-trait = { version = "0.1.89" }
+prometheus-client = { version = "0.24.0" }
+futures = { version = "0.3.32" }
+uuid = { version = "1.23.0", features = ["v4"] }
+tracing = { version = "0.1.44" }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+# db
+redis = { version = "1.2.0", default-features = false, features = [
+    "tokio-comp",
+    "connection-manager",
+] }
+r2d2 = { version = "0.8.10" }
+chrono = { version = "0.4.43", features = ["serde"] }
+
+# crypto
+base64 = { version = "0.22.1" }
+bech32 = { version = "0.11.1" }
+blake2 = { version = "0.10.6" }
+bs58 = { version = "0.5.1", features = ["check"] }
+hex = { version = "0.4.3" }
+crc = { version = "3.4.0" }
+num-bigint = { version = "0.4.6", features = ["std", "serde"] }
+num-traits = { version = "0.2.19" }
+num-integer = { version = "0.1.46" }
+bigdecimal = "0.4.10"
+hmac = { version = "0.13.0" }
+sha2 = { version = "0.11.0" }
+sha3 = { version = "0.11.0" }
+zeroize = { version = "1.8.2" }
+ring = { version = "0.17.14", features = ["std"] }
+rand = { version = "0.10.1" }
+strum = { version = "0.28.0", features = ["derive"] }
+curve25519-dalek = { version = "4.1.3" }
+ed25519-dalek = { version = "2", features = ["std"] }
+borsh = { version = "1.6.0", features = ["derive"] }
+bcs = { version = "0.2.1" }
+pem-rfc7468 = { version = "1.0.0", features = ["std"] }
+sui-types = { package = "sui-sdk-types", version = "0.3.0", features = [
+    "serde",
+] }
+k256 = { version = "0.13.4", features = ["ecdsa", "sha256"] }
+
+uniffi = { version = "0.31.1" }
+regex = { version = "1.12.3" }
+
+alloy-primitives = { version = "1.6.0", features = ["k256"] }
+alloy-sol-types = { version = "1.6.0", features = ["eip712-serde"] }
+alloy-dyn-abi = { version = "1.6.0", features = ["eip712"] }
+alloy-json-abi = { version = "1.6.0" }
+alloy-signer = { version = "2.0.5" }
+alloy-signer-local = { version = "2.0.5" }
+alloy-network = { version = "2.0.5" }
+alloy-consensus = { version = "2.0.5" }
+jsonwebtoken = { version = "10.4.0", features = ["aws_lc_rs"] }
+
+[profile.dev]
+debug = 0

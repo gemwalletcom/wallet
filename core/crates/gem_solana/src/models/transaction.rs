@@ -1,0 +1,259 @@
+use num_bigint::BigUint;
+use primitives::{AssetId, Chain};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+
+use super::UInt64;
+use crate::models::token::{BigInt, TokenBalance, TokenBalanceChange};
+
+#[derive(Deserialize)]
+pub struct SolanaTransaction {
+    pub meta: SolanaTransactionMeta,
+    pub slot: UInt64,
+}
+
+#[derive(Deserialize)]
+pub struct SolanaTransactionMeta {
+    err: Option<serde_json::Value>,
+}
+
+impl SolanaTransactionMeta {
+    pub fn has_error(&self) -> bool {
+        self.err.is_some()
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Meta {
+    pub err: Option<serde_json::Value>,
+    pub fee: u64,
+    pub pre_balances: Vec<u64>,
+    pub post_balances: Vec<u64>,
+    pub pre_token_balances: Vec<TokenBalance>,
+    pub post_token_balances: Vec<TokenBalance>,
+}
+
+impl Meta {
+    pub fn has_error(&self) -> bool {
+        self.err.is_some()
+    }
+
+    pub fn get_pre_token_balance(&self, account_index: i64) -> Option<TokenBalance> {
+        self.pre_token_balances.iter().find(|b| b.account_index == account_index).cloned()
+    }
+
+    pub fn get_post_token_balance(&self, account_index: i64) -> Option<TokenBalance> {
+        self.post_token_balances.iter().find(|b| b.account_index == account_index).cloned()
+    }
+
+    pub fn get_pre_token_balance_by_owner(&self, owner: &str) -> Vec<TokenBalance> {
+        self.pre_token_balances.iter().filter(|b| b.owner == owner).cloned().collect()
+    }
+
+    pub fn get_post_token_balance_by_owner(&self, owner: &str) -> Vec<TokenBalance> {
+        self.post_token_balances.iter().filter(|b| b.owner == owner).cloned().collect()
+    }
+
+    pub fn get_token_balance_changes_by_owner(&self, owner: &str) -> Vec<TokenBalanceChange> {
+        let pre_balances: HashMap<_, _> = self
+            .pre_token_balances
+            .iter()
+            .filter(|b| b.owner == owner)
+            .map(|b| (b.mint.clone(), b.get_amount()))
+            .collect();
+
+        let post_balances: HashMap<_, _> = self
+            .post_token_balances
+            .iter()
+            .filter(|b| b.owner == owner)
+            .map(|b| (b.mint.clone(), b.get_amount()))
+            .collect();
+        let all_mints: HashSet<_> = pre_balances.keys().chain(post_balances.keys()).cloned().collect();
+
+        all_mints
+            .into_iter()
+            .filter_map(|mint| {
+                let asset_id = AssetId::from_token(Chain::Solana, &mint);
+                let pre_amount = pre_balances.get(&mint).cloned().unwrap_or_else(|| BigUint::from(0u64));
+                let post_amount = post_balances.get(&mint).cloned().unwrap_or_else(|| BigUint::from(0u64));
+
+                if post_amount > pre_amount {
+                    let diff = &post_amount - &pre_amount;
+                    Some(TokenBalanceChange {
+                        asset_id,
+                        amount: BigInt::from_biguint(num_bigint::Sign::Plus, diff),
+                    })
+                } else if pre_amount > post_amount {
+                    let diff = &pre_amount - &post_amount;
+                    Some(TokenBalanceChange {
+                        asset_id,
+                        amount: BigInt::from_biguint(num_bigint::Sign::Minus, diff),
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountKey {
+    pub pubkey: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Transaction {
+    pub message: TransactionMessage,
+    pub signatures: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Signature {
+    pub block_time: i64,
+    pub signature: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Instruction {
+    pub program_id_index: usize,
+    #[serde(default)]
+    pub accounts: Vec<u8>,
+    #[serde(default)]
+    pub data: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionMessage {
+    pub account_keys: Vec<String>,
+    #[serde(default)]
+    pub instructions: Vec<Instruction>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BlockTransaction {
+    pub meta: Meta,
+    pub transaction: Transaction,
+}
+
+impl BlockTransaction {
+    pub fn fee(&self) -> BigUint {
+        BigUint::from(self.meta.fee)
+    }
+
+    pub fn get_balance_change(&self, address: &str) -> u64 {
+        let index = self.transaction.message.account_keys.iter().position(|k| k == address);
+        match index {
+            Some(i) => {
+                let pre = self.meta.pre_balances.get(i).copied().unwrap_or(0);
+                let post = self.meta.post_balances.get(i).copied().unwrap_or(0);
+                pre.saturating_sub(post).saturating_sub(self.meta.fee)
+            }
+            None => 0,
+        }
+    }
+
+    pub fn get_balance_changes_by_owner(&self, owner: &str) -> TokenBalanceChange {
+        // Find all account indices that belong to the owner
+        let account_indices: Vec<usize> = self
+            .transaction
+            .message
+            .account_keys
+            .iter()
+            .enumerate()
+            .filter_map(|(i, k)| if k == owner { Some(i) } else { None })
+            .collect();
+
+        let (total_pre, total_post) = account_indices.into_iter().fold((0u64, 0u64), |(pre_acc, post_acc), idx| {
+            let pre = *self.meta.pre_balances.get(idx).unwrap_or(&0);
+            let post = *self.meta.post_balances.get(idx).unwrap_or(&0);
+            (pre_acc.wrapping_add(pre), post_acc.wrapping_add(post))
+        });
+
+        let (sign, diff) = if total_post > total_pre {
+            let diff = total_post - total_pre;
+            (num_bigint::Sign::Plus, BigUint::from(diff))
+        } else {
+            let diff = total_pre - total_post;
+            (num_bigint::Sign::Minus, BigUint::from(diff))
+        };
+        let fee = self.fee();
+        let data = if fee > diff { BigUint::from(0u64) } else { diff - fee };
+
+        TokenBalanceChange {
+            asset_id: Chain::Solana.as_asset_id(),
+            amount: BigInt::from_biguint(sign, data),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BlockTransactions {
+    pub block_time: i64,
+    pub transactions: Vec<BlockTransaction>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SingleTransaction {
+    pub block_time: i64,
+    pub meta: Meta,
+    pub transaction: Transaction,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn block_transaction(fee: u64, keys: Vec<&str>, pre: Vec<u64>, post: Vec<u64>) -> BlockTransaction {
+        BlockTransaction {
+            meta: Meta {
+                err: None,
+                fee,
+                pre_balances: pre,
+                post_balances: post,
+                pre_token_balances: vec![],
+                post_token_balances: vec![],
+            },
+            transaction: Transaction {
+                message: TransactionMessage {
+                    account_keys: keys.into_iter().map(String::from).collect(),
+                    instructions: vec![],
+                },
+                signatures: vec![],
+            },
+        }
+    }
+
+    #[test]
+    fn test_balance_change() {
+        let tx = block_transaction(5000, vec!["sender", "recipient"], vec![100_000, 0], vec![85_000, 10_000]);
+        assert_eq!(tx.get_balance_change("sender"), 10_000);
+    }
+
+    #[test]
+    fn test_balance_change_no_change() {
+        let tx = block_transaction(5000, vec!["sender"], vec![100_000], vec![95_000]);
+        assert_eq!(tx.get_balance_change("sender"), 0);
+    }
+
+    #[test]
+    fn test_balance_change_received() {
+        let tx = block_transaction(5000, vec!["sender"], vec![100_000], vec![200_000]);
+        assert_eq!(tx.get_balance_change("sender"), 0);
+    }
+
+    #[test]
+    fn test_balance_change_unknown_address() {
+        let tx = block_transaction(5000, vec!["sender"], vec![100_000], vec![85_000]);
+        assert_eq!(tx.get_balance_change("unknown"), 0);
+    }
+}

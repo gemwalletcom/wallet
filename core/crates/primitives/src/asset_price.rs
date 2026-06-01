@@ -1,0 +1,161 @@
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
+
+use crate::portfolio::ChartValuePercentage;
+use crate::{AssetId, Price};
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare(swift = "Sendable, Equatable, Hashable")]
+#[serde(rename_all = "camelCase")]
+pub struct AssetPrice {
+    pub asset_id: AssetId,
+    pub price: f64,
+    pub price_change_percentage_24h: f64,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl AssetPrice {
+    pub fn new(asset_id: AssetId, price: f64, price_change_percentage_24h: f64, updated_at: DateTime<Utc>) -> Self {
+        Self {
+            asset_id,
+            price,
+            price_change_percentage_24h,
+            updated_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[typeshare(swift = "Sendable, Equatable")]
+#[serde(rename_all = "camelCase")]
+pub struct AssetMarket {
+    pub market_cap: Option<f64>,
+    pub market_cap_fdv: Option<f64>,
+    pub market_cap_rank: Option<i32>,
+    pub total_volume: Option<f64>,
+    pub circulating_supply: Option<f64>,
+    pub total_supply: Option<f64>,
+    pub max_supply: Option<f64>,
+    #[typeshare(skip)]
+    pub all_time_high: Option<f64>,
+    #[typeshare(skip)]
+    pub all_time_high_date: Option<DateTime<Utc>>,
+    #[typeshare(skip)]
+    pub all_time_high_change_percentage: Option<f64>,
+    #[typeshare(skip)]
+    pub all_time_low: Option<f64>,
+    #[typeshare(skip)]
+    pub all_time_low_date: Option<DateTime<Utc>>,
+    #[typeshare(skip)]
+    pub all_time_low_change_percentage: Option<f64>,
+    pub all_time_high_value: Option<ChartValuePercentage>,
+    pub all_time_low_value: Option<ChartValuePercentage>,
+}
+
+impl AssetMarket {
+    pub fn with_rate(self, rate: f64) -> Self {
+        Self {
+            market_cap: self.market_cap.map(|x| x * rate),
+            market_cap_fdv: self.market_cap_fdv.map(|x| x * rate),
+            market_cap_rank: self.market_cap_rank,
+            total_volume: self.total_volume.map(|x| x * rate),
+            circulating_supply: self.circulating_supply,
+            total_supply: self.total_supply,
+            max_supply: self.max_supply,
+            all_time_high: self.all_time_high.map(|x| x * rate),
+            all_time_high_date: self.all_time_high_date,
+            all_time_high_change_percentage: self.all_time_high_change_percentage,
+            all_time_low: self.all_time_low.map(|x| x * rate),
+            all_time_low_date: self.all_time_low_date,
+            all_time_low_change_percentage: self.all_time_low_change_percentage,
+            all_time_high_value: self.all_time_high_value.map(|v| v.with_rate(rate)),
+            all_time_low_value: self.all_time_low_value.map(|v| v.with_rate(rate)),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct AssetPrices {
+    pub currency: String,
+    pub prices: Vec<AssetPrice>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct AssetPricesRequest {
+    pub currency: Option<String>,
+    pub asset_ids: Vec<AssetId>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct Charts {
+    pub price: Option<Price>,
+    pub market: Option<AssetMarket>,
+    pub prices: Vec<ChartValue>,
+    pub market_caps: Vec<ChartValue>,
+    pub total_volumes: Vec<ChartValue>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct ChartValue {
+    pub timestamp: i32,
+    pub value: f32,
+}
+
+impl PartialEq for ChartValue {
+    fn eq(&self, other: &Self) -> bool {
+        self.timestamp == other.timestamp && self.value == other.value
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[typeshare(swift = "Equatable, Sendable, Hashable")]
+#[serde(rename_all = "lowercase")]
+pub enum ChartPeriod {
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year,
+    All,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ChartTimeframe {
+    Raw,
+    Hourly,
+    Daily,
+}
+
+impl ChartPeriod {
+    pub fn new(period: String) -> Option<Self> {
+        match period.to_lowercase().as_str() {
+            "hour" => Some(Self::Hour),
+            "day" => Some(Self::Day),
+            "week" => Some(Self::Week),
+            "month" => Some(Self::Month),
+            "year" => Some(Self::Year),
+            "all" => Some(Self::All),
+            _ => None,
+        }
+    }
+
+    pub fn minutes(&self) -> i32 {
+        match self {
+            ChartPeriod::Hour => 60,
+            ChartPeriod::Day => 1440,
+            ChartPeriod::Week => 10_080,
+            ChartPeriod::Month => 43_200,
+            ChartPeriod::Year => 525_600,
+            ChartPeriod::All => 10_525_600,
+        }
+    }
+}

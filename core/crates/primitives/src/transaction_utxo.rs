@@ -1,0 +1,15 @@
+use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare(swift = "Sendable, Equatable, Hashable")]
+pub struct TransactionUtxoInput {
+    pub address: String, // Coinbase / OP_Return will be filtered
+    pub value: String,
+}
+
+impl TransactionUtxoInput {
+    pub fn new(address: String, value: String) -> Self {
+        Self { address, value }
+    }
+}

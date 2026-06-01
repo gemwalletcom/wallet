@@ -1,0 +1,123 @@
+use async_trait::async_trait;
+use chain_traits::ChainTransactionLoad;
+use futures;
+use num_bigint::BigInt;
+use number_formatter::BigNumberFormatter;
+use std::error::Error;
+
+use gem_client::Client;
+use primitives::{
+    BitcoinChain, FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO,
+};
+
+use crate::models::Address;
+use crate::provider::preload_mapper::{map_transaction_preload, map_transaction_preload_zcash, map_utxos};
+use crate::rpc::client::BitcoinClient;
+
+#[async_trait]
+impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
+    async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
+        let address = Address::new(&input.sender_address, self.get_chain()).full();
+        match self.chain {
+            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge => {
+                let utxos = self.get_utxos(&address).await?;
+                Ok(map_transaction_preload(utxos, input))
+            }
+            BitcoinChain::Zcash => {
+                let utxos = self.get_utxos(&address).await?;
+                let node_info = self.get_node_info().await?;
+                Ok(map_transaction_preload_zcash(node_info, utxos, input)?)
+            }
+        }
+    }
+
+    async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
+        Ok(TransactionLoadData {
+            fee: input.default_fee(),
+            metadata: input.metadata,
+        })
+    }
+
+    async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
+        match self.chain {
+            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge => {
+                let priority = self.chain.get_blocks_fee_priority();
+                let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
+                Ok(map_fee_rates(slow, normal, fast, self.chain))
+            }
+            BitcoinChain::Zcash => {
+                return Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(1_000).clone()))]);
+            }
+        }
+    }
+
+    async fn get_utxos(&self, address: String) -> Result<Vec<UTXO>, Box<dyn Error + Sync + Send>> {
+        let utxos = BitcoinClient::get_utxos(self, &address).await?;
+        Ok(map_utxos(utxos, address))
+    }
+}
+
+impl<C: Client> BitcoinClient<C> {
+    async fn get_fee(&self, blocks: i32) -> Result<BigInt, Box<dyn Error + Sync + Send>> {
+        let fee_sat_per_kb = self.get_fee_priority(blocks).await?;
+        calculate_fee_rate(&fee_sat_per_kb, self.chain.minimum_byte_fee() as u32)
+    }
+}
+
+fn calculate_fee_rate(fee_sat_per_kb: &str, minimum_byte_fee: u32) -> Result<BigInt, Box<dyn Error + Sync + Send>> {
+    let rate = BigNumberFormatter::value_from_amount(fee_sat_per_kb, 8)?.parse::<f64>()? / 1000.0;
+    let minimum_byte_fee = minimum_byte_fee as f64;
+
+    Ok(BigInt::from(rate.max(minimum_byte_fee) as i64))
+}
+
+fn map_fee_rates(slow: BigInt, normal: BigInt, fast: BigInt, chain: BitcoinChain) -> Vec<FeeRate> {
+    let min_fee = BigInt::from(chain.minimum_byte_fee());
+    let normal = normal.max(&slow + &min_fee);
+    let third: BigInt = &normal / 3;
+    let fast = fast.max(&slow + &min_fee * 2).max(&normal + third);
+    vec![
+        FeeRate::new(FeePriority::Slow, GasPriceType::regular(slow)),
+        FeeRate::new(FeePriority::Normal, GasPriceType::regular(normal)),
+        FeeRate::new(FeePriority::Fast, GasPriceType::regular(fast)),
+    ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_fee_rate() {
+        assert_eq!(calculate_fee_rate("0.00004131", 1).unwrap(), BigInt::from(4));
+        assert_eq!(calculate_fee_rate("0.00001131", 1).unwrap(), BigInt::from(1));
+        assert_eq!(calculate_fee_rate("0.000001", 5).unwrap(), BigInt::from(5));
+        assert_eq!(calculate_fee_rate("0", 1).unwrap(), BigInt::from(1));
+        assert!(calculate_fee_rate("invalid", 1).is_err());
+    }
+
+    #[test]
+    fn test_map_fee_rates_bitcoin() {
+        // all 1 sat → normal=2 (slow+1), fast=3 (slow+2)
+        let rates = map_fee_rates(BigInt::from(1), BigInt::from(1), BigInt::from(1), BitcoinChain::Bitcoin);
+        assert_eq!(FeeRate::find(&rates, FeePriority::Normal).unwrap().gas_price_type.gas_price(), BigInt::from(2));
+        assert_eq!(FeeRate::find(&rates, FeePriority::Fast).unwrap().gas_price_type.gas_price(), BigInt::from(3));
+
+        // slow=1, normal=12, fast=12 → normal kept, fast=16 (12+12/3)
+        let rates = map_fee_rates(BigInt::from(1), BigInt::from(12), BigInt::from(12), BitcoinChain::Bitcoin);
+        assert_eq!(FeeRate::find(&rates, FeePriority::Normal).unwrap().gas_price_type.gas_price(), BigInt::from(12));
+        assert_eq!(FeeRate::find(&rates, FeePriority::Fast).unwrap().gas_price_type.gas_price(), BigInt::from(16));
+
+        // fast already higher → kept
+        let rates = map_fee_rates(BigInt::from(1), BigInt::from(12), BigInt::from(25), BitcoinChain::Bitcoin);
+        assert_eq!(FeeRate::find(&rates, FeePriority::Fast).unwrap().gas_price_type.gas_price(), BigInt::from(25));
+    }
+
+    #[test]
+    fn test_map_fee_rates_doge() {
+        // all 1000 → normal=2000 (1000+1000), fast=3000 (slow+2000)
+        let rates = map_fee_rates(BigInt::from(1000), BigInt::from(1000), BigInt::from(1000), BitcoinChain::Doge);
+        assert_eq!(FeeRate::find(&rates, FeePriority::Normal).unwrap().gas_price_type.gas_price(), BigInt::from(2000));
+        assert_eq!(FeeRate::find(&rates, FeePriority::Fast).unwrap().gas_price_type.gas_price(), BigInt::from(3000));
+    }
+}

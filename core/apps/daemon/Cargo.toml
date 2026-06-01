@@ -1,0 +1,47 @@
+[package]
+name = "daemon"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["signal"] }
+rocket = { workspace = true }
+reqwest = { workspace = true }
+futures = { workspace = true }
+chrono = { workspace = true }
+strum = { workspace = true }
+async-trait = { workspace = true }
+num-bigint = { workspace = true }
+
+prometheus-client = { workspace = true }
+metrics = { path = "../../crates/metrics" }
+gem_tracing = { path = "../../crates/tracing" }
+settings = { path = "../../crates/settings" }
+storage = { path = "../../crates/storage" }
+api_connector = { path = "../../crates/api_connector" }
+coingecko = { path = "../../crates/coingecko" }
+pricer = { path = "../../crates/pricer" }
+prices = { path = "../../crates/prices" }
+primitives = { path = "../../crates/primitives" }
+fiat = { path = "../../crates/fiat" }
+nft = { path = "../../crates/nft" }
+job_runner = { path = "../../crates/job_runner" }
+chain_primitives = { path = "../../crates/chain_primitives" }
+search_index = { path = "../../crates/search_index" }
+cacher = { path = "../../crates/cacher" }
+streamer = { path = "../../crates/streamer" }
+localizer = { path = "../../crates/localizer" }
+support = { path = "../../crates/support" }
+settings_chain = { path = "../../crates/settings_chain" }
+chain_traits = { path = "../../crates/chain_traits" }
+number_formatter = { path = "../../crates/number_formatter" }
+gem_rewards = { path = "../../crates/gem_rewards" }
+gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+gem_evm = { path = "../../crates/gem_evm", features = ["rpc", "reqwest"] }
+gem_jsonrpc = { path = "../../crates/gem_jsonrpc", features = ["client", "reqwest"] }
+swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
+
+[dev-dependencies]
+primitives = { path = "../../crates/primitives", features = ["testkit"] }

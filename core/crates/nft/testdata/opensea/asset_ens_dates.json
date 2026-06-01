@@ -1,0 +1,68 @@
+{
+    "nft": {
+        "identifier": "91780768891665961085574300632320337237649359513314798633242628975887494917390",
+        "collection": "ens",
+        "contract": "0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401",
+        "token_standard": "erc1155",
+        "name": "gemtester.eth",
+        "description": "gemtester.eth, an ENS name.",
+        "image_url": "https://raw2.seadn.io/ethereum/0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401/fd1463dd6d32a7e5f839b67ffa3ff4/6dfd1463dd6d32a7e5f839b67ffa3ff4.svg",
+        "display_image_url": "https://raw2.seadn.io/ethereum/0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401/fd1463dd6d32a7e5f839b67ffa3ff4/6dfd1463dd6d32a7e5f839b67ffa3ff4.svg",
+        "display_animation_url": null,
+        "metadata_url": "https://metadata.ens.domains/mainnet/0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401/91780768891665961085574300632320337237649359513314798633242628975887494917390",
+        "opensea_url": "https://opensea.io/assets/ethereum/0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401/91780768891665961085574300632320337237649359513314798633242628975887494917390",
+        "updated_at": "2026-04-28T17:06:29.333804",
+        "is_disabled": false,
+        "is_nsfw": false,
+        "original_image_url": "https://metadata.ens.domains/mainnet/0xd4416b13d2b3a9abae7acd5d6c2bbdbe25686401/0xcaea1304e0bcd42ea9c6111fbcb5a8299547395d7da690b2fd29f3451e93ad0e/image",
+        "original_animation_url": null,
+        "traits": [
+            {
+                "trait_type": "Length",
+                "display_type": "NUMBER",
+                "max_value": null,
+                "value": "9"
+            },
+            {
+                "trait_type": "Created Date",
+                "display_type": null,
+                "max_value": null,
+                "value": "1738102775"
+            },
+            {
+                "trait_type": "Character Set",
+                "display_type": "STRING",
+                "max_value": null,
+                "value": "letter"
+            },
+            {
+                "trait_type": "Segment Length",
+                "display_type": "NUMBER",
+                "max_value": null,
+                "value": "9"
+            },
+            {
+                "trait_type": "Namewrapper State",
+                "display_type": "STRING",
+                "max_value": null,
+                "value": "Emancipated"
+            },
+            {
+                "trait_type": "Namewrapper Expiry Date",
+                "display_type": null,
+                "max_value": null,
+                "value": "1872109175"
+            }
+        ],
+        "animation_url": null,
+        "is_suspicious": false,
+        "creator": "",
+        "owners": [
+            {
+                "address": "0xba4d1d35bce0e8f28e5a3403e7a0b996c5d50ac4",
+                "quantity": 1
+            }
+        ],
+        "rarity": null
+    }
+}

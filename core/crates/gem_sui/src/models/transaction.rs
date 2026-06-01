@@ -1,0 +1,123 @@
+use num_bigint::BigUint;
+use num_traits::ToPrimitive;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use serde_serializers::deserialize_biguint_from_str;
+
+use crate::gas_budget::calculate_gas_budget;
+
+#[cfg(feature = "rpc")]
+use serde_serializers::deserialize_u64_from_str;
+
+#[cfg(feature = "rpc")]
+use super::account::GasObject;
+#[cfg(feature = "rpc")]
+use super::coin::BalanceChange;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SuiTransaction {
+    pub effects: SuiEffects,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SuiStatus {
+    pub status: String,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SuiEffects {
+    pub gas_used: GasUsed,
+    pub status: SuiStatus,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GasUsed {
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub computation_cost: BigUint,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub storage_cost: BigUint,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub storage_rebate: BigUint,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub non_refundable_storage_fee: BigUint,
+}
+
+impl GasUsed {
+    pub fn calculate_gas_budget(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+        match (self.computation_cost.to_u64(), self.storage_cost.to_u64(), self.storage_rebate.to_u64()) {
+            (Some(computation), Some(storage), Some(rebate)) => Ok(calculate_gas_budget(computation, storage, rebate)),
+            _ => Err("gas cost overflow".into()),
+        }
+    }
+}
+
+pub use TransactionBroadcast as SuiBroadcastTransaction;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionBroadcast {
+    pub digest: String,
+}
+
+#[cfg(feature = "rpc")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionBlocks {
+    pub data: Vec<Digest>,
+}
+
+#[cfg(feature = "rpc")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Checkpoint {
+    pub epoch: String,
+    pub sequence_number: String,
+    pub digest: String,
+    pub network_total_transactions: String,
+    pub previous_digest: String,
+    pub timestamp_ms: String,
+    pub transactions: Vec<String>,
+}
+
+#[cfg(feature = "rpc")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Digest {
+    pub digest: String,
+    pub effects: Effect,
+    #[serde(default)]
+    pub move_call_packages: Vec<String>,
+    #[serde(rename = "balanceChanges")]
+    pub balance_changes: Option<Vec<BalanceChange>>,
+    pub events: Vec<Event>,
+    #[serde(rename = "timestampMs")]
+    #[serde(deserialize_with = "deserialize_u64_from_str")]
+    pub timestamp_ms: u64,
+}
+
+#[cfg(feature = "rpc")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Effect {
+    #[serde(rename = "gasUsed")]
+    pub gas_used: GasUsed,
+    pub status: Status,
+    #[serde(rename = "gasObject")]
+    pub gas_object: GasObject,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Event {
+    #[serde(rename = "type")]
+    pub event_type: String,
+    #[serde(rename = "parsedJson")]
+    pub parsed_json: Option<Value>,
+    #[serde(rename = "packageId")]
+    pub package_id: String,
+}

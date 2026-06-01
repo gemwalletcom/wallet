@@ -1,0 +1,8 @@
+{
+  "id": "ord_123",
+  "status": "completed",
+  "amountOut": "1234500",
+  "destination": {
+    "txHash": "solana_sig_123"
+  }
+}

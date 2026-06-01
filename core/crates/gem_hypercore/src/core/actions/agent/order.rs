@@ -1,0 +1,215 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub enum TpslType {
+    #[serde(rename = "tp")]
+    TakeProfit,
+    #[serde(rename = "sl")]
+    StopLoss,
+}
+
+// IMPORTANT: Field order matters for msgpack serialization and hash calculation
+// Do not change field order unless you know the exact order in Python SDK.
+#[derive(Clone, Serialize, Deserialize)]
+pub struct PlaceOrder {
+    pub r#type: String,
+    pub orders: Vec<Order>,
+    pub grouping: Grouping,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub builder: Option<Builder>,
+}
+
+impl PlaceOrder {
+    pub fn new(orders: Vec<Order>, grouping: Grouping, builder: Option<Builder>) -> Self {
+        Self {
+            r#type: "order".to_string(),
+            orders,
+            grouping,
+            builder,
+        }
+    }
+}
+
+// IMPORTANT: Field order matters for msgpack serialization and hash calculation
+// Do not change field order unless you know the exact order in Python SDK.
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Order {
+    #[serde(rename = "a")]
+    pub asset: u32,
+    #[serde(rename = "b")]
+    pub is_buy: bool,
+    #[serde(rename = "p")]
+    pub price: String,
+    /// Use "0" to apply to entire position (for position TP/SL orders)
+    #[serde(rename = "s")]
+    pub size: String,
+    #[serde(rename = "r")]
+    pub reduce_only: bool,
+    #[serde(rename = "t")]
+    pub order_type: OrderType,
+    #[serde(rename = "c", skip_serializing_if = "Option::is_none")]
+    pub client_order_id: Option<String>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum OrderType {
+    Limit { limit: LimitOrder },
+    Trigger { trigger: Trigger },
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct LimitOrder {
+    pub tif: TimeInForce,
+}
+
+impl LimitOrder {
+    pub fn new(tif: TimeInForce) -> Self {
+        Self { tif }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Trigger {
+    #[serde(rename = "isMarket")]
+    pub is_market: bool,
+    #[serde(rename = "triggerPx")]
+    pub trigger_px: String,
+    pub tpsl: TpslType,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub enum TimeInForce {
+    #[serde(rename = "Alo")]
+    AddLiquidityOnly,
+    #[serde(rename = "Ioc")]
+    ImmediateOrCancel,
+    #[serde(rename = "Gtc")]
+    GoodTillCancel,
+    #[serde(rename = "FrontendMarket")]
+    FrontendMarket,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum Grouping {
+    Na,
+    NormalTpsl,
+    PositionTpsl,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Builder {
+    #[serde(rename = "b")]
+    pub builder_address: String,
+    #[serde(rename = "f")]
+    pub fee: u32, // tenths of a basis point , 10 means 1bp
+}
+
+pub fn make_market_order(asset: u32, is_buy: bool, price: &str, size: &str, reduce_only: bool, builder: Option<Builder>) -> PlaceOrder {
+    PlaceOrder::new(
+        vec![Order {
+            asset,
+            is_buy,
+            price: price.to_string(),
+            size: size.to_string(),
+            reduce_only,
+            order_type: make_market_order_type(),
+            client_order_id: None,
+        }],
+        Grouping::Na,
+        builder,
+    )
+}
+
+// size 0 - means entire position
+// TP/SL orders are always reduce_only=true
+pub fn make_position_tp_sl(asset: u32, is_buy: bool, size: &str, tp_trigger: Option<String>, sl_trigger: Option<String>, builder: Option<Builder>, is_market: bool) -> PlaceOrder {
+    let mut orders = Vec::new();
+
+    if let Some(sl_trigger) = sl_trigger {
+        orders.push(make_tpsl_order(asset, is_buy, size, sl_trigger, TpslType::StopLoss, is_market));
+    }
+
+    if let Some(tp_trigger) = tp_trigger {
+        orders.push(make_tpsl_order(asset, is_buy, size, tp_trigger, TpslType::TakeProfit, is_market));
+    }
+
+    PlaceOrder::new(orders, Grouping::PositionTpsl, builder)
+}
+
+fn make_market_order_type() -> OrderType {
+    OrderType::Limit {
+        limit: LimitOrder::new(TimeInForce::FrontendMarket),
+    }
+}
+
+fn make_tpsl_order(asset: u32, is_buy: bool, size: &str, trigger: String, tpsl_type: TpslType, is_market: bool) -> Order {
+    Order {
+        asset,
+        is_buy: !is_buy,
+        price: trigger.clone(),
+        size: size.to_string(),
+        reduce_only: true,
+        order_type: OrderType::Trigger {
+            trigger: Trigger {
+                is_market,
+                trigger_px: trigger,
+                tpsl: tpsl_type,
+            },
+        },
+        client_order_id: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_make_position_tp_sl_long_market() {
+        let result = make_position_tp_sl(1, true, "1.0", Some("110".to_string()), Some("95".to_string()), None, true);
+
+        assert_eq!(result.orders.len(), 2);
+        assert_eq!(result.grouping, Grouping::PositionTpsl);
+        assert_eq!(result.orders[0].price, "95");
+        assert!(!result.orders[0].is_buy);
+        assert_eq!(result.orders[1].price, "110");
+        assert!(!result.orders[1].is_buy);
+
+        if let OrderType::Trigger { trigger } = &result.orders[0].order_type {
+            assert!(trigger.is_market);
+            assert_eq!(trigger.trigger_px, "95");
+        }
+    }
+
+    #[test]
+    fn test_make_position_tp_sl_short_market() {
+        let result = make_position_tp_sl(1, false, "1.0", Some("90".to_string()), Some("105".to_string()), None, true);
+
+        assert_eq!(result.orders.len(), 2);
+        assert_eq!(result.orders[0].price, "105");
+        assert!(result.orders[0].is_buy);
+        assert_eq!(result.orders[1].price, "90");
+        assert!(result.orders[1].is_buy);
+
+        if let OrderType::Trigger { trigger } = &result.orders[1].order_type {
+            assert!(trigger.is_market);
+            assert_eq!(trigger.trigger_px, "90");
+        }
+    }
+
+    #[test]
+    fn test_make_position_tp_sl_limit() {
+        let result = make_position_tp_sl(1, true, "1.0", Some("110".to_string()), Some("95".to_string()), None, false);
+
+        assert_eq!(result.orders.len(), 2);
+        assert_eq!(result.orders[0].price, "95");
+        assert_eq!(result.orders[1].price, "110");
+
+        if let OrderType::Trigger { trigger } = &result.orders[0].order_type {
+            assert!(!trigger.is_market);
+            assert_eq!(trigger.trigger_px, "95");
+        }
+    }
+}

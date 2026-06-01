@@ -1,0 +1,19 @@
+[package]
+name = "pricer"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+primitives = { path = "../primitives" }
+prices = { path = "../prices" }
+number_formatter = { path = "../number_formatter" }
+storage = { path = "../storage" }
+localizer = { path = "../../crates/localizer" }
+cacher = { path = "../../crates/cacher" }
+gem_tracing = { path = "../tracing" }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }

@@ -1,0 +1,26 @@
+[package]
+name = "prices"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+async-trait = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+chain_primitives = { path = "../chain_primitives" }
+coingecko = { path = "../coingecko" }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
+primitives = { path = "../primitives" }
+serde_serializers = { path = "../serde_serializers" }
+
+[dev-dependencies]
+coingecko = { path = "../coingecko", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }
+tokio.workspace = true
+
+[features]
+default = []
+price_integration_tests = []

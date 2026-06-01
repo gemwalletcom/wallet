@@ -1,0 +1,108 @@
+list:
+    just --list
+
+build:
+    cargo build
+
+build-gemstone:
+    just gemstone build
+
+build-ios:
+    just gemstone build-ios
+
+install: install-sccache install-typeshare install-postgres install-diesel
+
+install-sccache:
+    @echo Install sccache
+    @which sccache &>/dev/null || brew install sccache
+    @sccache --version
+
+install-rust:
+    @echo Install Rust
+    @which rustup &>/dev/null || curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    @source ~/.cargo/env
+    @rustc --version
+
+install-typeshare:
+    @echo Install typeshare-cli
+    cargo install typeshare-cli@1.13.3
+
+install-postgres:
+	brew install libpq postgresql@15
+	brew link postgresql@15
+	export LDFLAGS="-L/opt/homebrew/opt/libpq/lib"
+	export CPPFLAGS="-I/opt/homebrew/opt/libpq/include"
+
+install-diesel:
+    @echo Install Diesel
+    cargo install diesel_cli --no-default-features --features postgres --version 2.3.3 --force
+
+test CRATE="":
+    @echo "Running unit tests only..."
+    @if [ -n "{{CRATE}}" ]; then \
+        cargo test --package {{CRATE}} --lib --bins --all-features -- --skip integration_tests; \
+    else \
+        cargo test --lib --bins --workspace --features unit_tests; \
+    fi
+
+test-integration:
+    @echo "Running integration tests only..."
+    cargo test --lib --all --features chain_integration_tests -- chain_integration_tests --test-threads=1
+    cargo test --lib -p gemstone --features swap_integration_tests -- swap_integration_tests --test-threads=1
+    cargo test --lib -p fiat --features fiat_integration_tests -- fiat_integration_tests --test-threads=1 
+    cargo test --lib -p nft --features nft_integration_tests -- nft_integration_tests --test-threads=1
+    cargo test --lib -p prices --features price_integration_tests -- price_integration_tests --test-threads=1
+
+build-integration-tests:
+    @echo "Building all integration tests..."
+    cargo test --no-run --lib --all --features chain_integration_tests
+    cargo test --no-run --lib -p gemstone --features swap_integration_tests
+    cargo test --no-run --lib -p fiat --features fiat_integration_tests
+    cargo test --no-run --lib -p nft --features nft_integration_tests
+    cargo test --no-run --lib -p prices --features price_integration_tests
+
+format:
+    cargo fmt -q --all
+
+fix:
+    @cargo clippy --fix --workspace --all-targets --allow-dirty
+
+lint:
+    @cargo clippy --version
+    cargo clippy -- -D warnings
+
+audit:
+    @command -v cargo-audit >/dev/null || cargo install cargo-audit --locked --version 0.22.0
+    cargo audit
+
+unused:
+    cargo install cargo-machete
+    cargo machete
+
+bloat:
+    cargo install cargo-bloat --no-default-features
+    cargo bloat --release --crates
+
+migrate:
+    diesel migration run
+
+localize:
+    @sh scripts/localize.sh core crates/localizer/i18n en
+
+localize-all:
+    @sh scripts/localize.sh core crates/localizer/i18n
+
+setup-services:
+    docker compose up -d redis postgres meilisearch rabbitmq
+
+generate-ts-primitives:
+    @typeshare ./crates/primitives --lang=typescript --output-file=primitives.ts 1>/dev/null 2>&1
+
+outdated:
+    @cargo install cargo-edit --quiet
+    cargo upgrade -i --dry-run
+
+upgrade:
+    cargo upgrade -i
+
+mod gemstone

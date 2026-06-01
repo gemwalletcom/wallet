@@ -1,0 +1,27 @@
+{
+    "data": {
+        "id": "1b6cdb1e-9299-45b1-9670-54db1ea5a21f",
+        "externalTransactionId": null,
+        "status": "failed",
+        "baseCurrencyAmount": 15.39,
+        "quoteCurrencyAmount": null,
+        "baseCurrency": {
+            "code": "usd",
+            "metadata": null,
+            "isSuspended": false,
+            "isBaseAsset": false,
+            "isSellSupported": true,
+            "notAllowedCountries": [],
+            "type": "fiat",
+            "minBuyAmount": 20.0,
+            "maxBuyAmount": 30000.0,
+            "minSellAmount": null,
+            "maxSellAmount": null
+        },
+        "quoteCurrency": null,
+        "cryptoTransactionId": null,
+        "networkFeeAmount": 0.47,
+        "extraFeeAmount": 0.15,
+        "feeAmount": 3.99
+    }
+}

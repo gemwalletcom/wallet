@@ -1,0 +1,49 @@
+{
+  "routes": [
+    {
+      "sourceChain": "lightning",
+      "sourceAsset": "BTC",
+      "destination": {
+        "chain": "bitcoin",
+        "asset": "BTC",
+        "contractAddress": null
+      }
+    },
+    {
+      "sourceChain": "lightning",
+      "sourceAsset": "BTC",
+      "destination": {
+        "chain": "base",
+        "asset": "ETH",
+        "contractAddress": null
+      }
+    },
+    {
+      "sourceChain": "lightning",
+      "sourceAsset": "BTC",
+      "destination": {
+        "chain": "solana",
+        "asset": "USDC",
+        "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+      }
+    },
+    {
+      "sourceChain": "spark",
+      "sourceAsset": "BTC",
+      "destination": {
+        "chain": "ethereum",
+        "asset": "USDC",
+        "contractAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+      }
+    },
+    {
+      "sourceChain": "lightning",
+      "sourceAsset": "BTC",
+      "destination": {
+        "chain": "tempo",
+        "asset": "USDC",
+        "contractAddress": "0x20c000000000000000000000b9537d11c60e8b50"
+      }
+    }
+  ]
+}

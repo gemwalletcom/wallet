@@ -1,0 +1,139 @@
+use std::error::Error;
+use std::sync::Arc;
+
+use gem_jsonrpc::client::JsonRpcClient;
+use gem_solana::models::jito::{FeeStats, calculate_fee_stats};
+use gem_solana::models::prioritization_fee::SolanaPrioritizationFee;
+use gem_solana::{JUPITER_PROGRAM_ID, USDC_TOKEN_MINT};
+use gemstone::alien::{AlienProvider, new_alien_client, reqwest_provider::NativeProvider};
+use primitives::Chain;
+use serde_json::json;
+
+pub const ORCA_WHIRLPOOL: &str = "whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc";
+
+const MIN_SLOW_FEE: u64 = 1_000;
+const MIN_NORMAL_FEE: u64 = 10_000;
+const MIN_FAST_FEE: u64 = 100_000;
+
+const JITO_TIP_MIN_LAMPORTS: u64 = 10_000;
+
+#[derive(Debug, Clone)]
+pub struct JitoTipEstimates {
+    pub slow: u64,
+    pub normal: u64,
+    pub fast: u64,
+}
+
+#[derive(Debug)]
+pub struct SolanaFeeData {
+    pub slot: u64,
+    pub priority_fees: PriorityFees,
+    pub jito_tips: JitoTipEstimates,
+    pub raw_fees: FeeStats,
+    pub account_fees: AccountFeeStats,
+}
+
+#[derive(Debug)]
+pub struct PriorityFees {
+    pub slow: u64,
+    pub normal: u64,
+    pub fast: u64,
+}
+
+#[derive(Debug, Default)]
+pub struct AccountFeeStats {
+    pub jupiter: Option<FeeStats>,
+    pub orca: Option<FeeStats>,
+    pub usdc: Option<FeeStats>,
+}
+
+pub struct SolanaGasClient {
+    native_provider: Arc<NativeProvider>,
+}
+
+impl SolanaGasClient {
+    pub fn new(native_provider: Arc<NativeProvider>) -> Self {
+        Self { native_provider }
+    }
+
+    pub async fn fetch_fee_data(&self) -> Result<SolanaFeeData, Box<dyn Error + Send + Sync>> {
+        let endpoint = self.native_provider.get_endpoint(Chain::Solana)?;
+        let alien_client = new_alien_client(endpoint, self.native_provider.clone());
+        let client: JsonRpcClient<_> = JsonRpcClient::new(alien_client);
+
+        let slot: u64 = client.call("getSlot", json!([])).await?;
+
+        let global_fees: Vec<SolanaPrioritizationFee> = client.call("getRecentPrioritizationFees", json!([])).await?;
+
+        let mut account_fees = AccountFeeStats::default();
+
+        for (account, name) in [(JUPITER_PROGRAM_ID, "jupiter"), (ORCA_WHIRLPOOL, "orca"), (USDC_TOKEN_MINT, "usdc")] {
+            let fees: Vec<SolanaPrioritizationFee> = client.call("getRecentPrioritizationFees", json!([[account]])).await?;
+
+            if !fees.is_empty() {
+                let values: Vec<i64> = fees.iter().map(|f| f.prioritization_fee).collect();
+                let stats = calculate_fee_stats(&values);
+                match name {
+                    "jupiter" => account_fees.jupiter = Some(stats),
+                    "orca" => account_fees.orca = Some(stats),
+                    "usdc" => account_fees.usdc = Some(stats),
+                    _ => {}
+                }
+            }
+        }
+
+        let global_values: Vec<i64> = global_fees.iter().map(|f| f.prioritization_fee).collect();
+        let raw_fees = calculate_fee_stats(&global_values);
+
+        let effective_stats = get_best_fee_stats(&raw_fees, &account_fees);
+        let priority_fees = calculate_priority_fees(&effective_stats);
+        let jito_tips = estimate_jito_tips(&effective_stats);
+
+        Ok(SolanaFeeData {
+            slot,
+            priority_fees,
+            jito_tips,
+            raw_fees,
+            account_fees,
+        })
+    }
+}
+
+fn get_best_fee_stats(global: &FeeStats, accounts: &AccountFeeStats) -> FeeStats {
+    accounts
+        .jupiter
+        .as_ref()
+        .filter(|a| a.count > 0 && a.avg > 0)
+        .or_else(|| accounts.orca.as_ref().filter(|a| a.count > 0 && a.avg > 0))
+        .or_else(|| accounts.usdc.as_ref().filter(|a| a.count > 0 && a.avg > 0))
+        .cloned()
+        .unwrap_or_else(|| global.clone())
+}
+
+fn calculate_priority_fees(stats: &FeeStats) -> PriorityFees {
+    PriorityFees {
+        slow: (stats.median as u64).max(MIN_SLOW_FEE),
+        normal: (stats.p75 as u64).max(MIN_NORMAL_FEE),
+        fast: (stats.p90 as u64).max(MIN_FAST_FEE),
+    }
+}
+
+fn estimate_jito_tips(stats: &FeeStats) -> JitoTipEstimates {
+    const BASE_SLOW: u64 = 1_000;
+    const BASE_NORMAL: u64 = 3_000;
+    const BASE_FAST: u64 = 10_000;
+    const REFERENCE_FEE: f64 = 10_000.0;
+
+    let congestion_multiplier = if stats.avg > 0 {
+        let raw_multiplier = stats.avg as f64 / REFERENCE_FEE;
+        (1.0 + raw_multiplier.sqrt()).clamp(1.0, 10.0)
+    } else {
+        1.0
+    };
+
+    JitoTipEstimates {
+        slow: ((BASE_SLOW as f64 * congestion_multiplier) as u64).max(JITO_TIP_MIN_LAMPORTS),
+        normal: ((BASE_NORMAL as f64 * congestion_multiplier) as u64).max(JITO_TIP_MIN_LAMPORTS),
+        fast: ((BASE_FAST as f64 * congestion_multiplier) as u64).max(JITO_TIP_MIN_LAMPORTS),
+    }
+}

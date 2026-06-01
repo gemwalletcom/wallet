@@ -1,0 +1,331 @@
+use crate::models::{
+    balance::{Balances, DelegationBalance, StakeBalance, Validator},
+    candlestick::Candlestick,
+    metadata::HypercoreMetadataResponse,
+    order::{OpenOrder, UserFill},
+    perp_dex::PerpDex,
+    portfolio::HypercorePortfolioResponse,
+    position::AssetPositions,
+    referral::Referral,
+    response::ExplorerTransactionResponse,
+    spot::{OrderbookResponse, SpotMeta},
+    user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee, UserRole},
+};
+use chain_traits::ChainTraits;
+use gem_client::{CONTENT_TYPE, Client, ClientExt, ContentType};
+use primitives::InMemoryPreferences;
+use serde::de::DeserializeOwned;
+use std::{collections::HashMap, error::Error, sync::Arc};
+
+use crate::config::HypercoreConfig;
+use gem_client::X_CACHE_TTL;
+use primitives::{Chain, Preferences};
+use serde_json::json;
+
+const SPOT_META_CACHE_TTL_SECS: u64 = 3600;
+const USER_ABSTRACTION_CACHE_TTL_SECS: u64 = 3600;
+const EXPLORER_PATH: &str = "/explorer";
+const TRANSACTION_SENDER_CACHE_PREFIX: &str = "hypercore_transaction_sender_";
+pub(crate) const AGENT_OWNER_CACHE_PREFIX: &str = "hypercore_agent_owner_";
+
+fn info_cache_headers(ttl_secs: u64) -> HashMap<String, String> {
+    HashMap::from([
+        (String::from(CONTENT_TYPE), ContentType::ApplicationJson.as_str().to_string()),
+        (String::from(X_CACHE_TTL), ttl_secs.to_string()),
+    ])
+}
+
+fn transaction_sender_cache_key(id: &str) -> String {
+    format!("{TRANSACTION_SENDER_CACHE_PREFIX}{id}")
+}
+
+pub(crate) fn agent_owner_cache_key(agent_address: &str) -> String {
+    format!("{AGENT_OWNER_CACHE_PREFIX}{}", agent_address.to_lowercase())
+}
+
+pub struct HyperCoreClient<C: Client> {
+    client: C,
+    pub chain: Chain,
+    pub config: HypercoreConfig,
+    pub preferences: Arc<dyn Preferences>,
+    pub secure_preferences: Arc<dyn Preferences>,
+}
+
+impl<C: Client> std::fmt::Debug for HyperCoreClient<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HyperCoreClient")
+            .field("chain", &self.chain)
+            .field("config", &self.config)
+            .field("preferences", &"<Preferences>")
+            .field("secure_preferences", &"<Preferences>")
+            .finish()
+    }
+}
+
+impl<C: Client> HyperCoreClient<C> {
+    pub fn new(client: C) -> Self {
+        let preferences = Arc::new(InMemoryPreferences::new());
+        let secure_preferences = Arc::new(InMemoryPreferences::new());
+        Self {
+            client,
+            chain: Chain::HyperCore,
+            config: HypercoreConfig::default(),
+            preferences,
+            secure_preferences,
+        }
+    }
+
+    pub fn new_with_preferences(client: C, preferences: Arc<dyn Preferences>, secure_preferences: Arc<dyn Preferences>) -> Self {
+        Self {
+            client,
+            chain: Chain::HyperCore,
+            config: HypercoreConfig::default(),
+            preferences,
+            secure_preferences,
+        }
+    }
+
+    async fn info<T>(&self, payload: serde_json::Value) -> Result<T, Box<dyn Error + Send + Sync>>
+    where
+        T: DeserializeOwned + Send,
+    {
+        Ok(self.client.post("/info", &payload).await?)
+    }
+
+    async fn info_with_cache<T>(&self, payload: serde_json::Value, ttl_secs: u64) -> Result<T, Box<dyn Error + Send + Sync>>
+    where
+        T: DeserializeOwned + Send,
+    {
+        Ok(self.client.post_with_headers("/info", &payload, info_cache_headers(ttl_secs)).await?)
+    }
+
+    pub async fn exchange(&self, payload: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.post("/exchange", &payload).await?)
+    }
+
+    pub async fn get_transaction_details(&self, hash: &str) -> Result<ExplorerTransactionResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.post(EXPLORER_PATH, &json!({ "type": "txDetails", "hash": hash })).await?)
+    }
+
+    pub async fn get_validators(&self) -> Result<Vec<Validator>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "validatorSummaries"})).await
+    }
+
+    pub async fn get_staking_delegations(&self, user: &str) -> Result<Vec<DelegationBalance>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "delegations", "user": user})).await
+    }
+
+    pub async fn get_staking_apy(&self) -> Result<f64, Box<dyn Error + Send + Sync>> {
+        let validators = self.get_validators().await?;
+        Ok(Validator::max_apr(validators))
+    }
+
+    pub async fn get_spot_balances(&self, user: &str) -> Result<Balances, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "spotClearinghouseState",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_stake_balance(&self, user: &str) -> Result<StakeBalance, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "delegatorSummary",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_user_fills_by_time(&self, user: &str, start_time: i64) -> Result<Vec<UserFill>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "userFillsByTime",
+            "user": user,
+            "startTime": start_time
+        }))
+        .await
+    }
+
+    pub async fn get_clearinghouse_state(&self, user: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "clearinghouseState", "user": user})).await
+    }
+
+    pub async fn get_clearinghouse_state_with_dex(&self, user: &str, dex: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "clearinghouseState", "user": user, "dex": dex})).await
+    }
+
+    pub async fn get_metadata(&self) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "metaAndAssetCtxs"})).await
+    }
+
+    pub async fn get_metadata_with_dex(&self, dex: &str) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "metaAndAssetCtxs", "dex": dex})).await
+    }
+
+    pub async fn get_perp_dexs(&self) -> Result<Vec<Option<PerpDex>>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "perpDexs"})).await
+    }
+
+    pub async fn get_spot_meta(&self) -> Result<SpotMeta, Box<dyn Error + Send + Sync>> {
+        self.info_with_cache(json!({ "type": "spotMeta" }), SPOT_META_CACHE_TTL_SECS).await
+    }
+
+    pub async fn get_spot_orderbook(&self, coin: &str) -> Result<OrderbookResponse, Box<dyn Error + Send + Sync>> {
+        let response = self.info(json!({ "type": "l2Book", "coin": coin })).await?;
+        Ok(serde_json::from_value(response)?)
+    }
+
+    pub async fn get_candlesticks(&self, coin: &str, interval: &str, start_time: i64, end_time: i64) -> Result<Vec<Candlestick>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "candleSnapshot",
+            "req": {
+                "coin": coin,
+                "interval": interval,
+                "startTime": start_time,
+                "endTime": end_time
+            }
+        }))
+        .await
+    }
+
+    pub async fn get_user_role(&self, user: &str) -> Result<UserRole, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "userRole",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_user_abstraction(&self, user: &str) -> Result<UserAbstractionMode, Box<dyn Error + Send + Sync>> {
+        self.info_with_cache(
+            json!({
+                "type": "userAbstraction",
+                "user": user
+            }),
+            USER_ABSTRACTION_CACHE_TTL_SECS,
+        )
+        .await
+    }
+
+    pub async fn get_referral(&self, user: &str) -> Result<Referral, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "referral",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_extra_agents(&self, user: &str) -> Result<Vec<AgentSession>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "extraAgents",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_builder_fee(&self, user: &str, builder: &str) -> Result<u32, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "maxBuilderFee",
+            "user": user,
+            "builder": builder
+        }))
+        .await
+    }
+
+    pub async fn get_user_fees(&self, user: &str) -> Result<UserFee, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "userFees",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_ledger_updates(&self, user: &str, start_time: i64) -> Result<Vec<LedgerUpdate>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "userNonFundingLedgerUpdates",
+            "user": user,
+            "startTime": start_time
+        }))
+        .await
+    }
+
+    pub async fn get_delegator_history(&self, user: &str) -> Result<Vec<DelegatorHistoryUpdate>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({
+            "type": "delegatorHistory",
+            "user": user
+        }))
+        .await
+    }
+
+    pub async fn get_open_orders(&self, user: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "frontendOpenOrders", "user": user})).await
+    }
+
+    pub async fn get_open_orders_with_dex(&self, user: &str, dex: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "frontendOpenOrders", "user": user, "dex": dex})).await
+    }
+
+    pub async fn get_perpetual_portfolio(&self, user: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "portfolio", "user": user})).await
+    }
+
+    pub async fn get_perpetual_portfolio_with_dex(&self, user: &str, dex: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
+        self.info(json!({"type": "portfolio", "user": user, "dex": dex})).await
+    }
+
+    pub fn cache_transaction_sender(&self, id: &str, sender: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.preferences.set(transaction_sender_cache_key(id), sender.to_lowercase())
+    }
+
+    pub fn get_cached_transaction_sender(&self, id: &str) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
+        self.preferences.get(transaction_sender_cache_key(id))
+    }
+
+    pub fn cache_agent_owner(&self, agent_address: &str, sender_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.preferences.set(agent_owner_cache_key(agent_address), sender_address.to_lowercase())
+    }
+
+    pub fn get_cached_agent_owner(&self, agent_address: &str) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
+        self.preferences.get(agent_owner_cache_key(agent_address))
+    }
+}
+
+impl<C: Client> ChainTraits for HyperCoreClient<C> {}
+
+impl<C: Client> chain_traits::ChainProvider for HyperCoreClient<C> {
+    fn get_chain(&self) -> primitives::Chain {
+        Chain::HyperCore
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gem_client::testkit::MockClient;
+    use std::sync::Mutex;
+
+    #[tokio::test]
+    async fn test_get_user_abstraction_sets_cache_ttl_header() {
+        let seen_headers = Arc::new(Mutex::new(Vec::new()));
+        let seen_headers_clone = Arc::clone(&seen_headers);
+        let client = MockClient::new().with_post_with_headers(move |path, body, headers| {
+            assert_eq!(path, "/info");
+            let request: serde_json::Value = serde_json::from_slice(body).unwrap();
+            assert_eq!(
+                request,
+                json!({
+                    "type": "userAbstraction",
+                    "user": "0x123"
+                })
+            );
+            seen_headers_clone.lock().unwrap().push(headers.clone());
+            Ok(br#""default""#.to_vec())
+        });
+        let client = HyperCoreClient::new(client);
+
+        let mode = client.get_user_abstraction("0x123").await.unwrap();
+        let recorded_headers = seen_headers.lock().unwrap().clone();
+
+        assert_eq!(mode, UserAbstractionMode::Default);
+        assert_eq!(recorded_headers, vec![info_cache_headers(USER_ABSTRACTION_CACHE_TTL_SECS)]);
+    }
+}

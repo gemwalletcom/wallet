@@ -1,0 +1,121 @@
+use gem_hypercore::{
+    models::websocket::{HyperliquidMethod, HyperliquidRequest, HyperliquidSubscription},
+    perpetual_formatter::PerpetualFormatter,
+    provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data},
+};
+use primitives::{PerpetualPosition, PerpetualProvider};
+
+use crate::models::perpetual::{GemHyperliquidOpenOrder, GemHyperliquidSocketMessage, GemPerpetualSubscription, GemPositionsDiff, GemSubscriptionMethod};
+
+#[derive(Debug, uniffi::Object)]
+pub struct Perpetual {
+    provider: PerpetualProvider,
+}
+
+#[uniffi::export]
+impl Perpetual {
+    #[uniffi::constructor]
+    pub fn new(provider: PerpetualProvider) -> Self {
+        Self { provider }
+    }
+
+    pub fn minimum_order_usd_amount(&self, price: f64, decimals: i32, leverage: u8) -> u64 {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::minimum_order_usd_amount(price, decimals, leverage),
+        }
+    }
+
+    pub fn format_price(&self, price: f64, decimals: i32) -> String {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),
+        }
+    }
+
+    pub fn format_size(&self, size: f64, decimals: i32) -> String {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
+        }
+    }
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct Hyperliquid {}
+
+impl Default for Hyperliquid {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[uniffi::export]
+impl Hyperliquid {
+    #[uniffi::constructor]
+    pub fn new() -> Self {
+        Self {}
+    }
+
+    pub fn parse_websocket_data(&self, data: Vec<u8>) -> Result<GemHyperliquidSocketMessage, crate::GemstoneError> {
+        Ok(parse_websocket_data(&data)?)
+    }
+
+    pub fn websocket_request(&self, method: GemSubscriptionMethod, subscription: GemPerpetualSubscription) -> Result<String, crate::GemstoneError> {
+        Ok(serde_json::to_string(&HyperliquidRequest {
+            method: method.map(),
+            subscription: subscription.map(),
+        })?)
+    }
+
+    pub fn diff_clearinghouse_positions(&self, new_positions: Vec<PerpetualPosition>, existing_positions: Vec<PerpetualPosition>) -> GemPositionsDiff {
+        diff_clearinghouse_positions(new_positions, existing_positions)
+    }
+
+    pub fn diff_open_orders_positions(&self, orders: Vec<GemHyperliquidOpenOrder>, existing_positions: Vec<PerpetualPosition>) -> GemPositionsDiff {
+        diff_open_orders_positions(&orders, existing_positions)
+    }
+}
+
+impl GemSubscriptionMethod {
+    fn map(self) -> HyperliquidMethod {
+        match self {
+            Self::Subscribe => HyperliquidMethod::Subscribe,
+            Self::Unsubscribe => HyperliquidMethod::Unsubscribe,
+        }
+    }
+}
+
+impl GemPerpetualSubscription {
+    fn map(self) -> HyperliquidSubscription {
+        match self {
+            Self::AccountState { address } => HyperliquidSubscription::AccountState { address },
+            Self::OpenOrders { address } => HyperliquidSubscription::OpenOrders { address },
+            Self::Candle { symbol, interval } => HyperliquidSubscription::Candle { symbol, interval },
+            Self::MarketData { symbol } => HyperliquidSubscription::MarketData { symbol },
+            Self::MarketPrices => HyperliquidSubscription::MarketPrices,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn test_websocket_request_maps_generic_subscription() {
+        let request = Hyperliquid::new()
+            .websocket_request(GemSubscriptionMethod::Subscribe, GemPerpetualSubscription::AccountState { address: "0x123".to_string() })
+            .unwrap();
+
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&request).unwrap(),
+            json!({
+                "method": "subscribe",
+                "subscription": {
+                    "type": "clearinghouseState",
+                    "user": "0x123",
+                },
+            })
+        );
+    }
+}

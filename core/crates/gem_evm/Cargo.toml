@@ -1,0 +1,52 @@
+[package]
+name = "gem_evm"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = ["dep:async-trait", "dep:chain_traits"]
+reqwest = ["gem_jsonrpc/reqwest", "gem_client/reqwest", "dep:reqwest"]
+signer = ["dep:alloy-signer-local", "dep:alloy-network", "dep:alloy-consensus"]
+chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+testkit = []
+
+[dependencies]
+primitives = { path = "../primitives" }
+chain_primitives = { path = "../chain_primitives" }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
+gem_client = { path = "../gem_client" }
+gem_hash = { path = "../gem_hash" }
+gem_bsc = { path = "../gem_bsc" }
+signer = { path = "../signer" }
+
+hex = { workspace = true }
+alloy-primitives = { workspace = true }
+alloy-sol-types = { workspace = true, features = ["eip712-serde"] }
+alloy-dyn-abi = { workspace = true, features = ["eip712"] }
+alloy-json-abi = { workspace = true }
+alloy-signer-local = { workspace = true, optional = true }
+alloy-network = { workspace = true, optional = true }
+alloy-consensus = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+bigdecimal = { workspace = true }
+url = { workspace = true }
+reqwest = { workspace = true, features = ["json"], optional = true }
+
+# rpc feature
+chrono = { workspace = true }
+async-trait = { workspace = true, optional = true }
+chain_traits = { path = "../chain_traits", optional = true }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+num-bigint = { workspace = true }
+settings = { path = "../settings", features = ["testkit"] }
+async-trait = { workspace = true }

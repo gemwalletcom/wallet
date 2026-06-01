@@ -1,0 +1,527 @@
+use crate::{
+    AddressName, AssetAddress, Chain, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionSwapMetadata, asset_id::AssetId,
+    transaction_direction::TransactionDirection, transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
+};
+
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use std::{collections::HashSet, vec};
+use typeshare::typeshare;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare(swift = "Sendable, Equatable")]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionsResponse {
+    pub transactions: Vec<Transaction>,
+    pub address_names: Vec<AddressName>,
+}
+
+impl TransactionsResponse {
+    pub fn new(transactions: Vec<Transaction>, address_names: Vec<AddressName>) -> Self {
+        Self { transactions, address_names }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[typeshare(swift = "Sendable, Equatable, Hashable")]
+pub struct Transaction {
+    pub id: TransactionId,
+    #[typeshare(skip)]
+    pub hash: String,
+    #[serde(rename = "assetId")]
+    pub asset_id: AssetId,
+    pub from: String,
+    pub to: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contract: Option<String>,
+    #[serde(rename = "type")]
+    pub transaction_type: TransactionType,
+    pub state: TransactionState,
+    #[serde(rename = "blockNumber", skip_serializing_if = "Option::is_none")]
+    pub block_number: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sequence: Option<String>,
+    pub fee: String,
+    #[serde(rename = "feeAssetId")]
+    pub fee_asset_id: AssetId,
+    pub value: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memo: Option<String>,
+    pub direction: TransactionDirection,
+    #[serde(rename = "utxoInputs")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub utxo_inputs: Option<Vec<TransactionUtxoInput>>,
+    #[serde(rename = "utxoOutputs")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub utxo_outputs: Option<Vec<TransactionUtxoInput>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
+    #[typeshare(skip)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    #[serde(rename = "createdAt")]
+    pub created_at: DateTime<Utc>,
+}
+
+impl Transaction {
+    pub fn new(
+        hash: String,
+        asset_id: AssetId,
+        from_address: String,
+        to_address: String,
+        contract: Option<String>,
+        transaction_type: TransactionType,
+        state: TransactionState,
+        fee: String,
+        fee_asset_id: AssetId,
+        value: String,
+        memo: Option<String>,
+        metadata: Option<serde_json::Value>,
+        created_at: DateTime<Utc>,
+    ) -> Self {
+        Self {
+            id: TransactionId::new(asset_id.chain, hash.clone()),
+            hash,
+            asset_id,
+            from: from_address,
+            to: to_address,
+            contract,
+            transaction_type,
+            state,
+            block_number: Some("".to_string()),
+            sequence: Some("".to_string()),
+            fee,
+            fee_asset_id,
+            value,
+            memo,
+            direction: TransactionDirection::SelfTransfer,
+            utxo_inputs: vec![].into(),
+            utxo_outputs: vec![].into(),
+            metadata,
+            data: None,
+            created_at,
+        }
+    }
+
+    pub fn new_with_utxo(
+        hash: String,
+        asset_id: AssetId,
+        transaction_type: TransactionType,
+        state: TransactionState,
+        fee: String,
+        fee_asset_id: AssetId,
+        value: String,
+        memo: Option<String>,
+        utxo_inputs: Option<Vec<TransactionUtxoInput>>,
+        utxo_outputs: Option<Vec<TransactionUtxoInput>>,
+        metadata: Option<serde_json::Value>,
+        created_at: DateTime<Utc>,
+    ) -> Self {
+        Self {
+            id: TransactionId::new(asset_id.chain, hash.clone()),
+            hash,
+            asset_id,
+            from: "".to_string(),
+            to: "".to_string(),
+            contract: None,
+            transaction_type,
+            state,
+            block_number: Some("".to_string()),
+            sequence: Some("".to_string()),
+            fee,
+            fee_asset_id,
+            value,
+            memo,
+            direction: TransactionDirection::SelfTransfer,
+            utxo_inputs: utxo_inputs.unwrap_or_default().into(),
+            utxo_outputs: utxo_outputs.unwrap_or_default().into(),
+            metadata,
+            data: None,
+            created_at,
+        }
+    }
+
+    pub fn id_from(chain: Chain, hash: String) -> String {
+        format!("{}_{}", chain.as_ref(), hash)
+    }
+
+    pub fn is_sent(&self, address: String) -> bool {
+        self.input_addresses().contains(&address) || self.from == address
+    }
+
+    pub fn is_utxo_tx(&self) -> bool {
+        self.utxo_inputs.as_ref().is_some_and(|v| !v.is_empty()) && self.utxo_outputs.as_ref().is_some_and(|v| !v.is_empty())
+    }
+
+    pub fn input_addresses(&self) -> Vec<String> {
+        self.utxo_inputs.as_ref().map_or_else(Vec::new, |v| v.iter().map(|x| x.address.clone()).collect())
+    }
+
+    pub fn output_addresses(&self) -> Vec<String> {
+        self.utxo_outputs.as_ref().map_or_else(Vec::new, |v| v.iter().map(|x| x.address.clone()).collect())
+    }
+
+    pub fn addresses(&self) -> Vec<String> {
+        // Append addresses from utxo inputs and outputs
+        let mut array = vec![self.from.clone(), self.to.clone()];
+        array.extend(self.input_addresses());
+        array.extend(self.output_addresses());
+        array.dedup();
+        array.into_iter().filter(|x| !x.is_empty()).collect()
+    }
+
+    pub fn finalize(&self, addresses: Vec<String>) -> Self {
+        let chain = self.asset_id.chain;
+        if !chain.is_utxo() {
+            return self.clone();
+        }
+
+        let inputs_addresses = self.input_addresses();
+        let outputs_addresses = self.output_addresses();
+
+        if addresses.is_empty() || inputs_addresses.is_empty() || outputs_addresses.is_empty() {
+            return self.clone();
+        }
+
+        let user_set: HashSet<String> = HashSet::from_iter(addresses);
+        let input_set: HashSet<String> = HashSet::from_iter(inputs_addresses);
+        let output_set: HashSet<String> = HashSet::from_iter(outputs_addresses.clone());
+
+        if user_set.is_disjoint(&input_set) && user_set.is_disjoint(&output_set) {
+            return self.clone();
+        }
+
+        let direction = if user_set.intersection(&input_set).next().is_some() {
+            if user_set.is_superset(&output_set) {
+                TransactionDirection::SelfTransfer
+            } else {
+                TransactionDirection::Outgoing
+            }
+        } else {
+            TransactionDirection::Incoming
+        };
+
+        let utxo_inputs = self.utxo_inputs.as_ref().unwrap();
+        let utxo_outputs = self.utxo_outputs.as_ref().unwrap();
+
+        let from = utxo_inputs.first().unwrap().address.clone();
+        let (to, value) = match direction {
+            TransactionDirection::Incoming => {
+                let to = outputs_addresses.iter().find(|x| user_set.contains(*x)).unwrap().clone();
+                let value = Self::utxo_calculate_value(utxo_outputs, &user_set).to_string();
+                (to, value)
+            }
+            TransactionDirection::Outgoing => {
+                let to = outputs_addresses.iter().find(|x| !user_set.contains(*x)).unwrap().clone();
+                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.clone();
+                (to, value)
+            }
+            TransactionDirection::SelfTransfer => {
+                let to = utxo_outputs.first().unwrap().address.clone();
+                let value = Self::utxo_calculate_value(utxo_outputs, &user_set).to_string();
+                (to, value)
+            }
+        };
+        Transaction {
+            id: self.id.clone(),
+            hash: self.hash.clone(),
+            asset_id: self.asset_id.clone(),
+            from,
+            to,
+            contract: self.contract.clone(),
+            transaction_type: self.transaction_type.clone(),
+            state: self.state,
+            block_number: self.block_number.clone(),
+            sequence: self.sequence.clone(),
+            fee: self.fee.clone(),
+            fee_asset_id: self.fee_asset_id.clone(),
+            value: value.to_string(),
+            memo: self.memo.clone(),
+            direction,
+            utxo_inputs: self.utxo_inputs.clone(),
+            utxo_outputs: self.utxo_outputs.clone(),
+            metadata: self.metadata.clone(),
+            data: self.data.clone(),
+            created_at: self.created_at,
+        }
+    }
+
+    fn utxo_calculate_value(values: &[TransactionUtxoInput], addresses: &HashSet<String>) -> i64 {
+        values.iter().filter(|x| addresses.contains(&x.address)).filter_map(|x| x.value.parse::<i64>().ok()).sum()
+    }
+
+    fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
+        self.metadata.as_ref().and_then(|value| TransactionSwapMetadata::deserialize(value).ok())
+    }
+
+    pub fn nft_asset_id(&self) -> Option<NFTAssetId> {
+        if self.transaction_type != TransactionType::TransferNFT {
+            return None;
+        }
+        self.metadata
+            .as_ref()
+            .and_then(|value| TransactionNFTTransferMetadata::deserialize(value).ok())
+            .map(|metadata| metadata.asset_id)
+    }
+
+    pub fn asset_ids(&self) -> Vec<AssetId> {
+        match self.transaction_type {
+            TransactionType::Transfer
+            | TransactionType::TokenApproval
+            | TransactionType::StakeDelegate
+            | TransactionType::StakeUndelegate
+            | TransactionType::StakeRewards
+            | TransactionType::StakeRedelegate
+            | TransactionType::StakeWithdraw
+            | TransactionType::StakeFreeze
+            | TransactionType::StakeUnfreeze
+            | TransactionType::AssetActivation
+            | TransactionType::TransferNFT
+            | TransactionType::SmartContractCall
+            | TransactionType::PerpetualOpenPosition
+            | TransactionType::PerpetualClosePosition
+            | TransactionType::PerpetualModifyPosition
+            | TransactionType::EarnDeposit
+            | TransactionType::EarnWithdraw => vec![self.asset_id.clone()],
+            TransactionType::Swap => self.swap_metadata().map(|metadata| vec![metadata.from_asset, metadata.to_asset]).unwrap_or_default(),
+        }
+        .into_iter()
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect()
+    }
+
+    pub fn assets_addresses(&self) -> Vec<AssetAddress> {
+        match self.transaction_type {
+            TransactionType::Transfer | TransactionType::TransferNFT => self
+                .addresses()
+                .into_iter()
+                .map(|x| AssetAddress::new(self.asset_id.clone(), x, None))
+                .collect::<HashSet<_>>()
+                .into_iter()
+                .collect(),
+            TransactionType::TokenApproval
+            | TransactionType::StakeDelegate
+            | TransactionType::StakeUndelegate
+            | TransactionType::StakeRewards
+            | TransactionType::StakeRedelegate
+            | TransactionType::StakeWithdraw
+            | TransactionType::StakeFreeze
+            | TransactionType::StakeUnfreeze
+            | TransactionType::AssetActivation
+            | TransactionType::SmartContractCall
+            | TransactionType::PerpetualOpenPosition
+            | TransactionType::PerpetualClosePosition
+            | TransactionType::PerpetualModifyPosition
+            | TransactionType::EarnDeposit
+            | TransactionType::EarnWithdraw => vec![AssetAddress::new(self.asset_id.clone(), self.to.clone(), None)],
+            TransactionType::Swap => self
+                .swap_metadata()
+                .map(|metadata| {
+                    vec![
+                        AssetAddress::new(metadata.from_asset, self.from.clone(), None),
+                        AssetAddress::new(metadata.to_asset, self.to.clone(), None),
+                    ]
+                })
+                .unwrap_or_default(),
+        }
+    }
+
+    pub fn assets_addresses_with_fee(&self) -> Vec<AssetAddress> {
+        [self.assets_addresses(), vec![AssetAddress::new(self.fee_asset_id.clone(), self.from.clone(), None)]]
+            .concat()
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
+    }
+
+    pub fn without_utxo(self) -> Self {
+        Self {
+            utxo_inputs: None,
+            utxo_outputs: None,
+            ..self
+        }
+    }
+
+    pub fn with_data(mut self, data: Option<String>) -> Self {
+        self.data = data;
+        self
+    }
+
+    pub fn with_swap_state(self, state: TransactionState, metadata: Option<serde_json::Value>) -> Self {
+        Self {
+            state,
+            transaction_type: TransactionType::Swap,
+            metadata: metadata.or(self.metadata),
+            ..self
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Asset, TransactionUtxoInput};
+
+    #[test]
+    fn test_asset_ids_transfer() {
+        assert_eq!(Transaction::mock().asset_ids().len(), 1);
+
+        let transaction = Transaction {
+            asset_id: Asset::mock_ethereum_usdc().id,
+            ..Transaction::mock()
+        };
+        assert_eq!(transaction.asset_ids().len(), 1);
+    }
+
+    #[test]
+    fn test_asset_ids_swap() {
+        let transaction = Transaction {
+            transaction_type: TransactionType::Swap,
+            metadata: Some(
+                serde_json::to_value(TransactionSwapMetadata {
+                    from_asset: Asset::mock_eth().id,
+                    from_value: "1".to_string(),
+                    to_asset: Asset::mock_eth().id,
+                    to_value: "1".to_string(),
+                    provider: None,
+                })
+                .unwrap(),
+            ),
+            ..Transaction::mock()
+        };
+        assert_eq!(transaction.asset_ids().len(), 1);
+
+        let transaction = Transaction {
+            transaction_type: TransactionType::Swap,
+            metadata: Some(
+                serde_json::to_value(TransactionSwapMetadata {
+                    from_asset: Asset::mock_ethereum_usdc().id,
+                    from_value: "1".to_string(),
+                    to_asset: Asset::mock_erc20().id,
+                    to_value: "1".to_string(),
+                    provider: None,
+                })
+                .unwrap(),
+            ),
+            ..Transaction::mock()
+        };
+        assert_eq!(transaction.asset_ids().len(), 2);
+    }
+
+    #[test]
+    fn test_assets_addresses_transfer() {
+        // Without fee
+        assert_eq!(Transaction::mock().assets_addresses().len(), 2);
+
+        let transaction = Transaction {
+            asset_id: Asset::mock_ethereum_usdc().id,
+            ..Transaction::mock()
+        };
+        assert_eq!(transaction.assets_addresses().len(), 2);
+        assert!(
+            transaction
+                .assets_addresses()
+                .iter()
+                .any(|a| a.asset_id == Asset::mock_ethereum_usdc().id && a.address == "0xfrom")
+        );
+        assert!(
+            transaction
+                .assets_addresses()
+                .iter()
+                .any(|a| a.asset_id == Asset::mock_ethereum_usdc().id && a.address == "0xto")
+        );
+
+        // With fee
+        assert_eq!(Transaction::mock().assets_addresses_with_fee().len(), 2);
+        assert_eq!(transaction.assets_addresses_with_fee().len(), 3);
+        assert!(
+            transaction
+                .assets_addresses_with_fee()
+                .iter()
+                .any(|a| a.asset_id == Asset::mock_eth().id && a.address == "0xfrom")
+        );
+        assert!(
+            transaction
+                .assets_addresses_with_fee()
+                .iter()
+                .any(|a| a.asset_id == Asset::mock_ethereum_usdc().id && a.address == "0xfrom")
+        );
+        assert!(
+            transaction
+                .assets_addresses_with_fee()
+                .iter()
+                .any(|a| a.asset_id == Asset::mock_ethereum_usdc().id && a.address == "0xto")
+        );
+    }
+
+    #[test]
+    fn test_assets_addresses_swap() {
+        let transaction = Transaction {
+            transaction_type: TransactionType::Swap,
+            from: "0xsame".to_string(),
+            to: "0xsame".to_string(),
+            metadata: Some(
+                serde_json::to_value(TransactionSwapMetadata {
+                    from_asset: Asset::mock_ethereum_usdc().id,
+                    from_value: "1".to_string(),
+                    to_asset: Asset::mock_erc20().id,
+                    to_value: "1".to_string(),
+                    provider: None,
+                })
+                .unwrap(),
+            ),
+            ..Transaction::mock()
+        };
+        // Without fee: 2 swap assets
+        assert_eq!(transaction.assets_addresses().len(), 2);
+        // With fee: 2 swap assets + 1 fee
+        assert_eq!(transaction.assets_addresses_with_fee().len(), 3);
+    }
+
+    fn utxo_input(address: &str, value: &str) -> TransactionUtxoInput {
+        TransactionUtxoInput::new(address.to_string(), value.to_string())
+    }
+
+    #[test]
+    fn test_finalize_incoming_utxo() {
+        let transaction =
+            Transaction::mock_utxo(vec![utxo_input("sender", "50000")], vec![utxo_input("user", "40000"), utxo_input("change", "9000")]).finalize(vec!["user".to_string()]);
+
+        assert_eq!(
+            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()),
+            ("sender", "user", "40000")
+        );
+        assert_eq!(transaction.direction, TransactionDirection::Incoming);
+    }
+
+    #[test]
+    fn test_finalize_outgoing_utxo() {
+        let transaction =
+            Transaction::mock_utxo(vec![utxo_input("user", "50000")], vec![utxo_input("recipient", "40000"), utxo_input("user", "9000")]).finalize(vec!["user".to_string()]);
+
+        assert_eq!(
+            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()),
+            ("user", "recipient", "40000")
+        );
+        assert_eq!(transaction.direction, TransactionDirection::Outgoing);
+    }
+
+    #[test]
+    fn test_finalize_self_transfer_utxo() {
+        let transaction =
+            Transaction::mock_utxo(vec![utxo_input("user", "50000")], vec![utxo_input("user", "40000"), utxo_input("user", "9000")]).finalize(vec!["user".to_string()]);
+
+        assert_eq!((transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()), ("user", "user", "49000"));
+        assert_eq!(transaction.direction, TransactionDirection::SelfTransfer);
+    }
+
+    #[test]
+    fn test_finalize_non_utxo_unchanged() {
+        let original = Transaction::mock();
+        let transaction = original.clone().finalize(vec!["0xfrom".to_string()]);
+
+        assert_eq!((transaction.from, transaction.to, transaction.value), (original.from, original.to, original.value));
+    }
+}

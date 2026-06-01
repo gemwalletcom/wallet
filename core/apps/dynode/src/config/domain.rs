@@ -1,0 +1,180 @@
+use primitives::Chain;
+use serde::Deserialize;
+use std::time::Duration;
+
+use super::NodeMonitoringConfig;
+use super::url::{Override, Url};
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ChainConfig {
+    pub chain: Chain,
+    pub poll_interval_seconds: Option<u64>,
+    pub overrides: Option<Vec<Override>>,
+    pub urls: Vec<Url>,
+}
+
+impl ChainConfig {
+    pub fn poll_interval(&self, monitoring_config: &NodeMonitoringConfig) -> Duration {
+        self.poll_interval_seconds.map(Duration::from_secs).unwrap_or(monitoring_config.poll_interval)
+    }
+
+    pub fn resolve_url(&self, base_url: &Url, rpc_method: Option<&str>, request_path: Option<&str>) -> Url {
+        let Some(overrides) = &self.overrides else {
+            return base_url.clone();
+        };
+
+        for override_config in overrides {
+            let rpc_matches = override_config
+                .rpc_method
+                .as_ref()
+                .is_none_or(|override_method| Some(override_method.as_str()) == rpc_method);
+
+            let path_matches = override_config.path.as_ref().is_none_or(|override_path| Some(override_path.as_str()) == request_path);
+
+            if rpc_matches && path_matches {
+                return Url {
+                    url: override_config.url.clone(),
+                    headers: base_url.headers.clone(),
+                };
+            }
+        }
+
+        base_url.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::config as testkit;
+    use std::time::Duration;
+
+    fn make_chain_config(poll_interval: Option<u64>) -> ChainConfig {
+        ChainConfig {
+            chain: primitives::Chain::Ethereum,
+            poll_interval_seconds: poll_interval,
+            overrides: None,
+            urls: vec![],
+        }
+    }
+
+    fn make_url(url: &str) -> Url {
+        Url {
+            url: url.to_string(),
+            headers: None,
+        }
+    }
+
+    fn make_chain_config_with_overrides(overrides: Vec<Override>) -> ChainConfig {
+        ChainConfig {
+            chain: primitives::Chain::Ethereum,
+            poll_interval_seconds: None,
+            overrides: Some(overrides),
+            urls: vec![make_url("https://example.com")],
+        }
+    }
+
+    fn make_monitoring_config(poll_interval: u64) -> NodeMonitoringConfig {
+        NodeMonitoringConfig {
+            poll_interval: Duration::from_secs(poll_interval),
+            ..testkit::monitoring_config()
+        }
+    }
+
+    #[test]
+    fn poll_interval_uses_chain_override() {
+        let chain_config = make_chain_config(Some(20));
+        let config = make_monitoring_config(45);
+        assert_eq!(chain_config.poll_interval(&config), Duration::from_secs(20));
+    }
+
+    #[test]
+    fn poll_interval_uses_global_fallback() {
+        let chain_config = make_chain_config(None);
+        let config = make_monitoring_config(45);
+        assert_eq!(chain_config.poll_interval(&config), Duration::from_secs(45));
+    }
+
+    #[test]
+    fn resolve_url_without_override() {
+        let chain_config = make_chain_config(None);
+        let base_url = make_url("https://example.com/rpc");
+        assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://example.com/rpc");
+    }
+
+    #[test]
+    fn resolve_url_with_rpc_method_override() {
+        let chain_config = make_chain_config_with_overrides(vec![Override {
+            rpc_method: Some("eth_sendTransaction".to_string()),
+            path: None,
+            url: "https://tx-relay.example.com".to_string(),
+        }]);
+        let base_url = make_url("https://example.com/rpc");
+        assert_eq!(chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url, "https://tx-relay.example.com");
+    }
+
+    #[test]
+    fn resolve_url_with_rpc_method_and_path_override() {
+        let chain_config = make_chain_config_with_overrides(vec![Override {
+            rpc_method: Some("eth_sendTransaction".to_string()),
+            path: None,
+            url: "https://tx-relay.example.com/tx/submit".to_string(),
+        }]);
+        let base_url = make_url("https://example.com/rpc");
+        assert_eq!(
+            chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None).url,
+            "https://tx-relay.example.com/tx/submit"
+        );
+    }
+
+    #[test]
+    fn resolve_url_without_matching_override() {
+        let chain_config = make_chain_config_with_overrides(vec![Override {
+            rpc_method: Some("eth_sendTransaction".to_string()),
+            path: None,
+            url: "https://tx-relay.example.com".to_string(),
+        }]);
+        let base_url = make_url("https://example.com/rpc");
+        assert_eq!(chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url, "https://example.com/rpc");
+    }
+
+    #[test]
+    fn resolve_url_with_wildcard_override() {
+        let chain_config = make_chain_config_with_overrides(vec![Override {
+            rpc_method: None,
+            path: None,
+            url: "https://fallback.example.com/v2/rpc".to_string(),
+        }]);
+        let base_url = make_url("https://example.com/rpc");
+        assert_eq!(
+            chain_config.resolve_url(&base_url, Some("eth_blockNumber"), None).url,
+            "https://fallback.example.com/v2/rpc"
+        );
+    }
+
+    #[test]
+    fn resolve_url_with_path_override() {
+        let chain_config = make_chain_config_with_overrides(vec![Override {
+            rpc_method: None,
+            path: Some("/api/v1/block".to_string()),
+            url: "https://api.example.com/v2/block".to_string(),
+        }]);
+        let base_url = make_url("https://example.com");
+        assert_eq!(chain_config.resolve_url(&base_url, None, Some("/api/v1/block")).url, "https://api.example.com/v2/block");
+    }
+
+    #[test]
+    fn resolve_url_preserves_headers() {
+        let chain_config = make_chain_config_with_overrides(vec![Override {
+            rpc_method: Some("eth_sendTransaction".to_string()),
+            path: None,
+            url: "https://tx-relay.example.com".to_string(),
+        }]);
+        let base_url = Url {
+            url: "https://example.com/rpc".to_string(),
+            headers: Some(std::collections::HashMap::from([("x-api-key".to_string(), "test123".to_string())])),
+        };
+        let resolved = chain_config.resolve_url(&base_url, Some("eth_sendTransaction"), None);
+        assert_eq!(resolved.headers.as_ref().unwrap().get("x-api-key").unwrap(), "test123");
+    }
+}

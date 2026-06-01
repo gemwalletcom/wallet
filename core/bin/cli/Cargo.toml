@@ -1,0 +1,12 @@
+[package]
+name = "cli"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+tokio = { workspace = true }
+clap = { version = "4.6.0", features = ["derive"] }
+
+primitives = { path = "../../crates/primitives" }
+settings = { path = "../../crates/settings" }
+settings_chain = { path = "../../crates/settings_chain" }

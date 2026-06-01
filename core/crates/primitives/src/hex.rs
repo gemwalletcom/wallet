@@ -1,0 +1,87 @@
+use std::borrow::Cow;
+use std::fmt;
+
+#[derive(Debug, Clone)]
+pub struct HexError(String);
+
+impl fmt::Display for HexError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for HexError {}
+
+impl From<hex::FromHexError> for HexError {
+    fn from(err: hex::FromHexError) -> Self {
+        Self(err.to_string())
+    }
+}
+
+pub fn encode_with_0x(data: &[u8]) -> String {
+    format!("0x{}", hex::encode(data))
+}
+
+pub fn parse_u64_from_hex_or_decimal(value: &str) -> Result<u64, HexError> {
+    let number_text = value.trim();
+    if let Some(hex_number_text) = number_text.strip_prefix("0x").or_else(|| number_text.strip_prefix("0X")) {
+        return u64::from_str_radix(hex_number_text, 16).map_err(|error| HexError(error.to_string()));
+    }
+    number_text.parse::<u64>().map_err(|error| HexError(error.to_string()))
+}
+
+pub fn decode_hex_utf8(value: &str) -> Option<String> {
+    let bytes = decode_hex(value).ok()?;
+    String::from_utf8(bytes).ok()
+}
+
+pub fn decode_hex(value: &str) -> Result<Vec<u8>, HexError> {
+    let stripped = value.trim().strip_prefix("0x").unwrap_or(value.trim());
+    if stripped.is_empty() {
+        return Ok(vec![]);
+    }
+    let normalized: Cow<str> = if stripped.len() % 2 == 1 {
+        Cow::Owned(format!("0{stripped}"))
+    } else {
+        Cow::Borrowed(stripped)
+    };
+    Ok(hex::decode(&*normalized)?)
+}
+
+pub fn decode_hex_array<const N: usize>(value: &str) -> Result<[u8; N], HexError> {
+    let bytes = decode_hex(value)?;
+    let length = bytes.len();
+    bytes.try_into().map_err(|_| HexError(format!("hex value must be {N} bytes, got {length}")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_hex_trims_and_strips_prefix() {
+        let bytes = decode_hex(" 0x0a0b ").expect("decode");
+        assert_eq!(bytes, vec![0x0a, 0x0b]);
+    }
+
+    #[test]
+    fn decode_hex_pads_odd_length() {
+        let bytes = decode_hex("0xa").expect("decode");
+        assert_eq!(bytes, vec![0x0a]);
+    }
+
+    #[test]
+    fn decode_hex_array_validates_length() {
+        assert_eq!(decode_hex_array::<2>("0x0a0b").expect("decode"), [0x0a, 0x0b]);
+        assert_eq!(decode_hex_array::<2>("a0b").expect("decode"), [0x0a, 0x0b]);
+        assert!(decode_hex_array::<2>("0x0a").is_err());
+    }
+
+    #[test]
+    fn test_parse_u64_from_hex_or_decimal() {
+        assert_eq!(parse_u64_from_hex_or_decimal("0x1f").unwrap(), 31);
+        assert_eq!(parse_u64_from_hex_or_decimal("0X2A").unwrap(), 42);
+        assert_eq!(parse_u64_from_hex_or_decimal("255").unwrap(), 255);
+        assert!(parse_u64_from_hex_or_decimal("0xZZ").is_err());
+    }
+}

@@ -1,0 +1,52 @@
+[package]
+name = "api"
+edition = { workspace = true }
+version = { workspace = true }
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+rocket = { workspace = true }
+rocket_ws = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+config = { workspace = true }
+prometheus-client = { workspace = true }
+strum = { workspace = true }
+redis = { workspace = true }
+chrono = { workspace = true }
+futures = { workspace = true }
+gem_hash = { path = "../../crates/gem_hash" }
+hex = { workspace = true }
+reqwest = { workspace = true }
+
+gem_tracing = { path = "../../crates/tracing" }
+storage = { path = "../../crates/storage" }
+pricer = { path = "../../crates/pricer" }
+prices = { path = "../../crates/prices" }
+fiat = { path = "../../crates/fiat" }
+settings = { path = "../../crates/settings" }
+settings_chain = { path = "../../crates/settings_chain" }
+name_resolver = { path = "../../crates/name_resolver" }
+in_app_notifications = { path = "../../crates/in_app_notifications" }
+localizer = { path = "../../crates/localizer" }
+primitives = { path = "../../crates/primitives" }
+portfolio = { path = "../../crates/portfolio" }
+api_connector = { path = "../../crates/api_connector" }
+search_index = { path = "../../crates/search_index" }
+nft = { path = "../../crates/nft" }
+cacher = { path = "../../crates/cacher" }
+metrics = { path = "../../crates/metrics" }
+streamer = { path = "../../crates/streamer" }
+gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
+gem_rewards = { path = "../../crates/gem_rewards" }
+
+security_provider = { path = "../../crates/security_provider" }
+gem_auth = { path = "../../crates/gem_auth", features = ["client"] }
+unic-langid = "0.9.6"
+
+[dev-dependencies]
+primitives = { path = "../../crates/primitives", features = ["testkit"] }

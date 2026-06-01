@@ -1,0 +1,9 @@
+[package]
+name = "number_formatter"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+num-bigint = { workspace = true }
+bigdecimal = { workspace = true }
+rust_decimal = { version = "1.42.0", features = ["serde-with-str"] }

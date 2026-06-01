@@ -1,0 +1,322 @@
+use std::sync::{Arc, LazyLock};
+
+use i18n_embed::{
+    DefaultLocalizer, LanguageLoader, Localizer, RustEmbedNotifyAssets,
+    fluent::{FluentLanguageLoader, fluent_language_loader},
+};
+use rust_embed::RustEmbed;
+
+#[derive(RustEmbed)]
+#[folder = "i18n/"]
+pub struct LocalizationsEmbed;
+
+pub static LOCALIZATIONS: LazyLock<RustEmbedNotifyAssets<LocalizationsEmbed>> =
+    LazyLock::new(|| RustEmbedNotifyAssets::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("i18n/")));
+
+macro_rules! fl {
+    ($loader:expr, $message_id:literal) => {{
+        i18n_embed_fl::fl!($loader, $message_id)
+    }};
+    ($loader:expr, $message_id:literal, $($args:expr),*) => {{
+        i18n_embed_fl::fl!($loader, $message_id, $($args), *)
+    }};
+}
+
+pub struct LanguageLocalizer {
+    loader: Arc<FluentLanguageLoader>,
+    localizer: DefaultLocalizer<'static>,
+}
+
+pub struct LanguageNotification {
+    pub title: String,
+    pub description: String,
+}
+
+impl Default for LanguageLocalizer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl LanguageLocalizer {
+    pub fn new() -> Self {
+        let loader = Arc::new(fluent_language_loader!());
+
+        loader.load_fallback_language(&*LOCALIZATIONS).expect("Error while loading fallback language");
+
+        let loader_ref: &'static FluentLanguageLoader = unsafe { &*(Arc::as_ptr(&loader) as *const _) };
+
+        let localizer = DefaultLocalizer::new(loader_ref, &*LOCALIZATIONS);
+
+        Self { loader, localizer }
+    }
+
+    pub fn new_with_language(language: &str) -> Self {
+        let localizer = Self::new();
+        localizer.select_language(language).unwrap_or_default();
+        localizer
+    }
+
+    pub fn select_language(&self, language: &str) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
+        let lang_id = language.parse()?;
+        self.localizer.select(&[lang_id])?;
+        Ok(true)
+    }
+
+    pub fn price_alert_up(&self, symbol: &str, price: &str, price_change: &str) -> LanguageNotification {
+        LanguageNotification {
+            title: fl!(self.loader.as_ref(), "notification_price_alert_up_title", symbol = symbol),
+            description: fl!(self.loader.as_ref(), "notification_price_alert_up_description", price = price, price_change = price_change),
+        }
+    }
+
+    pub fn price_alert_down(&self, symbol: &str, price: &str, price_change: &str) -> LanguageNotification {
+        LanguageNotification {
+            title: fl!(self.loader.as_ref(), "notification_price_alert_down_title", symbol = symbol),
+            description: fl!(
+                self.loader.as_ref(),
+                "notification_price_alert_down_description",
+                price = price,
+                price_change = price_change
+            ),
+        }
+    }
+
+    pub fn price_alert_target(&self, symbol: &str, target_price: &str, current_price: &str, change: &str) -> LanguageNotification {
+        LanguageNotification {
+            title: fl!(self.loader.as_ref(), "notification_price_alert_target_title", symbol = symbol, price = target_price),
+            description: fl!(self.loader.as_ref(), "notification_price_alert_target_description", price = current_price, change = change),
+        }
+    }
+
+    pub fn price_alert_all_time_high(&self, symbol: &str, price: &str) -> LanguageNotification {
+        LanguageNotification {
+            title: fl!(self.loader.as_ref(), "notification_price_alert_all_time_high_title", symbol = symbol),
+            description: fl!(self.loader.as_ref(), "notification_price_alert_all_time_high_description", symbol = symbol, price = price),
+        }
+    }
+
+    // notifications
+    pub fn test(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_test")
+    }
+
+    pub fn notification_transfer_title(&self, is_sent: bool, value: &str) -> String {
+        if is_sent {
+            fl!(self.loader.as_ref(), "notification_sent_title", value = value)
+        } else {
+            fl!(self.loader.as_ref(), "notification_received_title", value = value)
+        }
+    }
+
+    pub fn notification_nft_transfer_title(&self, is_sent: bool, value: &str) -> String {
+        if is_sent {
+            fl!(self.loader.as_ref(), "notification_nft_sent_title", value = value)
+        } else {
+            fl!(self.loader.as_ref(), "notification_nft_received_title", value = value)
+        }
+    }
+
+    pub fn notification_transfer_description(&self, is_sent: bool, to_address: &str, from_address: &str) -> String {
+        if is_sent {
+            fl!(self.loader.as_ref(), "notification_sent_description", address = to_address)
+        } else {
+            fl!(self.loader.as_ref(), "notification_received_description", address = from_address)
+        }
+    }
+
+    pub fn notification_sent_description(&self, address: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_sent_description", address = address)
+    }
+
+    pub fn notification_received_description(&self, address: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_received_description", address = address)
+    }
+
+    pub fn notification_token_approval_title(&self, token: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_token_approval_title", token = token)
+    }
+
+    pub fn notification_freeze_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_freeze_title", value = value)
+    }
+
+    pub fn notification_unfreeze_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_unfreeze_title", value = value)
+    }
+
+    pub fn notification_stake_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_stake_title", value = value)
+    }
+
+    pub fn notification_unstake_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_unstake_title", value = value)
+    }
+
+    pub fn notification_redelegate_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_redelegate_title", value = value)
+    }
+
+    pub fn notification_withdraw_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_withdraw_title", value = value)
+    }
+
+    pub fn notification_claim_rewards_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_claim_rewards_title", value = value)
+    }
+
+    pub fn notification_swap_title(&self, from_symbol: &str, to_symbol: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_swap_title", from_symbol = from_symbol, to_symbol = to_symbol)
+    }
+
+    pub fn notification_swap_description(&self, from_value: &str, to_value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_swap_description", from_value = from_value, to_value = to_value)
+    }
+
+    // onboarding
+    pub fn notification_onboarding_buy_asset(&self, name: &str) -> (String, String) {
+        (
+            fl!(self.loader.as_ref(), "notification_onboarding_buy_asset_title", name = name),
+            fl!(self.loader.as_ref(), "notification_onboarding_buy_asset_description", name = name),
+        )
+    }
+
+    pub fn notification_fiat_purchase_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_fiat_purchase_title", value = value)
+    }
+
+    pub fn notification_fiat_sale_title(&self, value: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_fiat_sale_title", value = value)
+    }
+
+    // support
+    pub fn notification_support_new_message_title(&self) -> String {
+        fl!(self.loader.as_ref(), "support_new_message_title")
+    }
+
+    // rewards
+    pub fn notification_reward_title(&self, points: i32) -> String {
+        fl!(self.loader.as_ref(), "notification_reward_title", value = points)
+    }
+
+    pub fn notification_reward_create_username_description(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_reward_create_username_description")
+    }
+
+    pub fn notification_reward_invite_description(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_reward_invite_description")
+    }
+
+    pub fn notification_reward_joined_description(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_rewards_joined_description")
+    }
+
+    pub fn notification_reward_pending_title(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_reward_pending_title")
+    }
+
+    pub fn notification_reward_pending_description(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_reward_pending_description")
+    }
+
+    pub fn notification_reward_redeemed_title(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_rewards_redeem_points_title")
+    }
+
+    pub fn notification_reward_redeemed_description(&self, points: i32, value: Option<&str>) -> String {
+        match value {
+            Some(value) => {
+                fl!(
+                    self.loader.as_ref(),
+                    "notification_rewards_redeem_points_for_description",
+                    points = points.abs(),
+                    value = value
+                )
+            }
+            None => fl!(self.loader.as_ref(), "notification_rewards_redeem_points_description", value = points.abs()),
+        }
+    }
+
+    pub fn errors_generic(&self) -> String {
+        fl!(self.loader.as_ref(), "errors_generic")
+    }
+
+    pub fn rewards_error_referral_code_not_exist(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_code_not_exist")
+    }
+
+    pub fn rewards_error_referral_device_already_used(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_device_already_used")
+    }
+
+    pub fn rewards_error_referral_cannot_refer_self(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_cannot_refer_self")
+    }
+
+    pub fn rewards_error_referral_rewards_not_enabled(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_rewards_not_enabled")
+    }
+
+    pub fn rewards_error_referral_limit_reached(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_limit_reached")
+    }
+
+    pub fn rewards_error_referral_referrer_limit_reached(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_referrer_limit_reached")
+    }
+
+    pub fn rewards_error_referral_eligibility_expired(&self, days: i64) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_eligibility_expired", value = days)
+    }
+
+    pub fn rewards_error_referral_country_ineligible(&self, country: &str) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_referral_country_ineligible", value = country)
+    }
+
+    pub fn rewards_error_username_daily_limit_reached(&self) -> String {
+        fl!(self.loader.as_ref(), "rewards_error_username_daily_limit_reached")
+    }
+
+    pub fn notification_rewards_enabled_title(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_rewards_enabled_title")
+    }
+
+    pub fn notification_rewards_enabled_description(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_rewards_enabled_description")
+    }
+
+    pub fn notification_rewards_disabled_title(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_rewards_disabled_title")
+    }
+
+    pub fn notification_rewards_disabled_description(&self) -> String {
+        fl!(self.loader.as_ref(), "notification_rewards_disabled_description")
+    }
+
+    pub fn notification_perpetual_long_title(&self, coin: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_perpetual_long_title", coin = coin)
+    }
+
+    pub fn notification_perpetual_short_title(&self, coin: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_perpetual_short_title", coin = coin)
+    }
+
+    pub fn notification_perpetual_open_description(&self, price: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_perpetual_open_description", price = price)
+    }
+
+    pub fn notification_perpetual_close_positive_description(&self, pnl: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_perpetual_close_positive_description", pnl = pnl)
+    }
+
+    pub fn notification_perpetual_close_negative_description(&self, pnl: &str) -> String {
+        fl!(self.loader.as_ref(), "notification_perpetual_close_negative_description", pnl = pnl)
+    }
+
+    pub fn notification_stake_rewards(&self, value: &str, chain: &str) -> LanguageNotification {
+        LanguageNotification {
+            title: fl!(self.loader.as_ref(), "notification_stake_rewards_title"),
+            description: fl!(self.loader.as_ref(), "notification_stake_rewards_description", value = value, chain = chain),
+        }
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "id": "bcd0315e-4264-48bb-8c10-1a5207297341",
+    "externalTransactionId": null,
+    "status": "completed",
+    "baseCurrencyAmount": 2.0,
+    "quoteCurrencyAmount": 3123.07,
+    "baseCurrency": {
+        "code": "eth",
+        "metadata": null,
+        "isSuspended": false,
+        "isBaseAsset": true,
+        "isSellSupported": true,
+        "notAllowedCountries": [],
+        "type": "crypto",
+        "minBuyAmount": 0.0031,
+        "maxBuyAmount": 30000.0,
+        "minSellAmount": 0.01189,
+        "maxSellAmount": 8.5
+    },
+    "quoteCurrency": {
+        "code": "usd",
+        "metadata": null,
+        "isSuspended": false,
+        "isBaseAsset": false,
+        "isSellSupported": true,
+        "notAllowedCountries": [],
+        "type": "fiat",
+        "minBuyAmount": 20.0,
+        "maxBuyAmount": 30000.0,
+        "minSellAmount": null,
+        "maxSellAmount": null
+    },
+    "cryptoTransactionId": "0xabc123456789"
+}

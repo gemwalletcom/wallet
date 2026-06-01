@@ -1,0 +1,57 @@
+pub mod client;
+pub mod error;
+pub mod fiat_cacher_client;
+pub mod hmac_signature;
+pub mod ip_check_client;
+pub mod model;
+pub mod provider;
+pub mod providers;
+pub mod rsa_signature;
+pub mod transaction_info_mapper;
+
+pub use provider::FiatProvider;
+
+use crate::providers::{BanxaClient, FlashnetClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
+use settings::Settings;
+
+pub use client::FiatClient;
+pub use fiat_cacher_client::{CachedFiatQuoteData, FiatCacherClient};
+pub use ip_check_client::{IPAddressInfo, IPCheckClient};
+pub use transaction_info_mapper::fiat_transaction_info;
+
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+pub mod testkit;
+
+pub struct FiatProviderFactory {}
+impl FiatProviderFactory {
+    pub fn new_providers(settings: Settings) -> Vec<Box<dyn FiatProvider + Send + Sync>> {
+        let request_client = crate::client::FiatClient::request_client(settings.fiat.timeout);
+
+        let moonpay = MoonPayClient::new(request_client.clone(), settings.moonpay.key.public.clone(), settings.moonpay.key.secret.clone());
+        let mercuryo = MercuryoClient::new(request_client.clone(), settings.mercuryo.key.public.clone(), settings.mercuryo.key.secret.clone());
+        let transak = TransakClient::new(
+            request_client.clone(),
+            settings.transak.key.public,
+            settings.transak.key.secret,
+            settings.transak.referrer_domain,
+        );
+        let banxa = BanxaClient::new(request_client.clone(), settings.banxa.url, settings.banxa.key.public, settings.banxa.key.secret);
+        let paybis = PaybisClient::new(request_client.clone(), settings.paybis.key.public, settings.paybis.key.secret);
+        let flashnet = FlashnetClient::new(request_client.clone(), settings.flashnet.url, settings.flashnet.key.secret, settings.flashnet.key.public);
+
+        vec![
+            Box::new(moonpay),
+            Box::new(mercuryo),
+            Box::new(transak),
+            Box::new(banxa),
+            Box::new(paybis),
+            Box::new(flashnet),
+        ]
+    }
+
+    pub fn new_ip_check_client(settings: Settings) -> IPCheckClient {
+        let request_client = crate::client::FiatClient::request_client(settings.fiat.timeout);
+        let moonpay = MoonPayClient::new(request_client.clone(), settings.moonpay.key.public.clone(), settings.moonpay.key.secret.clone());
+        IPCheckClient::new(moonpay)
+    }
+}

@@ -1,0 +1,46 @@
+[package]
+name = "gem_aptos"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = [
+    "dep:async-trait",
+    "dep:chrono",
+    "dep:chain_traits",
+    "dep:chain_primitives",
+    "dep:gem_client",
+    "dep:futures",
+]
+reqwest = ["gem_client/reqwest"]
+chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
+num-bigint = { workspace = true }
+bcs = { workspace = true }
+hex = { workspace = true }
+num-traits = { workspace = true }
+signer = { path = "../signer" }
+gem_hash = { path = "../gem_hash" }
+
+# Dependencies for RPC client & mapper
+async-trait = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+chain_traits = { path = "../chain_traits", optional = true }
+chain_primitives = { path = "../chain_primitives", optional = true }
+gem_client = { path = "../gem_client", optional = true }
+futures = { workspace = true, optional = true }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+tokio = { workspace = true, features = ["macros", "rt"] }
+reqwest = { workspace = true }
+settings = { path = "../settings", features = ["testkit"] }
+ed25519-dalek = { version = "2.2.0", default-features = false, features = [
+    "std",
+] }

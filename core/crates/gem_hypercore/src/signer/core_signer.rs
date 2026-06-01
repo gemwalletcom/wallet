@@ -1,0 +1,525 @@
+use ::signer::Signer;
+use alloy_primitives::hex;
+use number_formatter::BigNumberFormatter;
+use primitives::{
+    ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType,
+    SignerError, SignerInput, TransactionInputType, asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID, decode_hex, stake_type::StakeType,
+};
+use serde::Serialize;
+use serde_json::{self, Value};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use crate::{
+    core::{
+        actions::{
+            ApproveAgent, ApproveBuilderFee, Builder, CDeposit, CWithdraw, Cancel, CancelOrder, PlaceOrder, SetReferrer, SpotSend, TokenDelegate, UpdateLeverage,
+            WithdrawalRequest, make_market_order, make_position_tp_sl,
+        },
+        hypercore::{
+            approve_agent_typed_data, approve_builder_fee_typed_data, c_deposit_typed_data, c_withdraw_typed_data, cancel_order_typed_data, place_order_typed_data,
+            send_spot_token_to_address_typed_data, set_referrer_typed_data, token_delegate_typed_data, update_leverage_typed_data, withdrawal_request_typed_data,
+        },
+    },
+    is_spot_swap,
+    models::timestamp::TimestampField,
+};
+
+const AGENT_NAME_PREFIX: &str = "gemwallet_";
+const REFERRAL_CODE: &str = "GEMWALLET";
+const BUILDER_ADDRESS: &str = "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc";
+
+type SignerResult<T> = Result<T, SignerError>;
+
+#[derive(Default)]
+pub struct HyperCoreSigner;
+
+impl HyperCoreSigner {
+    fn sign_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
+        let asset = input.input_type.get_asset();
+        let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        self.sign_spot_send(&amount, &input.destination_address, HYPERCORE_CORE_HYPE_TOKEN_ID, private_key)
+    }
+
+    fn sign_approval_transactions(&self, order: &HyperliquidOrder, private_key: &[u8], timestamp_incrementer: &mut NumberIncrementer) -> SignerResult<Vec<String>> {
+        let mut transactions = Vec::new();
+
+        if order.approve_referral_required {
+            transactions.push(self.sign_set_referrer(private_key, REFERRAL_CODE, timestamp_incrementer.next_val())?);
+        }
+        if order.approve_agent_required {
+            transactions.push(self.sign_approve_agent(&order.agent_address, private_key, timestamp_incrementer.next_val())?);
+        }
+        if order.approve_builder_required {
+            transactions.push(self.sign_approve_builder_address(private_key, BUILDER_ADDRESS, order.builder_fee_bps, timestamp_incrementer.next_val())?);
+        }
+
+        Ok(transactions)
+    }
+
+    fn sign_token_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
+        let asset = input.input_type.get_asset();
+        let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let token_id = asset.id.get_token_id()?;
+        self.sign_spot_send(&amount, &input.destination_address, token_id, private_key)
+    }
+
+    fn sign_swap_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
+        let swap_data = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+
+        if let TransactionInputType::Swap(from_asset, to_asset, _) = &input.input_type
+            && is_spot_swap(from_asset.chain(), to_asset.chain())
+        {
+            let hl_order = input.metadata.get_hyperliquid_order()?;
+            let agent_key = decode_hex(&hl_order.agent_private_key).map_err(|_| SignerError::InvalidInput("Invalid agent private key".to_string()))?;
+            let builder = get_builder(BUILDER_ADDRESS, hl_order.builder_fee_bps as i32).ok();
+
+            let mut order: PlaceOrder = serde_json::from_str(&swap_data.data.data)?;
+            order.builder = builder;
+
+            let mut timestamp_incrementer = NumberIncrementer::new(Self::timestamp_ms());
+            let mut transactions = self.sign_approval_transactions(hl_order, private_key, &mut timestamp_incrementer)?;
+
+            transactions.push(self.sign_place_order(order, timestamp_incrementer.next_val(), &agent_key)?);
+            return Ok(transactions);
+        }
+
+        let signature = self.sign_typed_action(&swap_data.data.data, private_key)?;
+        Ok(vec![signature])
+    }
+
+    fn sign_stake_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
+        let stake_type = input.input_type.get_stake_type().map_err(SignerError::invalid_input)?;
+        let mut nonce_incrementer = NumberIncrementer::new(Self::timestamp_ms());
+
+        match stake_type {
+            StakeType::Stake(validator) => {
+                let wei = BigNumberFormatter::value_as_u64(&input.value, 0).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+
+                let deposit_request = CDeposit::new(wei, nonce_incrementer.next_val());
+                let deposit_action = self.sign_c_deposit(deposit_request, private_key)?;
+
+                let delegate_request = TokenDelegate::new(validator.id.clone(), wei, false, nonce_incrementer.next_val());
+                let delegate_action = self.sign_token_delegate(delegate_request, private_key)?;
+                Ok(vec![deposit_action, delegate_action])
+            }
+            StakeType::Unstake(delegation) => {
+                let wei = BigNumberFormatter::value_as_u64(&input.value, 0).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+
+                let undelegate_request = TokenDelegate::new(delegation.validator.id.clone(), wei, true, nonce_incrementer.next_val());
+                let undelegate_action = self.sign_token_delegate(undelegate_request, private_key)?;
+
+                let withdraw_request = CWithdraw::new(wei, nonce_incrementer.next_val());
+                let withdraw_action = self.sign_c_withdraw(withdraw_request, private_key)?;
+                Ok(vec![undelegate_action, withdraw_action])
+            }
+            StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => {
+                Err(SignerError::SigningError("Stake type not supported".to_string()))
+            }
+        }
+    }
+
+    fn sign_perpetual_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
+        let perpetual_type = input.input_type.get_perpetual_type().map_err(SignerError::invalid_input)?;
+        let order = input.metadata.get_hyperliquid_order()?;
+
+        let agent_key = decode_hex(&order.agent_private_key).map_err(|_| SignerError::InvalidInput("Invalid agent private key".to_string()))?;
+        let builder = get_builder(BUILDER_ADDRESS, order.builder_fee_bps as i32).ok();
+        let mut timestamp_incrementer = NumberIncrementer::new(Self::timestamp_ms());
+
+        let mut transactions = self.sign_approval_transactions(order, private_key, &mut timestamp_incrementer)?;
+        transactions.extend(self.sign_market_message(perpetual_type, agent_key.as_slice(), builder.as_ref(), &mut timestamp_incrementer)?);
+
+        Ok(transactions)
+    }
+
+    fn sign_typed_action(&self, typed_data_json: &str, private_key: &[u8]) -> SignerResult<String> {
+        let typed_data: Value = serde_json::from_str(typed_data_json).map_err(|err| SignerError::InvalidInput(format!("Invalid typed data JSON: {err}")))?;
+
+        let message = typed_data
+            .get("message")
+            .ok_or_else(|| SignerError::InvalidInput("Typed data missing message field".to_string()))?;
+
+        let timestamp = serde_json::from_value::<TimestampField>(message.clone()).map_err(|err| SignerError::InvalidInput(format!("Failed to parse time or nonce: {err}")))?;
+        let action = serde_json::to_string(message).map_err(|err| SignerError::InvalidInput(format!("Failed to serialize action payload: {err}")))?;
+
+        self.sign_action(typed_data_json, &action, timestamp.value, private_key)
+    }
+
+    fn sign_approve_agent(&self, agent_address: &str, private_key: &[u8], timestamp: u64) -> SignerResult<String> {
+        let agent_name = format!("{}{}", AGENT_NAME_PREFIX, &agent_address[agent_address.len().saturating_sub(6)..]);
+        let agent = ApproveAgent::new(agent_address.to_string(), agent_name, timestamp);
+        self.sign_serialized_action(agent, timestamp, private_key, approve_agent_typed_data, "approve agent")
+    }
+
+    fn sign_approve_builder_address(&self, agent_key: &[u8], builder_address: &str, rate_bps: u32, timestamp: u64) -> SignerResult<String> {
+        let max_fee_rate = fee_rate(rate_bps);
+        let request = ApproveBuilderFee::new(max_fee_rate, builder_address.to_string(), timestamp);
+        self.sign_serialized_action(request, timestamp, agent_key, approve_builder_fee_typed_data, "approve builder fee")
+    }
+
+    fn sign_set_referrer(&self, agent_key: &[u8], code: &str, timestamp: u64) -> SignerResult<String> {
+        let referer = SetReferrer::new(code.to_string());
+        self.sign_serialized_action(referer, timestamp, agent_key, |value| set_referrer_typed_data(value, timestamp), "set referrer")
+    }
+
+    fn sign_spot_send(&self, amount: &str, destination: &str, token: &str, private_key: &[u8]) -> SignerResult<String> {
+        let timestamp = Self::timestamp_ms();
+        let spot_send = SpotSend::new(amount.to_string(), destination.to_string(), timestamp, token.to_string());
+        self.sign_serialized_action(spot_send, timestamp, private_key, send_spot_token_to_address_typed_data, "spot send")
+    }
+
+    fn sign_c_deposit(&self, deposit: CDeposit, private_key: &[u8]) -> SignerResult<String> {
+        let timestamp = deposit.nonce;
+        self.sign_serialized_action(deposit, timestamp, private_key, c_deposit_typed_data, "c deposit")
+    }
+
+    fn sign_c_withdraw(&self, withdraw: CWithdraw, private_key: &[u8]) -> SignerResult<String> {
+        let timestamp = withdraw.nonce;
+        self.sign_serialized_action(withdraw, timestamp, private_key, c_withdraw_typed_data, "c withdraw")
+    }
+
+    fn sign_token_delegate(&self, delegate: TokenDelegate, private_key: &[u8]) -> SignerResult<String> {
+        let timestamp = delegate.nonce;
+        self.sign_serialized_action(delegate, timestamp, private_key, token_delegate_typed_data, "token delegate")
+    }
+
+    fn sign_update_leverage(&self, update_leverage: UpdateLeverage, nonce: u64, private_key: &[u8]) -> SignerResult<String> {
+        self.sign_serialized_action(update_leverage, nonce, private_key, |value| update_leverage_typed_data(value, nonce), "update leverage")
+    }
+
+    fn sign_market_message(
+        &self,
+        perpetual_type: &PerpetualType,
+        agent_key: &[u8],
+        builder: Option<&Builder>,
+        timestamp_incrementer: &mut NumberIncrementer,
+    ) -> SignerResult<Vec<String>> {
+        let (data, is_open) = match perpetual_type {
+            PerpetualType::Modify(modify_data) => return self.sign_modify_orders(modify_data, agent_key, builder, timestamp_incrementer),
+            PerpetualType::Open(data) => return self.sign_open_orders(data, agent_key, builder, timestamp_incrementer),
+            PerpetualType::Increase(data) => (data, true),
+            PerpetualType::Close(data) => (data, false),
+            PerpetualType::Reduce(reduce_data) => (&reduce_data.data, false),
+        };
+
+        let order = Self::market_order_from_confirm_data(data, is_open, builder);
+        Ok(vec![self.sign_place_order(order, timestamp_incrementer.next_val(), agent_key)?])
+    }
+
+    fn sign_open_orders(
+        &self,
+        data: &PerpetualConfirmData,
+        agent_key: &[u8],
+        builder: Option<&Builder>,
+        timestamp_incrementer: &mut NumberIncrementer,
+    ) -> SignerResult<Vec<String>> {
+        let is_buy = data.direction == PerpetualDirection::Long;
+        let asset = data.asset_index as u32;
+
+        let leverage = self.sign_update_leverage(
+            UpdateLeverage::from_margin_type(asset, &data.margin_type, data.leverage),
+            timestamp_incrementer.next_val(),
+            agent_key,
+        )?;
+        let market = self.sign_place_order(
+            make_market_order(asset, is_buy, &data.price, &data.size, false, builder.cloned()),
+            timestamp_incrementer.next_val(),
+            agent_key,
+        )?;
+
+        let tpsl = match (data.take_profit.as_ref(), data.stop_loss.as_ref()) {
+            (None, None) => None,
+            _ => {
+                let order = make_position_tp_sl(asset, is_buy, "0", data.take_profit.clone(), data.stop_loss.clone(), builder.cloned(), true);
+                Some(self.sign_place_order(order, timestamp_incrementer.next_val(), agent_key)?)
+            }
+        };
+
+        Ok(vec![leverage, market].into_iter().chain(tpsl).collect())
+    }
+
+    fn sign_modify_orders(
+        &self,
+        modify_data: &PerpetualModifyConfirmData,
+        agent_key: &[u8],
+        builder: Option<&Builder>,
+        timestamp_incrementer: &mut NumberIncrementer,
+    ) -> SignerResult<Vec<String>> {
+        modify_data
+            .modify_types
+            .iter()
+            .map(|modify_type| match modify_type {
+                PerpetualModifyPositionType::Cancel(orders) => {
+                    let cancels = orders.iter().map(|o| CancelOrder::new(o.asset_index as u32, o.order_id)).collect();
+                    self.sign_cancel_order(Cancel::new(cancels), timestamp_incrementer.next_val(), agent_key)
+                }
+                PerpetualModifyPositionType::Tpsl(tpsl) => {
+                    let order = make_position_tp_sl(
+                        modify_data.asset_index as u32,
+                        tpsl.direction == PerpetualDirection::Long,
+                        &tpsl.size,
+                        tpsl.take_profit.clone(),
+                        tpsl.stop_loss.clone(),
+                        builder.cloned(),
+                        true,
+                    );
+                    self.sign_place_order(order, timestamp_incrementer.next_val(), agent_key)
+                }
+            })
+            .collect()
+    }
+
+    fn market_order_from_confirm_data(data: &PerpetualConfirmData, is_open: bool, builder: Option<&Builder>) -> PlaceOrder {
+        let is_buy = if is_open {
+            data.direction == PerpetualDirection::Long
+        } else {
+            data.direction == PerpetualDirection::Short
+        };
+        make_market_order(data.asset_index as u32, is_buy, &data.price, &data.size, !is_open, builder.cloned())
+    }
+
+    fn sign_place_order(&self, order: PlaceOrder, nonce: u64, private_key: &[u8]) -> SignerResult<String> {
+        self.sign_serialized_action(order, nonce, private_key, |value| place_order_typed_data(value, nonce), "place order")
+    }
+
+    fn sign_cancel_order(&self, cancel: Cancel, nonce: u64, private_key: &[u8]) -> SignerResult<String> {
+        self.sign_serialized_action(cancel, nonce, private_key, |value| cancel_order_typed_data(value, nonce), "cancel order")
+    }
+
+    fn sign_action(&self, typed_data: &str, action: &str, timestamp: u64, private_key: &[u8]) -> SignerResult<String> {
+        let signature = Signer::sign_eip712(typed_data, private_key).map_err(|err| SignerError::InvalidInput(format!("Failed to sign typed data: {err}")))?;
+        self.build_signed_request(signature, action, timestamp)
+    }
+
+    fn sign_serialized_action<T, F>(&self, value: T, timestamp: u64, private_key: &[u8], typed_data_fn: F, action_name: &'static str) -> SignerResult<String>
+    where
+        T: Serialize,
+        F: FnOnce(T) -> String,
+    {
+        let action = serde_json::to_string(&value).map_err(|err| SignerError::InvalidInput(format!("Failed to serialize {action_name} action: {err}")))?;
+        let typed_data = typed_data_fn(value);
+        self.sign_action(&typed_data, &action, timestamp, private_key)
+    }
+
+    fn build_signed_request(&self, signature: String, action: &str, timestamp: u64) -> SignerResult<String> {
+        let sig_bytes = decode_hex(&signature).map_err(|err| SignerError::InvalidInput(format!("Invalid signature hex: {err}")))?;
+
+        if sig_bytes.len() < 65 {
+            return Err(SignerError::InvalidInput("Signature must be 65 bytes".to_string()));
+        }
+
+        let r = hex::encode_prefixed(&sig_bytes[0..32]);
+        let s = hex::encode_prefixed(&sig_bytes[32..64]);
+        let v = sig_bytes[64] as u64;
+
+        let action_json: Value = serde_json::from_str(action).map_err(|err| SignerError::InvalidInput(format!("Invalid action JSON: {err}")))?;
+
+        let signed_request = serde_json::json!({
+            "action": action_json,
+            "signature": {
+                "r": r,
+                "s": s,
+                "v": v
+            },
+            "nonce": timestamp,
+            "isFrontend": true
+        });
+
+        serde_json::to_string(&signed_request).map_err(|err| SignerError::InvalidInput(format!("Failed to serialize signed request: {err}")))
+    }
+
+    fn timestamp_ms() -> u64 {
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+    }
+}
+
+impl ChainSigner for HyperCoreSigner {
+    fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        self.sign_transfer_action(input, private_key)
+    }
+
+    fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        self.sign_token_transfer_action(input, private_key)
+    }
+
+    fn sign_nft_transfer(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
+        Err(SignerError::SigningError("NFT transfer not supported".to_string()))
+    }
+
+    fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+        self.sign_swap_action(input, private_key)
+    }
+
+    fn sign_token_approval(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
+        Err(SignerError::SigningError("Token approval not supported".to_string()))
+    }
+
+    fn sign_stake(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+        self.sign_stake_action(input, private_key)
+    }
+
+    fn sign_account_action(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
+        Err(SignerError::SigningError("Account action not supported".to_string()))
+    }
+
+    fn sign_perpetual(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+        self.sign_perpetual_action(input, private_key)
+    }
+
+    fn sign_withdrawal(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+        let asset = input.input_type.get_asset();
+        let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let timestamp = Self::timestamp_ms();
+
+        let withdrawal_request = WithdrawalRequest::new(amount, timestamp, input.destination_address.clone());
+        self.sign_serialized_action(withdrawal_request, timestamp, private_key, withdrawal_request_typed_data, "withdrawal")
+    }
+
+    fn sign_data(&self, _input: &SignerInput, _private_key: &[u8]) -> Result<String, SignerError> {
+        Err(SignerError::SigningError("Data signing not supported".to_string()))
+    }
+}
+
+fn get_builder(builder: &str, fee: i32) -> Result<Builder, SignerError> {
+    if fee < 0 {
+        return Err(SignerError::InvalidInput("Builder fee cannot be negative".to_string()));
+    }
+    Ok(Builder {
+        builder_address: builder.to_string(),
+        fee: fee as u32,
+    })
+}
+
+fn fee_rate(tenths_bps: u32) -> String {
+    format!("{}%", (tenths_bps as f64) * 0.001)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::actions::Grouping;
+    use num_bigint::BigUint;
+    use primitives::{
+        Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput,
+    };
+
+    #[test]
+    fn stake_actions_preserve_wei_and_nonces() {
+        let signer = HyperCoreSigner;
+        let asset = Asset::from_chain(Chain::HyperCore);
+        let validator = DelegationValidator::stake(Chain::HyperCore, "0x5ac99df645f3414876c816caa18b2d234024b487".into(), "Validator".into(), true, 0.0, 0.0);
+        let input = TransactionLoadInput {
+            value: "150000000".into(),
+            sender_address: "0xsender".into(),
+            destination_address: "".into(),
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset.clone(), StakeType::Stake(validator)))
+        };
+        let input = SignerInput::new(input, TransactionFee::default());
+        let private_key = [2u8; 32];
+
+        let responses = signer.sign_stake_action(&input, &private_key).expect("should sign");
+        assert_eq!(responses.len(), 2);
+
+        let deposit: serde_json::Value = serde_json::from_str(&responses[0]).expect("json");
+        let delegate: serde_json::Value = serde_json::from_str(&responses[1]).expect("json");
+
+        assert_eq!(deposit["action"]["type"], "cDeposit");
+        assert_eq!(delegate["action"]["type"], "tokenDelegate");
+
+        let deposit_wei = deposit["action"]["wei"].as_u64().expect("deposit wei");
+        let delegate_wei = delegate["action"]["wei"].as_u64().expect("delegate wei");
+        assert_eq!(deposit_wei, 150000000);
+        assert_eq!(delegate_wei, 150000000);
+
+        let deposit_nonce = deposit["action"]["nonce"].as_u64().expect("nonce");
+        let delegate_nonce = delegate["action"]["nonce"].as_u64().expect("nonce");
+        assert!(deposit_nonce < delegate_nonce);
+    }
+
+    #[test]
+    fn unstake_uses_entered_amount_and_unique_nonces() {
+        let signer = HyperCoreSigner;
+        let asset = Asset::from_chain(Chain::HyperCore);
+        let delegation = Delegation {
+            base: DelegationBase {
+                asset_id: asset.id.clone(),
+                state: DelegationState::Active,
+                balance: BigUint::from(150_000_000u64),
+                shares: BigUint::from(0u64),
+                rewards: BigUint::from(0u64),
+                completion_date: None,
+                delegation_id: "delegation".into(),
+                validator_id: "validator".into(),
+            },
+            validator: DelegationValidator::stake(Chain::HyperCore, "0x66be52ec79f829cc88e5778a255e2cb9492798fd".into(), "Validator".into(), true, 0.0, 0.0),
+            price: None,
+        };
+        let input = TransactionLoadInput {
+            value: "60000000".into(),
+            sender_address: "0xsender".into(),
+            destination_address: "".into(),
+            ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset, StakeType::Unstake(delegation)))
+        };
+        let input = SignerInput::new(input, TransactionFee::default());
+        let private_key = [1u8; 32];
+
+        let responses = signer.sign_stake_action(&input, &private_key).expect("should sign");
+        assert_eq!(responses.len(), 2);
+
+        let undelegate: serde_json::Value = serde_json::from_str(&responses[0]).expect("json");
+        let withdraw: serde_json::Value = serde_json::from_str(&responses[1]).expect("json");
+
+        assert_eq!(undelegate["action"]["type"], "tokenDelegate");
+        assert_eq!(undelegate["action"]["isUndelegate"], true);
+        assert_eq!(withdraw["action"]["type"], "cWithdraw");
+
+        assert_eq!(undelegate["action"]["wei"].as_u64().expect("undelegate wei"), 60000000);
+        assert_eq!(withdraw["action"]["wei"].as_u64().expect("withdraw wei"), 60000000);
+
+        let undelegate_nonce = undelegate["action"]["nonce"].as_u64().expect("nonce");
+        let withdraw_nonce = withdraw["action"]["nonce"].as_u64().expect("nonce");
+        assert!(undelegate_nonce < withdraw_nonce, "unstake actions should advance nonce");
+    }
+
+    #[test]
+    fn market_order_open_long() {
+        let data = PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None);
+        let builder = Builder {
+            builder_address: "0xdeadbeef".to_string(),
+            fee: 25,
+        };
+        let order = HyperCoreSigner::market_order_from_confirm_data(&data, true, Some(&builder));
+        let market_order = &order.orders[0];
+
+        assert_eq!(order.orders.len(), 1);
+        assert_eq!(order.grouping, Grouping::Na);
+        assert!(market_order.is_buy);
+        assert!(!market_order.reduce_only);
+        assert_eq!(market_order.asset, data.asset_index as u32);
+        assert_eq!(market_order.size, data.size);
+
+        let order_builder = order.builder.expect("builder");
+        assert_eq!(order_builder.builder_address, builder.builder_address);
+        assert_eq!(order_builder.fee, builder.fee);
+    }
+
+    #[test]
+    fn market_order_close_short() {
+        let data = PerpetualConfirmData::mock(PerpetualDirection::Short, 5, None, None);
+        let order = HyperCoreSigner::market_order_from_confirm_data(&data, false, None);
+        let market_order = &order.orders[0];
+
+        assert!(market_order.is_buy);
+        assert!(market_order.reduce_only);
+    }
+
+    #[test]
+    fn market_order_open_short() {
+        let data = PerpetualConfirmData::mock(PerpetualDirection::Short, 9, None, None);
+        let order = HyperCoreSigner::market_order_from_confirm_data(&data, true, None);
+        let market_order = &order.orders[0];
+
+        assert!(!market_order.is_buy);
+        assert!(!market_order.reduce_only);
+    }
+}

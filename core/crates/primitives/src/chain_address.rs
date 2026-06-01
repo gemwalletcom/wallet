@@ -1,0 +1,33 @@
+use std::fmt;
+
+use serde::{Deserialize, Serialize};
+use typeshare::typeshare;
+
+use crate::Chain;
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+pub struct ChainAddress {
+    pub chain: Chain,
+    pub address: String,
+}
+
+impl ChainAddress {
+    pub fn new(chain: Chain, address: String) -> Self {
+        Self { chain, address }
+    }
+
+    pub fn address(&self) -> &str {
+        &self.address
+    }
+
+    pub fn chain(&self) -> Chain {
+        self.chain
+    }
+}
+
+impl fmt::Display for ChainAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", self.chain, self.address)
+    }
+}

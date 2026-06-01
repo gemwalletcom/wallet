@@ -1,0 +1,293 @@
+redis:
+  url: "redis://default:@localhost:6379?protocol=resp3"
+postgres:
+  url: "postgres://username:password@localhost/api"
+  pool: 2
+meilisearch:
+  url: "http://localhost:7700"
+  key: "test"
+rabbitmq:
+  url: "amqp://username:password@localhost:5672"
+  prefetch: 50
+  retry:
+    delay: 1s
+    timeout: 30s
+coingecko:
+  key:
+    secret: ""
+fiat:
+  timeout: 3s
+moonpay:
+  key:
+    public: ""
+    secret: ""
+transak:
+  key:
+    public: ""
+    secret: ""
+  referrer_domain: "gemwallet.com"
+mercuryo:
+  key:
+    public: ""
+    secret: ""
+    token: ""
+banxa:
+  url: "https://gemwallet.banxa.com"
+  key:
+    public: ""
+    secret: ""
+paybis:
+  key:
+    public: ""
+    secret: ""
+    private: ""
+flashnet:
+  url: "https://orchestration.flashnet.xyz"
+  key:
+    public: "gemwallet"
+    secret: ""
+prices:
+  pyth:
+    url: "https://hermes.pyth.network"
+    timer: 60
+  jupiter:
+    url: "https://lite-api.jup.ag"
+    timer: 60
+  defillama:
+    url: "https://coins.llama.fi"
+    timer: 60
+charter:
+  timer: 60
+name:
+  max_name_length: 20
+  ens:
+    url: https://eth.llamarpc.com
+  ud:
+    url: https://api.unstoppabledomains.com
+    key:
+      secret: ""
+  sns:
+    url: https://sns-sdk-proxy.bonfida.workers.dev
+  ton:
+    url: https://toncenter.com
+  eths:
+    url: https://api.eths.center
+  spaceid:
+    url: https://api.prd.space.id
+  did:
+    url: https://indexer-basic.did.id
+  suins:
+    url: https://fullnode.mainnet.sui.io
+  aptos:
+    url: https://aptosnames.com
+  injective:
+    url: https://injective-rest.publicnode.com
+  icns:
+    url: https://osmosis-rest.publicnode.com
+  lens:
+    url: https://api-v2.lens.dev
+  base:
+    url: https://mainnet.base.org
+  hyperliquid:
+    url: https://rpc.hyperliquid.xyz/evm
+  alldomains:
+    url: https://solana-rpc.publicnode.com
+
+chains:
+  solana:
+    url: https://solana-rpc.publicnode.com
+  ethereum:
+    url: https://eth-pokt.nodies.app
+    node: Archival
+  smartchain:
+    url: https://bsc-dataseed1.bnbchain.org
+  polygon:
+    url: https://polygon.publicnode.com
+  optimism:
+    url: https://mainnet.optimism.io
+  arbitrum:
+    url: https://arb1.arbitrum.io/rpc
+  base:
+    url: https://mainnet.base.org
+  opbnb:
+    url: https://opbnb-mainnet-rpc.bnbchain.org
+  avalanchec:
+    url: https://api.avax.network/ext/bc/C/rpc
+  fantom:
+    url: https://fantom.publicnode.com
+  gnosis:
+    url: https://gnosis.publicnode.com
+  ton:
+    url: https://toncenter.com
+  cosmos:
+    url: "https://cosmos-rest.publicnode.com"
+  osmosis:
+    url: "https://osmosis-rest.publicnode.com"
+  thorchain:
+    url: "https://thornode.ninerealms.com"
+  tron:
+    url: "https://api.trongrid.io"
+  xrp:
+    url: https://s1.ripple.com:51234/
+  aptos:
+    url: https://fullnode.mainnet.aptoslabs.com
+  sui:
+    url: https://fullnode.mainnet.sui.io
+  celestia:
+    url: https://celestia-api.polkachu.com
+  injective:
+    url: https://injective-rest.publicnode.com
+  sei:
+    url: https://sei-api.polkachu.com
+  seievm:
+    url: https://evm-rpc.sei-apis.com
+  manta:
+    url: https://pacific-rpc.manta.network/http
+  blast:
+    url: https://rpc.blastblockchain.com
+  noble:
+    url: https://rest.cosmos.directory/noble
+  zksync:
+    url: https://mainnet.era.zksync.io
+  linea:
+    url: https://linea.drpc.org
+  mantle:
+    url: https://rpc.mantle.xyz
+  celo:
+    url: https://forno.celo.org
+  near:
+    url: https://rpc.mainnet.fastnear.com
+  bitcoin:
+    url: https://blockbook.btc.zelcore.io
+  bitcoincash:
+    url: https://blockbook.bch.zelcore.io
+  litecoin:
+    url: https://blockbook.ltc.zelcore.io
+  doge:
+    url: https://blockbook.doge.zelcore.io
+  zcash:
+    url: https://blockbook.zec.zelcore.io
+  world:
+    url: https://worldchain-mainnet.gateway.tenderly.co
+  plasma:
+    url: https://rpc.plasma.to
+  stellar:
+    url: https://horizon.stellar.org
+  sonic:
+    url: https://rpc.soniclabs.com
+  algorand:
+    url: https://mainnet-api.algonode.cloud
+  polkadot:
+    url: https://polkadot-asset-hub-public-sidecar.parity-chains.parity.io
+  cardano:
+    url: ""
+  abstract:
+    url: https://api.mainnet.abs.xyz
+  berachain:
+    url: https://rpc.berachain.com
+  ink:
+    url: https://rpc-qnd.inkonchain.com
+  unichain:
+    url: https://mainnet.unichain.org
+  hyperliquid:
+    url: https://rpc.hyperliquid.xyz/evm
+  hypercore:
+    url: https://api.hyperliquid.xyz
+  monad:
+    url: https://rpc.monad.xyz
+  xlayer:
+    url: https://rpc.xlayer.tech
+  stable:
+    url: https://rpc.stable.xyz
+
+swap:
+  okx:
+    key:
+      public: ""
+      secret: ""
+    passphrase: ""
+    project: ""
+scan:
+  timeout: 1200ms
+  goplus:
+    url: "https://api.gopluslabs.io"
+    key:
+      public: ""
+      secret: ""
+  hashdit:
+    url: "https://api.hashdit.io"
+    key:
+      public: ""
+      secret: ""
+
+parser:
+  timeout: 1s
+  shutdown:
+    timeout: 15s
+
+pusher:
+  url: "http://localhost:8088"
+  ios:
+    topic: ""
+
+daemon:
+  service: ""
+  shutdown:
+    timeout: 15s
+
+consumer:
+  error:
+    timeout: 0s
+    skip: true
+    retries: 5
+  delay: 0s
+  shutdown:
+    timeout: 15s
+
+api:
+  service: ""
+  admin:
+    enabled: false
+    token: ""
+  auth:
+    enabled: true
+    tolerance: 5m
+    jwt:
+      secret: ""
+      expiry: 1h
+
+ankr:
+  key:
+    secret: ""
+
+trongrid:
+  key:
+    secret: ""
+
+assets:
+  url: "https://raw.githubusercontent.com/gemwalletcom/assets/refs/heads/master"
+
+nft:
+  url: "https://assets.gemwallet.com/nft"
+  nftscan:
+    key:
+      secret: ""
+  opensea:
+    key:
+      secret: ""
+  magiceden:
+    key:
+      secret: ""
+
+rewards:
+  wallets: {}
+
+ip:
+  abuseipdb:
+    url: https://api.abuseipdb.com
+    key:
+      secret: ""
+  ipapi:
+    url: https://api.ipapi.is
+    key:
+      secret: ""

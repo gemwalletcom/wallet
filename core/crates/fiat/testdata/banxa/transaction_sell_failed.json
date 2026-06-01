@@ -1,0 +1,9 @@
+{
+    "id": "123",
+    "externalOrderId": null,
+    "status": "expired",
+    "fiat": "USD",
+    "fiatAmount": "595.3",
+    "transactionHash": null,
+    "orderType": "SELL"
+}

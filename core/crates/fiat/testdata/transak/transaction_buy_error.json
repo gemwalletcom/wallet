@@ -1,0 +1,10 @@
+{
+    "data": {
+        "id": "df7997b7-a19f-447e-b9fe-2f0eb7cb7b3a",
+        "quoteId": "e75764cd-1275-476e-b6fa-9af787b40974",
+        "status": "FAILED",
+        "fiatCurrency": "USD",
+        "fiatAmount": 108.0,
+        "transactionHash": null
+    }
+}

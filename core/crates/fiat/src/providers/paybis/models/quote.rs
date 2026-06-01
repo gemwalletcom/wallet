@@ -1,0 +1,35 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct QuoteRequest {
+    pub amount: String,
+    pub direction_change: String,
+    pub is_received_amount: bool,
+    pub currency_code_from: String,
+    pub currency_code_to: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaybisQuote {
+    pub id: String,
+    pub currency_code_to: String,
+    #[serde(default)]
+    pub payment_methods: Vec<PaymentMethod>,
+    #[serde(default)]
+    pub payout_methods: Vec<PaymentMethod>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaymentMethod {
+    pub amount_from: AmountInfo,
+    pub amount_to: AmountInfo,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AmountInfo {
+    pub amount: String,
+}

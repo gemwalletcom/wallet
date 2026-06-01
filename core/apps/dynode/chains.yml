@@ -1,0 +1,81 @@
+chains:
+  # Ethereum
+  - chain: ethereum
+    overrides:
+      - rpc_method: eth_chainId
+        url: https://public-eth.nownodes.io
+    urls:
+      - url: https://rpc.ankr.com/eth
+      - url: https://eth.llamarpc.com
+      - url: https://rpc.ankr.com/eth
+
+  # Optimism
+  - chain: optimism
+    urls:
+      - url: https://mainnet.optimism.io
+
+  # Bitcoin - default
+  - chain: bitcoin
+    urls:
+      - url: https://blockbook.btc.zelcore.io
+
+  # Litecoin
+  - chain: litecoin
+    poll_interval_seconds: 15
+    urls:
+      - url: https://1blockbook.lt1c.zelcore.io
+      - url: https://blockbook.ltc.zelcore.io
+
+  # Solana
+  - chain: solana
+    urls:
+      - url: https://api.mainnet-beta.solana.com
+      - url: https://api.tatum.io/v3/blockchain/node/solana-mainnet
+
+  # Cosmos
+  - chain: cosmos
+    urls:
+      - url: https://cosmos-rest.publicnode.com
+
+  # TON
+  - chain: ton
+    urls:
+      - url: https://toncenter.com
+      - url: https://toncenter.com
+
+  # Tron
+  - chain: tron
+    overrides:
+      - path: /wallet/getchainparameters
+        url: https://api.frankfurt.trongrid.io
+    urls:
+      - url: https://api.trongrid.io
+
+  # Aptos
+  - chain: aptos
+    urls:
+      - url: https://fullnode.mainnet.aptoslabs.com
+
+  # Sui
+  - chain: sui
+    urls:
+      - url: https://fullnode.mainnet.sui.io
+
+  # XRP
+  - chain: xrp
+    poll_interval_seconds: 30
+    urls:
+      - url: https://s1.ripple.com:51234
+      - url: https://s2.ripple.com:51234
+
+  # NEAR
+  - chain: near
+    poll_interval_seconds: 60
+    urls:
+      - url: https://rpc.mainnet.near.org
+      - url: https://free.rpc.fastnear.com
+
+  # Hypercore
+  - chain: hypercore
+    urls:
+      - url: https://api.hyperliquid.xyz

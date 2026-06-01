@@ -1,0 +1,9 @@
+[package]
+name = "chain_primitives"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+alloy-primitives = { workspace = true }
+num-bigint = { workspace = true }

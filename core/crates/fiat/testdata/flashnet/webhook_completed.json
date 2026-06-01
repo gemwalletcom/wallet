@@ -1,0 +1,11 @@
+{
+  "event": "order.completed",
+  "data": {
+    "id": "ord_test_completed",
+    "status": "completed",
+    "amountOut": "24737625",
+    "destination": {
+      "txHash": "solana_test_signature_completed"
+    }
+  }
+}

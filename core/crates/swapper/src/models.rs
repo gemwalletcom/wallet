@@ -1,0 +1,200 @@
+use super::permit2_data::Permit2Data;
+use crate::{SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
+pub use primitives::swap::SwapResult;
+use primitives::{
+    AssetId, Chain,
+    swap::{ApprovalData, SwapProviderMode},
+};
+use serde::Serialize;
+use std::fmt::Debug;
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ProviderType {
+    pub id: SwapperProvider,
+    pub name: String,
+    pub protocol: String,
+    pub protocol_id: String,
+    pub mode: SwapProviderMode,
+}
+
+impl ProviderType {
+    pub fn new(id: SwapperProvider) -> Self {
+        Self {
+            id,
+            name: id.name().to_string(),
+            protocol: id.protocol_name().to_string(),
+            protocol_id: id.id().to_string(),
+            mode: ProviderType::mode(id),
+        }
+    }
+
+    pub fn mode(id: SwapperProvider) -> SwapProviderMode {
+        match id {
+            SwapperProvider::UniswapV3
+            | SwapperProvider::UniswapV4
+            | SwapperProvider::PancakeswapV3
+            | SwapperProvider::Panora
+            | SwapperProvider::Jupiter
+            | SwapperProvider::Oku
+            | SwapperProvider::Wagmi
+            | SwapperProvider::CetusAggregator
+            | SwapperProvider::CetusClmm
+            | SwapperProvider::StonfiV2
+            | SwapperProvider::Aerodrome
+            | SwapperProvider::Orca
+            | SwapperProvider::Okx => SwapProviderMode::OnChain,
+            SwapperProvider::Mayan | SwapperProvider::Chainflip | SwapperProvider::NearIntents | SwapperProvider::Squid => SwapProviderMode::CrossChain,
+            SwapperProvider::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
+            SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
+            SwapperProvider::Across => SwapProviderMode::Bridge,
+            SwapperProvider::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct QuoteRequest {
+    pub from_asset: SwapperQuoteAsset,
+    pub to_asset: SwapperQuoteAsset,
+    pub wallet_address: String,
+    pub destination_address: String,
+    pub value: String,
+    #[serde(skip_serializing)]
+    pub options: Options,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Options {
+    pub slippage: SwapperSlippage,
+    pub use_max_amount: bool,
+}
+
+impl Options {
+    pub fn new_with_slippage(slippage: SwapperSlippage) -> Self {
+        Self { slippage, ..Default::default() }
+    }
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            slippage: DEFAULT_SLIPPAGE_BPS.into(),
+            use_max_amount: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Quote {
+    pub from_value: String,
+    pub min_from_value: Option<String>,
+    pub to_value: String,
+    pub data: ProviderData,
+    pub request: QuoteRequest,
+    pub eta_in_seconds: Option<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SwapQuotes {
+    pub quotes: Vec<Quote>,
+    pub errors: Vec<SwapQuoteError>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct SwapQuoteError {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provider: Option<String>,
+    pub error: String,
+}
+
+impl SwapQuoteError {
+    pub fn new(provider: Option<String>, error: String) -> Self {
+        Self { provider, error }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ApprovalType {
+    Approve(ApprovalData),
+    Permit2(Permit2ApprovalData),
+    None,
+}
+
+impl ApprovalType {
+    pub fn approval_data(&self) -> Option<ApprovalData> {
+        match self {
+            Self::Approve(data) => Some(data.clone()),
+            _ => None,
+        }
+    }
+    pub fn permit2_data(&self) -> Option<Permit2ApprovalData> {
+        match self {
+            Self::Permit2(data) => Some(data.clone()),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Permit2ApprovalData {
+    pub token: String,
+    pub spender: String,
+    pub value: String,
+    pub permit2_contract: String,
+    pub permit2_nonce: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ProviderData {
+    pub provider: ProviderType,
+    pub slippage_bps: u32,
+    pub routes: Vec<Route>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Route {
+    pub input: AssetId,
+    pub output: AssetId,
+    pub route_data: String,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum FetchQuoteData {
+    Permit2(Permit2Data),
+    EstimateGas,
+    None,
+}
+
+impl FetchQuoteData {
+    pub fn permit2_data(&self) -> Option<Permit2Data> {
+        match self {
+            Self::Permit2(data) => Some(data.clone()),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SwapperChainAsset {
+    All(Chain),
+    Assets(Chain, Vec<AssetId>),
+}
+
+impl SwapperChainAsset {
+    pub fn assets(chain: Chain, assets: impl IntoIterator<Item = AssetId>) -> Self {
+        Self::Assets(chain, assets.into_iter().collect())
+    }
+
+    pub fn get_chain(&self) -> Chain {
+        match self {
+            Self::All(chain) => *chain,
+            Self::Assets(chain, _) => *chain,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AssetList {
+    pub chains: Vec<Chain>,
+    pub asset_ids: Vec<AssetId>,
+}

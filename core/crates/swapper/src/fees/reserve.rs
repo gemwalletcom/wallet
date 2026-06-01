@@ -1,0 +1,67 @@
+use alloy_primitives::U256;
+use primitives::Chain;
+use std::{collections::HashMap, str::FromStr, sync::LazyLock};
+
+use crate::{QuoteRequest, SwapperError};
+
+pub static RESERVED_NATIVE_FEES: LazyLock<HashMap<Chain, &'static str>> = LazyLock::new(|| {
+    HashMap::from([
+        (Chain::Near, "50000000000000000000000"), // 0.05 NEAR
+        (Chain::Ethereum, "1000000000000000"),    // 0.001 ETH
+        (Chain::Arbitrum, "300000000000000"),     // 0.0003 ARB ETH
+        (Chain::Base, "300000000000000"),         // 0.0003 BASE ETH
+        (Chain::Optimism, "500000000000000"),     // 0.0005 OP ETH
+        (Chain::AvalancheC, "3000000000000000"),  // 0.003 AVAX
+        (Chain::SmartChain, "2000000000000000"),  // 0.002 BNB
+        (Chain::Polygon, "20000000000000000"),    // 0.02 MATIC
+        (Chain::Gnosis, "5000000000000000"),      // 0.005 XDAI
+        (Chain::Berachain, "5000000000000000"),   // 0.005 BERA
+        (Chain::Sui, "50000000"),                 // 0.05 SUI
+        (Chain::Solana, "20000"),                 // 0.00002 SOL
+        (Chain::Ton, "20000000"),                 // 0.02 TON
+        (Chain::Tron, "20000000"),                // 20 TRX
+        (Chain::Bitcoin, "40000"),                // 0.0004 BTC
+        (Chain::Zcash, "1000000"),                // 0.01 ZEC
+        (Chain::Doge, "500000000"),               // 5 DOGE
+        (Chain::Xrp, "2000000"),                  // 2 XRP
+        (Chain::Cardano, "2000000"),              // 2 ADA
+        (Chain::Aptos, "20000000"),               // 0.2 APT
+        (Chain::Stellar, "100000"),               // 0.01 XLM
+        (Chain::Litecoin, "100000"),              // 0.001 LTC
+        (Chain::BitcoinCash, "100000"),           // 0.001 BCH
+        (Chain::Monad, "5000000000000000"),       // 0.005 MON
+        (Chain::XLayer, "5000000000000000"),      // 0.005 OKB
+        (Chain::Plasma, "5000000000000000"),      // 0.005 XPL
+        (Chain::Cosmos, "39000"),                 // 0.039 ATOM
+        (Chain::Osmosis, "130000"),               // 0.13 OSMO
+        (Chain::Celestia, "39000"),               // 0.039 TIA
+        (Chain::Injective, "1300000000000000"),   // 0.0013 INJ
+        (Chain::Sei, "1300000"),                  // 1.3 SEI
+        (Chain::Noble, "25000"),                  // 0.025 USDC
+    ])
+});
+
+pub fn reserved_tx_fees(chain: Chain) -> Option<&'static str> {
+    RESERVED_NATIVE_FEES.get(&chain).copied()
+}
+
+pub fn quote_value_after_reserve(request: &QuoteRequest, reserved: &str) -> Result<String, SwapperError> {
+    if !request.options.use_max_amount || !request.from_asset.asset_id().is_native() {
+        return Ok(request.value.clone());
+    }
+    let reserved_fee = U256::from_str(reserved).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid reserved fee: {reserved}")))?;
+    let amount = U256::from_str(&request.value).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid amount: {}", request.value)))?;
+    if amount <= reserved_fee {
+        return Err(SwapperError::InputAmountError {
+            min_amount: Some(reserved_fee.to_string()),
+        });
+    }
+    Ok((amount - reserved_fee).to_string())
+}
+
+pub fn quote_value_after_reserve_by_chain(request: &QuoteRequest) -> Result<String, SwapperError> {
+    let Some(reserved) = reserved_tx_fees(request.from_asset.chain()) else {
+        return Ok(request.value.clone());
+    };
+    quote_value_after_reserve(request, reserved)
+}

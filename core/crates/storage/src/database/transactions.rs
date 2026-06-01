@@ -1,0 +1,281 @@
+use crate::{
+    DatabaseClient,
+    models::*,
+    schema::transactions_addresses,
+    sql_types::{AssetId, TransactionState, TransactionType},
+};
+use chrono::NaiveDateTime;
+use diesel::dsl::{count, sql};
+use diesel::prelude::*;
+use diesel::sql_types::{Jsonb, Nullable};
+use diesel::upsert::excluded;
+use primitives::Transaction;
+
+pub enum TransactionFilter {
+    States(Vec<TransactionState>),
+    Kinds(Vec<TransactionType>),
+}
+
+#[derive(Debug, Clone)]
+pub enum TransactionUpdate {
+    State(TransactionState),
+    Kind(TransactionType),
+    Metadata(serde_json::Value),
+}
+
+pub(crate) trait TransactionsStore {
+    fn get_transaction_by_id(&mut self, chain: &str, hash: &str) -> Result<TransactionRow, diesel::result::Error>;
+    fn get_transaction_exists(&mut self, chain: &str, hash: &str) -> Result<bool, diesel::result::Error>;
+    fn add_transactions(&mut self, transactions: Vec<Transaction>) -> Result<usize, diesel::result::Error>;
+    fn get_transactions_by_device_id(
+        &mut self,
+        _device_id: &str,
+        addresses: Vec<String>,
+        chains: Vec<String>,
+        asset_id: Option<String>,
+        from_datetime: Option<NaiveDateTime>,
+    ) -> Result<Vec<TransactionRow>, diesel::result::Error>;
+    fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error>;
+    fn delete_transactions_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<i64>, diesel::result::Error>;
+    fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, diesel::result::Error>;
+    fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, diesel::result::Error>;
+    fn get_transactions_by_wallet_since(&mut self, wallet_id: i32, since: NaiveDateTime, filters: Vec<TransactionFilter>) -> Result<Vec<TransactionRow>, diesel::result::Error>;
+    fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<TransactionRow>, diesel::result::Error>;
+    fn update_transaction(&mut self, chain: &str, hash: &str, updates: Vec<TransactionUpdate>) -> Result<usize, diesel::result::Error>;
+    fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error>;
+}
+
+impl TransactionsStore for DatabaseClient {
+    fn get_transaction_by_id(&mut self, chain: &str, hash: &str) -> Result<TransactionRow, diesel::result::Error> {
+        use crate::schema::transactions::dsl;
+        dsl::transactions
+            .filter(dsl::chain.eq(chain))
+            .filter(dsl::hash.eq(hash))
+            .select(TransactionRow::as_select())
+            .first(&mut self.connection)
+    }
+
+    fn get_transaction_exists(&mut self, chain: &str, hash: &str) -> Result<bool, diesel::result::Error> {
+        use crate::schema::transactions::dsl;
+
+        diesel::select(diesel::dsl::exists(dsl::transactions.filter(dsl::chain.eq(chain)).filter(dsl::hash.eq(hash)))).get_result(&mut self.connection)
+    }
+
+    fn add_transactions(&mut self, transactions: Vec<Transaction>) -> Result<usize, diesel::result::Error> {
+        use crate::schema::transactions::dsl;
+
+        self.connection
+            .build_transaction()
+            .read_write()
+            .run::<_, diesel::result::Error, _>(|conn: &mut diesel::pg::PgConnection| {
+                let mut total_addresses = 0usize;
+
+                for transaction in transactions {
+                    let new_transaction = NewTransactionRow::from_primitive(transaction.clone());
+
+                    let inserted: TransactionRow = diesel::insert_into(dsl::transactions)
+                        .values(&new_transaction)
+                        .on_conflict((dsl::chain, dsl::hash))
+                        .do_update()
+                        .set((
+                            dsl::from_address.eq(excluded(dsl::from_address)),
+                            dsl::to_address.eq(excluded(dsl::to_address)),
+                            dsl::value.eq(excluded(dsl::value)),
+                            dsl::kind.eq(excluded(dsl::kind)),
+                            dsl::state.eq(excluded(dsl::state)),
+                            dsl::fee.eq(excluded(dsl::fee)),
+                            dsl::fee_asset_id.eq(excluded(dsl::fee_asset_id)),
+                            dsl::memo.eq(excluded(dsl::memo)),
+                            dsl::metadata.eq(sql::<Nullable<Jsonb>>("COALESCE(EXCLUDED.metadata, transactions.metadata)")),
+                            dsl::utxo_inputs.eq(excluded(dsl::utxo_inputs)),
+                            dsl::utxo_outputs.eq(excluded(dsl::utxo_outputs)),
+                        ))
+                        .returning(TransactionRow::as_select())
+                        .get_result(conn)?;
+
+                    let addresses = NewTransactionAddressesRow::from_transaction(inserted.id, &transaction);
+
+                    if !addresses.is_empty() {
+                        use crate::schema::transactions_addresses::dsl as addr_dsl;
+                        total_addresses += diesel::insert_into(addr_dsl::transactions_addresses)
+                            .values(&addresses)
+                            .on_conflict((addr_dsl::transaction_id, addr_dsl::address, addr_dsl::asset_id))
+                            .do_nothing()
+                            .execute(conn)?;
+                    }
+                }
+
+                Ok(total_addresses)
+            })
+    }
+
+    fn get_transactions_by_device_id(
+        &mut self,
+        _device_id: &str,
+        addresses: Vec<String>,
+        chains: Vec<String>,
+        filter_asset_id: Option<String>,
+        from_datetime: Option<NaiveDateTime>,
+    ) -> Result<Vec<TransactionRow>, diesel::result::Error> {
+        use crate::schema::transactions::dsl::*;
+
+        let mut query = transactions
+            .into_boxed()
+            .inner_join(transactions_addresses::table)
+            .filter(chain.eq_any(chains.clone()))
+            .filter(transactions_addresses::address.eq_any(addresses))
+            .filter(state.ne(TransactionState::InTransit));
+
+        if let Some(filter_asset) = filter_asset_id {
+            query = query.filter(asset_id.eq(filter_asset));
+        }
+
+        if let Some(datetime) = from_datetime {
+            query = query.filter(created_at.gt(datetime).or(updated_at.gt(datetime)));
+        }
+
+        query.order(created_at.desc()).select(TransactionRow::as_select()).distinct().load(&mut self.connection)
+    }
+
+    fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error> {
+        use crate::schema::transactions::dsl as tx_dsl;
+        use crate::schema::transactions_addresses::dsl::*;
+
+        transactions_addresses
+            .inner_join(tx_dsl::transactions)
+            .filter(tx_dsl::created_at.ge(since))
+            .select((address, tx_dsl::chain))
+            .group_by((address, tx_dsl::chain))
+            .having(count(address).gt(min_count))
+            .order_by(count(address).desc())
+            .limit(limit)
+            .load::<AddressChainIdResultRow>(&mut self.connection)
+    }
+
+    fn delete_transactions_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<i64>, diesel::result::Error> {
+        use crate::schema::transactions_addresses::dsl::*;
+        diesel::delete(transactions_addresses)
+            .filter(address.eq_any(addresses))
+            .returning(transaction_id)
+            .load(&mut self.connection)
+    }
+
+    fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, diesel::result::Error> {
+        use crate::schema::transactions::dsl::*;
+        use crate::schema::transactions_addresses::dsl as addr;
+
+        if candidate_ids.is_empty() {
+            return Ok(0);
+        }
+
+        let ids: Vec<i64> = transactions
+            .filter(id.eq_any(&candidate_ids))
+            .left_outer_join(addr::transactions_addresses.on(id.eq(addr::transaction_id)))
+            .filter(addr::transaction_id.is_null())
+            .select(id)
+            .load(&mut self.connection)?;
+
+        if ids.is_empty() {
+            return Ok(0);
+        }
+
+        diesel::delete(transactions.filter(id.eq_any(ids))).execute(&mut self.connection)
+    }
+
+    fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, diesel::result::Error> {
+        use crate::schema::assets_addresses::dsl::*;
+
+        assets_addresses
+            .filter(updated_at.ge(since))
+            .group_by(asset_id)
+            .select((asset_id, count(asset_id)))
+            .load::<(AssetId, i64)>(&mut self.connection)
+    }
+
+    fn get_transactions_by_wallet_since(&mut self, wallet_id: i32, since: NaiveDateTime, filters: Vec<TransactionFilter>) -> Result<Vec<TransactionRow>, diesel::result::Error> {
+        use crate::schema::transactions::dsl as tx_dsl;
+        use crate::schema::transactions_addresses::dsl as addr_dsl;
+        use crate::schema::wallets_addresses::dsl as wallet_addr_dsl;
+        use crate::schema::wallets_subscriptions::dsl as wallet_sub_dsl;
+
+        let mut query = tx_dsl::transactions
+            .inner_join(addr_dsl::transactions_addresses.on(tx_dsl::id.eq(addr_dsl::transaction_id)))
+            .inner_join(wallet_addr_dsl::wallets_addresses.on(addr_dsl::address.eq(wallet_addr_dsl::address)))
+            .inner_join(wallet_sub_dsl::wallets_subscriptions.on(wallet_addr_dsl::id.eq(wallet_sub_dsl::address_id)))
+            .into_boxed()
+            .filter(wallet_sub_dsl::wallet_id.eq(wallet_id))
+            .filter(tx_dsl::created_at.ge(since));
+
+        for filter in filters {
+            match filter {
+                TransactionFilter::States(states) => {
+                    query = query.filter(tx_dsl::state.eq_any(states));
+                }
+                TransactionFilter::Kinds(kinds) => {
+                    query = query.filter(tx_dsl::kind.eq_any(kinds));
+                }
+            }
+        }
+
+        query.distinct().select(TransactionRow::as_select()).load(&mut self.connection)
+    }
+
+    fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<TransactionRow>, diesel::result::Error> {
+        use crate::schema::transactions::dsl;
+        let mut query = dsl::transactions.into_boxed();
+
+        for filter in filters {
+            match filter {
+                TransactionFilter::States(states) => {
+                    query = query.filter(dsl::state.eq_any(states));
+                }
+                TransactionFilter::Kinds(kinds) => {
+                    query = query.filter(dsl::kind.eq_any(kinds));
+                }
+            }
+        }
+
+        query
+            .order(dsl::created_at.asc())
+            .limit(limit)
+            .select(TransactionRow::as_select())
+            .load(&mut self.connection)
+    }
+
+    fn update_transaction(&mut self, chain: &str, hash: &str, updates: Vec<TransactionUpdate>) -> Result<usize, diesel::result::Error> {
+        use crate::schema::transactions::dsl;
+
+        if updates.is_empty() {
+            return Ok(0);
+        }
+
+        let target = dsl::transactions.filter(dsl::chain.eq(chain).and(dsl::hash.eq(hash)));
+        let mut total = 0;
+
+        for update in &updates {
+            let updated = match update {
+                TransactionUpdate::State(state) => diesel::update(target).set(dsl::state.eq(state)).execute(&mut self.connection)?,
+                TransactionUpdate::Kind(kind) => diesel::update(target).set(dsl::kind.eq(kind)).execute(&mut self.connection)?,
+                TransactionUpdate::Metadata(metadata) => diesel::update(target).set(dsl::metadata.eq(metadata)).execute(&mut self.connection)?,
+            };
+            total += updated;
+        }
+
+        Ok(total)
+    }
+
+    fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error> {
+        use crate::schema::transactions::dsl as tx_dsl;
+        use crate::schema::transactions_addresses::dsl::*;
+
+        transactions_addresses
+            .inner_join(tx_dsl::transactions)
+            .filter(tx_dsl::chain.eq(chain))
+            .filter(tx_dsl::kind.eq_any(kinds))
+            .filter(tx_dsl::state.eq(TransactionState::Confirmed))
+            .filter(tx_dsl::created_at.ge(since))
+            .select(address)
+            .distinct()
+            .load::<String>(&mut self.connection)
+    }
+}

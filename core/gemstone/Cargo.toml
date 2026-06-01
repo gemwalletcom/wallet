@@ -1,0 +1,73 @@
+[package]
+edition = { workspace = true }
+name = "gemstone"
+version = "1.0.2"
+
+[lib]
+crate-type = [
+    "staticlib", # iOS
+    "rlib",      # for Other crate
+    "cdylib",    # Android
+]
+
+name = "gemstone"
+
+[features]
+default = []
+reqwest_provider = ["dep:reqwest", "swapper/reqwest_provider"]
+swap_integration_tests = ["reqwest_provider"]
+
+[dependencies]
+swapper = { path = "../crates/swapper" }
+primitives = { path = "../crates/primitives" }
+gem_cosmos = { path = "../crates/gem_cosmos", features = ["rpc", "signer"] }
+gem_solana = { path = "../crates/gem_solana", features = ["rpc", "signer"] }
+gem_ton = { path = "../crates/gem_ton", features = ["rpc", "signer"] }
+gem_tron = { path = "../crates/gem_tron", features = ["rpc", "signer"] }
+gem_evm = { path = "../crates/gem_evm", features = ["rpc", "signer"] }
+simulation = { path = "../crates/simulation", features = ["rpc"] }
+gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
+gem_aptos = { path = "../crates/gem_aptos", features = ["rpc"] }
+gem_auth = { path = "../crates/gem_auth" }
+gem_jsonrpc = { path = "../crates/gem_jsonrpc", features = ["client"] }
+gem_client = { path = "../crates/gem_client" }
+gem_hypercore = { path = "../crates/gem_hypercore", features = ["signer"] }
+gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["rpc"] }
+gem_hash = { path = "../crates/gem_hash" }
+gem_cardano = { path = "../crates/gem_cardano", features = ["rpc", "signer"] }
+gem_algorand = { path = "../crates/gem_algorand", features = ["rpc", "signer"] }
+gem_stellar = { path = "../crates/gem_stellar", features = ["rpc", "signer"] }
+gem_xrp = { path = "../crates/gem_xrp", features = ["rpc", "signer"] }
+gem_near = { path = "../crates/gem_near", features = ["rpc", "signer"] }
+gem_polkadot = { path = "../crates/gem_polkadot", features = ["rpc", "signer"] }
+gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+chain_traits = { path = "../crates/chain_traits" }
+signer = { path = "../crates/signer" }
+number_formatter = { path = "../crates/number_formatter" }
+yielder = { path = "../crates/yielder" }
+
+reqwest = { workspace = true, optional = true }
+sui-types = { workspace = true }
+base64 = { workspace = true }
+
+# uniffi
+uniffi.workspace = true
+
+chrono = { workspace = true }
+
+serde.workspace = true
+serde_json.workspace = true
+async-trait.workspace = true
+alloy-primitives.workspace = true
+hex.workspace = true
+num-bigint.workspace = true
+futures.workspace = true
+bs58 = { workspace = true }
+url = { workspace = true }
+zeroize = { workspace = true }
+
+[build-dependencies]
+uniffi = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+primitives = { path = "../crates/primitives", features = ["testkit"] }

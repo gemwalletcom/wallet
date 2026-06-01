@@ -1,0 +1,88 @@
+use core::str;
+
+use gem_encoding::decode_base64;
+use primitives::TransactionState;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionsParams {
+    #[serde(rename = "last-round")]
+    pub last_round: u64,
+    #[serde(rename = "genesis-hash")]
+    pub genesis_hash: String,
+    #[serde(rename = "genesis-id")]
+    pub genesis_id: String,
+    #[serde(rename = "min-fee")]
+    pub min_fee: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Transaction {
+    pub id: String,
+    #[serde(rename = "round-time")]
+    pub round_time: i64,
+    pub fee: Option<i64>,
+    pub sender: Option<String>,
+    pub note: Option<String>,
+    #[serde(rename = "payment-transaction")]
+    pub payment_transaction: Option<PaymentTransaction>,
+    #[serde(rename = "tx-type")]
+    pub transaction_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PaymentTransaction {
+    pub amount: Option<i64>,
+    pub receiver: Option<String>,
+}
+
+impl Transaction {
+    pub fn get_memo(&self) -> Option<String> {
+        self.note
+            .clone()
+            .and_then(|note| decode_base64(&note).ok())
+            .and_then(|decoded| str::from_utf8(&decoded).ok().map(|s| s.to_string()))
+            .map(|s| s.to_string())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Transactions {
+    pub transactions: Vec<Transaction>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionLookup {
+    pub transaction: Transaction,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionBroadcast {
+    #[serde(rename = "txId")]
+    pub tx_id: Option<String>,
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionStatus {
+    #[serde(rename = "confirmed-round")]
+    pub confirmed_round: Option<i64>,
+    #[serde(rename = "pool-error")]
+    pub pool_error: Option<String>,
+}
+
+impl TransactionStatus {
+    pub fn state(&self) -> TransactionState {
+        if self.confirmed_round.unwrap_or(0) > 0 {
+            TransactionState::Confirmed
+        } else if self.has_pool_error() {
+            TransactionState::Failed
+        } else {
+            TransactionState::Pending
+        }
+    }
+
+    fn has_pool_error(&self) -> bool {
+        self.pool_error.as_ref().is_some_and(|error| !error.trim().is_empty())
+    }
+}

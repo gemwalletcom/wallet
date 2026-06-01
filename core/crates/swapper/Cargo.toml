@@ -1,0 +1,62 @@
+[package]
+name = "swapper"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+[features]
+default = []
+reqwest_provider = ["dep:reqwest"]
+unit_tests = ["reqwest_provider"]
+swap_integration_tests = ["reqwest_provider"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_solana = { path = "../gem_solana", features = ["rpc"] }
+gem_ton = { path = "../gem_ton", features = ["rpc", "tvm"] }
+gem_evm = { path = "../gem_evm", features = ["rpc"] }
+gem_sui = { path = "../gem_sui", features = ["rpc"] }
+gem_aptos = { path = "../gem_aptos", features = ["rpc"] }
+gem_cosmos = { path = "../gem_cosmos" }
+gem_hash = { path = "../gem_hash" }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
+gem_client = { path = "../gem_client" }
+gem_hypercore = { path = "../gem_hypercore" }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
+number_formatter = { path = "../number_formatter" }
+sui-types = { workspace = true }
+sui-transaction-builder = { package = "sui-transaction-builder", version = "0.3.1", default-features = false }
+
+reqwest = { workspace = true, optional = true }
+typeshare = { version = "1.0.4" }
+
+strum = { workspace = true }
+
+gem_encoding = { path = "../gem_encoding" }
+serde.workspace = true
+serde_json.workspace = true
+serde_urlencoded.workspace = true
+bcs.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
+alloy-primitives.workspace = true
+alloy-sol-types.workspace = true
+hex.workspace = true
+num-bigint.workspace = true
+num-integer.workspace = true
+num-traits.workspace = true
+futures.workspace = true
+bs58 = { workspace = true }
+base64 = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+solana-primitives = "0.2.5"
+bigdecimal.workspace = true
+rand.workspace = true
+tracing = "0.1.44"
+
+[dev-dependencies]
+tokio.workspace = true
+primitives = { path = "../primitives", features = ["testkit"] }
+gem_client = { path = "../gem_client", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }

@@ -1,0 +1,21 @@
+[package]
+name = "gas-bench"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+clap = { version = "4.6.0", features = ["derive", "env"] }
+
+tokio = { workspace = true }
+num-bigint = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+prettytable-rs = "^0.10"
+
+primitives = { path = "../../crates/primitives" }
+gemstone = { path = "../../gemstone", features = ["reqwest_provider"] }
+gem_evm = { path = "../../crates/gem_evm" }
+gem_solana = { path = "../../crates/gem_solana", features = ["reqwest"] }
+gem_jsonrpc = { path = "../../crates/gem_jsonrpc", features = ["client"] }
+serde_serializers = { path = "../../crates/serde_serializers" }

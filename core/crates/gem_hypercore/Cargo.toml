@@ -1,0 +1,39 @@
+[package]
+name = "gem_hypercore"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+reqwest = ["gem_client/reqwest"]
+signer = []
+testkit = []
+chain_integration_tests = ["reqwest", "settings/testkit"]
+
+[dependencies]
+async-trait = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+num-bigint = { workspace = true }
+alloy-primitives = { workspace = true }
+rmp-serde = { version = "1.3.1" }
+futures = { workspace = true }
+strum = { workspace = true }
+
+gem_client = { path = "../gem_client" }
+gem_hash = { path = "../gem_hash" }
+gem_evm = { path = "../gem_evm" }
+serde_serializers = { path = "../serde_serializers" }
+number_formatter = { path = "../number_formatter" }
+primitives = { path = "../primitives" }
+chain_traits = { path = "../chain_traits" }
+k256 = { workspace = true }
+signer = { path = "../signer" }
+
+[dev-dependencies]
+reqwest = { workspace = true }
+gem_client = { path = "../gem_client", features = ["reqwest", "testkit"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+primitives = { path = "../primitives", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }

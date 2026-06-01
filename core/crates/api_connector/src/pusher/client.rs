@@ -1,0 +1,60 @@
+use super::model::{PushResult, Response};
+use primitives::{GorushNotification, GorushNotifications};
+use reqwest::Client;
+
+#[derive(Clone, Debug)]
+pub struct PusherClient {
+    url: String,
+    client: Client,
+    topic: String,
+}
+
+impl PusherClient {
+    pub fn new(url: String, topic: String) -> Self {
+        let client = Client::new();
+        Self { url, client, topic }
+    }
+
+    pub async fn push_notifications(&self, notifications: Vec<GorushNotification>) -> Result<PushResult, reqwest::Error> {
+        let url = format!("{}/api/push", self.url);
+        let notifications: Vec<GorushNotification> = notifications
+            .into_iter()
+            .filter(|n| !n.tokens.is_empty() && n.tokens.iter().all(|t| !t.is_empty()))
+            .map(|x| x.clone().with_topic(self.get_topic(x.platform)))
+            .collect();
+
+        if notifications.is_empty() {
+            return Ok(PushResult {
+                response: Response {
+                    counts: 0,
+                    logs: vec![],
+                    success: "ok".to_string(),
+                },
+                notifications,
+            });
+        }
+
+        let payload = GorushNotifications {
+            notifications: notifications.clone(),
+        };
+        let response = self.client.post(&url).json(&payload).send().await?.json::<Response>().await?;
+        Ok(PushResult { response, notifications })
+    }
+
+    pub async fn is_device_token_valid(&self, token: &str, platform: i32) -> Result<bool, reqwest::Error> {
+        let notification = GorushNotification::for_token_validation(token.to_string(), platform);
+        let result = self.push_notifications(vec![notification]).await?;
+
+        let has_invalid_token = result.response.logs.iter().any(|log| log.is_device_invalid());
+        Ok(!has_invalid_token)
+    }
+
+    //Remove in the future
+    fn get_topic(&self, platform: i32) -> Option<String> {
+        match platform {
+            1 => Some(self.topic.clone()), // ios
+            2 => None,
+            _ => None,
+        }
+    }
+}

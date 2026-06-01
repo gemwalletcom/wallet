@@ -1,0 +1,44 @@
+[package]
+name = "gem_sui"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = [
+    "dep:async-trait",
+    "dep:chain_traits",
+    "gem_encoding/protobuf",
+    "dep:gem_jsonrpc",
+]
+reqwest = ["rpc", "gem_jsonrpc/reqwest"]
+signer = ["dep:signer"]
+chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+chain_primitives = { path = "../chain_primitives" }
+sui-types = { workspace = true }
+sui-transaction-builder = { package = "sui-transaction-builder", version = "0.3.1", default-features = false }
+bcs = { version = "0.2.1" }
+hex = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"], optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
+chrono = { workspace = true }
+num-traits = { workspace = true }
+
+futures = { workspace = true }
+signer = { path = "../signer", optional = true }
+
+# Optional dependencies for rpc feature
+num-bigint = { workspace = true, features = ["serde"] }
+async-trait = { workspace = true, optional = true }
+chain_traits = { path = "../chain_traits", optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+primitives = { path = "../primitives", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }

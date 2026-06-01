@@ -1,0 +1,62 @@
+use crate::{
+    metaplex::metadata::Metadata,
+    models::{Extension, TokenInfo},
+};
+use primitives::{Asset, AssetId, AssetType, Chain};
+
+pub fn map_token_data_metaplex(chain: Chain, token_id: String, token_info: &TokenInfo, meta: &Metadata) -> Result<Asset, Box<dyn std::error::Error + Send + Sync>> {
+    let name = meta.data.name.trim_matches(char::from(0)).to_string();
+    let symbol = meta.data.symbol.trim_matches(char::from(0)).to_string();
+    let decimals: i32 = token_info.decimals;
+    let asset_type = if token_info.extensions.is_some() { AssetType::SPL2022 } else { AssetType::SPL };
+
+    Ok(Asset::new(AssetId::from_token(chain, &token_id), name, symbol, decimals, asset_type))
+}
+
+pub fn map_token_data_spl_token_2022(chain: Chain, token_id: String, token_info: &TokenInfo) -> Result<Asset, Box<dyn std::error::Error + Send + Sync>> {
+    let token_metadata = token_info
+        .extensions
+        .as_ref()
+        .and_then(|extensions| {
+            extensions.iter().find_map(|ext| {
+                if let Extension::TokenMetadata(token_metadata) = ext {
+                    Some(token_metadata.state.clone())
+                } else {
+                    None
+                }
+            })
+        })
+        .ok_or("no token metadata found")?;
+    Ok(Asset::new(
+        AssetId::from_token(chain, &token_id),
+        token_metadata.name,
+        token_metadata.symbol,
+        token_info.decimals,
+        AssetType::SPL2022,
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{PYUSD_TOKEN_MINT, models::ResultTokenInfo};
+    use primitives::{AssetType, JsonRpcResult};
+
+    #[test]
+    fn test_map_token_spl_token_2022() {
+        let result = serde_json::from_str::<JsonRpcResult<ResultTokenInfo>>(include_str!("../../testdata/pyusd_mint.json"))
+            .unwrap()
+            .result
+            .value
+            .data
+            .parsed
+            .info;
+
+        let token_data = map_token_data_spl_token_2022(Chain::Solana, PYUSD_TOKEN_MINT.to_string(), &result).unwrap();
+
+        assert_eq!(token_data.name, "PayPal USD");
+        assert_eq!(token_data.symbol, "PYUSD");
+        assert_eq!(token_data.decimals, 6);
+        assert_eq!(token_data.asset_type, AssetType::SPL2022);
+    }
+}

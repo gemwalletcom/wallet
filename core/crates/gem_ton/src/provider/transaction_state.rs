@@ -1,0 +1,61 @@
+use async_trait::async_trait;
+use chain_traits::ChainTransactionState;
+use std::error::Error;
+
+use gem_client::Client;
+use primitives::{TransactionStateRequest, TransactionUpdate};
+
+use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::client::TonClient};
+
+#[async_trait]
+impl<C: Client> ChainTransactionState for TonClient<C> {
+    async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
+        let traces = self.get_traces_by_hash(request.id.clone()).await?;
+        map_transaction_status(request, traces)
+    }
+}
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
+mod chain_integration_tests {
+    use crate::provider::testkit::*;
+    use chain_traits::ChainTransactionState;
+    use primitives::{TransactionState, TransactionStateRequest};
+
+    #[tokio::test]
+    async fn test_get_traces_by_message() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_ton_test_client();
+        let traces = client.get_traces_by_message(FAILED_SWAP_MESSAGE_HASH.to_string()).await?;
+        let transaction = traces.root_transaction().ok_or("missing root transaction")?;
+
+        assert!(traces.has_actions());
+        assert_eq!(transaction.hash.as_str(), FAILED_SWAP_ROOT_TRANSACTION_HASH);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_ton_transaction_status_confirmed() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_ton_test_client();
+        let request = TransactionStateRequest::mock_with_id("w7Tz84LDLoQ3HPCuU0DZbj2sCq-eZKH1vse_wm67kxA=");
+        let update = client.get_transaction_status(request).await?;
+
+        assert_eq!(update.state, TransactionState::Confirmed);
+
+        println!("Transaction update: {:?}", update);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_ton_transaction_status_reverted() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_ton_test_client();
+        let request = TransactionStateRequest::mock_with_id("0676f9e79a1e56c52394be74ffc75c6b2268aa0be094307ee651c23fff775952");
+        let update = client.get_transaction_status(request).await?;
+
+        assert_eq!(update.state, TransactionState::Reverted);
+
+        println!("Transaction update: {:?}", update);
+
+        Ok(())
+    }
+}

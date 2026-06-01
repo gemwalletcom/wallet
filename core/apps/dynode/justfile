@@ -1,0 +1,49 @@
+# List available recipes
+default:
+    @just --list
+
+# Build the project
+build:
+    cargo build
+
+# Build the project in release mode
+build-release:
+    cargo build --release
+
+# Run unit tests
+test:
+    cargo test --lib --bins
+
+# Check code compilation without building
+check:
+    cargo check
+
+# Run clippy for linting
+lint:
+    cargo clippy -- -W clippy::all
+
+# Format code
+fmt:
+    cargo fmt
+
+# Clean build artifacts
+clean:
+    cargo clean
+
+# Run the application
+run:
+    cargo run
+
+# Run tests with output
+test-verbose:
+    cargo test --lib --bins -- --nocapture
+
+# Build and test everything
+ci: check lint test
+
+# Watch for changes and run tests
+watch-test:
+    cargo watch -x test
+
+# Check, build, and test
+all: check build test

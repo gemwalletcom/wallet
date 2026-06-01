@@ -1,0 +1,6 @@
+[profile.release]
+# https://github.com/johnthagen/min-sized-rust
+strip = true
+codegen-units = 1
+lto = "fat"
+opt-level = "z"

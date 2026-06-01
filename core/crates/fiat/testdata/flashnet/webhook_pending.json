@@ -1,0 +1,10 @@
+{
+  "event": "order.processing",
+  "data": {
+    "id": "ord_test_pending",
+    "status": "processing",
+    "paymentIntent": {
+      "targetAmountOut": "49475250"
+    }
+  }
+}
