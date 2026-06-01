@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,6 +22,7 @@ import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadding
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseError
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
@@ -71,7 +70,7 @@ fun AutocloseInputSection(
                             indication = null,
                             onClick = { onTextChanged("") },
                         ),
-                    imageVector = Icons.Default.Cancel,
+                    imageVector = AppIcons.Cancel,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.secondary,
                 )
