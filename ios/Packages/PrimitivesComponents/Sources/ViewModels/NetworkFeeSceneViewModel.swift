@@ -68,14 +68,14 @@ public final class NetworkFeeSceneViewModel {
     }
 
     public func valueForRate(_ rate: FeeRateViewModel) -> String {
-        rate.valueText
+        switch chain.feeUnitType {
+        case .native: feeAmount(for: rate.feeRate).map { display(for: $0).amount.text } ?? rate.valueText
+        case .gwei, .satVb: rate.valueText
+        }
     }
 
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
-        switch chain.feeUnitType {
-        case .native: display(for: rate.feeRate.gasPriceType.totalFee).fiat?.text
-        case .gwei, .satVb: feeAmount(for: rate.feeRate).flatMap { display(for: $0).fiat?.text }
-        }
+        feeAmount(for: rate.feeRate).flatMap { display(for: $0).fiat?.text }
     }
 
     func feeAmount(for rate: FeeRate) -> BigInt? {
