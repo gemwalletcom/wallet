@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +17,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PeriodsPanel
 import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.chart.ChartViewState
 import com.gemwallet.android.ui.theme.chartFrameHeight
@@ -62,7 +61,7 @@ fun ChartStateView(
                     ChartViewState.Error -> EmptyStateView(
                         modifier = Modifier.fillMaxSize(),
                         title = stringResource(R.string.errors_no_data_available),
-                        iconVector = Icons.Outlined.Warning,
+                        iconVector = AppIcons.Warning,
                     )
                     ChartViewState.Ready -> chartBody()
                 }

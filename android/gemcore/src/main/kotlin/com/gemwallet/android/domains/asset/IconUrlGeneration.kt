@@ -10,6 +10,7 @@ import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.AssetType
 import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.NFTAsset
@@ -76,6 +77,14 @@ fun Asset.getIconUrl(): String {
 }
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
+
+const val SYSTEM_VALIDATOR_ID = "system"
+
+fun DelegationValidator.getIconUrl(): String = if (id == SYSTEM_VALIDATOR_ID) {
+    chain.getIconUrl()
+} else {
+    "${Constants.ASSETS_URL}/blockchains/${chain.string}/validators/${id}/logo.png"
+}
 
 fun FiatProviderName.getFiatProviderIcon(): String = "file:///android_asset/fiat/${string}.svg"
 

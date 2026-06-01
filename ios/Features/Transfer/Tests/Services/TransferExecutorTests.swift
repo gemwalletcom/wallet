@@ -72,6 +72,41 @@ struct TransferExecutorTests {
     }
 
     @Test
+    func hyperCoreUnstakeStoresFinalAction() async throws {
+        let db = DB.mockAssets(assets: [
+            .mock(asset: .mockHypercore()),
+            .mock(asset: .hypercoreSpotUSDC()),
+        ])
+        let transactionStore = TransactionStore(db: db)
+        let executor = TransferExecutor(
+            signer: TransactionSignerMock(signedData: [
+                "undelegate",
+                "withdraw",
+            ]),
+            chainService: ChainServiceMock.mock(broadcastResponses: [
+                "action:tokenDelegate:3001423:unstake:1780078264488",
+                "action:cWithdraw:3001423:1780078264489",
+            ]),
+            assetsEnabler: .mock(),
+            balanceService: .mock(),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
+        )
+
+        let input = TransferConfirmationInput(
+            data: .mock(type: .stake(.mockHypercore(), .unstake(.mock()))),
+            wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
+            transactionData: .mock(),
+            amount: .mock(),
+            delegate: nil,
+        )
+        try await executor.execute(input: input)
+
+        let transactions = try transactionStore.getTransactions(state: .pending)
+        #expect(transactions.count == 1)
+        #expect(transactions.first?.id.hash == "action:cWithdraw:3001423:1780078264489")
+    }
+
+    @Test
     func hyperCoreTransferKeepsTransaction() async throws {
         let db = DB.mockAssets()
         let transactionStore = TransactionStore(db: db)

@@ -4,9 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -33,8 +31,8 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
         Icon(
             modifier = Modifier.size(paddingDefault),
             imageVector = when (type)  {
-                AssetsGroupType.Popular -> Icons.Default.StarOutline
-                AssetsGroupType.Pined -> Icons.Default.PushPin
+                AssetsGroupType.Popular -> AppIcons.StarOutlined
+                AssetsGroupType.Pined -> AppIcons.PushPin
                 AssetsGroupType.None -> return
             },
             tint = MaterialTheme.colorScheme.secondary,

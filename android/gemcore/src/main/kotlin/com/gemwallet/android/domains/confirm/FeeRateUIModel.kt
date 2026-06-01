@@ -24,13 +24,13 @@ data class FeeRateUIModel(
 
     val price: String
         get() = if (feeUnitType == FeeUnitType.Native) {
-            fiatText() ?: ""
+            nativeAmountText()
         } else {
             gasPriceText()
         }
 
     val fiatValue: String
-        get() = if (feeUnitType == FeeUnitType.Native) "" else (fiatText() ?: "")
+        get() = fiatText() ?: ""
 
     val emoji: String
         get() = when (priority) {
@@ -62,5 +62,11 @@ data class FeeRateUIModel(
         val symbol = unit.gasPriceSymbol ?: return ""
         return ValueFormatter(style = ValueFormatter.Style.Auto)
             .string(feeRate.gasPriceType.totalFee(), decimals, symbol)
+    }
+
+    private fun nativeAmountText(): String {
+        val amount = feeAmount ?: feeRate.gasPriceType.totalFee()
+        return ValueFormatter(style = ValueFormatter.Style.Auto)
+            .string(amount, feeAsset.asset.decimals, feeAsset.asset.symbol)
     }
 }

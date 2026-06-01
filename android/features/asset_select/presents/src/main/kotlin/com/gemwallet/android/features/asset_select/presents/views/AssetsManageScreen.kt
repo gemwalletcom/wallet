@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Switch
@@ -18,6 +16,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.Asset
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.wallet.core.primitives.AssetId
@@ -77,7 +76,7 @@ fun AssetsManageScreen(
         actions = {
             if (isAddAssetAvailable) {
                 IconButton(onClick = onAddAsset) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "")
+                    Icon(imageVector = AppIcons.Add, contentDescription = "")
                 }
             }
         },

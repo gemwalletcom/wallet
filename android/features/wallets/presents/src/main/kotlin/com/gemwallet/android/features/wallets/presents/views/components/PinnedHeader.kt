@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadding
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.tinyIconSize
@@ -33,7 +32,7 @@ internal fun LazyListScope.pinnedHeader() {
         ) {
             Icon(
                 modifier = Modifier.size(tinyIconSize),
-                imageVector = Icons.Default.PushPin,
+                imageVector = AppIcons.PushPin,
                 tint = MaterialTheme.colorScheme.secondary,
                 contentDescription = "pinned_section",
             )

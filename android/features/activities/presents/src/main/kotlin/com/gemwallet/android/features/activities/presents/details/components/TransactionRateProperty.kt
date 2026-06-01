@@ -1,8 +1,6 @@
 package com.gemwallet.android.features.activities.presents.details.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -17,6 +15,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 
@@ -38,7 +37,7 @@ internal fun TransactionRateProperty(
                     Spacer4()
                     Icon(
                         modifier = Modifier.clip(MaterialTheme.shapes.small),
-                        imageVector = Icons.Default.SwapVert,
+                        imageVector = AppIcons.SwapVert,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.secondary,
                     )

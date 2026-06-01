@@ -11,8 +11,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +40,7 @@ import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -118,7 +117,7 @@ internal fun NftListScene(
             if (showReceiveAction) {
                 IconButton(onClick = { onAction(NftListAction.Receive) }) {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = AppIcons.Add,
                         contentDescription = stringResource(R.string.wallet_receive),
                     )
                 }

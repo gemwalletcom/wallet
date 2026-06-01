@@ -8,6 +8,7 @@ import com.wallet.core.primitives.FiatAssets
 import com.wallet.core.primitives.FiatQuoteUrl
 import com.wallet.core.primitives.FiatQuotes
 import com.wallet.core.primitives.FiatTransactionData
+import com.wallet.core.primitives.InAppNotification
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.NameRecord
@@ -159,5 +160,12 @@ interface GemDeviceApiClient {
     suspend fun getFiatTransactions(
         @Tag walletId: WalletId,
     ): List<FiatTransactionData>
+
+    // Notifications
+    @GET("/v2/devices/notifications")
+    suspend fun getNotifications(@Query("from_timestamp") fromTimestamp: Long): List<InAppNotification>
+
+    @POST("/v2/devices/notifications/read")
+    suspend fun markNotificationsRead()
 
 }

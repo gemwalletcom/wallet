@@ -33,15 +33,17 @@ public struct AuthService: AuthServiceable, Sendable {
         let account = try wallet.account(for: chain)
 
         let authNonce = try await apiService.getAuthNonce()
-        let authMessage = Gemstone.createAuthMessage(chain: chain.rawValue, address: account.address, authNonce: authNonce.map())
-        let signature = try await keystore.sign(hash: Data(authMessage.hash), wallet: wallet, chain: chain)
+        let authMessage = Gemstone.createAuthMessage(address: account.address, authNonce: authNonce.map())
+        var privateKey = try await keystore.getPrivateKey(wallet: wallet, chain: chain)
+        defer { privateKey.zeroize() }
+        let signature = try Gemstone.signAuthMessageHash(hash: Data(authMessage.hash), privateKey: privateKey)
 
         return AuthPayload(
             deviceId: deviceId,
             chain: chain,
             address: account.address,
             nonce: authNonce.nonce,
-            signature: signature.hexString.append0x,
+            signature: signature,
         )
     }
 }

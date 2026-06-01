@@ -22,6 +22,6 @@ Diesel query functions import DSL names (`use crate::schema::*::dsl::*`) inside 
 
 Google, Huawei, Samsung, Solana, and Universal flavors exist to satisfy different app store requirements and partnership constraints. Do not remove flavors or assume Google-only distribution.
 
-## Core submodule pinning
+## Core source lives in this repository
 
-`core/` is a Git submodule pinned to a specific commit. Use `just core-upgrade` to advance it. Do not manually update the submodule ref — the justfile handles validation.
+`core/` is tracked source in this repository, not a Git submodule. Changes to Core and the mobile apps should land together when shared behavior, generated models, or bindings need to stay aligned.

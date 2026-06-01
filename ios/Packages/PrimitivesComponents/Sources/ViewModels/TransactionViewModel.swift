@@ -312,24 +312,6 @@ public struct TransactionViewModel: Sendable {
         }
     }
 
-    public var transactionLink: BlockExplorerLink {
-        explorerService.transactionLink(
-            chain: assetId.chain,
-            provider: transaction.transaction.swapProvider,
-            hash: transaction.transaction.id.hash,
-            recipient: transaction.transaction.to,
-            memo: transaction.transaction.memo,
-        )
-    }
-
-    public var transactionHashCopyValue: CopyValue {
-        .plain(transaction.transaction.id.hash)
-    }
-
-    public var explorerContext: ExplorerContextData {
-        ExplorerContextData(copyValue: transactionHashCopyValue, explorerLink: transactionLink)
-    }
-
     private var addressLink: BlockExplorerLink {
         explorerService.addressUrl(chain: assetId.chain, address: participant)
     }

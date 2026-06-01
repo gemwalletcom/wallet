@@ -16,10 +16,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -53,6 +49,7 @@ import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
@@ -86,7 +83,7 @@ fun PriceAlertScene(
             IconButton(onClick = if (assetId == null) onAdd else {
                 { onAddTarget(assetId) }
             }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "")
+                Icon(imageVector = AppIcons.Add, contentDescription = "")
             }
         },
         snackbar = snackbar,
@@ -218,7 +215,7 @@ private fun LazyListScope.assets(
                         .heightIn(minActionWidth),
                     onClick = { onExclude(item.id) },
                     backgroundColor = MaterialTheme.colorScheme.error,
-                    icon = Icons.Default.Delete,
+                    icon = AppIcons.Delete,
                 )
             },
             onExpanded = { reveable.value = item.id },

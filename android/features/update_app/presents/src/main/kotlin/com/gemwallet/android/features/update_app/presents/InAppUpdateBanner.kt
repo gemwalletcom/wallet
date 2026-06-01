@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +37,7 @@ import com.gemwallet.android.model.AppUpdateInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -181,7 +180,7 @@ private fun UpdateInfo(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.update_app_action))
                         Spacer4()
-                        Icon(Icons.Default.ArrowCircleDown, "Update application", tint = MaterialTheme.colorScheme.primary)
+                        Icon(AppIcons.ArrowCircleDown, "Update application", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
                 DownloadState.Preparing -> CircularProgressIndicator(

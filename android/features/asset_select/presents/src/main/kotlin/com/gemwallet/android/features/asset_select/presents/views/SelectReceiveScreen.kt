@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -13,6 +11,7 @@ import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
+import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -35,7 +34,7 @@ fun SelectReceiveScreen(
                     clipboardManager.setPlainText(context, viewModel.getAccount(it.asset.id)?.address ?: "")
                 }
             ) {
-                Icon(imageVector = Icons.Default.ContentCopy, contentDescription = "")
+                Icon(imageVector = AppIcons.ContentCopy, contentDescription = "")
             }
         },
         onCancel = onCancel,

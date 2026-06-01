@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,6 +16,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -40,7 +39,7 @@ internal fun LazyListScope.referralError(rewards: Rewards) {
                 trailing = {
                     Icon(
                         modifier = Modifier.size(tinyIconSize),
-                        imageVector = Icons.Default.WarningAmber,
+                        imageVector = AppIcons.Warning,
                         tint = MaterialTheme.colorScheme.error,
                         contentDescription = "",
                     )

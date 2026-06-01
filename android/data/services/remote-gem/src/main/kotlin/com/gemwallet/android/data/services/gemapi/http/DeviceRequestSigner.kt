@@ -1,12 +1,9 @@
 package com.gemwallet.android.data.services.gemapi.http
 
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.math.fromHex
-import com.gemwallet.android.math.hex
+import com.gemwallet.android.data.services.gemapi.DeviceKeyPair
+import com.gemwallet.android.math.sha256Hex
 import java.util.Base64
-import wallet.core.jni.Curve
-import wallet.core.jni.Hash
-import wallet.core.jni.PrivateKey
 
 data class DeviceSignature(
     val authorization: String,
@@ -17,34 +14,36 @@ data class DeviceSignature(
 }
 
 class DeviceRequestSigner(
-    private val getDeviceId: GetDeviceId,
+    getDeviceId: GetDeviceId,
 ) {
+    private val deviceKeyPair = DeviceKeyPair.fromHex(getDeviceId.getDeviceKey())
     private var bodyHash: (ByteArray) -> String = { body: ByteArray ->
-        Hash.sha256(body).hex
+        body.sha256Hex()
     }
-    private var signMessage: (String, ByteArray) -> String = { privateKeyHex: String, message: ByteArray ->
-        PrivateKey(privateKeyHex.fromHex()).sign(message, Curve.ED25519).hex
+    private var signMessage: (DeviceKeyPair, ByteArray) -> String = { deviceKeyPair, message ->
+        deviceKeyPair.sign(message)
     }
     private var currentTimeMillis: () -> Long = System::currentTimeMillis
 
     fun sign(method: String, path: String, body: ByteArray? = null, walletId: String = ""): DeviceSignature {
-        val publicKeyHex = getDeviceId.getDeviceId()
         val bodyHash = bodyHash(body ?: ByteArray(0))
         val timestamp = currentTimeMillis().toString()
 
         val message = "${timestamp}.${method}.${path}.${walletId}.${bodyHash}"
-        val signatureHex = signMessage(getDeviceId.getDeviceKey(), message.toByteArray())
+        val signatureHex = signMessage(deviceKeyPair, message.toByteArray())
 
-        val payload = "${publicKeyHex}.${timestamp}.${walletId}.${bodyHash}.${signatureHex}"
+        val payload = "${deviceKeyPair.publicKeyHex}.${timestamp}.${walletId}.${bodyHash}.${signatureHex}"
         val encoded = Base64.getEncoder().encodeToString(payload.toByteArray())
         return DeviceSignature(authorization = "Gem $encoded")
     }
 
     internal constructor(
         getDeviceId: GetDeviceId,
-        bodyHash: (ByteArray) -> String,
-        signMessage: (String, ByteArray) -> String,
-        currentTimeMillis: () -> Long,
+        bodyHash: (ByteArray) -> String = { body -> body.sha256Hex() },
+        signMessage: (DeviceKeyPair, ByteArray) -> String = { deviceKeyPair, message ->
+            deviceKeyPair.sign(message)
+        },
+        currentTimeMillis: () -> Long = System::currentTimeMillis,
     ) : this(getDeviceId) {
         this.bodyHash = bodyHash
         this.signMessage = signMessage

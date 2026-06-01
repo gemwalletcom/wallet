@@ -1,0 +1,64 @@
+name: Publish Containers
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "core/**"
+      - ".github/workflows/publish-containers.yml"
+      - ".github/docker-bake.hcl"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            agent:
+              - "core/apps/agent/**"
+              - ".github/docker-bake.hcl"
+              - ".github/workflows/publish-containers.yml"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push core containers
+        uses: docker/bake-action@v6
+        with:
+          files: .github/docker-bake.hcl
+          targets: default
+          push: true
+
+      - name: Build and push agent container
+        if: steps.filter.outputs.agent == 'true' || github.event_name == 'workflow_dispatch'
+        uses: docker/bake-action@v6
+        with:
+          files: .github/docker-bake.hcl
+          targets: agent
+          push: true

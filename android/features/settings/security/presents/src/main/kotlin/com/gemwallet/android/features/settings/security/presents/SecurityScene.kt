@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -32,6 +30,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer4
@@ -115,7 +114,7 @@ private fun LazyListScope.requiredAuthDelay(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     interval.takeIf { it == currentInterval }?.let {
-                                        Icon(Icons.Default.Check, null, modifier = Modifier.size(compactIconSize))
+                                        Icon(AppIcons.Check, null, modifier = Modifier.size(compactIconSize))
                                     } ?: Spacer(modifier = Modifier.size(compactIconSize))
                                     Spacer4()
                                     Text(stringResource(locks[interval]!!))

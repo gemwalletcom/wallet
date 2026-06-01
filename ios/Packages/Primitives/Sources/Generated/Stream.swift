@@ -22,7 +22,7 @@ public struct StreamMessagePrices: Codable, Sendable {
 	}
 }
 
-public struct StreamNotificationlUpdate: Codable, Sendable {
+public struct StreamNotificationUpdate: Codable, Sendable {
 	public let walletId: WalletId
 	public let notification: InAppNotification
 
@@ -65,7 +65,7 @@ public enum StreamEvent: Codable, Sendable {
 	case priceAlerts(StreamPriceAlertUpdate)
 	case nft(StreamWalletUpdate)
 	case perpetual(StreamWalletUpdate)
-	case inAppNotification(StreamNotificationlUpdate)
+	case inAppNotification(StreamNotificationUpdate)
 	case fiatTransaction(StreamWalletUpdate)
 
 	enum CodingKeys: String, CodingKey, Codable {
@@ -118,7 +118,7 @@ public enum StreamEvent: Codable, Sendable {
 					return
 				}
 			case .inAppNotification:
-				if let content = try? container.decode(StreamNotificationlUpdate.self, forKey: .data) {
+				if let content = try? container.decode(StreamNotificationUpdate.self, forKey: .data) {
 					self = .inAppNotification(content)
 					return
 				}

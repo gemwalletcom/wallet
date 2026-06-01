@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +29,7 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
 
@@ -55,7 +54,7 @@ internal fun TransactionsScene(
         actions = {
             IconButton(onClick = { showFilters = !showFilters }) {
                 Icon(
-                    imageVector = Icons.Default.FilterAlt,
+                    imageVector = AppIcons.FilterAlt,
                     tint = if (chainsFilter.isEmpty() && typeFilter.isEmpty())
                         LocalContentColor.current
                     else

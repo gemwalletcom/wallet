@@ -1,0 +1,35 @@
+name: Dynode Docker Build
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "core/apps/dynode/**"
+      - "core/Cargo.lock"
+      - "core/Dockerfile"
+      - ".github/workflows/dynode-docker.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  docker_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build dynode
+        uses: docker/build-push-action@v7
+        with:
+          context: ./core
+          file: ./core/Dockerfile
+          target: dynode
+          push: false
+          cache-from: type=gha,scope=dynode
+          cache-to: type=gha,mode=max,scope=dynode
+          tags: dynode:latest

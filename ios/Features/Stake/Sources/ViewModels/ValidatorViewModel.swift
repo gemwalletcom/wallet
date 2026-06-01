@@ -42,7 +42,9 @@ public struct ValidatorViewModel {
     public var imageUrl: URL? {
         switch validator.providerType {
         case .stake:
-            imageFormatter.getValidatorUrl(chain: validator.chain, id: validator.id)
+            validator.id == DelegationValidator.systemId
+                ? imageFormatter.getURL(for: validator.chain.assetId)
+                : imageFormatter.getValidatorUrl(chain: validator.chain, id: validator.id)
         case .earn:
             nil
         }

@@ -15,10 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Camera
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -55,6 +51,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.alpha70
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -177,15 +174,15 @@ fun QRScannerScene(
         actions = {
             if (!isCameraGranted) {
                 IconButton(onClick = onGrantPermission) {
-                    Icon(imageVector = Icons.Default.Camera, contentDescription = "from_camera")
+                    Icon(imageVector = AppIcons.Camera, contentDescription = "from_camera")
                 }
             }
             IconButton(onClick = { galleryLauncher.launch("image/*") }) {
-                Icon(imageVector = Icons.Default.Image, contentDescription = "from_image")
+                Icon(imageVector = AppIcons.Image, contentDescription = "from_image")
             }
             if (imageUri != null) {
                 IconButton(onClick = cancel) {
-                    Icon(imageVector = Icons.Default.Close, contentDescription = "close_image")
+                    Icon(imageVector = AppIcons.Close, contentDescription = "close_image")
                 }
             }
         },

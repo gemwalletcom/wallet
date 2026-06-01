@@ -21,4 +21,5 @@ sealed interface EmptyContentType {
     data object PriceAlerts : EmptyContentType
     data object WalletConnect : EmptyContentType
     data object Recents : EmptyContentType
+    data object Notifications : EmptyContentType
 }

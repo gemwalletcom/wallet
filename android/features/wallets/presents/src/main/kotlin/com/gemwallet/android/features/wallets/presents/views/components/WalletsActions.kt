@@ -5,9 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.listItem
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -32,13 +30,13 @@ internal fun WalletsActions(
     Column {
         WalletsAction(
             text = R.string.wallet_create_new_wallet,
-            Icons.Default.Add,
+            AppIcons.Add,
             listPosition = ListPosition.First,
             onClick = onCreate,
         )
         WalletsAction(
             text = R.string.wallet_import_existing_wallet,
-            Icons.Default.ArrowDownward,
+            AppIcons.ArrowDownward,
             listPosition = ListPosition.Last,
             onClick = onImport,
         )

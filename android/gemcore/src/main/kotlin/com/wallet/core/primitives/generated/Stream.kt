@@ -19,7 +19,7 @@ data class StreamMessagePrices (
 )
 
 @Serializable
-data class StreamNotificationlUpdate (
+data class StreamNotificationUpdate (
 	val walletId: WalletId,
 	val notification: InAppNotification
 )
@@ -62,7 +62,7 @@ sealed class StreamEvent {
 	data class Perpetual(val data: StreamWalletUpdate): StreamEvent()
 	@Serializable
 	@SerialName("inAppNotification")
-	data class InAppNotification(val data: StreamNotificationlUpdate): StreamEvent()
+	data class InAppNotification(val data: StreamNotificationUpdate): StreamEvent()
 	@Serializable
 	@SerialName("fiatTransaction")
 	data class FiatTransaction(val data: StreamWalletUpdate): StreamEvent()

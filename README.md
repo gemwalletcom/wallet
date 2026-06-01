@@ -7,11 +7,11 @@
 [![Gem Wallet Discord](https://img.shields.io/discord/974531300394434630?style=plastic)](https://discord.gg/aWkq5sj7SY)
 [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/GemWallet)](https://x.com/GemWallet)
 
-Gem Wallet is an open-source mobile wallet for iOS and Android. This repository is the monorepo for both apps and the shared Rust core submodule they build against.
+Gem Wallet is an open-source mobile wallet for iOS and Android. This repository is the monorepo for both apps and the shared Rust core they build against.
 
 - `ios/`: SwiftUI application, packages, tests, and iOS-only submodules
 - `android/`: Kotlin/Compose application and Android build tooling
-- `core/`: shared Rust submodule used by both mobile apps
+- `core/`: shared Rust source used by both mobile apps
 
 📲 [iOS on the App Store](https://apps.apple.com/app/apple-store/id6448712670?ct=github&mt=8)
 
@@ -25,14 +25,14 @@ Gem Wallet is an open-source mobile wallet for iOS and Android. This repository 
 
 ## Getting Started
 
-1. Clone the repository with submodules:
+1. Clone the repository with iOS submodules:
 
 ```bash
 git clone --recursive https://github.com/gemwalletcom/wallet.git
 cd wallet
 ```
 
-2. If needed, initialize submodules later:
+2. If needed, initialize iOS submodules later:
 
 ```bash
 just setup-git

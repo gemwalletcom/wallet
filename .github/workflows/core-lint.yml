@@ -1,0 +1,28 @@
+name: Core Lint
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "core/**"
+      - ".github/actions/setup-rust-ci/**"
+      - ".github/workflows/core-lint.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  clippy_check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust-ci
+        with:
+          sccache: "false"
+
+      - name: Run Lint
+        run: just lint

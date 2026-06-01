@@ -1,13 +1,12 @@
 package com.gemwallet.android.ui.components.empty
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 
 @Composable
 fun EmptyContentView(
@@ -41,6 +40,7 @@ private fun EmptyContentType.title(): String = when (this) {
     is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_title)
     is EmptyContentType.WalletConnect -> stringResource(R.string.wallet_connect_no_active_connections)
     is EmptyContentType.Recents -> stringResource(R.string.recent_activity_state_empty_title)
+    is EmptyContentType.Notifications -> stringResource(R.string.notifications_inapp_state_empty_title)
     is EmptyContentType.SearchAssets -> stringResource(R.string.assets_no_assets_found)
     is EmptyContentType.SearchActivity -> stringResource(R.string.activity_state_empty_search_title)
     is EmptyContentType.SearchNetworks -> stringResource(R.string.networks_state_empty_search_title)
@@ -55,6 +55,7 @@ private fun EmptyContentType.description(): String? = when (this) {
     is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_description, symbol)
     is EmptyContentType.WalletConnect -> stringResource(R.string.wallet_connect_state_empty_description)
     is EmptyContentType.Recents -> stringResource(R.string.recent_activity_state_empty_description)
+    is EmptyContentType.Notifications -> stringResource(R.string.notifications_inapp_state_empty_description)
     is EmptyContentType.SearchAssets -> if (onAddCustomToken != null) {
         stringResource(R.string.assets_state_empty_search_description)
     } else {
@@ -74,11 +75,13 @@ private fun EmptyContentType.icon() = when (this) {
     is EmptyContentType.Stake -> painterResource(R.drawable.empty_stake)
     is EmptyContentType.WalletConnect -> painterResource(R.drawable.empty_dapps)
     is EmptyContentType.Recents -> painterResource(R.drawable.empty_activity)
+    is EmptyContentType.Notifications -> painterResource(R.drawable.empty_notifications)
 }
 
+@Composable
 private fun EmptyContentType.iconVector(): ImageVector? = when (this) {
     is EmptyContentType.SearchAssets, is EmptyContentType.SearchActivity,
-    is EmptyContentType.SearchNetworks -> Icons.Default.Search
+    is EmptyContentType.SearchNetworks -> AppIcons.Search
     else -> null
 }
 

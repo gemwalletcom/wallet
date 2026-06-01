@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -40,6 +37,7 @@ import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.subtitleSymbol
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -112,7 +110,7 @@ private fun ReceiveScene(
         onClose = onCancel,
         actions = {
             IconButton(onShare) {
-                Icon(Icons.Default.Share, "")
+                Icon(AppIcons.Share, "")
             }
         },
         mainAction = {
@@ -121,7 +119,7 @@ private fun ReceiveScene(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall)
                 ) {
-                    Icon(Icons.Default.ContentCopy, "copy")
+                    Icon(AppIcons.ContentCopy, "copy")
                     Text(stringResource(R.string.common_copy))
                 }
             }

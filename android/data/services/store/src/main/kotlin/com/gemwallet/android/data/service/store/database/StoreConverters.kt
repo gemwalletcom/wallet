@@ -9,6 +9,7 @@ import com.gemwallet.android.ext.toPerpetualId
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
+import com.wallet.core.primitives.CoreListItem
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
 import com.wallet.core.primitives.NFTCollectionId
@@ -88,4 +89,10 @@ class StoreConverters {
     fun toNftAttributes(value: String?): List<NFTAttribute>? {
         return value?.let { runCatching { jsonEncoder.decodeFromString(nftAttributesSerializer, it) }.getOrDefault(emptyList()) }
     }
+
+    @TypeConverter
+    fun fromCoreListItem(value: CoreListItem): String = jsonEncoder.encodeToString(CoreListItem.serializer(), value)
+
+    @TypeConverter
+    fun toCoreListItem(value: String): CoreListItem = jsonEncoder.decodeFromString(CoreListItem.serializer(), value)
 }

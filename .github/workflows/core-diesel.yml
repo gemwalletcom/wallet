@@ -1,0 +1,62 @@
+name: Core Diesel Schema
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "core/**"
+      - ".github/actions/setup-rust-ci/**"
+      - ".github/workflows/core-diesel.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "core/**"
+      - ".github/actions/setup-rust-ci/**"
+      - ".github/workflows/core-diesel.yml"
+
+env:
+  CARGO_TERM_COLOR: always
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
+jobs:
+  check_schema:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust-ci
+
+      - name: Install diesel
+        run: just install-diesel
+
+      - name: Run migration
+        run: |
+          diesel setup
+          diesel migration run
+        env:
+          DATABASE_URL: "postgres://postgres:postgres@localhost/postgres"
+      - name: Check schema
+        run: |
+          git --no-pager diff
+          git diff --quiet --exit-code crates/storage/src/schema.rs

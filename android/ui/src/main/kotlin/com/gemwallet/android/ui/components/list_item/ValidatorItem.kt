@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.Constants
+import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ui.R
@@ -77,10 +77,6 @@ fun DelegationValidator.formatApr(): String {
 
 private val DelegationValidator.placeholder: String
     get() = name.firstOrNull()?.toString() ?: id.firstOrNull()?.toString() ?: "V"
-
-fun DelegationValidator.getIconUrl(): String {
-    return "${Constants.ASSETS_URL}/blockchains/${chain.string}/validators/${id}/logo.png"
-}
 
 fun availableIn(delegation: Delegation?): String {
     val completionDate = ((delegation?.base?.completionDate ?: return "") - System.currentTimeMillis() / 1000) * 1000

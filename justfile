@@ -5,7 +5,7 @@ default:
     @just --list
 
 setup-git:
-    @echo "==> Setup git submodules"
+    @echo "==> Setup iOS git submodules"
     @git submodule sync --recursive
     @git submodule update --init --recursive
     @git config submodule.recurse true
@@ -58,6 +58,3 @@ localize:
 
 bump TARGET="patch":
     @bash ./scripts/bump.sh {{TARGET}}
-
-core-upgrade:
-    @git submodule update --recursive --remote

@@ -30,14 +30,8 @@ public struct StakeService: StakeServiceable {
     }
 
     public func update(walletId: WalletId, chain: Chain, address: String) async throws {
-        let validators = try store.getValidators(assetId: chain.assetId, providerType: .stake)
-        if validators.isEmpty {
-            try await updateValidators(chain: chain)
-            try await updateDelegations(walletId: walletId, chain: chain, address: address)
-        } else {
-            try await updateDelegations(walletId: walletId, chain: chain, address: address)
-            try await updateValidators(chain: chain)
-        }
+        try await updateValidators(chain: chain)
+        try await updateDelegations(walletId: walletId, chain: chain, address: address)
     }
 
     public func clearDelegations() throws {

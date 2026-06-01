@@ -20,7 +20,7 @@ sealed interface FeeUIModel {
         val priority: FeePriority,
     ) : FeeUIModel {
         val cryptoAmount: String by lazy {
-            ValueFormatter(style = ValueFormatter.Style.Full).string(amount, feeAsset)
+            ValueFormatter(style = ValueFormatter.Style.Auto).string(amount, feeAsset)
         }
 
         val fiatAmount: String by lazy {

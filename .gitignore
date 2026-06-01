@@ -1,3 +1,9 @@
-/.DS_Store
+.DS_Store
 .idea/
 android/gradle/gradle-daemon-jvm.properties
+
+core/target/
+core/.env
+core/.vscode/
+core/gemstone/src/.build/
+*.code-workspace

@@ -84,6 +84,8 @@ extension TransferExecutor {
         let transactions = pendingTransactions(
             for: transaction,
             transferData: input.data,
+            transactionIndex: transactionIndex,
+            totalTransactions: totalTransactions,
         )
 
         try transactionStateScheduler.addTransactions(wallet: input.wallet, transactions: transactions)
@@ -113,16 +115,25 @@ extension TransferExecutor {
     private func pendingTransactions(
         for transaction: Transaction,
         transferData: TransferData,
+        transactionIndex: Int,
+        totalTransactions: Int,
     ) -> [Transaction] {
         guard !Self.ignoredTransactionTypes.contains(transaction.type) else {
             return []
         }
 
-        if case .perpetual = transferData.type,
-           Self.ignoredAssetChains.contains(transaction.assetId.chain),
-           !transaction.id.hash.hasPrefix(Self.hyperCoreOrderIdPrefix)
-        {
-            return []
+        switch transaction.assetId.chain {
+        case .hyperCore:
+            switch transferData.type {
+            case .stake where transactionIndex < totalTransactions - 1:
+                return []
+            case .perpetual where !transaction.id.hash.hasPrefix(Self.hyperCoreOrderIdPrefix):
+                return []
+            case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .account, .earn:
+                break
+            }
+        default:
+            break
         }
 
         return [transaction]

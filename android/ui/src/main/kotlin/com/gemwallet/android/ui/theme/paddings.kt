@@ -19,7 +19,8 @@ val tinyIconSize = 16.dp
 val listItemIconSize = 44.dp
 val headerLargeImageSize = 88.dp
 val iconSize = 32.dp
-val actionIconSize = 54.dp
+val actionIconSize = 48.dp
+val actionIconGlyphSize = 28.dp
 
 val space0 = 0.dp
 val space1 = 1.dp

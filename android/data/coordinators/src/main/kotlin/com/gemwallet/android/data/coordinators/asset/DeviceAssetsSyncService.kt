@@ -7,6 +7,7 @@ import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.WalletPreferencesFactory
 import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.ext.currentTimestamp
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.AssetId
@@ -64,6 +65,4 @@ class DeviceAssetsSyncService @Inject constructor(
         if (accounts.isEmpty()) return
         enableAsset(wallet.id, accounts)
     }
-
-    private fun currentTimestamp(): Long = System.currentTimeMillis() / 1000
 }

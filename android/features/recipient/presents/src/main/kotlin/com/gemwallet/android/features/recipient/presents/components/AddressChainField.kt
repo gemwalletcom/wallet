@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +26,7 @@ import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
@@ -91,7 +89,7 @@ fun ColumnScope.AddressChainField(
                     if (uiState.isResolve) {
                         Icon(
                             modifier = Modifier.size(24.dp),
-                            imageVector = Icons.Default.CheckCircle,
+                            imageVector = AppIcons.CheckCircle,
                             contentDescription = "Name is resolved",
                             tint = MaterialTheme.colorScheme.tertiary,
                         )
@@ -99,7 +97,7 @@ fun ColumnScope.AddressChainField(
                     if (uiState.isFail) {
                         Icon(
                             modifier = Modifier.size(24.dp),
-                            imageVector = Icons.Default.Error,
+                            imageVector = AppIcons.Error,
                             contentDescription = "Name is fail",
                             tint = MaterialTheme.colorScheme.error,
                         )

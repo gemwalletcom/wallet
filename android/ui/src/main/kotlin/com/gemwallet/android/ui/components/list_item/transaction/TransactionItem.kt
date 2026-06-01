@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +28,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator10
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.alpha10
@@ -93,8 +91,8 @@ private const val BADGE_ICON_SCALE = 0.65f
 private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
     val size = listItemIconSize
     val icon = when (data.direction) {
-        TransactionDirection.Incoming -> Icons.Default.ArrowDownward
-        else -> Icons.Default.ArrowUpward
+        TransactionDirection.Incoming -> AppIcons.ArrowDownward
+        else -> AppIcons.ArrowUpward
     }
     val color = when (data.direction) {
         TransactionDirection.Incoming -> MaterialTheme.colorScheme.tertiary

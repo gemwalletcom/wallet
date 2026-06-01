@@ -13,7 +13,6 @@ just run-ios            # build, install, and run iOS
 just start-emulator     # start the Android emulator
 just run-android        # build, install, and run Android
 just bump patch         # bump the repo version
-just core-upgrade       # update core submodule to latest
 ```
 
 ## Platform Entry Points

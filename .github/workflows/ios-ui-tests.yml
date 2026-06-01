@@ -43,13 +43,13 @@ jobs:
           echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
       - name: Cache Cargo Dependencies
         if: runner.environment == 'github-hosted'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -60,7 +60,7 @@ jobs:
 
       - name: Cache Cargo Target
         if: runner.environment == 'github-hosted'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             core/target
@@ -70,7 +70,7 @@ jobs:
 
       - name: Cache Swift Package Manager
         if: runner.environment == 'github-hosted'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.swiftpm

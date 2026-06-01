@@ -22,6 +22,7 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.toRoute
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
@@ -39,6 +40,7 @@ import com.gemwallet.android.ui.navigation.routes.DevelopRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.FiatTransactionsRoute
+import com.gemwallet.android.ui.navigation.routes.InAppNotificationsRoute
 import com.gemwallet.android.ui.navigation.routes.NetworksRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
 import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
@@ -72,6 +74,8 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.UrlAction
+import uniffi.gemstone.urlAction
 
 @Serializable
 data object WalletRootRoute : NavKey
@@ -181,6 +185,11 @@ class WalletNavigator(
     fun openCurrencies() = push(CurrenciesRoute)
     fun openSecurity() = push(SecurityRoute)
     fun openDevelop() = push(DevelopRoute)
+    fun openInAppNotifications() = push(InAppNotificationsRoute)
+    fun openNotificationUrl(url: String) {
+        val action = runCatching { urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return
+        action.deeplink.toRoute()?.let(::push)
+    }
     fun openAboutUs() = push(AboutusRoute)
     fun openNetworks() = push(NetworksRoute)
     fun openNotifications() = push(NotificationsRoute)

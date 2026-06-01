@@ -2,10 +2,6 @@ package com.gemwallet.android.features.asset.presents.details.components
 
 import android.content.Intent
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -23,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.ext.toIdentifier
@@ -68,14 +65,14 @@ fun RowScope.AssetDetailsMenu(
         }
     ) {
         if (priceAlertEnabled) {
-            Icon(Icons.Default.Notifications, "")
+            Icon(AppIcons.Notifications, "")
         } else {
-            Icon(Icons.Default.NotificationsNone, "")
+            Icon(AppIcons.NotificationsOutlined, "")
         }
     }
     IconButton(onClick = { menuExpanded = !menuExpanded }) {
         Icon(
-            imageVector = Icons.Filled.MoreVert,
+            imageVector = AppIcons.MoreVert,
             contentDescription = "More",
         )
     }

@@ -1,14 +1,12 @@
 package com.gemwallet.android.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Verified
-import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.pendingColor
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
@@ -20,9 +18,10 @@ fun WalletConnectionVerificationStatus.titleRes(): Int = when (this) {
     WalletConnectionVerificationStatus.MALICIOUS -> R.string.asset_verification_suspicious
 }
 
+@Composable
 fun WalletConnectionVerificationStatus.icon(): ImageVector = when (this) {
-    WalletConnectionVerificationStatus.VERIFIED -> Icons.Outlined.Verified
-    else -> Icons.Outlined.Warning
+    WalletConnectionVerificationStatus.VERIFIED -> AppIcons.Verified
+    else -> AppIcons.Warning
 }
 
 @Composable

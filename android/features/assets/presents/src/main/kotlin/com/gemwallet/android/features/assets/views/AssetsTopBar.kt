@@ -3,9 +3,6 @@ package com.gemwallet.android.features.assets.views
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.WalletType
@@ -57,7 +55,7 @@ internal fun AssetsTopBar(
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Icon(
-                        imageVector = Icons.Default.ExpandMore,
+                        imageVector = AppIcons.ExpandMore,
                         tint = MaterialTheme.colorScheme.onSurface,
                         contentDescription = "select_wallet",
                     )
@@ -70,7 +68,7 @@ internal fun AssetsTopBar(
                 Modifier.testTag("assetsManageAction")
             ) {
                 Icon(
-                    imageVector = Icons.Default.Search,
+                    imageVector = AppIcons.Search,
                     tint = MaterialTheme.colorScheme.onSurface,
                     contentDescription = "asset_select",
                 )

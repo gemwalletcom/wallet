@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +38,7 @@ import com.gemwallet.android.ui.components.keyboardAsState
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha50
@@ -148,7 +147,7 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
     ) {
         Icon(
             modifier = Modifier.size(smallIconSize),
-            imageVector = Icons.Outlined.Info,
+            imageVector = AppIcons.InfoOutlined,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
         )
