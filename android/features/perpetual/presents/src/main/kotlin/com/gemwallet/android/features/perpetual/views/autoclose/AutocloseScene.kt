@@ -6,6 +6,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,29 +19,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.perpetual.AutocloseSuggestionsBar
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.TpslType
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AutocloseScene(
     model: AutocloseUIModel,
     takeProfitText: String,
     stopLossText: String,
-    onTakeProfitChanged: (String) -> Unit,
-    onStopLossChanged: (String) -> Unit,
-    onPercentSelected: (TpslType, Int) -> Unit,
-    onConfirm: () -> Unit,
-    onClose: () -> Unit,
+    onAction: (AutocloseAction) -> Unit,
 ) {
     var focusedField: TpslType? by remember { mutableStateOf(null) }
     val focusManager = LocalFocusManager.current
@@ -54,9 +57,19 @@ internal fun AutocloseScene(
             .fillMaxHeight()
             .imePadding(),
     ) {
-        DialogBar(
-            onDismissRequest = onClose,
-            title = stringResource(R.string.perpetual_auto_close),
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = stringResource(R.string.perpetual_auto_close),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = { onAction(AutocloseAction.Close) }) {
+                    Icon(imageVector = AppIcons.Close, contentDescription = null)
+                }
+            },
         )
         Column(
             modifier = Modifier
@@ -83,7 +96,7 @@ internal fun AutocloseScene(
             AutocloseInputSection(
                 field = model.takeProfit,
                 text = takeProfitText,
-                onTextChanged = onTakeProfitChanged,
+                onTextChanged = { onAction(AutocloseAction.TakeProfitChanged(it)) },
                 onFocusChanged = { focused ->
                     if (focused) focusedField = TpslType.TakeProfit
                     else if (focusedField == TpslType.TakeProfit) focusedField = null
@@ -93,7 +106,7 @@ internal fun AutocloseScene(
             AutocloseInputSection(
                 field = model.stopLoss,
                 text = stopLossText,
-                onTextChanged = onStopLossChanged,
+                onTextChanged = { onAction(AutocloseAction.StopLossChanged(it)) },
                 onFocusChanged = { focused ->
                     if (focused) focusedField = TpslType.StopLoss
                     else if (focusedField == TpslType.StopLoss) focusedField = null
@@ -103,7 +116,7 @@ internal fun AutocloseScene(
             if (activeField != null) {
                 AutocloseSuggestionsBar(
                     suggestions = activeField.percentSuggestions,
-                    onPercentSelected = { percent -> onPercentSelected(activeField.type, percent) },
+                    onPercentSelected = { percent -> onAction(AutocloseAction.SelectPercent(activeField.type, percent)) },
                     onDone = { focusManager.clearFocus() },
                 )
                 Spacer16()
@@ -111,7 +124,7 @@ internal fun AutocloseScene(
             MainActionButton(
                 title = stringResource(R.string.transfer_confirm),
                 enabled = model.confirmEnabled,
-                onClick = onConfirm,
+                onClick = { onAction(AutocloseAction.Confirm) },
             )
             Spacer16()
         }

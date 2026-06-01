@@ -26,7 +26,6 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
-import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.savedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -85,11 +84,15 @@ private fun AutocloseNavGraphContent(
                 model = model,
                 takeProfitText = takeProfitText,
                 stopLossText = stopLossText,
-                onTakeProfitChanged = viewModel::onTakeProfitChanged,
-                onStopLossChanged = viewModel::onStopLossChanged,
-                onPercentSelected = viewModel::onPercentSelected,
-                onConfirm = viewModel::onConfirm,
-                onClose = onDismiss,
+                onAction = { action ->
+                    when (action) {
+                        AutocloseAction.Close -> onDismiss()
+                        AutocloseAction.Confirm -> viewModel.onConfirm()
+                        is AutocloseAction.TakeProfitChanged -> viewModel.onTakeProfitChanged(action.text)
+                        is AutocloseAction.StopLossChanged -> viewModel.onStopLossChanged(action.text)
+                        is AutocloseAction.SelectPercent -> viewModel.onPercentSelected(action.type, action.percent)
+                    }
+                },
             )
         }
         entry<AutocloseConfirmRoute> {
@@ -155,7 +158,7 @@ private fun rememberAutocloseRootViewModelStoreOwner(): ViewModelStoreOwner {
     }
     val parentArgs = (parentOwner as? HasDefaultViewModelProviderFactory)
         ?.defaultViewModelCreationExtras
-        ?.get(DEFAULT_ARGS_KEY) as? SavedState
+        ?.get(DEFAULT_ARGS_KEY)
         ?: savedState()
     val store = remember { ViewModelStore() }
     DisposableEffect(store) {
