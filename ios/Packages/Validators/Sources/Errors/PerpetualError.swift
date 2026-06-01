@@ -13,8 +13,8 @@ extension PerpetualError: LocalizedError {
         switch self {
         case let .invalidAutoclose(type, direction):
             switch (type, direction) {
-            case (.takeProfit, .long), (.stopLoss, .short): return Localized.Errors.Perpetual.triggerPriceHigher
-            case (.takeProfit, .short), (.stopLoss, .long): return Localized.Errors.Perpetual.triggerPriceLower
+            case (.takeProfit, .long), (.stopLoss, .short): Localized.Errors.Perpetual.triggerPriceHigher
+            case (.takeProfit, .short), (.stopLoss, .long): Localized.Errors.Perpetual.triggerPriceLower
             }
         }
     }
