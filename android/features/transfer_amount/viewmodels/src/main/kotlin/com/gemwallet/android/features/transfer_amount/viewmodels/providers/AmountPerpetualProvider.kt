@@ -13,10 +13,12 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
+import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,8 +46,10 @@ class AmountPerpetualProvider(
     override val canSwitchInputType: Boolean = false
     override val reserveForFee: BigInteger = BigInteger.ZERO
 
-    private val isLeverageSelectable: Boolean =
+    private val isOpenAction: Boolean =
         params.positionAction is PerpetualPositionAction.Open
+
+    private val numericFormatter = NumericFormatter()
 
     val perpetual: StateFlow<PerpetualDetailsDataAggregate?> =
         getPerpetual.getPerpetual(params.perpetualId)
@@ -67,21 +71,18 @@ class AmountPerpetualProvider(
         stopLossInput.value = value?.takeIf { it.isNotEmpty() }
     }
 
-    private val isAutocloseEnabled: Boolean =
-        params.positionAction is PerpetualPositionAction.Open
-
-    val showsAutoclose: Boolean = isAutocloseEnabled
+    val showsAutoclose: Boolean = isOpenAction
 
     private val userSelectedLeverage = MutableStateFlow<Int?>(null)
 
-    val leverageState: StateFlow<LeverageState?> = if (isLeverageSelectable) {
+    val leverageState: StateFlow<LeverageState?> = if (isOpenAction) {
         combine(
             perpetual.filterNotNull(),
             userConfig.perpetualLeverage(),
             userSelectedLeverage,
         ) { current, preferred, override ->
             val options = PerpetualConfig.leverageOptions
-                .filter { it <= current.maxLeverage.toInt() }
+                .filter { it <= current.maxLeverage }
             LeverageState(
                 current = PerpetualConfig.selectLeverage(override ?: preferred, options),
                 options = options,
@@ -98,7 +99,7 @@ class AmountPerpetualProvider(
         val market = perpetual.value
         val leverage = (leverageState.value?.current ?: market?.maxLeverage ?: 1).coerceAtLeast(1)
         val marketPrice = market?.price ?: 0.0
-        val usdAmount = amount.toDoubleOrNull() ?: 0.0
+        val usdAmount = amount.parseNumberOrNull()?.toDouble() ?: 0.0
         val positionSize = if (marketPrice > 0.0) (usdAmount * leverage) / marketPrice else 0.0
         return AutocloseEstimator(
             entryPrice = marketPrice,
@@ -159,8 +160,8 @@ class AmountPerpetualProvider(
         text: String?,
         data: PerpetualDetailsDataAggregate,
     ): String? {
-        if (!isAutocloseEnabled) return null
-        val price = text?.toDoubleOrNull() ?: return null
+        if (!showsAutoclose) return null
+        val price = text?.let { numericFormatter.double(it) } ?: return null
         return PerpetualFormatter.formatPrice(
             provider = data.provider,
             price = price,

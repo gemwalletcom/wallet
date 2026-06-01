@@ -11,6 +11,7 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
@@ -46,6 +47,8 @@ class AutocloseViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val assetId: AssetId = savedStateHandle.requireAssetId()
+
+    private val numericFormatter = NumericFormatter()
 
     val position: StateFlow<PerpetualPositionData?> = perpetualRepository.getPerpetualByAssetId(assetId)
         .distinctUntilChanged()
@@ -149,7 +152,7 @@ class AutocloseViewModel @Inject constructor(
         type: TpslType,
         text: String,
     ): AutocloseField {
-        val price = text.parseLocaleDouble()
+        val price = numericFormatter.double(text)
         val original = when (type) {
             TpslType.TakeProfit -> position.position.takeProfit
             TpslType.StopLoss -> position.position.stopLoss
@@ -195,11 +198,5 @@ class AutocloseViewModel @Inject constructor(
     private fun String.filterNumeric(locale: Locale = Locale.getDefault()): String {
         val separator = DecimalFormatSymbols.getInstance(locale).decimalSeparator
         return filter { it.isDigit() || it == separator || it == '.' }
-    }
-
-    private fun String.parseLocaleDouble(locale: Locale = Locale.getDefault()): Double? {
-        val separator = DecimalFormatSymbols.getInstance(locale).decimalSeparator
-        val normalized = if (separator == '.') this else replace(separator, '.')
-        return normalized.toDoubleOrNull()
     }
 }

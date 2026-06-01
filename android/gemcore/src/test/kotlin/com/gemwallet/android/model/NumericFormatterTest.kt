@@ -1,6 +1,7 @@
 package com.gemwallet.android.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.Locale
 
@@ -35,5 +36,18 @@ class NumericFormatterTest {
     fun locale() {
         assertEquals("29,73", de.string(29.73))
         assertEquals("12.000.123,00", de.string(12_000_123.0))
+    }
+
+    @Test
+    fun parseDouble() {
+        assertEquals(11.12, us.double("11.12")!!, 1e-9)
+        assertEquals(11.0, us.double("11")!!, 1e-9)
+        assertNull(us.double(""))
+        assertNull(us.double("   "))
+        assertNull(us.double("abc"))
+        assertEquals(29.73, de.double("29,73")!!, 1e-9)
+        assertEquals(12_000.5, us.double("12,000.5")!!, 1e-9)
+        assertEquals(12_000.5, de.double("12.000,5")!!, 1e-9)
+        assertEquals(12.0, us.double("12abc")!!, 1e-9)
     }
 }

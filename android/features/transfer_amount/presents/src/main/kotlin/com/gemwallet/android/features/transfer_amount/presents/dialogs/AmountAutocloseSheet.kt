@@ -22,7 +22,9 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
+import com.gemwallet.android.math.parseNumberOrNull
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -60,7 +62,7 @@ internal fun AmountAutocloseSheet(
     val perpetualProvider = perpetual.provider
     val leverage = leverageState?.current ?: 1
     val marketPriceText = usdFormatter.string(marketPrice)
-    val sizeText = usdFormatter.string((amount.toDoubleOrNull() ?: 0.0) * leverage)
+    val sizeText = usdFormatter.string((amount.parseNumberOrNull()?.toDouble() ?: 0.0) * leverage)
 
     var takeProfitText by remember { mutableStateOf(storedTakeProfit.orEmpty()) }
     var stopLossText by remember { mutableStateOf(storedStopLoss.orEmpty()) }
@@ -68,11 +70,14 @@ internal fun AmountAutocloseSheet(
     var focused: TpslType? by remember { mutableStateOf(null) }
     val focusManager = LocalFocusManager.current
 
+    val numericFormatter = remember { NumericFormatter() }
     val estimator = provider.estimatorFor(amount)
-    val takeProfitRawError = AutocloseValidator(TpslType.TakeProfit, direction, marketPrice).error(takeProfitText.toDoubleOrNull())
-    val stopLossRawError = AutocloseValidator(TpslType.StopLoss, direction, marketPrice).error(stopLossText.toDoubleOrNull())
-    val takeProfitField = buildField(TpslType.TakeProfit, takeProfitText, takeProfitRawError, estimator, submitAttempted)
-    val stopLossField = buildField(TpslType.StopLoss, stopLossText, stopLossRawError, estimator, submitAttempted)
+    val takeProfitPrice = numericFormatter.double(takeProfitText)
+    val stopLossPrice = numericFormatter.double(stopLossText)
+    val takeProfitRawError = AutocloseValidator(TpslType.TakeProfit, direction, marketPrice).error(takeProfitPrice)
+    val stopLossRawError = AutocloseValidator(TpslType.StopLoss, direction, marketPrice).error(stopLossPrice)
+    val takeProfitField = buildField(TpslType.TakeProfit, takeProfitPrice, takeProfitRawError, estimator, submitAttempted)
+    val stopLossField = buildField(TpslType.StopLoss, stopLossPrice, stopLossRawError, estimator, submitAttempted)
 
     val activeField = focused?.let {
         when (it) {
@@ -80,9 +85,9 @@ internal fun AmountAutocloseSheet(
             TpslType.StopLoss -> stopLossField
         }
     }
-    val confirmEnabled = (takeProfitText.toDoubleOrNull() != null && takeProfitRawError == null) ||
-        (stopLossText.toDoubleOrNull() != null && stopLossRawError == null) ||
-        takeProfitText.isEmpty() && stopLossText.isEmpty()
+    val confirmEnabled = (takeProfitPrice != null && takeProfitRawError == null) ||
+        (stopLossPrice != null && stopLossRawError == null) ||
+        (takeProfitText.isEmpty() && stopLossText.isEmpty())
 
     ModalBottomSheet(
         isVisible = isVisible,
@@ -185,14 +190,14 @@ private val usdFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Curre
 
 private fun buildField(
     type: TpslType,
-    text: String,
+    price: Double?,
     error: AutocloseError?,
     estimator: AutocloseEstimator,
     showErrors: Boolean,
 ): AutocloseUIModel.Field {
     val field = AutocloseField(
         type = type,
-        price = text.toDoubleOrNull(),
+        price = price,
         originalPrice = null,
         formattedPrice = null,
         error = error,
