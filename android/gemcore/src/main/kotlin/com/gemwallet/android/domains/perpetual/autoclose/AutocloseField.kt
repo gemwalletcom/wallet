@@ -17,4 +17,5 @@ data class AutocloseField(
     val shouldSet: Boolean get() = isValid && hasChanged
     val shouldUpdate: Boolean get() = shouldSet || isCleared
     val shouldCancel: Boolean get() = isCleared || (shouldSet && hasExisting)
+    val hasPendingChange: Boolean get() = isCleared || (price != null && hasChanged)
 }

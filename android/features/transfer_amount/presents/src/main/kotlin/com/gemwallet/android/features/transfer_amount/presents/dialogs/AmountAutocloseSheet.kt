@@ -85,9 +85,11 @@ internal fun AmountAutocloseSheet(
             TpslType.StopLoss -> stopLossField
         }
     }
-    val confirmEnabled = (takeProfitPrice != null && takeProfitRawError == null) ||
-        (stopLossPrice != null && stopLossRawError == null) ||
+    val isTakeProfitValid = takeProfitText.isEmpty() || takeProfitRawError == null
+    val isStopLossValid = stopLossText.isEmpty() || stopLossRawError == null
+    val hasInput = takeProfitPrice != null || stopLossPrice != null ||
         (takeProfitText.isEmpty() && stopLossText.isEmpty())
+    val confirmEnabled = if (submitAttempted) isTakeProfitValid && isStopLossValid else hasInput
 
     ModalBottomSheet(
         isVisible = isVisible,
@@ -167,9 +169,7 @@ internal fun AmountAutocloseSheet(
                 enabled = confirmEnabled,
                 onClick = {
                     submitAttempted = true
-                    val takeProfitOk = takeProfitText.isEmpty() || takeProfitRawError == null
-                    val stopLossOk = stopLossText.isEmpty() || stopLossRawError == null
-                    if (takeProfitOk && stopLossOk) {
+                    if (isTakeProfitValid && isStopLossValid) {
                         provider.setTakeProfit(takeProfitText.takeIf { it.isNotEmpty() })
                         provider.setStopLoss(stopLossText.takeIf { it.isNotEmpty() })
                         onDismiss()

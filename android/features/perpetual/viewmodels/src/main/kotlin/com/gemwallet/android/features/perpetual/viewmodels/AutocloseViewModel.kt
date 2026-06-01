@@ -138,11 +138,16 @@ class AutocloseViewModel @Inject constructor(
         val takeProfit = autocloseField(position, TpslType.TakeProfit, takeProfitText)
         val stopLoss = autocloseField(position, TpslType.StopLoss, stopLossText)
         val builder = AutocloseModifyBuilder(position.position.direction)
+        val confirmEnabled = if (submitAttempted) {
+            builder.canBuild(takeProfit, stopLoss)
+        } else {
+            takeProfit.hasPendingChange || stopLoss.hasPendingChange
+        }
         return AutocloseUIModelFactory.create(
             position = position,
             takeProfit = takeProfit,
             stopLoss = stopLoss,
-            confirmEnabled = builder.canBuild(takeProfit, stopLoss),
+            confirmEnabled = confirmEnabled,
             showErrors = submitAttempted,
         )
     }
