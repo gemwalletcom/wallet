@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +48,7 @@ fun GemTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     listPosition: ListPosition = ListPosition.Single,
+    errorDivider: Boolean = false,
 ) {
     val hasFloatingLabel = value.isNotEmpty() && label.isNotEmpty()
     var textFieldValue by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
@@ -110,6 +112,10 @@ fun GemTextField(
             trailing?.invoke()
         }
         if (error.isNotEmpty()) {
+            if (errorDivider) {
+                Spacer4()
+                HorizontalDivider()
+            }
             Spacer4()
             Text(
                 modifier = Modifier,

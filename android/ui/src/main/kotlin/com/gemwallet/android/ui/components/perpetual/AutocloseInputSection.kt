@@ -33,8 +33,8 @@ import com.wallet.core.primitives.TpslType
 @StringRes
 private fun AutocloseError.toStringRes(): Int = when (this) {
     AutocloseError.InvalidAmount -> R.string.errors_invalid_amount
-    AutocloseError.TriggerMustBeHigher -> R.string.perpetual_auto_close_trigger_price_higher
-    AutocloseError.TriggerMustBeLower -> R.string.perpetual_auto_close_trigger_price_lower
+    AutocloseError.TriggerMustBeHigher -> R.string.errors_perpetual_trigger_price_higher
+    AutocloseError.TriggerMustBeLower -> R.string.errors_perpetual_trigger_price_lower
 }
 
 @Composable
@@ -60,6 +60,7 @@ fun AutocloseInputSection(
         error = field.error?.let { stringResource(it.toStringRes()) }.orEmpty(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         listPosition = ListPosition.Single,
+        errorDivider = true,
         trailing = if (text.isNotEmpty()) {
             {
                 Icon(

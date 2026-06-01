@@ -399,6 +399,8 @@ public enum Localized {
     public static let decoding = Localized.tr("Localizable", "errors.decoding", fallback: "Decoding Error")
     /// Failed to decode the QR code. Please try again with a different QR code.
     public static let decodingQr = Localized.tr("Localizable", "errors.decoding_qr", fallback: "Failed to decode the QR code. Please try again with a different QR code.")
+    /// The remaining balance after this transfer would be dust. Try sending the maximum amount.
+    public static let dustChangeShort = Localized.tr("Localizable", "errors.dust_change_short", fallback: "The remaining balance after this transfer would be dust. Try sending the maximum amount.")
     /// The transaction failed because the amount is too small to meet the %@ network’s minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.
     public static func dustThreshold(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.dust_threshold", String(describing: p1), fallback: "The transaction failed because the amount is too small to meet the %@ network’s minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.")
@@ -470,6 +472,12 @@ public enum Localized {
       public static func invalidSecretPhraseWord(_ p1: Any) -> String {
         return Localized.tr("Localizable", "errors.import.invalid_secret_phrase_word", String(describing: p1), fallback: "Invalid Secret Phrase word: %@")
       }
+    }
+    public enum Perpetual {
+      /// Trigger price should be higher than market price
+      public static let triggerPriceHigher = Localized.tr("Localizable", "errors.perpetual.trigger_price_higher", fallback: "Trigger price should be higher than market price")
+      /// Trigger price should be lower than market price
+      public static let triggerPriceLower = Localized.tr("Localizable", "errors.perpetual.trigger_price_lower", fallback: "Trigger price should be lower than market price")
     }
     public enum ScanTransaction {
       /// %@ destination wallet address requires a destination tag / memo
