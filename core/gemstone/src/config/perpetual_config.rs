@@ -2,7 +2,7 @@ pub const DEFAULT_LEVERAGE: u8 = 5;
 pub const LEVERAGE_OPTIONS: &[u8] = &[1, 2, 3, 5, 10, 20, 25, 30, 40, 50];
 
 pub const TAKE_PROFIT_PERCENT_OPTIONS: &[u8] = &[0, 10, 25, 50, 100, 200];
-pub const STOP_LOSS_PERCENT_OPTIONS: &[u8] = &[0, 10, 25, 50];
+pub const STOP_LOSS_PERCENT_OPTIONS: &[u8] = &[0, 3, 5, 10, 25, 50];
 pub const DEFAULT_TAKE_PROFIT_PERCENT: u8 = 0;
 pub const DEFAULT_STOP_LOSS_PERCENT: u8 = 0;
 const AUTOCLOSE_SUGGESTION_TIERS: &[(u8, &[u8])] = &[(3, &[5, 10, 15]), (5, &[10, 15, 25]), (10, &[15, 25, 50])];
