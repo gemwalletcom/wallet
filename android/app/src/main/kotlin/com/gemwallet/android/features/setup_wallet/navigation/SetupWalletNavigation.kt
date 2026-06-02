@@ -13,11 +13,16 @@ data class SetupWalletRoute(val walletId: WalletId) : NavKey
 
 fun EntryProviderScope<NavKey>.setupWalletScreen(
     onComplete: () -> Unit,
+    onSelectImage: (WalletId) -> Unit,
 ) {
     entry<SetupWalletRoute> { key ->
         val viewModel = hiltViewModel<SetupWalletViewModel, SetupWalletViewModel.Factory>(
             creationCallback = { factory -> factory.create(key.walletId) }
         )
-        SetupWalletScreen(onComplete = onComplete, viewModel = viewModel)
+        SetupWalletScreen(
+            onComplete = onComplete,
+            onSelectImage = { onSelectImage(key.walletId) },
+            viewModel = viewModel,
+        )
     }
 }

@@ -98,6 +98,6 @@ class GetWalletSummaryImplTest {
             isOperationsAvailable = true,
         )
 
-        assertEquals(Chain.Base.getIconUrl(), summary.walletIcon)
+        assertEquals(Chain.Base.getIconUrl(), summary.walletIcon.placeholder)
     }
 }

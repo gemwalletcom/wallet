@@ -28,6 +28,7 @@ import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.onboarding.acceptTermsScreen
 import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.features.setup_wallet.navigation.setupWalletScreen
+import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.amount
@@ -162,6 +163,7 @@ fun WalletNavGraph(
             walletScreen(
                 onCancel = onCancel,
                 onBoard = navigator::resetToOnboarding,
+                onSelectImage = { navigator.openWalletImage(it) },
                 onSecurityReminder = navigator::openWalletSecurityReminder,
                 onSecurityReminderAccepted = navigator::finishWalletSecurityReminder,
             )
@@ -244,7 +246,10 @@ fun WalletNavGraph(
                 onSelectType = navigator::openImportWallet,
             )
 
-            setupWalletScreen(onComplete = navigator::resetToWallet)
+            setupWalletScreen(
+                onComplete = navigator::resetToWallet,
+                onSelectImage = { navigator.openWalletImage(it, WalletImageSource.Onboarding) },
+            )
 
             perpetualScreen(
                 onOpenPerpetualDetails = navigator::openPerpetualDetails,

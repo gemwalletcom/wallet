@@ -18,8 +18,7 @@ import com.gemwallet.android.features.setup_wallet.viewmodels.SetupWalletViewMod
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.supportIcon
+import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.list_item.walletItemIconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -31,6 +30,7 @@ import com.wallet.core.primitives.WalletSource
 @Composable
 fun SetupWalletScreen(
     onComplete: () -> Unit,
+    onSelectImage: () -> Unit,
     viewModel: SetupWalletViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,13 +64,13 @@ fun SetupWalletScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.size(paddingDefault))
-            uiState.walletType?.let { type ->
-                IconWithBadge(
-                    icon = walletItemIconModel(type = type, walletChain = uiState.walletChain),
-                    supportIcon = type.supportIcon(),
-                    size = extraLargeIconSize,
-                )
-            }
+            WalletAvatar(
+                imageUrl = uiState.imageUrl,
+                placeholder = uiState.walletType?.let { walletItemIconModel(it, uiState.walletChain) },
+                size = extraLargeIconSize,
+                supportIcon = R.drawable.ic_edit_badge,
+                onClick = onSelectImage,
+            )
             Spacer(modifier = Modifier.size(paddingLarge))
             GemTextField(
                 value = uiState.walletName,

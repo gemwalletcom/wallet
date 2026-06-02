@@ -3,6 +3,7 @@ package com.gemwallet.android.features.wallet.presents
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -24,9 +25,13 @@ import com.gemwallet.android.features.wallet.presents.components.WalletAddress
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
+import com.gemwallet.android.ui.components.image.WalletAvatar
+import com.gemwallet.android.ui.components.list_item.walletItemIconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
+import com.gemwallet.android.ui.theme.extraLargeIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
 
@@ -34,6 +39,7 @@ import com.wallet.core.primitives.WalletType
 internal fun WalletScene(
     wallet: WalletDetailsAggregate?,
     onWalletName: (String) -> Unit,
+    onSelectImage: () -> Unit,
     onPhraseShow: (WalletId, WalletType) -> Unit,
     onDelete: () -> Unit,
     onCancel: () -> Unit,
@@ -63,6 +69,7 @@ internal fun WalletScene(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            WalletAvatarHeader(wallet = wallet, onClick = onSelectImage)
             GemTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = stringResource(id = R.string.wallet_name),
@@ -104,4 +111,19 @@ internal fun WalletScene(
             }
         ) { showDeleteDialog = false }
     }
+}
+
+@Composable
+private fun WalletAvatarHeader(
+    wallet: WalletDetailsAggregate,
+    onClick: () -> Unit,
+) {
+    WalletAvatar(
+        imageUrl = wallet.imageUrl,
+        placeholder = walletItemIconModel(wallet.type, wallet.walletChain),
+        size = extraLargeIconSize,
+        modifier = Modifier.padding(vertical = paddingDefault),
+        supportIcon = R.drawable.ic_edit_badge,
+        onClick = onClick,
+    )
 }

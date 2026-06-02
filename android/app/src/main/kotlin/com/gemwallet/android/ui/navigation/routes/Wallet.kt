@@ -5,6 +5,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.create_wallet.views.PhraseAlertDialog
+import com.gemwallet.android.features.wallet.presents.WalletImageNavScreen
+import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.features.wallet.presents.WalletNavScreen
 import com.gemwallet.android.features.wallet.presents.WalletSecretDataNavScreen
 import com.gemwallet.android.model.AuthRequest
@@ -21,6 +23,12 @@ import kotlinx.serialization.Serializable
 data class WalletDetailsRoute(val walletId: WalletId) : NavKey
 
 @Serializable
+data class WalletImageRoute(
+    val walletId: WalletId,
+    val source: WalletImageSource = WalletImageSource.Wallet,
+) : NavKey
+
+@Serializable
 data class WalletSecurityReminderRoute(val walletId: WalletId, val type: WalletType) : NavKey
 
 @Serializable
@@ -29,6 +37,7 @@ data class WalletPhraseRoute(val walletId: WalletId, val type: WalletType) : Nav
 fun EntryProviderScope<NavKey>.walletScreen(
     onBoard: () -> Unit,
     onCancel: () -> Unit,
+    onSelectImage: (WalletId) -> Unit,
     onSecurityReminder: (WalletId, WalletType) -> Unit,
     onSecurityReminderAccepted: (WalletId, WalletType) -> Unit,
 ) {
@@ -41,9 +50,16 @@ fun EntryProviderScope<NavKey>.walletScreen(
             onPhraseShow = { walletId, type ->
                 context.requestAuth(AuthRequest.Default) { onSecurityReminder(walletId, type) }
             },
+            onSelectImage = onSelectImage,
             onBoard = onBoard,
             onCancel = onCancel,
         )
+    }
+
+    entry<WalletImageRoute>(
+        metadata = { key -> routeArguments(RouteArgument.WalletId to key.walletId.id) },
+    ) { key ->
+        WalletImageNavScreen(onCancel = onCancel, source = key.source)
     }
 
     entry<WalletSecurityReminderRoute> { key ->

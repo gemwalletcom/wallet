@@ -40,6 +40,7 @@ class SetupWalletViewModel @AssistedInject constructor(
                             walletSource = wallet.source,
                             walletType = wallet.type,
                             walletChain = wallet.accounts.firstOrNull()?.chain,
+                            imageUrl = wallet.imageUrl,
                         )
                     }
                 }
@@ -65,4 +66,5 @@ data class SetupWalletViewModelState(
     val walletSource: WalletSource = WalletSource.Create,
     val walletType: WalletType? = null,
     val walletChain: Chain? = null,
+    val imageUrl: String? = null,
 )

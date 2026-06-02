@@ -45,5 +45,6 @@ class WalletsScreenTest {
         override val walletAddress: String = "0x$id"
         override val walletChain: Chain = Chain.Ethereum
         override val isPinned: Boolean = isPinned
+        override val imageUrl: String? = null
     }
 }

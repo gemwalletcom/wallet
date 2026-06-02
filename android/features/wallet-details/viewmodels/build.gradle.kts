@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.savedstate)
 
+    implementation(libs.coil.compose)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
