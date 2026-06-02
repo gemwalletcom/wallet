@@ -183,8 +183,10 @@ extension AmountSceneViewModel {
 
     public func onAutocloseComplete(takeProfit: InputValidationViewModel, stopLoss: InputValidationViewModel) {
         if case let .perpetual(perpetual) = provider {
-            perpetual.takeProfit = takeProfit.text.isEmpty ? nil : takeProfit.text
-            perpetual.stopLoss = stopLoss.text.isEmpty ? nil : stopLoss.text
+            perpetual.updateAutoclose(
+                takeProfit: takeProfit.text.isEmpty ? nil : takeProfit.text,
+                stopLoss: stopLoss.text.isEmpty ? nil : stopLoss.text,
+            )
         }
         isPresentingSheet = nil
     }
@@ -195,6 +197,9 @@ extension AmountSceneViewModel {
 
     public func onChangeLeverage(_: LeverageOption, _: LeverageOption) {
         amountInputModel.update(validators: inputValidators)
+        if case let .perpetual(perpetual) = provider {
+            perpetual.onChangeLeverage()
+        }
     }
 
     public func onValidatorSelected(_ validator: DelegationValidator) {
