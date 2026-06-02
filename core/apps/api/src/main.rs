@@ -14,6 +14,7 @@ mod prices;
 mod referral;
 mod responders;
 mod status;
+mod support;
 mod swap;
 mod webhooks;
 mod websocket;
@@ -56,6 +57,8 @@ use swapper::okx::{OkxClientConfig, OkxProvider};
 use swapper::swapper::GemSwapper;
 use webhooks::WebhooksClient;
 use websocket_prices::PriceObserverConfig;
+
+use crate::support::SupportApiClient;
 
 fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
     let rocket = rocket
@@ -134,6 +137,11 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 devices::create_device_referral_v2,
                 devices::use_device_referral_code_v2,
                 devices::redeem_device_rewards_v2,
+                support::get_support_conversation,
+                support::get_support_messages,
+                support::post_support_action,
+                support::post_support_image,
+                support::post_support_message,
                 devices::get_device_notifications_v2,
                 devices::mark_device_notifications_read_v2,
                 devices::get_device_subscriptions_v2,
@@ -237,6 +245,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     let rewards_client = RewardsClient::new(database.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
     let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
     let notifications_client = NotificationsClient::new(database.clone());
+    let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget_public_token.clone());
     let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
     let okx_provider = OkxProvider::new(
         OkxClientConfig {
@@ -279,6 +288,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
         .manage(Mutex::new(redemption_client))
         .manage(Mutex::new(wallets_client))
         .manage(Mutex::new(notifications_client))
+        .manage(Mutex::new(support_client))
         .manage(Mutex::new(near_intents_client))
         .manage(okx_provider)
         .manage(Mutex::new(portfolio_client))

@@ -66,6 +66,8 @@ public struct StreamEventService: Sendable {
             Task { await perform { try await priceAlertService.update() } }
         case let .fiatTransaction(update):
             Task { await perform { try await handleFiatTransactionUpdate(update) } }
+        case .support:
+            break
         }
     }
 }

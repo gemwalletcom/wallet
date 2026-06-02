@@ -86,6 +86,14 @@ public protocol GemAPIScanService: Sendable {
     func getScanTransaction(payload: ScanTransactionPayload) async throws -> ScanTransaction
 }
 
+public protocol GemAPISupportService: Sendable {
+    func getSupportConversation() async throws -> SupportConversation?
+    func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage]
+    func sendSupportMessage(input: SupportMessageInput) async throws -> SupportMessage
+    func sendSupportImage(image: Data, fileName: String, mimeType: String) async throws -> SupportMessage
+    func sendSupportAction(action: SupportAction) async throws
+}
+
 public protocol GemAPIWalletConfigurationService: Sendable {
     func getWalletConfiguration(walletId: WalletId) async throws -> WalletConfigurationResult
 }
@@ -296,6 +304,33 @@ extension GemAPIService: GemAPIScanService {
     public func getScanTransaction(payload: ScanTransactionPayload) async throws -> ScanTransaction {
         try await requestDevice(.scanTransaction(payload: payload))
             .mapResponse(as: ScanTransaction.self)
+    }
+}
+
+extension GemAPIService: GemAPISupportService {
+    public func getSupportConversation() async throws -> SupportConversation? {
+        try await requestDevice(.getSupportConversation)
+            .mapResponse(as: SupportConversation?.self)
+    }
+
+    public func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage] {
+        try await requestDevice(.getSupportMessages(fromTimestamp: fromTimestamp))
+            .mapResponse(as: [SupportMessage].self)
+    }
+
+    public func sendSupportMessage(input: SupportMessageInput) async throws -> SupportMessage {
+        try await requestDevice(.sendSupportMessage(input: input))
+            .mapResponse(as: SupportMessage.self)
+    }
+
+    public func sendSupportImage(image: Data, fileName: String, mimeType: String) async throws -> SupportMessage {
+        try await requestDevice(.sendSupportImage(image: image, fileName: fileName, mimeType: mimeType))
+            .mapResponse(as: SupportMessage.self)
+    }
+
+    public func sendSupportAction(action: SupportAction) async throws {
+        _ = try await requestDevice(.sendSupportAction(action: action))
+            .mapResponse(as: Bool.self)
     }
 }
 

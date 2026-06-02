@@ -32,4 +32,5 @@ cargo run -p agent --bin repl -- security
 
 Config is layered (later overrides earlier): `Settings.yaml` → `agents/<name>/agent.yaml` →
 environment variables (`_`-separated, e.g. `SLACK_BOT_TOKEN` → `slack.bot.token`). The agent to
-run is selected by `AGENT_NAME` (or `argv[1]`).
+run is selected by `AGENT_NAME` (or `argv[1]`). Supported LLM providers are `anthropic`,
+`deepseek`, and `venice`; set `PROVIDER=venice` with `VENICE_KEY` to use Venice.

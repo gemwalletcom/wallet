@@ -67,6 +67,7 @@ public enum StreamEvent: Codable, Sendable {
 	case perpetual(StreamWalletUpdate)
 	case inAppNotification(StreamNotificationUpdate)
 	case fiatTransaction(StreamWalletUpdate)
+	case support(SupportStreamEvent)
 
 	enum CodingKeys: String, CodingKey, Codable {
 		case prices,
@@ -76,7 +77,8 @@ public enum StreamEvent: Codable, Sendable {
 			nft,
 			perpetual,
 			inAppNotification,
-			fiatTransaction
+			fiatTransaction,
+			support
 	}
 
 	private enum ContainerCodingKeys: String, CodingKey {
@@ -127,6 +129,11 @@ public enum StreamEvent: Codable, Sendable {
 					self = .fiatTransaction(content)
 					return
 				}
+			case .support:
+				if let content = try? container.decode(SupportStreamEvent.self, forKey: .data) {
+					self = .support(content)
+					return
+				}
 			}
 		}
 		throw DecodingError.typeMismatch(StreamEvent.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for StreamEvent"))
@@ -158,6 +165,9 @@ public enum StreamEvent: Codable, Sendable {
 			try container.encode(content, forKey: .data)
 		case .fiatTransaction(let content):
 			try container.encode(CodingKeys.fiatTransaction, forKey: .event)
+			try container.encode(content, forKey: .data)
+		case .support(let content):
+			try container.encode(CodingKeys.support, forKey: .event)
 			try container.encode(content, forKey: .data)
 		}
 	}

@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -29,7 +28,6 @@ import com.wallet.core.primitives.DelegationState.Pending
 fun DelegationItem(
     assetInfo: AssetInfo,
     delegation: Delegation,
-    completedAt: String,
     listPosition: ListPosition,
     onClick: () -> Unit
 ) {
@@ -46,21 +44,7 @@ fun DelegationItem(
             ListItemTitleText(text = delegation.validator.name)
         },
         subtitle = {
-            val stateColor = delegation.base.state.color()
-            val stateText = delegation.stateText()
-            Column {
-                ListItemSupportText(stateText, color = stateColor)
-                when (delegation.base.state) {
-                    Pending,
-                    Activating,
-                    Deactivating -> completedAt.takeIf { it.isNotEmpty() && it != "0" }?.let {
-                        ListItemSupportText(it)
-                    }
-                    Active,
-                    Inactive,
-                    AwaitingWithdrawal -> Unit
-                }
-            }
+            ListItemSupportText(delegation.stateText(), color = delegation.base.state.color())
         },
         trailing = {
             val balance = DelegationBalanceInfoUIModel(

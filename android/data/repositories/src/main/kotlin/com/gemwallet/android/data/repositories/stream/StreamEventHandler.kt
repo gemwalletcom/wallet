@@ -51,6 +51,7 @@ class StreamEventHandler(
             is StreamEvent.Perpetual -> { }
             is StreamEvent.InAppNotification -> perform { handleInAppNotification(event.data) }
             is StreamEvent.FiatTransaction -> perform { handleFiatTransaction(event.data) }
+            is StreamEvent.Support -> { }
         }
     }
 
@@ -72,9 +73,7 @@ class StreamEventHandler(
     private suspend fun updateRates(newRates: List<FiatRate>, currency: Currency) {
         pricesDao.setRates(newRates.toRecord())
         newRates.firstOrNull { it.symbol == currency.string }?.let { rate ->
-            pricesDao.getAll().firstOrNull()?.map {
-                it.copy(value = (it.usdValue ?: 0.0) * rate.rate)
-            }?.let { pricesDao.insert(it) }
+            pricesDao.updateValues(currency.string, rate.rate)
         }
     }
 

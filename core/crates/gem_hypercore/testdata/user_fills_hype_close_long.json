@@ -1,0 +1,38 @@
+[
+  {
+    "coin": "HYPE",
+    "px": "67.088",
+    "sz": "7.93",
+    "side": "A",
+    "time": 1780156818005,
+    "startPosition": "14.95",
+    "dir": "Close Long",
+    "closedPnl": "1.01504",
+    "hash": "0x90b78c255efa55459231043c9626c40201cb000af9fd7417348037781dfe2f30",
+    "oid": 449157822300,
+    "crossed": true,
+    "fee": "0.46923",
+    "builderFee": "0.239403",
+    "tid": 845449873774006,
+    "feeToken": "USDC",
+    "twapId": null
+  },
+  {
+    "coin": "HYPE",
+    "px": "67.087",
+    "sz": "7.02",
+    "side": "A",
+    "time": 1780156818005,
+    "startPosition": "7.02",
+    "dir": "Close Long",
+    "closedPnl": "0.89154",
+    "hash": "0x90b78c255efa55459231043c9626c40201cb000af9fd7417348037781dfe2f30",
+    "oid": 449157822300,
+    "crossed": true,
+    "fee": "0.415377",
+    "builderFee": "0.211927",
+    "tid": 661674034990035,
+    "feeToken": "USDC",
+    "twapId": null
+  }
+]

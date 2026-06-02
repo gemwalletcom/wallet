@@ -220,6 +220,10 @@ scan:
       public: ""
       secret: ""
 
+support:
+  url: ""
+  widget_public_token: ""
+
 parser:
   timeout: 1s
   shutdown:

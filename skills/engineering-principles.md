@@ -8,7 +8,7 @@ These rules govern the monorepo unless a platform guide gives a stricter local r
 - Review for simplification before finishing: reduce duplication, extract helpers only when they earn their keep, and remove dead code
 - Follow YAGNI: do not add behavior until the task needs it
 - Keep types and functions single-purpose
-- Prefer clear names over explanatory comments
+- Do not write code comments. Convey intent through clear names and structure; if a piece of code seems to need a comment, rename or restructure it instead. The only exceptions are comments the compiler or tooling requires (e.g. attributes, lint directives, license headers).
 - Avoid unclear abbreviations in code names. Write full domain terms such as `transaction` instead of `tx`, except when preserving external protocol field names, database columns, or URLs verbatim.
 - Use intent-specific names for APIs and helpers. A function name should state the domain action and expected output in the language of the codebase, for example `parse_destination_tag`, `build_transfer_message`, `sign_trust_set`, or `map_balance_assets`. Generic verbs such as `process`, `handle`, `manage`, `perform`, `execute`, and `resolve` usually hide the contract; keep them only when a framework or protocol owns the signature.
 - Before copying a nearby pattern, understand why it exists. If you cannot, ask before copying — copying patterns whose purpose you do not understand is how dead conventions spread

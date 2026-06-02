@@ -20,6 +20,10 @@ impl<C: Client> ChainTransactionState for HyperCoreClient<C> {
 
 impl<C: Client> HyperCoreClient<C> {
     pub async fn transaction_state(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
+        if request.id.starts_with("0x") {
+            return self.hash_state(&request).await;
+        }
+
         let id = HyperCoreTransactionId::parse(&request.id).ok_or("Invalid Hypercore transaction id")?;
 
         match id {
@@ -30,6 +34,16 @@ impl<C: Client> HyperCoreClient<C> {
             }
             HyperCoreTransactionId::Action(action_id) => self.action_state(&request, action_id).await,
         }
+    }
+
+    async fn hash_state(&self, request: &TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
+        if request.sender_address.is_empty() {
+            return Err("Missing Hypercore transaction sender address".into());
+        }
+
+        let start_time = (request.created_at.timestamp_millis().max(0) as u64).saturating_sub(transaction_state_mapper::ACTION_HISTORY_QUERY_LOOKBACK_MS) as i64;
+        let fills = self.get_user_fills_by_time(&request.sender_address, start_time).await?;
+        Ok(transaction_state_mapper::map_transaction_state_hash(fills, &request.id, request.id.clone()))
     }
 
     async fn action_state(&self, request: &TransactionStateRequest, action_id: HyperCoreActionId) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {

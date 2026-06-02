@@ -5,8 +5,7 @@ use gem_tracing::{error_with_fields, info_with_fields};
 use streamer::SupportWebhookPayload;
 use streamer::consumer::MessageConsumer;
 
-use primitives::Device;
-use support::{ChatwootWebhookPayload, EVENT_CONVERSATION_STATUS_CHANGED, EVENT_CONVERSATION_UPDATED, EVENT_MESSAGE_CREATED, SupportClient};
+use support::{ChatwootWebhookPayload, SupportClient};
 
 pub struct SupportWebhookConsumer {
     support_client: SupportClient,
@@ -15,14 +14,6 @@ pub struct SupportWebhookConsumer {
 impl SupportWebhookConsumer {
     pub fn new(support_client: SupportClient) -> Self {
         Self { support_client }
-    }
-
-    async fn process_notification(&self, device: &Device, webhook: &ChatwootWebhookPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        match webhook.event.as_str() {
-            EVENT_MESSAGE_CREATED => self.support_client.handle_message_created(device, webhook).await,
-            EVENT_CONVERSATION_UPDATED | EVENT_CONVERSATION_STATUS_CHANGED => self.support_client.handle_conversation_updated(webhook).map(|_| 0),
-            _ => Ok(0),
-        }
     }
 }
 
@@ -51,9 +42,15 @@ impl MessageConsumer<SupportWebhookPayload, bool> for SupportWebhookConsumer {
             return Ok(true);
         };
 
-        match self.process_notification(&device, &webhook).await {
-            Ok(notifications) => {
-                info_with_fields!("support webhook processed", device_id = device_id, event = webhook.event, notifications = notifications);
+        match self.support_client.process_webhook(&device, &webhook).await {
+            Ok((notifications, stream_events)) => {
+                info_with_fields!(
+                    "support webhook processed",
+                    device_id = device_id,
+                    event = webhook.event,
+                    notifications = notifications,
+                    stream_events = stream_events
+                );
                 Ok(true)
             }
             Err(error) => {

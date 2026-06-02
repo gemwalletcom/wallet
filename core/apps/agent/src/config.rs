@@ -39,6 +39,7 @@ pub struct SlackBot {
 pub struct SlackConfig {
     pub app: SlackApp,
     pub bot: SlackBot,
+    pub conversations_list_limit: u32,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -224,6 +225,7 @@ pub enum Provider {
     #[default]
     Anthropic,
     Deepseek,
+    Venice,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -269,6 +271,8 @@ pub struct Settings {
     pub anthropic: ProviderConfig,
     #[serde(default)]
     pub deepseek: ProviderConfig,
+    #[serde(default)]
+    pub venice: ProviderConfig,
     pub embedding: EmbeddingConfig,
     pub agent: AgentProfile,
     #[serde(default)]
@@ -288,6 +292,7 @@ impl Settings {
         match self.provider {
             Provider::Anthropic => &self.anthropic,
             Provider::Deepseek => &self.deepseek,
+            Provider::Venice => &self.venice,
         }
     }
 

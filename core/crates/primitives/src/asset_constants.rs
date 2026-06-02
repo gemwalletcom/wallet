@@ -314,6 +314,9 @@ pub static HYPERCORE_SPOT_HYPE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| As
 pub const HYPERCORE_SPOT_USDC_TOKEN_ID: &str = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0";
 pub static HYPERCORE_SPOT_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::HyperCore, HYPERCORE_SPOT_USDC_TOKEN_ID));
 
+pub const HYPERCORE_PERPETUAL_USDC_TOKEN_ID: &str = "perpetual::USDC";
+pub static HYPERCORE_PERPETUAL_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::HyperCore, HYPERCORE_PERPETUAL_USDC_TOKEN_ID));
+
 pub const HYPERCORE_SPOT_UBTC_TOKEN_ID: &str = "UBTC::0x8f254b963e8468305d409b33aa137c67::197";
 pub static HYPERCORE_SPOT_UBTC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::HyperCore, HYPERCORE_SPOT_UBTC_TOKEN_ID));
 

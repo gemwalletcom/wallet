@@ -224,6 +224,11 @@ pub mod websocket;
 pub use self::websocket::{WebSocketPriceAction, WebSocketPriceActionType, WebSocketPricePayload};
 pub mod stream;
 pub use self::stream::{StreamBalanceUpdate, StreamEvent, StreamMessage, StreamMessagePrices, StreamTransactionsUpdate, StreamWalletUpdate, device_stream_channel};
+pub mod support;
+pub use self::support::{
+    SupportAction, SupportAgent, SupportConversation, SupportConversationStatus, SupportMessage, SupportMessageDeliveryStatus, SupportMessageImage, SupportMessageInput,
+    SupportMessageSender, SupportStreamEvent, SupportTypingStatus,
+};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance};
 pub mod chain_address;

@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 const API: &str = "https://slack.com/api";
-
 pub struct SlackClient {
     http: reqwest::Client,
     token: String,
@@ -66,6 +65,45 @@ impl SlackClient {
             return Ok(None);
         }
         Ok(ch.get("name").and_then(|v| v.as_str()).map(String::from))
+    }
+
+    pub async fn public_channel_id_by_name(&self, name: &str, limit: u32) -> Result<Option<String>> {
+        let name = name.trim().trim_start_matches('#');
+        let limit = limit.clamp(1, 1000).to_string();
+        let mut cursor = String::new();
+        loop {
+            let mut req = self
+                .http
+                .get(format!("{API}/conversations.list"))
+                .bearer_auth(&self.token)
+                .query(&[("types", "public_channel"), ("limit", limit.as_str())]);
+            if !cursor.is_empty() {
+                req = req.query(&[("cursor", cursor.as_str())]);
+            }
+            let resp: Value = req.send().await?.json().await?;
+            let resp = check_ok("conversations.list", resp)?;
+            if let Some(id) = resp.get("channels").and_then(|v| v.as_array()).and_then(|channels| {
+                channels.iter().find_map(|ch| {
+                    (ch.get("name").and_then(|v| v.as_str()) == Some(name))
+                        .then(|| ch.get("id").and_then(|v| v.as_str()).map(String::from))
+                        .flatten()
+                })
+            }) {
+                return Ok(Some(id));
+            }
+
+            cursor = resp
+                .get("response_metadata")
+                .and_then(|v| v.get("next_cursor"))
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_string();
+            if cursor.is_empty() {
+                break;
+            }
+        }
+
+        Ok(None)
     }
 
     pub async fn conversations_history(&self, channel: &str, limit: u32) -> Result<Vec<ThreadMessage>> {

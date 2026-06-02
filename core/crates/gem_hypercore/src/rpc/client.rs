@@ -7,7 +7,6 @@ use crate::models::{
     portfolio::HypercorePortfolioResponse,
     position::AssetPositions,
     referral::Referral,
-    response::ExplorerTransactionResponse,
     spot::{OrderbookResponse, SpotMeta},
     user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee, UserRole},
 };
@@ -24,8 +23,6 @@ use serde_json::json;
 
 const SPOT_META_CACHE_TTL_SECS: u64 = 3600;
 const USER_ABSTRACTION_CACHE_TTL_SECS: u64 = 3600;
-const EXPLORER_PATH: &str = "/explorer";
-const TRANSACTION_SENDER_CACHE_PREFIX: &str = "hypercore_transaction_sender_";
 pub(crate) const AGENT_OWNER_CACHE_PREFIX: &str = "hypercore_agent_owner_";
 
 fn info_cache_headers(ttl_secs: u64) -> HashMap<String, String> {
@@ -33,10 +30,6 @@ fn info_cache_headers(ttl_secs: u64) -> HashMap<String, String> {
         (String::from(CONTENT_TYPE), ContentType::ApplicationJson.as_str().to_string()),
         (String::from(X_CACHE_TTL), ttl_secs.to_string()),
     ])
-}
-
-fn transaction_sender_cache_key(id: &str) -> String {
-    format!("{TRANSACTION_SENDER_CACHE_PREFIX}{id}")
 }
 
 pub(crate) fn agent_owner_cache_key(agent_address: &str) -> String {
@@ -101,10 +94,6 @@ impl<C: Client> HyperCoreClient<C> {
 
     pub async fn exchange(&self, payload: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error + Send + Sync>> {
         Ok(self.client.post("/exchange", &payload).await?)
-    }
-
-    pub async fn get_transaction_details(&self, hash: &str) -> Result<ExplorerTransactionResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post(EXPLORER_PATH, &json!({ "type": "txDetails", "hash": hash })).await?)
     }
 
     pub async fn get_validators(&self) -> Result<Vec<Validator>, Box<dyn Error + Send + Sync>> {
@@ -270,14 +259,6 @@ impl<C: Client> HyperCoreClient<C> {
 
     pub async fn get_perpetual_portfolio_with_dex(&self, user: &str, dex: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
         self.info(json!({"type": "portfolio", "user": user, "dex": dex})).await
-    }
-
-    pub fn cache_transaction_sender(&self, id: &str, sender: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.preferences.set(transaction_sender_cache_key(id), sender.to_lowercase())
-    }
-
-    pub fn get_cached_transaction_sender(&self, id: &str) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        self.preferences.get(transaction_sender_cache_key(id))
     }
 
     pub fn cache_agent_owner(&self, agent_address: &str, sender_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {

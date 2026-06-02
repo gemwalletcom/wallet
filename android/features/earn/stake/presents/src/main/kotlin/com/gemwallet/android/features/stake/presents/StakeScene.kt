@@ -41,7 +41,6 @@ import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.availableIn
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -129,7 +128,6 @@ fun StakeScene(
                         DelegationItem(
                             assetInfo = assetInfo,
                             delegation = item,
-                            completedAt = availableIn(item),
                             listPosition = ListPosition.getPosition(index, delegations.size),
                             onClick = { onDelegation(item) }
                         )
@@ -150,9 +148,9 @@ private fun LazyListScope.stakeInfoSection(assetInfo: AssetInfo) {
     val minAmountValue = Config().getStakeConfig(assetInfo.asset.chain.string).minAmount.toLong()
     val iconUrl = assetInfo.id().getIconUrl()
     val rows = listOfNotNull(
-        minAmountValue.takeIf { it > 0 }?.let { StakeInfoRow.MinAmount(it, assetInfo.asset.chain) },
         StakeInfoRow.Apr(assetInfo.stakeApr ?: 0.0, iconUrl),
         assetInfo.lockTime?.let { StakeInfoRow.LockTime(it, iconUrl) },
+        minAmountValue.takeIf { it > 0 }?.let { StakeInfoRow.MinAmount(it, assetInfo.asset.chain) },
     )
     itemsPositioned(rows) { position, row ->
         when (row) {

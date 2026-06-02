@@ -5,17 +5,32 @@ use gem_tracing::tracing::{debug, warn};
 use rig::agent::Agent as RigAgent;
 use rig::client::CompletionClient;
 use rig::completion::{Prompt, ToolDefinition};
-use rig::providers::anthropic;
+use rig::providers::{anthropic, openai};
 use rig::tool::Tool;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::config::Settings;
+use crate::config::{Provider, Settings};
 use crate::tools::ToolFailure;
 
 #[derive(Clone)]
 pub struct ChatwootReviewReplyTool {
-    inner: Arc<RigAgent<anthropic::completion::CompletionModel>>,
+    inner: ReviewAgent,
+}
+
+#[derive(Clone)]
+enum ReviewAgent {
+    Anthropic(Arc<RigAgent<anthropic::completion::CompletionModel>>),
+    OpenAi(Arc<RigAgent<openai::completion::CompletionModel>>),
+}
+
+impl ReviewAgent {
+    async fn prompt(&self, prompt: &str) -> Result<String, rig::completion::PromptError> {
+        match self {
+            ReviewAgent::Anthropic(inner) => inner.prompt(prompt).await,
+            ReviewAgent::OpenAi(inner) => inner.prompt(prompt).await,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -39,15 +54,30 @@ impl ChatwootReviewReplyTool {
             return Ok(None);
         }
         let preamble = fs::read_to_string(&preamble_path)?;
-        let provider = settings.llm_provider();
-        if provider.key.is_empty() {
+        let config = settings.llm_provider();
+        if config.key.is_empty() {
             return Ok(None);
         }
-        let client = crate::agent::build_client(provider)?;
         let model = &settings.agent.model;
-        let inner = client.agent(model).preamble(&preamble).max_tokens(2048).temperature(0.2).build();
-        Ok(Some(Self { inner: Arc::new(inner) }))
+        let inner = match settings.provider {
+            Provider::Anthropic | Provider::Deepseek => {
+                let client = crate::agent::build_anthropic_client(settings.provider, config)?;
+                ReviewAgent::Anthropic(Arc::new(build_inner(&client, model, &preamble)))
+            }
+            Provider::Venice => {
+                let client = crate::agent::build_openai_client(settings.provider, config)?;
+                ReviewAgent::OpenAi(Arc::new(build_inner(&client, model, &preamble)))
+            }
+        };
+        Ok(Some(Self { inner }))
     }
+}
+
+fn build_inner<C>(client: &C, model: &str, preamble: &str) -> RigAgent<C::CompletionModel>
+where
+    C: CompletionClient,
+{
+    client.agent(model).preamble(preamble).max_tokens(2048).temperature(0.2).build()
 }
 
 impl Tool for ChatwootReviewReplyTool {

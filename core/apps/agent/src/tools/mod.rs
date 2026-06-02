@@ -7,6 +7,7 @@ pub mod gem_docs;
 pub mod memory;
 pub mod plausible;
 pub mod shell;
+pub mod slack;
 pub mod slack_history;
 pub mod slack_post;
 pub mod telegram_post;

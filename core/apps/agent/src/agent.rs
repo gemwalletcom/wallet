@@ -8,11 +8,11 @@ use rig::agent::{Agent as RigAgent, PromptResponse};
 use rig::client::CompletionClient;
 use rig::completion::Prompt;
 use rig::completion::message::{Message, UserContent};
-use rig::providers::anthropic;
+use rig::providers::{anthropic, openai};
 use rig::tool::ToolDyn;
 
 use crate::chatwoot::ChatwootClient;
-use crate::config::Settings;
+use crate::config::{Provider, ProviderConfig, Settings};
 use crate::images::ImageAttachment;
 use crate::preamble;
 use crate::slack::SlackClient;
@@ -22,14 +22,67 @@ use crate::tools::{
     ShellTool, SlackHistoryTool, SlackPostTool, TelegramPostTool, ToolName,
 };
 
-type Inner = RigAgent<anthropic::completion::CompletionModel>;
+const VENICE_BASE_URL: &str = "https://api.venice.ai/api/v1";
 
-pub(crate) fn build_client(provider: &crate::config::ProviderConfig) -> Result<anthropic::Client> {
-    let mut builder = anthropic::Client::builder().api_key(&provider.key);
-    if !provider.base.is_empty() {
-        builder = builder.base_url(&provider.base);
+type AnthropicInner = RigAgent<anthropic::completion::CompletionModel>;
+type OpenAiInner = RigAgent<openai::completion::CompletionModel>;
+
+enum Inner {
+    Anthropic(AnthropicInner),
+    OpenAi(OpenAiInner),
+}
+
+impl Inner {
+    async fn prompt_response(&self, msg: &str) -> Result<PromptResponse> {
+        match self {
+            Inner::Anthropic(inner) => Ok(inner.prompt(msg).extended_details().await?),
+            Inner::OpenAi(inner) => Ok(inner.prompt(msg).extended_details().await?),
+        }
     }
-    builder.build().map_err(|e| format!("building Anthropic client: {e}").into())
+
+    async fn prompt_message(&self, msg: Message) -> Result<String> {
+        match self {
+            Inner::Anthropic(inner) => Ok(inner.prompt(msg).await?),
+            Inner::OpenAi(inner) => Ok(inner.prompt(msg).await?),
+        }
+    }
+}
+
+pub(crate) fn build_anthropic_client(provider: Provider, config: &ProviderConfig) -> Result<anthropic::Client> {
+    let name = provider_name(provider);
+    let mut builder = anthropic::Client::builder().api_key(&config.key);
+    if !config.base.is_empty() {
+        builder = builder.base_url(&config.base);
+    }
+    builder.build().map_err(|e| format!("building {name} client: {e}").into())
+}
+
+pub(crate) fn build_openai_client(provider: Provider, config: &ProviderConfig) -> Result<openai::CompletionsClient> {
+    let name = provider_name(provider);
+    let base_url = openai_base_url(provider, config);
+    let mut builder = openai::CompletionsClient::builder().api_key(&config.key);
+    if let Some(base_url) = base_url {
+        builder = builder.base_url(base_url);
+    }
+    builder.build().map_err(|e| format!("building {name} client: {e}").into())
+}
+
+fn openai_base_url(provider: Provider, config: &ProviderConfig) -> Option<&str> {
+    if !config.base.is_empty() {
+        return Some(&config.base);
+    }
+    match provider {
+        Provider::Venice => Some(VENICE_BASE_URL),
+        Provider::Anthropic | Provider::Deepseek => None,
+    }
+}
+
+fn provider_name(provider: Provider) -> &'static str {
+    match provider {
+        Provider::Anthropic => "anthropic",
+        Provider::Deepseek => "deepseek",
+        Provider::Venice => "venice",
+    }
 }
 
 pub struct GemmyAgent {
@@ -45,14 +98,22 @@ impl GemmyAgent {
         slack: Arc<SlackClient>,
         mcp_tools: Vec<Box<dyn ToolDyn>>,
     ) -> Result<Self> {
-        let provider = settings.llm_provider();
-        if provider.key.is_empty() {
+        let config = settings.llm_provider();
+        if config.key.is_empty() {
             return Err(format!("no key for the active provider {:?} — set its key in vault/.env", settings.provider).into());
         }
         let preamble = preamble::render(settings)?;
-        let client = build_client(provider)?;
-
-        let inner = build_inner(&client, settings, &preamble, memory, chatwoot, slack, mcp_tools);
+        let tools = build_tools(settings, memory, chatwoot, slack, mcp_tools);
+        let inner = match settings.provider {
+            Provider::Anthropic | Provider::Deepseek => {
+                let client = build_anthropic_client(settings.provider, config)?;
+                Inner::Anthropic(build_inner(&client, settings, &preamble, tools))
+            }
+            Provider::Venice => {
+                let client = build_openai_client(settings.provider, config)?;
+                Inner::OpenAi(build_inner(&client, settings, &preamble, tools))
+            }
+        };
 
         info!(
             agent = %settings.agent_name,
@@ -77,7 +138,7 @@ impl GemmyAgent {
             images = 0,
             "agent.prompt"
         );
-        Ok(self.inner.prompt(msg).extended_details().await?)
+        self.inner.prompt_response(msg).await
     }
 
     pub async fn prompt_with_images(&self, msg: &str, images: Vec<ImageAttachment>) -> Result<String> {
@@ -96,20 +157,17 @@ impl GemmyAgent {
             blocks.push(UserContent::image_base64(engine.encode(&img.bytes), Some(img.media_type), None));
         }
         let content = OneOrMany::many(blocks).expect("text block always present");
-        Ok(self.inner.prompt(Message::User { content }).await?)
+        self.inner.prompt_message(Message::User { content }).await
     }
 }
 
-fn build_inner(
-    client: &anthropic::Client,
+fn build_tools(
     settings: &Settings,
-    preamble: &str,
     memory: Option<Arc<MemoryStore>>,
     chatwoot: Option<Arc<ChatwootClient>>,
     slack: Arc<SlackClient>,
     mcp_tools: Vec<Box<dyn ToolDyn>>,
-) -> Inner {
-    let model_id = &settings.agent.model;
+) -> Vec<Box<dyn ToolDyn>> {
     let mut tools: Vec<Box<dyn ToolDyn>> = mcp_tools;
     for entry in &settings.agent.tools {
         let policy = entry.policy();
@@ -135,10 +193,12 @@ fn build_inner(
             ToolName::SlackPost => Some(Box::new(SlackPostTool {
                 client: slack.clone(),
                 allow_channels: settings.agent.slack.names(),
+                conversations_list_limit: settings.slack.conversations_list_limit,
             })),
             ToolName::SlackHistory => Some(Box::new(SlackHistoryTool {
                 client: slack.clone(),
                 allow_channels: settings.agent.slack.names(),
+                conversations_list_limit: settings.slack.conversations_list_limit,
             })),
             ToolName::TelegramPost => Some(Box::new(TelegramPostTool {
                 client: reqwest::Client::new(),
@@ -159,6 +219,14 @@ fn build_inner(
             tools.push(Box::new(GatedTool { inner, policy }));
         }
     }
+    tools
+}
+
+fn build_inner<C>(client: &C, settings: &Settings, preamble: &str, tools: Vec<Box<dyn ToolDyn>>) -> RigAgent<C::CompletionModel>
+where
+    C: CompletionClient,
+{
+    let model_id = &settings.agent.model;
     let tool_names: Vec<String> = tools.iter().map(|t| t.name()).collect();
     info!(model = %model_id, tools = ?tool_names, "built agent");
     client

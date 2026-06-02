@@ -12,7 +12,7 @@ enum KeyEncoding {
 
 fn import_encodings_for_chain(chain: &Chain) -> &'static [KeyEncoding] {
     match chain.chain_type() {
-        ChainType::Bitcoin => &[],
+        ChainType::Bitcoin | ChainType::Cardano => &[],
         ChainType::Solana => &[KeyEncoding::Base58, KeyEncoding::Hex],
         ChainType::Stellar => &[KeyEncoding::Base32, KeyEncoding::Hex],
         _ => &[KeyEncoding::Hex],
@@ -226,6 +226,7 @@ mod tests {
         assert!(supports_private_key_import(&Chain::Ethereum));
         assert!(supports_private_key_import(&Chain::Solana));
         assert!(supports_private_key_import(&Chain::Stellar));
+        assert!(!supports_private_key_import(&Chain::Cardano));
         assert!(!supports_private_key_import(&Chain::Bitcoin));
         assert!(!supports_private_key_import(&Chain::Litecoin));
         assert!(!supports_private_key_import(&Chain::Doge));

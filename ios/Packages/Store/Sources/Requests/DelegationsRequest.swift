@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+internal import BigInt
 import Foundation
 import GRDB
 import Primitives
@@ -23,9 +24,9 @@ public struct DelegationsRequest: DatabaseQueryable {
             .filter(StakeDelegationRecord.Columns.assetId == assetId.identifier)
             .joining(required: StakeDelegationRecord.validator
                 .filter(StakeValidatorRecord.Columns.providerType == providerType.rawValue))
-            .order(StakeDelegationRecord.Columns.balance.desc)
             .asRequest(of: StakeDelegationInfo.self)
             .fetchAll(db)
             .compactMap { $0.mapToDelegation() }
+            .sorted { $0.base.balanceValue > $1.base.balanceValue }
     }
 }

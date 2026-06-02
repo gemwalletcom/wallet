@@ -29,6 +29,12 @@ public enum GemDeviceAPI: TargetType {
     case scanTransaction(payload: ScanTransactionPayload)
     case getWalletConfiguration(walletId: WalletId)
 
+    case getSupportConversation
+    case getSupportMessages(fromTimestamp: Int)
+    case sendSupportMessage(input: SupportMessageInput)
+    case sendSupportImage(image: Data, fileName: String, mimeType: String)
+    case sendSupportAction(action: SupportAction)
+
     case getAuthNonce
     case getDeviceToken
 
@@ -76,7 +82,9 @@ public enum GemDeviceAPI: TargetType {
              .getFiatQuoteUrl,
              .getFiatTransactions,
              .getNameRecord,
-             .getWalletConfiguration:
+             .getWalletConfiguration,
+             .getSupportConversation,
+             .getSupportMessages:
             .GET
         case .addDevice,
              .addSubscriptions,
@@ -89,7 +97,10 @@ public enum GemDeviceAPI: TargetType {
              .redeemDeviceRewards,
              .markNotificationsRead,
              .getPortfolioAssets,
-             .getAddressNames:
+             .getAddressNames,
+             .sendSupportMessage,
+             .sendSupportImage,
+             .sendSupportAction:
             .POST
         case .updateDevice:
             .PUT
@@ -137,6 +148,17 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/scan/transaction"
         case .getWalletConfiguration:
             return "/v2/devices/wallet_configuration"
+        case .getSupportConversation:
+            return "/v2/devices/support"
+        case let .getSupportMessages(fromTimestamp):
+            return "/v2/devices/support/messages?from_timestamp=\(fromTimestamp)"
+        case .sendSupportMessage:
+            return "/v2/devices/support/messages"
+        case let .sendSupportImage(_, fileName, _):
+            let encodedFileName = fileName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? fileName
+            return "/v2/devices/support/messages/images?file_name=\(encodedFileName)"
+        case .sendSupportAction:
+            return "/v2/devices/support/action"
         case .getAuthNonce:
             return "/v2/devices/auth/nonce"
         case .getDeviceToken:
@@ -214,7 +236,9 @@ public enum GemDeviceAPI: TargetType {
              .getFiatAssets,
              .getFiatQuoteUrl,
              .getFiatTransactions,
-             .getNameRecord:
+             .getNameRecord,
+             .getSupportConversation,
+             .getSupportMessages:
             return .plain
         case let .getPriceAlerts(assetId):
             let params: [String: Any] = [
@@ -251,6 +275,21 @@ public enum GemDeviceAPI: TargetType {
             return .encodable(request)
         case let .getAddressNames(requests):
             return .encodable(requests)
+        case let .sendSupportMessage(input):
+            return .encodable(input)
+        case let .sendSupportImage(image, _, _):
+            return .data(image)
+        case let .sendSupportAction(action):
+            return .encodable(action)
+        }
+    }
+
+    public var contentType: String {
+        switch self {
+        case let .sendSupportImage(_, _, mimeType):
+            mimeType
+        default:
+            ContentType.json.rawValue
         }
     }
 }

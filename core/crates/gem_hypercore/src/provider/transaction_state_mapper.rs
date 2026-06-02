@@ -13,7 +13,7 @@ use crate::perpetual_formatter::usdc_value;
 
 pub const ACTION_HISTORY_QUERY_LOOKBACK_MS: u64 = 5_000;
 const ACTION_HISTORY_MATCH_WINDOW_MS: u64 = 5 * 60 * 1_000;
-const DELEGATOR_WITHDRAWAL_INITIATED: &str = "initiated";
+pub(crate) const DELEGATOR_WITHDRAWAL_INITIATED: &str = "initiated";
 
 fn perpetual_fill_type_and_direction(dir: &FillDirection) -> Option<(TransactionType, PerpetualDirection)> {
     match dir {
@@ -88,6 +88,15 @@ pub fn map_transaction_state_order_action(fills: Vec<UserFill>, nonce: u64, requ
     }
 
     update
+}
+
+pub fn map_transaction_state_hash(fills: Vec<UserFill>, hash: &str, request_id: String) -> TransactionUpdate {
+    let Some(fill) = fills.iter().filter(|fill| fill.hash == hash).max_by_key(|fill| fill.time) else {
+        return TransactionUpdate::new_state(TransactionState::Pending);
+    };
+    let oid = fill.oid;
+
+    map_transaction_state_order(fills, oid, request_id)
 }
 
 pub(crate) fn order_action_fill(fills: &[UserFill], nonce: u64) -> Option<&UserFill> {
@@ -181,7 +190,7 @@ fn transaction_update_from_hash(hash: Option<String>, request_id: String) -> Tra
 
 fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) -> Option<Vec<TransactionChange>> {
     let (_, metadata) = prepare_perpetual_fill(matching_fills, last_fill)?;
-    let fee: f64 = matching_fills.iter().map(|fill| fill.fee + fill.builder_fee.unwrap_or(0.0)).sum();
+    let fee: f64 = matching_fills.iter().map(|fill| fill.fee).sum();
     let network_fee = usdc_value(fee).parse().ok()?;
 
     Some(vec![
@@ -225,7 +234,7 @@ mod tests {
             .changes
             .iter()
             .find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
-        assert_eq!(network_fee_change, Some(&BigInt::from(666786)));
+        assert_eq!(network_fee_change, Some(&BigInt::from(441520)));
 
         let hash_change = update.changes.iter().find_map(|change| {
             if let TransactionChange::HashChange { old, new } = change {
@@ -257,7 +266,6 @@ mod tests {
             sz: "1".to_string(),
             closed_pnl: 0.0,
             fee: 0.0,
-            builder_fee: None,
             fee_token: None,
             px: 42.0,
             dir: FillDirection::Other(String::new()),
@@ -307,7 +315,7 @@ mod tests {
             .changes
             .iter()
             .find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
-        assert_eq!(network_fee_change, Some(&BigInt::from(666786)));
+        assert_eq!(network_fee_change, Some(&BigInt::from(441520)));
     }
 
     #[test]
@@ -326,6 +334,20 @@ mod tests {
                 }]
             )
         );
+    }
+
+    #[test]
+    fn test_map_transaction_state_hash_maps_perpetual_fee() {
+        let fills: Vec<UserFill> = serde_json::from_str(include_str!("../../testdata/user_fills_hype_close_long.json")).unwrap();
+        let hash = "0x90b78c255efa55459231043c9626c40201cb000af9fd7417348037781dfe2f30";
+        let update = map_transaction_state_hash(fills, hash, hash.to_string());
+
+        assert_eq!(update.state, TransactionState::Confirmed);
+        let network_fee = update
+            .changes
+            .iter()
+            .find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
+        assert_eq!(network_fee, Some(&BigInt::from(884_607)));
     }
 
     #[test]
@@ -507,7 +529,6 @@ mod tests {
             sz: "1".to_string(),
             closed_pnl: 0.0,
             fee: 0.0,
-            builder_fee: None,
             fee_token: None,
             px: 42.0,
             dir: FillDirection::Other("Unsupported".to_string()),

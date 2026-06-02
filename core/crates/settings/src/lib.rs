@@ -36,6 +36,7 @@ pub struct Settings {
     pub chains: Chains,
     pub pusher: Pusher,
     pub scan: Scan,
+    pub support: Support,
     pub nft: NFT,
     pub ankr: Ankr,
     pub trongrid: Trongrid,
@@ -332,6 +333,12 @@ pub struct Scan {
     pub goplus: UrlKeySettings,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct Support {
+    pub url: String,
+    pub widget_public_token: String,
+}
+
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let current_dir = env::current_dir().unwrap();
@@ -342,6 +349,7 @@ impl Settings {
         let s = Config::builder()
             .add_source(File::from(path))
             .add_source(Environment::with_prefix("").prefix_separator("").separator("_"))
+            .add_source(Environment::with_prefix("").prefix_separator("").separator("__"))
             .build()?;
         s.try_deserialize()
     }

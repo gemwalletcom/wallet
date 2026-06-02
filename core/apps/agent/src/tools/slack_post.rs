@@ -6,14 +6,16 @@ use rig::tool::Tool;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::slack::SlackClient;
-use crate::slack::channel_allowed;
 use crate::slack::mrkdwn::to_slack_mrkdwn;
+use crate::slack::{SlackClient, is_user_id};
+
+use super::slack::resolve_allowed_channel;
 
 #[derive(Clone)]
 pub struct SlackPostTool {
     pub client: Arc<SlackClient>,
     pub allow_channels: Vec<String>,
+    pub conversations_list_limit: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -40,21 +42,23 @@ impl Tool for SlackPostTool {
         ToolDefinition {
             name: Self::NAME.to_string(),
             description: format!(
-                "Post a message to a Slack channel via the bot's chat.postMessage. The \
-                target channel must be in the configured allow-list ({allow}); anything \
-                else is refused at the tool boundary. Use for bridging an escalated \
-                chatwoot conversation into team awareness. Pass `thread_ts` to reply inside \
-                an existing Slack thread (avoids creating duplicate top-level threads for \
-                the same chatwoot conversation); omit it for a brand-new thread. The Slack \
-                ts of the posted message is returned in `status` so you can save it via \
-                `save_memory` and reuse it on follow-up escalations."
+                "Post a message to Slack via the bot's chat.postMessage. Target one of: a \
+                channel in the allow-list ({allow}) — any other channel is refused at the \
+                tool boundary — or a user id (`U…`) to direct-message that person, which \
+                bypasses the channel allow-list (this is how you DM Tim for the escalation \
+                fallback). Use for bridging an escalated chatwoot conversation into team \
+                awareness. Pass `thread_ts` to reply inside an existing Slack thread (avoids \
+                creating duplicate top-level threads for the same chatwoot conversation); \
+                omit it for a brand-new thread. The Slack ts of the posted message is \
+                returned in `status` so you can save it via `save_memory` and reuse it on \
+                follow-up escalations."
             ),
             parameters: json!({
                 "type": "object",
                 "properties": {
                     "channel": {
                         "type": "string",
-                        "description": "Channel id or `#name`. Must be in the allow-list."
+                        "description": "Channel id or `#name` (must be in the allow-list), or a user id `U…` to direct-message that user (bypasses the allow-list)."
                     },
                     "text": {
                         "type": "string",
@@ -71,33 +75,21 @@ impl Tool for SlackPostTool {
     }
 
     async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
-        if !args.channel.starts_with('U') && !channel_allowed(&args.channel, &self.allow_channels) {
-            return Err(ToolFailure::not_allowed(format!("channel `{}` not in slack.channels allow-list", args.channel)));
-        }
+        let channel = if is_user_id(&args.channel) {
+            args.channel.clone()
+        } else {
+            resolve_allowed_channel(&self.client, &args.channel, &self.allow_channels, self.conversations_list_limit, "slack.channels").await?
+        };
         let text = to_slack_mrkdwn(&args.text);
         let posted_ts = self
             .client
-            .post_message(&args.channel, args.thread_ts.as_deref(), &text)
+            .post_message(&channel, args.thread_ts.as_deref(), &text)
             .await
             .map_err(|e| ToolFailure::other(e.to_string()))?;
         let status = match args.thread_ts {
-            Some(parent) => format!("posted to {} in thread {parent} (this reply ts: {posted_ts})", args.channel),
-            None => format!("posted to {} (thread ts: {posted_ts})", args.channel),
+            Some(parent) => format!("posted to {} in thread {parent} (this reply ts: {posted_ts})", channel),
+            None => format!("posted to {} (thread ts: {posted_ts})", channel),
         };
         Ok(SlackPostOutput { status })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::slack::channel_allowed;
-
-    #[test]
-    fn matches_with_and_without_hash() {
-        let allow = vec!["#support".to_string()];
-        assert!(channel_allowed("#support", &allow));
-        assert!(channel_allowed("support", &allow));
-        assert!(!channel_allowed("#general", &allow));
-        assert!(!channel_allowed("supports", &allow));
     }
 }

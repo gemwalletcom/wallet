@@ -12,10 +12,12 @@ pub(crate) fn try_decode_transaction_bytes(transaction: &[u8]) -> Option<Version
     (decoded.serialize().ok()? == transaction).then_some(decoded)
 }
 
+#[cfg(feature = "signer")]
 pub(crate) fn is_transaction_bytes(transaction: &[u8]) -> bool {
     try_decode_transaction_bytes(transaction).is_some() || try_decode_transaction_message(transaction).is_some()
 }
 
+#[cfg(feature = "signer")]
 fn try_decode_transaction_message(message: &[u8]) -> Option<VersionedTransaction> {
     let mut transaction = Vec::with_capacity(message.len() + 1);
     transaction.push(0);

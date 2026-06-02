@@ -21,11 +21,16 @@ import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
+import com.wallet.core.primitives.SupportAction
+import com.wallet.core.primitives.SupportConversation
+import com.wallet.core.primitives.SupportMessage
+import com.wallet.core.primitives.SupportMessageInput
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSubscription
 import com.wallet.core.primitives.WalletSubscriptionChains
 import com.wallet.core.primitives.WalletConfigurationResult
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.HTTP
@@ -112,6 +117,26 @@ interface GemDeviceApiClient {
 
     @POST("/v2/devices/scan/transaction")
     suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction
+
+    @GET("/v2/devices/support")
+    suspend fun getSupportConversation(): SupportConversation?
+
+    @GET("/v2/devices/support/messages")
+    suspend fun getSupportMessages(
+        @Query("from_timestamp") fromTimestamp: Long,
+    ): List<SupportMessage>
+
+    @POST("/v2/devices/support/messages")
+    suspend fun sendSupportMessage(@Body input: SupportMessageInput): SupportMessage
+
+    @POST("/v2/devices/support/messages/images")
+    suspend fun sendSupportImage(
+        @Query("file_name") fileName: String,
+        @Body image: RequestBody,
+    ): SupportMessage
+
+    @POST("/v2/devices/support/action")
+    suspend fun sendSupportAction(@Body action: SupportAction): Boolean
 
     @GET("/v2/devices/wallet_configuration")
     suspend fun getWalletConfiguration(@Tag walletId: WalletId): WalletConfigurationResult
