@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseError
@@ -67,7 +66,6 @@ internal fun AmountAutocloseSheet(
     var stopLossText by remember { mutableStateOf(storedStopLoss.orEmpty()) }
     var submitAttempted by remember { mutableStateOf(false) }
     var focused: TpslType? by remember { mutableStateOf(null) }
-    val focusManager = LocalFocusManager.current
 
     val numericFormatter = remember { NumericFormatter() }
     val estimator = provider.estimatorFor(amount)
@@ -164,7 +162,6 @@ internal fun AmountAutocloseSheet(
                             TpslType.StopLoss -> stopLossText = formatted
                         }
                     },
-                    onDone = { focusManager.clearFocus() },
                 )
                 Spacer16()
             }
