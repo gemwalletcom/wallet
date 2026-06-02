@@ -31,7 +31,7 @@ struct PreferencesTests {
         #expect(!preferences.isDeveloperEnabled)
         #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.skippedReleaseVersion == nil)
-        #expect(preferences.perpetualLeverage == 10)
+        #expect(preferences.perpetualLeverage == 0)
     }
 
     @Test
@@ -182,7 +182,7 @@ struct PreferencesTests {
         #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.explorerName(chain: .bitcoin) == nil)
         #expect(preferences.skippedReleaseVersion == nil)
-        #expect(preferences.perpetualLeverage == 10)
+        #expect(preferences.perpetualLeverage == 0)
     }
 
     @Test

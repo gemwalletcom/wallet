@@ -291,6 +291,8 @@ public enum Localized {
     public static let no = Localized.tr("Localizable", "common.no", fallback: "No")
     /// No Results Found
     public static let noResultsFound = Localized.tr("Localizable", "common.no_results_found", fallback: "No Results Found")
+    /// None
+    public static let none = Localized.tr("Localizable", "common.none", fallback: "None")
     /// Not Available
     public static let notAvailable = Localized.tr("Localizable", "common.not_available", fallback: "Not Available")
     /// Open settings
@@ -1239,6 +1241,10 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "settings.notifications.title", fallback: "Notifications")
     }
     public enum Preferences {
+      /// Default Stop Loss
+      public static let defaultStopLoss = Localized.tr("Localizable", "settings.preferences.default_stop_loss", fallback: "Default Stop Loss")
+      /// Default Take Profit
+      public static let defaultTakeProfit = Localized.tr("Localizable", "settings.preferences.default_take_profit", fallback: "Default Take Profit")
       /// Default Leverage
       public static let defaultLeverage = Localized.tr("Localizable", "settings.preferences.default_leverage", fallback: "Default Leverage")
       /// Preferences

@@ -108,6 +108,32 @@ public final class ObservablePreferences: Sendable {
         }
     }
 
+    @ObservationIgnored
+    public var perpetualTakeProfit: UInt8 {
+        get {
+            access(keyPath: \.perpetualTakeProfit)
+            return preferences.perpetualTakeProfit
+        }
+        set {
+            withMutation(keyPath: \.perpetualTakeProfit) {
+                preferences.perpetualTakeProfit = newValue
+            }
+        }
+    }
+
+    @ObservationIgnored
+    public var perpetualStopLoss: UInt8 {
+        get {
+            access(keyPath: \.perpetualStopLoss)
+            return preferences.perpetualStopLoss
+        }
+        set {
+            withMutation(keyPath: \.perpetualStopLoss) {
+                preferences.perpetualStopLoss = newValue
+            }
+        }
+    }
+
     public func showPerpetuals(for wallet: Wallet) -> Bool {
         access(keyPath: \.isPerpetualEnabled)
         return preferences.showPerpetuals(for: wallet)
