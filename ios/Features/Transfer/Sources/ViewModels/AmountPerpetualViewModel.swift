@@ -33,14 +33,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     private let stopLossPercent: UInt8
     private var isAutocloseEdited = false
 
-    private var transferData: PerpetualTransferData {
-        data.positionAction.transferData
-    }
-
-    private var leverage: UInt8 {
-        leverageSelection?.selected.value ?? transferData.leverage
-    }
-
     init(asset: Asset, data: PerpetualRecipientData, preferences: Preferences = .standard) {
         self.asset = asset
         self.data = data
@@ -56,28 +48,20 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         )
     }
 
-    func onChangeLeverage() {
-        guard !isAutocloseEdited else { return }
-        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
-            data: data,
-            leverage: leverage,
-            takeProfitPercent: takeProfitPercent,
-            stopLossPercent: stopLossPercent,
-        )
-    }
-
-    func updateAutoclose(takeProfit: String?, stopLoss: String?) {
-        isAutocloseEdited = true
-        self.takeProfit = takeProfit
-        self.stopLoss = stopLoss
-    }
-
     var leverageTitle: String {
         Localized.Perpetual.leverage
     }
 
     var autocloseTitle: String {
         Localized.Perpetual.autoClose
+    }
+
+    private var transferData: PerpetualTransferData {
+        data.positionAction.transferData
+    }
+
+    private var leverage: UInt8 {
+        leverageSelection?.selected.value ?? transferData.leverage
     }
 
     var isAutocloseEnabled: Bool {
@@ -181,6 +165,22 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             takeProfit: takeProfit,
             stopLoss: stopLoss,
         )
+    }
+
+    func onChangeLeverage() {
+        guard !isAutocloseEdited else { return }
+        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
+            data: data,
+            leverage: leverage,
+            takeProfitPercent: takeProfitPercent,
+            stopLossPercent: stopLossPercent,
+        )
+    }
+
+    func updateAutoclose(takeProfit: String?, stopLoss: String?) {
+        isAutocloseEdited = true
+        self.takeProfit = takeProfit
+        self.stopLoss = stopLoss
     }
 
     private static func makeLeverageSelection(

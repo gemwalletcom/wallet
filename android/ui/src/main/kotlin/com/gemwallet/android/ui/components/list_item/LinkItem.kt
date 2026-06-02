@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ fun LinkItem(
     title: String,
     painter: Painter? = null,
     listPosition: ListPosition = ListPosition.Middle,
+    indented: Boolean = false,
     supportingContent: (@Composable () -> Unit)? = null,
     trailingContent: (@Composable RowScope.() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
@@ -59,16 +61,20 @@ fun LinkItem(
                 onLongClick = onLongClick,
             ),
         minHeight = minHeight,
-        leading = if (painter != null) {
-            {
-                Image(
-                    modifier = Modifier.size(iconSize),
-                    painter = painter,
-                    contentDescription = "setting_item"
-                )
+        leading = when {
+            painter != null -> {
+                {
+                    Image(
+                        modifier = Modifier.size(iconSize),
+                        painter = painter,
+                        contentDescription = "setting_item"
+                    )
+                }
             }
-        } else {
-            null
+            indented -> {
+                { Spacer(modifier = Modifier.size(iconSize)) }
+            }
+            else -> null
         },
         title = { Text(text = title) },
         subtitle = supportingContent,

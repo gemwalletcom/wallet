@@ -181,6 +181,7 @@ private fun <T> OptionPickerLinkItem(
     LinkItem(
         title = title,
         listPosition = listPosition,
+        indented = true,
         trailingContent = {
             PropertyDataText(text = label(current), badge = { DataBadgeChevron() })
             DropdownMenu(
