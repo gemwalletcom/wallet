@@ -69,6 +69,20 @@ class SettingsViewModel @Inject constructor(
         userConfig.setPerpetualLeverage(value)
     }
 
+    val perpetualTakeProfit = userConfig.perpetualTakeProfit()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultTakeProfit)
+
+    fun setPerpetualTakeProfit(value: Int) = viewModelScope.launch(Dispatchers.IO) {
+        userConfig.setPerpetualTakeProfit(value)
+    }
+
+    val perpetualStopLoss = userConfig.perpetualStopLoss()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PerpetualConfig.defaultStopLoss)
+
+    fun setPerpetualStopLoss(value: Int) = viewModelScope.launch(Dispatchers.IO) {
+        userConfig.setPerpetualStopLoss(value)
+    }
+
     init {
         viewModelScope.launch {
             session.collectLatest {

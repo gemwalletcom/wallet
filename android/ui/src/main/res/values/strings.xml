@@ -492,6 +492,9 @@
   <string name="asset.verification.verified">Verified</string>
   <string name="errors.connections.malicious_origin">This connection comes from an untrusted source.</string>
   <string name="settings.preferences.default_leverage">Default Leverage</string>
+  <string name="settings.preferences.default_take_profit">Default Take Profit</string>
+  <string name="settings.preferences.default_stop_loss">Default Stop Loss</string>
+  <string name="common.none">None</string>
   <string name="banner.perpetuals.title">Trade Perpetuals on Hyperliquid</string>
   <string name="banner.perpetuals.description">Deposit, trade, and earn with Hyperliquid perpetuals</string>
   <string name="errors.no_data_available">No data available</string>

@@ -51,11 +51,11 @@ fun PreferencesScene(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isPerpetualEnabled by viewModel.isPerpetualEnabled.collectAsStateWithLifecycle()
     val perpetualLeverage by viewModel.perpetualLeverage.collectAsStateWithLifecycle()
+    val perpetualTakeProfit by viewModel.perpetualTakeProfit.collectAsStateWithLifecycle()
+    val perpetualStopLoss by viewModel.perpetualStopLoss.collectAsStateWithLifecycle()
 
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
-
-    var showLeveragePicker by remember { mutableStateOf(false) }
 
     Scene(
         title = stringResource(id = (R.string.settings_preferences_title)),
@@ -130,44 +130,85 @@ fun PreferencesScene(
 
             if (uiState.developEnabled && isPerpetualEnabled) {
                 item {
-                    LinkItem(
-                        title = stringResource(id = R.string.settings_preferences_default_leverage),
+                    OptionPickerLinkItem(
+                        title = stringResource(R.string.settings_preferences_default_leverage),
+                        current = perpetualLeverage,
+                        options = PerpetualConfig.leverageOptions,
+                        listPosition = ListPosition.Middle,
+                        label = { it.formatLeverage() },
+                        onSelect = { viewModel.setPerpetualLeverage(it) },
+                    )
+                }
+                item {
+                    OptionPickerLinkItem(
+                        title = stringResource(R.string.settings_preferences_default_take_profit),
+                        current = perpetualTakeProfit,
+                        options = PerpetualConfig.takeProfitOptions,
+                        listPosition = ListPosition.Middle,
+                        label = { autocloseLabel(it) },
+                        onSelect = { viewModel.setPerpetualTakeProfit(it) },
+                    )
+                }
+                item {
+                    OptionPickerLinkItem(
+                        title = stringResource(R.string.settings_preferences_default_stop_loss),
+                        current = perpetualStopLoss,
+                        options = PerpetualConfig.stopLossOptions,
                         listPosition = ListPosition.Last,
-                        trailingContent = {
-                            PropertyDataText(
-                                text = perpetualLeverage.formatLeverage(),
-                                badge = { DataBadgeChevron() },
-                            )
-                            DropdownMenu(
-                                expanded = showLeveragePicker,
-                                onDismissRequest = { showLeveragePicker = false },
-                                containerColor = MaterialTheme.colorScheme.background,
-                            ) {
-                                PerpetualConfig.leverageOptions.forEach { value ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                if (value == perpetualLeverage) {
-                                                    Icon(AppIcons.Check, null, modifier = Modifier.size(compactIconSize))
-                                                } else {
-                                                    Spacer(modifier = Modifier.size(compactIconSize))
-                                                }
-                                                Spacer4()
-                                                Text(value.formatLeverage())
-                                            }
-                                        },
-                                        onClick = {
-                                            viewModel.setPerpetualLeverage(value)
-                                            showLeveragePicker = false
-                                        },
-                                    )
-                                }
-                            }
-                        },
-                        onClick = { showLeveragePicker = true },
+                        label = { autocloseLabel(it) },
+                        onSelect = { viewModel.setPerpetualStopLoss(it) },
                     )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun autocloseLabel(percent: Int): String =
+    if (percent == 0) stringResource(R.string.common_none) else "$percent%"
+
+@Composable
+private fun <T> OptionPickerLinkItem(
+    title: String,
+    current: T,
+    options: List<T>,
+    listPosition: ListPosition,
+    label: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    LinkItem(
+        title = title,
+        listPosition = listPosition,
+        trailingContent = {
+            PropertyDataText(text = label(current), badge = { DataBadgeChevron() })
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                containerColor = MaterialTheme.colorScheme.background,
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (option == current) {
+                                    Icon(AppIcons.Check, null, modifier = Modifier.size(compactIconSize))
+                                } else {
+                                    Spacer(modifier = Modifier.size(compactIconSize))
+                                }
+                                Spacer4()
+                                Text(label(option))
+                            }
+                        },
+                        onClick = {
+                            onSelect(option)
+                            expanded = false
+                        },
+                    )
+                }
+            }
+        },
+        onClick = { expanded = true },
+    )
 }
