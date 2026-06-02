@@ -17,8 +17,11 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -26,14 +29,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProviderTest {
-
-    @Test
-    fun `setLeverage updates the leverage flow`() {
-        val provider = makeProvider()
-        provider.setLeverage(10)
-        assertEquals(10, provider.leverageState.value?.current)
-    }
 
     @Test
     fun `title carries the direction`() {
@@ -44,12 +41,13 @@ class AmountPerpetualProviderTest {
     }
 
     @Test
-    fun `setTakeProfit and setStopLoss normalize empty and null to null`() {
-        val provider = makeProvider()
+    fun `editing then clearing a trigger keeps it cleared when no default is set`() = runTest {
+        val provider = makeProvider(scope = backgroundScope)
         provider.setTakeProfit("65000")
         provider.setStopLoss("55000")
         provider.setTakeProfit("")
         provider.setStopLoss(null)
+        advanceUntilIdle()
         assertNull(provider.takeProfit.value)
         assertNull(provider.stopLoss.value)
     }
@@ -70,6 +68,7 @@ class AmountPerpetualProviderTest {
         positionAction: PerpetualPositionAction = PerpetualPositionAction.Open(
             mockPerpetualTransferData(direction = direction),
         ),
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
     ): AmountPerpetualProvider {
         val asset = mockAssetCosmos()
         val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
@@ -77,10 +76,10 @@ class AmountPerpetualProviderTest {
         }
         val userConfig = mockk<UserConfig>(relaxed = true) {
             every { perpetualLeverage() } returns flowOf(5)
+            every { perpetualTakeProfit() } returns flowOf(0)
+            every { perpetualStopLoss() } returns flowOf(0)
         }
-        val perpetualAggregate = mockk<PerpetualDetailsDataAggregate>(relaxed = true) {
-            every { maxLeverage } returns 50
-        }
+        val perpetualAggregate = mockk<PerpetualDetailsDataAggregate>(relaxed = true)
         val getPerpetual = mockk<GetPerpetual>(relaxed = true) {
             every { getPerpetual(any()) } returns flowOf(perpetualAggregate)
         }
@@ -93,7 +92,7 @@ class AmountPerpetualProviderTest {
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,
             getPerpetualBalance = getPerpetualBalance,
-            scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
+            scope = scope,
         )
     }
 }

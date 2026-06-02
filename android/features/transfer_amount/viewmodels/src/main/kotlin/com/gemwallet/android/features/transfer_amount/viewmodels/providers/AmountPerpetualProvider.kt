@@ -20,25 +20,28 @@ import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.TpslType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(
     private val params: AmountParams.Perpetual,
-    userConfig: UserConfig,
+    private val userConfig: UserConfig,
     getAssetInfo: GetAssetInfo,
     getPerpetual: GetPerpetual,
     getPerpetualBalance: GetPerpetualBalance,
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
 ) : AmountDataProvider {
 
     override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
@@ -59,15 +62,16 @@ class AmountPerpetualProvider(
 
     private val takeProfitInput = MutableStateFlow<String?>(null)
     private val stopLossInput = MutableStateFlow<String?>(null)
-
-    val takeProfit: StateFlow<String?> = takeProfitInput
-    val stopLoss: StateFlow<String?> = stopLossInput
+    private val takeProfitEdited = MutableStateFlow(false)
+    private val stopLossEdited = MutableStateFlow(false)
 
     fun setTakeProfit(value: String?) {
+        takeProfitEdited.value = true
         takeProfitInput.value = value?.takeIf { it.isNotEmpty() }
     }
 
     fun setStopLoss(value: String?) {
+        stopLossEdited.value = true
         stopLossInput.value = value?.takeIf { it.isNotEmpty() }
     }
 
@@ -107,6 +111,40 @@ class AmountPerpetualProvider(
             direction = direction,
             leverage = leverage.toUByte(),
         )
+    }
+
+    val takeProfit: StateFlow<String?> = autocloseTrigger(takeProfitInput, takeProfitEdited, TpslType.TakeProfit)
+    val stopLoss: StateFlow<String?> = autocloseTrigger(stopLossInput, stopLossEdited, TpslType.StopLoss)
+
+    private fun autocloseTrigger(
+        input: StateFlow<String?>,
+        edited: StateFlow<Boolean>,
+        type: TpslType,
+    ): StateFlow<String?> {
+        if (!isOpenAction) return input
+        return combine(input, edited, defaultTrigger(type)) { value, isEdited, default ->
+            if (isEdited) value else default ?: value
+        }.stateIn(scope, SharingStarted.Eagerly, null)
+    }
+
+    private fun defaultTrigger(type: TpslType): Flow<String?> {
+        val percent = when (type) {
+            TpslType.TakeProfit -> userConfig.perpetualTakeProfit()
+            TpslType.StopLoss -> userConfig.perpetualStopLoss()
+        }
+        return percent.flatMapLatest { value ->
+            if (value == 0) {
+                flowOf(null)
+            } else {
+                combine(perpetual.filterNotNull(), leverageState.filterNotNull()) { market, _ ->
+                    PerpetualFormatter.formatInputPrice(
+                        provider = market.provider,
+                        price = estimatorFor("").targetPriceFromRoe(value, type),
+                        decimals = market.asset.decimals,
+                    )
+                }
+            }
+        }
     }
 
     override val minimumValue: StateFlow<BigInteger> = combine(
@@ -149,8 +187,8 @@ class AmountPerpetualProvider(
             usdcAmount = amount.atomicValue,
             usdcDecimals = current.asset.decimals,
             leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
-            takeProfit = formatTriggerForOrder(takeProfitInput.value, perpetualMarket),
-            stopLoss = formatTriggerForOrder(stopLossInput.value, perpetualMarket),
+            takeProfit = formatTriggerForOrder(takeProfit.value, perpetualMarket),
+            stopLoss = formatTriggerForOrder(stopLoss.value, perpetualMarket),
         )
         return ConfirmParams.Builder(perpetualMarket.asset, owner, amount.atomicValue, isMax)
             .perpetual(perpetualType)
