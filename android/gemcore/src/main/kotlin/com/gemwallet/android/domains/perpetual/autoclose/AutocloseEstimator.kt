@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.perpetual.autoclose
 
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.domains.price.PriceChange
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
@@ -14,12 +15,7 @@ class AutocloseEstimator(
     val hasSize: Boolean get() = positionSize != 0.0
 
     val percentSuggestions: List<Int>
-        get() = when {
-            leverage <= 3u -> listOf(5, 10, 15)
-            leverage <= 5u -> listOf(10, 15, 25)
-            leverage <= 10u -> listOf(15, 25, 50)
-            else -> listOf(25, 50, 100)
-        }
+        get() = PerpetualConfig.autocloseSuggestions(leverage.toInt())
 
     fun pnl(price: Double): Double {
         val absSize = abs(positionSize)

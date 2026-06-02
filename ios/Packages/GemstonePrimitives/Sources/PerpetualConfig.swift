@@ -14,7 +14,19 @@ public struct PerpetualConfig {
         Array(Config.shared.getPerpetualConfig().leverageOptions)
     }
 
+    public static var takeProfitOptions: [UInt8] {
+        Array(Config.shared.getPerpetualConfig().takeProfitPercentOptions)
+    }
+
+    public static var stopLossOptions: [UInt8] {
+        Array(Config.shared.getPerpetualConfig().stopLossPercentOptions)
+    }
+
     public static func selectLeverage(desired: UInt8, options: [UInt8]) -> UInt8 {
         Config.shared.selectLeverage(desired: desired, options: Data(options))
+    }
+
+    public static func autocloseSuggestions(leverage: UInt8) -> [UInt8] {
+        Array(Config.shared.getAutocloseSuggestions(leverage: leverage))
     }
 }

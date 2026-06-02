@@ -35,21 +35,6 @@ class AutocloseEstimatorTest {
         assertEquals(110.0, estimator.targetPriceFromRoe(roePercent = 50, type = TpslType.StopLoss), DELTA)
     }
 
-    @Test
-    fun percentSuggestionsByLeverageTier() {
-        assertEquals(listOf(5, 10, 15), estimator(leverage = 1u).percentSuggestions)
-        assertEquals(listOf(10, 15, 25), estimator(leverage = 5u).percentSuggestions)
-        assertEquals(listOf(15, 25, 50), estimator(leverage = 10u).percentSuggestions)
-        assertEquals(listOf(25, 50, 100), estimator(leverage = 20u).percentSuggestions)
-    }
-
-    private fun estimator(leverage: UByte) = AutocloseEstimator(
-        entryPrice = 100.0,
-        positionSize = 10.0,
-        direction = PerpetualDirection.Long,
-        leverage = leverage,
-    )
-
     private companion object {
         const val DELTA = 1e-9
     }
