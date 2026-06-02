@@ -50,6 +50,11 @@ internal fun AutocloseScene(
             TpslType.StopLoss -> model.stopLoss
         }
     }
+    val activeText = when (focusedField) {
+        TpslType.TakeProfit -> takeProfitText
+        TpslType.StopLoss -> stopLossText
+        null -> ""
+    }
 
     Column(
         modifier = Modifier
@@ -113,7 +118,7 @@ internal fun AutocloseScene(
                 },
             )
             Spacer(Modifier.weight(1f))
-            if (activeField != null) {
+            if (activeField != null && activeText.isEmpty()) {
                 AutocloseSuggestionsBar(
                     suggestions = activeField.percentSuggestions,
                     onPercentSelected = { percent -> onAction(AutocloseAction.SelectPercent(activeField.type, percent)) },

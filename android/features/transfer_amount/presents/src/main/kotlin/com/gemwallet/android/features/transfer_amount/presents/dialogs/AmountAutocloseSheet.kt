@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -85,6 +84,11 @@ internal fun AmountAutocloseSheet(
             TpslType.StopLoss -> stopLossField
         }
     }
+    val activeText = when (focused) {
+        TpslType.TakeProfit -> takeProfitText
+        TpslType.StopLoss -> stopLossText
+        null -> ""
+    }
     val isTakeProfitValid = takeProfitText.isEmpty() || takeProfitRawError == null
     val isStopLossValid = stopLossText.isEmpty() || stopLossRawError == null
     val hasInput = takeProfitPrice != null || stopLossPrice != null ||
@@ -144,7 +148,7 @@ internal fun AmountAutocloseSheet(
                 },
             )
             Spacer(Modifier.weight(1f))
-            if (activeField != null) {
+            if (activeField != null && activeText.isEmpty()) {
                 AutocloseSuggestionsBar(
                     suggestions = activeField.percentSuggestions,
                     onPercentSelected = { percent ->
@@ -178,11 +182,6 @@ internal fun AmountAutocloseSheet(
             )
             Spacer16()
         }
-    }
-
-    LaunchedEffect(storedTakeProfit, storedStopLoss) {
-        takeProfitText = storedTakeProfit.orEmpty()
-        stopLossText = storedStopLoss.orEmpty()
     }
 }
 
