@@ -111,24 +111,22 @@ fun PreferencesScene(
                 }
             }
 
-            if (uiState.developEnabled) {
-                item {
-                    LinkItem(
-                        title = stringResource(id = R.string.perpetuals_title),
-                        icon = R.drawable.settings_pricealert,
-                        listPosition = if (isPerpetualEnabled) ListPosition.First else ListPosition.Single,
-                        trailingContent = {
-                            Switch(
-                                checked = isPerpetualEnabled,
-                                onCheckedChange = viewModel::setPerpetualEnabled,
-                            )
-                        },
-                        onClick = { viewModel.setPerpetualEnabled(!isPerpetualEnabled) },
-                    )
-                }
+            item {
+                LinkItem(
+                    title = stringResource(id = R.string.perpetuals_title),
+                    icon = R.drawable.settings_pricealert,
+                    listPosition = if (isPerpetualEnabled) ListPosition.First else ListPosition.Single,
+                    trailingContent = {
+                        Switch(
+                            checked = isPerpetualEnabled,
+                            onCheckedChange = viewModel::setPerpetualEnabled,
+                        )
+                    },
+                    onClick = { viewModel.setPerpetualEnabled(!isPerpetualEnabled) },
+                )
             }
 
-            if (uiState.developEnabled && isPerpetualEnabled) {
+            if (isPerpetualEnabled) {
                 item {
                     OptionPickerLinkItem(
                         title = stringResource(R.string.settings_preferences_default_leverage),
