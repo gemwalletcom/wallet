@@ -18,7 +18,7 @@ tokio = { workspace = true, features = ["process", "io-util", "time", "signal", 
 
 rig = { version = "0.37", features = ["rmcp"] }
 rig-sqlite = "0.2.6"
-rig-fastembed = "0.4.1"
+rig-fastembed = "0.38.1"
 rusqlite = { version = "0.32", features = ["bundled"] }
 tokio-rusqlite = { version = "0.6", features = ["bundled"] }
 sqlite-vec = "0.1"

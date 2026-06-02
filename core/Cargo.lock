@@ -30,7 +30,7 @@ dependencies = [
  "gem_tracing",
  "reqwest 0.13.4",
  "rig",
- "rig-fastembed",
+ "rig-fastembed 0.38.1",
  "rig-sqlite",
  "rmcp",
  "rusqlite",
@@ -10128,8 +10128,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d928cf3d6427216f3df8b1f4f6c38909d1d512d3ce5e1f503ac5dd869ab0540"
 dependencies = [
  "rig-bedrock",
- "rig-core",
- "rig-fastembed",
+ "rig-core 0.37.0",
+ "rig-fastembed 0.4.2",
  "rig-helixdb",
  "rig-lancedb",
  "rig-milvus",
@@ -10147,7 +10147,7 @@ dependencies = [
  "aws-smithy-types",
  "base64 0.22.1",
  "nanoid",
- "rig-core",
+ "rig-core 0.37.0",
  "rig-derive",
  "schemars 1.2.1",
  "serde",
@@ -10193,6 +10193,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "rig-core"
+version = "0.38.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d9bae0f2b910cbd4ca2d53513f18aba3b6f6cb6cb0bf295e390d5396f56359d"
+dependencies = [
+ "as-any",
+ "async-stream",
+ "base64 0.22.1",
+ "bytes",
+ "eventsource-stream",
+ "fastrand",
+ "futures",
+ "futures-timer",
+ "glob",
+ "http 1.4.0",
+ "mime",
+ "mime_guess",
+ "nanoid",
+ "ordered-float 5.3.0",
+ "pin-project-lite",
+ "reqwest 0.13.4",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-futures",
+ "url",
+]
+
+[[package]]
 name = "rig-derive"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10210,12 +10242,26 @@ dependencies = [
 
 [[package]]
 name = "rig-fastembed"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "995649143edc47fe9c5aa878f3ee69ef6e6d36d95d702c9d91860b0a4e20e24f"
+checksum = "b127de4261136eda27f9804b22c60f378d5760b05520b852757d4b0d6c89d0a2"
 dependencies = [
  "fastembed",
- "rig-core",
+ "rig-core 0.38.1",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
+name = "rig-fastembed"
+version = "0.38.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f6ec00fd7dbcedaf8466ea12d4bb820cd3d349500725120091d02b58f6e36957"
+dependencies = [
+ "fastembed",
+ "rig-core 0.38.1",
  "schemars 1.2.1",
  "serde",
  "serde_json",
@@ -10229,7 +10275,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ad071283e166ef1e200f4e45ad2993ff0239f1ba92b030d31b758471803497a5"
 dependencies = [
  "reqwest 0.13.4",
- "rig-core",
+ "rig-core 0.37.0",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -10245,7 +10291,7 @@ dependencies = [
  "deranged",
  "futures",
  "lancedb",
- "rig-core",
+ "rig-core 0.37.0",
  "serde",
  "serde_json",
 ]
@@ -10257,7 +10303,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "152e207dde293673720a8a832722dfc413fd234acc946cedcf2aaaab455fd328"
 dependencies = [
  "reqwest 0.13.4",
- "rig-core",
+ "rig-core 0.37.0",
  "serde",
  "serde_json",
  "uuid",
@@ -10270,7 +10316,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "010e28dfce1d266591991181a23b5d8168f90bc2ba18ccd54e0ba53742c39d5c"
 dependencies = [
  "chrono",
- "rig-core",
+ "rig-core 0.37.0",
  "rusqlite",
  "serde",
  "serde_json",
@@ -10702,7 +10748,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.52.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
