@@ -13,7 +13,7 @@ use crate::perpetual_formatter::usdc_value;
 
 pub const ACTION_HISTORY_QUERY_LOOKBACK_MS: u64 = 5_000;
 const ACTION_HISTORY_MATCH_WINDOW_MS: u64 = 5 * 60 * 1_000;
-const DELEGATOR_WITHDRAWAL_INITIATED: &str = "initiated";
+pub(crate) const DELEGATOR_WITHDRAWAL_INITIATED: &str = "initiated";
 
 fn perpetual_fill_type_and_direction(dir: &FillDirection) -> Option<(TransactionType, PerpetualDirection)> {
     match dir {

@@ -23,7 +23,7 @@ impl<C: Client> ChainStaking for HyperCoreClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (delegations, history) = try_join!(self.get_staking_delegations(&address), self.get_staking_history(&address))?;
+        let (delegations, history) = try_join!(self.get_staking_delegations(&address), self.get_delegator_history(&address))?;
         Ok(staking_mapper::map_staking_delegations(delegations, history, Utc::now(), self.chain))
     }
 }

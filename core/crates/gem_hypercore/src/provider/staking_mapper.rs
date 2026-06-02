@@ -1,4 +1,6 @@
-use crate::models::balance::{DelegationBalance, DelegatorHistoryEntry, Validator, WithdrawalPhase};
+use crate::models::balance::{DelegationBalance, Validator};
+use crate::models::user::DelegatorHistoryUpdate;
+use crate::provider::transaction_state_mapper::DELEGATOR_WITHDRAWAL_INITIATED;
 use chrono::{DateTime, Duration, Utc};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
@@ -16,7 +18,7 @@ pub fn map_staking_validators(validators: Vec<Validator>, chain: Chain, apy: Opt
     result
 }
 
-pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec<DelegatorHistoryEntry>, now: DateTime<Utc>, chain: Chain) -> Vec<DelegationBase> {
+pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec<DelegatorHistoryUpdate>, now: DateTime<Utc>, chain: Chain) -> Vec<DelegationBase> {
     let native_decimals = Asset::from_chain(chain).decimals as u32;
     let mut result: Vec<DelegationBase> = delegations
         .into_iter()
@@ -36,14 +38,14 @@ pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec
     result
 }
 
-fn map_pending_withdrawals(history: Vec<DelegatorHistoryEntry>, now: DateTime<Utc>, chain: Chain, native_decimals: u32) -> Vec<DelegationBase> {
+fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime<Utc>, chain: Chain, native_decimals: u32) -> Vec<DelegationBase> {
     let lock = Duration::seconds(chain.config().stake.as_ref().map(|stake| stake.lock_time).unwrap_or_default() as i64);
 
     history
         .into_iter()
         .filter_map(|entry| {
             let withdrawal = entry.delta.withdrawal?;
-            if withdrawal.phase != WithdrawalPhase::Initiated {
+            if withdrawal.phase != DELEGATOR_WITHDRAWAL_INITIATED {
                 return None;
             }
             let completion_date = DateTime::from_timestamp_millis(entry.time as i64)? + lock;
@@ -67,16 +69,20 @@ fn map_pending_withdrawals(history: Vec<DelegatorHistoryEntry>, now: DateTime<Ut
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::balance::{DelegatorDelta, DelegatorWithdrawal, ValidatorStats};
+    use crate::models::balance::ValidatorStats;
+    use crate::models::user::{DelegatorHistoryDelta, DelegatorWithdrawalDelta};
     use primitives::{Chain, DelegationState};
 
-    fn withdrawal_entry(time: u64, amount: &str, phase: WithdrawalPhase) -> DelegatorHistoryEntry {
-        DelegatorHistoryEntry {
+    fn withdrawal_entry(time: u64, amount: &str, phase: &str) -> DelegatorHistoryUpdate {
+        DelegatorHistoryUpdate {
             time,
-            delta: DelegatorDelta {
-                withdrawal: Some(DelegatorWithdrawal {
+            hash: "0x0".to_string(),
+            delta: DelegatorHistoryDelta {
+                c_deposit: None,
+                delegate: None,
+                withdrawal: Some(DelegatorWithdrawalDelta {
                     amount: amount.to_string(),
-                    phase,
+                    phase: phase.to_string(),
                 }),
             },
         }
@@ -151,12 +157,17 @@ mod tests {
         let now = DateTime::from_timestamp(1_780_000_000, 0).unwrap();
         let at = |days: i64| (now - Duration::days(days)).timestamp_millis() as u64;
         let history = vec![
-            withdrawal_entry(at(1), "1.5", WithdrawalPhase::Initiated),
-            withdrawal_entry(at(8), "2.0", WithdrawalPhase::Initiated),
-            withdrawal_entry(at(1), "3.0", WithdrawalPhase::Finalized),
-            DelegatorHistoryEntry {
+            withdrawal_entry(at(1), "1.5", "initiated"),
+            withdrawal_entry(at(8), "2.0", "initiated"),
+            withdrawal_entry(at(1), "3.0", "finalized"),
+            DelegatorHistoryUpdate {
                 time: at(0),
-                delta: DelegatorDelta { withdrawal: None },
+                hash: "0x0".to_string(),
+                delta: DelegatorHistoryDelta {
+                    c_deposit: None,
+                    delegate: None,
+                    withdrawal: None,
+                },
             },
         ];
 
