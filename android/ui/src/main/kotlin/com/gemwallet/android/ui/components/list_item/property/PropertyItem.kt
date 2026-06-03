@@ -35,6 +35,7 @@ fun PropertyItem(
     @StringRes action: Int,
     actionIconModel: Any? = null,
     data: String? = null,
+    info: InfoSheetEntity? = null,
     listPosition: ListPosition = ListPosition.Middle,
     onClick: () -> Unit,
 ) {
@@ -42,6 +43,7 @@ fun PropertyItem(
         action = stringResource(action),
         actionIconModel = actionIconModel,
         data = data,
+        info = info,
         listPosition = listPosition,
         onClick = onClick
     )
@@ -52,6 +54,7 @@ fun PropertyItem(
     action: String,
     actionIconModel: Any? = null,
     data: String? = null,
+    info: InfoSheetEntity? = null,
     listPosition: ListPosition = ListPosition.Middle,
     onClick: () -> Unit,
 ) {
@@ -61,6 +64,7 @@ fun PropertyItem(
             PropertyTitleText(
                 text = action,
                 trailing = actionIconModel?.let { { AsyncImage(model = it, size = smallIconSize) } },
+                info = info,
             )
         },
         data = {

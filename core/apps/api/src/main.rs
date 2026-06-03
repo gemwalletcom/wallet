@@ -5,7 +5,6 @@ mod catchers;
 mod chain;
 mod config;
 mod devices;
-mod fiat;
 mod markets;
 mod model;
 mod nft;
@@ -70,8 +69,6 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 prices::get_assets_prices,
                 prices::get_charts,
                 prices::get_fiat_rates,
-                devices::get_fiat_quotes_v1,
-                fiat::get_fiat_order_v1,
                 webhooks::create_webhook,
                 config::get_config,
                 assets::get_asset,
@@ -112,7 +109,6 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 devices::get_device_fiat_transactions_v2,
                 devices::get_device_fiat_assets_v2,
                 devices::get_fiat_quotes_v2,
-                devices::get_fiat_quote_v2,
                 devices::get_fiat_quote_url_v2,
                 devices::add_device_v2,
                 devices::get_device_v2,
@@ -166,6 +162,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::prices::add_price,
                 admin::nft::update_nft_asset,
                 admin::nft::update_nft_collection,
+                admin::fiat::get_fiat_quotes,
             ],
         )
     } else {

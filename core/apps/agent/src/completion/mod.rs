@@ -20,6 +20,9 @@ impl CompletionBackend {
         if config.key.is_empty() {
             return Err(format!("no key for the active provider {:?} — set its key in vault/.env", settings.provider).into());
         }
+        if config.model.is_empty() {
+            return Err(format!("no model for the active provider {:?}", settings.provider).into());
+        }
 
         let inner = provider::for_provider(settings.provider).build_backend(config, settings, preamble, tools)?;
         Ok(Self { inner })

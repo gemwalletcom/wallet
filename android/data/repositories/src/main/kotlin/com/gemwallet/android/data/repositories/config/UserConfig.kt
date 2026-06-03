@@ -81,6 +81,24 @@ class UserConfig(
         }
     }
 
+    fun perpetualTakeProfit(): Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[Key.PerpetualTakeProfit] ?: PerpetualConfig.defaultTakeProfit }
+
+    suspend fun setPerpetualTakeProfit(value: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[Key.PerpetualTakeProfit] = value
+        }
+    }
+
+    fun perpetualStopLoss(): Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[Key.PerpetualStopLoss] ?: PerpetualConfig.defaultStopLoss }
+
+    suspend fun setPerpetualStopLoss(value: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[Key.PerpetualStopLoss] = value
+        }
+    }
+
     fun getLatestAppUpdate(): Flow<AppUpdateInfo?> = context.dataStore.data
         .map { preferences ->
             val version = preferences[Key.LatestVersion].orEmpty()
@@ -206,6 +224,8 @@ class UserConfig(
         val AskNotifications = longPreferencesKey("ask_notifications")
         val IsPerpetualEnabled = booleanPreferencesKey("is_perpetual_enabled")
         val PerpetualLeverage = intPreferencesKey("perpetual_leverage")
+        val PerpetualTakeProfit = intPreferencesKey("perpetual_take_profit")
+        val PerpetualStopLoss = intPreferencesKey("perpetual_stop_loss")
     }
 
 }

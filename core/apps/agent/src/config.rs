@@ -44,8 +44,6 @@ pub struct SlackConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct AgentProfile {
-    pub model: String,
-    #[serde(default)]
     pub tools: Vec<crate::tools::ToolEntry>,
     #[serde(default)]
     pub shell: ShellConfig,
@@ -234,6 +232,7 @@ pub struct ProviderConfig {
     pub key: String,
     #[serde(default)]
     pub base: String,
+    pub model: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

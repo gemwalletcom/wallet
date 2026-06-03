@@ -13,7 +13,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
 config = { workspace = true }
-prometheus-client = { workspace = true }
 strum = { workspace = true }
 redis = { workspace = true }
 chrono = { workspace = true }
@@ -39,7 +38,6 @@ api_connector = { path = "../../crates/api_connector" }
 search_index = { path = "../../crates/search_index" }
 nft = { path = "../../crates/nft" }
 cacher = { path = "../../crates/cacher" }
-metrics = { path = "../../crates/metrics" }
 streamer = { path = "../../crates/streamer" }
 gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
 swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }

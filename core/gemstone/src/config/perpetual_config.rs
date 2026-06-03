@@ -1,16 +1,31 @@
 pub const DEFAULT_LEVERAGE: u8 = 5;
 pub const LEVERAGE_OPTIONS: &[u8] = &[1, 2, 3, 5, 10, 20, 25, 30, 40, 50];
 
+pub const TAKE_PROFIT_PERCENT_OPTIONS: &[u8] = &[0, 10, 25, 50, 100, 200];
+pub const STOP_LOSS_PERCENT_OPTIONS: &[u8] = &[0, 3, 5, 10, 25, 50];
+pub const DEFAULT_TAKE_PROFIT_PERCENT: u8 = 0;
+pub const DEFAULT_STOP_LOSS_PERCENT: u8 = 0;
+const AUTOCLOSE_SUGGESTION_TIERS: &[(u8, &[u8])] = &[(3, &[5, 10, 15]), (5, &[10, 15, 25]), (10, &[15, 25, 50])];
+const AUTOCLOSE_SUGGESTIONS_HIGH_LEVERAGE: &[u8] = &[25, 50, 100];
+
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
 pub struct PerpetualConfig {
     pub default_leverage: u8,
     pub leverage_options: Vec<u8>,
+    pub take_profit_percent_options: Vec<u8>,
+    pub stop_loss_percent_options: Vec<u8>,
+    pub default_take_profit_percent: u8,
+    pub default_stop_loss_percent: u8,
 }
 
 pub fn get_perpetual_config() -> PerpetualConfig {
     PerpetualConfig {
         default_leverage: DEFAULT_LEVERAGE,
         leverage_options: LEVERAGE_OPTIONS.to_vec(),
+        take_profit_percent_options: TAKE_PROFIT_PERCENT_OPTIONS.to_vec(),
+        stop_loss_percent_options: STOP_LOSS_PERCENT_OPTIONS.to_vec(),
+        default_take_profit_percent: DEFAULT_TAKE_PROFIT_PERCENT,
+        default_stop_loss_percent: DEFAULT_STOP_LOSS_PERCENT,
     }
 }
 
@@ -22,6 +37,14 @@ pub fn select_leverage(desired: u8, options: &[u8]) -> u8 {
         .max()
         .or_else(|| options.iter().copied().min())
         .unwrap_or(DEFAULT_LEVERAGE)
+}
+
+pub fn get_autoclose_suggestions(leverage: u8) -> Vec<u8> {
+    AUTOCLOSE_SUGGESTION_TIERS
+        .iter()
+        .find(|&&(max_leverage, _)| leverage <= max_leverage)
+        .map_or(AUTOCLOSE_SUGGESTIONS_HIGH_LEVERAGE, |&(_, suggestions)| suggestions)
+        .to_vec()
 }
 
 #[cfg(test)]
@@ -49,5 +72,17 @@ mod tests {
         let config = get_perpetual_config();
         assert_eq!(config.default_leverage, DEFAULT_LEVERAGE);
         assert_eq!(config.leverage_options, LEVERAGE_OPTIONS);
+        assert_eq!(config.take_profit_percent_options, TAKE_PROFIT_PERCENT_OPTIONS);
+        assert_eq!(config.stop_loss_percent_options, STOP_LOSS_PERCENT_OPTIONS);
+        assert_eq!(config.default_take_profit_percent, DEFAULT_TAKE_PROFIT_PERCENT);
+        assert_eq!(config.default_stop_loss_percent, DEFAULT_STOP_LOSS_PERCENT);
+    }
+
+    #[test]
+    fn test_get_autoclose_suggestions() {
+        assert_eq!(get_autoclose_suggestions(2), vec![5, 10, 15]);
+        assert_eq!(get_autoclose_suggestions(5), vec![10, 15, 25]);
+        assert_eq!(get_autoclose_suggestions(10), vec![15, 25, 50]);
+        assert_eq!(get_autoclose_suggestions(25), vec![25, 50, 100]);
     }
 }

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
@@ -16,6 +17,8 @@ public final class PreferencesViewModel {
     private let currencyModel: CurrencySceneViewModel
 
     var isPresentingLeveragePicker = false
+    var isPresentingTakeProfitPicker = false
+    var isPresentingStopLossPicker = false
 
     public init(
         currencyModel: CurrencySceneViewModel,
@@ -85,8 +88,12 @@ public final class PreferencesViewModel {
         AssetImage.image(Images.Settings.perpetuals)
     }
 
+    private var leverage: UInt8 {
+        preferences.perpetualLeverage == 0 ? PerpetualConfig.defaultLeverage : preferences.perpetualLeverage
+    }
+
     var perpetualLeverage: LeverageOption {
-        get { LeverageOption(value: preferences.perpetualLeverage) }
+        get { LeverageOption(value: leverage) }
         set { preferences.perpetualLeverage = newValue.value }
     }
 
@@ -95,11 +102,45 @@ public final class PreferencesViewModel {
     }
 
     var defaultLeverageValue: String {
-        "\(preferences.perpetualLeverage)x"
+        "\(leverage)x"
     }
 
     var leverageOptions: [LeverageOption] {
         LeverageOption.allOptions
+    }
+
+    var perpetualTakeProfit: AutocloseOption {
+        get { AutocloseOption(value: preferences.perpetualTakeProfit) }
+        set { preferences.perpetualTakeProfit = newValue.value }
+    }
+
+    var perpetualStopLoss: AutocloseOption {
+        get { AutocloseOption(value: preferences.perpetualStopLoss) }
+        set { preferences.perpetualStopLoss = newValue.value }
+    }
+
+    var defaultTakeProfitTitle: String {
+        Localized.Settings.Preferences.defaultTakeProfit
+    }
+
+    var defaultStopLossTitle: String {
+        Localized.Settings.Preferences.defaultStopLoss
+    }
+
+    var defaultTakeProfitValue: String {
+        perpetualTakeProfit.displayText
+    }
+
+    var defaultStopLossValue: String {
+        perpetualStopLoss.displayText
+    }
+
+    var takeProfitOptions: [AutocloseOption] {
+        AutocloseOption.takeProfitOptions
+    }
+
+    var stopLossOptions: [AutocloseOption] {
+        AutocloseOption.stopLossOptions
     }
 }
 
@@ -108,5 +149,13 @@ public final class PreferencesViewModel {
 extension PreferencesViewModel {
     func onSelectLeverage() {
         isPresentingLeveragePicker = true
+    }
+
+    func onSelectTakeProfit() {
+        isPresentingTakeProfitPicker = true
+    }
+
+    func onSelectStopLoss() {
+        isPresentingStopLossPicker = true
     }
 }

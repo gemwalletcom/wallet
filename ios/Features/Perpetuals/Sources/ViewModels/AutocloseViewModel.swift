@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -68,12 +69,7 @@ public struct AutocloseViewModel {
     }
 
     public var percents: [Int] {
-        switch estimator.leverage {
-        case 0 ... 3: [5, 10, 15]
-        case 4 ... 5: [10, 15, 25]
-        case 4 ... 10: [15, 25, 50]
-        case _: [25, 50, 100]
-        }
+        PerpetualConfig.autocloseSuggestions(leverage: estimator.leverage).map { Int($0) }
     }
 
     public var percentSuggestions: [PercentageSuggestion] {

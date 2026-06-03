@@ -26,7 +26,7 @@ futures = { workspace = true, optional = true }
 serde_json = { workspace = true }
 gem_client = { path = "../gem_client" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
-gem_encoding = { path = "../gem_encoding", optional = true }
+gem_encoding = { path = "../gem_encoding", optional = true, features = ["base32"] }
 gem_hash = { path = "../gem_hash", optional = true }
 signer = { path = "../signer", optional = true }
 

@@ -4,7 +4,7 @@ import Components
 import Foundation
 import GemstonePrimitives
 
-public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
+public struct LeverageOption: WheelPickerDisplayable, Sendable {
     public static let allOptions: [LeverageOption] = PerpetualConfig.leverageOptions.map { .init(value: $0) }
 
     public let value: UInt8
@@ -19,10 +19,6 @@ public struct LeverageOption: WheelPickerDisplayable, Comparable, Sendable {
 
     public var displayText: String {
         "\(value)x"
-    }
-
-    public static func < (lhs: LeverageOption, rhs: LeverageOption) -> Bool {
-        lhs.value < rhs.value
     }
 
     public static func option(desiredValue: UInt8, from available: [LeverageOption]) -> LeverageOption {

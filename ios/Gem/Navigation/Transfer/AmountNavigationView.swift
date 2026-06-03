@@ -35,10 +35,10 @@ struct AmountNavigationView: View {
                     }
                 case let .leverageSelector(selection):
                     @Bindable var leverageSelection = selection
-                    LeveragePickerSheet(
+                    WheelPickerSheet(
                         title: leverageSelection.title,
-                        leverageOptions: leverageSelection.options,
-                        selectedLeverage: $leverageSelection.selected,
+                        options: leverageSelection.options,
+                        selection: $leverageSelection.selected,
                     )
                     .onChange(of: leverageSelection.selected, model.onChangeLeverage)
                 case let .autoclose(openData):

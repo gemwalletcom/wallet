@@ -37,7 +37,7 @@ pub(in crate::completion) fn build_rig_agent<C>(client: &C, settings: &Settings,
 where
     C: CompletionClient,
 {
-    let model_id = &settings.agent.model;
+    let model_id = &settings.llm_provider().model;
     let tool_names: Vec<String> = tools.iter().map(|t| t.name()).collect();
     info!(model = %model_id, tools = ?tool_names, "built agent");
     client

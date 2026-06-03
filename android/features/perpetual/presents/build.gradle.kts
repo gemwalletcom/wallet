@@ -54,10 +54,14 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:perpetual:viewmodels"))
+    implementation(project(":features:confirm:presents"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
+
+    implementation(libs.navigation3.runtime)
+    implementation(libs.navigation3.ui)
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)

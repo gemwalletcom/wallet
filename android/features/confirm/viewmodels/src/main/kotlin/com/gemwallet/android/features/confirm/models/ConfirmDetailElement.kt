@@ -11,4 +11,9 @@ sealed interface ConfirmDetailElement {
     data class PerpetualDetails(
         val model: PerpetualConfirmDetailsUIModel,
     ) : ConfirmDetailElement
+
+    data class PerpetualModifyAutoclose(
+        val takeProfitText: String?,
+        val stopLossText: String?,
+    ) : ConfirmDetailElement
 }

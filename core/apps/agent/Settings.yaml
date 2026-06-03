@@ -18,12 +18,15 @@ provider: anthropic   # PROVIDER — anthropic | deepseek | venice
 
 anthropic:
   key: ""             # ANTHROPIC_KEY
+  model: "claude-sonnet-4-6"
 deepseek:
   key: ""             # DEEPSEEK_KEY
   base: "https://api.deepseek.com/anthropic"
+  model: "deepseek-v4-pro"
 venice:
   key: ""             # VENICE_KEY
   base: "https://api.venice.ai/api/v1"
+  model: "zai-org-glm-5"
 
 embedding:
   model: "nomic-embed-text-v1.5-q"

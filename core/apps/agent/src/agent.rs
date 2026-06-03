@@ -39,7 +39,7 @@ impl GemmyAgent {
 
         info!(
             agent = %settings.agent_name,
-            model = %settings.agent.model,
+            model = %settings.llm_provider().model,
             preamble_chars = preamble.len(),
             "built rig agent"
         );

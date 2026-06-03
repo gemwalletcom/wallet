@@ -88,7 +88,7 @@ internal fun PerpetualPositionScene(
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
                     )
                 }
-                positionProperties(position)
+                positionProperties(position, onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) })
                 item {
                     if (perpetual != null) {
                         if (position == null) {

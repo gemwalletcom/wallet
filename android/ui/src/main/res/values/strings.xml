@@ -492,6 +492,9 @@
   <string name="asset.verification.verified">Verified</string>
   <string name="errors.connections.malicious_origin">This connection comes from an untrusted source.</string>
   <string name="settings.preferences.default_leverage">Default Leverage</string>
+  <string name="settings.preferences.default_take_profit">Default Take Profit</string>
+  <string name="settings.preferences.default_stop_loss">Default Stop Loss</string>
+  <string name="common.none">None</string>
   <string name="banner.perpetuals.title">Trade Perpetuals on Hyperliquid</string>
   <string name="banner.perpetuals.description">Deposit, trade, and earn with Hyperliquid perpetuals</string>
   <string name="errors.no_data_available">No data available</string>
@@ -595,4 +598,7 @@
   <string name="info.minimum_amount.title">Minimum Amount</string>
   <string name="info.minimum_amount.description" formatted="false">On the %s network, the minimum amount for this transaction is %s.</string>
   <string name="transaction.status.refunded">Refunded</string>
+  <string name="errors.dust_change_short">The remaining balance after this transfer would be dust. Try sending the maximum amount.</string>
+  <string name="errors.perpetual.trigger_price_lower">Trigger price should be lower than market price</string>
+  <string name="errors.perpetual.trigger_price_higher">Trigger price should be higher than market price</string>
 </resources>

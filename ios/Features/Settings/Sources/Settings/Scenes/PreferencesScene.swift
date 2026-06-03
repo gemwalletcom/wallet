@@ -58,14 +58,21 @@ public struct PreferencesScene: View {
                     )
 
                     if model.isPerpetualEnabled {
-                        NavigationCustomLink(
-                            with: ListItemView(
-                                title: model.defaultLeverageTitle,
-                                subtitle: model.defaultLeverageValue,
-                            ),
+                        perpetualLink(
+                            title: model.defaultLeverageTitle,
+                            value: model.defaultLeverageValue,
                             action: model.onSelectLeverage,
                         )
-                        .padding(.leading, Sizing.image.asset - .tiny)
+                        perpetualLink(
+                            title: model.defaultTakeProfitTitle,
+                            value: model.defaultTakeProfitValue,
+                            action: model.onSelectTakeProfit,
+                        )
+                        perpetualLink(
+                            title: model.defaultStopLossTitle,
+                            value: model.defaultStopLossValue,
+                            action: model.onSelectStopLoss,
+                        )
                     }
                 }
             }
@@ -75,12 +82,38 @@ public struct PreferencesScene: View {
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
         .sheet(isPresented: $model.isPresentingLeveragePicker) {
-            LeveragePickerSheet(
+            WheelPickerSheet(
                 title: model.defaultLeverageTitle,
-                leverageOptions: model.leverageOptions,
-                selectedLeverage: $model.perpetualLeverage,
+                options: model.leverageOptions,
+                selection: $model.perpetualLeverage,
             )
         }
+        .sheet(isPresented: $model.isPresentingTakeProfitPicker) {
+            WheelPickerSheet(
+                title: model.defaultTakeProfitTitle,
+                options: model.takeProfitOptions,
+                selection: $model.perpetualTakeProfit,
+            )
+        }
+        .sheet(isPresented: $model.isPresentingStopLossPicker) {
+            WheelPickerSheet(
+                title: model.defaultStopLossTitle,
+                options: model.stopLossOptions,
+                selection: $model.perpetualStopLoss,
+            )
+        }
+    }
+
+    private func perpetualLink(
+        title: String,
+        value: String,
+        action: @escaping @MainActor () -> Void,
+    ) -> some View {
+        NavigationCustomLink(
+            with: ListItemView(title: title, subtitle: value),
+            action: action,
+        )
+        .padding(.leading, Sizing.image.asset - .tiny)
     }
 }
 

@@ -8,8 +8,10 @@ Use the iOS `justfile` commands by default.
 just bootstrap              # first-time setup
 just clean                  # clean DerivedData and build artifacts
 just build                  # build the app
-just build-package Primitives
+just build-for-testing      # build once for repeated test runs
+just build-package Primitives # build one Swift package/scheme
 just test                   # run unit test plans
+just test-without-building  # re-run tests after build-for-testing
 just test AssetsTests       # run a specific test target
 just test-integration       # run iOS integration/UI tests
 just test-ui                # run iOS integration/UI tests
@@ -28,6 +30,32 @@ just localize               # update localization files
 ```
 
 From the repo root, use `just generate-stone` and `just run-ios` as the default Gemstone/iOS flow. The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build.
+
+## SwiftUI Iteration
+
+For presentation-only SwiftUI work, build the owning package first and avoid repeating full app builds for each visual adjustment:
+
+```bash
+just build-package Assets
+just build-package Components
+just build-package PrimitivesComponents
+```
+
+For ViewModel or display-model behavior, pair the package build with the narrowest matching test target:
+
+```bash
+just test AssetsTests
+just test LockManagerTests
+```
+
+For repeated test debugging, build once and re-run without rebuilding:
+
+```bash
+just build-for-testing
+just test-without-building
+```
+
+Use `just build` when the change touches app composition, navigation wiring, generated bindings, or code that cannot be validated by a package build.
 
 ## Additional Utilities
 

@@ -8,6 +8,7 @@ import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.ext.hasPerpetualsSupport
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.serializer.StreamEventSerializer
 import com.gemwallet.android.serializer.jsonEncoder
@@ -28,8 +29,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 
@@ -64,12 +67,14 @@ class StreamObserverService(
                 subscriptionService.setupAssets(wallet.id)
                 if (connectionJob == null) start()
                 runCatching { syncAssets() }
-                if (wallet.hasPerpetualsSupport && userConfig.isPerpetualEnabled().first()) {
-                    runCatching { syncPerpetuals.syncPerpetuals() }
-                    runCatching { syncPerpetualPositions.syncPerpetualPositions() }
-                }
             }
         }
+        scope.launchPerpetualSync(
+            session = sessionRepository.session(),
+            isPerpetualEnabled = userConfig.isPerpetualEnabled(),
+            syncPerpetuals = syncPerpetuals,
+            syncPerpetualPositions = syncPerpetualPositions,
+        )
     }
 
     fun start() {
@@ -138,4 +143,22 @@ class StreamObserverService(
         private const val TAG = "StreamObserverService"
         private const val PING_INTERVAL_MS = 30_000L
     }
+}
+
+internal fun CoroutineScope.launchPerpetualSync(
+    session: Flow<Session?>,
+    isPerpetualEnabled: Flow<Boolean>,
+    syncPerpetuals: SyncPerpetuals,
+    syncPerpetualPositions: SyncPerpetualPositions,
+): Job = launch {
+    combine(session, isPerpetualEnabled) { current, enabled ->
+        val wallet = current?.wallet
+        if (wallet != null && wallet.hasPerpetualsSupport && enabled) wallet.id.id else null
+    }
+        .distinctUntilChanged()
+        .collectLatest { walletId ->
+            if (walletId == null) return@collectLatest
+            runCatching { syncPerpetuals.syncPerpetuals() }
+            runCatching { syncPerpetualPositions.syncPerpetualPositions() }
+        }
 }

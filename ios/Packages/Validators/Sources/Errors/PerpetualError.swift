@@ -12,11 +12,10 @@ extension PerpetualError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case let .invalidAutoclose(type, direction):
-            let comparison = switch (type, direction) {
-            case (.takeProfit, .long), (.stopLoss, .short): "higher"
-            case (.takeProfit, .short), (.stopLoss, .long): "lower"
+            switch (type, direction) {
+            case (.takeProfit, .long), (.stopLoss, .short): Localized.Errors.Perpetual.triggerPriceHigher
+            case (.takeProfit, .short), (.stopLoss, .long): Localized.Errors.Perpetual.triggerPriceLower
             }
-            return "Trigger price should be \(comparison) than market price" // TODO: Localized
         }
     }
 }

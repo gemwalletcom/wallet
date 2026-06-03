@@ -19,7 +19,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use {
     docs::{DocsUrl, get_docs_url},
-    perpetual_config::{PerpetualConfig, get_perpetual_config, select_leverage},
+    perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
     public::{ASSETS_URL, PublicUrl, get_public_url},
     rewards::{RewardsUrl, get_rewards_url},
     social::{SocialUrl, get_social_url, get_social_url_deeplink},
@@ -58,6 +58,10 @@ impl Config {
 
     fn select_leverage(&self, desired: u8, options: Vec<u8>) -> u8 {
         select_leverage(desired, &options)
+    }
+
+    fn get_autoclose_suggestions(&self, leverage: u8) -> Vec<u8> {
+        get_autoclose_suggestions(leverage)
     }
 
     fn get_docs_url(&self, item: DocsUrl) -> String {

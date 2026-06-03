@@ -144,7 +144,10 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
     );
 
     let key = format!("slack:{}:{}", msg.channel, msg.thread_ts.as_deref().unwrap_or(&msg.ts));
-    state.conversation_jobs.run(&key, handle_message(&state, &msg, &header, &latest, image_attachments, addressed)).await
+    state
+        .conversation_jobs
+        .run(&key, handle_message(&state, &msg, &header, &latest, image_attachments, addressed))
+        .await
 }
 
 async fn handle_message(state: &AppState, msg: &MessageEvent, header: &str, latest: &str, image_attachments: Vec<ImageAttachment>, addressed: bool) -> Result<()> {

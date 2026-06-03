@@ -684,14 +684,12 @@ dependencies = [
  "hex",
  "in_app_notifications",
  "localizer",
- "metrics",
  "name_resolver",
  "nft",
  "portfolio",
  "pricer",
  "prices",
  "primitives",
- "prometheus-client",
  "redis",
  "reqwest 0.13.4",
  "rocket",
@@ -3124,7 +3122,6 @@ dependencies = [
  "api_connector",
  "async-trait",
  "cacher",
- "chain_primitives",
  "chain_traits",
  "chrono",
  "coingecko",
@@ -5581,7 +5578,6 @@ dependencies = [
  "gem_ton",
  "hex",
  "primitives",
- "serde",
  "serde_json",
  "url",
 ]
@@ -5631,7 +5627,6 @@ dependencies = [
  "gem_client",
  "gem_cosmos",
  "gem_evm",
- "gem_hash",
  "gem_hypercore",
  "gem_jsonrpc",
  "gem_near",
@@ -5647,15 +5642,12 @@ dependencies = [
  "num-bigint",
  "number_formatter",
  "primitives",
- "reqwest 0.13.4",
- "serde",
  "serde_json",
  "signer",
  "simulation",
  "sui-sdk-types",
  "swapper",
  "uniffi",
- "url",
  "yielder",
  "zeroize",
 ]
@@ -6698,7 +6690,6 @@ dependencies = [
  "localizer",
  "number_formatter",
  "primitives",
- "serde_json",
 ]
 
 [[package]]
@@ -11308,7 +11299,6 @@ name = "settings_chain"
 version = "1.0.0"
 dependencies = [
  "chain_traits",
- "chrono",
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",
@@ -11327,7 +11317,6 @@ dependencies = [
  "gem_tron",
  "gem_xrp",
  "primitives",
- "reqwest 0.13.4",
  "settings",
  "url",
 ]
@@ -11447,7 +11436,6 @@ dependencies = [
  "alloy-primitives",
  "bs58",
  "ed25519-dalek",
- "gem_encoding",
  "gem_hash",
  "hex",
  "k256",
@@ -11943,7 +11931,6 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
- "base64 0.22.1",
  "bcs 0.2.1",
  "bigdecimal",
  "bs58",
@@ -11980,7 +11967,6 @@ dependencies = [
  "sui-sdk-types",
  "sui-transaction-builder",
  "tokio",
- "tracing",
  "typeshare",
 ]
 

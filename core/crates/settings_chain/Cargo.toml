@@ -5,8 +5,6 @@ edition = { workspace = true }
 
 [dependencies]
 url = { workspace = true }
-reqwest = { workspace = true }
-chrono = { workspace = true }
 
 primitives = { path = "../primitives" }
 chain_traits = { path = "../chain_traits" }

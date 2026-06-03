@@ -29,19 +29,23 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     var takeProfit: String?
     var stopLoss: String?
 
-    private var transferData: PerpetualTransferData {
-        data.positionAction.transferData
-    }
-
-    private var leverage: UInt8 {
-        leverageSelection?.selected.value ?? transferData.leverage
-    }
+    private let takeProfitPercent: UInt8
+    private let stopLossPercent: UInt8
+    private var isAutocloseEdited = false
 
     init(asset: Asset, data: PerpetualRecipientData, preferences: Preferences = .standard) {
         self.asset = asset
         self.data = data
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
+        takeProfitPercent = preferences.perpetualTakeProfit
+        stopLossPercent = preferences.perpetualStopLoss
         (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, preferences: preferences)
+        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
+            data: data,
+            leverage: leverageSelection?.selected.value ?? data.positionAction.transferData.leverage,
+            takeProfitPercent: takeProfitPercent,
+            stopLossPercent: stopLossPercent,
+        )
     }
 
     var leverageTitle: String {
@@ -50,6 +54,14 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
     var autocloseTitle: String {
         Localized.Perpetual.autoClose
+    }
+
+    private var transferData: PerpetualTransferData {
+        data.positionAction.transferData
+    }
+
+    private var leverage: UInt8 {
+        leverageSelection?.selected.value ?? transferData.leverage
     }
 
     var isAutocloseEnabled: Bool {
@@ -155,6 +167,22 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         )
     }
 
+    func onChangeLeverage() {
+        guard !isAutocloseEdited else { return }
+        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
+            data: data,
+            leverage: leverage,
+            takeProfitPercent: takeProfitPercent,
+            stopLossPercent: stopLossPercent,
+        )
+    }
+
+    func updateAutoclose(takeProfit: String?, stopLoss: String?) {
+        isAutocloseEdited = true
+        self.takeProfit = takeProfit
+        self.stopLoss = stopLoss
+    }
+
     private static func makeLeverageSelection(
         data: PerpetualRecipientData,
         preferences: Preferences,
@@ -165,7 +193,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
         let transferData = data.positionAction.transferData
         let options = LeverageOption.allOptions.filter { $0.value <= transferData.leverage }
-        let selected = LeverageOption.option(desiredValue: preferences.perpetualLeverage, from: options)
+        let desiredLeverage = preferences.perpetualLeverage == 0 ? PerpetualConfig.defaultLeverage : preferences.perpetualLeverage
+        let selected = LeverageOption.option(desiredValue: desiredLeverage, from: options)
         let textStyle = TextStyle(
             font: .callout,
             color: PerpetualDirectionViewModel(direction: openData.direction).color,
@@ -179,5 +208,36 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         )
 
         return (selection, textStyle)
+    }
+
+    private static func makeDefaultAutoclose(
+        data: PerpetualRecipientData,
+        leverage: UInt8,
+        takeProfitPercent: UInt8,
+        stopLossPercent: UInt8,
+    ) -> (takeProfit: String?, stopLoss: String?) {
+        guard case .open = data.positionAction else {
+            return (nil, nil)
+        }
+        guard takeProfitPercent > 0 || stopLossPercent > 0 else {
+            return (nil, nil)
+        }
+
+        let transferData = data.positionAction.transferData
+        let estimator = AutocloseEstimator(
+            entryPrice: transferData.price,
+            positionSize: 0,
+            direction: transferData.direction,
+            leverage: leverage,
+        )
+        let formatter = PerpetualFormatter(provider: .hypercore)
+        func price(_ percent: UInt8, _ type: TpslType) -> String? {
+            guard percent > 0 else { return nil }
+            return formatter.formatInputPrice(
+                estimator.calculateTargetPriceFromROE(roePercent: Int(percent), type: type),
+                decimals: transferData.asset.decimals,
+            )
+        }
+        return (price(takeProfitPercent, .takeProfit), price(stopLossPercent, .stopLoss))
     }
 }

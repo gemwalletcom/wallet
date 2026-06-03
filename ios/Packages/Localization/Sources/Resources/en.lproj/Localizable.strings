@@ -187,6 +187,7 @@
 "errors.invalid_url" = "Invalid URL";
 "common.yes" = "Yes";
 "common.no" = "No";
+"common.none" = "None";
 "common.url" = "URL";
 "errors.error_occured" = "An error occurred!";
 "settings.language" = "Language";
@@ -471,6 +472,8 @@
 "asset.verification.verified" = "Verified";
 "errors.connections.malicious_origin" = "This connection comes from an untrusted source.";
 "settings.preferences.default_leverage" = "Default Leverage";
+"settings.preferences.default_take_profit" = "Default Take Profit";
+"settings.preferences.default_stop_loss" = "Default Stop Loss";
 "banner.perpetuals.title" = "Trade Perpetuals on Hyperliquid";
 "banner.perpetuals.description" = "Deposit, trade, and earn with Hyperliquid perpetuals";
 "errors.no_data_available" = "No data available";
@@ -572,3 +575,6 @@
 "info.minimum_amount.title" = "Minimum Amount";
 "info.minimum_amount.description" = "On the %@ network, the minimum amount for this transaction is %@.";
 "transaction.status.refunded" = "Refunded";
+"errors.dust_change_short" = "The remaining balance after this transfer would be dust. Try sending the maximum amount.";
+"errors.perpetual.trigger_price_lower" = "Trigger price should be lower than market price";
+"errors.perpetual.trigger_price_higher" = "Trigger price should be higher than market price";

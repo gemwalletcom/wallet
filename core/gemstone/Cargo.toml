@@ -14,7 +14,7 @@ name = "gemstone"
 
 [features]
 default = []
-reqwest_provider = ["dep:reqwest", "swapper/reqwest_provider"]
+reqwest_provider = ["swapper/reqwest_provider"]
 swap_integration_tests = ["reqwest_provider"]
 
 [dependencies]
@@ -33,7 +33,6 @@ gem_jsonrpc = { path = "../crates/gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../crates/gem_client" }
 gem_hypercore = { path = "../crates/gem_hypercore", features = ["signer"] }
 gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["rpc"] }
-gem_hash = { path = "../crates/gem_hash" }
 gem_cardano = { path = "../crates/gem_cardano", features = ["rpc", "signer"] }
 gem_algorand = { path = "../crates/gem_algorand", features = ["rpc", "signer"] }
 gem_stellar = { path = "../crates/gem_stellar", features = ["rpc", "signer"] }
@@ -46,7 +45,6 @@ signer = { path = "../crates/signer" }
 number_formatter = { path = "../crates/number_formatter" }
 yielder = { path = "../crates/yielder" }
 
-reqwest = { workspace = true, optional = true }
 sui-types = { workspace = true }
 base64 = { workspace = true }
 
@@ -55,7 +53,6 @@ uniffi.workspace = true
 
 chrono = { workspace = true }
 
-serde.workspace = true
 serde_json.workspace = true
 async-trait.workspace = true
 alloy-primitives.workspace = true
@@ -63,7 +60,6 @@ hex.workspace = true
 num-bigint.workspace = true
 futures.workspace = true
 bs58 = { workspace = true }
-url = { workspace = true }
 zeroize = { workspace = true }
 
 [build-dependencies]

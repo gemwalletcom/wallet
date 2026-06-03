@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.perpetual.views.market.PerpetualMarketNavScreen
 import com.gemwallet.android.features.perpetual.views.position.PerpetualPositionNavScreen
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
@@ -20,7 +21,7 @@ data class PerpetualPositionRoute(val assetId: AssetId) : NavKey
 
 fun EntryProviderScope<NavKey>.perpetualScreen(
     onCancel: () -> Unit,
-    onOpenPerpetualDetails: (AssetId) -> Unit,
+    onOpenPerpetualDetails: AssetIdAction,
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onTransaction: (TransactionId) -> Unit,
@@ -28,7 +29,7 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
     entry<PerpetualRoute> {
         PerpetualMarketNavScreen(
             onOpenPerpetualDetails = onOpenPerpetualDetails,
-            onCancel = onCancel
+            onCancel = onCancel,
         )
     }
 
