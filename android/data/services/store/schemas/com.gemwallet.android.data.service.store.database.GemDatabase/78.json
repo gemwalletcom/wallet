@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 78,
-    "identityHash": "8182a257c5b739fac306749456885dc7",
+    "identityHash": "15c6d863b2769d31dc7dbf1dd3db8973",
     "entities": [
       {
         "tableName": "wallets",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `domain_name` TEXT, `type` TEXT NOT NULL, `position` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `index` INTEGER NOT NULL, `source` TEXT NOT NULL DEFAULT 'Import', `image_url` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `domain_name` TEXT, `type` TEXT NOT NULL, `position` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `index` INTEGER NOT NULL, `source` TEXT NOT NULL DEFAULT 'Import', `imageUrl` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -58,7 +58,7 @@
           },
           {
             "fieldPath": "imageUrl",
-            "columnName": "image_url",
+            "columnName": "imageUrl",
             "affinity": "TEXT"
           }
         ],
@@ -2375,7 +2375,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8182a257c5b739fac306749456885dc7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '15c6d863b2769d31dc7dbf1dd3db8973')"
     ]
   }
 }

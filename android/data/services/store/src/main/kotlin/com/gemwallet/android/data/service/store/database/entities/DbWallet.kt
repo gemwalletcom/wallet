@@ -20,7 +20,7 @@ data class DbWallet(
     val pinned: Boolean,
     val index: Int,
     @ColumnInfo(defaultValue = "Import") val source: WalletSource,
-    @ColumnInfo(name = "image_url") val imageUrl: String? = null,
+    val imageUrl: String? = null,
 )
 
 fun DbWallet.toDTO(accounts: List<DbAccount>): Wallet {

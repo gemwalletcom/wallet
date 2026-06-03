@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import com.gemwallet.android.ui.theme.extraLargeIconSize
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -13,7 +14,7 @@ class EmojiAvatarRenderer @Inject constructor(
 ) {
 
     fun render(emoji: String, backgroundColor: Int): ByteArray {
-        val size = (AVATAR_SIZE_DP * context.resources.displayMetrics.density).roundToInt()
+        val size = (extraLargeIconSize.value * context.resources.displayMetrics.density).roundToInt()
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val center = size / 2f
@@ -33,7 +34,6 @@ class EmojiAvatarRenderer @Inject constructor(
     }
 
     private companion object {
-        const val AVATAR_SIZE_DP = 120
         const val EMOJI_SCALE = 0.7f
     }
 }
