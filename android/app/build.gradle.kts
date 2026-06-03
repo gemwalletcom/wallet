@@ -245,6 +245,8 @@ dependencies {
     implementation(project(":features:settings:networks:viewmodels"))
     implementation(project(":features:settings:price_alerts:presents"))
     implementation(project(":features:settings:price_alerts:viewmodels"))
+    implementation(project(":features:settings:contacts:presents"))
+    implementation(project(":features:settings:contacts:viewmodels"))
     implementation(project(":features:settings:security:presents"))
     implementation(project(":features:settings:security:viewmodels"))
     implementation(project(":features:settings:settings:presents"))

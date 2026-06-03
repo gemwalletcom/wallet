@@ -53,6 +53,18 @@ internal fun routeArguments(vararg arguments: Pair<RouteArgument, Any?>): Map<St
 internal fun assetIdArgument(assetId: AssetId): Pair<RouteArgument, String> =
     RouteArgument.AssetId to assetId.toIdentifier()
 
+internal fun contactIdArgument(contactId: String): Pair<RouteArgument, String> =
+    RouteArgument.ContactId to contactId
+
+internal fun chainArgument(chain: String): Pair<RouteArgument, String> =
+    RouteArgument.Chain to chain
+
+internal fun addressArgument(address: String): Pair<RouteArgument, String> =
+    RouteArgument.Address to address
+
+internal fun memoArgument(memo: String?): Pair<RouteArgument, String?> =
+    RouteArgument.Memo to memo
+
 internal fun fromAssetIdArgument(assetId: AssetId?): Pair<RouteArgument, String?> =
     RouteArgument.FromAssetId to assetId?.toIdentifier()
 

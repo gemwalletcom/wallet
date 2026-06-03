@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
+import com.gemwallet.android.features.recipient.viewmodel.NameRecordState
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
@@ -30,33 +30,23 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 
 @Composable
 fun ColumnScope.AddressChainField(
-    chain: Chain?,
     value: String,
     label: String,
-    onValueChange: (String, NameRecord?) -> Unit,
+    state: NameRecordState,
+    onValueChange: (String) -> Unit,
     error: String = "",
     editable: Boolean = true,
-    searchName: Boolean = true,
+    onPaste: ((String) -> Unit)? = null,
     onQrScanner: (() -> Unit)? = null,
-    viewModel: AddressChainViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalClipboard.current.nativeClipboard
-
-    LaunchedEffect(key1 = value) {
-        viewModel.onNameRecord(chain, value)
-    }
-
-    LaunchedEffect(key1 = uiState.nameRecord?.address) {
-        onValueChange(uiState.nameRecord?.name ?: value, uiState.nameRecord)
-    }
 
     Column(
         modifier = Modifier,
@@ -72,44 +62,33 @@ fun ColumnScope.AddressChainField(
             singleLine = true,
             readOnly = !editable,
             label = label,
-            onValueChange = { newValue ->
-                if (searchName) {
-                    viewModel.onInput(newValue, chain)
-                }
-                onValueChange(newValue, uiState.nameRecord)
-            },
+            onValueChange = onValueChange,
             trailing = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                 ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator16()
-                    }
-                    if (uiState.isResolve) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = AppIcons.CheckCircle,
-                            contentDescription = "Name is resolved",
-                            tint = MaterialTheme.colorScheme.tertiary,
-                        )
-                    }
-                    if (uiState.isFail) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
+                    when (state) {
+                        NameRecordState.Loading -> CircularProgressIndicator16()
+                        NameRecordState.Error -> Icon(
+                            modifier = Modifier.size(smallIconSize),
                             imageVector = AppIcons.Error,
-                            contentDescription = "Name is fail",
+                            contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,
                         )
+                        is NameRecordState.Complete -> Icon(
+                            modifier = Modifier.size(smallIconSize),
+                            imageVector = AppIcons.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                        NameRecordState.None -> Unit
                     }
                     TransferTextFieldActions(
                         value = value,
-                        paste = { onValueChange(clipboardManager.getPlainText() ?: "", uiState.nameRecord) },
+                        paste = { (onPaste ?: onValueChange)(clipboardManager.getPlainText() ?: "") },
                         qrScanner = onQrScanner,
-                        onClean = {
-                            onValueChange("", null)
-                            viewModel.onInput("", null)
-                        }
+                        onClean = { onValueChange("") },
                     )
                 }
             }
@@ -123,4 +102,42 @@ fun ColumnScope.AddressChainField(
             )
         }
     }
+}
+
+@Composable
+fun ColumnScope.AddressChainField(
+    chain: Chain?,
+    value: String,
+    label: String,
+    onValueChange: (String, NameRecord?) -> Unit,
+    error: String = "",
+    editable: Boolean = true,
+    searchName: Boolean = true,
+    onQrScanner: (() -> Unit)? = null,
+    viewModel: AddressChainViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(key1 = value) {
+        viewModel.onNameRecord(chain, value)
+    }
+
+    LaunchedEffect(key1 = uiState.nameRecord?.address) {
+        onValueChange(uiState.nameRecord?.name ?: value, uiState.nameRecord)
+    }
+
+    AddressChainField(
+        value = value,
+        label = label,
+        state = uiState,
+        onValueChange = { newValue ->
+            if (searchName) {
+                viewModel.onInput(newValue, chain)
+            }
+            onValueChange(newValue, uiState.nameRecord)
+        },
+        error = error,
+        editable = editable,
+        onQrScanner = onQrScanner,
+    )
 }

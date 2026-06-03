@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.smallIconSize
-import com.gemwallet.android.ui.theme.alpha50
+import com.gemwallet.android.ui.theme.secondaryFaded
 
 @Composable
 fun WarningItem(
@@ -64,7 +64,7 @@ fun WarningItem(
             }
         }
         if (onClick != null) {
-            ChevronIcon(tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50))
+            ChevronIcon(tint = MaterialTheme.colorScheme.secondaryFaded)
         }
     }
 }

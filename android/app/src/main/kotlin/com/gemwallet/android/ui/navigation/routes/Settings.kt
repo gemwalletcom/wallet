@@ -138,6 +138,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(
         PreferencesScene(
             onNetworks = { onAction(SettingsAction.Networks) },
             onCurrencies = { onAction(SettingsAction.Currencies) },
+            onContacts = { onAction(SettingsAction.Contacts) },
             onCancel = onCancel,
         )
     }

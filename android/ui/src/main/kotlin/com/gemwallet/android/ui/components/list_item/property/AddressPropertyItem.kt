@@ -28,6 +28,7 @@ fun AddressPropertyItem(
     copyValue: String = displayText,
     explorerLink: BlockExplorerLink? = null,
     listPosition: ListPosition = ListPosition.Middle,
+    onAddContact: (() -> Unit)? = null,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val clipboardManager = LocalClipboard.current.nativeClipboard
@@ -68,6 +69,16 @@ fun AddressPropertyItem(
                     onClick = {
                         isExpanded = false
                         uriHandler.open(context, explorerLink.link)
+                    },
+                )
+            }
+            onAddContact?.let { addContact ->
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(id = R.string.contacts_add_to_contacts)) },
+                    trailingIcon = { Icon(AppIcons.Add, contentDescription = null) },
+                    onClick = {
+                        isExpanded = false
+                        addContact()
                     },
                 )
             }

@@ -18,6 +18,7 @@ import com.gemwallet.android.domains.confirm.ConfirmProperty
 fun PropertyDestination(
     model: ConfirmProperty.Destination?,
     listPosition: ListPosition,
+    onAddContact: (() -> Unit)? = null,
 ) {
     model ?: return
 
@@ -29,6 +30,7 @@ fun PropertyDestination(
                 copyValue = model.address,
                 explorerLink = model.explorerLink,
                 listPosition = listPosition,
+                onAddContact = onAddContact,
             )
         }
         is ConfirmProperty.Destination.Stake -> {

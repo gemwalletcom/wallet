@@ -47,6 +47,7 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.features.recipient.viewmodel.AddressChainViewModel
+import com.gemwallet.android.features.recipient.viewmodel.NameRecordState
 import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.WalletType
 
@@ -136,17 +137,17 @@ internal fun ImportInput(
                 modifier = Modifier.align(Alignment.TopEnd),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (uiState.isLoading) {
+                if (uiState is NameRecordState.Loading) {
                     CircularProgressIndicator16()
                     Spacer(modifier = Modifier.size(8.dp))
                 }
-                if (uiState.isResolve) {
+                if (uiState is NameRecordState.Complete) {
                     SelectionCheckmark(
                         color = MaterialTheme.colorScheme.tertiary,
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                 }
-                if (uiState.isFail) {
+                if (uiState is NameRecordState.Error) {
                     Icon(
                         modifier = Modifier.size(24.dp),
                         imageVector = AppIcons.Error,

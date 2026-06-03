@@ -36,6 +36,7 @@ import com.gemwallet.android.features.confirm.presents.components.PropertyDestin
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
 import com.gemwallet.android.features.confirm.viewmodels.reorderWalletConnectProperties
 import com.gemwallet.android.model.AuthRequest
+import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -82,6 +83,7 @@ fun ConfirmScreen(
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
     onBuy: AssetIdAction,
+    onAddRecipientToContacts: (ChainRecipient) -> Unit = {},
     handleSystemBack: Boolean = false,
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
@@ -186,7 +188,17 @@ fun ConfirmScreen(
             itemsIndexed(displayTxProperties) { index, item ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
-                    is ConfirmProperty.Destination -> PropertyDestination(item, listPosition)
+                    is ConfirmProperty.Destination -> PropertyDestination(
+                        model = item,
+                        listPosition = listPosition,
+                        onAddContact = (item as? ConfirmProperty.Destination.Transfer)
+                            ?.takeIf { it.domain == null }
+                            ?.let { transfer ->
+                                params?.assetId?.chain?.let { chain ->
+                                    { onAddRecipientToContacts(ChainRecipient(chain, transfer.address, params?.memo())) }
+                                }
+                            },
+                    )
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
                     is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)
                     is ConfirmProperty.Source -> PropertyItem(

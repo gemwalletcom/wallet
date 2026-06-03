@@ -41,7 +41,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.ui.theme.alpha50
+import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
@@ -149,7 +149,7 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
             modifier = Modifier.size(smallIconSize),
             imageVector = AppIcons.InfoOutlined,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50),
+            tint = MaterialTheme.colorScheme.secondaryFaded,
         )
         Text(
             text = stringResource(R.string.transfer_reserved_fees, reserveForFee),

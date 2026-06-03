@@ -21,6 +21,7 @@ import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.toRoute
@@ -34,8 +35,12 @@ import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
+import com.gemwallet.android.ui.navigation.routes.AddContactRoute
+import com.gemwallet.android.ui.navigation.routes.AddContactWithAddressRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
+import com.gemwallet.android.ui.navigation.routes.EditContactRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.DevelopRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
@@ -186,6 +191,10 @@ class WalletNavigator(
     fun openBridgeConnections() = push(BridgeConnectionsRoute)
     fun openBridgeConnectionDetails(connectionId: String) = push(BridgeConnectionDetailsRoute(connectionId))
     fun openCurrencies() = push(CurrenciesRoute)
+    fun openContacts() = push(ContactsRoute)
+    fun openAddContact() = push(AddContactRoute)
+    fun openAddContact(recipient: ChainRecipient) = push(AddContactWithAddressRoute(recipient))
+    fun openContact(contactId: String) = push(EditContactRoute(contactId))
     fun openSecurity() = push(SecurityRoute)
     fun openDevelop() = push(DevelopRoute)
     fun openInAppNotifications() = push(InAppNotificationsRoute)

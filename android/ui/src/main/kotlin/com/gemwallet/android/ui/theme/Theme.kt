@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -21,6 +22,9 @@ const val alpha20 = 0.2f
 const val alpha50 = 0.5f
 const val alpha70 = 0.7f
 const val alpha90 = 0.9f
+
+val ColorScheme.secondaryFaded: Color
+    get() = secondary.copy(alpha = alpha50)
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF2D5BE6),

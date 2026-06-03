@@ -11,6 +11,8 @@ import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class AddressesRepository(
     private val addressesDao: AddressesDao,
@@ -21,10 +23,8 @@ class AddressesRepository(
         addressesDao.insert(addressNames.toRecord())
     }
 
-    override suspend fun getAddressName(chain: Chain, address: String): AddressName? {
-        if (address.isEmpty()) return null
-        return addressesDao.get(chain, address)?.toDTO()
-    }
+    override fun getAddressNameFlow(chain: Chain, address: String): Flow<AddressName?> =
+        addressesDao.getFlow(chain, address).map { it?.toDTO() }
 
     override suspend fun rename(walletId: WalletId, name: String) {
         addressesDao.updateName(walletId.id, name)

@@ -12,6 +12,8 @@ import com.gemwallet.android.data.service.store.database.entities.DbAssetPriorit
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
+import com.gemwallet.android.data.service.store.database.entities.DbContact
+import com.gemwallet.android.data.service.store.database.entities.DbContactAddress
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationBase
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationValidator
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
@@ -32,11 +34,13 @@ import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetada
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 78,
+    version = 79,
     entities = [
         DbWallet::class,
         DbAccount::class,
         DbAddress::class,
+        DbContact::class,
+        DbContactAddress::class,
         DbAsset::class,
         DbBalance::class,
         DbPrice::class,
@@ -70,6 +74,8 @@ abstract class GemDatabase : RoomDatabase() {
     abstract fun accountsDao(): AccountsDao
 
     abstract fun addressesDao(): AddressesDao
+
+    abstract fun contactsDao(): ContactsDao
 
     abstract fun assetsDao(): AssetsDao
 

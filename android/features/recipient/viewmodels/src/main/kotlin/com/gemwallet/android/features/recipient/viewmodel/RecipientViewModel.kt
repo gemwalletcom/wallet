@@ -7,6 +7,8 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.application.recipient.coordinators.GetWallets
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
+import com.gemwallet.android.cases.contacts.ContactRecipient
+import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.nft.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
@@ -42,6 +44,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -54,6 +58,7 @@ import javax.inject.Inject
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
     private val getWallets: GetWallets,
+    private val getContacts: GetContacts,
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
     private val validateAddressOperator: ValidateAddressOperator,
@@ -98,6 +103,15 @@ class RecipientViewModel @Inject constructor(
         wallets.filter { it.id != session?.wallet?.id }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val contacts: StateFlow<List<ContactRecipient>> = state
+        .flatMapLatest { state ->
+            when (state) {
+                RecipientState.Loading -> flowOf(emptyList())
+                is RecipientState.Ready -> getContacts.getContactRecipients(state.type.assetInfo.asset.chain)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val addressError = combine(
         state,

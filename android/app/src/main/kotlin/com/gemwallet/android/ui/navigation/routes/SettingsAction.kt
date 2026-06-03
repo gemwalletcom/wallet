@@ -4,6 +4,7 @@ import com.wallet.core.primitives.AssetId
 
 sealed interface SettingsAction {
     data object Currencies : SettingsAction
+    data object Contacts : SettingsAction
     data object Networks : SettingsAction
     data object PriceAlerts : SettingsAction
     data class AddPriceAlertTarget(val assetId: AssetId) : SettingsAction
