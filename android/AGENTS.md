@@ -31,13 +31,10 @@ Read `core/AGENTS.md` when the task touches `core/`, generated models, JNI bindi
 ## Task Completion
 
 Before finishing an Android task:
-1. Build the affected variant or module
-2. Run the relevant Gradle tests
-3. Run the relevant lint and formatting tasks when Kotlin or resources changed
+1. Use [Quality Checks](../skills/quality-checks.md) to choose targeted vs full verification
+2. Run at least one real Gradle verification command for the touched codepath
+3. If `core/` changed, regenerate shared artifacts and verify Android still builds
 4. Clean imports and avoid unnecessary comments
-5. If `core/` changed, regenerate shared artifacts and verify Android still builds
-6. In tests, prefer shared `:gemcore` fixtures with sensible defaults over inline full-field mock construction
+5. In tests, prefer shared `:gemcore` fixtures with sensible defaults over inline full-field mock construction
 
-Add or update tests only for high-impact behavior where a compact test materially reduces risk; skip trivial logic and purely visual Compose polish unless coverage is explicitly requested or already cheap to extend.
-
-Do not finish an Android task without running at least one real Gradle verification command for the touched codepath. `git diff --check`, code inspection, or reasoning are not enough. If Gradle is blocked by unrelated repo failures, report the exact command and the blocking error instead of claiming the change was verified.
+For UI changes, smoke the changed flow on an emulator or device when the flow is reachable. `git diff --check`, code inspection, or reasoning are not enough. If Gradle is blocked by unrelated repo failures, report the exact command and blocking error instead of claiming the change was verified.

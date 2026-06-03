@@ -7,6 +7,7 @@
   - `just test` or `./gradlew testGoogleDebugUnitTest` — Google Debug unit tests
   - `just test-integration` or `./gradlew connectedGoogleDebugAndroidTest` — instrumented tests (requires emulator)
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
+  - `./gradlew :<module>:testDebugUnitTest` — one feature or shared module
 - Run the narrowest relevant target while iterating, then finish with broader validation
 
 ## Test Structure

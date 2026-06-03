@@ -31,10 +31,11 @@ Read `ios/AGENTS.md`. Work in `ios/`.
 
 1. Add Swift UI, ViewModel, or service code that consumes the new types
 2. If extending generated models, add Swift extensions in separate files — never edit generated files
-3. Build and test:
+3. Iterate with targeted package/test commands first, then run broader validation:
    ```bash
+   cd ios && just build-package <PACKAGE>
+   cd ios && just test <TARGET>
    cd ios && just build
-   cd ios && just test
    cd ios && just lint
    ```
 
@@ -44,10 +45,11 @@ Read `android/AGENTS.md`. Work in `android/`.
 
 1. Add Kotlin UI (Compose), ViewModel, or repository code that consumes the new types
 2. Wire dependencies through Hilt modules
-3. Build and test:
+3. Iterate with targeted module/test commands first, then run broader validation:
    ```bash
+   cd android && ./gradlew :<module>:assembleDebug
+   cd android && ./gradlew :<module>:testDebugUnitTest
    cd android && ./gradlew assembleGoogleDebug
-   cd android && ./gradlew test
    cd android && ./gradlew lint
    ```
 

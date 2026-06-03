@@ -25,12 +25,9 @@ Read `core/AGENTS.md` when the task touches `core/`, generated bindings, or file
 ## Task Completion
 
 Before finishing an iOS task:
-1. Run `just build`
-2. Run the relevant tests with `just test ...` for unit coverage or `just test-integration` / `just test-ui` for iOS integration coverage
-3. Run `just lint` and `just format` when Swift code changed
-4. If generated files or `core/` changed, run the required generation step and verify iOS still builds
-5. Keep imports clean and remove dead code
+1. Use [Quality Checks](../skills/quality-checks.md) to choose targeted vs full verification
+2. Run at least one real verification command for the touched codepath
+3. If generated files or `core/` changed, run the required generation step and verify iOS still builds
+4. Keep imports clean and remove dead code
 
-Add or update tests only for high-impact behavior where a compact test materially reduces risk; skip trivial logic and purely visual SwiftUI polish unless coverage is explicitly requested or already cheap to extend.
-
-Do not finish an iOS task without running at least one real verification command for the touched codepath. `swift build` succeeding is not the same as the feature working — for UI changes, exercise the flow on a simulator or device. If verification is blocked by unrelated repo state, report the exact command and the blocking failure instead of claiming the change was verified.
+`swift build` succeeding is not the same as the feature working. For UI changes, exercise the changed flow on a simulator or device when the flow is reachable. If verification is blocked by unrelated repo state, report the exact command and blocking failure instead of claiming the change was verified.

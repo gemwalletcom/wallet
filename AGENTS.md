@@ -53,7 +53,11 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Task Completion
 
-During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad lint/format runs until the change is ready to commit. Do not skip the required lint/format checks silently before final handoff; run them then, or report the exact reason they are still pending.
+For documentation-only changes, do not run mobile/core build and test suites unless the docs change also modifies executable scripts, generated inputs, localization inputs, CI configuration, build configuration, or release/security procedures. Verify docs-only changes with lightweight checks such as `git diff --check`, link/path inspection, and a quick read-through of the edited files.
+
+During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad verification until the change is ready to commit. Do not run full platform builds, full test suites, broad lint, or format after every small edit unless the risk of the change requires it. Do not skip required lint/format checks silently before final handoff; run them in the final verification batch, or report the exact reason they are still pending.
+
+Run final verification as a batch after you believe no more code edits are needed. If formatting, localization, generation, or a compile fix changes source after that batch starts, rerun the affected targeted checks before handoff.
 
 Before finishing a task:
 1. Build the affected platform(s)
