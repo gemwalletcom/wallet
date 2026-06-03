@@ -23,6 +23,7 @@ internal fun MainContent(
     onIntentConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectPairingToastShown: () -> Unit,
+    onWalletConnectError: (String) -> Unit,
     onWalletConnectErrorDismiss: () -> Unit,
 ) {
     val pendingRoutes = (pendingNavigation as? PendingNavigation.Route)?.routes.orEmpty()
@@ -31,7 +32,7 @@ internal fun MainContent(
     val isWalletUnlocked = state.initialAuth == AuthState.Success
     val isEnrollmentRequired = state.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
-    val walletConnectOverlay = rememberWalletConnectOverlay(walletConnectViewModel)
+    val walletConnectOverlay = rememberWalletConnectOverlay(walletConnectViewModel, onWalletConnectError)
     var isWalletContentReady by remember { mutableStateOf(state.hasUnlockedApp) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
     val shouldShowLockedSplash = !isWalletUnlocked || !isWalletContentReady

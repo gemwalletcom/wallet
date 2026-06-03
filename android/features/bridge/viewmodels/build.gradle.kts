@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.savedstate)
 
     testImplementation(libs.junit)
+    testImplementation(testFixtures(project(":gemcore")))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

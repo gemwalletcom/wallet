@@ -7,12 +7,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
@@ -39,6 +41,7 @@ fun WalletItem(
         walletChain = wallet.accounts.firstOrNull()?.chain,
         isCurrent = isCurrent,
         type = wallet.type,
+        imageUrl = wallet.imageUrl,
         listPosition = listPosition,
         onEdit = onEdit
     )
@@ -54,8 +57,10 @@ fun WalletItem(
     type: WalletType,
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
+    imageUrl: String? = null,
     onEdit: ((String) -> Unit)? = null,
 ) {
+    val context = LocalContext.current
     ListItem(
         modifier = modifier,
         minHeight = ListItemDefaults.iconMinHeight,
@@ -63,7 +68,7 @@ fun WalletItem(
         trailingContentEndPadding = paddingSmall,
         leading = @Composable {
             IconWithBadge(
-                icon = walletItemIconModel(type = type, walletChain = walletChain),
+                icon = walletImageModel(context, imageUrl) ?: walletItemIconModel(type = type, walletChain = walletChain),
                 supportIcon = type.supportIcon(),
             )
         },

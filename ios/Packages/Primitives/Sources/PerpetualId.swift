@@ -20,7 +20,8 @@ public struct PerpetualId: Equatable, Hashable, Sendable {
     public static func from(id: String) throws -> PerpetualId {
         let parts = id.split(separator: Self.separator, maxSplits: 1, omittingEmptySubsequences: false)
         guard parts.count == 2,
-              let provider = PerpetualProvider(rawValue: String(parts[0])) else {
+              let provider = PerpetualProvider(rawValue: String(parts[0]))
+        else {
             throw AnyError("invalid perpetual id: \(id)")
         }
         return PerpetualId(provider: provider, symbol: String(parts[1]))

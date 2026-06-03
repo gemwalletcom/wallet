@@ -11,6 +11,7 @@ import com.wallet.core.primitives.WalletType
 @Composable
 fun WalletNavScreen(
     onPhraseShow: (WalletId, WalletType) -> Unit,
+    onSelectImage: (WalletId) -> Unit,
     onBoard: () -> Unit,
     onCancel: () -> Unit,
     viewModel: WalletViewModel = hiltViewModel(),
@@ -20,6 +21,7 @@ fun WalletNavScreen(
     WalletScene(
         wallet = wallet,
         onWalletName = viewModel::setWalletName,
+        onSelectImage = { wallet?.id?.let(onSelectImage) },
         onPhraseShow = onPhraseShow,
         onDelete = { viewModel.delete(onBoard, onCancel) },
         onCancel = onCancel,

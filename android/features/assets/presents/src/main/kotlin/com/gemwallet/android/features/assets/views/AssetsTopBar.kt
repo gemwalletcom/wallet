@@ -13,11 +13,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
+import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -30,11 +32,9 @@ internal fun AssetsTopBar(
     onShowWallets: () -> Unit,
     onSearch: () -> Unit,
 ) {
-    val walletIcon = when {
-        walletSummary?.walletIcon != null -> walletSummary.walletIcon
-        walletSummary?.walletType == WalletType.Multicoin -> R.drawable.multicoin_wallet
-        else -> null
-    }
+    val walletIcon = walletImageModel(LocalContext.current, walletSummary?.walletIcon?.imageUrl)
+        ?: walletSummary?.walletIcon?.placeholder
+        ?: R.drawable.multicoin_wallet.takeIf { walletSummary?.walletType == WalletType.Multicoin }
 
     CenterAlignedTopAppBar(
         title = {

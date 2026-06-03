@@ -11,7 +11,7 @@ use crate::chatwoot::ChatwootSender;
 use crate::chatwoot::client::{ChatwootAttachment, ChatwootMessage};
 use crate::images::{ImageAttachment, MAX_IMAGE_BYTES, MAX_IMAGES_PER_PROMPT, image_media_type_from_url};
 use crate::replies::{ReplyOutcome, classify_reply};
-use crate::{AppState, DISPATCH_CONVERSATION_ID, DISPATCH_SOURCE, DispatchSource};
+use crate::{AppState, DISPATCH_ADDRESSED, DISPATCH_CONVERSATION_ID, DISPATCH_SOURCE, DispatchSource};
 
 #[derive(Debug, Deserialize)]
 struct WebhookEvent {
@@ -105,7 +105,12 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
         return Ok(());
     };
 
-    let messages = fetch_history(client, &event, conversation_id).await;
+    let key = format!("chatwoot:{conversation_id}");
+    state.conversation_jobs.run(&key, handle_message(&state, client, &event, conversation_id)).await
+}
+
+async fn handle_message(state: &AppState, client: &ChatwootClient, event: &WebhookEvent, conversation_id: u64) -> Result<()> {
+    let messages = fetch_history(client, event, conversation_id).await;
     let Some(latest) = messages.iter().max_by_key(|m| m.created_at.unwrap_or(0)) else {
         debug!(conversation_id, "no messages in conv");
         return Ok(());
@@ -130,7 +135,7 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
     let inbox_label = event.inbox.as_ref().map(|i| i.name.clone()).unwrap_or_else(|| "unknown inbox".into());
     let contact_id = event.contact_id();
 
-    dispatch_to_agent(&state, client, conversation_id, sender_label, inbox_label, contact_id, is_team_note, messages).await
+    dispatch_to_agent(state, client, conversation_id, sender_label, inbox_label, contact_id, is_team_note, messages).await
 }
 
 fn is_blocked_contact(sender: Option<&ChatwootSender>) -> bool {
@@ -192,7 +197,7 @@ async fn dispatch_to_agent(
     let raw = match DISPATCH_SOURCE
         .scope(
             DispatchSource::Chatwoot,
-            DISPATCH_CONVERSATION_ID.scope(conversation_id, state.agent.prompt_with_images(&prompt, images)),
+            DISPATCH_ADDRESSED.scope(true, DISPATCH_CONVERSATION_ID.scope(conversation_id, state.agent.prompt_with_images(&prompt, images))),
         )
         .await
     {
@@ -208,7 +213,7 @@ async fn dispatch_to_agent(
             return Ok(());
         }
     };
-    let replies = match classify_reply(&raw) {
+    let mut replies = match classify_reply(&raw) {
         ReplyOutcome::Tagged(chunks) => chunks,
         ReplyOutcome::Untagged(_) => {
             warn!(conversation_id, raw_chars = raw.len(), "model didn't use <reply> tags on chatwoot; staying silent");
@@ -219,6 +224,12 @@ async fn dispatch_to_agent(
             return Ok(());
         }
     };
+    if !is_team_note && let Some(reviewer) = state.reply_reviewer.as_deref() {
+        let review_context = build_history(&messages);
+        for reply in &mut replies {
+            *reply = reviewer.review(&review_context, reply).await;
+        }
+    }
     for (i, chunk) in replies.iter().enumerate() {
         if i > 0 {
             sleep(Duration::from_millis(350)).await;

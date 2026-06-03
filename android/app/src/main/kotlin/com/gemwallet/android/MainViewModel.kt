@@ -147,13 +147,17 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(walletConnectError = null) }
     }
 
+    fun showWalletConnectError(error: String) {
+        _uiState.update { it.copy(walletConnectError = error) }
+    }
+
     private fun addPairing(uri: String) {
         showWalletConnectPairingToast()
         viewModelScope.launch(Dispatchers.IO) {
             bridgesRepository.addPairing(
                 uri = uri,
                 onSuccess = {},
-                onError = { error -> _uiState.update { it.copy(walletConnectError = error) } },
+                onError = ::showWalletConnectError,
             )
         }
     }

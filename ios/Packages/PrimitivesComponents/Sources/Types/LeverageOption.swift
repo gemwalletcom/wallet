@@ -25,7 +25,7 @@ public struct LeverageOption: WheelPickerDisplayable, Sendable {
         LeverageOption(
             value: PerpetualConfig.selectLeverage(
                 desired: desiredValue,
-                options: available.map { $0.value },
+                options: available.map(\.value),
             ),
         )
     }

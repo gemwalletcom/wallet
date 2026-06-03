@@ -37,8 +37,9 @@ import com.gemwallet.android.ui.theme.paddingSmall
 @Composable
 internal fun rememberWalletConnectOverlay(
     viewModel: WalletConnectViewModel,
-): @Composable (AssetIdAction) -> Unit = remember(viewModel) {
-    { onBuy -> WalletConnectOverlay(viewModel = viewModel, onBuy = onBuy) }
+    onError: (String) -> Unit,
+): @Composable (AssetIdAction) -> Unit = remember(viewModel, onError) {
+    { onBuy -> WalletConnectOverlay(viewModel = viewModel, onBuy = onBuy, onError = onError) }
 }
 
 @Composable
@@ -98,16 +99,13 @@ internal fun WalletConnectErrorDialog(
 private fun WalletConnectOverlay(
     viewModel: WalletConnectViewModel,
     onBuy: AssetIdAction,
+    onError: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val walletConnect by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(walletConnect) {
         when (val event = walletConnect) {
-            WalletConnectIntent.SessionDelete -> {
-                makeText(context, "WalletConnect session deleted", Toast.LENGTH_LONG).show()
-                viewModel.onCancel()
-            }
             is WalletConnectIntent.SessionProposal -> {
                 if (event.verifyContext == null) {
                     makeText(context, "Session Proposal Error: Verify Context is not available", Toast.LENGTH_LONG).show()
@@ -136,8 +134,7 @@ private fun WalletConnectOverlay(
         when (val event = walletConnect) {
             is WalletConnectIntent.ConnectionState,
             WalletConnectIntent.Idle,
-            WalletConnectIntent.Cancel,
-            WalletConnectIntent.SessionDelete -> Unit
+            WalletConnectIntent.Cancel -> Unit
             is WalletConnectIntent.AuthRequest -> {
                 event.verifyContext?.let { verifyContext ->
                     AuthRequestScene(
@@ -153,6 +150,7 @@ private fun WalletConnectOverlay(
                         proposal = event.sessionProposal,
                         verifyContext = verifyContext,
                         onCancel = viewModel::onCancel,
+                        onError = onError,
                     )
                 }
             }

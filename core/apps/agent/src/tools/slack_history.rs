@@ -14,7 +14,6 @@ use super::slack::resolve_allowed_channel;
 pub struct SlackHistoryTool {
     pub client: Arc<SlackClient>,
     pub allow_channels: Vec<String>,
-    pub conversations_list_limit: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -78,7 +77,7 @@ impl Tool for SlackHistoryTool {
     }
 
     async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
-        let channel = resolve_allowed_channel(&self.client, &args.channel, &self.allow_channels, self.conversations_list_limit, "slack.allow_channels").await?;
+        let channel = resolve_allowed_channel(&self.client, &args.channel, &self.allow_channels, "slack.allow_channels").await?;
         let limit = args.limit.unwrap_or(50).clamp(1, 200);
         let messages = match args.thread_ts.as_deref() {
             Some(thread_ts) => self.client.conversations_replies(&channel, thread_ts, limit).await,

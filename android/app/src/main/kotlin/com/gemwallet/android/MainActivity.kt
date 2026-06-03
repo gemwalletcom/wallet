@@ -49,6 +49,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 onIntentConsumed = viewModel::consumePendingNavigation,
                 onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                 onWalletConnectPairingToastShown = viewModel::dismissWalletConnectPairingToast,
+                onWalletConnectError = viewModel::showWalletConnectError,
                 onWalletConnectErrorDismiss = viewModel::resetWalletConnectError,
             )
             RootWarningHost(onCancel = ::finishAffinity)

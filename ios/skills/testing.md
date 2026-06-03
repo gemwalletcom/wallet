@@ -6,6 +6,7 @@
 - Default commands:
   - `just test`
   - `just test <TARGET>`
+  - `just build-for-testing` followed by `just test-without-building` for repeated test-debug loops
   - `just test-integration` or `just test-ui` for the iOS integration suite
 - Run the narrowest relevant target while iterating, then finish with the appropriate broader validation
 

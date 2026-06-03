@@ -4,7 +4,9 @@ use gem_wallet_connect::{
     WalletConnectResponseType as WcWalletConnectResponseType, WalletConnectTransaction as WcWalletConnectTransaction,
     WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
 };
-use primitives::{Chain, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionVerificationStatus};
+use primitives::{
+    Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionVerificationStatus,
+};
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -32,8 +34,6 @@ pub enum WalletConnectLink {
     Request,
     Session { topic: String },
 }
-
-// UniFFI types
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct WCEthereumTransactionData {
@@ -322,16 +322,20 @@ impl WalletConnect {
 
     pub fn get_namespace(&self, chain: String) -> Option<String> {
         let chain = Chain::from_str(&chain).ok()?;
-        primitives::WalletConnectCAIP2::get_namespace(chain)
+        WalletConnectCAIP2::get_namespace(chain)
     }
 
     pub fn get_reference(&self, chain: String) -> Option<String> {
         let chain = Chain::from_str(&chain).ok()?;
-        primitives::WalletConnectCAIP2::get_reference(chain)
+        WalletConnectCAIP2::get_reference(chain)
     }
 
-    pub fn get_chain(&self, caip2: String, caip10: String) -> Option<String> {
-        Some(primitives::WalletConnectCAIP2::get_chain(caip2, caip10)?.to_string())
+    pub fn parse_chain_id(&self, chain_id: String) -> Option<String> {
+        Some(WalletConnectCAIP2::parse_chain_id(chain_id)?.to_string())
+    }
+
+    pub fn parse_account(&self, account: String) -> Option<ChainAddress> {
+        WalletConnectCAIP2::parse_account(account)
     }
 
     pub fn parse_request(&self, topic: String, method: String, params: String, chain_id: String, domain: String) -> Result<WalletConnectAction, GemstoneError> {
@@ -389,7 +393,7 @@ pub fn wallet_connect_app_short_name(metadata: primitives::WalletConnectionSessi
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Chain, SimulationWarning, SimulationWarningType};
+    use primitives::{Chain, ChainAddress, SimulationWarning, SimulationWarningType};
 
     #[test]
     fn short_name_strips_separators() {
@@ -406,6 +410,35 @@ mod tests {
         assert_eq!(meta("  Compound  ").short_name(), "Compound");
         assert_eq!(meta("Sushiswap").short_name(), "Sushiswap");
         assert_eq!(meta(&"A".repeat(100)).short_name(), "A".repeat(80));
+    }
+
+    #[test]
+    fn parse_chain_id_uses_shared_caip2_parser() {
+        let wallet_connect = super::WalletConnect::new();
+
+        assert_eq!(wallet_connect.parse_chain_id("eip155:8453".to_string()), Some(Chain::Base.to_string()));
+        assert_eq!(
+            wallet_connect.parse_chain_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()),
+            Some(Chain::Solana.to_string())
+        );
+        assert_eq!(wallet_connect.parse_chain_id("ton:-239".to_string()), Some(Chain::Ton.to_string()));
+        assert_eq!(wallet_connect.parse_chain_id("tron:0x2b6653dc".to_string()), Some(Chain::Tron.to_string()));
+        assert_eq!(wallet_connect.parse_chain_id("eip155:8453:extra".to_string()), None);
+        assert_eq!(wallet_connect.parse_chain_id("eip155:99999".to_string()), None);
+        assert_eq!(wallet_connect.parse_chain_id("bip122:000000000019d6689c085ae165831e93".to_string()), None);
+    }
+
+    #[test]
+    fn parse_account_uses_shared_caip10_parser() {
+        let wallet_connect = super::WalletConnect::new();
+        let address = "0x0000000000000000000000000000000000000001".to_string();
+        let account = format!("eip155:8453:{address}");
+
+        assert_eq!(wallet_connect.parse_account(account), Some(ChainAddress::new(Chain::Base, address)));
+        assert_eq!(wallet_connect.parse_account("eip155:8453".to_string()), None);
+        assert_eq!(wallet_connect.parse_account("eip155:8453:".to_string()), None);
+        assert_eq!(wallet_connect.parse_account("eip155:8453:0x1:extra".to_string()), None);
+        assert_eq!(wallet_connect.parse_account("eip155:99999:0x1".to_string()), None);
     }
 
     #[test]

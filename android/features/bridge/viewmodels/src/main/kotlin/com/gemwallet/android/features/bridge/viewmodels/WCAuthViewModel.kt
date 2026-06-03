@@ -7,7 +7,7 @@ import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.ChainNamespace
-import com.gemwallet.android.data.repositories.bridge.getNamespace
+import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
@@ -55,7 +55,6 @@ class WCAuthViewModel @Inject constructor(
     private val walletConnect = WalletConnect()
     private var authRequest: Wallet.Model.SessionAuthenticate? = null
     private var hasResponded = false
-    private var isApproving = false
 
     private val _state = MutableStateFlow<AuthSceneState>(AuthSceneState.Loading)
     val state: StateFlow<AuthSceneState> = _state.asStateFlow()
@@ -66,7 +65,6 @@ class WCAuthViewModel @Inject constructor(
     ) {
         authRequest = request
         hasResponded = false
-        isApproving = false
         _state.update { AuthSceneState.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -123,9 +121,6 @@ class WCAuthViewModel @Inject constructor(
 
     fun onWalletSelected(walletId: WalletId) {
         val current = _state.value as? AuthSceneState.Request ?: return
-        if (current.isApproving) {
-            return
-        }
         val wallet = current.availableWallets.firstOrNull { it.id == walletId } ?: return
         val request = authRequest ?: return
         val approval = runCatching {
@@ -145,14 +140,12 @@ class WCAuthViewModel @Inject constructor(
 
     fun onApprove() {
         val request = authRequest ?: return
-        val approval = (_state.value as? AuthSceneState.Request)?.approval ?: return
-        if (hasResponded || isApproving) {
+        val current = _state.value as? AuthSceneState.Request ?: return
+        if (hasResponded) {
             return
         }
-        isApproving = true
-        _state.update { state ->
-            (state as? AuthSceneState.Request)?.copy(isApproving = true) ?: state
-        }
+        val approval = current.approval
+        _state.update { AuthSceneState.Approving(current) }
 
         viewModelScope.launch(Dispatchers.IO) {
             var privateKey: ByteArray? = null
@@ -184,23 +177,21 @@ class WCAuthViewModel @Inject constructor(
                 bridgesRepository.approveAuthentication(
                     request = request,
                     auths = listOf(authObject),
+                    wallet = approval.wallet,
                     onSuccess = {
                         if (authRequest?.id == request.id) {
                             hasResponded = true
-                            isApproving = false
                             _state.update { AuthSceneState.Canceled }
                         }
                     },
                     onError = { message ->
                         if (authRequest?.id == request.id) {
-                            isApproving = false
                             _state.update { AuthSceneState.Error(message) }
                         }
                     },
                 )
             } catch (err: Throwable) {
                 if (authRequest?.id == request.id) {
-                    isApproving = false
                     _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
                 }
             } finally {
@@ -210,7 +201,7 @@ class WCAuthViewModel @Inject constructor(
     }
 
     fun onReject() {
-        if (isApproving) {
+        if (_state.value is AuthSceneState.Approving) {
             return
         }
         val request = authRequest
@@ -235,7 +226,6 @@ class WCAuthViewModel @Inject constructor(
             return
         }
         hasResponded = true
-        isApproving = false
         bridgesRepository.rejectAuthentication(request)
         _state.update { state }
     }
@@ -266,7 +256,7 @@ class WCAuthViewModel @Inject constructor(
         val payloadParams = WalletKit.generateAuthPayloadParams(
             payloadParams = request.payloadParams,
             supportedChains = supportedChains,
-            supportedMethods = ChainNamespace.Eip155.methods.map { it.string },
+            supportedMethods = ChainNamespace.Eip155.methodIds,
         )
         val issuer = selectedAccount.issuer
         val message = WalletKit.formatAuthMessage(
@@ -298,7 +288,7 @@ class WCAuthViewModel @Inject constructor(
         }
 
         return requestedChains.mapNotNull { chainId ->
-            val chain = Chain.getNamespace(chainId) ?: return@mapNotNull null
+            val chain = Chain.fromWalletConnectChainId(chainId) ?: return@mapNotNull null
             if (chain.toChainType() != ChainType.Ethereum) {
                 return@mapNotNull null
             }
@@ -373,13 +363,28 @@ sealed interface AuthSceneState {
 
     class Error(val message: String) : AuthSceneState
 
+    sealed interface Content : AuthSceneState {
+        val peer: SessionUI
+        val availableWallets: List<com.wallet.core.primitives.Wallet>
+        val selectedWallet: com.wallet.core.primitives.Wallet
+        val approval: AuthApproval
+    }
+
     data class Request(
-        val peer: SessionUI,
-        val availableWallets: List<com.wallet.core.primitives.Wallet>,
-        val selectedWallet: com.wallet.core.primitives.Wallet,
-        val approval: AuthApproval,
-        val isApproving: Boolean = false,
-    ) : AuthSceneState
+        override val peer: SessionUI,
+        override val availableWallets: List<com.wallet.core.primitives.Wallet>,
+        override val selectedWallet: com.wallet.core.primitives.Wallet,
+        override val approval: AuthApproval,
+    ) : Content
+
+    data class Approving(
+        private val request: Request,
+    ) : Content {
+        override val peer: SessionUI get() = request.peer
+        override val availableWallets: List<com.wallet.core.primitives.Wallet> get() = request.availableWallets
+        override val selectedWallet: com.wallet.core.primitives.Wallet get() = request.selectedWallet
+        override val approval: AuthApproval get() = request.approval
+    }
 }
 
 data class AuthApproval(

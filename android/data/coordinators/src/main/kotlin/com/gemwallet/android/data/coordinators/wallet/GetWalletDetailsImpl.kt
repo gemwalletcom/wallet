@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -27,5 +28,7 @@ class WalletDetailsAggregateImpl(wallet: Wallet) : WalletDetailsAggregate {
     override val id: WalletId = wallet.id
     override val name: String = wallet.name
     override val type: WalletType = wallet.type
+    override val walletChain: Chain? = wallet.accounts.firstOrNull()?.chain
     override val addresses: List<String> = wallet.accounts.map { it.address }
+    override val imageUrl: String? = wallet.imageUrl
 }

@@ -33,6 +33,17 @@ Before finishing a task:
 4. **Run clippy**: `cargo clippy -p <crate> -- -D warnings`
 5. **Format**: `just format`
 
+## Localization
+
+Strings live in the `localizer` crate (Fluent `.ftl` + `i18n_embed`), one file per language at `crates/localizer/i18n/<lang>/localizer.ftl`. `en` is the canonical key set and fallback. Maintain translations directly — there is no download step.
+
+To add a string:
+1. Add the key to [en/localizer.ftl](crates/localizer/i18n/en/localizer.ftl), using `{$var}` for placeholders.
+2. Add the same key, translated, to every other `<lang>/localizer.ftl` — identical key, placeholders, and emoji; only the prose changes. A key missing in a language silently falls back to `en`.
+3. Expose it as a typed method on `LanguageLocalizer` in [lib.rs](crates/localizer/src/lib.rs) via the `fl!` macro, then call that method from consumers (`pricer`, `gem_rewards`, `in_app_notifications`, `support`). Never inline user-facing strings or reference raw keys outside `localizer`.
+
+Fluent wraps interpolated args in isolation marks (`\u{2068}…\u{2069}`) — account for them in test assertions (see [tests/localizer.rs](crates/localizer/tests/localizer.rs)).
+
 ## Test Rules
 
 - Tests must verify intent, not just behavior. A test that still passes when the function returns a hardcoded constant is a tautology — fix the assertion or the function under test.

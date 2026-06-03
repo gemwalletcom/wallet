@@ -8,7 +8,7 @@ use crate::images::{ImageAttachment, MAX_IMAGE_BYTES, MAX_IMAGES_PER_PROMPT, ima
 use crate::replies::{ReplyOutcome, classify_reply};
 use crate::slack::client::SlackFile;
 use crate::slack::mrkdwn::to_slack_mrkdwn;
-use crate::{AppState, DISPATCH_SOURCE, DispatchSource};
+use crate::{AppState, DISPATCH_ADDRESSED, DISPATCH_SOURCE, DispatchSource};
 
 #[derive(Debug, Deserialize)]
 struct EventEnvelope {
@@ -143,15 +143,20 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
         msg.channel, msg.ts
     );
 
-    let body = build_history(&state, &msg, &latest).await.unwrap_or_else(|e| {
+    let key = format!("slack:{}:{}", msg.channel, msg.thread_ts.as_deref().unwrap_or(&msg.ts));
+    state.conversation_jobs.run(&key, handle_message(&state, &msg, &header, &latest, image_attachments, addressed)).await
+}
+
+async fn handle_message(state: &AppState, msg: &MessageEvent, header: &str, latest: &str, image_attachments: Vec<ImageAttachment>, addressed: bool) -> Result<()> {
+    let body = build_history(state, msg, latest).await.unwrap_or_else(|e| {
         error!(error = %e, "history fetch failed; using latest only");
-        latest.clone()
+        latest.to_string()
     });
     let prompt = format!("{header}\n\n{body}");
     let reply_thread: Option<&str> = msg.thread_ts.as_deref().or_else(|| (!msg.is_dm()).then_some(msg.ts.as_str()));
     info!(
         channel = %msg.channel,
-        user = %user_id,
+        user = %msg.user.as_deref().unwrap_or(""),
         addressed,
         thread = ?reply_thread,
         images = image_attachments.len(),
@@ -159,7 +164,10 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
     );
 
     let agent_result = DISPATCH_SOURCE
-        .scope(DispatchSource::Slack, state.agent.prompt_with_images(&prompt, image_attachments))
+        .scope(
+            DispatchSource::Slack,
+            DISPATCH_ADDRESSED.scope(addressed, state.agent.prompt_with_images(&prompt, image_attachments)),
+        )
         .await;
     let raw = match agent_result {
         Ok(r) => r,
@@ -173,7 +181,7 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
             return Ok(());
         }
     };
-    let chunks = match classify_reply(&raw) {
+    let replies = match classify_reply(&raw) {
         ReplyOutcome::Tagged(chunks) => chunks,
         ReplyOutcome::Untagged(text) if msg.is_dm() => {
             debug!(raw_chars = raw.len(), "DM without <reply> tags; posting raw text");
@@ -188,11 +196,11 @@ pub async fn handle_event(state: AppState, payload: Value) -> Result<()> {
             return Ok(());
         }
     };
-    for chunk in &chunks {
+    for chunk in &replies {
         let text = to_slack_mrkdwn(chunk);
         state.slack.post_message(&msg.channel, reply_thread, &text).await?;
     }
-    info!(addressed, replies = chunks.len(), "reply posted");
+    info!(addressed, replies = replies.len(), "reply posted");
     Ok(())
 }
 

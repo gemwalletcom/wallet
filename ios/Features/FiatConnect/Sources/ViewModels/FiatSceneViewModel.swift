@@ -191,15 +191,15 @@ public final class FiatSceneViewModel {
 
     var fiatProviderViewModel: FiatProvidersViewModel {
         FiatProvidersViewModel(state: quotesState.map { items in
-                .plain(items.map {
-                    FiatQuoteViewModel(
-                        asset: asset,
-                        quote: $0,
-                        assetPrice: assetData.price?.price,
-                        isSelected: $0.provider == selectedQuote?.provider,
-                        formatter: currencyFormatter,
-                    )
-                })
+            .plain(items.map {
+                FiatQuoteViewModel(
+                    asset: asset,
+                    quote: $0,
+                    assetPrice: assetData.price?.price,
+                    isSelected: $0.provider == selectedQuote?.provider,
+                    formatter: currencyFormatter,
+                )
+            })
         })
     }
 

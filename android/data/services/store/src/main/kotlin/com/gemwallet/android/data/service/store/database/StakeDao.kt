@@ -7,7 +7,9 @@ import androidx.room.Upsert
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationBase
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationData
 import com.gemwallet.android.data.service.store.database.entities.DbDelegationValidator
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,21 +20,41 @@ interface StakeDao {
     @Upsert
     suspend fun upsertDelegations(delegations: List<DbDelegationBase>)
 
+    @Transaction
+    suspend fun updateAndDeleteDelegations(
+        walletId: WalletId,
+        delegations: List<DbDelegationBase>,
+        deleteIds: List<String>,
+    ) {
+        if (delegations.isNotEmpty()) {
+            upsertDelegations(delegations)
+        }
+        if (deleteIds.isNotEmpty()) {
+            deleteDelegations(walletId, deleteIds)
+        }
+    }
+
     @Query("DELETE FROM stake_delegations WHERE walletId=:walletId AND id IN (:ids)")
-    suspend fun deleteDelegations(walletId: String, ids: List<String>)
+    suspend fun deleteDelegations(walletId: WalletId, ids: List<String>)
+
+    @Query("SELECT id FROM stake_delegations WHERE walletId=:walletId AND assetId=:assetId")
+    suspend fun getDelegationIds(walletId: WalletId, assetId: AssetId): List<String>
+
+    @Query("SELECT id FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType")
+    suspend fun getValidatorIds(assetId: AssetId, providerType: StakeProviderType): List<String>
 
     @Query(
         "SELECT * FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType " +
             "ORDER BY apr DESC"
     )
-    fun getValidators(assetId: String, providerType: StakeProviderType): Flow<List<DbDelegationValidator>>
+    fun getValidators(assetId: AssetId, providerType: StakeProviderType): Flow<List<DbDelegationValidator>>
 
     @Query("SELECT * FROM stake_validators WHERE assetId=:assetId AND validatorId=:validatorId LIMIT 1")
-    suspend fun getValidator(assetId: String, validatorId: String): DbDelegationValidator?
+    suspend fun getValidator(assetId: AssetId, validatorId: String): DbDelegationValidator?
 
     @Transaction
     @Query("SELECT * FROM stake_delegations WHERE walletId=:walletId AND assetId=:assetId")
-    fun getDelegations(walletId: String, assetId: String): Flow<List<DbDelegationData>>
+    fun getDelegations(walletId: WalletId, assetId: AssetId): Flow<List<DbDelegationData>>
 
     @Transaction
     @Query(

@@ -78,7 +78,7 @@ fun AuthRequestScene(
             onCancel = viewModel::onReject,
             closeIcon = true,
         )
-        is AuthSceneState.Request -> AuthRequestContent(
+        is AuthSceneState.Content -> AuthRequestContent(
             state = currentState,
             onApprove = viewModel::onApprove,
             onReject = viewModel::onReject,
@@ -89,7 +89,7 @@ fun AuthRequestScene(
 
 @Composable
 private fun AuthRequestContent(
-    state: AuthSceneState.Request,
+    state: AuthSceneState.Content,
     onApprove: () -> Unit,
     onReject: () -> Unit,
     onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit,
@@ -106,7 +106,7 @@ private fun AuthRequestContent(
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.transfer_confirm),
-                loading = state.isApproving,
+                loading = state is AuthSceneState.Approving,
             ) {
                 context.requestAuth(AuthRequest.Confirmation) {
                     onApprove()
@@ -130,7 +130,7 @@ private fun AuthRequestContent(
             }
             item {
                 PropertyItem(
-                    modifier = if (canSelectWallet) {
+                    modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
                         Modifier.clickable { isShowSelectWallets = true }
                     } else {
                         Modifier

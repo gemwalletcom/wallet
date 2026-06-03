@@ -141,7 +141,7 @@ struct NetworkFeeSceneViewModelTests {
 
         let bitcoinModel = NetworkFeeSceneViewModel.mock(chain: .bitcoin)
         bitcoinModel.update(rates: [.defaultRate()], feeAssetPrice: nil)
-        bitcoinModel.update(feeAmount: BigInt(10_000))
+        bitcoinModel.update(feeAmount: BigInt(10000))
         let bitcoinVM = try #require(bitcoinModel.feeRatesViewModels.first)
 
         #expect(bitcoinModel.valueForRate(bitcoinVM) == bitcoinVM.valueText)

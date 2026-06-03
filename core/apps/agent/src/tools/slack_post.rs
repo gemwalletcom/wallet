@@ -6,8 +6,8 @@ use rig::tool::Tool;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+use crate::slack::SlackClient;
 use crate::slack::mrkdwn::to_slack_mrkdwn;
-use crate::slack::{SlackClient, is_user_id};
 
 use super::slack::resolve_allowed_channel;
 
@@ -15,7 +15,6 @@ use super::slack::resolve_allowed_channel;
 pub struct SlackPostTool {
     pub client: Arc<SlackClient>,
     pub allow_channels: Vec<String>,
-    pub conversations_list_limit: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -75,10 +74,11 @@ impl Tool for SlackPostTool {
     }
 
     async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
-        let channel = if is_user_id(&args.channel) {
-            args.channel.clone()
+        let requested = args.channel.trim();
+        let channel = if requested.starts_with('U') {
+            requested.to_string()
         } else {
-            resolve_allowed_channel(&self.client, &args.channel, &self.allow_channels, self.conversations_list_limit, "slack.channels").await?
+            resolve_allowed_channel(&self.client, requested, &self.allow_channels, "slack.channels").await?
         };
         let text = to_slack_mrkdwn(&args.text);
         let posted_ts = self

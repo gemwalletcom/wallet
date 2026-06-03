@@ -14,7 +14,7 @@ base64 = { workspace = true }
 strum = { workspace = true }
 config = { workspace = true }
 reqwest = { workspace = true }
-tokio = { workspace = true, features = ["process", "io-util", "time", "signal", "net"] }
+tokio = { workspace = true, features = ["process", "io-util", "time", "signal", "net", "sync"] }
 
 rig = { version = "0.37", features = ["rmcp"] }
 rig-sqlite = "0.2.6"

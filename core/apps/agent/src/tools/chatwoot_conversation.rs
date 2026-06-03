@@ -59,7 +59,7 @@ impl Tool for ChatwootConversationTool {
             description: "Operations on one chatwoot conversation. action: \
                 history (fetch its messages); \
                 note (teammate-only internal note, needs content); \
-                reply (public customer message, needs content — slack/scheduled dispatch only, rejected on a chatwoot webhook where your <reply> text is the reply); \
+                reply (public customer message, needs content — rejected on a chatwoot webhook, where your <reply> text is the reply); \
                 resolve (only after the customer confirms or for clear noise, never mid human investigation); \
                 assign (to a chatwoot agent id, or unassign by omitting assignee_id); \
                 handoff (open + unassign the bot so humans see it when escalating); \
@@ -107,7 +107,7 @@ impl Tool for ChatwootConversationTool {
             Reply => {
                 if crate::current_dispatch_source() == crate::DispatchSource::Chatwoot {
                     return Err(ToolFailure::not_allowed(
-                        "on a chatwoot customer dispatch your reply IS your natural-text response (wrapped in <reply> tags) — action=reply is only for slack/scheduled dispatch where a teammate asks you to message a specific customer",
+                        "on a chatwoot customer dispatch your reply IS your natural-text response (wrapped in <reply> tags) — use that, not action=reply",
                     ));
                 }
                 let content = args.content.ok_or_else(|| missing("content"))?;

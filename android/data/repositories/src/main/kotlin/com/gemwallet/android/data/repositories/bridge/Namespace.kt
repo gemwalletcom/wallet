@@ -4,6 +4,7 @@ import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toChainType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
+import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionMethods
 import uniffi.gemstone.WalletConnect
 
@@ -15,7 +16,7 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
             WalletConnectionMethods.PersonalSign,
             WalletConnectionMethods.EthSignTypedData,
             WalletConnectionMethods.EthSignTypedDataV4,
-            WalletConnectionMethods.EthSendTransaction,
+            WalletConnectionMethods.EthSignTransaction,
             WalletConnectionMethods.EthSendTransaction,
             WalletConnectionMethods.WalletAddEthereumChain,
             WalletConnectionMethods.WalletSwitchEthereumChain,
@@ -25,8 +26,10 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
     Solana(
         Chain.Solana.string,
         listOf(
-            WalletConnectionMethods.SolanaSignTransaction,
             WalletConnectionMethods.SolanaSignMessage,
+            WalletConnectionMethods.SolanaSignTransaction,
+            WalletConnectionMethods.SolanaSignAndSendTransaction,
+            WalletConnectionMethods.SolanaSignAllTransactions,
         )
     ),
     Sui(
@@ -51,14 +54,28 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
             WalletConnectionMethods.TronSignTransaction,
             WalletConnectionMethods.TronSendTransaction,
         )
-    )
+    );
+
+    val methodIds: List<String>
+        get() = methods.map { it.string }
+
+    val eventIds: List<String>
+        get() = when (this) {
+            Solana -> emptyList()
+            else -> defaultEventIds
+        }
+
+    companion object {
+        private val defaultEventIds = listOf(
+            WalletConnectionEvents.Connect.string,
+            WalletConnectionEvents.Disconnect.string,
+            WalletConnectionEvents.ChainChanged.string,
+            WalletConnectionEvents.AccountsChanged.string,
+        )
+    }
 }
 
-fun Chain.getChainNameSpace(): String? {
-    return WalletConnect().getNamespace(string)
-}
-
-fun Chain.getNameSpace(): ChainNamespace? {
+fun Chain.walletConnectNamespace(): ChainNamespace? {
     return when (this.toChainType()) {
         ChainType.Ethereum -> ChainNamespace.Eip155
         ChainType.Solana -> ChainNamespace.Solana
@@ -69,15 +86,11 @@ fun Chain.getNameSpace(): ChainNamespace? {
     }
 }
 
-fun Chain.getReference(): String? {
+fun Chain.walletConnectReference(): String? {
     return WalletConnect().getReference(string)
 }
 
-fun Chain.Companion.getNamespace(walletConnectChainId: String?): Chain? { // TODO: Use Reown call for parse
-    val chainId = walletConnectChainId?.split(":")
-    return if (!chainId.isNullOrEmpty() && chainId.size >= 2) {
-        WalletConnect().getChain(chainId[0], chainId[1])?.toChain()
-    } else {
-        null
-    }
+fun Chain.Companion.fromWalletConnectChainId(walletConnectChainId: String?): Chain? {
+    val chainId = walletConnectChainId ?: return null
+    return WalletConnect().parseChainId(chainId)?.toChain()
 }

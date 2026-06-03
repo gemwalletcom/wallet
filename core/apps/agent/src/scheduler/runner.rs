@@ -4,7 +4,7 @@ use gem_tracing::tracing::{info, warn};
 use tokio::time::{Instant, interval_at};
 
 use crate::slack::mrkdwn::to_slack_mrkdwn;
-use crate::{AppState, DISPATCH_SOURCE, DispatchSource};
+use crate::{AppState, DISPATCH_ADDRESSED, DISPATCH_SOURCE, DispatchSource};
 
 use super::ScheduleEntry;
 use super::format::{self, Status};
@@ -21,7 +21,12 @@ async fn run_loop(state: AppState, name: String, prompt: String, cadence: Durati
         let started = Instant::now();
         info!(schedule = %name, "scheduler firing");
         post_status(&state, &name, Status::Started).await;
-        let result = DISPATCH_SOURCE.scope(DispatchSource::Scheduled, state.agent.prompt_response(&prompt)).await;
+        let result = DISPATCH_SOURCE
+            .scope(
+                DispatchSource::Scheduled,
+                DISPATCH_ADDRESSED.scope(true, state.agent.prompt_response(&prompt)),
+            )
+            .await;
         match result {
             Ok(response) => {
                 let elapsed = started.elapsed();

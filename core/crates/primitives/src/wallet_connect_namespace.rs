@@ -1,4 +1,4 @@
-use crate::{Chain, ChainType};
+use crate::{Chain, ChainAddress, ChainType};
 use serde::Serialize;
 use std::str::FromStr;
 use strum::{AsRefStr, EnumString};
@@ -75,18 +75,39 @@ impl WalletConnectCAIP2 {
         }
     }
 
-    pub fn resolve_chain(chain_id: Option<String>) -> Result<Chain, String> {
-        let chain_id = chain_id.ok_or("Chain ID is required")?;
-        let parts: Vec<&str> = chain_id.split(':').collect();
+    pub fn parse_chain_id(chain_id: String) -> Option<Chain> {
+        let (namespace, reference) = Self::parse_chain_id_parts(&chain_id)?;
+        Self::get_chain(namespace.to_string(), reference.to_string())
+    }
 
-        if parts.len() != 2 {
-            return Err("Invalid chain ID format".to_string());
+    pub fn parse_account(account: String) -> Option<ChainAddress> {
+        let mut parts = account.split(':');
+        let namespace = parts.next()?;
+        let reference = parts.next()?;
+        let address = parts.next()?;
+        if parts.next().is_some() || address.is_empty() {
+            return None;
         }
 
-        let namespace = parts[0].to_string();
-        let reference = parts[1].to_string();
+        Some(ChainAddress::new(Self::get_chain(namespace.to_string(), reference.to_string())?, address.to_string()))
+    }
 
-        Self::get_chain(namespace, reference).ok_or("Unsupported chain".to_string())
+    pub fn resolve_chain(chain_id: Option<String>) -> Result<Chain, String> {
+        let chain_id = chain_id.ok_or("Chain ID is required")?;
+        if Self::parse_chain_id_parts(&chain_id).is_none() {
+            return Err("Invalid chain ID format".to_string());
+        }
+        Self::parse_chain_id(chain_id).ok_or("Unsupported chain".to_string())
+    }
+
+    fn parse_chain_id_parts(chain_id: &str) -> Option<(&str, &str)> {
+        let mut parts = chain_id.split(':');
+        let namespace = parts.next()?;
+        let reference = parts.next()?;
+        if parts.next().is_some() {
+            return None;
+        }
+        Some((namespace, reference))
     }
 }
 
@@ -133,5 +154,17 @@ mod tests {
         assert!(WalletConnectCAIP2::resolve_chain(Some("eip155:1:extra".to_string())).is_err());
         assert!(WalletConnectCAIP2::resolve_chain(None).is_err());
         assert!(WalletConnectCAIP2::resolve_chain(Some("unknown:chain".to_string())).is_err());
+    }
+
+    #[test]
+    fn test_parse_account() {
+        assert_eq!(
+            WalletConnectCAIP2::parse_account("eip155:8453:0x0000000000000000000000000000000000000001".to_string()),
+            Some(ChainAddress::new(Chain::Base, "0x0000000000000000000000000000000000000001".to_string()))
+        );
+        assert_eq!(WalletConnectCAIP2::parse_account("eip155:8453".to_string()), None);
+        assert_eq!(WalletConnectCAIP2::parse_account("eip155:8453:".to_string()), None);
+        assert_eq!(WalletConnectCAIP2::parse_account("eip155:8453:0x1:extra".to_string()), None);
+        assert_eq!(WalletConnectCAIP2::parse_account("eip155:99999:0x1".to_string()), None);
     }
 }

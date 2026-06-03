@@ -79,14 +79,14 @@ fun RequestScene(
             },
             onCancel = viewModel::onReject
         )
-        is RequestSceneState.Request -> (sceneState as RequestSceneState.Request).let { sceneState ->
+        is RequestSceneState.Content -> (sceneState as RequestSceneState.Content).let { sceneState ->
             val request = sceneState.request
             when (request) {
                 is WCRequest.SignMessage -> SignMessageScene(
-                    sceneState.walletName,
-                    request,
-                    viewModel::onSign,
-                    viewModel::onReject
+                    state = sceneState,
+                    request = request,
+                    onApprove = viewModel::onSign,
+                    onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
                     params = request.confirmParams,
@@ -104,7 +104,7 @@ fun RequestScene(
 
 @Composable
 private fun SignMessageScene(
-    walletName: String,
+    state: RequestSceneState.Content,
     request: WCRequest.SignMessage,
     onApprove: () -> Unit,
     onReject: () -> Unit,
@@ -120,6 +120,7 @@ private fun SignMessageScene(
             MainActionButton(
                 title = stringResource(id = R.string.transfer_confirm),
                 enabled = !request.simulation.warnings.hasCriticalWarning(),
+                loading = state is RequestSceneState.Responding,
             ) {
                 context.requestAuth(AuthRequest.Confirmation) {
                     onApprove()
@@ -141,7 +142,7 @@ private fun SignMessageScene(
                     subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
                 )
             }
-            item { PropertyItem(R.string.common_wallet, walletName, listPosition = ListPosition.First) }
+            item { PropertyItem(R.string.common_wallet, state.walletName, listPosition = ListPosition.First) }
             item { PropertyNetworkItem(request.chain, listPosition = ListPosition.Last) }
             simulationWarningsContent(request.simulation.warnings)
             if (request.hasPayload) {

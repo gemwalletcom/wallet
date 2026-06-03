@@ -6,7 +6,7 @@ import com.wallet.core.primitives.WalletType
 interface WalletSummaryAggregate {
     val walletType: WalletType
     val walletName: String
-    val walletIcon: Any?
+    val walletIcon: WalletIcon
     val walletTotalValue: String
     val changedValue: EquivalentValue?
     val isBalanceHidden: Boolean

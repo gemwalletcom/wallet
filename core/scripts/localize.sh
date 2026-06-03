@@ -9,7 +9,6 @@ fi
 
 token=$LOCALIZE_TOKEN
 mobile_project_id="94865410644ee707546334.60736699"
-core_project_id="2608747066be591cd57427.16218028"
 
 # iOS
 ios_data='{
@@ -42,28 +41,6 @@ android_data='{
   "export_empty_as": "base",
   "export_sort": "first_added",
   "bundle_structure": "values_%LANG_ISO%/strings.%FORMAT%"
-}'
-# Core
-core_data='{
-"format": "properties",
-"export_empty_as": "base",
-"export_sort": "first_added",
-"original_filenames": false,
-"language_mapping": [
-    {
-      "original_language_iso": "zh_CN",
-      "custom_language_iso": "zh-Hans"
-    },
-    {
-      "original_language_iso": "zh_TW",
-      "custom_language_iso": "zh-Hant"
-    },
-    {
-      "original_language_iso": "pt_BR",
-      "custom_language_iso": "pt-BR"
-    }
-],
-"bundle_structure": "%LANG_ISO%/localizer.ftl"
 }'
 
 json_obj_key() {
@@ -193,8 +170,5 @@ case $1 in
   ;;
   "android")
     download_bundle "android" "$android_data" "$2" "$mobile_project_id" "${3:-}"
-  ;;
-  "core")
-    download_bundle "core" "$core_data" "$2" "$core_project_id" "${3:-}"
   ;;
 esac

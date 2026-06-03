@@ -11,4 +11,5 @@ interface WalletDataAggregate {
     val walletAddress: String?
     val walletChain: Chain?
     val isPinned: Boolean
+    val imageUrl: String?
 }

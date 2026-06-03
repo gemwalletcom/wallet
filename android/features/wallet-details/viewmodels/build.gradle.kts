@@ -41,11 +41,14 @@ android {
 dependencies {
 
     api(project(":ui-models"))
+    implementation(project(":ui"))
     implementation(project(":data:repositories"))
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.savedstate)
+
+    implementation(libs.coil.compose)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

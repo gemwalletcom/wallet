@@ -95,6 +95,7 @@ fun PreviewWalletScreen() {
                         override val isPinned: Boolean = false
                         override val walletChain: Chain = Chain.Ethereum
                         override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val imageUrl: String? = null
                     },
                     object : WalletDataAggregate {
                         override val id: String = "1"
@@ -104,6 +105,7 @@ fun PreviewWalletScreen() {
                         override val isPinned: Boolean = false
                         override val walletChain: Chain = Chain.Ethereum
                         override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val imageUrl: String? = null
                     },
                     object : WalletDataAggregate {
                         override val id: String = "1"
@@ -113,6 +115,7 @@ fun PreviewWalletScreen() {
                         override val isPinned: Boolean = false
                         override val walletChain: Chain = Chain.Bitcoin
                         override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val imageUrl: String? = null
                     },
                 ),
                 pinnedWallets = listOf(
@@ -125,6 +128,7 @@ fun PreviewWalletScreen() {
                         override val isPinned: Boolean = true
                         override val walletChain: Chain = Chain.Bitcoin
                         override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
+                        override val imageUrl: String? = null
                     },
                 ),
                 onEdit = {},

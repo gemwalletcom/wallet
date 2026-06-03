@@ -8,7 +8,6 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toModel
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.services.gemapi.GemApiStaticClient
-import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationBase
@@ -45,12 +44,12 @@ class StakeRepository(
     }
 
     fun getValidators(assetId: AssetId): Flow<List<DelegationValidator>> {
-        return stakeDao.getValidators(assetId.toIdentifier(), StakeProviderType.Stake)
+        return stakeDao.getValidators(assetId, StakeProviderType.Stake)
             .map { items -> selectableValidators(items.toDTO()) }
     }
 
     fun getDelegations(walletId: WalletId, assetId: AssetId): Flow<List<Delegation>> {
-        return stakeDao.getDelegations(walletId.id, assetId.toIdentifier())
+        return stakeDao.getDelegations(walletId, assetId)
             .map { rows ->
                 rows
                     .sortedByDescending { it.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO }
@@ -68,7 +67,7 @@ class StakeRepository(
     }
 
     suspend fun getStakeValidator(assetId: AssetId, validatorId: String): DelegationValidator? = withContext(Dispatchers.IO) {
-        stakeDao.getValidator(assetId.toIdentifier(), validatorId)?.toDTO()
+        stakeDao.getValidator(assetId, validatorId)?.toDTO()
     }
 
     private suspend fun syncValidators(assetId: AssetId, apr: Double) {
@@ -87,19 +86,11 @@ class StakeRepository(
             .getOrNull() ?: return
         val incoming = delegations.toRecord(walletId)
         val incomingIds = incoming.map { it.id }.toSet()
-        val deleteIds = stakeDao.getDelegations(walletId.id, assetId.toIdentifier()).first()
-            .map { it.base.id }
+        val deleteIds = stakeDao.getDelegationIds(walletId, assetId)
             .filterNot { incomingIds.contains(it) }
-        if (deleteIds.isNotEmpty()) {
-            stakeDao.deleteDelegations(walletId.id, deleteIds)
-        }
-        val validatorIds = stakeDao.getValidators(assetId.toIdentifier(), StakeProviderType.Stake).first()
-            .map { it.id }
-            .toSet()
+        val validatorIds = stakeDao.getValidatorIds(assetId, StakeProviderType.Stake).toSet()
         val upsertable = incoming.filter { validatorIds.contains(it.validatorId) }
-        if (upsertable.isNotEmpty()) {
-            stakeDao.upsertDelegations(upsertable)
-        }
+        stakeDao.updateAndDeleteDelegations(walletId, upsertable, deleteIds)
     }
 }
 

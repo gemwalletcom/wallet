@@ -81,7 +81,7 @@ private extension ValueFormatter {
         Self.dustThreshold.formatted(
             Decimal.FormatStyle()
                 .locale(locale)
-                .precision(.fractionLength(4))
+                .precision(.fractionLength(4)),
         )
     }
 

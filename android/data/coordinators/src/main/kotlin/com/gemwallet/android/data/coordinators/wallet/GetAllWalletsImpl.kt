@@ -55,6 +55,8 @@ class WalletDataAggregateImpl(
 
     override val isPinned: Boolean = wallet.isPinned
 
+    override val imageUrl: String? = wallet.imageUrl
+
     private val walletAccount: Account?
         get() = when (type) {
             WalletType.View,

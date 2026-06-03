@@ -6,7 +6,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
-import com.gemwallet.android.data.repositories.bridge.getNamespace
+import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
@@ -102,7 +102,7 @@ class WCRequestViewModel @Inject constructor(
                     rejectRequest(sessionRequest)
                     return@launch
                 }
-                val chain = Chain.getNamespace(chainId)
+                val chain = Chain.fromWalletConnectChainId(chainId)
                     ?: throw BridgeRequestError.ChainUnsupported
 
                 validateChain(chain, connection.session)
@@ -181,11 +181,16 @@ class WCRequestViewModel @Inject constructor(
 
     fun onTransactionResult(result: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val request = state.value.request as? WCRequest.Transaction ?: return@launch
+            val snapshot = state.value
+            if (snapshot.responseState == RequestResponseState.Responding) {
+                return@launch
+            }
+            val request = snapshot.request as? WCRequest.Transaction ?: return@launch
+            state.update { it.copy(responseState = RequestResponseState.Responding) }
             val response = try {
                 request.execute(result)
             } catch (err: Throwable) {
-                state.update { it.copy(error = err.message ?: "Request failed") }
+                state.update { it.copy(responseState = RequestResponseState.Idle, error = err.message ?: "Request failed") }
                 return@launch
             }
             response(request.topic, request.requestId, response)
@@ -194,17 +199,21 @@ class WCRequestViewModel @Inject constructor(
 
     fun onSign() {
         val snapshot = state.value
+        if (snapshot.responseState == RequestResponseState.Responding) {
+            return
+        }
         val request = (snapshot.request as? WCRequest.SignMessage) ?: return
         val wallet = snapshot.wallet ?: return
         val chain = snapshot.chain ?: return
 
+        state.update { it.copy(responseState = RequestResponseState.Responding) }
         viewModelScope.launch(Dispatchers.IO) {
             val password = passwordStore.getPassword(wallet.id.id)
             val privateKey = loadPrivateKeyOperator(wallet, chain, password)
             val sign = try {
                 request.execute(privateKey)
             } catch (err: Throwable) {
-                state.update { it.copy(error = err.message ?: "Sign failed") }
+                state.update { it.copy(responseState = RequestResponseState.Idle, error = err.message ?: "Sign failed") }
                 return@launch
             } finally {
                 Arrays.fill(privateKey, 0)
@@ -242,7 +251,7 @@ class WCRequestViewModel @Inject constructor(
             ),
             onSuccess = { state.update { it.copy(canceled = true) } },
             onError = { error ->
-                state.update { it.copy(error = error.throwable.message ?: "Request failed") }
+                state.update { it.copy(responseState = RequestResponseState.Idle, error = error.throwable.message ?: "Request failed") }
             }
         )
     }
@@ -261,6 +270,9 @@ class WCRequestViewModel @Inject constructor(
     }
 
     fun onReject() {
+        if (state.value.responseState == RequestResponseState.Responding) {
+            return
+        }
         requestJob?.cancel()
         val sessionRequest = state.value.sessionRequest ?: return
         rejectRequest(sessionRequest)
@@ -316,6 +328,7 @@ private data class RequestViewModelState(
     val wallet: com.wallet.core.primitives.Wallet? = null,
     val request: WCRequest? = null,
     val chain: Chain? = null,
+    val responseState: RequestResponseState = RequestResponseState.Idle,
 ) {
     fun toSceneState(): RequestSceneState {
         if (canceled) {
@@ -329,8 +342,17 @@ private data class RequestViewModelState(
         }
         wallet ?: return RequestSceneState.Loading
 
-        return RequestSceneState.Request(walletName = wallet.name, request = request)
+        val requestState = RequestSceneState.Request(walletName = wallet.name, request = request)
+        return when (responseState) {
+            RequestResponseState.Idle -> requestState
+            RequestResponseState.Responding -> RequestSceneState.Responding(requestState)
+        }
     }
+}
+
+private enum class RequestResponseState {
+    Idle,
+    Responding,
 }
 
 sealed interface RequestSceneState {
@@ -341,8 +363,20 @@ sealed interface RequestSceneState {
 
     class Error(val message: String) : RequestSceneState
 
+    sealed interface Content : RequestSceneState {
+        val walletName: String
+        val request: WCRequest
+    }
+
     class Request(
-        val walletName: String,
-        val request: WCRequest,
-    ) : RequestSceneState
+        override val walletName: String,
+        override val request: WCRequest,
+    ) : Content
+
+    class Responding(
+        private val requestState: Request,
+    ) : Content {
+        override val walletName: String get() = requestState.walletName
+        override val request: WCRequest get() = requestState.request
+    }
 }

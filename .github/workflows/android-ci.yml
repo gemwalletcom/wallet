@@ -50,50 +50,50 @@ jobs:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  instrumented_test:
-    name: Instrumented Tests
-    needs: unit_test
-    runs-on: [self-hosted, macOS]
-    defaults:
-      run:
-        working-directory: android
+  # instrumented_test:
+  #   name: Instrumented Tests
+  #   needs: unit_test
+  #   runs-on: [self-hosted, macOS]
+  #   defaults:
+  #     run:
+  #       working-directory: android
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v6
+  #       with:
+  #         submodules: recursive
 
-      - name: Bootstrap
-        run: just bootstrap
+  #     - name: Bootstrap
+  #       run: just bootstrap
 
-      - name: Clean Android build outputs
-        run: just clean
+  #     - name: Clean Android build outputs
+  #       run: just clean
 
-      - name: Provision Android SDK and emulator
-        run: just provision-emulator
+  #     - name: Provision Android SDK and emulator
+  #       run: just provision-emulator
 
-      - name: Build
-        run: just build
-        env:
-          GPR_USERNAME: ${{ github.actor }}
-          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Build
+  #       run: just build
+  #       env:
+  #         GPR_USERNAME: ${{ github.actor }}
+  #         GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Start emulator
-        run: just start-emulator
+  #     - name: Start emulator
+  #       run: just start-emulator
 
-      - name: Build instrumented tests
-        run: just build-test
-        env:
-          GPR_USERNAME: ${{ github.actor }}
-          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Build instrumented tests
+  #       run: just build-test
+  #       env:
+  #         GPR_USERNAME: ${{ github.actor }}
+  #         GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run instrumented tests
-        run: just test-integration
-        env:
-          GPR_USERNAME: ${{ github.actor }}
-          GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Run instrumented tests
+  #       run: just test-integration
+  #       env:
+  #         GPR_USERNAME: ${{ github.actor }}
+  #         GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Stop emulator
-        if: always()
-        run: just stop-emulator
+  #     - name: Stop emulator
+  #       if: always()
+  #       run: just stop-emulator

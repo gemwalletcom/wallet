@@ -3,8 +3,6 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
-import com.gemwallet.android.data.repositories.bridge.getChainNameSpace
-import com.gemwallet.android.data.repositories.bridge.getReference
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.walletConnectAppName
@@ -14,7 +12,6 @@ import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,15 +55,9 @@ class ProposalSceneViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = _proposal.filterNotNull().mapLatest { proposal ->
-        val availableChains = (proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() } +
-                proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() }).toSet()
-        val availableWallets = (walletsRepository.getAll().firstOrNull() ?: emptyList())
-            .filter { wallet ->
-                wallet.type != WalletType.View &&
-                    wallet.accounts.any { "${it.chain.getChainNameSpace()}:${it.chain.getReference()}" in availableChains }
-            }
-            .sortedBy { it.type }
-        availableWallets
+        val chains = proposal.supportedWalletConnectProposalChains() ?: return@mapLatest emptyList()
+        (walletsRepository.getAll().firstOrNull() ?: emptyList())
+            .walletsSupportingWalletConnectProposal(chains)
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -104,11 +95,16 @@ class ProposalSceneViewModel @Inject constructor(
     fun onApprove() {
         val wallet = selectedWallet.value
         val proposal = _proposal.value
+        val currentState = state.value as? ProposalSceneState.Content ?: return
+        if (currentState is ProposalSceneState.Approving) {
+            return
+        }
 
         if (wallet == null || proposal == null) {
             state.update { ProposalSceneState.Canceled }
             return
         }
+        state.update { ProposalSceneState.Approving(currentState.verificationStatus) }
         viewModelScope.launch(Dispatchers.IO) {
             val result = runCatching {
                 bridgesRepository.approveConnection(
@@ -123,6 +119,9 @@ class ProposalSceneViewModel @Inject constructor(
     }
 
     fun onReject(){
+        if (state.value is ProposalSceneState.Approving) {
+            return
+        }
         onReject(_proposal.value ?: return)
     }
 
@@ -135,13 +134,26 @@ class ProposalSceneViewModel @Inject constructor(
     }
 
     fun onWalletSelected(walletId: WalletId) {
+        if (state.value is ProposalSceneState.Approving) {
+            return
+        }
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
     }
 
 }
 
 sealed interface ProposalSceneState {
-    class Init(val verificationStatus: WalletConnectionVerificationStatus) : ProposalSceneState
+    sealed interface Content : ProposalSceneState {
+        val verificationStatus: WalletConnectionVerificationStatus
+    }
+
+    data class Init(
+        override val verificationStatus: WalletConnectionVerificationStatus,
+    ) : Content
+
+    data class Approving(
+        override val verificationStatus: WalletConnectionVerificationStatus,
+    ) : Content
 
     data object Canceled : ProposalSceneState
 

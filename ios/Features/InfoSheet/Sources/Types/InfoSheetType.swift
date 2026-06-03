@@ -26,7 +26,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     // asset
     case assetStatus(AssetScoreType)
     case accountMinimalBalance(Asset, required: BigInt)
-    // stake / perpetual / earn
+    /// stake / perpetual / earn
     case minimumAmount(Asset, required: BigInt, action: InfoSheetAction)
     // stake
     case stakingReservedFees(image: AssetImage)

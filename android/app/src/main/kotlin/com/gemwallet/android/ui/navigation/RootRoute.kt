@@ -18,6 +18,7 @@ import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
+import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
@@ -64,6 +65,7 @@ import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
+import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
 import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
@@ -173,6 +175,7 @@ class WalletNavigator(
         importType.toImportRoute()?.let(::push)
     }
     fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
+    fun openWalletImage(walletId: WalletId, source: WalletImageSource = WalletImageSource.Wallet) = push(WalletImageRoute(walletId, source))
     fun openWalletSecurityReminder(walletId: WalletId, type: WalletType) = push(WalletSecurityReminderRoute(walletId, type))
     fun finishWalletSecurityReminder(walletId: WalletId, type: WalletType) = replaceTop(WalletPhraseRoute(walletId, type))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))

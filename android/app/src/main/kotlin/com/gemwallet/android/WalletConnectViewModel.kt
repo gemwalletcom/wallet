@@ -76,10 +76,6 @@ sealed interface WalletConnectIntent {
         override val requiresUserAction = false
     }
 
-    data object SessionDelete : WalletConnectIntent {
-        override val requiresUserAction = false
-    }
-
     class SessionRequest(val request: Wallet.Model.SessionRequest, val verifyContext: Wallet.Model.VerifyContext?) : WalletConnectIntent {
         override val requiresUserAction = true
     }
@@ -101,7 +97,6 @@ private fun WalletConnectEvent.toUIState(): WalletConnectIntent? {
     return when (val model = model) {
         is Wallet.Model.SessionRequest -> WalletConnectIntent.SessionRequest(model, verifyContext)
         is Wallet.Model.SessionAuthenticate -> WalletConnectIntent.AuthRequest(model, verifyContext)
-        is Wallet.Model.SessionDelete -> WalletConnectIntent.SessionDelete
         is Wallet.Model.SessionProposal -> WalletConnectIntent.SessionProposal(model, verifyContext)
         else -> null
     }

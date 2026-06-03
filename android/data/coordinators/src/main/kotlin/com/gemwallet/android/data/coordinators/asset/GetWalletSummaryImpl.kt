@@ -10,6 +10,7 @@ import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
+import com.gemwallet.android.domains.wallet.aggregates.WalletIcon
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.model.CurrencyFormatter
@@ -140,12 +141,15 @@ internal class WalletSummaryAggregateImpl(
 
     override val walletName: String = wallet.name
 
-    override val walletIcon: Any? = when (wallet.type) {
-        WalletType.Multicoin -> null
-        WalletType.Single,
-        WalletType.PrivateKey,
-        WalletType.View -> walletAccount?.chain?.getIconUrl()
-    }
+    override val walletIcon: WalletIcon = WalletIcon(
+        imageUrl = wallet.imageUrl,
+        placeholder = when (wallet.type) {
+            WalletType.Multicoin -> null
+            WalletType.Single,
+            WalletType.PrivateKey,
+            WalletType.View -> walletAccount?.chain?.getIconUrl()
+        },
+    )
 
     override val walletTotalValue: String = displayState.totalValue
 

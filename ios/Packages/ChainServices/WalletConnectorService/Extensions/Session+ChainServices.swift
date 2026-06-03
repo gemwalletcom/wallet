@@ -7,7 +7,7 @@ import ReownWalletKit
 extension Session {
     var asSession: Primitives.WalletConnectionSession {
         let sessionChains = namespaces.values
-            .flatMap { $0.accounts.map(\.blockchain) }
+            .flatMap(\.accounts)
             .compactMap(\.chain)
 
         return WalletConnectionSession(

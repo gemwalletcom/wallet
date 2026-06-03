@@ -47,6 +47,7 @@ internal fun LazyListScope.wallets(
                     walletAddress = item.walletAddress,
                     isCurrent = item.isCurrent,
                     type = item.type,
+                    imageUrl = item.imageUrl,
                     listPosition = ListPosition.getPosition(index, wallets.size),
                     onEdit = { onEdit(walletId) },
                     modifier = it

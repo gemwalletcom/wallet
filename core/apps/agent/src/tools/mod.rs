@@ -1,6 +1,5 @@
 pub mod chatwoot_account;
 pub mod chatwoot_conversation;
-pub mod chatwoot_review_reply;
 pub mod fetch;
 pub mod gem_api;
 pub mod gem_docs;
@@ -14,7 +13,6 @@ pub mod telegram_post;
 
 pub use chatwoot_account::ChatwootAccountTool;
 pub use chatwoot_conversation::ChatwootConversationTool;
-pub use chatwoot_review_reply::ChatwootReviewReplyTool;
 pub use fetch::FetchTool;
 pub use gem_api::GemApiTool;
 pub use gem_docs::GemDocsTool;
@@ -34,7 +32,7 @@ use rig::tool::{ToolDyn, ToolError};
 use serde::Deserialize;
 use strum::{Display as StrumDisplay, IntoEnumIterator};
 
-use crate::{DispatchSource, current_dispatch_source};
+use crate::{DispatchSource, current_dispatch_addressed, current_dispatch_source};
 
 #[derive(Debug, Deserialize, StrumDisplay, Clone, Copy, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -52,7 +50,6 @@ pub enum ToolName {
     SlackHistory,
     TelegramPost,
     Plausible,
-    ChatwootReviewReply,
 }
 
 /// Lowercase-string slugs for every variant of an enum, used to populate the
@@ -81,12 +78,14 @@ pub struct ToolPolicy {
 }
 
 impl ToolPolicy {
-    pub fn gate(&self, source: DispatchSource) -> Result<(), String> {
-        if self.allow_sources.contains(&source) {
-            Ok(())
-        } else {
-            Err(format!("tool refused: dispatch source `{source}` is not in this tool's allow_sources",))
+    pub fn gate(&self, source: DispatchSource, addressed: bool) -> Result<(), String> {
+        if !addressed {
+            return Err("you were not directly addressed (ambient/listening) — observe only; tools are disabled until a teammate addresses you or a customer messages".to_string());
         }
+        if !self.allow_sources.contains(&source) {
+            return Err(format!("dispatch source `{source}` is not in this tool's allow_sources"));
+        }
+        Ok(())
     }
 }
 
@@ -151,8 +150,7 @@ impl ToolDyn for GatedTool {
     }
 
     fn call<'a>(&'a self, args: String) -> Pin<Box<dyn Future<Output = Result<String, ToolError>> + Send + 'a>> {
-        let source = current_dispatch_source();
-        if let Err(msg) = self.policy.gate(source) {
+        if let Err(msg) = self.policy.gate(current_dispatch_source(), current_dispatch_addressed()) {
             return Box::pin(async move {
                 Err(ToolError::ToolCallError(Box::new(ToolFailure::not_allowed(format!(
                     "tool refused by dispatch policy: {msg}"

@@ -6,6 +6,7 @@ const API: &str = "https://slack.com/api";
 pub struct SlackClient {
     http: reqwest::Client,
     token: String,
+    conversations_list_limit: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -35,10 +36,11 @@ pub struct SlackFile {
 }
 
 impl SlackClient {
-    pub fn new(bot_token: String) -> Self {
+    pub fn new(config: &crate::config::SlackConfig) -> Self {
         Self {
             http: reqwest::Client::new(),
-            token: bot_token,
+            token: config.bot.token.clone(),
+            conversations_list_limit: config.conversations_list_limit,
         }
     }
     pub async fn auth_test_user_id(&self) -> Result<String> {
@@ -67,9 +69,9 @@ impl SlackClient {
         Ok(ch.get("name").and_then(|v| v.as_str()).map(String::from))
     }
 
-    pub async fn public_channel_id_by_name(&self, name: &str, limit: u32) -> Result<Option<String>> {
+    pub async fn public_channel_id_by_name(&self, name: &str) -> Result<Option<String>> {
         let name = name.trim().trim_start_matches('#');
-        let limit = limit.clamp(1, 1000).to_string();
+        let limit = self.conversations_list_limit.clamp(1, 1000).to_string();
         let mut cursor = String::new();
         loop {
             let mut req = self
@@ -82,14 +84,14 @@ impl SlackClient {
             }
             let resp: Value = req.send().await?.json().await?;
             let resp = check_ok("conversations.list", resp)?;
-            if let Some(id) = resp.get("channels").and_then(|v| v.as_array()).and_then(|channels| {
-                channels.iter().find_map(|ch| {
-                    (ch.get("name").and_then(|v| v.as_str()) == Some(name))
-                        .then(|| ch.get("id").and_then(|v| v.as_str()).map(String::from))
-                        .flatten()
-                })
-            }) {
-                return Ok(Some(id));
+            if let Some(channels) = resp.get("channels").and_then(|v| v.as_array()) {
+                for ch in channels {
+                    if ch.get("name").and_then(|v| v.as_str()) == Some(name)
+                        && let Some(id) = ch.get("id").and_then(|v| v.as_str())
+                    {
+                        return Ok(Some(id.to_string()));
+                    }
+                }
             }
 
             cursor = resp
