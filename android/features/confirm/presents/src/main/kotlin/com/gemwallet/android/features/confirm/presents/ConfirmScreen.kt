@@ -192,13 +192,7 @@ fun ConfirmScreen(
                     is ConfirmProperty.Destination -> PropertyDestination(
                         model = item,
                         listPosition = listPosition,
-                        onAddContact = (item as? ConfirmProperty.Destination.Transfer)
-                            ?.takeIf { it.domain == null }
-                            ?.let { transfer ->
-                                params?.assetId?.chain?.let { chain ->
-                                    { onAddRecipientToContacts(ChainRecipient(chain, transfer.address, params?.memo())) }
-                                }
-                            },
+                        onAddContact = onAddRecipientToContacts,
                     )
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
                     is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)

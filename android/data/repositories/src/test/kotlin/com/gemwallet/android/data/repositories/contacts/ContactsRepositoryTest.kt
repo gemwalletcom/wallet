@@ -3,10 +3,10 @@ package com.gemwallet.android.data.repositories.contacts
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.ContactsDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.testkit.mockContact
+import com.gemwallet.android.testkit.mockContactAddress
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Contact
-import com.wallet.core.primitives.ContactAddress
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -24,15 +24,15 @@ class ContactsRepositoryTest {
     @Test
     fun updateContact_deletesAddressesMissingFromTheNewSet() = runTest {
         coEvery { contactsDao.getAddresses("contact-1") } returns listOf(
-            address("a1", Chain.Bitcoin).toRecord(),
-            address("a2", Chain.Bitcoin).toRecord(),
-            address("a3", Chain.Ethereum).toRecord(),
+            mockContactAddress("a1", Chain.Bitcoin).toRecord(),
+            mockContactAddress("a2", Chain.Bitcoin).toRecord(),
+            mockContactAddress("a3", Chain.Ethereum).toRecord(),
         )
         val deleteIds = slot<List<String>>()
 
         repository.updateContact(
-            contact = contact("contact-1"),
-            addresses = listOf(address("a1", Chain.Bitcoin), address("a4", Chain.Ethereum)),
+            contact = mockContact("contact-1"),
+            addresses = listOf(mockContactAddress("a1", Chain.Bitcoin), mockContactAddress("a4", Chain.Ethereum)),
         )
 
         coVerify { contactsDao.updateContact(any(), capture(deleteIds), any()) }
@@ -42,13 +42,13 @@ class ContactsRepositoryTest {
     @Test
     fun updateContact_removesDroppedAddressesFromAddressBook() = runTest {
         coEvery { contactsDao.getAddresses("contact-1") } returns listOf(
-            address("a1", Chain.Bitcoin).toRecord(),
-            address("a2", Chain.Ethereum).toRecord(),
+            mockContactAddress("a1", Chain.Bitcoin).toRecord(),
+            mockContactAddress("a2", Chain.Ethereum).toRecord(),
         )
 
         repository.updateContact(
-            contact = contact("contact-1"),
-            addresses = listOf(address("a1", Chain.Bitcoin)),
+            contact = mockContact("contact-1"),
+            addresses = listOf(mockContactAddress("a1", Chain.Bitcoin)),
         )
 
         coVerify { addressesDao.delete(Chain.Ethereum, "address-a2", AddressType.Contact) }
@@ -58,8 +58,8 @@ class ContactsRepositoryTest {
     @Test
     fun deleteContact_removesContactAddressBookEntries() = runTest {
         coEvery { contactsDao.getAddresses("contact-1") } returns listOf(
-            address("a1", Chain.Bitcoin).toRecord(),
-            address("a2", Chain.Ethereum).toRecord(),
+            mockContactAddress("a1", Chain.Bitcoin).toRecord(),
+            mockContactAddress("a2", Chain.Ethereum).toRecord(),
         )
 
         repository.deleteContact("contact-1")
@@ -68,20 +68,4 @@ class ContactsRepositoryTest {
         coVerify { addressesDao.delete(Chain.Ethereum, "address-a2", AddressType.Contact) }
         coVerify { contactsDao.deleteContact("contact-1") }
     }
-
-    private fun contact(id: String) = Contact(
-        id = id,
-        name = "John",
-        description = null,
-        createdAt = 0L,
-        updatedAt = 1L,
-    )
-
-    private fun address(id: String, chain: Chain) = ContactAddress(
-        id = id,
-        contactId = "contact-1",
-        address = "address-$id",
-        chain = chain,
-        memo = null,
-    )
 }

@@ -14,7 +14,6 @@ import com.gemwallet.android.features.recipient.viewmodel.NameResolveController
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.newContactAddress
 import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
@@ -91,8 +90,7 @@ class ManageContactViewModel @Inject constructor(
                 }
             }
             is Mode.Add -> mode.recipient?.let { recipient ->
-                val address = newContactAddress(
-                    contactId = contactId,
+                val address = contactAddress(
                     chain = recipient.chain,
                     address = recipient.chain.checksumAddress(recipient.address),
                     memo = recipient.memo,
@@ -196,8 +194,7 @@ class ManageContactViewModel @Inject constructor(
         val input = state.value.addressInput ?: return
         if (!input.isConfirmEnabled) return
 
-        val address = newContactAddress(
-            contactId = contactId,
+        val address = contactAddress(
             chain = input.chain,
             address = input.chain.checksumAddress(input.resolvedAddress),
             memo = input.memo.ifBlank { null },
@@ -205,23 +202,26 @@ class ManageContactViewModel @Inject constructor(
 
         resolver.reset()
         state.update { current ->
-            val updated = buildList {
-                var replaced = false
-                current.addresses.forEach { existing ->
-                    if (existing.id == input.editingId || existing.id == address.id) {
-                        if (!replaced) {
-                            add(address)
-                            replaced = true
-                        }
-                    } else {
-                        add(existing)
-                    }
-                }
-                if (!replaced) add(address)
-            }
-            current.copy(addresses = updated, page = ManageContactPage.Form)
+            current.copy(
+                addresses = current.addresses.upsert(address, setOfNotNull(input.editingId, address.id)),
+                page = ManageContactPage.Form,
+            )
         }
     }
+
+    private fun List<ContactAddress>.upsert(address: ContactAddress, replacing: Set<String>): List<ContactAddress> {
+        val index = indexOfFirst { it.id in replacing }
+        val without = filterNot { it.id in replacing }
+        return if (index < 0) without + address else without.take(index) + address + without.drop(index)
+    }
+
+    private fun contactAddress(chain: Chain, address: String, memo: String?): ContactAddress = ContactAddress(
+        id = "${contactId}_${chain.string}_${address}",
+        contactId = contactId,
+        address = address,
+        chain = chain,
+        memo = memo,
+    )
 
     fun save() {
         val current = state.value

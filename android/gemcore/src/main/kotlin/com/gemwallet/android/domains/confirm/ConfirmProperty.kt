@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.Asset
@@ -16,7 +17,12 @@ sealed interface ConfirmProperty {
     sealed class Destination(val data: String) : ConfirmProperty {
         class Stake(data: String, val address: String? = null, val explorerLink: BlockExplorerLink? = null) : Destination(data)
         class Provider(data: String) : Destination(data)
-        class Transfer(val domain: String?, val address: String, val explorerLink: BlockExplorerLink? = null) : Destination(address)
+        class Transfer(
+            val domain: String?,
+            val address: String,
+            val explorerLink: BlockExplorerLink? = null,
+            val addContactRecipient: ChainRecipient? = null,
+        ) : Destination(address)
         class Generic(val appName: String) : Destination(appName)
         class PerpetualOper(val providerName: String) : Destination(providerName)
 
