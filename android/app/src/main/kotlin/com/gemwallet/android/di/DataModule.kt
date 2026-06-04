@@ -39,9 +39,7 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideSignService(): SignClientProxy = SignClientProxy(
-        clients = listOf(SignService()),
-    )
+    fun provideSignService(): SignClientProxy = SignClientProxy(SignService())
 
     @Singleton
     @Provides

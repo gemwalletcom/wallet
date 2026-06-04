@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use num_bigint::BigInt;
-use primitives::{Asset, AssetId, Chain};
+use primitives::{Asset, AssetId, BITCOINCASH_PREFIX, Chain};
 
 use super::{THORChainNetwork, chain::ChainName};
 
@@ -73,7 +73,7 @@ impl THORChainAsset {
     // https://dev.thorchain.org/concepts/memos.html#swap
     pub fn swap_memo(&self, asset_name: &str, destination_address: String, minimum: i64, interval: i64, quantity: i64, fee_address: String, bps: u32) -> String {
         let address = match self.chain.chain() {
-            Chain::BitcoinCash => destination_address.strip_prefix("bitcoincash:").unwrap_or(&destination_address),
+            Chain::BitcoinCash => destination_address.strip_prefix(BITCOINCASH_PREFIX).unwrap_or(&destination_address),
             _ => destination_address.as_str(),
         };
         format!("=:{asset_name}:{address}:{minimum}/{interval}/{quantity}:{fee_address}:{bps}")

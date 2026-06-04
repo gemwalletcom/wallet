@@ -85,7 +85,7 @@ fn sign_standard<C: Signing>(plan: &SpendPlan, secret_key: &SecretKey, public_ke
                 UnlockingScript::P2pkh => {
                     let sighash = sighash_cache
                         .legacy_signature_hash(index, &input.script_pubkey, EcdsaSighashType::All.to_u32())
-                        .map_err(|_| SignerError::signing_error("failed to compute Bitcoin sighash"))?;
+                        .map_err(|e| SignerError::signing_error(e.to_string()))?;
                     let signature = der_signature(secp, secret_key, Message::from(sighash), EcdsaSighashType::All.to_u32() as u8);
                     let script_sig = Builder::new().push_slice(signature_push_bytes(signature)?).push_key(public_key).into_script();
                     signed_inputs.push((script_sig, Witness::default()));
@@ -93,7 +93,7 @@ fn sign_standard<C: Signing>(plan: &SpendPlan, secret_key: &SecretKey, public_ke
                 UnlockingScript::P2wpkh => {
                     let sighash = sighash_cache
                         .p2wpkh_signature_hash(index, &input.script_pubkey, input.value, EcdsaSighashType::All)
-                        .map_err(|_| SignerError::signing_error("failed to compute Bitcoin witness sighash"))?;
+                        .map_err(|e| SignerError::signing_error(e.to_string()))?;
                     let signature = der_signature(secp, secret_key, Message::from(sighash), EcdsaSighashType::All.to_u32() as u8);
                     let mut witness = Witness::default();
                     witness.push(signature);
@@ -139,17 +139,9 @@ fn validate_public_key(chain: BitcoinChain, plan: &SpendPlan, public_key: &Publi
 }
 
 fn validate_plan_amounts(chain: BitcoinChain, plan: &SpendPlan) -> Result<(), SignerError> {
-    let input_total = plan.inputs.iter().try_fold(0u64, |sum, input| {
-        sum.checked_add(input.value.to_sat())
-            .ok_or_else(|| SignerError::invalid_input(format!("{} amount overflow", chain.get_chain())))
-    })?;
-    let output_total = plan.outputs.iter().try_fold(0u64, |sum, output| {
-        sum.checked_add(output.value.to_sat())
-            .ok_or_else(|| SignerError::invalid_input(format!("{} amount overflow", chain.get_chain())))
-    })?;
-    let spent_total = output_total
-        .checked_add(plan.fee)
-        .ok_or_else(|| SignerError::invalid_input(format!("{} amount overflow", chain.get_chain())))?;
+    let input_total: u128 = plan.inputs.iter().map(|input| input.value.to_sat() as u128).sum();
+    let output_total: u128 = plan.outputs.iter().map(|output| output.value.to_sat() as u128).sum();
+    let spent_total = output_total + plan.fee as u128;
     (input_total == spent_total).then_some(()).ok_or_else(|| {
         SignerError::invalid_input(format!(
             "{} plan amount mismatch: inputs {}, outputs {}, fee {}",

@@ -1,8 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.blockchain.clients.SignClient
-import com.gemwallet.android.blockchain.clients.getClient
-import com.gemwallet.android.domains.asset.chain
 import uniffi.gemstone.GemTransactionLoadMetadata
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
@@ -13,7 +11,7 @@ import uniffi.gemstone.GemSwapQuoteDataType
 import java.math.BigInteger
 
 class SignClientProxy(
-    private val clients: List<SignClient>,
+    private val client: SignClient,
 ) {
 
     suspend fun signMessage(
@@ -21,8 +19,7 @@ class SignClientProxy(
         input: ByteArray,
         privateKey: ByteArray
     ): ByteArray {
-        return clients.getClient(chain)?.signMessage(chain, input, privateKey)
-            ?: throw Exception("Chain isn't support")
+        return client.signMessage(chain, input, privateKey)
     }
 
     suspend fun signTypedMessage(
@@ -30,16 +27,13 @@ class SignClientProxy(
         input: ByteArray,
         privateKey: ByteArray
     ): String {
-        return clients.getClient(chain)?.signTypedMessage(chain, input, privateKey)
-            ?: throw Exception("Chain isn't support")
+        return client.signTypedMessage(chain, input, privateKey)
     }
 
     suspend fun signTransaction(
         params: SignerParams,
         privateKey: ByteArray,
     ): List<ByteArray> {
-        val chain = params.input.asset.id.chain
-        val client = clients.getClient(chain) ?: throw Exception("Chain isn't support")
         val input = params.input
         val data = params.data()
         val fee = data.fee
@@ -61,10 +55,6 @@ class SignClientProxy(
             is ConfirmParams.NftParams -> client.signNft(input, metadata, params.finalAmount, fee, privateKey)
             is ConfirmParams.PerpetualParams -> client.signPerpetual(input, metadata, params.finalAmount, fee, privateKey)
         }
-    }
-
-    fun supported(chain: Chain): Boolean {
-        return clients.getClient(chain) != null
     }
 
     private suspend fun signSwap(

@@ -28,11 +28,11 @@ impl PlanInput {
     }
 }
 
-pub(crate) fn spend_signer_input(value: &str, is_max: bool) -> SignerInput {
-    spend_signer_input_with(value, is_max, Some("memo".to_string()), spend_utxos())
+pub(crate) fn mock_signer_input(value: &str, is_max: bool) -> SignerInput {
+    mock_signer_input_with(value, is_max, Some("memo".to_string()), spend_utxos())
 }
 
-pub(crate) fn spend_signer_input_with(value: &str, is_max: bool, memo: Option<String>, utxos: Vec<UTXO>) -> SignerInput {
+pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<String>, utxos: Vec<UTXO>) -> SignerInput {
     let mut input = mock_transfer_input_with_utxos(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, TEST_SPEND_RECIPIENT, value, utxos);
     input.input.gas_price = GasPriceType::regular(BigInt::from(2u64));
     input.input.memo = memo;

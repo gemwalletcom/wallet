@@ -3,12 +3,10 @@ package com.gemwallet.android.blockchain.services
 import com.gemwallet.android.blockchain.clients.SignClient
 import com.gemwallet.android.blockchain.gemstone.toGemSignerInput
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.toChainType
 import uniffi.gemstone.GemTransactionLoadMetadata
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import uniffi.gemstone.GemChainSigner
 import java.math.BigInteger
 
@@ -274,26 +272,6 @@ class SignService : SignClient {
             fee = fee,
         )
         return getSigner(params).signStake(data, privateKey).map { it.toByteArray() }
-    }
-
-    override fun supported(chain: Chain): Boolean {
-        return when (chain.toChainType()) {
-            ChainType.Bitcoin,
-            ChainType.Ethereum,
-            ChainType.Solana,
-            ChainType.Aptos,
-            ChainType.Sui,
-            ChainType.HyperCore,
-            ChainType.Near,
-            ChainType.Algorand,
-            ChainType.Stellar,
-            ChainType.Cosmos,
-            ChainType.Ton,
-            ChainType.Polkadot,
-            ChainType.Xrp,
-            ChainType.Cardano,
-            ChainType.Tron -> true
-        }
     }
 
     private fun buildSignerInput(

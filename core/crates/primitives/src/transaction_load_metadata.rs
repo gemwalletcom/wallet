@@ -131,17 +131,13 @@ impl TransactionLoadMetadata {
         }
     }
 
-    pub fn get_branch_id(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        match self {
-            TransactionLoadMetadata::Zcash { branch_id, .. } => Ok(branch_id.clone()),
-            _ => Err("Branch ID not available for this metadata type".into()),
-        }
-    }
-
-    pub fn get_zcash_branch_id(&self) -> Result<u32, Box<dyn std::error::Error + Send + Sync>> {
-        let bytes: [u8; 4] = crate::decode_hex(&self.get_branch_id()?)?.try_into().map_err(|_| "invalid Zcash branch id")?;
-        //  Zcash branch id is big-endian from rpc node.
-        Ok(u32::from_be_bytes(bytes))
+    pub fn get_zcash_branch_id(&self) -> Option<u32> {
+        let TransactionLoadMetadata::Zcash { branch_id, .. } = self else {
+            return None;
+        };
+        // Zcash branch id is big-endian hex from the rpc node.
+        let bytes: [u8; 4] = crate::decode_hex(branch_id).ok()?.try_into().ok()?;
+        Some(u32::from_be_bytes(bytes))
     }
 
     pub fn get_account_number(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {

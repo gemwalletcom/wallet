@@ -1,41 +1,14 @@
-use bitcoin::{
-    PublicKey,
-    secp256k1::{PublicKey as Secp256k1PublicKey, Secp256k1, SecretKey},
-};
 use num_bigint::BigInt;
 use primitives::{
     Asset, BitcoinChain, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO,
     swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData},
 };
 
-use crate::{
-    signer::address::{UnlockingScript, public_key_hash, script_for_public_key_hash},
-    testkit::address_mock::address_for_hash,
-};
+use crate::testkit::address_mock::{mock_destination_address, mock_sender_address, p2wpkh_address};
 
-pub use primitives::testkit::{mock_zcash::TEST_ZCASH_BRANCH_ID, signer_mock::TEST_PRIVATE_KEY};
+pub use primitives::testkit::{signer_mock::TEST_PRIVATE_KEY, zcash_mock::TEST_ZCASH_BRANCH_ID};
 
 pub const TEST_UTXO_TXID: &str = "0000000000000000000000000000000000000000000000000000000000000001";
-
-pub fn mock_public_key() -> PublicKey {
-    let secp = Secp256k1::new();
-    let secret_key = SecretKey::from_slice(&TEST_PRIVATE_KEY).unwrap();
-    PublicKey::new(Secp256k1PublicKey::from_secret_key(&secp, &secret_key))
-}
-
-pub fn mock_sender_address(chain: BitcoinChain) -> String {
-    let public_key = mock_public_key();
-    address_for_hash(chain, public_key_hash(&public_key.to_bytes()))
-}
-
-pub fn mock_destination_address(chain: BitcoinChain) -> String {
-    let hash = match chain {
-        BitcoinChain::Bitcoin => public_key_hash(&mock_public_key().to_bytes()),
-        BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => [2u8; 20],
-        BitcoinChain::Zcash => [3u8; 20],
-    };
-    address_for_hash(chain, hash)
-}
 
 pub fn mock_transfer_input(chain: BitcoinChain) -> SignerInput {
     let sender_address = mock_sender_address(chain);
@@ -65,12 +38,6 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
         },
         TransactionFee::new_from_fee(BigInt::from(1u64)),
     )
-}
-
-fn p2wpkh_address() -> String {
-    let hash = public_key_hash(&mock_public_key().to_bytes());
-    let script_pubkey = script_for_public_key_hash(UnlockingScript::P2wpkh, hash);
-    bitcoin::Address::from_script(&script_pubkey, bitcoin::Network::Bitcoin).unwrap().to_string()
 }
 
 pub fn mock_p2wpkh_transfer_input() -> SignerInput {

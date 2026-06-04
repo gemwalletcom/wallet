@@ -1,4 +1,4 @@
-use primitives::{Asset, BitcoinChain, SignerError, SignerInput, SwapProvider, TransactionInputType, UTXO, decode_hex, swap::SwapQuoteDataType};
+use primitives::{Asset, BitcoinChain, SignerError, SignerInput, SwapProvider, UTXO, decode_hex, swap::SwapQuoteDataType};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SpendRequest {
@@ -7,7 +7,6 @@ pub(crate) struct SpendRequest {
     pub(crate) destination_address: String,
     pub(crate) amount: u64,
     pub(crate) is_max: bool,
-    pub(crate) replace_by_fee: bool,
     pub(crate) force_change_output: bool,
     pub(crate) fee_rate: u64,
     pub(crate) memo: Option<Vec<u8>>,
@@ -15,12 +14,8 @@ pub(crate) struct SpendRequest {
 }
 
 impl SpendRequest {
-    pub(crate) fn transfer(chain: BitcoinChain, input: &SignerInput, replace_by_fee: bool) -> Result<Self, SignerError> {
-        let asset = match &input.input_type {
-            TransactionInputType::Transfer(asset) => asset,
-            _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
-        };
-        validate_native_chain_asset(chain, asset, "unsupported Bitcoin asset transfer")?;
+    pub(crate) fn transfer(chain: BitcoinChain, input: &SignerInput) -> Result<Self, SignerError> {
+        validate_native_chain_asset(chain, input.input_type.get_asset(), "unsupported Bitcoin asset transfer")?;
 
         Ok(Self {
             chain,
@@ -28,7 +23,6 @@ impl SpendRequest {
             destination_address: input.destination_address.clone(),
             amount: input.value_as_u64()?,
             is_max: input.is_max_value,
-            replace_by_fee,
             force_change_output: false,
             fee_rate: spend_fee_rate(chain, input)?,
             memo: input.get_memo().map(|memo| memo.as_bytes().to_vec()),
@@ -36,7 +30,7 @@ impl SpendRequest {
         })
     }
 
-    pub(crate) fn swap(chain: BitcoinChain, input: &SignerInput, replace_by_fee: bool) -> Result<Self, SignerError> {
+    pub(crate) fn swap(chain: BitcoinChain, input: &SignerInput) -> Result<Self, SignerError> {
         let swap = input
             .input_type
             .get_swap_data()
@@ -67,7 +61,6 @@ impl SpendRequest {
                 .parse::<u64>()
                 .map_err(|_| SignerError::invalid_input(format!("invalid {} swap amount", chain.get_chain())))?,
             is_max,
-            replace_by_fee,
             force_change_output,
             fee_rate: spend_fee_rate(chain, input)?,
             memo,

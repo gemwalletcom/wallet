@@ -58,7 +58,7 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::Address as AddressTrait;
+    use primitives::{Address as AddressTrait, BITCOINCASH_PREFIX};
 
     #[test]
     fn test_validate_address() {
@@ -70,7 +70,7 @@ mod tests {
 
         assert!(validate_address(&bitcoin.encode(), Chain::Bitcoin));
         assert!(validate_address(&bitcoin_cash.encode(), Chain::BitcoinCash));
-        assert!(validate_address(bitcoin_cash.encode().strip_prefix("bitcoincash:").unwrap(), Chain::BitcoinCash));
+        assert!(validate_address(bitcoin_cash.encode().strip_prefix(BITCOINCASH_PREFIX).unwrap(), Chain::BitcoinCash));
         assert!(validate_address(&litecoin.encode(), Chain::Litecoin));
         assert!(validate_address(&doge.encode(), Chain::Doge));
         assert!(validate_address(&zcash.encode(), Chain::Zcash));

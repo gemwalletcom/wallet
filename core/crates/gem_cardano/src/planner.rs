@@ -124,7 +124,7 @@ fn utxo_transaction_input(utxo: &UTXO) -> Result<TransactionInput, SignerError> 
 }
 
 fn utxo_amount(utxo: &UTXO) -> Result<u64, SignerError> {
-    let amount = utxo.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid Cardano UTXO amount"))?;
+    let amount = utxo.value_u64().map_err(SignerError::from_display)?;
     if amount == 0 {
         return SignerError::invalid_input_err("invalid Cardano UTXO amount");
     }

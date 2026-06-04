@@ -155,7 +155,6 @@ impl GemGateway {
     }
 
     pub async fn get_transaction_load(&self, chain: Chain, input: GemTransactionLoadInput) -> Result<GemTransactionData, GatewayError> {
-        // Fee estimation and preload now run entirely in Rust chain providers.
         let load_data = self
             .with_provider(chain, |chain_provider| async move { chain_provider.get_transaction_load(input.into()).await })
             .await?;

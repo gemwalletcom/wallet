@@ -3,12 +3,10 @@ use std::fmt;
 use bitcoincash_addr::{
     Address as CashAddress, HashType as CashHashType, Network as CashNetwork, base58::DecodingError as Base58DecodingError, cashaddr::DecodingError as CashaddrDecodingError,
 };
-use primitives::SignerError;
+use primitives::{BITCOINCASH_PREFIX, SignerError};
 
 use super::script::{AddressScript, LockingScript, p2pkh_script, p2sh_script};
 use crate::hash::hash20;
-
-const CASHADDR_PREFIX: &str = "bitcoincash:";
 
 struct DecodeAddressError {
     cashaddr: CashaddrDecodingError,
@@ -46,7 +44,7 @@ fn decode_address(address: &str) -> Result<CashAddress, DecodeAddressError> {
             if address.contains(':') {
                 return Err(error.into());
             }
-            CashAddress::decode(&format!("{CASHADDR_PREFIX}{address}")).map_err(|_| error.into())
+            CashAddress::decode(&format!("{BITCOINCASH_PREFIX}{address}")).map_err(|_| error.into())
         }
     }
 }

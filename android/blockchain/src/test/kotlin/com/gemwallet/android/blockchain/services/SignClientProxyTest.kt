@@ -26,7 +26,7 @@ class SignClientProxyTest {
         val toAsset = mockAsset(chain = Chain.Cosmos, name = "Cosmos", symbol = "ATOM", decimals = 6)
         val fromAmount = BigInteger("2564989685")
         val finalAmount = BigInteger("2562989685")
-        val client = RecordingSignClient(chain)
+        val client = RecordingSignClient()
         val params = ConfirmParams.SwapParams(
             from = mockAccount(chain = chain, address = "thor1sender"),
             fromAsset = fromAsset,
@@ -67,7 +67,7 @@ class SignClientProxyTest {
             finalAmount = finalAmount,
         )
 
-        SignClientProxy(listOf(client)).signTransaction(signerParams, byteArrayOf())
+        SignClientProxy(client).signTransaction(signerParams, byteArrayOf())
 
         assertEquals(finalAmount, client.nativeTransferFinalAmount)
         assertEquals(finalAmount, client.nativeTransferParams?.amount)
@@ -75,7 +75,7 @@ class SignClientProxyTest {
         assertEquals("=:o:cosmos1recipient:0/1/0:g1:50", client.nativeTransferParams?.memo)
     }
 
-    private class RecordingSignClient(private val chain: Chain) : SignClient {
+    private class RecordingSignClient : SignClient {
         var nativeTransferParams: ConfirmParams.TransferParams.Native? = null
         var nativeTransferFinalAmount: BigInteger? = null
 
@@ -90,7 +90,5 @@ class SignClientProxyTest {
             nativeTransferFinalAmount = finalAmount
             return emptyList()
         }
-
-        override fun supported(chain: Chain): Boolean = this.chain == chain
     }
 }

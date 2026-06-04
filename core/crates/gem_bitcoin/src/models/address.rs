@@ -1,6 +1,4 @@
-use primitives::chain::Chain;
-
-const BITCOINCASH_PREFIX: &str = "bitcoincash:";
+use primitives::{BITCOINCASH_PREFIX, chain::Chain};
 
 pub struct Address {
     value: String,

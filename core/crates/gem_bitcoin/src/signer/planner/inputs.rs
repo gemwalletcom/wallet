@@ -9,16 +9,17 @@ use crate::signer::address::script_for_address;
 const FINAL_SEQUENCE: u32 = 0xffff_ffff;
 const RBF_SEQUENCE: u32 = 0xffff_fffd;
 
-pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos: Vec<UTXO>, replace_by_fee: bool) -> Result<Vec<PlanInput>, SignerError> {
+pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos: Vec<UTXO>) -> Result<Vec<PlanInput>, SignerError> {
     let sender = script_for_address(chain, sender_address)?;
     let sender_hash = sender
         .unlocking_script()
         .zip(sender.public_key_hash())
         .map(|(_, public_key_hash)| public_key_hash)
         .ok_or_else(|| SignerError::invalid_input(format!("{} sender address type is unsupported", chain.get_chain())))?;
+    // RBF is signaled on every BTC-family chain; Zcash has no RBF and keeps the final sequence.
     let sequence = match chain {
-        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge if replace_by_fee => RBF_SEQUENCE,
-        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge | BitcoinChain::Zcash => FINAL_SEQUENCE,
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => RBF_SEQUENCE,
+        BitcoinChain::Zcash => FINAL_SEQUENCE,
     };
     let mut inputs = Vec::with_capacity(utxos.len());
 
@@ -31,10 +32,7 @@ pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos:
         (public_key_hash == sender_hash)
             .then_some(())
             .ok_or_else(|| SignerError::invalid_input(format!("{} UTXO address does not match sender address", chain.get_chain())))?;
-        let value = utxo
-            .value
-            .parse::<u64>()
-            .map_err(|_| SignerError::invalid_input(format!("invalid {} UTXO amount", chain.get_chain())))?;
+        let value = utxo.value_u64().map_err(SignerError::from_display)?;
         (value != 0)
             .then_some(())
             .ok_or_else(|| SignerError::invalid_input(format!("invalid {} UTXO amount", chain.get_chain())))?;
@@ -73,7 +71,6 @@ mod tests {
             BitcoinChain::Bitcoin,
             TEST_BITCOIN_P2WPKH_ADDRESS,
             vec![mock_utxo_with_address(&legacy_address), mock_utxo_with_address(TEST_BITCOIN_P2WPKH_ADDRESS)],
-            false,
         )
         .unwrap();
         assert_eq!(inputs[0].unlocking_script, UnlockingScript::P2pkh);
@@ -81,21 +78,15 @@ mod tests {
 
         let different_legacy_address = prefixed_address(&[0], [9u8; 20]);
         assert_eq!(
-            spendable_inputs(
-                BitcoinChain::Bitcoin,
-                TEST_BITCOIN_P2WPKH_ADDRESS,
-                vec![mock_utxo_with_address(&different_legacy_address)],
-                false,
-            )
-            .err(),
+            spendable_inputs(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, vec![mock_utxo_with_address(&different_legacy_address)],).err(),
             Some(SignerError::invalid_input("bitcoin UTXO address does not match sender address")),
         );
         assert_eq!(
-            spendable_inputs(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, vec![mock_utxo_with_address(TAPROOT_ADDRESS)], false).err(),
+            spendable_inputs(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, vec![mock_utxo_with_address(TAPROOT_ADDRESS)]).err(),
             Some(SignerError::invalid_input("bitcoin UTXO address type is unsupported")),
         );
         assert_eq!(
-            spendable_inputs(BitcoinChain::Bitcoin, TAPROOT_ADDRESS, vec![mock_utxo_with_address(TEST_BITCOIN_P2WPKH_ADDRESS)], false).err(),
+            spendable_inputs(BitcoinChain::Bitcoin, TAPROOT_ADDRESS, vec![mock_utxo_with_address(TEST_BITCOIN_P2WPKH_ADDRESS)]).err(),
             Some(SignerError::invalid_input("bitcoin sender address type is unsupported")),
         );
     }

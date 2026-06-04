@@ -6,7 +6,7 @@ import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.Chain
 import java.math.BigInteger
 
-interface SignClient : BlockchainClient {
+interface SignClient {
 
     suspend fun signMessage(
         chain: Chain,

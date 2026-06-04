@@ -42,7 +42,7 @@ impl GemChainSigner {
             ChainType::Xrp => Box::new(XrpChainSigner),
             ChainType::Polkadot => Box::new(PolkadotChainSigner),
             ChainType::Cardano => Box::new(CardanoChainSigner),
-            ChainType::Bitcoin => Box::new(BitcoinChainSigner::new_with_rbf(BitcoinChain::from_chain(chain).unwrap(), true)),
+            ChainType::Bitcoin => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),
         };
 
         Self { chain, signer }

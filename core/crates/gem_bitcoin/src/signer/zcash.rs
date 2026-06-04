@@ -9,6 +9,7 @@ use primitives::SignerError;
 
 use crate::signer::{
     encoding::encode_varint,
+    personalization::*,
     planner::{PlanInput, SpendPlan},
     transaction::{der_signature, signature_push_bytes},
 };
@@ -18,8 +19,6 @@ const VERSION_GROUP_ID_V5: u32 = 0x26a7_270a;
 const LOCK_TIME: u32 = 0;
 const EXPIRY_HEIGHT_DISABLED: u32 = 0;
 const SIGHASH_ALL: u8 = 0x01;
-const ZCASH_TRANSPARENT_AMOUNTS_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxTrAmountsHash";
-const ZCASH_TRANSPARENT_SCRIPTS_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxTrScriptsHash";
 
 #[derive(Debug, Clone)]
 struct ZcashTransparentTransaction {
@@ -49,13 +48,13 @@ impl ZcashSignatureDigests {
 
         Ok(Self {
             header: header_digest(transaction.branch_id),
-            prevouts: blake2b_256_personal(&prevouts, b"ZTxIdPrevoutHash"),
+            prevouts: blake2b_256_personal(&prevouts, ZCASH_TXID_PREVOUTS_HASH_PERSONALIZATION),
             amounts: blake2b_256_personal(&amounts, ZCASH_TRANSPARENT_AMOUNTS_HASH_PERSONALIZATION),
             script_pubkeys: blake2b_256_personal(&script_pubkeys, ZCASH_TRANSPARENT_SCRIPTS_HASH_PERSONALIZATION),
-            sequences: blake2b_256_personal(&sequences, b"ZTxIdSequencHash"),
-            outputs: blake2b_256_personal(&outputs, b"ZTxIdOutputsHash"),
-            sapling: blake2b_256_personal(&[], b"ZTxIdSaplingHash"),
-            orchard: blake2b_256_personal(&[], b"ZTxIdOrchardHash"),
+            sequences: blake2b_256_personal(&sequences, ZCASH_TXID_SEQUENCES_HASH_PERSONALIZATION),
+            outputs: blake2b_256_personal(&outputs, ZCASH_TXID_OUTPUTS_HASH_PERSONALIZATION),
+            sapling: blake2b_256_personal(&[], ZCASH_TXID_SAPLING_HASH_PERSONALIZATION),
+            orchard: blake2b_256_personal(&[], ZCASH_TXID_ORCHARD_HASH_PERSONALIZATION),
         })
     }
 }
@@ -132,7 +131,7 @@ fn signature_digest(branch_id: u32, digests: &ZcashSignatureDigests, plan: &Spen
     bytes.extend_from_slice(&digests.sapling);
     bytes.extend_from_slice(&digests.orchard);
 
-    Ok(blake2b_256_personal(&bytes, &branch_personalization(b"ZcashTxHash_", branch_id)))
+    Ok(blake2b_256_personal(&bytes, &branch_personalization(ZCASH_TX_HASH_PERSONALIZATION_PREFIX, branch_id)))
 }
 
 fn header_digest(branch_id: u32) -> [u8; 32] {
@@ -142,7 +141,7 @@ fn header_digest(branch_id: u32) -> [u8; 32] {
     bytes.extend_from_slice(&branch_id.to_le_bytes());
     bytes.extend_from_slice(&LOCK_TIME.to_le_bytes());
     bytes.extend_from_slice(&EXPIRY_HEIGHT_DISABLED.to_le_bytes());
-    blake2b_256_personal(&bytes, b"ZTxIdHeadersHash")
+    blake2b_256_personal(&bytes, ZCASH_TXID_HEADERS_HASH_PERSONALIZATION)
 }
 
 fn transparent_sig_digest(digests: &ZcashSignatureDigests, plan: &SpendPlan, input_index: usize) -> Result<[u8; 32], SignerError> {
@@ -154,7 +153,7 @@ fn transparent_sig_digest(digests: &ZcashSignatureDigests, plan: &SpendPlan, inp
     bytes.extend_from_slice(&digests.sequences);
     bytes.extend_from_slice(&digests.outputs);
     bytes.extend_from_slice(&txin_sig_digest(plan, input_index)?);
-    Ok(blake2b_256_personal(&bytes, b"ZTxIdTranspaHash"))
+    Ok(blake2b_256_personal(&bytes, ZCASH_TXID_TRANSPARENT_HASH_PERSONALIZATION))
 }
 
 fn txin_sig_digest(plan: &SpendPlan, input_index: usize) -> Result<[u8; 32], SignerError> {
@@ -164,7 +163,7 @@ fn txin_sig_digest(plan: &SpendPlan, input_index: usize) -> Result<[u8; 32], Sig
     bytes.extend_from_slice(&signed_value_bytes(input)?);
     bytes.extend_from_slice(&serialize(input.script_pubkey.as_script()));
     bytes.extend_from_slice(&input.sequence.to_le_bytes());
-    Ok(blake2b_256_personal(&bytes, b"Zcash___TxInHash"))
+    Ok(blake2b_256_personal(&bytes, ZCASH_TXIN_HASH_PERSONALIZATION))
 }
 
 fn signed_value_bytes(input: &PlanInput) -> Result<[u8; 8], SignerError> {
@@ -182,14 +181,14 @@ fn branch_personalization(prefix: &[u8; 12], branch_id: u32) -> [u8; 16] {
 #[cfg(test)]
 mod tests {
     use bitcoin::secp256k1::{Secp256k1, SecretKey};
-    use primitives::{BitcoinChain, testkit::mock_zcash};
+    use primitives::{BitcoinChain, testkit::zcash_mock};
 
     use super::*;
     use crate::{
         signer::planner::{SpendRequest, UtxoPlanner},
         testkit::{
-            address_mock::zcash_address,
-            signer_mock::{TEST_PRIVATE_KEY, mock_public_key, mock_sender_address as test_sender_address},
+            address_mock::{mock_public_key, mock_sender_address as test_sender_address, zcash_address},
+            signer_mock::TEST_PRIVATE_KEY,
         },
     };
 
@@ -198,8 +197,8 @@ mod tests {
         let public_key = mock_public_key();
         let sender_address = test_sender_address(BitcoinChain::Zcash);
         let destination_address = zcash_address([2u8; 20]);
-        let input = mock_zcash::signer_input(sender_address, destination_address);
-        let request = SpendRequest::transfer(BitcoinChain::Zcash, &input, false).unwrap();
+        let input = zcash_mock::signer_input(sender_address, destination_address);
+        let request = SpendRequest::transfer(BitcoinChain::Zcash, &input).unwrap();
         let plan = UtxoPlanner::plan(request).unwrap();
 
         let branch_id = input.metadata.get_zcash_branch_id().unwrap();
