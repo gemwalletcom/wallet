@@ -164,8 +164,9 @@ reset-simulator NAME=SIMULATOR_NAME:
     @xcrun simctl boot "{{NAME}}" 2>/dev/null || true
 
 localize:
-    @sh ../core/scripts/localize.sh ios Packages/Localization/Sources/Resources
-    just generate-models
+    @cd ../core && cargo run --package generate --bin generate localize ios ../localization/app ../ios/Packages/Localization/Sources/Resources
+    @cd ../core && cargo run --package generate --bin generate localize ios-plist ../localization/InfoPlist ../ios/Packages/Localization/Sources/Resources
+    @cd ../core && cargo run --package generate --bin generate localize ios ../localization/widget ../ios/Packages/Localization/WidgetSources/Resources
     just generate-swiftgen
 
 generate: generate-models generate-swiftgen

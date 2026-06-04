@@ -1,26 +1,27 @@
 use primitives::TransactionSwapMetadata;
 
-use super::chain::THORChainName;
+use super::THORChainNetwork;
+use super::chain::ChainName;
 use super::model::TransactionStatus;
-use crate::{SwapResult, SwapperProvider};
+use crate::SwapResult;
 
-pub fn map_swap_result(response: &TransactionStatus) -> SwapResult {
+pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) -> SwapResult {
     let status = response.swap_status();
 
     let Some(ref tx) = response.tx else {
         return SwapResult { status, metadata: None };
     };
 
-    let Some(chain) = THORChainName::from_symbol(&tx.chain).map(|n| n.chain()) else {
+    let Some(chain) = ChainName::from_symbol(network, &tx.chain).map(|n| n.chain()) else {
         return SwapResult { status, metadata: None };
     };
 
     let from_coin = tx.coins.first();
-    let from_asset = from_coin.and_then(|c| c.resolve_asset_id());
+    let from_asset = from_coin.and_then(|c| c.resolve_asset_id(network));
     let from_value = from_coin.and_then(|c| c.native_value(chain));
 
     let out_coin = response.destination_coin();
-    let to_asset = out_coin.and_then(|c| c.resolve_asset_id());
+    let to_asset = out_coin.and_then(|c| c.resolve_asset_id(network));
     let to_value = out_coin.and_then(|c| to_asset.as_ref().and_then(|a| c.native_value(a.chain)));
 
     let metadata = match (from_asset, from_value, to_asset, to_value) {
@@ -29,7 +30,7 @@ pub fn map_swap_result(response: &TransactionStatus) -> SwapResult {
             from_value,
             to_asset,
             to_value,
-            provider: Some(SwapperProvider::Thorchain.as_ref().to_string()),
+            provider: Some(network.provider().as_ref().to_string()),
         }),
         _ => None,
     };
@@ -55,7 +56,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_ltc_to_tron_usdt.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
@@ -74,7 +75,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_ltc_to_eth.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
@@ -93,7 +94,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_btc_to_tron_pending.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None
@@ -106,7 +107,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_bnb_to_tron_pending.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Pending,
                 metadata: Some(TransactionSwapMetadata {
@@ -125,7 +126,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_bnb_to_eth_usdt.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
@@ -144,7 +145,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_bnb_to_tron.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
@@ -163,7 +164,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_eth_usdt_to_rune.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
@@ -182,7 +183,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_tcy_to_eth_usdt.json"));
 
         assert_eq!(
-            map_swap_result(&response),
+            map_swap_result(&response, THORChainNetwork::Thorchain),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
@@ -192,6 +193,19 @@ mod tests {
                     to_value: "3809626562".to_string(),
                     provider: Some("thorchain".to_string()),
                 }),
+            }
+        );
+    }
+
+    #[test]
+    fn test_map_swap_result_mayachain_refund() {
+        let response = status(include_str!("testdata/transaction_status_mayachain_refund.json"));
+
+        assert_eq!(
+            map_swap_result(&response, THORChainNetwork::Mayachain),
+            SwapResult {
+                status: SwapStatus::Failed,
+                metadata: None,
             }
         );
     }

@@ -12,6 +12,7 @@ public extension SwapProvider {
         case .jupiter: Images.SwapProviders.jupiter
         case .pancakeswapV3: Images.SwapProviders.pancakeswap
         case .thorchain: Images.SwapProviders.thorchain
+        case .mayachain: Images.SwapProviders.mayachain
         case .across: Images.SwapProviders.across
         case .oku: Images.SwapProviders.oku
         case .wagmi: Images.SwapProviders.wagmi

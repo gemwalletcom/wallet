@@ -34,7 +34,7 @@ pub fn map_quote_data(
             inbound_address,
             token_address,
             amount,
-            memo: memo.clone(),
+            memo,
             expiry,
         }
         .abi_encode();
@@ -50,12 +50,12 @@ pub fn map_quote_data(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::thorchain::chain::THORChainName;
+    use crate::thorchain::{THORChainNetwork, chain::ChainName};
     use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID, swap::ApprovalData};
 
     fn asset(chain: Chain, token_id: Option<String>) -> THORChainAsset {
         THORChainAsset {
-            chain: THORChainName::from_chain(&chain).unwrap(),
+            chain: ChainName::from_chain(THORChainNetwork::Thorchain, chain).unwrap(),
             symbol: "TEST".to_string(),
             token_id,
             decimals: 18,

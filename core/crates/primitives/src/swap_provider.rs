@@ -5,7 +5,7 @@ use typeshare::typeshare;
 use crate::{
     block_explorer::BlockExplorer,
     chain::Chain,
-    explorers::{ChainflipScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer, SocketScan},
+    explorers::{ChainflipScan, MayaScan, MayanScan, NearIntents, RelayScan, RuneScan, SkipExplorer, SocketScan},
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, AsRefStr, EnumString, Eq, PartialOrd, Ord, Serialize, Deserialize, EnumIter)]
@@ -35,6 +35,7 @@ pub enum SwapProvider {
     Hyperliquid,
     Orca,
     Squid,
+    Mayachain,
 }
 
 impl SwapProvider {
@@ -48,7 +49,7 @@ impl SwapProvider {
 
     pub fn is_cross_chain(&self) -> bool {
         match self {
-            Self::Thorchain | Self::Across | Self::Mayan | Self::Chainflip | Self::NearIntents | Self::Relay | Self::Hyperliquid | Self::Squid => true,
+            Self::Thorchain | Self::Mayachain | Self::Across | Self::Mayan | Self::Chainflip | Self::NearIntents | Self::Relay | Self::Hyperliquid | Self::Squid => true,
             Self::UniswapV3
             | Self::UniswapV4
             | Self::PancakeswapV3
@@ -73,6 +74,7 @@ impl SwapProvider {
         match self {
             Self::Mayan => Some(MayanScan::boxed()),
             Self::Thorchain => Some(RuneScan::boxed()),
+            Self::Mayachain => Some(MayaScan::boxed()),
             Self::Across => Some(SocketScan::boxed()),
             Self::Chainflip => Some(ChainflipScan::boxed()),
             Self::NearIntents => Some(NearIntents::boxed()),
@@ -102,6 +104,7 @@ impl SwapProvider {
             Self::Aerodrome => "Aerodrome",
             Self::Panora => "Panora",
             Self::Thorchain => "THORChain",
+            Self::Mayachain => "Maya",
             Self::Jupiter => "Jupiter",
             Self::Okx => "OKX (DEX)",
             Self::Across => "Across",
@@ -130,6 +133,7 @@ impl SwapProvider {
             Self::StonfiV2 => "STON.fi v2",
             Self::CetusAggregator | Self::CetusClmm => "Cetus",
             Self::Thorchain
+            | Self::Mayachain
             | Self::Jupiter
             | Self::Okx
             | Self::Wagmi

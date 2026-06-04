@@ -38,6 +38,31 @@ class StakeService(
         }
     }
 
+    suspend fun getDelegationValidators(
+        chain: Chain,
+        address: String,
+    ): List<DelegationValidator> {
+        return try {
+            val result = gateway.getStakingDelegationValidators(
+                chain = chain.string,
+                address = address,
+            )
+            result.mapNotNull { item ->
+                DelegationValidator(
+                    chain = item.chain.toChain() ?: return@mapNotNull null,
+                    id = item.id,
+                    name = item.name,
+                    isActive = item.isActive,
+                    commission = item.commission,
+                    apr = item.apr,
+                    providerType = StakeProviderType.Stake,
+                )
+            }
+        } catch (_: Throwable) {
+            emptyList()
+        }
+    }
+
     suspend fun getStakeDelegations(
         chain: Chain,
         address: String,

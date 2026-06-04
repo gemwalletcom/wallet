@@ -1,3 +1,5 @@
+mod localization;
+
 use primitives::Platform;
 
 use std::{
@@ -26,6 +28,12 @@ fn main() {
     let folders = vec!["crates/primitives"];
 
     let platform_str = std::env::args().nth(1).expect("no platform specified");
+    if platform_str == "localize" {
+        let args = std::env::args().skip(2).collect::<Vec<_>>();
+        localization::generate(&args).unwrap();
+        return;
+    }
+
     let platform_directory_path = std::env::args().nth(2).expect("no path specified");
 
     let generator_type = match platform_str.as_str() {

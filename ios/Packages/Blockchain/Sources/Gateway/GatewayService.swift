@@ -140,6 +140,11 @@ public extension GatewayService {
             .map { try $0.map() }
     }
 
+    func delegationValidators(chain: Primitives.Chain, address: String) async throws -> [DelegationValidator] {
+        try await gateway.getStakingDelegationValidators(chain: chain.rawValue, address: address)
+            .map { try $0.map() }
+    }
+
     func delegations(chain: Primitives.Chain, address: String) async throws -> [DelegationBase] {
         try await gateway.getStakingDelegations(chain: chain.rawValue, address: address)
             .map { try $0.map() }

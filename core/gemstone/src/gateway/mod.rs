@@ -100,6 +100,11 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.get_staking_validators(apy).await }).await
     }
 
+    pub async fn get_staking_delegation_validators(&self, chain: Chain, address: String) -> Result<Vec<GemDelegationValidator>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_staking_delegation_validators(address).await })
+            .await
+    }
+
     pub async fn get_staking_delegations(&self, chain: Chain, address: String) -> Result<Vec<GemDelegationBase>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_staking_delegations(address).await }).await
     }

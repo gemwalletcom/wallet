@@ -20,10 +20,10 @@ struct ChartLineViewModel: Identifiable {
 
     var label: String {
         let typeLabel: String = switch line.type {
-        case .takeProfit: Localized.Charts.takeProfit
-        case .stopLoss: Localized.Charts.stopLoss
+        case .takeProfit: Localized.Perpetual.takeProfit
+        case .stopLoss: Localized.Perpetual.stopLoss
         case .entry: Localized.Charts.entry
-        case .liquidation: Localized.Charts.liquidation
+        case .liquidation: Localized.Perpetual.liquidation
         }
         let priceText = formatter.string(line.price)
         return "\(typeLabel) | \(priceText)"

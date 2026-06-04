@@ -63,9 +63,9 @@ internal fun PerpetualChartSection(
     val volumeString: (Double) -> String = remember(volumeFormatter) { volumeFormatter::string }
 
     val entryLabel = stringResource(R.string.charts_entry)
-    val liquidationLabel = stringResource(R.string.charts_liquidation)
-    val stopLossLabel = stringResource(R.string.charts_stop_loss)
-    val takeProfitLabel = stringResource(R.string.charts_take_profit)
+    val liquidationLabel = stringResource(R.string.perpetual_liquidation)
+    val stopLossLabel = stringResource(R.string.perpetual_stop_loss)
+    val takeProfitLabel = stringResource(R.string.perpetual_take_profit)
     val referenceLines = remember(entry, liquidation, stopLoss, takeProfit, entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel, numericString) {
         listOfNotNull(
             entry?.let { ChartReferenceLineUIModel(it, "$entryLabel | ${numericString(it)}", ChartReferenceLineRole.Entry) },

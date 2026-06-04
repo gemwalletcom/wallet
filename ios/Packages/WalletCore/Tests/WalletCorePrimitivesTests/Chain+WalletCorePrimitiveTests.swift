@@ -23,6 +23,8 @@ final class Chain_WalletCorePrimitiveTests {
             .solana
         case .thorchain:
             .thorchain
+        case .mayachain:
+            .thorchain
         case .cosmos:
             .cosmos
         case .osmosis:

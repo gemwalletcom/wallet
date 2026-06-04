@@ -40,14 +40,3 @@ target "dynode" {
   cache-from = ["type=gha,scope=dynode"]
   cache-to = ["type=gha,mode=max,scope=dynode"]
 }
-
-target "agent" {
-  inherits = ["_common"]
-  dockerfile = "apps/agent/Dockerfile"
-  tags = [
-    "ghcr.io/gemwalletcom/wallet/agent:latest",
-    "ghcr.io/gemwalletcom/wallet/agent:${GITHUB_SHA}",
-  ]
-  cache-from = ["type=gha,scope=agent"]
-  cache-to = ["type=gha,mode=max,scope=agent"]
-}

@@ -26,4 +26,5 @@ public enum SwapProvider: String, Codable, Equatable, Hashable, Sendable {
 	case hyperliquid
 	case orca
 	case squid
+	case mayachain
 }

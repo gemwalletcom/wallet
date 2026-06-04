@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use crate::constants::BOND_STATUS_BONDED;
 use crate::models::account::Balances;
 use crate::models::staking::{Delegations, Rewards, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
@@ -50,7 +51,7 @@ impl<C: Client> CosmosClient<C> {
             CosmosChain::Cosmos => Some("query"),
             CosmosChain::Osmosis => Some("query"),
             CosmosChain::Celestia => Some("events"),
-            CosmosChain::Thorchain => None,
+            CosmosChain::Thorchain | CosmosChain::Mayachain => None,
             CosmosChain::Injective => Some("query"),
             CosmosChain::Sei => Some("events"),
             CosmosChain::Noble => Some("query"),
@@ -79,7 +80,7 @@ impl<C: Client> CosmosClient<C> {
     pub async fn get_validators(&self) -> Result<ValidatorsResponse, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client
-            .get("/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&pagination.limit=1000")
+            .get(&format!("/cosmos/staking/v1beta1/validators?status={BOND_STATUS_BONDED}&pagination.limit=1000"))
             .await?)
     }
 

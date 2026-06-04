@@ -100,8 +100,8 @@ public enum Localized {
       public static let verified = Localized.tr("Localizable", "asset.verification.verified", fallback: "Verified")
       /// Anyone can create one - including fake or malicious tokens.
       public static let warningMessage = Localized.tr("Localizable", "asset.verification.warning_message", fallback: "Anyone can create one - including fake or malicious tokens.")
-      /// Know What You’re Adding
-      public static let warningTitle = Localized.tr("Localizable", "asset.verification.warning_title", fallback: "Know What You’re Adding")
+      /// Know What You're Adding
+      public static let warningTitle = Localized.tr("Localizable", "asset.verification.warning_title", fallback: "Know What You're Adding")
     }
   }
   public enum Assets {
@@ -109,6 +109,8 @@ public enum Localized {
     public static let addCustomToken = Localized.tr("Localizable", "assets.add_custom_token", fallback: "Add Custom Token")
     /// No assets found
     public static let noAssetsFound = Localized.tr("Localizable", "assets.no_assets_found", fallback: "No assets found")
+    /// Popular
+    public static let popular = Localized.tr("Localizable", "assets.popular", fallback: "Popular")
     /// Select Asset
     public static let selectAsset = Localized.tr("Localizable", "assets.select_asset", fallback: "Select Asset")
     /// Assets
@@ -142,9 +144,9 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "banner.account_activation.title", fallback: "Account Activation Fee")
     }
     public enum ActivateAsset {
-      /// To use the %@ asset, you must first enable it on the %@ network by fulfilling the network’s specific requirements.
+      /// To use the %@ asset, you must first enable it on the %@ network by fulfilling the network's specific requirements.
       public static func description(_ p1: Any, _ p2: Any) -> String {
-        return Localized.tr("Localizable", "banner.activate_asset.description", String(describing: p1), String(describing: p2), fallback: "To use the %@ asset, you must first enable it on the %@ network by fulfilling the network’s specific requirements.")
+        return Localized.tr("Localizable", "banner.activate_asset.description", String(describing: p1), String(describing: p2), fallback: "To use the %@ asset, you must first enable it on the %@ network by fulfilling the network's specific requirements.")
       }
     }
     public enum AssetStatus {
@@ -205,14 +207,8 @@ public enum Localized {
     public static let entry = Localized.tr("Localizable", "charts.entry", fallback: "Entry")
     /// 1H
     public static let hour = Localized.tr("Localizable", "charts.hour", fallback: "1H")
-    /// Liq
-    public static let liquidation = Localized.tr("Localizable", "charts.liquidation", fallback: "Liq")
     /// 1M
     public static let month = Localized.tr("Localizable", "charts.month", fallback: "1M")
-    /// SL
-    public static let stopLoss = Localized.tr("Localizable", "charts.stop_loss", fallback: "SL")
-    /// TP
-    public static let takeProfit = Localized.tr("Localizable", "charts.take_profit", fallback: "TP")
     /// 1W
     public static let week = Localized.tr("Localizable", "charts.week", fallback: "1W")
     /// 1Y
@@ -292,7 +288,7 @@ public enum Localized {
     /// No Results Found
     public static let noResultsFound = Localized.tr("Localizable", "common.no_results_found", fallback: "No Results Found")
     /// None
-    public static let none = Localized.tr("Localizable", "common.none", fallback: "None")
+    public static let `none` = Localized.tr("Localizable", "common.none", fallback: "None")
     /// Not Available
     public static let notAvailable = Localized.tr("Localizable", "common.not_available", fallback: "Not Available")
     /// Open settings
@@ -309,8 +305,6 @@ public enum Localized {
     public static let pin = Localized.tr("Localizable", "common.pin", fallback: "Pin")
     /// Pinned
     public static let pinned = Localized.tr("Localizable", "common.pinned", fallback: "Pinned")
-    /// Popular
-    public static let popular = Localized.tr("Localizable", "common.popular", fallback: "Popular")
     /// Private Key
     public static let privateKey = Localized.tr("Localizable", "common.private_key", fallback: "Private Key")
     /// Provider
@@ -401,11 +395,9 @@ public enum Localized {
     public static let decoding = Localized.tr("Localizable", "errors.decoding", fallback: "Decoding Error")
     /// Failed to decode the QR code. Please try again with a different QR code.
     public static let decodingQr = Localized.tr("Localizable", "errors.decoding_qr", fallback: "Failed to decode the QR code. Please try again with a different QR code.")
-    /// The remaining balance after this transfer would be dust. Try sending the maximum amount.
-    public static let dustChangeShort = Localized.tr("Localizable", "errors.dust_change_short", fallback: "The remaining balance after this transfer would be dust. Try sending the maximum amount.")
-    /// The transaction failed because the amount is too small to meet the %@ network’s minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.
+    /// The transaction failed because the amount is too small to meet the %@ network's minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.
     public static func dustThreshold(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "errors.dust_threshold", String(describing: p1), fallback: "The transaction failed because the amount is too small to meet the %@ network’s minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.")
+      return Localized.tr("Localizable", "errors.dust_threshold", String(describing: p1), fallback: "The transaction failed because the amount is too small to meet the %@ network's minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.")
     }
     /// The network considers this amount dust - the fee is higher than the amount itself.
     public static let dustThresholdShort = Localized.tr("Localizable", "errors.dust_threshold_short", fallback: "The network considers this amount dust - the fee is higher than the amount itself.")
@@ -515,9 +507,9 @@ public enum Localized {
     }
     public enum Wallets {
       public enum Limit {
-        /// You’ve reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.
+        /// You've reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.
         public static func description(_ p1: Int) -> String {
-          return Localized.tr("Localizable", "errors.wallets.limit.description", p1, fallback: "You’ve reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.")
+          return Localized.tr("Localizable", "errors.wallets.limit.description", p1, fallback: "You've reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.")
         }
         /// Wallets Limit Reached
         public static let title = Localized.tr("Localizable", "errors.wallets.limit.title", fallback: "Wallets Limit Reached")
@@ -583,28 +575,10 @@ public enum Localized {
       /// Fully Diluted Valuation
       public static let title = Localized.tr("Localizable", "info.fully_diluted_valuation.title", fallback: "Fully Diluted Valuation")
     }
-    public enum FundingApr {
-      /// The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.
-      public static let description = Localized.tr("Localizable", "info.funding_apr.description", fallback: "The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.")
-      /// Funding APR
-      public static let title = Localized.tr("Localizable", "info.funding_apr.title", fallback: "Funding APR")
-    }
-    public enum FundingPayments {
-      /// Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.
-      public static let description = Localized.tr("Localizable", "info.funding_payments.description", fallback: "Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.")
-      /// Funding Payments
-      public static let title = Localized.tr("Localizable", "info.funding_payments.title", fallback: "Funding Payments")
-    }
-    public enum FundingRate {
-      /// The funding rate determines the cost of holding a perpetual position. It is calculated hourly and helps maintain price equilibrium between the perpetual contract and the underlying asset's spot price.
-      public static let description = Localized.tr("Localizable", "info.funding_rate.description", fallback: "The funding rate determines the cost of holding a perpetual position. It is calculated hourly and helps maintain price equilibrium between the perpetual contract and the underlying asset's spot price.")
-      /// Funding
-      public static let title = Localized.tr("Localizable", "info.funding_rate.title", fallback: "Funding")
-    }
     public enum InsufficientBalance {
-      /// You don’t have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.
+      /// You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.
       public static func description(_ p1: Any) -> String {
-        return Localized.tr("Localizable", "info.insufficient_balance.description", String(describing: p1), fallback: "You don’t have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.")
+        return Localized.tr("Localizable", "info.insufficient_balance.description", String(describing: p1), fallback: "You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.")
       }
       /// Insufficient Balance
       public static let title = Localized.tr("Localizable", "info.insufficient_balance.title", fallback: "Insufficient Balance")
@@ -618,12 +592,6 @@ public enum Localized {
       public static func title(_ p1: Any) -> String {
         return Localized.tr("Localizable", "info.insufficient_network_fee_balance.title", String(describing: p1), fallback: "%@ required")
       }
-    }
-    public enum LiquidationPrice {
-      /// The liquidation price is the price level at which your position will be automatically closed to prevent further losses. When the market price reaches this level, your position is liquidated and you lose your margin.
-      public static let description = Localized.tr("Localizable", "info.liquidation_price.description", fallback: "The liquidation price is the price level at which your position will be automatically closed to prevent further losses. When the market price reaches this level, your position is liquidated and you lose your margin.")
-      /// Liquidation Price
-      public static let title = Localized.tr("Localizable", "info.liquidation_price.title", fallback: "Liquidation Price")
     }
     public enum LockTime {
       /// Lock time, also known as the unbonding or unfreezing period, is the duration during which staked assets are inaccessible after you decide to unstake them.
@@ -655,16 +623,40 @@ public enum Localized {
       /// Unable to return a quote for the selected token pair, possibly due to low amount, lack of liquidity, or technical limitations.
       public static let description = Localized.tr("Localizable", "info.no_quote.description", fallback: "Unable to return a quote for the selected token pair, possibly due to low amount, lack of liquidity, or technical limitations.")
     }
-    public enum OpenInterest {
-      /// Open interest represents the total value of all outstanding perpetual contracts that have not been settled. It provides insight into market activity and liquidity.
-      public static let description = Localized.tr("Localizable", "info.open_interest.description", fallback: "Open interest represents the total value of all outstanding perpetual contracts that have not been settled. It provides insight into market activity and liquidity.")
-      /// Open Interest
-      public static let title = Localized.tr("Localizable", "info.open_interest.title", fallback: "Open Interest")
-    }
     public enum Perpetual {
       public enum AutoClose {
         /// Automatically close your position at set price levels. Take Profit locks in gains, Stop Loss limits losses.
         public static let description = Localized.tr("Localizable", "info.perpetual.auto_close.description", fallback: "Automatically close your position at set price levels. Take Profit locks in gains, Stop Loss limits losses.")
+      }
+      public enum FundingApr {
+        /// The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.
+        public static let description = Localized.tr("Localizable", "info.perpetual.funding_apr.description", fallback: "The annualized rate at which longs pay shorts (if negative, shorts pay longs). There are no fees associated with funding, which is a peer-to-peer transfer between users to push prices towards the spot price.")
+        /// Funding APR
+        public static let title = Localized.tr("Localizable", "info.perpetual.funding_apr.title", fallback: "Funding APR")
+      }
+      public enum FundingPayments {
+        /// Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.
+        public static let description = Localized.tr("Localizable", "info.perpetual.funding_payments.description", fallback: "Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.")
+        /// Funding Payments
+        public static let title = Localized.tr("Localizable", "info.perpetual.funding_payments.title", fallback: "Funding Payments")
+      }
+      public enum FundingRate {
+        /// The funding rate determines the cost of holding a perpetual position. It is calculated hourly and helps maintain price equilibrium between the perpetual contract and the underlying asset's spot price.
+        public static let description = Localized.tr("Localizable", "info.perpetual.funding_rate.description", fallback: "The funding rate determines the cost of holding a perpetual position. It is calculated hourly and helps maintain price equilibrium between the perpetual contract and the underlying asset's spot price.")
+        /// Funding
+        public static let title = Localized.tr("Localizable", "info.perpetual.funding_rate.title", fallback: "Funding")
+      }
+      public enum LiquidationPrice {
+        /// The liquidation price is the price level at which your position will be automatically closed to prevent further losses. When the market price reaches this level, your position is liquidated and you lose your margin.
+        public static let description = Localized.tr("Localizable", "info.perpetual.liquidation_price.description", fallback: "The liquidation price is the price level at which your position will be automatically closed to prevent further losses. When the market price reaches this level, your position is liquidated and you lose your margin.")
+        /// Liquidation Price
+        public static let title = Localized.tr("Localizable", "info.perpetual.liquidation_price.title", fallback: "Liquidation Price")
+      }
+      public enum OpenInterest {
+        /// Open interest represents the total value of all outstanding perpetual contracts that have not been settled. It provides insight into market activity and liquidity.
+        public static let description = Localized.tr("Localizable", "info.perpetual.open_interest.description", fallback: "Open interest represents the total value of all outstanding perpetual contracts that have not been settled. It provides insight into market activity and liquidity.")
+        /// Open Interest
+        public static let title = Localized.tr("Localizable", "info.perpetual.open_interest.title", fallback: "Open Interest")
       }
     }
     public enum PriceImpact {
@@ -868,8 +860,8 @@ public enum Localized {
           public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.do_not_share.title", fallback: "Do Not Share It With Anyone")
         }
         public enum Intro {
-          /// You will get a Secret Phrase — it’s the only way to access your wallet.
-          public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.intro.title", fallback: "You will get a Secret Phrase — it’s the only way to access your wallet.")
+          /// You will get a Secret Phrase — it's the only way to access your wallet.
+          public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.intro.title", fallback: "You will get a Secret Phrase — it's the only way to access your wallet.")
         }
         public enum KeepSafe {
           /// The secret phrase is only way to access your wallet.
@@ -880,8 +872,8 @@ public enum Localized {
         public enum NoRecovery {
           /// If you lose your secret phrase, you lose access to your wallet.
           public static let subtitle = Localized.tr("Localizable", "onboarding.security.create_wallet.no_recovery.subtitle", fallback: "If you lose your secret phrase, you lose access to your wallet.")
-          /// We Can’t Help You Recover It
-          public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.no_recovery.title", fallback: "We Can’t Help You Recover It")
+          /// We Can't Help You Recover It
+          public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.no_recovery.title", fallback: "We Can't Help You Recover It")
         }
       }
     }
@@ -923,6 +915,8 @@ public enum Localized {
     public static let increasePosition = Localized.tr("Localizable", "perpetual.increase_position", fallback: "Increase Position")
     /// Leverage
     public static let leverage = Localized.tr("Localizable", "perpetual.leverage", fallback: "Leverage")
+    /// Liq
+    public static let liquidation = Localized.tr("Localizable", "perpetual.liquidation", fallback: "Liq")
     /// Long
     public static let long = Localized.tr("Localizable", "perpetual.long", fallback: "Long")
     /// Margin
@@ -955,6 +949,10 @@ public enum Localized {
     public static let short = Localized.tr("Localizable", "perpetual.short", fallback: "Short")
     /// Size
     public static let size = Localized.tr("Localizable", "perpetual.size", fallback: "Size")
+    /// SL
+    public static let stopLoss = Localized.tr("Localizable", "perpetual.stop_loss", fallback: "SL")
+    /// TP
+    public static let takeProfit = Localized.tr("Localizable", "perpetual.take_profit", fallback: "TP")
     /// Unrealized PnL
     public static let unrealizedPnl = Localized.tr("Localizable", "perpetual.unrealized_pnl", fallback: "Unrealized PnL")
     /// Value
@@ -1005,8 +1003,8 @@ public enum Localized {
     public static func enabledFor(_ p1: Any) -> String {
       return Localized.tr("Localizable", "price_alerts.enabled_for", String(describing: p1), fallback: "Price alert enabled for %@")
     }
-    /// Get notified when there’s a significant price change in your favorite crypto assets.
-    public static let getNotifiedExplainMessage = Localized.tr("Localizable", "price_alerts.get_notified_explain_message", fallback: "Get notified when there’s a significant price change in your favorite crypto assets.")
+    /// Get notified when there's a significant price change in your favorite crypto assets.
+    public static let getNotifiedExplainMessage = Localized.tr("Localizable", "price_alerts.get_notified_explain_message", fallback: "Get notified when there's a significant price change in your favorite crypto assets.")
     public enum Direction {
       /// Decreases by
       public static let decreasesBy = Localized.tr("Localizable", "price_alerts.direction.decreases_by", fallback: "Decreases by")
@@ -1057,8 +1055,8 @@ public enum Localized {
     public static let title = Localized.tr("Localizable", "recent_activity.title", fallback: "Recents")
     public enum State {
       public enum Empty {
-        /// Assets you’ve recently used will appear here
-        public static let description = Localized.tr("Localizable", "recent_activity.state.empty.description", fallback: "Assets you’ve recently used will appear here")
+        /// Assets you've recently used will appear here
+        public static let description = Localized.tr("Localizable", "recent_activity.state.empty.description", fallback: "Assets you've recently used will appear here")
         /// Your recents will appear here
         public static let title = Localized.tr("Localizable", "recent_activity.state.empty.title", fallback: "Your recents will appear here")
       }
@@ -1241,14 +1239,16 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "settings.notifications.title", fallback: "Notifications")
     }
     public enum Preferences {
-      /// Default Stop Loss
-      public static let defaultStopLoss = Localized.tr("Localizable", "settings.preferences.default_stop_loss", fallback: "Default Stop Loss")
-      /// Default Take Profit
-      public static let defaultTakeProfit = Localized.tr("Localizable", "settings.preferences.default_take_profit", fallback: "Default Take Profit")
-      /// Default Leverage
-      public static let defaultLeverage = Localized.tr("Localizable", "settings.preferences.default_leverage", fallback: "Default Leverage")
       /// Preferences
       public static let title = Localized.tr("Localizable", "settings.preferences.title", fallback: "Preferences")
+      public enum Perpetual {
+        /// Default Leverage
+        public static let defaultLeverage = Localized.tr("Localizable", "settings.preferences.perpetual.default_leverage", fallback: "Default Leverage")
+        /// Default Stop Loss
+        public static let defaultStopLoss = Localized.tr("Localizable", "settings.preferences.perpetual.default_stop_loss", fallback: "Default Stop Loss")
+        /// Default Take Profit
+        public static let defaultTakeProfit = Localized.tr("Localizable", "settings.preferences.perpetual.default_take_profit", fallback: "Default Take Profit")
+      }
     }
     public enum PriceAlerts {
       /// Price Alerts
@@ -1464,9 +1464,9 @@ public enum Localized {
     }
     /// Memo
     public static let memo = Localized.tr("Localizable", "transfer.memo", fallback: "Memo")
-    /// A minimum %@ balance must remain after this, unless you’re using your full balance.
+    /// A minimum %@ balance must remain after this, unless you're using your full balance.
     public static func minimumAccountBalance(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "transfer.minimum_account_balance", String(describing: p1), fallback: "A minimum %@ balance must remain after this, unless you’re using your full balance.")
+      return Localized.tr("Localizable", "transfer.minimum_account_balance", String(describing: p1), fallback: "A minimum %@ balance must remain after this, unless you're using your full balance.")
     }
     /// Minimum Amount is %@
     public static func minimumAmount(_ p1: Any) -> String {
@@ -1476,9 +1476,9 @@ public enum Localized {
     public static let network = Localized.tr("Localizable", "transfer.network", fallback: "Network")
     /// Network Fee
     public static let networkFee = Localized.tr("Localizable", "transfer.network_fee", fallback: "Network Fee")
-    /// We’ve left %@ in your balance to cover future network fees.
+    /// We've left %@ in your balance to cover future network fees.
     public static func reservedFees(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We’ve left %@ in your balance to cover future network fees.")
+      return Localized.tr("Localizable", "transfer.reserved_fees", String(describing: p1), fallback: "We've left %@ in your balance to cover future network fees.")
     }
     /// Review Request
     public static let reviewRequest = Localized.tr("Localizable", "transfer.review_request", fallback: "Review Request")
@@ -1710,20 +1710,6 @@ public enum Localized {
   public enum Welcome {
     /// Welcome to Gem Family
     public static let title = Localized.tr("Localizable", "welcome.title", fallback: "Welcome to Gem Family")
-  }
-  public enum Widget {
-    public enum Medium {
-      /// Track prices of top cryptocurrencies
-      public static let description = Localized.tr("Localizable", "widget.medium.description", fallback: "Track prices of top cryptocurrencies")
-      /// Top Crypto Price
-      public static let name = Localized.tr("Localizable", "widget.medium.name", fallback: "Top Crypto Price")
-    }
-    public enum Small {
-      /// Track Bitcoin price
-      public static let description = Localized.tr("Localizable", "widget.small.description", fallback: "Track Bitcoin price")
-      /// Bitcoin Price
-      public static let name = Localized.tr("Localizable", "widget.small.name", fallback: "Bitcoin Price")
-    }
   }
 }
 // swiftlint:enable explicit_type_interface function_parameter_count identifier_name line_length

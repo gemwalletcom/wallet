@@ -5,7 +5,7 @@ pub fn map_node_status(node_info: &BitcoinNodeInfo) -> NodeSyncStatus {
     let latest_block_number = node_info.backend.blocks;
     let current_block_number = Some(node_info.blockbook.best_height);
 
-    NodeSyncStatus::new(node_info.blockbook.in_sync, Some(latest_block_number), current_block_number)
+    NodeSyncStatus::new(node_info.blockbook.in_sync, latest_block_number, current_block_number)
 }
 
 pub fn map_latest_block_number(node_info: &BitcoinNodeInfo) -> u64 {
@@ -26,7 +26,7 @@ mod tests {
                 best_height: 123,
             },
             backend: BitcoinBackend {
-                blocks: 456,
+                blocks: Some(456),
                 chain: Some("main".to_string()),
                 consensus: None,
             },
@@ -48,7 +48,7 @@ mod tests {
                 best_height: 1_000,
             },
             backend: BitcoinBackend {
-                blocks: 2_000,
+                blocks: Some(2_000),
                 chain: Some("main".to_string()),
                 consensus: None,
             },

@@ -41,6 +41,7 @@ public extension Chain {
              .stable: .ethereum
         case .solana: .solana
         case .thorchain: .thorchain
+        case .mayachain: .thorchain
         case .cosmos: .cosmos
         case .osmosis: .osmosis
         case .ton: .ton

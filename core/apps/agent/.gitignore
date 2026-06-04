@@ -1,8 +1,0 @@
-/data
-/cache
-/.env
-/.env.local
-*.db
-*.sqlite
-*.sqlite-journal
-.fastembed_cache

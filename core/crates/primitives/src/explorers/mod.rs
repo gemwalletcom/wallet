@@ -1,10 +1,12 @@
 pub mod aptos;
 pub mod blockchair;
 pub mod etherscan;
+pub mod mayachain;
 pub mod mempool;
 pub mod mintscan;
 pub mod solana;
 pub mod sui;
+pub use mayachain::MayaScan;
 pub mod thorchain;
 pub mod threexpl;
 pub mod ton;

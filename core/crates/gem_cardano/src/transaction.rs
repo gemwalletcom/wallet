@@ -1,7 +1,10 @@
-#[cfg(feature = "signer")]
 use gem_hash::blake2::blake2b_256;
 
 use crate::cbor::CborEncoder;
+
+const AUXILIARY_DATA_TAG: u64 = 259;
+const MAYA_PROTOCOL_AUXILIARY_KEY: u64 = 6676;
+const MEMO_SEGMENT_SIZE: usize = 64;
 
 #[derive(Debug)]
 pub(crate) struct TransactionInput {
@@ -21,12 +24,39 @@ pub(crate) struct Transaction {
     pub(crate) outputs: Vec<TransactionOutput>,
     pub(crate) fee: u64,
     pub(crate) expiration_block_number: u64,
+    pub(crate) memo: Option<String>,
 }
 
 impl Transaction {
+    fn auxiliary_data_bytes(&self) -> Option<Vec<u8>> {
+        self.memo.as_deref().filter(|memo| !memo.is_empty()).map(|memo| {
+            let segments = memo
+                .as_bytes()
+                .chunks(MEMO_SEGMENT_SIZE)
+                .map(|chunk| String::from_utf8_lossy(chunk).to_string())
+                .collect::<Vec<_>>();
+            let mut encoder = CborEncoder::new();
+            encoder.tag(AUXILIARY_DATA_TAG);
+            encoder.map(1);
+            encoder.unsigned(0);
+            encoder.map(1);
+            encoder.unsigned(0);
+            encoder.map(1);
+            encoder.unsigned(MAYA_PROTOCOL_AUXILIARY_KEY);
+            encoder.map(1);
+            encoder.text("memo");
+            encoder.array(segments.len());
+            for segment in segments {
+                encoder.text(&segment);
+            }
+            encoder.into_bytes()
+        })
+    }
+
     pub(crate) fn body_bytes(&self) -> Vec<u8> {
+        let auxiliary_data = self.auxiliary_data_bytes();
         let mut encoder = CborEncoder::new();
-        encoder.map(4);
+        encoder.map(if auxiliary_data.is_some() { 5 } else { 4 });
 
         encoder.unsigned(0);
         encoder.array(self.inputs.len());
@@ -49,6 +79,11 @@ impl Transaction {
         encoder.unsigned(3);
         encoder.unsigned(self.expiration_block_number);
 
+        if let Some(auxiliary_data) = auxiliary_data {
+            encoder.unsigned(7);
+            encoder.bytes(&blake2b_256(&auxiliary_data));
+        }
+
         encoder.into_bytes()
     }
 
@@ -59,6 +94,7 @@ impl Transaction {
 
     pub(crate) fn signed_bytes(&self, public_key: &[u8; 32], signature: &[u8; 64]) -> Vec<u8> {
         let body = self.body_bytes();
+        let auxiliary_data = self.auxiliary_data_bytes();
         let mut encoder = CborEncoder::new();
         encoder.array(4);
         encoder.raw(&body);
@@ -69,7 +105,11 @@ impl Transaction {
         encoder.bytes(public_key);
         encoder.bytes(signature);
         encoder.true_value();
-        encoder.null();
+        if let Some(auxiliary_data) = auxiliary_data {
+            encoder.raw(&auxiliary_data);
+        } else {
+            encoder.null();
+        }
         encoder.into_bytes()
     }
 
@@ -114,6 +154,7 @@ mod tests {
             ],
             fee: 165_555,
             expiration_block_number: 53_333_345,
+            memo: None,
         };
 
         assert_eq!(
@@ -123,6 +164,35 @@ mod tests {
         assert_eq!(
             hex::encode(transaction.transaction_id()),
             "cc262713a3e15a0fa245b062f33ffc6c2aa5a64c3ae7bfa793414069914e1bbf"
+        );
+    }
+
+    #[test]
+    fn test_transaction_auxiliary_data_memo() {
+        let transaction = Transaction {
+            inputs: vec![TransactionInput {
+                transaction_hash: hex::decode("f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767").unwrap().try_into().unwrap(),
+                output_index: 1,
+            }],
+            outputs: vec![TransactionOutput {
+                address: ShelleyAddress::parse("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23")
+                    .unwrap()
+                    .as_bytes()
+                    .to_vec(),
+                amount: 2_000_000,
+            }],
+            fee: 165_555,
+            expiration_block_number: 53_333_345,
+            memo: Some("=:b:bc1qdestination:0/1/0:g1:50".to_string()),
+        };
+
+        assert_eq!(
+            hex::encode(transaction.auxiliary_data_bytes().unwrap()),
+            "d90103a100a100a1191a14a1646d656d6f81781f3d3a623a6263317164657374696e6174696f6e3a302f312f303a67313a3530"
+        );
+        assert_eq!(
+            hex::encode(transaction.body_bytes()),
+            "a50081825820f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e76701018182583901df58ee97ce7a46cd8bdeec4e5f3a03297eb197825ed5681191110804df22424b6880b39e4bac8c58de9fe6d23d79aaf44756389d827aa09b1a001e8480021a000286b3031a032dcd61075820ae2a7d445496dc92925a85781cc1351123f6b09afe9b0f632f9668b26e9c9227"
         );
     }
 }

@@ -1,4 +1,6 @@
-use super::chain::THORChainName;
+#[cfg(test)]
+use super::{THORChainNetwork, chain::ChainName};
+#[cfg(test)]
 use primitives::Chain;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -29,18 +31,18 @@ impl ThorchainMemo {
     pub fn is_swap(memo: &str) -> bool {
         Self::parse(memo).is_some_and(|m| m.tx_type == "=" || m.tx_type == "s")
     }
-
-    pub fn destination_chain(&self) -> Option<Chain> {
-        let chain_part = match self.asset.find('.') {
-            Some(dot_pos) => &self.asset[..dot_pos],
-            None => &self.asset,
-        };
-        THORChainName::from_symbol(chain_part).map(|n| n.chain())
-    }
 }
 
 #[cfg(test)]
 impl ThorchainMemo {
+    pub fn destination_chain(&self, network: THORChainNetwork) -> Option<Chain> {
+        let chain_part = match self.asset.find('.') {
+            Some(dot_pos) => &self.asset[..dot_pos],
+            None => &self.asset,
+        };
+        ChainName::from_symbol(network, chain_part).map(|n| n.chain())
+    }
+
     pub fn token_symbol(&self) -> Option<String> {
         self.asset.find('.').map(|dot_pos| self.asset[dot_pos + 1..].to_string())
     }
@@ -58,7 +60,7 @@ mod tests {
         assert_eq!(parsed.tx_type, "=");
         assert_eq!(parsed.asset, "ETH.USDT");
         assert_eq!(parsed.address, "0x858734a6353C9921a78fB3c937c8E20Ba6f36902");
-        assert_eq!(parsed.destination_chain(), Some(Chain::Ethereum));
+        assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), Some(Chain::Ethereum));
         assert_eq!(parsed.token_symbol(), Some("USDT".to_string()));
     }
 
@@ -70,7 +72,7 @@ mod tests {
         assert_eq!(parsed.tx_type, "=");
         assert_eq!(parsed.asset, "ETH");
         assert_eq!(parsed.address, "0x858734a6353C9921a78fB3c937c8E20Ba6f36902");
-        assert_eq!(parsed.destination_chain(), Some(Chain::Ethereum));
+        assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), Some(Chain::Ethereum));
         assert_eq!(parsed.token_symbol(), None);
     }
 
@@ -80,7 +82,7 @@ mod tests {
         let parsed = ThorchainMemo::parse(memo).unwrap();
 
         assert_eq!(parsed.asset, "e");
-        assert_eq!(parsed.destination_chain(), Some(Chain::Ethereum));
+        assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), Some(Chain::Ethereum));
     }
 
     #[test]
@@ -88,7 +90,7 @@ mod tests {
         let memo = "=:BTC:bc1qaddress:0/1/0:affiliate:150";
         let parsed = ThorchainMemo::parse(memo).unwrap();
 
-        assert_eq!(parsed.destination_chain(), Some(Chain::Bitcoin));
+        assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), Some(Chain::Bitcoin));
         assert_eq!(parsed.token_symbol(), None);
     }
 
@@ -97,7 +99,7 @@ mod tests {
         let memo = "=:BSC.USDT:0x123:0/1/0:affiliate:100";
         let parsed = ThorchainMemo::parse(memo).unwrap();
 
-        assert_eq!(parsed.destination_chain(), Some(Chain::SmartChain));
+        assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), Some(Chain::SmartChain));
         assert_eq!(parsed.token_symbol(), Some("USDT".to_string()));
     }
 
@@ -123,6 +125,6 @@ mod tests {
     fn test_parse_unknown_chain() {
         let memo = "=:UNKNOWN.TOKEN:0x123";
         let parsed = ThorchainMemo::parse(memo).unwrap();
-        assert_eq!(parsed.destination_chain(), None);
+        assert_eq!(parsed.destination_chain(THORChainNetwork::Thorchain), None);
     }
 }

@@ -1,7 +1,7 @@
 use crate::chain::Chain;
 use crate::chain_evm::EVMChain;
 use crate::explorers::{
-    AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, Cardanocan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, Metadata,
+    AlgorandAllo, AlgorandPera, BlockScout, BlockVision, Blocksec, Cardanocan, EtherScan, Explorer, FlowScan, HyperliquidExplorer, HypurrScan, MantleExplorer, MayaScan, Metadata,
     NearBlocks, OkxExplorer, RouteScan, RuneScan, SubScan, TonScan, TronScan, Viewblock, XrpScan, ZkSync, aptos, blockchair, mempool, mintscan, solana, stellar_expert, sui,
     threexpl, ton,
 };
@@ -115,6 +115,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Plasma => vec![EtherScan::boxed(EVMChain::Plasma)],
         Chain::Solana => vec![solana::new_solscan(), solana::new_solana_fm(), blockchair::new_solana()],
         Chain::Thorchain => vec![RuneScan::boxed(), Viewblock::boxed()],
+        Chain::Mayachain => vec![MayaScan::boxed()],
 
         Chain::Cosmos => vec![mintscan::new_cosmos()],
         Chain::Osmosis => vec![mintscan::new_osmosis()],

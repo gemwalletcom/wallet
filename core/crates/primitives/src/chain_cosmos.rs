@@ -15,6 +15,7 @@ pub enum CosmosChain {
     Osmosis,
     Celestia,
     Thorchain,
+    Mayachain,
     Injective,
     Sei,
     Noble,
@@ -39,6 +40,7 @@ impl CosmosChain {
             Self::Osmosis => "osmo",
             Self::Celestia => "celestia",
             Self::Thorchain => "thor",
+            Self::Mayachain => "maya",
             Self::Injective => "inj",
             Self::Sei => "sei",
             Self::Noble => "noble",
@@ -51,6 +53,7 @@ impl CosmosChain {
             Self::Osmosis => CosmosDenom::Uosmo,
             Self::Celestia => CosmosDenom::Utia,
             Self::Thorchain => CosmosDenom::Rune,
+            Self::Mayachain => CosmosDenom::Cacao,
             Self::Injective => CosmosDenom::Inj,
             Self::Sei => CosmosDenom::Usei,
             Self::Noble => CosmosDenom::Uusdc,
@@ -64,6 +67,7 @@ impl CosmosChain {
 #[strum(serialize_all = "lowercase")]
 pub enum CosmosDenom {
     Rune,
+    Cacao,
     Uatom,
     Uosmo,
     Utia,

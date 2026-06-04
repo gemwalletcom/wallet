@@ -23,8 +23,8 @@ public struct PerpetualPositionViewModel {
         currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
         autocloseFormatter = AutocloseFormatter(
             currencyFormatter: currencyFormatter,
-            takeProfitLabel: Localized.Charts.takeProfit,
-            stopLossLabel: Localized.Charts.stopLoss,
+            takeProfitLabel: Localized.Perpetual.takeProfit,
+            stopLossLabel: Localized.Perpetual.stopLoss,
         )
     }
 
@@ -106,7 +106,7 @@ public struct PerpetualPositionViewModel {
 
     public var fundingPaymentsField: ListItemField {
         ListItemField(
-            title: TextValue(text: Localized.Info.FundingPayments.title, style: .body),
+            title: TextValue(text: Localized.Info.Perpetual.FundingPayments.title, style: .body),
             value: TextValue(text: fundingPaymentsModel.text ?? "-", style: fundingPaymentsModel.textStyle),
         )
     }
@@ -126,7 +126,7 @@ public struct PerpetualPositionViewModel {
     public var liquidationPriceField: ListItemField? {
         guard let price = data.position.liquidationPrice, price > 0 else { return .none }
         return ListItemField(
-            title: TextValue(text: Localized.Info.LiquidationPrice.title, style: .body),
+            title: TextValue(text: Localized.Info.Perpetual.LiquidationPrice.title, style: .body),
             value: TextValue(text: currencyFormatter.string(price), style: liquidationPriceTextStyle),
         )
     }

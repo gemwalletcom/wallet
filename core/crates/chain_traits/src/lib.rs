@@ -95,6 +95,10 @@ pub trait ChainStaking: Send + Sync {
         Ok(vec![])
     }
 
+    async fn get_staking_delegation_validators(&self, _address: String) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
+        Ok(vec![])
+    }
+
     async fn get_staking_delegations(&self, _address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }

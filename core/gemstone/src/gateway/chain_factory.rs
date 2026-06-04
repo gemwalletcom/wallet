@@ -67,7 +67,7 @@ impl ChainClientFactory {
             Chain::Algorand => Ok(Arc::new(AlgorandClient::new(alien_client.clone(), AlgorandClientIndexer::new(alien_client.clone())))),
             Chain::Near => Ok(Arc::new(NearClient::new(JsonRpcClient::new(alien_client.clone())))),
             Chain::Aptos => Ok(Arc::new(AptosClient::new(alien_client))),
-            Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Injective | Chain::Sei | Chain::Noble => {
+            Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Sei | Chain::Noble => {
                 Ok(Arc::new(CosmosClient::new(CosmosChain::from_chain(chain).unwrap(), alien_client)))
             }
             Chain::Ton => Ok(Arc::new(TonClient::new(alien_client))),

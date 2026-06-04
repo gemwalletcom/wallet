@@ -2,6 +2,7 @@ package com.gemwallet.android.blockchain.operators
 
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.operators.walletcore.WCCreateAccountOperator
+import com.gemwallet.android.ext.available
 import com.gemwallet.android.testkit.LOCAL_KEYSTORE_TEST_PHRASE
 import com.gemwallet.android.testkit.TEST_PHRASE
 import com.wallet.core.primitives.Chain
@@ -48,7 +49,7 @@ class TestCreateAccountOperator {
     fun testCreate_account_derive_address_matches_ios_local_keystore() {
         val operator = WCCreateAccountOperator()
 
-        Chain.entries.forEach { chain ->
+        Chain.available().forEach { chain ->
             val account = operator(
                 walletType = WalletType.Multicoin,
                 data = LOCAL_KEYSTORE_TEST_PHRASE,
@@ -94,6 +95,7 @@ class TestCreateAccountOperator {
         Chain.Stable -> "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
         Chain.Solana -> "57mwmnV2rFuVDmhiJEjonD7cfuFtcaP9QvYNGfDEWK71"
         Chain.Thorchain -> "thor1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2kyhc65"
+        Chain.Mayachain -> error("Mayachain accounts are not derived")
         Chain.Cosmos -> "cosmos142j9u5eaduzd7faumygud6ruhdwme98qsy2ekn"
         Chain.Osmosis -> "osmo142j9u5eaduzd7faumygud6ruhdwme98qclefqp"
         Chain.Ton -> "UQDgEMqToTacHic7SnvnPFmvceG5auFkCcAw0mSCvzvKUaT4"

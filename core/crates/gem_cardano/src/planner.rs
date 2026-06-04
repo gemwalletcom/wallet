@@ -23,7 +23,9 @@ pub(crate) struct TransactionPlan {
 pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionPlan, SignerError> {
     match &input.input_type {
         TransactionInputType::Transfer(asset) if asset.id.chain == Chain::Cardano && asset.id.is_native() => {}
+        TransactionInputType::Swap(asset, _, _) if asset.id.chain == Chain::Cardano && asset.id.is_native() => {}
         TransactionInputType::Transfer(_) => return SignerError::invalid_input_err("unsupported Cardano token transfer"),
+        TransactionInputType::Swap(_, _, _) => return SignerError::invalid_input_err("unsupported Cardano token swap"),
         _ => return SignerError::invalid_input_err("unsupported Cardano transaction type"),
     }
 
@@ -63,7 +65,7 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
 }
 
 pub(crate) fn transaction_from_plan(input: &TransactionLoadInput, plan: &TransactionPlan) -> Result<Transaction, SignerError> {
-    let destination = ShelleyAddress::parse(&input.destination_address)?;
+    let destination = ShelleyAddress::parse(transaction_destination_address(input))?;
     let expiration_block_number = input.metadata.get_block_number()? + CARDANO_EXPIRATION_BLOCK_OFFSET;
     let mut outputs = vec![TransactionOutput {
         address: destination.as_bytes().to_vec(),
@@ -83,7 +85,22 @@ pub(crate) fn transaction_from_plan(input: &TransactionLoadInput, plan: &Transac
         outputs,
         fee: plan.fee,
         expiration_block_number,
+        memo: transaction_memo(input),
     })
+}
+
+fn transaction_destination_address(input: &TransactionLoadInput) -> &str {
+    match &input.input_type {
+        TransactionInputType::Swap(_, _, swap_data) => &swap_data.data.to,
+        _ => &input.destination_address,
+    }
+}
+
+fn transaction_memo(input: &TransactionLoadInput) -> Option<String> {
+    input
+        .get_memo()
+        .map(ToOwned::to_owned)
+        .or_else(|| input.input_type.get_swap_data().ok().and_then(|swap_data| swap_data.data.memo.clone()))
 }
 
 fn utxos_from_metadata(metadata: &TransactionLoadMetadata, sender_address: &str) -> Result<Vec<UTXO>, SignerError> {
@@ -173,7 +190,7 @@ fn sum_amounts(utxos: &[UTXO]) -> Result<u64, SignerError> {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, AssetType, Chain, GasPriceType, TransactionInputType, TransactionLoadMetadata};
+    use primitives::{Asset, AssetType, Chain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadMetadata, swap::SwapData};
 
     use super::*;
 
@@ -273,6 +290,23 @@ mod tests {
     }
 
     #[test]
+    fn test_plan_transfer_accepts_native_swap() {
+        let mut input = wallet_core_input("2000000", false);
+        let mut swap_data = SwapData::mock_transfer(SwapProvider::Mayachain, "2000000", "1000000000000000", TO_ADDRESS);
+        swap_data.data.memo = Some("=:e:0x1234567890abcdef:0/1/0:g1:50".to_string());
+        input.input_type = TransactionInputType::Swap(Asset::from_chain(Chain::Cardano), Asset::from_chain(Chain::Ethereum), swap_data);
+        input.destination_address = "0x1234567890abcdef".to_string();
+
+        let plan = plan_transfer(&input).unwrap();
+        let transaction = transaction_from_plan(&input, &plan).unwrap();
+
+        assert_eq!(plan.amount, 2_000_000);
+        assert_eq!(plan.fee, 172_531);
+        assert_eq!(transaction.outputs[0].address, ShelleyAddress::parse(TO_ADDRESS).unwrap().as_bytes());
+        assert_eq!(transaction.memo, Some("=:e:0x1234567890abcdef:0/1/0:g1:50".to_string()));
+    }
+
+    #[test]
     fn test_plan_transfer_validation() {
         let mut input = wallet_core_input("1", false);
         input.metadata = TransactionLoadMetadata::Cardano {
@@ -307,6 +341,21 @@ mod tests {
             AssetType::TOKEN,
         ));
         assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token transfer");
+
+        input = wallet_core_input("1", false);
+        input.input_type = TransactionInputType::Swap(
+            Asset::mock_with_params(
+                Chain::Cardano,
+                Some("policy.asset".to_string()),
+                "Cardano Token".to_string(),
+                "TOKEN".to_string(),
+                0,
+                AssetType::TOKEN,
+            ),
+            Asset::from_chain(Chain::Ethereum),
+            SwapData::mock_transfer(SwapProvider::Mayachain, "1", "1", TO_ADDRESS),
+        );
+        assert_eq!(plan_transfer(&input).err().unwrap().to_string(), "Invalid input: unsupported Cardano token swap");
 
         input = wallet_core_input("1", false);
         input.metadata = TransactionLoadMetadata::Cardano {

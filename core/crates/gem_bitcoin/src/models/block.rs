@@ -28,7 +28,7 @@ pub struct BitcoinBlockbook {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BitcoinBackend {
-    pub blocks: Int,
+    pub blocks: Option<Int>,
     pub chain: Option<String>,
     pub consensus: Option<Consensus>,
 }
@@ -56,4 +56,16 @@ pub struct Block {
     pub page: u64,
     pub total_pages: u64,
     pub txs: Vec<Transaction>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_node_info_deserializes_without_blocks() {
+        let info: BitcoinNodeInfo = serde_json::from_str(include_str!("../../testdata/node_info_no_blocks.json")).unwrap();
+        assert_eq!(info.backend.blocks, None);
+        assert_eq!(info.backend.consensus.unwrap().chaintip, "c2d6d0b4");
+    }
 }

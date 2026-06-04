@@ -13,6 +13,7 @@ public extension CosmosChain {
     var denom: CosmosDenom {
         switch self {
         case .thorchain: CosmosDenom.rune
+        case .mayachain: CosmosDenom.cacao
         case .cosmos: CosmosDenom.uatom
         case .osmosis: CosmosDenom.uosmo
         case .celestia: CosmosDenom.utia

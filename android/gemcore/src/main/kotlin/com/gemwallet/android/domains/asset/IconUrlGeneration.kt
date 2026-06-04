@@ -96,6 +96,7 @@ fun SwapperProvider.getSwapProviderIcon(): String {
         SwapperProvider.UNISWAP_V3 -> "uniswap"
         SwapperProvider.PANCAKESWAP_V3 -> "pancakeswap"
         SwapperProvider.THORCHAIN -> "thorchain"
+        SwapperProvider.MAYACHAIN -> return Chain.Mayachain.getIconUrl()
         SwapperProvider.JUPITER -> "jupiter"
         SwapperProvider.ACROSS -> "across"
         SwapperProvider.OKU -> "oku"

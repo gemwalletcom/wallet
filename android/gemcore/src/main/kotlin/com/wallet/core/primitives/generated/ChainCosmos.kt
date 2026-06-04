@@ -17,6 +17,8 @@ enum class CosmosChain(val string: String) {
 	Celestia("celestia"),
 	@SerialName("thorchain")
 	Thorchain("thorchain"),
+	@SerialName("mayachain")
+	Mayachain("mayachain"),
 	@SerialName("injective")
 	Injective("injective"),
 	@SerialName("sei")
@@ -29,6 +31,8 @@ enum class CosmosChain(val string: String) {
 enum class CosmosDenom(val string: String) {
 	@SerialName("rune")
 	Rune("rune"),
+	@SerialName("cacao")
+	Cacao("cacao"),
 	@SerialName("uatom")
 	Uatom("uatom"),
 	@SerialName("uosmo")

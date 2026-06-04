@@ -125,6 +125,8 @@ chains:
     url: "https://osmosis-rest.publicnode.com"
   thorchain:
     url: "https://thornode.ninerealms.com"
+  mayachain:
+    url: "https://mayanode.mayachain.info"
   tron:
     url: "https://api.trongrid.io"
   xrp:

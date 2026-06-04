@@ -43,8 +43,8 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     private let percentFormatter = PercentFormatter.signed
     private let percentSignLessFormatter = PercentFormatter.unsigned
     private let autocloseFormatter = AutocloseFormatter(
-        takeProfitLabel: Localized.Charts.takeProfit,
-        stopLossLabel: Localized.Charts.stopLoss,
+        takeProfitLabel: Localized.Perpetual.takeProfit,
+        stopLossLabel: Localized.Perpetual.stopLoss,
     )
 
     public init(type: PerpetualDetailsType) {

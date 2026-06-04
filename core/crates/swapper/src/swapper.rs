@@ -35,7 +35,7 @@ impl GemSwapper {
     fn filter_supported_assets(supported_assets: Vec<SwapperChainAsset>, asset_id: AssetId) -> bool {
         supported_assets.into_iter().any(|x| match x {
             SwapperChainAsset::All(chain) => chain == asset_id.chain,
-            SwapperChainAsset::Assets(chain, assets) => chain == asset_id.chain || assets.contains(&asset_id),
+            SwapperChainAsset::Assets(chain, assets) => chain == asset_id.chain && asset_id.is_native() || assets.contains(&asset_id),
         })
     }
 
@@ -75,6 +75,7 @@ impl GemSwapper {
             uniswap::default::boxed_uniswap_v4(rpc_provider.clone()),
             uniswap::default::boxed_pancakeswap(rpc_provider.clone()),
             Box::new(thorchain::ThorChain::new(rpc_provider.clone())),
+            Box::new(thorchain::ThorChain::new_mayachain(rpc_provider.clone())),
             Box::new(jupiter::Jupiter::new(rpc_provider.clone())),
             Box::new(provider_factory::new_okx(rpc_provider.clone())),
             Box::new(across::Across::new(rpc_provider.clone())),
@@ -245,6 +246,7 @@ mod tests {
             Box::new(new_uniswap_v3(provider.clone())),
             Box::new(new_pancakeswap(provider.clone())),
             Box::new(thorchain::ThorChain::new(provider.clone())),
+            Box::new(thorchain::ThorChain::new_mayachain(provider.clone())),
             Box::new(jupiter::Jupiter::new(provider)),
         ];
 
@@ -297,6 +299,17 @@ mod tests {
 
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].provider().id, SwapperProvider::Thorchain);
+
+        let from_chain = Chain::Ethereum;
+        let to_chain = Chain::Mayachain;
+
+        let filtered = swappers
+            .iter()
+            .filter(|x| GemSwapper::filter_by_provider_mode(&x.provider().mode, from_chain, to_chain))
+            .filter(|x| GemSwapper::filter_by_supported_chains(x.supported_chains(), from_chain, to_chain))
+            .collect::<Vec<_>>();
+
+        assert_eq!(filtered.len(), 0);
     }
 
     #[test]
@@ -304,15 +317,23 @@ mod tests {
         let asset_id = AssetId::from_chain(Chain::Ethereum);
         let asset_id_usdt: AssetId = ETHEREUM_USDT_ASSET_ID.clone();
         let supported_assets_all = vec![SwapperChainAsset::All(Chain::Ethereum)];
-        assert!(GemSwapper::filter_supported_assets(supported_assets_all, asset_id.clone()));
+        assert_eq!(GemSwapper::filter_supported_assets(supported_assets_all, asset_id.clone()), true);
+        assert_eq!(
+            GemSwapper::filter_supported_assets(vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])], AssetId::from_chain(Chain::Cardano)),
+            true
+        );
+        assert_eq!(
+            GemSwapper::filter_supported_assets(vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])], AssetId::from_token(Chain::Cardano, "policy.asset")),
+            false
+        );
 
         let supported_assets = vec![
             SwapperChainAsset::All(Chain::Ethereum),
             SwapperChainAsset::Assets(Chain::Ethereum, vec![AssetId::from_token(Chain::Ethereum, &asset_id_usdt.clone().token_id.unwrap())]),
         ];
 
-        assert!(GemSwapper::filter_supported_assets(supported_assets.clone(), asset_id_usdt.clone()));
-        assert!(GemSwapper::filter_supported_assets(supported_assets, asset_id));
+        assert_eq!(GemSwapper::filter_supported_assets(supported_assets.clone(), asset_id_usdt.clone()), true);
+        assert_eq!(GemSwapper::filter_supported_assets(supported_assets, asset_id), true);
     }
 
     #[tokio::test]

@@ -1,9 +1,11 @@
 use num_bigint::BigInt;
 use primitives::{GasPriceType, StakeType, SwapProvider, TransactionFee, TransactionInputType, chain_cosmos::CosmosChain};
 
+use crate::constants::get_base_fee;
+
 fn get_fee(chain: CosmosChain, input_type: &TransactionInputType) -> BigInt {
     match chain {
-        CosmosChain::Thorchain => BigInt::from(2_000_000u64),
+        CosmosChain::Thorchain | CosmosChain::Mayachain => BigInt::from(get_base_fee(chain)),
         CosmosChain::Cosmos => match input_type {
             TransactionInputType::Transfer(_)
             | TransactionInputType::Deposit(_)

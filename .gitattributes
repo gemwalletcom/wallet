@@ -1,0 +1,8 @@
+# Generated mobile localization outputs.
+ios/Packages/Localization/Sources/Resources/*.lproj/Localizable.strings linguist-generated
+ios/Packages/Localization/Sources/Resources/*.lproj/InfoPlist.strings linguist-generated
+ios/Packages/Localization/WidgetSources/Resources/*.lproj/Localizable.strings linguist-generated
+ios/Packages/Localization/Sources/Localized.swift linguist-generated
+ios/Packages/Localization/WidgetSources/Localized.swift linguist-generated
+ios/Packages/Localization/WidgetSources/WidgetLocalized.swift linguist-generated
+android/ui/src/main/res/values*/strings.xml linguist-generated

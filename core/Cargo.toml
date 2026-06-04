@@ -10,7 +10,6 @@ documentation = "https://github.com/gemwalletcom"
 [workspace]
 resolver = "3"
 members = [
-    "apps/agent",
     "apps/api",
     "apps/daemon",
     "apps/dynode",

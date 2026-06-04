@@ -29,6 +29,19 @@ public extension DelegationBase {
     var rewardsValue: BigInt {
         BigInt(stringLiteral: rewards)
     }
+
+    func with(state: DelegationState) -> DelegationBase {
+        DelegationBase(
+            assetId: assetId,
+            state: state,
+            balance: balance,
+            shares: shares,
+            rewards: rewards,
+            completionDate: completionDate,
+            delegationId: delegationId,
+            validatorId: validatorId
+        )
+    }
 }
 
 public extension DelegationValidator {

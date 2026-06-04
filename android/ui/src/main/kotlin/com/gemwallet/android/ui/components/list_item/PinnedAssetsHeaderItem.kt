@@ -43,7 +43,7 @@ fun PinnedAssetsHeaderItem(type: AssetsGroupType) {
                 .fillMaxWidth(),
             text = stringResource(
                 when (type)  {
-                    AssetsGroupType.Popular -> R.string.common_popular
+                    AssetsGroupType.Popular -> R.string.assets_popular
                     AssetsGroupType.Pined -> R.string.common_pinned
                     AssetsGroupType.None -> return
                 }

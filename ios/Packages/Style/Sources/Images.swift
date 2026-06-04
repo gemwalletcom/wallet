@@ -27,6 +27,7 @@ public enum Images {
         public static let injective = Image(.injective)
         public static let linea = Image(.linea)
         public static let litecoin = Image(.litecoin)
+        public static let mayachain = Image(.mayachain)
         public static let manta = Image(.manta)
         public static let mantle = Image(.mantle)
         public static let near = Image(.near)
@@ -72,6 +73,7 @@ public enum Images {
         public static let mayan = Image(.mayan)
         public static let stonfi = Image(.stonfi)
         public static let thorchain = Image(.thorchain)
+        public static let mayachain = Images.Chains.mayachain
         public static let orca = Image(.orca)
         public static let stargate = Image(.stargate)
         public static let raydium = Image(.raydium)

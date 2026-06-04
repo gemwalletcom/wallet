@@ -45,7 +45,8 @@ impl PriceAssetsProvider for PythProvider {
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
         Ok(asset_id
             .is_native()
-            .then(|| AssetPriceMapping::new(asset_id.clone(), price_feed_id_for_chain(asset_id.chain).to_string()))
+            .then(|| price_feed_id_for_chain(asset_id.chain).map(|feed_id| AssetPriceMapping::new(asset_id.clone(), feed_id.to_string())))
+            .flatten()
             .into_iter()
             .collect())
     }
@@ -102,10 +103,10 @@ mod tests {
 
         let mappings: Vec<AssetPriceMapping> = Chain::all()
             .iter()
-            .map(|chain| AssetPriceMapping::new(chain.as_asset_id(), price_feed_id_for_chain(*chain).to_string()))
+            .filter_map(|chain| price_feed_id_for_chain(*chain).map(|feed_id| AssetPriceMapping::new(chain.as_asset_id(), feed_id.to_string())))
             .collect();
         let prices = provider.get_prices(mappings).await.unwrap();
         assert!(!prices.is_empty());
-        assert_eq!(prices.len(), Chain::all().len());
+        assert_eq!(prices.len(), Chain::all().len() - 1);
     }
 }
