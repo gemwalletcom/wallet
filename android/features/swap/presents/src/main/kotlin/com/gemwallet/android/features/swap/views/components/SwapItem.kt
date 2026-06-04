@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -23,7 +22,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -32,7 +30,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.asset.availableBalance
-import com.gemwallet.android.domains.asset.availableBalanceFormatted
+import com.gemwallet.android.domains.asset.availableBalanceAmount
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
@@ -59,38 +57,43 @@ internal fun SwapItem(
     state: TextFieldState = rememberTextFieldState(),
     onAssetSelect: () -> Unit,
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
             .padding(horizontal = paddingDefault, vertical = paddingMiddle)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(space2)
+            .fillMaxWidth()
+            .heightIn(min = listItemIconSize),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingSmall),
     ) {
-        Row(
-            modifier = Modifier
-                .heightIn(min = listItemIconSize)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(space2),
         ) {
             SwapItemInput(
                 calculating = calculating,
                 interaction = interaction,
                 state = state,
+                assetSelected = item != null,
             )
+            SwapEquivalent(calculating = calculating, equivalent = equivalent)
+        }
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(space2),
+        ) {
             SwapItemLotInfo(
                 asset = item?.asset,
                 enabled = interaction.isAssetSelectable,
                 onClick = onAssetSelect,
             )
-        }
-        SwapValues(
-            calculating = calculating,
-            equivalent = equivalent,
-            balance = item?.availableBalanceFormatted,
-            interaction = interaction,
-        ) {
-            state.clearText()
-            state.setTextAndPlaceCursorAtEnd(item?.availableBalance.orEmpty())
+            SwapBalance(
+                balance = item?.availableBalanceAmount,
+                interaction = interaction,
+            ) {
+                state.clearText()
+                state.setTextAndPlaceCursorAtEnd(item?.availableBalance.orEmpty())
+            }
         }
     }
 }
@@ -120,7 +123,7 @@ private fun SelectAssetInfo(enabled: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             text = stringResource(R.string.assets_select_asset),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleMedium,
         )
         AssetPickerChevron()
     }
@@ -158,47 +161,45 @@ private fun AssetPickerChevron() {
 }
 
 @Composable
-private fun SwapValues(
-    calculating: Boolean,
-    equivalent: String,
+private fun SwapEquivalent(calculating: Boolean, equivalent: String) {
+    Text(
+        modifier = Modifier.smallPadding(),
+        text = if (calculating) "" else equivalent,
+        minLines = 1,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.bodySmall,
+    )
+}
+
+@Composable
+private fun SwapBalance(
     balance: String?,
     interaction: SwapItemInteraction,
     onBalanceClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingSmall)
-    ) {
-        Text(
-            modifier = Modifier.fillMaxWidth(0.5f),
-            text = if (calculating) "" else equivalent,
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Box(modifier = Modifier.fillMaxWidth(1f)) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .clickable(
-                        enabled = interaction.isBalanceActionEnabled,
-                        shape = MaterialTheme.shapes.small,
-                        onClick = onBalanceClick,
-                    )
-                    .smallPadding(),
-                text = balance?.let { stringResource(id = R.string.transfer_balance, it) } ?: "",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.End,
-                style = MaterialTheme.typography.bodySmall,
+    if (balance == null) return
+    Text(
+        modifier = Modifier
+            .clickable(
+                enabled = interaction.isBalanceActionEnabled,
+                shape = MaterialTheme.shapes.small,
+                onClick = onBalanceClick,
             )
-        }
-    }
+            .smallPadding(),
+        text = stringResource(id = R.string.transfer_balance, balance),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.End,
+        style = MaterialTheme.typography.bodySmall,
+    )
 }
 
 @Composable
-private fun RowScope.SwapItemInput(
+private fun SwapItemInput(
     calculating: Boolean,
     interaction: SwapItemInteraction,
+    assetSelected: Boolean,
     state: TextFieldState = rememberTextFieldState(),
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -207,15 +208,17 @@ private fun RowScope.SwapItemInput(
         color = MaterialTheme.colorScheme.onSurface
     )
 
-    LaunchedEffect(Unit) {
-        if (interaction.isAmountEditable) {
+    LaunchedEffect(assetSelected) {
+        if (interaction.isAmountEditable && assetSelected) {
             focusRequester.requestFocus()
         }
     }
     Box(
         modifier = Modifier
-            .weight(1f)
             .fillMaxWidth()
+            .smallPadding()
+            .heightIn(min = listItemIconSize),
+        contentAlignment = Alignment.CenterStart,
     ) {
         if (calculating) {
             CircularProgressIndicator16()
@@ -231,7 +234,7 @@ private fun RowScope.SwapItemInput(
                     keyboardType = KeyboardType.Decimal
                 ),
                 decorator = { innerTextField ->
-                    if (state.text.isEmpty()) {
+                    if (assetSelected && state.text.isEmpty()) {
                         Text(
                             text = "0",
                             style = amountTextStyle,

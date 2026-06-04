@@ -9,7 +9,7 @@ import PrimitivesComponents
 
 enum SwapTokenViewType {
     case selected(AssetDataViewModel)
-    case placeholder(currencyCode: String)
+    case placeholder
 }
 
 struct SwapTokenInteraction {
@@ -68,19 +68,27 @@ struct SwapTokenViewModel {
         }
     }
 
-    func fiatBalance(amount: String) -> String {
+    var amountPlaceholder: String {
+        switch type {
+        case .selected: .zero
+        case .placeholder: .empty
+        }
+    }
+
+    func fiatBalance(amount: String) -> String? {
         switch type {
         case let .selected(model):
             guard
                 let value = try? formatter.inputNumber(from: amount, decimals: model.asset.decimals.asInt),
                 let amount = try? formatter.double(from: value, decimals: model.asset.decimals.asInt),
+                amount > 0,
                 let price = model.priceViewModel.price
             else {
-                return .empty
+                return nil
             }
             return model.priceViewModel.fiatAmountText(amount: price.price * amount)
-        case let .placeholder(currencyCode):
-            return CurrencyFormatter(currencyCode: currencyCode).string(.zero)
+        case .placeholder:
+            return nil
         }
     }
 }
