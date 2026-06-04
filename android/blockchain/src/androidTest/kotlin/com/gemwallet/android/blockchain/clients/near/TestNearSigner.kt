@@ -1,5 +1,7 @@
 package com.gemwallet.android.blockchain.clients.near
 
+import uniffi.gemstone.GemTransactionLoadMetadata
+
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
@@ -42,10 +44,7 @@ class TestNearSigner {
                     BigInteger.valueOf(10_000),
                     DestinationAddress(from),
                 ),
-                chainData = NearChainData(
-                    block = "2ADR7pgpkd2uFFkQcAyCxL5YB4d9SewALTLEuFbUUJLe",
-                    sequence = 134180900000002UL,
-                ),
+                metadata = GemTransactionLoadMetadata.Near(sequence = 134180900000002UL, blockHash = "2ADR7pgpkd2uFFkQcAyCxL5YB4d9SewALTLEuFbUUJLe"),
                 finalAmount = BigInteger.valueOf(10_000),
                 fee = Fee.Plain(
                     priority = FeePriority.Normal,

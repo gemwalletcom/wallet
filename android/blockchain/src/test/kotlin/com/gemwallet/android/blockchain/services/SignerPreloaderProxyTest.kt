@@ -44,7 +44,7 @@ class SignerPreloaderProxyTest {
 
         coEvery { gateway.getTransactionPreload(any(), any()) } returns metadata
         coEvery { gateway.getFeeRates(any(), any()) } returns feeRates
-        coEvery { gateway.getTransactionLoad(any(), capture(loadInput), any()) } returns GemTransactionData(
+        coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns GemTransactionData(
             fee = GemTransactionLoadFee(
                 fee = "21000",
                 gasPriceType = feeRates[1].gasPriceType,
@@ -62,7 +62,7 @@ class SignerPreloaderProxyTest {
         assertEquals(feeRates[1].gasPriceType, loadInput.captured.gasPrice)
         coVerify(exactly = 1) { gateway.getTransactionPreload(any(), any()) }
         coVerify(exactly = 1) { gateway.getFeeRates(any(), any()) }
-        coVerify(exactly = 1) { gateway.getTransactionLoad(any(), any(), any()) }
+        coVerify(exactly = 1) { gateway.getTransactionLoad(any(), any()) }
     }
 
     @Test
@@ -81,7 +81,7 @@ class SignerPreloaderProxyTest {
 
         coEvery { gateway.getTransactionPreload(any(), any()) } returns metadata
         coEvery { gateway.getFeeRates(any(), any()) } returns feeRates
-        coEvery { gateway.getTransactionLoad(any(), capture(loadInput), any()) } returns GemTransactionData(
+        coEvery { gateway.getTransactionLoad(any(), capture(loadInput)) } returns GemTransactionData(
             fee = GemTransactionLoadFee(
                 fee = "21000",
                 gasPriceType = feeRates[1].gasPriceType,
@@ -96,7 +96,7 @@ class SignerPreloaderProxyTest {
         assertEquals(listOf(feeRates[1]), result.feeRates)
         assertEquals(FeePriority.Fast, result.fee().priority)
         assertEquals(feeRates[1].gasPriceType, loadInput.captured.gasPrice)
-        coVerify(exactly = 1) { gateway.getTransactionLoad(any(), any(), any()) }
+        coVerify(exactly = 1) { gateway.getTransactionLoad(any(), any()) }
     }
 
     private fun transferParams(): ConfirmParams {

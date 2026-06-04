@@ -201,7 +201,7 @@ mod tests {
     use std::sync::Arc;
 
     use super::*;
-    use crate::{Options, SwapperQuoteAsset, alien::mock::ProviderMock};
+    use crate::{Options, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_bitcoin_max_quote};
     use primitives::asset_constants::{ARBITRUM_USDC_ASSET_ID, THORCHAIN_TCY_ASSET_ID};
 
     #[test]
@@ -246,6 +246,13 @@ mod tests {
                 .iter()
                 .any(|asset| { matches!(asset, SwapperChainAsset::Assets(chain, assets) if *chain == Chain::Thorchain && !assets.contains(&THORCHAIN_TCY_ASSET_ID)) })
         );
+    }
+    #[test]
+    fn test_quote_input_value_bitcoin_max_passes_value_through() {
+        let from_asset = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Bitcoin.as_ref()).unwrap();
+        let request = mock_bitcoin_max_quote(SwapperQuoteAsset::from(Chain::Solana.as_asset_id()));
+
+        assert_eq!(quote_input_value(&from_asset, &request).unwrap(), "89100");
     }
 
     #[tokio::test]

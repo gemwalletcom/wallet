@@ -1,6 +1,6 @@
 package com.gemwallet.android.blockchain.clients
 
-import com.gemwallet.android.model.ChainSignData
+import uniffi.gemstone.GemTransactionLoadMetadata
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.Chain
@@ -18,7 +18,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signGenericTransfer(
         params: ConfirmParams.TransferParams.Generic,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -26,7 +26,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signNativeTransfer(
         params: ConfirmParams.TransferParams.Native,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -34,7 +34,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signTokenTransfer(
         params: ConfirmParams.TransferParams.Token,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -42,7 +42,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signSwap(
         params: ConfirmParams.SwapParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -50,7 +50,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signTokenApproval(
         params: ConfirmParams.TokenApprovalParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -58,7 +58,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signDelegate(
         params: ConfirmParams.Stake.DelegateParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -66,7 +66,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signUndelegate(
         params: ConfirmParams.Stake.UndelegateParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -74,7 +74,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signRedelegate(
         params: ConfirmParams.Stake.RedelegateParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -82,7 +82,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signRewards(
         params: ConfirmParams.Stake.RewardsParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -90,7 +90,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signWithdraw(
         params: ConfirmParams.Stake.WithdrawParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -98,7 +98,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signActivate(
         params: ConfirmParams.Activate,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -106,7 +106,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signNft(
         params: ConfirmParams.NftParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -114,7 +114,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signFreeze(
         params: ConfirmParams.Stake.Freeze,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -122,7 +122,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signUnfreeze(
         params: ConfirmParams.Stake.Unfreeze,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -130,7 +130,7 @@ interface SignClient : BlockchainClient {
 
     suspend fun signPerpetual(
         params: ConfirmParams.PerpetualParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,

@@ -29,20 +29,6 @@ class MockPreferences : GemPreferences {
     override fun remove(key: String) {}
 }
 
-sealed class CustomAppException : Exception() {
-    class DustError(override val message: String) : CustomAppException()
-}
-
-/**
- * Mock fee estimator for testing GatewayException.PlatformException.
- */
-class MockFeeEstimator(
-    private val onGetFee: suspend (Chain, GemTransactionLoadInput) -> GemTransactionLoadFee? = { _, _ -> null }
-) : GemGatewayEstimateFee {
-    override suspend fun getFee(chain: Chain, input: GemTransactionLoadInput): GemTransactionLoadFee? = onGetFee(chain, input)
-    override suspend fun getFeeData(chain: Chain, input: GemTransactionLoadInput): String? = null
-}
-
 @RunWith(AndroidJUnit4::class)
 class GemstoneTest {
 
@@ -96,51 +82,4 @@ class GemstoneTest {
         }
     }
 
-    /**
-     * Test 3: Custom exceptions must be wrapped to avoid native crash.
-     *
-     * Throwing custom exceptions directly causes native crash
-     * like UnexpectedUniFFICallbackError(reason: "...BlockchainError$DustError")
-     * Use GatewayException.PlatformException to wrap custom exceptions, allowing
-     * clients to distinguish them from network errors.
-     */
-    @Test
-    fun testFeeEstimatorThrowsPlatformException() = runBlocking {
-        val errorMessage = "Amount too small"
-        val feeEstimator = MockFeeEstimator { _, _ ->
-            // Custom exceptions must be wrapped to avoid native crash
-            try {
-                throw CustomAppException.DustError(errorMessage)
-            } catch (e: CustomAppException) {
-                throw GatewayException.PlatformException("${e::class.simpleName}: ${e.message}")
-            }
-        }
-        val gateway = createGateway(MockProvider())
-        val asset = GemAsset(
-            id = "ethereum",
-            chain = "ethereum",
-            tokenId = null,
-            name = "Ethereum",
-            symbol = "ETH",
-            decimals = 18,
-            assetType = GemAssetType.NATIVE
-        )
-        val input = GemTransactionLoadInput(
-            inputType = GemTransactionInputType.Transfer(asset),
-            senderAddress = "0x1234",
-            destinationAddress = "0x5678",
-            value = "1000000000000000000",
-            gasPrice = GemGasPriceType.Regular("20000000000"),
-            memo = null,
-            isMaxValue = false,
-            metadata = GemTransactionLoadMetadata.None
-        )
-
-        try {
-            gateway.getFee("ethereum", input, feeEstimator)
-            fail("Expected GatewayException.PlatformException to be thrown")
-        } catch (e: GatewayException.PlatformException) {
-            assertTrue(e.msg.contains(errorMessage))
-        }
-    }
 }

@@ -101,20 +101,11 @@ fun GemAsset.toDTO() = Asset(
     }
 )
 
-fun GemUtxo.toUtxo(): UTXO = UTXO(
-    transactionId,
-    vout,
-    value,
-    address
-)
-
 fun UTXO.toGem(): GemUtxo = GemUtxo(
     transaction_id,
     vout,
     value,
     address
 )
-
-fun List<GemUtxo>.toUtxo() = map { it.toUtxo() }
 
 fun List<UTXO>.toGem() = map { it.toGem() }

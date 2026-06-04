@@ -1,5 +1,7 @@
 package com.gemwallet.android.blockchain.clients.solana
 
+import uniffi.gemstone.GemTransactionLoadMetadata
+
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
@@ -15,7 +17,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FeePriority
-import com.wallet.core.primitives.SolanaTokenProgramId
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -57,16 +58,17 @@ class TestSolanaSigner {
             amount = BigInteger.valueOf(10_000_000)
         )
             .transfer(destination = DestinationAddress("4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S")) as ConfirmParams.TransferParams.Native
-        val chainData = SolanaChainData(
+        val metadata = GemTransactionLoadMetadata.Solana(
             blockHash = "kiEPF6aKvEsj5nbi4FBvgRRm9ha36Y3cgDU9qnUKt32",
             recipientTokenAddress = null,
             senderTokenAddress = "",
-            tokenProgram = SolanaTokenProgramId.Token
+            tokenProgram = uniffi.gemstone.SolanaTokenProgramId.TOKEN,
+            nft = null
         )
         val result = runBlocking {
             signer.signNativeTransfer(
                 params,
-                chainData,
+                metadata,
                 BigInteger.ZERO,
                 Fee.Solana(
                     amount = BigInteger("105005000"),
@@ -109,16 +111,17 @@ class TestSolanaSigner {
             amount = BigInteger.valueOf(10_000_000)
         )
             .transfer(destination = DestinationAddress("AGkXQZ9qm99xukisDUHvspWHESrcjs8Y4AmQQgef3BRh")) as ConfirmParams.TransferParams.Token
-        val chainData = SolanaChainData(
+        val metadata = GemTransactionLoadMetadata.Solana(
             blockHash = "kiEPF6aKvEsj5nbi4FBvgRRm9ha36Y3cgDU9qnUKt32",
             recipientTokenAddress = "DVWPV7brSbPDkA7a3qdn6UJsVc3J3DyhQhjNaZeZqwzo",
             senderTokenAddress = "DVWPV7brSbPDkA7a3qdn6UJsVc3J3DyhQhjNaZeZqwzo",
-            tokenProgram = SolanaTokenProgramId.Token
+            tokenProgram = uniffi.gemstone.SolanaTokenProgramId.TOKEN,
+            nft = null
         )
         val result = runBlocking {
             signer.signTokenTransfer(
                 params,
-                chainData,
+                metadata,
                 BigInteger.ZERO,
                 Fee.Solana(
                     amount = BigInteger("105005000"),
@@ -162,16 +165,17 @@ class TestSolanaSigner {
             amount = BigInteger.valueOf(10_000_000)
         )
             .transfer(destination = DestinationAddress("AGkXQZ9qm99xukisDUHvspWHESrcjs8Y4AmQQgef3BRh")) as ConfirmParams.TransferParams.Token
-        val chainData = SolanaChainData(
+        val metadata = GemTransactionLoadMetadata.Solana(
             blockHash = "kiEPF6aKvEsj5nbi4FBvgRRm9ha36Y3cgDU9qnUKt32",
             recipientTokenAddress = "87vTugUvkkepa84mBRfENnvkPQRj5EZSkiG8XyFAhbQQ",
             senderTokenAddress = "87vTugUvkkepa84mBRfENnvkPQRj5EZSkiG8XyFAhbQQ",
-            tokenProgram = SolanaTokenProgramId.Token2022
+            tokenProgram = uniffi.gemstone.SolanaTokenProgramId.TOKEN2022,
+            nft = null
         )
         val result = runBlocking {
             signer.signTokenTransfer(
                 params,
-                chainData,
+                metadata,
                 BigInteger.ZERO,
                 Fee.Solana(
                     amount = BigInteger("105005000"),

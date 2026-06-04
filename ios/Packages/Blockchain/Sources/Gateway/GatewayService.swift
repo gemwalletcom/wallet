@@ -23,16 +23,6 @@ public actor GatewayService: Sendable {
     }
 }
 
-extension GatewayService: GemGatewayEstimateFee {
-    public func getFee(chain: Gemstone.Chain, input: Gemstone.GemTransactionLoadInput) async throws -> Gemstone.GemTransactionLoadFee? {
-        try await EstimateFeeService().getFee(chain: chain, input: input)
-    }
-
-    public func getFeeData(chain: Gemstone.Chain, input: GemTransactionLoadInput) async throws -> String? {
-        try await EstimateFeeService().getFeeData(chain: chain, input: input)
-    }
-}
-
 // MARK: - Balances
 
 public extension GatewayService {
@@ -128,7 +118,7 @@ public extension GatewayService {
     }
 
     func transactionLoad(chain: Primitives.Chain, input: GemTransactionLoadInput) async throws -> TransactionData {
-        try await gateway.getTransactionLoad(chain: chain.rawValue, input: input, provider: self).map()
+        try await gateway.getTransactionLoad(chain: chain.rawValue, input: input).map()
     }
 }
 

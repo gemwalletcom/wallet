@@ -53,7 +53,6 @@ impl MayanFastMctpQuote {
                 referrer_bps: Some(50),
                 expected_amount_out_base_units: Some("900000".to_string()),
                 expected_amount_out: serde_json::json!(0.9),
-                ..Default::default()
             },
             fast_mctp_input_contract: Some(SOLANA_USDC_TOKEN_ID.to_string()),
             fast_mctp_mayan_contract: Some(MAYAN_MCTP.to_string()),

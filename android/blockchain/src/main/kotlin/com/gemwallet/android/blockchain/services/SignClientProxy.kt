@@ -3,7 +3,7 @@ package com.gemwallet.android.blockchain.services
 import com.gemwallet.android.blockchain.clients.SignClient
 import com.gemwallet.android.blockchain.clients.getClient
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.model.ChainSignData
+import uniffi.gemstone.GemTransactionLoadMetadata
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -43,23 +43,23 @@ class SignClientProxy(
         val input = params.input
         val data = params.data()
         val fee = data.fee
-        val chainData = data.chainData
+        val metadata = data.metadata
         return when (input) {
-            is ConfirmParams.Stake.DelegateParams -> client.signDelegate(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Stake.RedelegateParams -> client.signRedelegate(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Stake.RewardsParams -> client.signRewards(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Stake.UndelegateParams -> client.signUndelegate(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Stake.WithdrawParams -> client.signWithdraw(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Stake.Freeze -> client.signFreeze(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Stake.Unfreeze -> client.signUnfreeze(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.SwapParams -> signSwap(params.input as ConfirmParams.SwapParams, chainData, params.finalAmount, fee, privateKey, client)
-            is ConfirmParams.TokenApprovalParams -> client.signTokenApproval(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.TransferParams.Generic -> client.signGenericTransfer(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.TransferParams.Native -> client.signNativeTransfer(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.TransferParams.Token -> client.signTokenTransfer(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.Activate -> client.signActivate(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.NftParams -> client.signNft(input, chainData, params.finalAmount, fee, privateKey)
-            is ConfirmParams.PerpetualParams -> client.signPerpetual(input, chainData, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.DelegateParams -> client.signDelegate(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.RedelegateParams -> client.signRedelegate(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.RewardsParams -> client.signRewards(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.UndelegateParams -> client.signUndelegate(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.WithdrawParams -> client.signWithdraw(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.Freeze -> client.signFreeze(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Stake.Unfreeze -> client.signUnfreeze(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.SwapParams -> signSwap(params.input as ConfirmParams.SwapParams, metadata, params.finalAmount, fee, privateKey, client)
+            is ConfirmParams.TokenApprovalParams -> client.signTokenApproval(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.TransferParams.Generic -> client.signGenericTransfer(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.TransferParams.Native -> client.signNativeTransfer(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.TransferParams.Token -> client.signTokenTransfer(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.Activate -> client.signActivate(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.NftParams -> client.signNft(input, metadata, params.finalAmount, fee, privateKey)
+            is ConfirmParams.PerpetualParams -> client.signPerpetual(input, metadata, params.finalAmount, fee, privateKey)
         }
     }
 
@@ -69,7 +69,7 @@ class SignClientProxy(
 
     private suspend fun signSwap(
         params: ConfirmParams.SwapParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray,
@@ -77,10 +77,10 @@ class SignClientProxy(
     ): List<ByteArray> {
 
         return when (params.dataType) {
-            GemSwapQuoteDataType.CONTRACT -> client.signSwap(params, chainData, finalAmount, fee, privateKey)
+            GemSwapQuoteDataType.CONTRACT -> client.signSwap(params, metadata, finalAmount, fee, privateKey)
             GemSwapQuoteDataType.TRANSFER -> signSwapTransfer(
                 params,
-                chainData,
+                metadata,
                 finalAmount,
                 fee,
                 client,
@@ -91,7 +91,7 @@ class SignClientProxy(
 
     private suspend fun signSwapTransfer(
         params: ConfirmParams.SwapParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         client: SignClient,
@@ -112,14 +112,14 @@ class SignClientProxy(
         return when (transferParams) {
             is ConfirmParams.TransferParams.Native -> client.signNativeTransfer(
                 transferParams,
-                chainData,
+                metadata,
                 finalAmount,
                 fee,
                 privateKey,
             )
             is ConfirmParams.TransferParams.Token -> client.signTokenTransfer(
                 transferParams,
-                chainData,
+                metadata,
                 finalAmount,
                 fee,
                 privateKey,

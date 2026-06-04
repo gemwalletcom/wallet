@@ -290,7 +290,7 @@ extension ConfirmTransferSceneViewModel {
                 case .dustThreshold:
                     let asset = dataModel.asset
                     isPresentingSheet = .info(.dustThreshold(asset.chain, image: AssetViewModel(asset: asset).assetImage))
-                case .feeRateMissed, .cantEstimateFee, .incorrectAmount:
+                case .feeRateMissed, .cantEstimateFee, .incorrectAmount, .insufficientBalance:
                     break
                 }
             }

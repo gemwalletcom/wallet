@@ -1,14 +1,14 @@
 package com.gemwallet.android.blockchain.gemstone
 
-import com.gemwallet.android.model.ChainSignData
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import uniffi.gemstone.GemSignerInput
 import uniffi.gemstone.GemTransactionLoadInput
+import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
 
 internal fun ConfirmParams.toGemTransactionLoadInput(
-    chainData: ChainSignData,
+    metadata: GemTransactionLoadMetadata,
     finalAmount: BigInteger,
     fee: Fee,
 ): GemTransactionLoadInput = GemTransactionLoadInput(
@@ -19,14 +19,14 @@ internal fun ConfirmParams.toGemTransactionLoadInput(
     gasPrice = fee.toGemGasPriceType(),
     memo = memo(),
     isMaxValue = useMaxAmount,
-    metadata = chainData.toDto(),
+    metadata = metadata,
 )
 
 internal fun ConfirmParams.toGemSignerInput(
-    chainData: ChainSignData,
+    metadata: GemTransactionLoadMetadata,
     finalAmount: BigInteger,
     fee: Fee,
-): GemSignerInput = toGemTransactionLoadInput(chainData, finalAmount, fee).toGemSignerInput(fee)
+): GemSignerInput = toGemTransactionLoadInput(metadata, finalAmount, fee).toGemSignerInput(fee)
 
 internal fun GemTransactionLoadInput.toGemSignerInput(fee: Fee): GemSignerInput = GemSignerInput(
     input = this,

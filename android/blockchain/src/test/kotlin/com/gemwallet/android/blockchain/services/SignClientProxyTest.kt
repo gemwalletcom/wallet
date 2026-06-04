@@ -1,8 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.blockchain.clients.SignClient
-import com.gemwallet.android.blockchain.clients.cosmos.CosmosChainData
-import com.gemwallet.android.model.ChainSignData
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
@@ -15,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemSwapQuoteDataType
+import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
@@ -58,9 +57,9 @@ class SignClientProxyTest {
                     limit = BigInteger("200000"),
                     options = emptyMap(),
                 ),
-                chainData = CosmosChainData(
-                    chainId = "thorchain-mainnet-v1",
+                metadata = GemTransactionLoadMetadata.Cosmos(
                     accountNumber = 1uL,
+                    chainId = "thorchain-mainnet-v1",
                     sequence = 3uL,
                 ),
             ),
@@ -82,7 +81,7 @@ class SignClientProxyTest {
 
         override suspend fun signNativeTransfer(
             params: ConfirmParams.TransferParams.Native,
-            chainData: ChainSignData,
+            metadata: GemTransactionLoadMetadata,
             finalAmount: BigInteger,
             fee: Fee,
             privateKey: ByteArray,

@@ -16,12 +16,12 @@ data class SignerParams(
 
     data class Data(
         val fee: Fee,
-        val chainData: ChainSignData,
+        val metadata: GemTransactionLoadMetadata,
     )
 }
 
-interface ChainSignData {
-    fun blockNumber(): String = ""
-
-    fun toDto(): GemTransactionLoadMetadata
+fun GemTransactionLoadMetadata.blockNumber(): String = when (this) {
+    is GemTransactionLoadMetadata.Cardano -> blockNumber.toString()
+    is GemTransactionLoadMetadata.Polkadot -> blockNumber.toString()
+    else -> ""
 }

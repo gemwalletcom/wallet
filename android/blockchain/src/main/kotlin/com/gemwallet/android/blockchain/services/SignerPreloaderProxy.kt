@@ -1,7 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.blockchain.gemstone.selectFeeRate
-import com.gemwallet.android.blockchain.gemstone.toChainData
 import com.gemwallet.android.blockchain.gemstone.toFee
 import com.gemwallet.android.ext.toFeePriority
 import com.gemwallet.android.model.ConfirmParams
@@ -14,8 +13,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemGatewayInterface
-import uniffi.gemstone.GemGatewayEstimateFee
-import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadInput
 import uniffi.gemstone.GemTransactionPreloadInput
 
@@ -66,27 +63,13 @@ class SignerPreloaderProxy(
                 isMaxValue = params.useMaxAmount,
                 metadata = metadata,
             ),
-            provider = EmptyEstimateFeeProvider
         )
         val fee = chain.toFee(feeAssetId, selectedPriority, result.fee)
-        val chainData = result.metadata.toChainData()
 
         SignerParams(
             input = params,
-            selectedData = SignerParams.Data(chainData = chainData, fee = fee),
+            selectedData = SignerParams.Data(metadata = result.metadata, fee = fee),
             feeRates = validFeeRates,
         )
-    }
-
-    private object EmptyEstimateFeeProvider : GemGatewayEstimateFee {
-        override suspend fun getFee(
-            chain: uniffi.gemstone.Chain,
-            input: GemTransactionLoadInput
-        ): GemTransactionLoadFee? = null
-
-        override suspend fun getFeeData(
-            chain: uniffi.gemstone.Chain,
-            input: GemTransactionLoadInput
-        ): String? = null
     }
 }

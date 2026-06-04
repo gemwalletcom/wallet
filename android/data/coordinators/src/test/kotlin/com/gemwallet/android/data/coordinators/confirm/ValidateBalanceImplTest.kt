@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.confirm
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.ext.getMinimumAccountBalance
 import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.ChainSignData
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.Fee
@@ -25,6 +24,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemSwapQuoteDataType
+import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
@@ -109,7 +109,7 @@ class ValidateBalanceImplTest {
                 input = params,
                 selectedData = SignerParams.Data(
                     fee = Fee.Plain(asset.id, FeePriority.Normal, feeAmount, emptyMap()),
-                    chainData = mockk<ChainSignData>(),
+                    metadata = GemTransactionLoadMetadata.None,
                 ),
                 feeRates = emptyList(),
                 finalAmount = tokenAmount,
@@ -176,7 +176,7 @@ class ValidateBalanceImplTest {
                 input = params,
                 selectedData = SignerParams.Data(
                     fee = Fee.Plain(asset.id, FeePriority.Normal, feeAmount, emptyMap()),
-                    chainData = mockk<ChainSignData>(),
+                    metadata = GemTransactionLoadMetadata.None,
                 ),
                 feeRates = emptyList(),
                 finalAmount = finalAmount,

@@ -228,7 +228,7 @@ mod tests {
 
         match err {
             SignerError::InvalidInput(message) => assert_eq!(message, "Invalid Aptos token ID format"),
-            SignerError::SigningError(message) => panic!("unexpected signing error: {message}"),
+            other => panic!("unexpected error: {other:?}"),
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.gemwallet.android.blockchain.clients.sui
 
+import uniffi.gemstone.GemTransactionLoadMetadata
+
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
@@ -44,7 +46,7 @@ class TestSuiSigner {
                     BigInteger.valueOf(10_000),
                     DestinationAddress(from),
                 ),
-                chainData = SuiChainData(
+                metadata = GemTransactionLoadMetadata.Sui(
                     messageBytes = "AAACAAgAypo7AAAAAAAgLuHnHoVlKe7YHnpDy6mnmWueg/fpbWoPf2pUAO0b" +
                             "wWgCAgABAQAAAQEDAAAAAAEBAC7h5x6FZSnu2B56Q8upp5lrnoP36W1qD39qVADtG8F" +
                             "oAS2bHegcizOpgucdlh7PdMz4cCyV89Xv8+pSQHYdUVM07UIbGgAAAAAgbiAG3TMqRi" +
@@ -91,7 +93,7 @@ class TestSuiSigner {
                     BigInteger.valueOf(10_000),
                     DestinationAddress(from),
                 ),
-                chainData = SuiChainData(
+                metadata = GemTransactionLoadMetadata.Sui(
                     messageBytes = "AAAEAQA+cu/kqxz/pp3Qmo6eoLJz+so76TaSloB1SmEUVhWCaUYoGhwAAAAAI" +
                             "BtZ+Y3WbB+PQtHrS7YgMDZGLzVxrT20trS/6hpbAEmBAQC01EdV46fEpnMdgod7BT2jJ" +
                             "F0uO3bB4vxKQwUM5D5LgUYoGhwAAAAAIG7IzS1+nt9AlH/Ky7M7uvu/hnOkXUjbo13FT" +

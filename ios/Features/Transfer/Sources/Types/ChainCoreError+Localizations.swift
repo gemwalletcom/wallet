@@ -10,6 +10,7 @@ extension ChainCoreError: @retroactive LocalizedError {
         case .cantEstimateFee, .feeRateMissed: Localized.Errors.unableEstimateNetworkFee
         case .incorrectAmount: Localized.Errors.invalidAmount
         case .dustThreshold: Localized.Errors.dustThresholdShort
+        case .insufficientBalance: Localized.Info.InsufficientBalance.title
         }
     }
 }
