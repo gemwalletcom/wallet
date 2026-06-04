@@ -10,12 +10,14 @@ const FINAL_SEQUENCE: u32 = 0xffff_ffff;
 const RBF_SEQUENCE: u32 = 0xffff_fffd;
 
 pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos: Vec<UTXO>) -> Result<Vec<PlanInput>, SignerError> {
+    let message = |reason: &str| format!("{} {reason}", chain.get_chain());
+
     let sender = script_for_address(chain, sender_address)?;
     let sender_hash = sender
         .unlocking_script()
         .zip(sender.public_key_hash())
         .map(|(_, public_key_hash)| public_key_hash)
-        .ok_or_else(|| SignerError::invalid_input(format!("{} sender address type is unsupported", chain.get_chain())))?;
+        .ok_or_else(|| SignerError::invalid_input(message("sender address type is unsupported")))?;
     // RBF is signaled on every BTC-family chain; Zcash has no RBF and keeps the final sequence.
     let sequence = match chain {
         BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => RBF_SEQUENCE,
@@ -28,16 +30,16 @@ pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos:
         let (unlocking_script, public_key_hash) = address
             .unlocking_script()
             .zip(address.public_key_hash())
-            .ok_or_else(|| SignerError::invalid_input(format!("{} UTXO address type is unsupported", chain.get_chain())))?;
-        (public_key_hash == sender_hash)
-            .then_some(())
-            .ok_or_else(|| SignerError::invalid_input(format!("{} UTXO address does not match sender address", chain.get_chain())))?;
+            .ok_or_else(|| SignerError::invalid_input(message("UTXO address type is unsupported")))?;
+        if public_key_hash != sender_hash {
+            return SignerError::invalid_input_err(message("UTXO address does not match sender address"));
+        }
         let value = utxo.value_u64().map_err(SignerError::from_display)?;
-        (value != 0)
-            .then_some(())
-            .ok_or_else(|| SignerError::invalid_input(format!("invalid {} UTXO amount", chain.get_chain())))?;
-        let vout = u32::try_from(utxo.vout).map_err(|_| SignerError::invalid_input(format!("invalid {} UTXO output index", chain.get_chain())))?;
-        let txid = Txid::from_str(&utxo.transaction_id).map_err(|_| SignerError::invalid_input(format!("invalid {} UTXO transaction id", chain.get_chain())))?;
+        if value == 0 {
+            return SignerError::invalid_input_err(message("UTXO amount is zero"));
+        }
+        let vout = u32::try_from(utxo.vout).map_err(|_| SignerError::invalid_input(message("UTXO output index is invalid")))?;
+        let txid = Txid::from_str(&utxo.transaction_id).map_err(|_| SignerError::invalid_input(message("UTXO transaction id is invalid")))?;
         inputs.push(PlanInput {
             previous_output: OutPoint::new(txid, vout),
             value: Amount::from_sat(value),

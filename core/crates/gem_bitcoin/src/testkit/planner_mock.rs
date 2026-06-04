@@ -29,7 +29,7 @@ impl PlanInput {
 }
 
 pub(crate) fn mock_signer_input(value: &str, is_max: bool) -> SignerInput {
-    mock_signer_input_with(value, is_max, Some("memo".to_string()), spend_utxos())
+    mock_signer_input_with(value, is_max, Some("memo".to_string()), mock_spend_utxos())
 }
 
 pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<String>, utxos: Vec<UTXO>) -> SignerInput {
@@ -41,7 +41,7 @@ pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<Str
     input
 }
 
-pub(crate) fn spend_utxos() -> Vec<UTXO> {
+pub(crate) fn mock_spend_utxos() -> Vec<UTXO> {
     vec![
         mock_utxo_with(TEST_UTXO_TXID, 0, "10000", TEST_BITCOIN_P2WPKH_ADDRESS),
         mock_utxo_with("0000000000000000000000000000000000000000000000000000000000000002", 1, "20000", TEST_BITCOIN_P2WPKH_ADDRESS),

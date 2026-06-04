@@ -187,7 +187,7 @@ mod tests {
     use crate::{
         signer::planner::{SpendRequest, UtxoPlanner},
         testkit::{
-            address_mock::{mock_public_key, mock_sender_address as test_sender_address, zcash_address},
+            address_mock::{mock_public_key, mock_sender_address as test_sender_address, mock_zec_address},
             signer_mock::TEST_PRIVATE_KEY,
         },
     };
@@ -196,8 +196,8 @@ mod tests {
     fn test_sign_transparent() {
         let public_key = mock_public_key();
         let sender_address = test_sender_address(BitcoinChain::Zcash);
-        let destination_address = zcash_address([2u8; 20]);
-        let input = zcash_mock::signer_input(sender_address, destination_address);
+        let destination_address = mock_zec_address([2u8; 20]);
+        let input = zcash_mock::mock_signer_input(sender_address, destination_address);
         let request = SpendRequest::transfer(BitcoinChain::Zcash, &input).unwrap();
         let plan = UtxoPlanner::plan(request).unwrap();
 

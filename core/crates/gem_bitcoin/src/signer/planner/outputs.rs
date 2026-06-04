@@ -23,7 +23,7 @@ pub(super) fn op_return_output(data: &[u8]) -> Result<PlanOutput, SignerError> {
     if data.len() > MAX_OP_RETURN_BYTES {
         return SignerError::invalid_input_err("Bitcoin memo is too large");
     }
-    let push = PushBytesBuf::try_from(data.to_vec()).map_err(|_| SignerError::invalid_input("Bitcoin memo is too large"))?;
+    let push = PushBytesBuf::try_from(data.to_vec()).map_err(SignerError::from_display)?;
     Ok(PlanOutput::new(0, Builder::new().push_opcode(OP_RETURN).push_slice(push).into_script()))
 }
 

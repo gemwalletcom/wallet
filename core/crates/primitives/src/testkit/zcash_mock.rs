@@ -4,7 +4,7 @@ use crate::{Asset, Chain, GasPriceType, SignerInput, TransactionFee, Transaction
 
 pub const TEST_ZCASH_BRANCH_ID: &str = "4dec4df0";
 
-pub fn signer_input(sender_address: String, destination_address: String) -> SignerInput {
+pub fn mock_signer_input(sender_address: String, destination_address: String) -> SignerInput {
     SignerInput::new(
         TransactionLoadInput {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Zcash)),

@@ -26,25 +26,25 @@ impl BitcoinAddress {
     pub fn mock_address_with_chain(chain: BitcoinChain) -> String {
         match chain {
             BitcoinChain::Bitcoin => TEST_BITCOIN_P2WPKH_ADDRESS.to_string(),
-            BitcoinChain::BitcoinCash => address_for_hash(chain, [2u8; 20]),
-            BitcoinChain::Litecoin => address_for_hash(chain, [3u8; 20]),
-            BitcoinChain::Doge => address_for_hash(chain, [4u8; 20]),
-            BitcoinChain::Zcash => address_for_hash(chain, [5u8; 20]),
+            BitcoinChain::BitcoinCash => mock_addr_by_hash(chain, [2u8; 20]),
+            BitcoinChain::Litecoin => mock_addr_by_hash(chain, [3u8; 20]),
+            BitcoinChain::Doge => mock_addr_by_hash(chain, [4u8; 20]),
+            BitcoinChain::Zcash => mock_addr_by_hash(chain, [5u8; 20]),
         }
     }
 }
 
-pub(crate) fn address_for_hash(chain: BitcoinChain, hash: [u8; 20]) -> String {
+pub(crate) fn mock_addr_by_hash(chain: BitcoinChain, hash: [u8; 20]) -> String {
     match chain {
         BitcoinChain::Bitcoin => prefixed_address(&[0], hash),
-        BitcoinChain::BitcoinCash => bitcoin_cash_address(hash),
+        BitcoinChain::BitcoinCash => mock_bch_address(hash),
         BitcoinChain::Litecoin => prefixed_address(&[48], hash),
         BitcoinChain::Doge => prefixed_address(&[30], hash),
-        BitcoinChain::Zcash => zcash_address(hash),
+        BitcoinChain::Zcash => mock_zec_address(hash),
     }
 }
 
-pub(crate) fn bitcoin_cash_address(hash: [u8; 20]) -> String {
+pub(crate) fn mock_bch_address(hash: [u8; 20]) -> String {
     bitcoincash_addr::Address::new(
         hash.to_vec(),
         bitcoincash_addr::Scheme::CashAddr,
@@ -55,7 +55,7 @@ pub(crate) fn bitcoin_cash_address(hash: [u8; 20]) -> String {
     .unwrap()
 }
 
-pub(crate) fn zcash_address(hash: [u8; 20]) -> String {
+pub(crate) fn mock_zec_address(hash: [u8; 20]) -> String {
     prefixed_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, hash)
 }
 
@@ -73,7 +73,7 @@ pub fn mock_public_key() -> PublicKey {
 
 pub fn mock_sender_address(chain: BitcoinChain) -> String {
     let public_key = mock_public_key();
-    address_for_hash(chain, public_key_hash(&public_key.to_bytes()))
+    mock_addr_by_hash(chain, public_key_hash(&public_key.to_bytes()))
 }
 
 pub fn mock_destination_address(chain: BitcoinChain) -> String {
@@ -82,10 +82,10 @@ pub fn mock_destination_address(chain: BitcoinChain) -> String {
         BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => [2u8; 20],
         BitcoinChain::Zcash => [3u8; 20],
     };
-    address_for_hash(chain, hash)
+    mock_addr_by_hash(chain, hash)
 }
 
-pub fn p2wpkh_address() -> String {
+pub fn mock_p2wpkh_address() -> String {
     let hash = public_key_hash(&mock_public_key().to_bytes());
     let script_pubkey = script_for_public_key_hash(UnlockingScript::P2wpkh, hash);
     bitcoin::Address::from_script(&script_pubkey, bitcoin::Network::Bitcoin).unwrap().to_string()
