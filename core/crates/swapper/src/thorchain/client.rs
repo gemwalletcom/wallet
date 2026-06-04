@@ -1,4 +1,5 @@
 use super::{
+    THORChainNetwork,
     asset::THORChainAsset,
     model::{AsgardVault, InboundAddress, QuoteSwapRequest, QuoteSwapResponse, TransactionStatus},
 };
@@ -16,14 +17,15 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     client: C,
+    network: THORChainNetwork,
 }
 
 impl<C> ThorChainSwapClient<C>
 where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
-    pub fn new(client: C) -> Self {
-        Self { client }
+    pub fn new(client: C, network: THORChainNetwork) -> Self {
+        Self { client, network }
     }
 
     pub async fn get_quote(
@@ -37,8 +39,8 @@ where
         affiliate_bps: i64,
     ) -> Result<QuoteSwapResponse, SwapperError> {
         let params = QuoteSwapRequest {
-            from_asset: from_asset.asset_name(),
-            to_asset: to_asset.asset_name(),
+            from_asset: from_asset.quote_asset_name(),
+            to_asset: to_asset.quote_asset_name(),
             amount: value,
             affiliate,
             affiliate_bps,
@@ -46,23 +48,23 @@ where
             streaming_quantity,
         };
         let query = serde_urlencoded::to_string(params).map_err(SwapperError::from)?;
-        let path = format!("/thorchain/quote/swap?{query}");
+        let path = format!("/{}/quote/swap?{query}", self.network);
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 
     pub async fn get_inbound_addresses(&self) -> Result<Vec<InboundAddress>, SwapperError> {
         self.client
-            .get_with_headers("/thorchain/inbound_addresses", cache_headers(INBOUND_ADDRESS_CACHE_TTL_SECONDS))
+            .get_with_headers(&format!("/{}/inbound_addresses", self.network), cache_headers(INBOUND_ADDRESS_CACHE_TTL_SECONDS))
             .await
             .map_err(SwapperError::from)
     }
 
     pub async fn get_asgard_vaults(&self) -> Result<Vec<AsgardVault>, SwapperError> {
-        self.client.get("/thorchain/vaults/asgard").await.map_err(SwapperError::from)
+        self.client.get(&format!("/{}/vaults/asgard", self.network)).await.map_err(SwapperError::from)
     }
 
     pub async fn get_transaction_status(&self, hash: &str) -> Result<TransactionStatus, SwapperError> {
-        let path = format!("/thorchain/tx/status/{hash}");
+        let path = format!("/{}/tx/status/{hash}", self.network);
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 }

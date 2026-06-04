@@ -1,0 +1,6 @@
+# Permissions
+
+NSCameraUsageDescription = Gem Wallet inahitaji ufikiaji wa Kamera yako ili kuchanganua Misimbo ya QR.
+NSPhotoLibraryAddUsageDescription = Programu hii inahitaji ufikiaji wa maktaba yako ya picha ili kuhifadhi NFTs.
+NSFaceIDUsageDescription = Kuwasha Face ID husaidia Gem Wallet kuweka mali yako salama.
+NSPhotoLibraryUsageDescription = Tunahitaji ufikiaji wa maktaba yako ya picha ili kukuruhusu kuchagua picha.

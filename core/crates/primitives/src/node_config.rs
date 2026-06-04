@@ -43,6 +43,7 @@ pub fn get_nodes_for_chain(chain: Chain) -> Vec<Node> {
             Node::new("https://polygon-rpc.com", NodePriority::High),
         ],
         Chain::Thorchain => vec![Node::new("https://daemon.thorchain.shapeshift.com/lcd", NodePriority::High)],
+        Chain::Mayachain => vec![Node::new("https://mayanode.mayachain.info", NodePriority::High)],
         Chain::Cosmos => vec![
             Node::new("https://cosmos-rest.publicnode.com", NodePriority::High),
             Node::new("https://cosmos-api.polkachu.com", NodePriority::High),

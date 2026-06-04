@@ -32,6 +32,7 @@ public struct ChainImage: Sendable {
         case .solana: Images.Chains.solana
         case .polygon: Images.Chains.polygon
         case .thorchain: Images.Chains.thorchain
+        case .mayachain: Images.Chains.mayachain
         case .cosmos: Images.Chains.cosmos
         case .osmosis: Images.Chains.osmosis
         case .ton: Images.Chains.ton

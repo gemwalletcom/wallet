@@ -29,6 +29,7 @@ class WCChainTypeProxy : ChainTypeProxy<CoinType> {
         Chain.Solana -> CoinType.SOLANA
         Chain.Polygon -> CoinType.POLYGON
         Chain.Thorchain -> CoinType.THORCHAIN
+        Chain.Mayachain -> CoinType.THORCHAIN
         Chain.Cosmos -> CoinType.COSMOS
         Chain.Osmosis -> CoinType.OSMOSIS
         Chain.Arbitrum -> CoinType.ARBITRUM

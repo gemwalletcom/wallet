@@ -19,7 +19,7 @@ public struct AssetConfiguration: Sendable {
     ]
     .flatMap(\.self)
 
-    public static let allChains: [Chain] = Chain.allCases
+    public static let allChains: [Chain] = Chain.allCases.filter { $0 != .mayachain }
 
     public static let enabledByDefault: [AssetId] = [
         AssetId(chain: .bitcoin),

@@ -71,7 +71,9 @@ impl CosmosChainSigner {
         let public_key = signer::secp256k1_public_key(private_key)?;
         match chain {
             CosmosChain::Injective => Self::uncompress_public_key(&public_key),
-            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Sei | CosmosChain::Noble => Ok(public_key),
+            CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => {
+                Ok(public_key)
+            }
         }
     }
 
@@ -102,7 +104,7 @@ impl CosmosChainSigner {
 
     fn fee_coins(chain: CosmosChain, fee_amount: String) -> Vec<Coin> {
         match chain {
-            CosmosChain::Thorchain => vec![],
+            CosmosChain::Thorchain | CosmosChain::Mayachain => vec![],
             CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Injective | CosmosChain::Sei | CosmosChain::Noble => vec![Coin {
                 denom: chain.denom().as_ref().to_string(),
                 amount: fee_amount,

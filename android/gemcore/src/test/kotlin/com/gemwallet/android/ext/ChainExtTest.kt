@@ -6,6 +6,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.EVMChain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class ChainExtTest {
@@ -15,5 +16,10 @@ class ChainExtTest {
         assertEquals(EVMChain.SeiEvm, Chain.SeiEvm.toEVM())
         assertEquals(ChainType.Ethereum, Chain.SeiEvm.toChainType())
         assertEquals("file:///android_asset/chains/icons/sei.svg", Chain.SeiEvm.getIconUrl())
+    }
+
+    @Test
+    fun available_excludesMayachain() {
+        assertFalse(Chain.available().contains(Chain.Mayachain))
     }
 }

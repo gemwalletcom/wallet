@@ -3,7 +3,6 @@
 import Foundation
 import Keystore
 import Primitives
-import WalletCore
 
 struct SwapSigner {
     init() {}

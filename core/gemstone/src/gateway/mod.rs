@@ -22,13 +22,6 @@ use yielder::Yielder;
 
 use primitives::{AssetId, Chain, ChartPeriod, ScanAddressTarget, ScanTransactionPayload, TransactionPreloadInput};
 
-#[uniffi::export(with_foreign)]
-#[async_trait::async_trait]
-pub trait GemGatewayEstimateFee: Send + Sync {
-    async fn get_fee(&self, chain: Chain, input: GemTransactionLoadInput) -> Result<Option<GemTransactionLoadFee>, GatewayError>;
-    async fn get_fee_data(&self, chain: Chain, input: GemTransactionLoadInput) -> Result<Option<String>, GatewayError>;
-}
-
 #[derive(uniffi::Object)]
 pub struct GemGateway {
     pub api_client: GemApiClient,
@@ -51,17 +44,6 @@ impl GemGateway {
     {
         let provider = self.chain_factory.create(chain).await?;
         call(provider).await.map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
-    }
-}
-
-#[async_trait::async_trait]
-impl GemGatewayEstimateFee for GemGateway {
-    async fn get_fee(&self, _chain: Chain, _input: GemTransactionLoadInput) -> Result<Option<GemTransactionLoadFee>, GatewayError> {
-        Ok(None)
-    }
-
-    async fn get_fee_data(&self, _chain: Chain, _input: GemTransactionLoadInput) -> Result<Option<String>, GatewayError> {
-        Ok(None)
     }
 }
 
@@ -98,6 +80,11 @@ impl GemGateway {
 
     pub async fn get_staking_validators(&self, chain: Chain, apy: Option<f64>) -> Result<Vec<GemDelegationValidator>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_staking_validators(apy).await }).await
+    }
+
+    pub async fn get_staking_delegation_validators(&self, chain: Chain, address: String) -> Result<Vec<GemDelegationValidator>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_staking_delegation_validators(address).await })
+            .await
     }
 
     pub async fn get_staking_delegations(&self, chain: Chain, address: String) -> Result<Vec<GemDelegationBase>, GatewayError> {
@@ -167,32 +154,14 @@ impl GemGateway {
         self.api_client.scan_transaction(payload).await.map(Some).map_err(|e| GatewayError::NetworkError { msg: e })
     }
 
-    pub async fn get_fee(&self, chain: Chain, input: GemTransactionLoadInput, provider: Arc<dyn GemGatewayEstimateFee>) -> Result<Option<GemTransactionLoadFee>, GatewayError> {
-        let fee = provider.get_fee(chain, input.clone()).await?;
-        if let Some(fee) = fee {
-            return Ok(Some(fee));
-        }
-        if let Some(fee_data) = provider.get_fee_data(chain, input.clone()).await? {
-            let data = self
-                .with_provider(chain, |chain_provider| async move { chain_provider.get_transaction_fee_from_data(fee_data).await })
-                .await?;
-            return Ok(Some(data.into()));
-        }
-        Ok(None)
-    }
-
-    pub async fn get_transaction_load(&self, chain: Chain, input: GemTransactionLoadInput, provider: Arc<dyn GemGatewayEstimateFee>) -> Result<GemTransactionData, GatewayError> {
-        let fee = self.get_fee(chain, input.clone(), provider.clone()).await?;
-
+    pub async fn get_transaction_load(&self, chain: Chain, input: GemTransactionLoadInput) -> Result<GemTransactionData, GatewayError> {
         let load_data = self
-            .with_provider(chain, |chain_provider| async move { chain_provider.get_transaction_load(input.clone().into()).await })
+            .with_provider(chain, |chain_provider| async move { chain_provider.get_transaction_load(input.into()).await })
             .await?;
 
-        let data = if let Some(fee) = fee { load_data.new_from(fee.into()) } else { load_data };
-
         Ok(GemTransactionData {
-            fee: data.fee.into(),
-            metadata: data.metadata.into(),
+            fee: load_data.fee.into(),
+            metadata: load_data.metadata.into(),
         })
     }
 

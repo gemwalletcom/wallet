@@ -243,7 +243,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote, MayanMonoChainQuote};
+    use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote};
     use crate::models::Options;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
@@ -355,10 +355,7 @@ mod tests {
 
     #[test]
     fn test_select_route_prefers_mono_chain_for_hyperevm_to_hypercore() {
-        let routes = vec![
-            MayanQuote::Mctp(Box::new(MayanMctpQuote::mock())),
-            MayanQuote::MonoChain(Box::new(MayanMonoChainQuote::default())),
-        ];
+        let routes = vec![MayanQuote::Mctp(Box::new(MayanMctpQuote::mock())), MayanQuote::MonoChain(Box::default())];
 
         assert!(
             Mayan::<MockClient>::select_route(&routes, Chain::Hyperliquid, Chain::HyperCore)

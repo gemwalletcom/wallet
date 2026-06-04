@@ -24,7 +24,7 @@ pub fn swap_provider_with_vault_addresses(transaction: &Transaction, deposit_add
 
 fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transaction) -> bool {
     match provider {
-        SwapperProvider::Thorchain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
+        SwapperProvider::Thorchain | SwapperProvider::Mayachain => transaction.memo.as_deref().is_some_and(ThorchainMemo::is_swap),
         _ => true,
     }
 }

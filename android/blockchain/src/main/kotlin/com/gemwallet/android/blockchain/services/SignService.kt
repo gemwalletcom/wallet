@@ -3,12 +3,10 @@ package com.gemwallet.android.blockchain.services
 import com.gemwallet.android.blockchain.clients.SignClient
 import com.gemwallet.android.blockchain.gemstone.toGemSignerInput
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.toChainType
-import com.gemwallet.android.model.ChainSignData
+import uniffi.gemstone.GemTransactionLoadMetadata
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import uniffi.gemstone.GemChainSigner
 import java.math.BigInteger
 
@@ -32,14 +30,14 @@ class SignService : SignClient {
 
     override suspend fun signActivate(
         params: ConfirmParams.Activate,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -50,14 +48,14 @@ class SignService : SignClient {
 
     override suspend fun signDelegate(
         params: ConfirmParams.Stake.DelegateParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -66,14 +64,14 @@ class SignService : SignClient {
 
     override suspend fun signFreeze(
         params: ConfirmParams.Stake.Freeze,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -82,14 +80,14 @@ class SignService : SignClient {
 
     override suspend fun signGenericTransfer(
         params: ConfirmParams.TransferParams.Generic,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -98,14 +96,14 @@ class SignService : SignClient {
 
     override suspend fun signNativeTransfer(
         params: ConfirmParams.TransferParams.Native,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -116,14 +114,14 @@ class SignService : SignClient {
 
     override suspend fun signNft(
         params: ConfirmParams.NftParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -134,14 +132,14 @@ class SignService : SignClient {
 
     override suspend fun signPerpetual(
         params: ConfirmParams.PerpetualParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -150,14 +148,14 @@ class SignService : SignClient {
 
     override suspend fun signRedelegate(
         params: ConfirmParams.Stake.RedelegateParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -166,14 +164,14 @@ class SignService : SignClient {
 
     override suspend fun signRewards(
         params: ConfirmParams.Stake.RewardsParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -182,14 +180,14 @@ class SignService : SignClient {
 
     override suspend fun signSwap(
         params: ConfirmParams.SwapParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -198,14 +196,14 @@ class SignService : SignClient {
 
     override suspend fun signTokenApproval(
         params: ConfirmParams.TokenApprovalParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -214,14 +212,14 @@ class SignService : SignClient {
 
     override suspend fun signTokenTransfer(
         params: ConfirmParams.TransferParams.Token,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -230,14 +228,14 @@ class SignService : SignClient {
 
     override suspend fun signUndelegate(
         params: ConfirmParams.Stake.UndelegateParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -246,14 +244,14 @@ class SignService : SignClient {
 
     override suspend fun signUnfreeze(
         params: ConfirmParams.Stake.Unfreeze,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
@@ -262,47 +260,27 @@ class SignService : SignClient {
 
     override suspend fun signWithdraw(
         params: ConfirmParams.Stake.WithdrawParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
         privateKey: ByteArray
     ): List<ByteArray> {
         val data = buildSignerInput(
             params = params,
-            chainData = chainData,
+            metadata = metadata,
             finalAmount = finalAmount,
             fee = fee,
         )
         return getSigner(params).signStake(data, privateKey).map { it.toByteArray() }
     }
 
-    override fun supported(chain: Chain): Boolean {
-        return when (chain.toChainType()) {
-            ChainType.Ethereum,
-            ChainType.Solana,
-            ChainType.Aptos,
-            ChainType.Sui,
-            ChainType.HyperCore,
-            ChainType.Near,
-            ChainType.Algorand,
-            ChainType.Stellar,
-            ChainType.Cosmos,
-            ChainType.Ton,
-            ChainType.Polkadot,
-            ChainType.Xrp,
-            ChainType.Cardano,
-            ChainType.Tron -> true
-            else -> false
-        }
-    }
-
     private fun buildSignerInput(
         params: ConfirmParams,
-        chainData: ChainSignData,
+        metadata: GemTransactionLoadMetadata,
         finalAmount: BigInteger,
         fee: Fee,
     ) = params.toGemSignerInput(
-        chainData = chainData,
+        metadata = metadata,
         finalAmount = finalAmount,
         fee = fee,
     )

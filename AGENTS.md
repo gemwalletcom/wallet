@@ -51,6 +51,19 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - For multi-step work that crosses Core → bindings → iOS/Android, checkpoint after each step: state what changed, what was verified, what is left. Do not continue from a state you cannot describe back
 - If a regeneration's effect on either app is unclear, stop and restate before adding more changes
 
+## Mobile Localization
+
+- Mobile app localization source of truth lives in `localization/app/*.ftl`, using Fluent message IDs with underscores, for example `common_cancel`
+- Fluent comments are supported in source files (`#`, `##`, `###`) and ignored by generation; use English comments in `en.ftl` for section or string context
+- Add new keys in the right section by prefix (`common_*` under `# Common`, `wallet_*` under `# Wallet`, etc.)
+- Add every new app key to every language file, translated for the context where the string is used; do not leave missing keys for generation to hide
+- iOS InfoPlist localization source lives in `localization/InfoPlist/*.ftl`
+- iOS widget localization source lives in `localization/widget/*.ftl`
+- Run `just localize` after editing localization source files
+- Generated outputs live under `ios/Packages/Localization/` and `android/ui/src/main/res/`
+- Do not edit generated iOS `.strings`, generated SwiftGen files, or Android `strings.xml` files by hand
+- Backend/core localization is separate; see [core/CLAUDE.md](core/CLAUDE.md) before changing `core/crates/localizer/i18n`
+
 ## Task Completion
 
 For documentation-only changes, do not run mobile/core build and test suites unless the docs change also modifies executable scripts, generated inputs, localization inputs, CI configuration, build configuration, or release/security procedures. Verify docs-only changes with lightweight checks such as `git diff --check`, link/path inspection, and a quick read-through of the edited files.

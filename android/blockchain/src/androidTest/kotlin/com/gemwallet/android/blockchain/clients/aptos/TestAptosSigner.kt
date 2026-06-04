@@ -1,5 +1,7 @@
 package com.gemwallet.android.blockchain.clients.aptos
 
+import uniffi.gemstone.GemTransactionLoadMetadata
+
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
@@ -46,9 +48,7 @@ class TestAptosSigner {
                     BigInteger.valueOf(10_000_000_000),
                     DestinationAddress("0x82111f2975a0f6080d178236369b7479f6aed1203ef4a23f8205e4b91716b783"),
                 ),
-                chainData = AptosChainData(
-                    8UL,
-                ),
+                metadata = GemTransactionLoadMetadata.Aptos(sequence = 8UL, data = null),
                 finalAmount = BigInteger.valueOf(10_000_000_000),
                 Fee.Regular(
                     feeAssetId = AssetId(Chain.Aptos),
@@ -94,9 +94,7 @@ class TestAptosSigner {
                     BigInteger.valueOf(10_000_000_000),
                     DestinationAddress("0x82111f2975a0f6080d178236369b7479f6aed1203ef4a23f8205e4b91716b783"),
                 ),
-                chainData = AptosChainData(
-                    8UL,
-                ),
+                metadata = GemTransactionLoadMetadata.Aptos(sequence = 8UL, data = null),
                 fee = Fee.Regular(
                     feeAssetId = AssetId(Chain.Aptos),
                     priority = FeePriority.Normal,

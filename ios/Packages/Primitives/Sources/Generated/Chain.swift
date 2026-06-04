@@ -13,6 +13,7 @@ public enum Chain: String, Codable, CaseIterable, Equatable, Hashable, Sendable 
 	case solana
 	case polygon
 	case thorchain
+	case mayachain
 	case cosmos
 	case osmosis
 	case arbitrum

@@ -4,7 +4,7 @@ use std::error::Error;
 
 pub fn calculate_fee_rates(chain: CosmosChain, base_fee: BigInt) -> Vec<FeeRate> {
     match chain {
-        CosmosChain::Thorchain => {
+        CosmosChain::Thorchain | CosmosChain::Mayachain => {
             vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(base_fee))]
         }
         CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Sei | CosmosChain::Injective | CosmosChain::Noble => {

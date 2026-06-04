@@ -79,6 +79,51 @@ let data = serde_json::from_str(input)
 let data: MyStruct = serde_json::from_str(input)?;
 ```
 
+## Don't Let Error Plumbing Bury the Logic
+
+When a block does repeated validation, inline `.ok_or_else(|| Error::invalid_input(format!("{ctx} ...")))?` makes every line read as error handling instead of logic. Capture the shared context in a local closure, and use guard clauses for boolean checks instead of `cond.then_some(()).ok_or_else(...)?`.
+
+```rust
+// bad — the chain/format context repeats on every line and drowns the logic
+let (unlocking_script, hash) = address
+    .unlocking_script()
+    .zip(address.public_key_hash())
+    .ok_or_else(|| SignerError::invalid_input(format!("{} UTXO address type is unsupported", chain.get_chain())))?;
+(hash == sender_hash)
+    .then_some(())
+    .ok_or_else(|| SignerError::invalid_input(format!("{} UTXO address does not match sender", chain.get_chain())))?;
+let vout = u32::try_from(utxo.vout).map_err(|_| SignerError::invalid_input(format!("invalid {} UTXO index", chain.get_chain())))?;
+
+// good — build the chain-scoped message once; pick the constructor by context
+let message = |reason: &str| format!("{} {reason}", chain.get_chain());
+
+let (unlocking_script, hash) = address
+    .unlocking_script()
+    .zip(address.public_key_hash())
+    .ok_or_else(|| SignerError::invalid_input(message("UTXO address type is unsupported")))?;
+if hash != sender_hash {
+    return SignerError::invalid_input_err(message("UTXO address does not match sender"));
+}
+let vout = u32::try_from(utxo.vout).map_err(|_| SignerError::invalid_input(message("UTXO index is invalid")))?;
+```
+
+Use the `_err` Result-returning constructor (`invalid_input_err`) for guard-clause early returns; use the bare `invalid_input` inside `ok_or_else`/`map_err` combinators. Don't hand-roll `return Err(SignerError::invalid_input(...))` when an `_err` constructor exists.
+
+## Don't Repeat a Message for an Unreachable Branch
+
+If an earlier guard already bounds a value, a later "can't fail" conversion must not duplicate the guard's message — surface the real library error so a future limit change isn't masked by a stale, wrong message.
+
+```rust
+// bad — at <=80 bytes PushBytes never overflows, so this message is unreachable and misleading
+if data.len() > MAX_OP_RETURN_BYTES {
+    return SignerError::invalid_input_err("Bitcoin memo is too large");
+}
+let push = PushBytesBuf::try_from(data.to_vec()).map_err(|_| SignerError::invalid_input("Bitcoin memo is too large"))?;
+
+// good — the length check owns the rule; the conversion surfaces the actual error if it ever fires
+let push = PushBytesBuf::try_from(data.to_vec()).map_err(SignerError::from_display)?;
+```
+
 ## JSON Parameter Extraction
 
 Use the `primitives::ValueAccess` trait instead of manual `.get().ok_or()` chains:

@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
-
-internal import WalletCorePrimitives
 
 public struct AddressTextValidator: TextValidator {
     private let asset: Asset

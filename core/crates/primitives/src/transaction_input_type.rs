@@ -175,7 +175,7 @@ impl TransactionLoadInput {
     }
 
     pub fn get_memo(&self) -> Option<&str> {
-        self.memo.as_deref().filter(|m| !m.is_empty())
+        self.memo.as_deref().filter(|memo| !memo.is_empty())
     }
 
     pub fn value_as_u64(&self) -> Result<u64, SignerError> {

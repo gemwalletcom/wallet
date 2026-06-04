@@ -195,6 +195,7 @@ pub struct Chains {
     pub cosmos: Chain,
     pub osmosis: Chain,
     pub thorchain: Chain,
+    pub mayachain: Chain,
     pub celestia: Chain,
     pub tron: Chain,
     pub xrp: Chain,

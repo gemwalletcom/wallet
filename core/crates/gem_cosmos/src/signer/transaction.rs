@@ -64,7 +64,7 @@ pub fn stake_messages(input: &SignerInput, chain: CosmosChain) -> Result<Vec<Cos
 fn encode_send(chain: CosmosChain, from_address: &str, to_address: &str, amount: &[Coin]) -> Result<Vec<u8>, SignerError> {
     let coin_fields: Vec<u8> = amount.iter().flat_map(|c| encode_message_field(3, &encode_coin(&c.denom, &c.amount))).collect();
     let address_fields = match chain {
-        CosmosChain::Thorchain => {
+        CosmosChain::Thorchain | CosmosChain::Mayachain => {
             let parse = |addr: &str| CosmosAddress::try_parse(addr).ok_or_else(|| SignerError::invalid_input(format!("invalid cosmos address: {addr}")));
             [encode_bytes_field(1, parse(from_address)?.as_bytes()), encode_bytes_field(2, parse(to_address)?.as_bytes())].concat()
         }
@@ -154,7 +154,7 @@ impl CosmosMessage {
     fn type_url(&self, chain: CosmosChain) -> &str {
         match self {
             Self::Send { .. } => match chain {
-                CosmosChain::Thorchain => MESSAGE_SEND,
+                CosmosChain::Thorchain | CosmosChain::Mayachain => MESSAGE_SEND,
                 CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Injective | CosmosChain::Sei | CosmosChain::Noble => MESSAGE_SEND_BETA,
             },
             Self::ExecuteContract { .. } => MESSAGE_EXECUTE_CONTRACT,

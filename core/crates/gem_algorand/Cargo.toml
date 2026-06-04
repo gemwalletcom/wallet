@@ -14,7 +14,7 @@ chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 async-trait = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-gem_encoding = { path = "../gem_encoding" }
+gem_encoding = { path = "../gem_encoding", features = ["base32"] }
 num-bigint = { workspace = true }
 num-traits = { workspace = true, optional = true }
 

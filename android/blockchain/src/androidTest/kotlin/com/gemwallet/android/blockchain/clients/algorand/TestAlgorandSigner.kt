@@ -1,5 +1,7 @@
 package com.gemwallet.android.blockchain.clients.algorand
 
+import uniffi.gemstone.GemTransactionLoadMetadata
+
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
@@ -39,11 +41,7 @@ class TestAlgorandSigner {
                     BigInteger.valueOf(10_000_000),
                     DestinationAddress("GOZOAE6SH6XGGDRBQLZEDRITKMF5OLVJNACVRQBUEGFLBBR5I64A7QN63E"),
                 ),
-                chainData = AlgorandChainData(
-                    sequence = 46932581UL,
-                    block = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=",
-                    chainId = "mainnet-v1.0",
-                ),
+                metadata = GemTransactionLoadMetadata.Algorand(sequence = 46932581UL, blockHash = "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=", chainId = "mainnet-v1.0"),
                 finalAmount = BigInteger.valueOf(10_000_000),
                 fee = Fee.Plain(
                     priority = FeePriority.Normal,

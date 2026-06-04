@@ -86,7 +86,7 @@ release:
     @./gradlew clean :app:bundleGoogleRelease assembleUniversalRelease assembleHuaweiRelease assembleSolanaRelease assembleSamsungRelease --no-configuration-cache
 
 localize:
-    @sh ../core/scripts/localize.sh android ui/src/main/res
+    @cd ../core && cargo run --package generate --bin generate localize android ../localization/app ../android/ui/src/main/res
 
 generate: generate-models
 

@@ -41,6 +41,7 @@ public extension Chain {
              .stable: .ethereum
         case .solana: .solana
         case .thorchain: .thorchain
+        case .mayachain: .thorchain
         case .cosmos: .cosmos
         case .osmosis: .osmosis
         case .ton: .ton
@@ -60,10 +61,6 @@ public extension Chain {
         case .polkadot: .polkadot
         case .cardano: .cardano
         }
-    }
-
-    func isValidAddress(_ address: String) -> Bool {
-        AnyAddress.isValid(string: address, coin: coinType)
     }
 
     func checksumAddress(_ address: String) -> String {

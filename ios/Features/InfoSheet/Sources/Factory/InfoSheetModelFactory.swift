@@ -137,29 +137,29 @@ public enum InfoSheetModelFactory {
             )
         case .fundingApr:
             return InfoSheetModel(
-                title: Localized.Info.FundingApr.title,
-                description: Localized.Info.FundingApr.description,
+                title: Localized.Info.Perpetual.FundingApr.title,
+                description: Localized.Info.Perpetual.FundingApr.description,
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.perpetualsFundingRate)),
             )
         case .fundingPayments:
             return InfoSheetModel(
-                title: Localized.Info.FundingPayments.title,
-                description: Localized.Info.FundingPayments.description,
+                title: Localized.Info.Perpetual.FundingPayments.title,
+                description: Localized.Info.Perpetual.FundingPayments.description,
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.perpetualsFundingPayments)),
             )
         case .liquidationPrice:
             return InfoSheetModel(
-                title: Localized.Info.LiquidationPrice.title,
-                description: Localized.Info.LiquidationPrice.description,
+                title: Localized.Info.Perpetual.LiquidationPrice.title,
+                description: Localized.Info.Perpetual.LiquidationPrice.description,
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.perpetualsLiquidationPrice)),
             )
         case .openInterest:
             return InfoSheetModel(
-                title: Localized.Info.OpenInterest.title,
-                description: Localized.Info.OpenInterest.description,
+                title: Localized.Info.Perpetual.OpenInterest.title,
+                description: Localized.Info.Perpetual.OpenInterest.description,
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.perpetualsOpenInterest)),
             )

@@ -5,6 +5,8 @@ use typeshare::typeshare;
 
 use crate::Chain;
 
+pub const BITCOINCASH_PREFIX: &str = "bitcoincash:";
+
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]

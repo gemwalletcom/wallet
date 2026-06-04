@@ -22,3 +22,4 @@ pub mod transaction_state_request_mock;
 pub mod transfer_data_extra_mock;
 pub mod wallet_connect_mock;
 pub mod wallet_connection_session_mock;
+pub mod zcash_mock;

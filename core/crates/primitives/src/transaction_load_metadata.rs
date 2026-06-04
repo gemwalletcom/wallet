@@ -131,6 +131,15 @@ impl TransactionLoadMetadata {
         }
     }
 
+    pub fn get_zcash_branch_id(&self) -> Option<u32> {
+        let TransactionLoadMetadata::Zcash { branch_id, .. } = self else {
+            return None;
+        };
+        // Zcash branch id is big-endian hex from the rpc node.
+        let bytes: [u8; 4] = crate::decode_hex(branch_id).ok()?.try_into().ok()?;
+        Some(u32::from_be_bytes(bytes))
+    }
+
     pub fn get_account_number(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
         match self {
             TransactionLoadMetadata::Cosmos { account_number, .. } => Ok(*account_number),

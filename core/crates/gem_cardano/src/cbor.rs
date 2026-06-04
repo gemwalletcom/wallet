@@ -24,6 +24,11 @@ impl CborEncoder {
         self.bytes.extend_from_slice(value);
     }
 
+    pub(crate) fn text(&mut self, value: &str) {
+        self.major_type(3, value.len() as u64);
+        self.bytes.extend_from_slice(value.as_bytes());
+    }
+
     pub(crate) fn array(&mut self, len: usize) {
         self.major_type(4, len as u64);
     }
@@ -38,6 +43,10 @@ impl CborEncoder {
 
     pub(crate) fn true_value(&mut self) {
         self.bytes.push(0xf5);
+    }
+
+    pub(crate) fn tag(&mut self, value: u64) {
+        self.major_type(6, value);
     }
 
     fn major_type(&mut self, major: u8, value: u64) {

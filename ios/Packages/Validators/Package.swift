@@ -16,8 +16,8 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Localization", path: "../Localization"),
-        .package(name: "WalletCore", path: "../WalletCore"),
         .package(name: "Formatters", path: "../Formatters"),
     ],
     targets: [
@@ -25,8 +25,8 @@ let package = Package(
             name: "Validators",
             dependencies: [
                 "Primitives",
+                "GemstonePrimitives",
                 "Localization",
-                .product(name: "WalletCorePrimitives", package: "WalletCore"),
                 "Formatters",
             ],
             path: "Sources",

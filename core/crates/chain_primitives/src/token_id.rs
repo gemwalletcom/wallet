@@ -66,6 +66,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
         | Chain::BitcoinCash
         | Chain::Litecoin
         | Chain::Thorchain
+        | Chain::Mayachain
         | Chain::Cosmos
         | Chain::Osmosis
         | Chain::Celestia

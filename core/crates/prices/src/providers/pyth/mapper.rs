@@ -3,15 +3,15 @@ use primitives::{AssetId, Chain};
 pub fn asset_ids_for_feed_id(feed_id: &str) -> Vec<AssetId> {
     Chain::all()
         .into_iter()
-        .filter(|&chain| price_feed_id_for_chain(chain) == feed_id)
+        .filter(|&chain| price_feed_id_for_chain(chain) == Some(feed_id))
         .map(|c| c.as_asset_id())
         .collect()
 }
 
 // https://www.pyth.network/price-feeds
 // Hermes API feed IDs for each chain's native asset
-pub fn price_feed_id_for_chain(chain: Chain) -> &'static str {
-    match chain {
+pub fn price_feed_id_for_chain(chain: Chain) -> Option<&'static str> {
+    let feed_id = match chain {
         Chain::Bitcoin => "e62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
         Chain::BitcoinCash => "3dd2b63686a450ec7290df3a1e0b583c0481f651351edfa7636f39aed55cf8a3",
         Chain::Litecoin => "6e3f3fa8253588df9326580180233eb791e03b443a3ba7a1d892e73874e19a54",
@@ -61,7 +61,9 @@ pub fn price_feed_id_for_chain(chain: Chain) -> &'static str {
         Chain::Monad => "ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
         Chain::XLayer => "d6f83dfeaff95d596ddec26af2ee32f391c206a183b161b7980821860eeef2f5",
         Chain::Stable => "2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
-    }
+        Chain::Mayachain => return None,
+    };
+    Some(feed_id)
 }
 
 #[cfg(test)]
@@ -70,10 +72,11 @@ mod tests {
 
     #[test]
     fn test_pyth_price_id_mapping() {
-        let eth_feed = price_feed_id_for_chain(Chain::Ethereum);
+        let eth_feed = price_feed_id_for_chain(Chain::Ethereum).unwrap();
         let chains = asset_ids_for_feed_id(eth_feed);
         assert!(chains.contains(&AssetId::from_chain(Chain::Ethereum)));
         assert!(chains.contains(&AssetId::from_chain(Chain::Arbitrum)));
+        assert_eq!(price_feed_id_for_chain(Chain::Mayachain), None);
         assert!(asset_ids_for_feed_id("missing").is_empty());
     }
 }

@@ -1,5 +1,8 @@
 package com.gemwallet.android.blockchain.clients.cardano
 
+import uniffi.gemstone.GemTransactionLoadMetadata
+import com.gemwallet.android.domains.asset.toGem
+
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
@@ -39,7 +42,7 @@ class TestCardanoSigner {
                     BigInteger.valueOf(10_000),
                     DestinationAddress("addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq"),
                 ),
-                chainData = CardanoChainData(
+                metadata = GemTransactionLoadMetadata.Cardano(
                     utxos = listOf(
                         UTXO(
                             address = "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq",
@@ -47,7 +50,7 @@ class TestCardanoSigner {
                             value = "7945975",
                             vout = 1,
                         )
-                    ),
+                    ).toGem(),
                     blockNumber = 189_992_800uL,
                 ),
                 finalAmount = BigInteger.valueOf(10_000),

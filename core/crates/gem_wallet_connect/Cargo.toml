@@ -9,7 +9,6 @@ gem_evm = { path = "../gem_evm" }
 gem_ton = { path = "../gem_ton", features = ["signer"] }
 
 hex = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
 url = { workspace = true }
 

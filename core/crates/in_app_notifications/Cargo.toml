@@ -7,4 +7,3 @@ version = { workspace = true }
 localizer = { path = "../localizer" }
 number_formatter = { path = "../number_formatter" }
 primitives = { path = "../primitives" }
-serde_json = { workspace = true }

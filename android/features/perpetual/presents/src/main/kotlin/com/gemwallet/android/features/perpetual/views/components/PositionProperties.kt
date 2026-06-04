@@ -53,7 +53,7 @@ internal fun LazyListScope.positionProperties(
         )
         if (position.liquidationPrice.isNotBlank()) {
             PropertyItem(
-                title = stringResource(R.string.info_liquidation_price_title),
+                title = stringResource(R.string.info_perpetual_liquidation_price_title),
                 data = position.liquidationPrice,
                 info = InfoSheetEntity.LiquidationPriceInfo,
                 listPosition = ListPosition.Middle,
@@ -65,7 +65,7 @@ internal fun LazyListScope.positionProperties(
             listPosition = ListPosition.Middle,
         )
         PropertyItem(
-            title = stringResource(R.string.info_funding_payments_title),
+            title = stringResource(R.string.info_perpetual_funding_payments_title),
             data = position.fundingPayments,
             dataColor = position.fundingPaymentsDirection.color(),
             info = InfoSheetEntity.FundingPayments,
@@ -79,8 +79,8 @@ private fun AutocloseRow(
     position: PerpetualPositionDetailsDataAggregate,
     onClick: () -> Unit,
 ) {
-    val takeProfitText = position.takeProfit.formatTriggerOrder(stringResource(R.string.charts_take_profit))
-    val stopLossText = position.stopLoss.formatTriggerOrder(stringResource(R.string.charts_stop_loss))
+    val takeProfitText = position.takeProfit.formatTriggerOrder(stringResource(R.string.perpetual_take_profit))
+    val stopLossText = position.stopLoss.formatTriggerOrder(stringResource(R.string.perpetual_stop_loss))
     PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
         title = {

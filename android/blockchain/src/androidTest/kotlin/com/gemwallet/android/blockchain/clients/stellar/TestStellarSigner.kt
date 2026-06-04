@@ -1,6 +1,7 @@
 package com.gemwallet.android.blockchain.clients.Stellar
 
-import com.gemwallet.android.blockchain.clients.stellar.StellarChainData
+import uniffi.gemstone.GemTransactionLoadMetadata
+
 import com.gemwallet.android.blockchain.includeLibs
 import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.ext.asset
@@ -43,7 +44,7 @@ class TestStellarSigner {
                     BigInteger.valueOf(10_000),
                     DestinationAddress(from),
                 ),
-                chainData = StellarChainData(
+                metadata = GemTransactionLoadMetadata.Stellar(
                     sequence = 1UL,
                     isDestinationAddressExist = true,
                 ),

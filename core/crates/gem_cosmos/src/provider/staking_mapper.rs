@@ -1,3 +1,4 @@
+use crate::constants::BOND_STATUS_BONDED;
 use crate::models::staking::{Delegations, Rewards, StakingPoolResponse, UnbondingDelegations, Validator};
 use crate::models::{InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SupplyResponse};
 use num_bigint::BigUint;
@@ -13,8 +14,6 @@ use number_formatter::BigNumberFormatter;
 use primitives::chain_cosmos::CosmosChain;
 use primitives::{DelegationBase, DelegationState, DelegationValidator};
 use std::collections::HashMap;
-
-const BOND_STATUS_BONDED: &str = "BOND_STATUS_BONDED";
 
 /// Convert string amounts to BigUint, handling parsing errors gracefully
 fn parse_to_biguint(value: &str) -> BigUint {
@@ -74,14 +73,11 @@ pub fn map_staking_delegations(
     active_delegations: Delegations,
     unbonding_delegations: UnbondingDelegations,
     rewards: Rewards,
-    validators: Vec<Validator>,
     chain: CosmosChain,
     denom: &str,
 ) -> Vec<DelegationBase> {
     let asset_id = chain.as_chain().as_asset_id();
     let mut delegations = Vec::new();
-
-    let validators_map: HashMap<String, &Validator> = validators.iter().map(|validator| (validator.operator_address.clone(), validator)).collect();
 
     let rewards_map: HashMap<String, BigUint> = rewards
         .rewards
@@ -106,13 +102,6 @@ pub fn map_staking_delegations(
             return None;
         }
 
-        let validator = validators_map.get(&delegation.delegation.validator_address);
-        let state = if validator.map(|v| !v.jailed && v.status == BOND_STATUS_BONDED).unwrap_or(false) {
-            DelegationState::Active
-        } else {
-            DelegationState::Inactive
-        };
-
         let rewards = rewards_map
             .get(&delegation.delegation.validator_address)
             .map(|r| r.to_string())
@@ -120,7 +109,7 @@ pub fn map_staking_delegations(
 
         Some(DelegationBase {
             asset_id: asset_id.clone(),
-            state,
+            state: DelegationState::Active,
             balance: parse_to_biguint(&delegation.balance.amount),
             shares: BigUint::from(0u32),
             rewards: parse_to_biguint(&rewards),
@@ -155,6 +144,7 @@ pub fn map_staking_delegations(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::constants::BOND_STATUS_UNBONDED;
     use crate::models::staking::{Delegations, Rewards};
     use primitives::Chain;
 
@@ -162,22 +152,10 @@ mod tests {
     fn test_map_delegations() {
         let delegations: Delegations = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
 
-        let mock_validator = Validator {
-            operator_address: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3".to_string(),
-            jailed: false,
-            status: BOND_STATUS_BONDED.to_string(),
-            description: ValidatorDescription {
-                moniker: "Test Validator".to_string(),
-            },
-            commission: ValidatorCommission {
-                commission_rates: ValidatorCommissionRates { rate: 0.05 },
-            },
-        };
-
         let unbonding = UnbondingDelegations { unbonding_responses: vec![] };
         let rewards = Rewards { rewards: vec![] };
 
-        let result = map_staking_delegations(delegations, unbonding, rewards, vec![mock_validator], CosmosChain::Cosmos, "uatom");
+        let result = map_staking_delegations(delegations, unbonding, rewards, CosmosChain::Cosmos, "uatom");
 
         assert_eq!(result.len(), 1);
         let delegation = &result[0];
@@ -196,21 +174,9 @@ mod tests {
         let delegations: Delegations = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
         let rewards: Rewards = serde_json::from_str(include_str!("../../testdata/staking_rewards.json")).unwrap();
 
-        let mock_validator = Validator {
-            operator_address: "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3".to_string(),
-            jailed: false,
-            status: BOND_STATUS_BONDED.to_string(),
-            description: ValidatorDescription {
-                moniker: "Test Validator".to_string(),
-            },
-            commission: ValidatorCommission {
-                commission_rates: ValidatorCommissionRates { rate: 0.05 },
-            },
-        };
-
         let unbonding = UnbondingDelegations { unbonding_responses: vec![] };
 
-        let result = map_staking_delegations(delegations, unbonding, rewards, vec![mock_validator], CosmosChain::Cosmos, "uatom");
+        let result = map_staking_delegations(delegations, unbonding, rewards, CosmosChain::Cosmos, "uatom");
 
         assert_eq!(result.len(), 1);
         let delegation = &result[0];
@@ -243,6 +209,32 @@ mod tests {
         let validator2 = &result[1];
         assert_eq!(validator2.id, "cosmosvaloper1q6d3d089hg59x6gcx92uumx70s5y5wadklue8s");
         assert_eq!(validator2.name, "Ubik Capital");
+    }
+
+    #[test]
+    fn test_map_unbonded_validator() {
+        let validator = Validator {
+            operator_address: "celestiavaloper1eualhqh07w7p45g45hvrjagkcxsfnflzdw5jzg".to_string(),
+            jailed: true,
+            status: BOND_STATUS_UNBONDED.to_string(),
+            description: ValidatorDescription {
+                moniker: "don't stake".to_string(),
+            },
+            commission: ValidatorCommission {
+                commission_rates: ValidatorCommissionRates { rate: 0.2 },
+            },
+        };
+
+        let result = map_staking_validators(vec![validator], CosmosChain::Celestia, Some(10.55));
+
+        assert_eq!(result.len(), 1);
+        let validator = &result[0];
+        assert_eq!(validator.chain, Chain::Celestia);
+        assert_eq!(validator.id, "celestiavaloper1eualhqh07w7p45g45hvrjagkcxsfnflzdw5jzg");
+        assert_eq!(validator.name, "don't stake");
+        assert_eq!(validator.is_active, false);
+        assert_eq!(validator.commission, 20.0);
+        assert_eq!(validator.apr, 0.0);
     }
 
     #[test]

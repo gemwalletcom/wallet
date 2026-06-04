@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::error::Error;
 
 use fiat::FiatClient;
-use primitives::{FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransaction, FiatTransactionData};
+use primitives::{FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData};
 use storage::{Database, FiatRepository, WalletsRepository};
 
 pub struct FiatQuotesClient {
@@ -19,10 +19,6 @@ impl FiatQuotesClient {
         self.fiat_client.get_quotes(request).await
     }
 
-    pub async fn get_quote(&self, quote_id: &str) -> Result<FiatQuote, Box<dyn Error + Send + Sync>> {
-        self.fiat_client.get_quote(quote_id).await
-    }
-
     pub async fn get_quote_url(&self, quote_id: &str, wallet_id: i32, device_id: i32, ip_address: &str, locale: &str) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
         self.fiat_client.get_quote_url(quote_id, wallet_id, device_id, ip_address, locale).await
     }
@@ -37,10 +33,6 @@ impl FiatQuotesClient {
 
     pub async fn process_and_publish_webhook(&self, provider: &str, webhook_data: serde_json::Value) -> Result<streamer::FiatWebhookPayload, Box<dyn Error + Send + Sync>> {
         self.fiat_client.process_and_publish_webhook(provider, webhook_data).await
-    }
-
-    pub async fn get_order_status(&self, provider: &str, order_id: &str) -> Result<FiatTransaction, Box<dyn Error + Send + Sync>> {
-        self.fiat_client.get_order_status(provider, order_id).await
     }
 
     pub fn get_transactions_by_wallet_id(&self, device_row_id: i32, wallet_id: i32) -> Result<Vec<FiatTransactionData>, Box<dyn Error + Send + Sync>> {

@@ -23,6 +23,8 @@ final class Chain_WalletCorePrimitiveTests {
             .solana
         case .thorchain:
             .thorchain
+        case .mayachain:
+            .thorchain
         case .cosmos:
             .cosmos
         case .osmosis:
@@ -64,17 +66,6 @@ final class Chain_WalletCorePrimitiveTests {
         }
 
         #expect(chain.coinType == expected)
-    }
-
-    @Test
-    func testIsValidAddress() {
-        // Expect addresses to be valid
-        #expect(Chain.mock(.ethereum).isValidAddress("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5"))
-        #expect(Chain.mock(.ethereum).isValidAddress("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5"))
-
-        // Expect addresses to be invalid
-        #expect(!Chain.mock(.ethereum).isValidAddress("0x123"))
-        #expect(!Chain.mock(.ethereum).isValidAddress("0x123"))
     }
 
     @Test

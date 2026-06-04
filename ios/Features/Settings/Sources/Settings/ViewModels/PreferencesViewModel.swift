@@ -98,7 +98,7 @@ public final class PreferencesViewModel {
     }
 
     var defaultLeverageTitle: String {
-        Localized.Settings.Preferences.defaultLeverage
+        Localized.Settings.Preferences.Perpetual.defaultLeverage
     }
 
     var defaultLeverageValue: String {
@@ -120,11 +120,11 @@ public final class PreferencesViewModel {
     }
 
     var defaultTakeProfitTitle: String {
-        Localized.Settings.Preferences.defaultTakeProfit
+        Localized.Settings.Preferences.Perpetual.defaultTakeProfit
     }
 
     var defaultStopLossTitle: String {
-        Localized.Settings.Preferences.defaultStopLoss
+        Localized.Settings.Preferences.Perpetual.defaultStopLoss
     }
 
     var defaultTakeProfitValue: String {

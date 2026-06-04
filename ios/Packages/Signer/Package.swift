@@ -18,7 +18,6 @@ let package = Package(
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "Keystore", path: "../Keystore"),
-        .package(name: "WalletCore", path: "../WalletCore"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
@@ -28,7 +27,6 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Keystore",
-                .product(name: "WalletCore", package: "WalletCore"),
                 "Gemstone",
                 "GemstonePrimitives",
             ],

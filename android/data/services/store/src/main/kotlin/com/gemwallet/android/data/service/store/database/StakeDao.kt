@@ -40,9 +40,6 @@ interface StakeDao {
     @Query("SELECT id FROM stake_delegations WHERE walletId=:walletId AND assetId=:assetId")
     suspend fun getDelegationIds(walletId: WalletId, assetId: AssetId): List<String>
 
-    @Query("SELECT id FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType")
-    suspend fun getValidatorIds(assetId: AssetId, providerType: StakeProviderType): List<String>
-
     @Query(
         "SELECT * FROM stake_validators WHERE assetId=:assetId AND providerType=:providerType " +
             "ORDER BY apr DESC"

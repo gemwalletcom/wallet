@@ -129,7 +129,7 @@ fun PreferencesScene(
             if (isPerpetualEnabled) {
                 item {
                     OptionPickerLinkItem(
-                        title = stringResource(R.string.settings_preferences_default_leverage),
+                        title = stringResource(R.string.settings_preferences_perpetual_default_leverage),
                         current = perpetualLeverage,
                         options = PerpetualConfig.leverageOptions,
                         listPosition = ListPosition.Middle,
@@ -139,7 +139,7 @@ fun PreferencesScene(
                 }
                 item {
                     OptionPickerLinkItem(
-                        title = stringResource(R.string.settings_preferences_default_take_profit),
+                        title = stringResource(R.string.settings_preferences_perpetual_default_take_profit),
                         current = perpetualTakeProfit,
                         options = PerpetualConfig.takeProfitOptions,
                         listPosition = ListPosition.Middle,
@@ -149,7 +149,7 @@ fun PreferencesScene(
                 }
                 item {
                     OptionPickerLinkItem(
-                        title = stringResource(R.string.settings_preferences_default_stop_loss),
+                        title = stringResource(R.string.settings_preferences_perpetual_default_stop_loss),
                         current = perpetualStopLoss,
                         options = PerpetualConfig.stopLossOptions,
                         listPosition = ListPosition.Last,

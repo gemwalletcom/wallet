@@ -1,8 +1,0 @@
-target/
-.git/
-.github/
-**/.env
-**/.env.local
-**/data/
-**/cache/
-**/.fastembed_cache/

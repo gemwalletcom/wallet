@@ -157,8 +157,8 @@ sealed class InfoSheetEntity(
 
     object OpenInterestInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
-        title = R.string.info_open_interest_title,
-        description = R.string.info_open_interest_description,
+        title = R.string.info_perpetual_open_interest_title,
+        description = R.string.info_perpetual_open_interest_description,
         infoUrl = { AppUrl.docs(DocsUrl.PerpetualsOpenInterest) },
     )
 
@@ -171,22 +171,22 @@ sealed class InfoSheetEntity(
 
     object LiquidationPriceInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
-        title = R.string.info_liquidation_price_title,
-        description = R.string.info_liquidation_price_description,
+        title = R.string.info_perpetual_liquidation_price_title,
+        description = R.string.info_perpetual_liquidation_price_description,
         infoUrl = { AppUrl.docs(DocsUrl.PerpetualsLiquidationPrice) },
     )
 
     object FundingPayments : InfoSheetEntity(
         icon = R.drawable.ic_splash,
-        title = R.string.info_funding_payments_title,
-        description = R.string.info_funding_payments_description,
+        title = R.string.info_perpetual_funding_payments_title,
+        description = R.string.info_perpetual_funding_payments_description,
         infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingPayments) },
     )
 
     object FundingAprInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
-        title = R.string.info_funding_apr_title,
-        description = R.string.info_funding_apr_description,
+        title = R.string.info_perpetual_funding_apr_title,
+        description = R.string.info_perpetual_funding_apr_description,
         infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingRate) },
     )
 

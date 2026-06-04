@@ -83,13 +83,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
         return true
     }
 
-    func scene(_: UIScene, openURLContexts _: Set<UIOpenURLContext>) {
-        // debugLog("URLContexts.first?.url \(URLContexts.first?.url)")
-    }
+    func scene(_: UIScene, openURLContexts _: Set<UIOpenURLContext>) {}
 
-    func scene(_: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {
-        // debugLog("URLContexts.first?.url \(connectionOptions.urlContexts.first?.url)")
-    }
+    func scene(_: UIScene, willConnectTo _: UISceneSession, options _: UIScene.ConnectionOptions) {}
 
     func application(_: UIApplication, shouldAllowExtensionPointIdentifier extensionPointIdentifier: UIApplication.ExtensionPointIdentifier) -> Bool {
         switch extensionPointIdentifier {

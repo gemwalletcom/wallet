@@ -51,6 +51,7 @@ public protocol ChainIDFetchable: Sendable {
 
 public protocol ChainStakable: Sendable {
     func getValidators(apr: Double) async throws -> [DelegationValidator]
+    func getDelegationValidators(address: String) async throws -> [DelegationValidator]
     func getStakeDelegations(address: String) async throws -> [DelegationBase]
 }
 
@@ -86,6 +87,10 @@ public extension ChainFeeRateFetchable {
 
 public extension ChainStakable {
     func getValidators(apr _: Double) async throws -> [DelegationValidator] {
+        []
+    }
+
+    func getDelegationValidators(address _: String) async throws -> [DelegationValidator] {
         []
     }
 

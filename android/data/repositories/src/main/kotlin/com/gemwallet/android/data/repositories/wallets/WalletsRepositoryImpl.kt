@@ -12,6 +12,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.available
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -79,10 +80,11 @@ class WalletsRepositoryImpl @Inject constructor(
         source: WalletSource
     ): Wallet {
         val accounts = mutableListOf<Account>()
+        val availableChains = Chain.available()
         val chains =
             if ((type == WalletType.Single || type == WalletType.PrivateKey) && chain != null) listOf(
                 chain
-            ) else Chain.entries
+            ) else Chain.entries.filter(availableChains::contains)
         for (item in chains) {
             accounts.add(createAccount(type, data, item))
         }

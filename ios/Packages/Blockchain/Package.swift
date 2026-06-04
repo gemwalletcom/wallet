@@ -18,7 +18,6 @@ let package = Package(
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
-        .package(name: "WalletCore", path: "../WalletCore"),
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Keychain", path: "../Keychain"),
@@ -30,8 +29,6 @@ let package = Package(
             dependencies: [
                 "SwiftHTTPClient",
                 "Primitives",
-                .product(name: "WalletCore", package: "WalletCore"),
-                .product(name: "WalletCorePrimitives", package: "WalletCore"),
                 "Gemstone",
                 "GemstonePrimitives",
                 "Keychain",

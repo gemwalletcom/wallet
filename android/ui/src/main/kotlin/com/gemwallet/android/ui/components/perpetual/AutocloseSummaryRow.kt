@@ -19,8 +19,8 @@ fun AutocloseSummaryRow(
     listPosition: ListPosition = ListPosition.Single,
 ) {
     val lines = listOfNotNull(
-        takeProfitText?.let { "${stringResource(R.string.charts_take_profit)}: $it" },
-        stopLossText?.let { "${stringResource(R.string.charts_stop_loss)}: $it" },
+        takeProfitText?.let { "${stringResource(R.string.perpetual_take_profit)}: $it" },
+        stopLossText?.let { "${stringResource(R.string.perpetual_stop_loss)}: $it" },
     )
     if (lines.isEmpty()) return
     PropertyItem(

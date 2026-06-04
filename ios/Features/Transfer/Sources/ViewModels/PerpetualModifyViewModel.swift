@@ -9,8 +9,8 @@ import Primitives
 public struct PerpetualModifyViewModel: Sendable {
     private let data: PerpetualModifyConfirmData
     private let autocloseFormatter = AutocloseFormatter(
-        takeProfitLabel: Localized.Charts.takeProfit,
-        stopLossLabel: Localized.Charts.stopLoss,
+        takeProfitLabel: Localized.Perpetual.takeProfit,
+        stopLossLabel: Localized.Perpetual.stopLoss,
     )
 
     public init(data: PerpetualModifyConfirmData) {

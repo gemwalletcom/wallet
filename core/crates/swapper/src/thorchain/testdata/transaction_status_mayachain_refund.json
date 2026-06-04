@@ -1,0 +1,56 @@
+{
+  "tx": {
+    "id": "CDC7B53A6D233949E55269C1F1AB649CB5926659E06DB56E2798997BBB1D169B",
+    "chain": "ETH",
+    "from_address": "0x9edcf9ff72088db8130c2512e5b4d3b5f34ceaf4",
+    "to_address": "0x6a16f961e24e6e90bd9f950f768dc42a7f305664",
+    "coins": [
+      {
+        "asset": "ETH.ETH",
+        "amount": "500000"
+      }
+    ],
+    "gas": [
+      {
+        "asset": "ETH.ETH",
+        "amount": "23360"
+      }
+    ],
+    "memo": "=:m:maya1f0jq58qqkkwearfhpjvnkqqww0sx7ugn2s6nrp:0/1/0:g1:50"
+  },
+  "planned_out_txs": [
+    {
+      "chain": "ETH",
+      "to_address": "0x9edcf9ff72088db8130c2512e5b4d3b5f34ceaf4",
+      "coin": {
+        "asset": "ETH.ETH",
+        "amount": "425000"
+      },
+      "refund": true
+    }
+  ],
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 38,
+      "final_count": 38,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "completed": true
+    },
+    "inbound_finalised": {
+      "completed": true
+    },
+    "swap_status": {
+      "pending": false
+    },
+    "swap_finalised": {
+      "completed": true
+    },
+    "outbound_signed": {
+      "scheduled_outbound_height": 16865002,
+      "blocks_since_scheduled": 2,
+      "completed": false
+    }
+  }
+}

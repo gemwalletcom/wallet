@@ -154,8 +154,8 @@ private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
 
 @Composable
 private fun AutocloseRowValue(takeProfit: String?, stopLoss: String?) {
-    val tpLabel = stringResource(R.string.charts_take_profit)
-    val slLabel = stringResource(R.string.charts_stop_loss)
+    val tpLabel = stringResource(R.string.perpetual_take_profit)
+    val slLabel = stringResource(R.string.perpetual_stop_loss)
     val tpText = takeProfit?.toDoubleOrNull()?.let { "$tpLabel: ${usdFormatter.string(it)}" }
     val slText = stopLoss?.toDoubleOrNull()?.let { "$slLabel: ${usdFormatter.string(it)}" }
     Column(horizontalAlignment = Alignment.End) {

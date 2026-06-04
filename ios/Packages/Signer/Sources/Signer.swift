@@ -72,9 +72,6 @@ public struct Signer: Sendable {
     }
 
     func signer(for chain: Chain) -> Signable {
-        switch chain.type {
-        case .ethereum, .solana, .sui, .hyperCore, .aptos, .near, .stellar, .algorand, .ton, .cosmos, .xrp, .polkadot, .cardano, .tron: ChainSigner(chain: chain)
-        case .bitcoin: BitcoinSigner()
-        }
+        ChainSigner(chain: chain)
     }
 }

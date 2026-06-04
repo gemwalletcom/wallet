@@ -8,7 +8,6 @@ pub mod stake;
 pub mod token;
 pub mod token_account;
 pub mod transaction;
-pub mod value;
 
 type UInt64 = u64;
 type Int = i64;

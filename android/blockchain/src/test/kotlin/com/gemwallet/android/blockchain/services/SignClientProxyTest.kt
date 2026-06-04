@@ -1,8 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
 import com.gemwallet.android.blockchain.clients.SignClient
-import com.gemwallet.android.blockchain.clients.cosmos.CosmosChainData
-import com.gemwallet.android.model.ChainSignData
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
@@ -15,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemSwapQuoteDataType
+import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.SwapperProvider
 import java.math.BigInteger
 
@@ -27,7 +26,7 @@ class SignClientProxyTest {
         val toAsset = mockAsset(chain = Chain.Cosmos, name = "Cosmos", symbol = "ATOM", decimals = 6)
         val fromAmount = BigInteger("2564989685")
         val finalAmount = BigInteger("2562989685")
-        val client = RecordingSignClient(chain)
+        val client = RecordingSignClient()
         val params = ConfirmParams.SwapParams(
             from = mockAccount(chain = chain, address = "thor1sender"),
             fromAsset = fromAsset,
@@ -58,9 +57,9 @@ class SignClientProxyTest {
                     limit = BigInteger("200000"),
                     options = emptyMap(),
                 ),
-                chainData = CosmosChainData(
-                    chainId = "thorchain-mainnet-v1",
+                metadata = GemTransactionLoadMetadata.Cosmos(
                     accountNumber = 1uL,
+                    chainId = "thorchain-mainnet-v1",
                     sequence = 3uL,
                 ),
             ),
@@ -68,7 +67,7 @@ class SignClientProxyTest {
             finalAmount = finalAmount,
         )
 
-        SignClientProxy(listOf(client)).signTransaction(signerParams, byteArrayOf())
+        SignClientProxy(client).signTransaction(signerParams, byteArrayOf())
 
         assertEquals(finalAmount, client.nativeTransferFinalAmount)
         assertEquals(finalAmount, client.nativeTransferParams?.amount)
@@ -76,13 +75,13 @@ class SignClientProxyTest {
         assertEquals("=:o:cosmos1recipient:0/1/0:g1:50", client.nativeTransferParams?.memo)
     }
 
-    private class RecordingSignClient(private val chain: Chain) : SignClient {
+    private class RecordingSignClient : SignClient {
         var nativeTransferParams: ConfirmParams.TransferParams.Native? = null
         var nativeTransferFinalAmount: BigInteger? = null
 
         override suspend fun signNativeTransfer(
             params: ConfirmParams.TransferParams.Native,
-            chainData: ChainSignData,
+            metadata: GemTransactionLoadMetadata,
             finalAmount: BigInteger,
             fee: Fee,
             privateKey: ByteArray,
@@ -91,7 +90,5 @@ class SignClientProxyTest {
             nativeTransferFinalAmount = finalAmount
             return emptyList()
         }
-
-        override fun supported(chain: Chain): Boolean = this.chain == chain
     }
 }

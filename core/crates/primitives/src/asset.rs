@@ -71,6 +71,7 @@ impl Asset {
             Chain::AvalancheC => chain.new_asset("Avalanche".to_string(), "AVAX".to_string(), 18, AssetType::NATIVE),
             Chain::Solana => chain.new_asset("Solana".to_string(), "SOL".to_string(), 9, AssetType::NATIVE),
             Chain::Thorchain => chain.new_asset("Thorchain".to_string(), "RUNE".to_string(), 8, AssetType::NATIVE),
+            Chain::Mayachain => chain.new_asset("Maya".to_string(), "CACAO".to_string(), 10, AssetType::NATIVE),
             Chain::Cosmos => chain.new_asset("Cosmos".to_string(), "ATOM".to_string(), 6, AssetType::NATIVE),
             Chain::Osmosis => chain.new_asset("Osmosis".to_string(), "OSMO".to_string(), 6, AssetType::NATIVE),
             Chain::Celestia => chain.new_asset("Celestia".to_string(), "TIA".to_string(), 6, AssetType::NATIVE),

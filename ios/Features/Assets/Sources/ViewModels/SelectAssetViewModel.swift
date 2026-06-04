@@ -137,7 +137,7 @@ public final class SelectAssetViewModel {
     }
 
     var popularTitle: String {
-        Localized.Common.popular
+        Localized.Assets.popular
     }
 
     var pinnedImage: Image {

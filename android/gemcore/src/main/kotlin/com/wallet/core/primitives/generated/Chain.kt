@@ -25,6 +25,8 @@ enum class Chain(val string: String) {
 	Polygon("polygon"),
 	@SerialName("thorchain")
 	Thorchain("thorchain"),
+	@SerialName("mayachain")
+	Mayachain("mayachain"),
 	@SerialName("cosmos")
 	Cosmos("cosmos"),
 	@SerialName("osmosis")

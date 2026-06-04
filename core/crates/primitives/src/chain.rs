@@ -20,6 +20,7 @@ pub enum Chain {
     Solana,
     Polygon,
     Thorchain,
+    Mayachain,
     Cosmos,
     Osmosis,
     Arbitrum,
@@ -158,5 +159,15 @@ impl Chain {
 
     pub fn perpetual_chains() -> Vec<Self> {
         vec![Self::HyperCore]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mayachain_swap_not_supported() {
+        assert!(!Chain::Mayachain.is_swap_supported());
     }
 }

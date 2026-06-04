@@ -9,6 +9,7 @@ public enum CosmosChain: String, Codable, CaseIterable, Equatable, Sendable {
 	case osmosis
 	case celestia
 	case thorchain
+	case mayachain
 	case injective
 	case sei
 	case noble
@@ -16,6 +17,7 @@ public enum CosmosChain: String, Codable, CaseIterable, Equatable, Sendable {
 
 public enum CosmosDenom: String, Codable, CaseIterable, Equatable, Sendable {
 	case rune
+	case cacao
 	case uatom
 	case uosmo
 	case utia

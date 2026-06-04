@@ -21,9 +21,13 @@ pub const SUPPORTED_MESSAGES: &[&str] = &[
 pub const EVENTS_WITHDRAW_REWARDS_TYPE: &str = "withdraw_rewards";
 pub const EVENTS_ATTRIBUTE_AMOUNT: &str = "amount";
 
+pub const BOND_STATUS_BONDED: &str = "BOND_STATUS_BONDED";
+pub const BOND_STATUS_UNBONDED: &str = "BOND_STATUS_UNBONDED";
+
 pub fn get_base_fee(chain: CosmosChain) -> u64 {
     match chain {
         CosmosChain::Thorchain => 2_000_000,
+        CosmosChain::Mayachain => 5_000_000_000,
         CosmosChain::Cosmos => 3_000,
         CosmosChain::Osmosis => 10_000,
         CosmosChain::Celestia => 3_000,

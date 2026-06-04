@@ -34,12 +34,12 @@ public struct PerpetualViewModel {
     }
 
     public var openInterestField: ListItemField {
-        ListItemField(title: Localized.Info.OpenInterest.title, value: marketValueFormatter.string(perpetual.openInterest))
+        ListItemField(title: Localized.Info.Perpetual.OpenInterest.title, value: marketValueFormatter.string(perpetual.openInterest))
     }
 
     public var fundingRateField: ListItemField {
         let annualized = perpetual.funding * 24 * 365
-        return ListItemField(title: Localized.Info.FundingApr.title, value: percentFormatter.string(annualized))
+        return ListItemField(title: Localized.Info.Perpetual.FundingApr.title, value: percentFormatter.string(annualized))
     }
 
     public var priceText: String {

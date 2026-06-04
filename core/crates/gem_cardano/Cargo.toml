@@ -13,6 +13,7 @@ rpc = [
     "dep:chrono",
     "dep:futures",
     "dep:gem_client",
+    "dep:gem_hash",
     "dep:hex",
     "dep:num-bigint",
     "dep:num-traits",

@@ -122,7 +122,7 @@ impl ProviderFactory {
                 Box::new(ethereum_client)
             }
             Chain::Cardano => Box::new(CardanoClient::new(gem_client)),
-            Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Injective | Chain::Noble | Chain::Sei => {
+            Chain::Cosmos | Chain::Osmosis | Chain::Celestia | Chain::Thorchain | Chain::Mayachain | Chain::Injective | Chain::Noble | Chain::Sei => {
                 let chain = CosmosChain::from_chain(chain).unwrap();
                 Box::new(CosmosClient::new(chain, gem_client.clone()))
             }
@@ -153,6 +153,7 @@ impl ProviderFactory {
             Chain::Solana => &settings.chains.solana,
             Chain::Polygon => &settings.chains.polygon,
             Chain::Thorchain => &settings.chains.thorchain,
+            Chain::Mayachain => &settings.chains.mayachain,
             Chain::Cosmos => &settings.chains.cosmos,
             Chain::Osmosis => &settings.chains.osmosis,
             Chain::Arbitrum => &settings.chains.arbitrum,

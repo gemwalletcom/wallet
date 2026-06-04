@@ -72,7 +72,8 @@ fun Chain.assetType(): AssetType? {
         Chain.Polkadot,
         Chain.Cardano,
         Chain.Zcash,
-        Chain.Near
+        Chain.Near,
+        Chain.Mayachain
              -> null
     }
 }
@@ -130,7 +131,7 @@ fun Chain.Companion.findByString(value: String): Chain? {
     return Chain.entries.firstOrNull{ it.string == value}
 }
 
-fun Chain.Companion.available() = Chain.entries.toSet()
+fun Chain.Companion.available() = Chain.entries.filterNot { it == Chain.Mayachain }.toSet()
 
 fun List<Chain>.filter(query: String): List<Chain> {
     return filter {
@@ -161,6 +162,7 @@ fun Chain.toChainType(): ChainType {
         Chain.Zcash,
         Chain.Litecoin -> ChainType.Bitcoin
         Chain.Thorchain,
+        Chain.Mayachain,
         Chain.Osmosis,
         Chain.Celestia,
         Chain.Injective,

@@ -51,5 +51,7 @@ enum class SwapProvider(val string: String) {
 	Orca("orca"),
 	@SerialName("squid")
 	Squid("squid"),
+	@SerialName("mayachain")
+	Mayachain("mayachain"),
 }
 

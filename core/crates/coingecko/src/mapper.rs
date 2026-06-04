@@ -76,6 +76,7 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> &'static str {
         Chain::Solana => "solana",
         Chain::Polygon => "polygon-ecosystem-token",
         Chain::Thorchain => "thorchain",
+        Chain::Mayachain => "cacao",
         Chain::Cosmos => "cosmos",
         Chain::Osmosis => "osmosis",
         Chain::Ton => "the-open-network",
