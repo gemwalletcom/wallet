@@ -39,7 +39,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push core containers
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           files: .github/docker-bake.hcl
           targets: default
