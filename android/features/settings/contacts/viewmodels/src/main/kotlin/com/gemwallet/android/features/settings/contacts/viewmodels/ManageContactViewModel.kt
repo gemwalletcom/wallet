@@ -14,7 +14,6 @@ import com.gemwallet.android.features.recipient.viewmodel.NameResolveController
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
-import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
@@ -41,26 +40,13 @@ class ManageContactViewModel @Inject constructor(
 ) : ViewModel() {
 
     private sealed interface Mode {
-        data class Add(val recipient: ChainRecipient?) : Mode
+        data object Add : Mode
         data class Edit(val contactId: String) : Mode
     }
 
     private val mode: Mode = run {
         val editContactId = savedStateHandle.get<String>(RouteArgument.ContactId.key)
-        if (editContactId != null) {
-            Mode.Edit(editContactId)
-        } else {
-            val chain = savedStateHandle.get<String>(RouteArgument.Chain.key)
-                ?.let { value -> Chain.entries.firstOrNull { it.string == value } }
-            val address = savedStateHandle.get<String>(RouteArgument.Address.key)?.takeIf { it.isNotBlank() }
-            Mode.Add(
-                recipient = if (chain != null && address != null) {
-                    ChainRecipient(chain, address, savedStateHandle.get<String>(RouteArgument.Memo.key))
-                } else {
-                    null
-                },
-            )
-        }
+        if (editContactId != null) Mode.Edit(editContactId) else Mode.Add
     }
     private val contactId: String = (mode as? Mode.Edit)?.contactId ?: UUID.randomUUID().toString()
     private var createdAt: Long? = null
@@ -89,14 +75,7 @@ class ManageContactViewModel @Inject constructor(
                     )
                 }
             }
-            is Mode.Add -> mode.recipient?.let { recipient ->
-                val address = contactAddress(
-                    chain = recipient.chain,
-                    address = recipient.chain.checksumAddress(recipient.address),
-                    memo = recipient.memo,
-                )
-                state.update { it.copy(addresses = listOf(address)) }
-            }
+            Mode.Add -> Unit
         }
     }
 

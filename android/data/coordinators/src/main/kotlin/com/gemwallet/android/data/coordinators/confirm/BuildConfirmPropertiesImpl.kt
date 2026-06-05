@@ -40,9 +40,6 @@ class BuildConfirmPropertiesImpl(
                         domain = destination.domain,
                         address = destination.address,
                         explorerLink = BlockExplorerLink(explorerName, chainExplorer.getAddressUrl(explorerName, destination.address)),
-                        // TODO: re-enable add-to-contacts from Confirm once the screen is refactored —
-                        //  leaving Confirm for the add-contact form resets the network fee. gemwalletcom/wallet#40
-                        addContactRecipient = null,
                     )
                     is ConfirmProperty.Destination.Stake -> destination.address?.let { address ->
                         ConfirmProperty.Destination.Stake(

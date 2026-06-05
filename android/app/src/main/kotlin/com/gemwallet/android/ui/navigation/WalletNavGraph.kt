@@ -132,7 +132,6 @@ fun WalletNavGraph(
                 finishAction = { _ -> navigator.popConfirmFlow() },
                 onBuy = navigator::openBuy,
                 cancelAction = onCancel,
-                onAddContact = navigator::openAddContact,
             )
 
             nftCollection(

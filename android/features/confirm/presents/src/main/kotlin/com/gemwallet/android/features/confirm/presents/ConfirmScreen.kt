@@ -36,7 +36,6 @@ import com.gemwallet.android.features.confirm.presents.components.PropertyDestin
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
 import com.gemwallet.android.features.confirm.viewmodels.reorderWalletConnectProperties
 import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -84,7 +83,6 @@ fun ConfirmScreen(
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
     onBuy: AssetIdAction,
-    onAddRecipientToContacts: (ChainRecipient) -> Unit = {},
     handleSystemBack: Boolean = false,
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
@@ -192,7 +190,6 @@ fun ConfirmScreen(
                     is ConfirmProperty.Destination -> PropertyDestination(
                         model = item,
                         listPosition = listPosition,
-                        onAddContact = onAddRecipientToContacts,
                     )
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
                     is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)

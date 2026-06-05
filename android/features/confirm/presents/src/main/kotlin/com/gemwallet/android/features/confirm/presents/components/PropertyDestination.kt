@@ -13,13 +13,11 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.domains.confirm.ConfirmProperty
-import com.gemwallet.android.model.ChainRecipient
 
 @Composable
 fun PropertyDestination(
     model: ConfirmProperty.Destination?,
     listPosition: ListPosition,
-    onAddContact: ((ChainRecipient) -> Unit)? = null,
 ) {
     model ?: return
 
@@ -31,9 +29,6 @@ fun PropertyDestination(
                 copyValue = model.address,
                 explorerLink = model.explorerLink,
                 listPosition = listPosition,
-                onAddContact = model.addContactRecipient?.let { recipient ->
-                    onAddContact?.let { add -> { add(recipient) } }
-                },
             )
         }
         is ConfirmProperty.Destination.Stake -> {

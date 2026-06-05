@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.model.ChainRecipient
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -19,7 +18,6 @@ fun EntryProviderScope<NavKey>.confirm(
     finishAction: FinishConfirmAction,
     onBuy: AssetIdAction,
     cancelAction: CancelAction,
-    onAddContact: (ChainRecipient) -> Unit,
 ) {
     entry<ConfirmRoute>(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
@@ -29,7 +27,6 @@ fun EntryProviderScope<NavKey>.confirm(
             cancelAction = cancelAction,
             onBuy = onBuy,
             finishAction = finishAction,
-            onAddRecipientToContacts = onAddContact,
         )
     }
 }
