@@ -109,8 +109,6 @@ pub struct CustomAttributes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Sender {
     pub name: Option<String>,
-    pub avatar_url: Option<String>,
-    pub thumbnail: Option<String>,
     pub custom_attributes: Option<CustomAttributes>,
 }
 
@@ -205,10 +203,7 @@ impl Attachment {
 impl Sender {
     fn support_agent(&self) -> Option<SupportAgent> {
         let name = self.name.clone()?;
-        Some(SupportAgent {
-            name,
-            avatar_url: self.avatar_url.clone().or_else(|| self.thumbnail.clone()).filter(|value| !value.is_empty()),
-        })
+        Some(SupportAgent { name })
     }
 }
 
@@ -306,7 +301,7 @@ fn support_message(
     content_type: Option<&str>,
     private: Option<bool>,
     sender: SupportMessageSender,
-    delivery_status: SupportMessageDeliveryStatus,
+    status: SupportMessageDeliveryStatus,
     created_at: DateTime<Utc>,
     attachments: &[Attachment],
 ) -> Option<SupportMessage> {
@@ -328,7 +323,7 @@ fn support_message(
         id: id.to_string(),
         content,
         sender,
-        delivery_status,
+        status,
         created_at,
         images,
     })
@@ -380,10 +375,9 @@ mod tests {
             messages[0].sender,
             SupportMessageSender::Agent(SupportAgent {
                 name: "Test Agent".to_string(),
-                avatar_url: None,
             })
         );
-        assert_eq!(messages[0].delivery_status, SupportMessageDeliveryStatus::Sent);
+        assert_eq!(messages[0].status, SupportMessageDeliveryStatus::Sent);
     }
 
     #[test]

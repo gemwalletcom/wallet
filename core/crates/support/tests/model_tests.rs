@@ -43,10 +43,9 @@ fn test_support_message_mapping() {
         message.sender,
         SupportMessageSender::Agent(SupportAgent {
             name: "Test Agent".to_string(),
-            avatar_url: None,
         })
     );
-    assert_eq!(message.delivery_status, SupportMessageDeliveryStatus::Sent);
+    assert_eq!(message.status, SupportMessageDeliveryStatus::Sent);
 }
 
 #[test]

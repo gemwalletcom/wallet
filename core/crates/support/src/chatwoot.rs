@@ -181,7 +181,7 @@ mod tests {
             id: id.to_string(),
             content: id.to_string(),
             sender: SupportMessageSender::User,
-            delivery_status: SupportMessageDeliveryStatus::Sent,
+            status: SupportMessageDeliveryStatus::Sent,
             created_at: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
             images: vec![],
         }

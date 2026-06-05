@@ -9,26 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class SupportAgent (
-	val name: String,
-	val avatarUrl: String? = null
-)
-
-@Serializable
-enum class SupportConversationStatus(val string: String) {
-	@SerialName("open")
-	Open("open"),
-	@SerialName("resolved")
-	Resolved("resolved"),
-}
-
-@Serializable
-data class SupportConversation (
-	val id: String,
-	val status: SupportConversationStatus,
-	val firstMessage: String? = null,
-	val lastMessage: String? = null,
-	val lastActivityAt: SerializedDate,
-	val unreadCount: Int
+	val name: String
 )
 
 @Serializable
@@ -65,10 +46,9 @@ data class SupportMessageImage (
 @Serializable
 data class SupportMessage (
 	val id: String,
-	val conversationId: String,
 	val content: String,
 	val sender: SupportMessageSender,
-	val deliveryStatus: SupportMessageDeliveryStatus,
+	val status: SupportMessageDeliveryStatus,
 	val createdAt: SerializedDate,
 	val images: List<SupportMessageImage>
 )
@@ -86,16 +66,6 @@ sealed class SupportAction {
 	@Serializable
 	@SerialName("lastSeen")
 	object LastSeen: SupportAction()
-}
-
-@Serializable
-sealed class SupportStreamEvent {
-	@Serializable
-	@SerialName("message")
-	data class Message(val data: SupportMessage): SupportStreamEvent()
-	@Serializable
-	@SerialName("conversation")
-	data class Conversation(val data: SupportConversation): SupportStreamEvent()
 }
 
 @Serializable

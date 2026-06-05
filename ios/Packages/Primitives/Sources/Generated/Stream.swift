@@ -67,7 +67,7 @@ public enum StreamEvent: Codable, Sendable {
 	case perpetual(StreamWalletUpdate)
 	case inAppNotification(StreamNotificationUpdate)
 	case fiatTransaction(StreamWalletUpdate)
-	case support(SupportStreamEvent)
+	case support(SupportMessage)
 
 	enum CodingKeys: String, CodingKey, Codable {
 		case prices,
@@ -130,7 +130,7 @@ public enum StreamEvent: Codable, Sendable {
 					return
 				}
 			case .support:
-				if let content = try? container.decode(SupportStreamEvent.self, forKey: .data) {
+				if let content = try? container.decode(SupportMessage.self, forKey: .data) {
 					self = .support(content)
 					return
 				}

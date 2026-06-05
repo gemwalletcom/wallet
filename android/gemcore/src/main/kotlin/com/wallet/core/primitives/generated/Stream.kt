@@ -68,7 +68,7 @@ sealed class StreamEvent {
 	data class FiatTransaction(val data: StreamWalletUpdate): StreamEvent()
 	@Serializable
 	@SerialName("support")
-	data class Support(val data: SupportStreamEvent): StreamEvent()
+	data class Support(val data: SupportMessage): StreamEvent()
 }
 
 @Serializable

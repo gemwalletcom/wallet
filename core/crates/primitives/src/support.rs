@@ -17,8 +17,6 @@ pub enum SupportMessageDeliveryStatus {
 #[serde(rename_all = "camelCase")]
 pub struct SupportAgent {
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -70,7 +68,7 @@ pub struct SupportMessage {
     pub id: String,
     pub content: String,
     pub sender: SupportMessageSender,
-    pub delivery_status: SupportMessageDeliveryStatus,
+    pub status: SupportMessageDeliveryStatus,
     pub created_at: DateTime<Utc>,
     pub images: Vec<SupportMessageImage>,
 }

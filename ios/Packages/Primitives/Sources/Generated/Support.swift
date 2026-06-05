@@ -6,34 +6,9 @@ import Foundation
 
 public struct SupportAgent: Codable, Equatable, Sendable {
 	public let name: String
-	public let avatarUrl: String?
 
-	public init(name: String, avatarUrl: String?) {
+	public init(name: String) {
 		self.name = name
-		self.avatarUrl = avatarUrl
-	}
-}
-
-public enum SupportConversationStatus: String, Codable, CaseIterable, Equatable, Sendable {
-	case open
-	case resolved
-}
-
-public struct SupportConversation: Codable, Equatable, Hashable, Identifiable, Sendable {
-	public let id: String
-	public let status: SupportConversationStatus
-	public let firstMessage: String?
-	public let lastMessage: String?
-	public let lastActivityAt: Date
-	public let unreadCount: Int32
-
-	public init(id: String, status: SupportConversationStatus, firstMessage: String?, lastMessage: String?, lastActivityAt: Date, unreadCount: Int32) {
-		self.id = id
-		self.status = status
-		self.firstMessage = firstMessage
-		self.lastMessage = lastMessage
-		self.lastActivityAt = lastActivityAt
-		self.unreadCount = unreadCount
 	}
 }
 
@@ -107,19 +82,17 @@ public struct SupportMessageImage: Codable, Equatable, Sendable {
 
 public struct SupportMessage: Codable, Equatable, Sendable {
 	public let id: String
-	public let conversationId: String
 	public let content: String
 	public let sender: SupportMessageSender
-	public let deliveryStatus: SupportMessageDeliveryStatus
+	public let status: SupportMessageDeliveryStatus
 	public let createdAt: Date
 	public let images: [SupportMessageImage]
 
-	public init(id: String, conversationId: String, content: String, sender: SupportMessageSender, deliveryStatus: SupportMessageDeliveryStatus, createdAt: Date, images: [SupportMessageImage]) {
+	public init(id: String, content: String, sender: SupportMessageSender, status: SupportMessageDeliveryStatus, createdAt: Date, images: [SupportMessageImage]) {
 		self.id = id
-		self.conversationId = conversationId
 		self.content = content
 		self.sender = sender
-		self.deliveryStatus = deliveryStatus
+		self.status = status
 		self.createdAt = createdAt
 		self.images = images
 	}
@@ -171,51 +144,6 @@ public enum SupportAction: Codable, Equatable, Sendable {
 			try container.encode(content, forKey: .data)
 		case .lastSeen:
 			try container.encode(CodingKeys.lastSeen, forKey: .type)
-		}
-	}
-}
-
-public enum SupportStreamEvent: Codable, Sendable {
-	case message(SupportMessage)
-	case conversation(SupportConversation)
-
-	enum CodingKeys: String, CodingKey, Codable {
-		case message,
-			conversation
-	}
-
-	private enum ContainerCodingKeys: String, CodingKey {
-		case type, data
-	}
-
-	public init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
-		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
-			switch type {
-			case .message:
-				if let content = try? container.decode(SupportMessage.self, forKey: .data) {
-					self = .message(content)
-					return
-				}
-			case .conversation:
-				if let content = try? container.decode(SupportConversation.self, forKey: .data) {
-					self = .conversation(content)
-					return
-				}
-			}
-		}
-		throw DecodingError.typeMismatch(SupportStreamEvent.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for SupportStreamEvent"))
-	}
-
-	public func encode(to encoder: Encoder) throws {
-		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
-		switch self {
-		case .message(let content):
-			try container.encode(CodingKeys.message, forKey: .type)
-			try container.encode(content, forKey: .data)
-		case .conversation(let content):
-			try container.encode(CodingKeys.conversation, forKey: .type)
-			try container.encode(content, forKey: .data)
 		}
 	}
 }
