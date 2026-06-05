@@ -78,7 +78,7 @@ rocket_ws = { version = "0.1.1" }
 async-trait = { version = "0.1.89" }
 prometheus-client = { version = "0.24.0" }
 futures = { version = "0.3.32" }
-uuid = { version = "1.23.0", features = ["v4"] }
+uuid = { version = "1.23.1", features = ["v4"] }
 tracing = { version = "0.1.44" }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
