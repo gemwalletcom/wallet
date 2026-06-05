@@ -1,14 +1,11 @@
 use crate::jsonrpc_types::RequestType;
 use primitives::Chain;
 use reqwest::{Method, header::HeaderMap};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
-
-static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(0);
+use uuid::Uuid;
 
 fn generate_request_id() -> String {
-    let count = REQUEST_COUNTER.fetch_add(1, Ordering::Relaxed);
-    format!("{:08x}", count)
+    format!("{:016x}", Uuid::new_v4().as_u128() as u64)
 }
 
 #[derive(Debug, Clone)]
@@ -106,8 +103,10 @@ mod tests {
 
         assert_ne!(id1, id2);
         assert_ne!(id2, id3);
-        assert_eq!(id1.len(), 8);
-        assert_eq!(id2.len(), 8);
+        assert_eq!(id1.len(), 16);
+        assert_eq!(id2.len(), 16);
         assert!(id1.chars().all(|c| c.is_ascii_hexdigit()));
+        assert!(id2.chars().all(|c| c.is_ascii_hexdigit()));
+        assert!(id3.chars().all(|c| c.is_ascii_hexdigit()));
     }
 }

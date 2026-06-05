@@ -1,17 +1,19 @@
 use primitives::{SupportAction, SupportMessage, SupportMessageInput};
 use std::{error::Error, future::Future};
-use storage::models::DeviceRow;
+use storage::{Database, NewSupportSessionRow, SupportSessionsRepository, models::DeviceRow};
 
 use ::support::{ChatwootClient, ChatwootSession};
 
 pub struct SupportApiClient {
     chatwoot: ChatwootClient,
+    database: Database,
 }
 
 impl SupportApiClient {
-    pub fn new(url: String, widget_public_token: String) -> Self {
+    pub fn new(url: String, widget_public_token: String, database: Database) -> Self {
         Self {
             chatwoot: ChatwootClient::new(url, widget_public_token),
+            database,
         }
     }
 
@@ -45,7 +47,26 @@ impl SupportApiClient {
         F: FnOnce(ChatwootSession) -> Fut,
         Fut: Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
     {
-        let session = self.chatwoot.create_session(&device.as_primitive()).await?;
+        let session = match self.get_session(device)? {
+            Some(session) => session,
+            None => self.create_session(device).await?,
+        };
         call(session).await
+    }
+
+    fn get_session(&self, device: &DeviceRow) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
+        Ok(self
+            .database
+            .support_sessions()?
+            .get_support_session(device.id)?
+            .map(|session| ChatwootSession { auth_token: session.auth_token }))
+    }
+
+    async fn create_session(&self, device: &DeviceRow) -> Result<ChatwootSession, Box<dyn Error + Send + Sync>> {
+        let session = self.chatwoot.create_session(&device.as_primitive()).await?;
+        self.database
+            .support_sessions()?
+            .set_support_session(NewSupportSessionRow::new(device.id, &session.auth_token))?;
+        Ok(session)
     }
 }

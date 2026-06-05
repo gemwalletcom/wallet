@@ -1,8 +1,8 @@
-use crate::{ChatwootWebhookPayload, constants::EVENT_MESSAGE_CREATED};
+use crate::{ChatwootWebhookPayload, constants::EVENT_MESSAGE_CREATED, markdown_plain_text};
 use cacher::CacherClient;
 use localizer::LanguageLocalizer;
 use primitives::{
-    Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, device_stream_channel, push_notification::PushNotificationSupport,
+    Device, GorushNotification, PushNotification, PushNotificationTypes, StreamEvent, SupportMessage, device_stream_channel, push_notification::PushNotificationSupport,
 };
 use std::error::Error;
 use storage::database::devices::DevicesStore;
@@ -51,7 +51,7 @@ impl SupportClient {
         }
 
         let title = LanguageLocalizer::new_with_language(device.locale.as_str()).notification_support_new_message_title();
-        let message = payload.content.clone().unwrap_or_default();
+        let message = markdown_plain_text(payload.content.as_deref().unwrap_or_default());
         let data = PushNotification {
             notification_type: PushNotificationTypes::Support,
             data: serde_json::to_value(PushNotificationSupport {}).ok(),
@@ -64,10 +64,17 @@ impl SupportClient {
         let Some(message) = payload.support_message() else {
             return Ok(0);
         };
+        if !Self::should_publish_stream_message(&message) {
+            return Ok(0);
+        }
 
         let channel = device_stream_channel(&device.id);
         self.cacher.publish(&channel, &StreamEvent::Support(message)).await?;
         Ok(1)
+    }
+
+    fn should_publish_stream_message(message: &SupportMessage) -> bool {
+        message.sender.is_agent()
     }
 }
 
@@ -111,5 +118,16 @@ mod tests {
         let notification = SupportClient::build_notification(&Device::mock(), &payload);
 
         assert!(notification.is_none());
+    }
+
+    #[test]
+    fn test_user_message_is_not_streamed() {
+        let payload: ChatwootWebhookPayload =
+            serde_json::from_str(r#"{"id":1,"conversation":{"id":2,"meta":{"sender":{"custom_attributes":{"device_id":"test-device"}}}},"event":"message_created","message_type":"incoming","private":false,"content":"from user","content_type":"text","created_at":1780601365}"#).unwrap();
+
+        let message = payload.support_message().unwrap();
+
+        assert!(message.sender.is_user());
+        assert!(!SupportClient::should_publish_stream_message(&message));
     }
 }

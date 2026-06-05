@@ -4,13 +4,6 @@ use crate::models::Transaction;
 
 type Int = u64;
 
-// Domain models
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BitcoinBlock {
-    pub previous_block_hash: Option<String>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BitcoinNodeInfo {
     pub blockbook: BitcoinBlockbook,
@@ -20,8 +13,8 @@ pub struct BitcoinNodeInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BitcoinBlockbook {
+    pub network: Option<String>,
     pub in_sync: bool,
-    pub last_block_time: String,
     pub best_height: Int,
 }
 
@@ -29,7 +22,6 @@ pub struct BitcoinBlockbook {
 #[serde(rename_all = "camelCase")]
 pub struct BitcoinBackend {
     pub blocks: Option<Int>,
-    pub chain: Option<String>,
     pub consensus: Option<Consensus>,
 }
 

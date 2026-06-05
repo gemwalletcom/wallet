@@ -15,7 +15,11 @@ updates:
     directory: "/core"
     open-pull-requests-limit: 2
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    cooldown:
+      semver-major-days: 7
+      semver-minor-days: 7
+      semver-patch-days: 7
     ignore:
       - dependency-name: "*"
         update-types:
@@ -25,7 +29,5 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        update-types:
-          - "version-update:semver-patch"
+    cooldown:
+      default-days: 7

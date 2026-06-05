@@ -12,5 +12,4 @@ pub(crate) const PATH_MESSAGES: &str = "messages";
 pub(crate) const PATH_TOGGLE_TYPING: &str = "conversations/toggle_typing";
 pub(crate) const PATH_UPDATE_LAST_SEEN: &str = "conversations/update_last_seen";
 
-pub(crate) const QUERY_CHATWOOT_AFTER: &str = "after";
 pub(crate) const QUERY_WIDGET_PUBLIC_TOKEN: &str = "website_token";

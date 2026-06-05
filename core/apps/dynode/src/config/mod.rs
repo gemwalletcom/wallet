@@ -10,15 +10,23 @@ use primitives::Chain;
 use serde::Deserialize;
 use serde_serializers::duration;
 
+mod allowlist;
 mod cache;
+mod chain_types;
 mod domain;
 mod metrics;
 mod url;
 
+pub use allowlist::AllowlistConfig;
 pub use cache::{CacheConfig, CacheRule};
+pub use chain_types::ChainTypesConfig;
 pub use domain::ChainConfig;
 pub use metrics::MetricsConfig;
 pub use url::{NodeResult, Override, Url};
+
+pub(crate) fn path_without_query(path: &str) -> &str {
+    path.split_once('?').map_or(path, |(path, _)| path)
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct NodeMonitoringConfig {
@@ -215,6 +223,8 @@ pub struct NodeConfig {
     pub metrics: MetricsConfig,
     #[serde(default)]
     pub cache: CacheConfig,
+    #[serde(default)]
+    pub chain_types: ChainTypesConfig,
     pub monitoring: NodeMonitoringConfig,
     pub retry: RetryConfig,
     pub request: RequestConfig,

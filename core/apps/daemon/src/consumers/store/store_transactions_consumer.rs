@@ -4,7 +4,10 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 use primitives::{AssetAddress, DeviceSubscription, NFTAssetId, Transaction, TransactionId, TransactionState, TransactionType};
 use storage::{AssetsAddressesRepository, AssetsRepository, Database, NftAssetFilter, NftRepository, TransactionsRepository, WalletsRepository};
-use streamer::{AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
+use streamer::{
+    AssetId, NotificationsPayload, StreamProducer, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload,
+    consumer::MessageConsumer,
+};
 use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 
 use crate::client::SwapVaultAddressClient;
@@ -39,6 +42,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
     async fn process(&self, payload: TransactionsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain = payload.chain;
         let is_notify_devices = payload.should_notify_devices();
+        let should_notify_existing_transactions = should_notify_existing_transactions(&payload.notification_type);
         let deposit_addresses = self.vault_client.get_deposit_address_map().await?;
         let send_addresses = self.vault_client.get_send_address_map().await?;
         let transactions = Self::transactions_for_storage(payload.transactions, &deposit_addresses, &send_addresses);
@@ -143,7 +147,7 @@ impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
                     .map(|asset_price| asset_price.asset.asset.clone())
                     .collect();
 
-                if self.database.transactions()?.get_transaction_exists(&transaction.id)? {
+                if !should_notify_existing_transactions && self.database.transactions()?.get_transaction_exists(&transaction.id)? {
                     continue;
                 }
 
@@ -265,6 +269,13 @@ impl StoreTransactionsConsumer {
         }
 
         Ok(transactions.len())
+    }
+}
+
+fn should_notify_existing_transactions(notification_type: &TransactionNotificationType) -> bool {
+    match notification_type {
+        TransactionNotificationType::NewTransaction => false,
+        TransactionNotificationType::StateChange => true,
     }
 }
 
@@ -404,6 +415,12 @@ mod tests {
             state: TransactionState::Reverted,
             ..Transaction::mock()
         }));
+    }
+
+    #[test]
+    fn test_should_notify_existing_transactions() {
+        assert!(!should_notify_existing_transactions(&TransactionNotificationType::NewTransaction));
+        assert!(should_notify_existing_transactions(&TransactionNotificationType::StateChange));
     }
 
     #[test]

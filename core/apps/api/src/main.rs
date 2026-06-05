@@ -241,7 +241,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
     let rewards_client = RewardsClient::new(database.clone(), stream_producer.clone(), ip_security_client, pusher_client.clone());
     let redemption_client = RewardsRedemptionClient::new(database.clone(), stream_producer.clone());
     let notifications_client = NotificationsClient::new(database.clone());
-    let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget_public_token.clone());
+    let support_client = SupportApiClient::new(settings.support.url.clone(), settings.support.widget_public_token.clone(), database.clone());
     let near_intents_client = swap::NearIntentsProxyClient::new(cacher_client.clone());
     let okx_provider = OkxProvider::new(
         OkxClientConfig {

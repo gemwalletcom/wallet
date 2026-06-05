@@ -4,12 +4,15 @@ use std::time::Duration;
 
 use super::NodeMonitoringConfig;
 use super::url::{Override, Url};
+use super::{AllowlistConfig, CacheRule};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct ChainConfig {
     pub chain: Chain,
     pub poll_interval_seconds: Option<u64>,
     pub overrides: Option<Vec<Override>>,
+    pub allowlist: Option<AllowlistConfig>,
+    pub cache: Option<Vec<CacheRule>>,
     pub urls: Vec<Url>,
 }
 
@@ -54,6 +57,8 @@ mod tests {
             chain: primitives::Chain::Ethereum,
             poll_interval_seconds: poll_interval,
             overrides: None,
+            allowlist: None,
+            cache: None,
             urls: vec![],
         }
     }
@@ -70,6 +75,8 @@ mod tests {
             chain: primitives::Chain::Ethereum,
             poll_interval_seconds: None,
             overrides: Some(overrides),
+            allowlist: None,
+            cache: None,
             urls: vec![make_url("https://example.com")],
         }
     }

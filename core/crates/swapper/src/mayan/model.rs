@@ -564,7 +564,7 @@ impl MayanClientStatus {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MayanChain {
-    pub mayan_address: String,
+    pub mayan_address: Option<String>,
 }
 
 fn checksum_address(address: &str) -> String {
@@ -575,8 +575,9 @@ impl MayanChain {
     pub fn unique_addresses(chains: Vec<MayanChain>) -> Vec<String> {
         chains
             .into_iter()
-            .filter(|c| !c.mayan_address.is_empty())
-            .map(|c| checksum_address(&c.mayan_address))
+            .filter_map(|c| c.mayan_address)
+            .filter(|address| !address.is_empty())
+            .map(|address| checksum_address(&address))
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect()

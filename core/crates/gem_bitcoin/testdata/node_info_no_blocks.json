@@ -1,11 +1,10 @@
 {
   "blockbook": {
+    "network": "ZEC",
     "inSync": true,
-    "lastBlockTime": "2026-06-03T00:00:00Z",
     "bestHeight": 2700000
   },
   "backend": {
-    "chain": "main",
     "consensus": {
       "chaintip": "c2d6d0b4"
     }

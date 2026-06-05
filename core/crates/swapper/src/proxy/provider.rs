@@ -7,7 +7,7 @@ use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, check_approval_erc20, get_swap_gas_limit_with_approval},
-    config::get_swap_proxy_url,
+    config::get_swap_provider_url,
     cross_chain::VaultAddresses,
     fees::{DEFAULT_AGGREGATOR_FEE_BPS, DEFAULT_SWAP_FEE_BPS},
     models::SwapperChainAsset,
@@ -97,16 +97,14 @@ where
 }
 
 impl ProxyProvider<RpcClient> {
-    fn new_with_path(provider: SwapperProvider, path: &str, assets: Vec<SwapperChainAsset>, rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let base_url = get_swap_proxy_url(&format!("swapper/{path}"));
-        let client = ProxyClient::new(RpcClient::new(base_url, rpc_provider.clone()));
+    fn new_with_provider(provider: SwapperProvider, assets: Vec<SwapperChainAsset>, rpc_provider: Arc<dyn RpcProvider>) -> Self {
+        let client = ProxyClient::new(RpcClient::new(get_swap_provider_url(provider), rpc_provider.clone()));
         Self::new_with_client(provider, client, assets, rpc_provider)
     }
 
     pub fn new_okx(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self::new_with_path(
+        Self::new_with_provider(
             SwapperProvider::Okx,
-            "okx",
             vec![
                 SwapperChainAsset::All(Chain::Solana),
                 SwapperChainAsset::All(Chain::Ethereum),

@@ -90,7 +90,7 @@ class SupportChatViewModel @Inject constructor(
         return """
             window.addEventListener('chatwoot:ready', function () {
               window.${'$'}chatwoot.setCustomAttributes({
-                support_device_id: '${supportDeviceId}',
+                device_id: '${supportDeviceId}',
                 platform: 'android',
                 platform_store: '${platformStore.string}',
                 os: '$os',

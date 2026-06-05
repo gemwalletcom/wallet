@@ -97,31 +97,6 @@ impl ProxyRequestService {
         headers
     }
 
-    fn log_incoming_request(request: &ProxyRequest, request_type: &RequestType) {
-        let request_id = request.id.as_str();
-        let chain = request.chain.as_ref();
-        let method = request.method.as_str();
-        let uri = request.path.as_str();
-        let user_agent = request.user_agent.as_str();
-
-        match request_type {
-            RequestType::JsonRpc(_) => {
-                info_with_fields!(
-                    "Incoming request",
-                    id = request_id,
-                    chain = chain,
-                    method = method,
-                    uri = uri,
-                    rpc_method = &request_type.get_methods_list(),
-                    user_agent = user_agent,
-                );
-            }
-            RequestType::Regular { .. } => {
-                info_with_fields!("Incoming request", id = request_id, chain = chain, method = method, uri = uri, user_agent = user_agent,);
-            }
-        }
-    }
-
     fn add_proxy_response_metrics(metrics: &Metrics, request: &ProxyRequest, methods_for_metrics: &[String], host: &str, status: u16) {
         for method_name in methods_for_metrics {
             metrics.add_proxy_response(request.chain.as_ref(), method_name, host, status, request.elapsed().as_millis());
@@ -142,8 +117,6 @@ impl ProxyRequestService {
         let headers = self.build_headers(url.url.host_str().unwrap_or_default(), &request.headers);
 
         self.metrics.add_proxy_request(request.chain.as_ref());
-
-        Self::log_incoming_request(&request, request_type);
 
         let cache_ttl = self.cache.should_cache_request(&chain, request_type);
         let cache_key = cache_ttl.and_then(|_| request_type.cache_key(&request.host, &request.path_with_query));
@@ -200,8 +173,8 @@ impl ProxyRequestService {
             .unwrap_or(request_type.content_type())
             .to_string();
 
-        let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
-        let (processed_response, body_bytes) = match Self::proxy_pass_response(response, &self.forward_headers, upstream_headers).await {
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        let (processed_response, body_bytes) = match Self::proxy_pass_response(response, &self.forward_headers, proxy_headers).await {
             Ok(result) => result,
             Err(error) => {
                 if let Some(key) = &inflight_key {
@@ -281,15 +254,15 @@ impl ProxyRequestService {
                 method = &methods_for_metrics.join(",")
             );
 
-            let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
+            let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
             let status = cached.status;
 
             let response = match request_type {
                 RequestType::JsonRpc(JsonRpcRequest::Single(original_call)) => {
                     let data = cached.to_jsonrpc_response(original_call);
-                    ResponseBuilder::build_with_headers(data, cached.status, &cached.content_type, upstream_headers)
+                    ResponseBuilder::build_with_headers(data, cached.status, &cached.content_type, proxy_headers)
                 }
-                RequestType::Regular { .. } => Ok(ResponseBuilder::build_cached_with_headers(cached.clone(), upstream_headers)),
+                RequestType::Regular { .. } => Ok(ResponseBuilder::build_cached_with_headers(cached.clone(), proxy_headers)),
                 RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => return None,
             };
 
@@ -345,9 +318,9 @@ impl ProxyRequestService {
             method = &methods_for_metrics.join(",")
         );
 
-        let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
         Self::add_proxy_response_metrics(metrics, request, methods_for_metrics, url.url.host_str().unwrap_or_default(), cached.status);
-        Some(Ok(ResponseBuilder::build_cached_with_headers(cached, upstream_headers)))
+        Some(Ok(ResponseBuilder::build_cached_with_headers(cached, proxy_headers)))
     }
 
     async fn release_inflight(inflight_requests: &Arc<RwLock<InflightWaiters>>, inflight_key: &str, result: Result<CachedResponse, String>) {
@@ -428,7 +401,7 @@ impl ProxyRequestService {
 mod tests {
     use super::*;
     use crate::cache::RequestCache;
-    use crate::config::{CacheConfig, HeadersConfig, MetricsConfig};
+    use crate::config::{CacheConfig, ChainTypesConfig, HeadersConfig, MetricsConfig};
     use crate::metrics::Metrics;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
     use primitives::Chain;
@@ -441,7 +414,7 @@ mod tests {
         let metrics = Metrics::new(MetricsConfig::default());
         ProxyRequestService::new(
             metrics.clone(),
-            RequestCache::new(CacheConfig::default()),
+            RequestCache::new(CacheConfig::default(), &ChainTypesConfig::default(), std::iter::empty()),
             reqwest::Client::new(),
             headers_config,
             DynodeBroadcastWebhookClient::disabled(),

@@ -121,7 +121,7 @@ impl InTransitUpdater {
 
         let transaction = row.as_primitive(row.get_addresses()).with_swap_state(state.clone().into(), metadata.clone());
         self.stream_producer
-            .publish_transactions(TransactionsPayload::new_with_notify(chain, vec![], vec![transaction]))
+            .publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction]))
             .await?;
         Ok(())
     }

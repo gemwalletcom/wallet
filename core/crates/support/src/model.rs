@@ -246,11 +246,10 @@ impl ChatwootContactUpdate {
             name: device.model.clone(),
             custom_attributes: HashMap::from([
                 ("device_id".to_string(), device.id.clone()),
-                ("platform".to_string(), device.platform.as_ref().to_string()),
-                ("os".to_string(), device.os.clone()),
+                ("platform".to_string(), format!("{}: {}", device.platform_store.as_ref(), device.os)),
                 ("device".to_string(), device.model.clone()),
-                ("app_version".to_string(), device.version.clone()),
-                ("currency".to_string(), device.currency.clone()),
+                ("version".to_string(), device.version.clone()),
+                ("locale".to_string(), format!("{}: {}", device.locale, device.currency)),
             ]),
         }
     }

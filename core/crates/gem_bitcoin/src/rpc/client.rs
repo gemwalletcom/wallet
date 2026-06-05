@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use crate::models::account::BitcoinAccount;
-use crate::models::block::{BitcoinBlock, BitcoinNodeInfo, Block, Status};
+use crate::models::block::{BitcoinNodeInfo, Block, Status};
 use crate::models::fee::BitcoinFeeResult;
 use crate::models::transaction::{AddressDetails, BitcoinTransactionBroacastResult, BitcoinUTXO, Transaction};
 use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainStaking, ChainToken, ChainTraits};
@@ -42,10 +42,6 @@ impl<C: Client> BitcoinClient<C> {
 
     pub async fn get_balance(&self, address: &str) -> Result<BitcoinAccount, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(&format!("/api/v2/address/{address}")).await?)
-    }
-
-    pub async fn get_block_info(&self, block_number: u64) -> Result<BitcoinBlock, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v2/block/{block_number}")).await?)
     }
 
     pub async fn get_node_info(&self) -> Result<BitcoinNodeInfo, Box<dyn Error + Send + Sync>> {

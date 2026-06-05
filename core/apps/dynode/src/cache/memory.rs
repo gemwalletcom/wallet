@@ -1,4 +1,4 @@
-use crate::config::{CacheConfig, CacheRule};
+use crate::config::{CacheConfig, CacheRule, ChainConfig, ChainTypesConfig};
 use crate::jsonrpc_types::{JsonRpcCall, JsonRpcRequest, RequestType};
 use crate::proxy::CachedResponse;
 use primitives::Chain;
@@ -12,22 +12,32 @@ use super::types::CacheEntry;
 
 #[derive(Debug, Clone)]
 pub struct MemoryCache {
-    caches: Arc<HashMap<String, Arc<RwLock<HashMap<String, CacheEntry>>>>>,
-    config: CacheConfig,
+    caches: Arc<HashMap<Chain, Arc<RwLock<HashMap<String, CacheEntry>>>>>,
+    max_memory_mb: usize,
+    rules: Arc<HashMap<Chain, Vec<CacheRule>>>,
 }
 
 impl MemoryCache {
-    pub fn new(config: CacheConfig) -> Self {
+    pub fn new<'a>(config: CacheConfig, chain_types: &ChainTypesConfig, chains: impl IntoIterator<Item = &'a ChainConfig>) -> Self {
         let mut caches = HashMap::new();
-        for chain_name in config.rules.keys() {
-            caches.insert(chain_name.clone(), Arc::new(RwLock::new(HashMap::new())));
+        let mut rules = HashMap::new();
+        for chain_config in chains {
+            let cache_rules = chain_types.cache_rules(chain_config);
+            if !cache_rules.is_empty() {
+                caches.insert(chain_config.chain, Arc::new(RwLock::new(HashMap::new())));
+                rules.insert(chain_config.chain, cache_rules);
+            }
         }
-        Self { caches: Arc::new(caches), config }
+        Self {
+            caches: Arc::new(caches),
+            max_memory_mb: config.max_memory_mb,
+            rules: Arc::new(rules),
+        }
     }
 
     fn max_size_per_chain(&self) -> usize {
         let chain_count = self.caches.len().max(1);
-        (self.config.max_memory_mb * 1_000_000) / chain_count
+        (self.max_memory_mb * 1_000_000) / chain_count
     }
 
     fn evict_if_needed(cache: &mut HashMap<String, CacheEntry>, max_size: usize) {
@@ -58,13 +68,8 @@ impl MemoryCache {
         }
     }
 
-    fn get_cache_rules(&self, chain: &Chain) -> &[CacheRule] {
-        static EMPTY: &[CacheRule] = &[];
-        self.config.rules.get(chain.as_ref()).map(|v| v.as_slice()).unwrap_or(EMPTY)
-    }
-
     fn rule_for_request<'a>(&'a self, chain: &Chain, request_type: &RequestType) -> Option<&'a CacheRule> {
-        self.get_cache_rules(chain).iter().find(|rule| match request_type {
+        self.rules.get(chain)?.iter().find(|rule| match request_type {
             RequestType::Regular { path, method, body } => rule.matches_path_request(path, method, Some(body.as_slice())),
             RequestType::JsonRpc(JsonRpcRequest::Single(call)) => rule.matches_rpc(&call.method),
             RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => false,
@@ -74,7 +79,7 @@ impl MemoryCache {
 
 impl CacheProvider for MemoryCache {
     async fn get(&self, chain: &Chain, key: &str) -> Option<CachedResponse> {
-        let cache = self.caches.get(chain.as_ref())?;
+        let cache = self.caches.get(chain)?;
         let read_guard = cache.read().await;
         let entry = read_guard.get(key)?;
         if entry.is_expired() {
@@ -86,7 +91,7 @@ impl CacheProvider for MemoryCache {
     }
 
     async fn set(&self, chain: &Chain, key: String, response: CachedResponse, ttl: Duration) {
-        if let Some(cache) = self.caches.get(chain.as_ref()) {
+        if let Some(cache) = self.caches.get(chain) {
             let entry = CacheEntry::new(response, ttl);
             let mut guard = cache.write().await;
             guard.insert(key, entry);
@@ -94,65 +99,69 @@ impl CacheProvider for MemoryCache {
         }
     }
 
-    fn should_cache(&self, chain: &Chain, path: &str, method: &str, body: Option<&[u8]>) -> Option<Duration> {
-        self.get_cache_rules(chain).iter().find_map(|rule| rule.matches_path(path, method, body))
-    }
-
     fn should_cache_request(&self, chain: &Chain, request_type: &RequestType) -> Option<Duration> {
         self.rule_for_request(chain, request_type).and_then(|rule| rule.ttl)
     }
 
     fn should_cache_call(&self, chain: &Chain, call: &JsonRpcCall) -> Option<Duration> {
-        self.get_cache_rules(chain).iter().find_map(|rule| rule.matches_rpc_method(&call.method))
+        self.rules.get(chain)?.iter().find(|rule| rule.matches_rpc(&call.method)).and_then(|rule| rule.ttl)
     }
 
     fn should_inflight_request(&self, chain: &Chain, request_type: &RequestType) -> bool {
-        self.rule_for_request(chain, request_type).is_some_and(|rule| match request_type {
-            RequestType::Regular { path, method, body } => rule.matches_path_inflight(path, method, Some(body.as_slice())),
-            RequestType::JsonRpc(JsonRpcRequest::Single(_)) => false,
-            RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => false,
-        })
+        matches!(request_type, RequestType::Regular { .. }) && self.rule_for_request(chain, request_type).is_some_and(|rule| rule.inflight)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Url;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
     use reqwest::StatusCode;
     use std::collections::HashMap;
 
-    fn create_test_config() -> CacheConfig {
-        let mut rules = HashMap::new();
-        rules.insert(
-            "ethereum".to_string(),
-            vec![
-                CacheRule {
-                    path: Some("/api/v1/data".to_string()),
-                    method: Some("GET".to_string()),
-                    rpc_method: None,
-                    ttl: Some(Duration::from_secs(300)),
-                    inflight: false,
-                    params: HashMap::new(),
-                },
-                CacheRule {
-                    path: None,
-                    method: None,
-                    rpc_method: Some("eth_blockNumber".to_string()),
-                    ttl: Some(Duration::from_secs(60)),
-                    inflight: false,
-                    params: HashMap::new(),
-                },
-            ],
-        );
+    fn create_test_chain_types() -> ChainTypesConfig {
+        serde_json::from_value(serde_json::json!({
+            "ethereum": {
+                "cache": [
+                    { "path": "/api/v1/data", "method": "GET", "ttl": "5m" },
+                    { "rpc_method": "eth_blockNumber", "ttl": "1m" }
+                ]
+            }
+        }))
+        .unwrap()
+    }
 
-        CacheConfig { max_memory_mb: 64, rules }
+    fn create_chain_config(chain: Chain) -> ChainConfig {
+        ChainConfig {
+            chain,
+            poll_interval_seconds: None,
+            overrides: None,
+            allowlist: None,
+            cache: None,
+            urls: vec![Url {
+                url: "https://example.com".to_string(),
+                headers: None,
+            }],
+        }
+    }
+
+    fn create_test_cache() -> MemoryCache {
+        let chains = vec![create_chain_config(Chain::Ethereum)];
+        MemoryCache::new(CacheConfig { max_memory_mb: 64 }, &create_test_chain_types(), chains.iter())
+    }
+
+    fn regular_request(path: &str, method: &str, body: &[u8]) -> RequestType {
+        RequestType::Regular {
+            path: path.to_string(),
+            method: method.to_string(),
+            body: body.to_vec(),
+        }
     }
 
     #[tokio::test]
     async fn test_set_and_get_cache() {
-        let config = create_test_config();
-        let cache = MemoryCache::new(config);
+        let cache = create_test_cache();
         let chain = Chain::Ethereum;
 
         let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
@@ -165,53 +174,50 @@ mod tests {
 
     #[test]
     fn test_should_cache_path_rule() {
-        let config = create_test_config();
-        let cache = MemoryCache::new(config.clone());
+        let cache = create_test_cache();
         let chain = Chain::Ethereum;
 
-        let ttl = cache.should_cache(&chain, "/api/v1/data", "GET", None);
+        let ttl = cache.should_cache_request(&chain, &regular_request("/api/v1/data", "GET", &[]));
         assert_eq!(ttl, Some(Duration::from_secs(300)));
 
-        let ttl = cache.should_cache(&chain, "/api/v1/data", "POST", None);
+        let ttl = cache.should_cache_request(&chain, &regular_request("/api/v1/data", "POST", &[]));
         assert_eq!(ttl, None);
     }
 
     #[test]
     fn test_should_cache_with_params() {
-        let mut config = create_test_config();
-        if let Some(rules) = config.rules.get_mut("ethereum") {
-            let mut params = HashMap::new();
-            params.insert("type".to_string(), serde_json::json!("metaAndAssetCtxs"));
-
-            rules.push(CacheRule {
-                path: Some("/info".to_string()),
-                method: Some("POST".to_string()),
-                rpc_method: None,
-                ttl: Some(Duration::from_secs(200)),
-                inflight: false,
-                params,
-            });
-        }
-
-        let cache = MemoryCache::new(config);
+        let chain_types: ChainTypesConfig = serde_json::from_value(serde_json::json!({
+            "ethereum": {
+                "cache": [
+                    {
+                        "path": "/info",
+                        "method": "POST",
+                        "ttl": "200s",
+                        "params": {
+                            "type": "metaAndAssetCtxs"
+                        }
+                    }
+                ]
+            }
+        }))
+        .unwrap();
+        let chains = vec![create_chain_config(Chain::Ethereum)];
+        let cache = MemoryCache::new(CacheConfig { max_memory_mb: 64 }, &chain_types, chains.iter());
         let chain = Chain::Ethereum;
 
-        let matching_body = r#"{"type":"metaAndAssetCtxs"}"#.as_bytes().to_vec();
-        let ttl = cache.should_cache(&chain, "/info", "POST", Some(matching_body.as_slice()));
+        let ttl = cache.should_cache_request(&chain, &regular_request("/info", "POST", br#"{"type":"metaAndAssetCtxs"}"#));
         assert_eq!(ttl, Some(Duration::from_secs(200)));
 
-        let non_matching_body = r#"{"type":"other"}"#.as_bytes().to_vec();
-        let ttl = cache.should_cache(&chain, "/info", "POST", Some(non_matching_body.as_slice()));
+        let ttl = cache.should_cache_request(&chain, &regular_request("/info", "POST", br#"{"type":"other"}"#));
         assert_eq!(ttl, None);
 
-        let ttl = cache.should_cache(&chain, "/info", "POST", None);
+        let ttl = cache.should_cache_request(&chain, &regular_request("/info", "POST", &[]));
         assert_eq!(ttl, None);
     }
 
     #[test]
     fn test_should_cache_request() {
-        let config = create_test_config();
-        let cache = MemoryCache::new(config.clone());
+        let cache = create_test_cache();
         let chain = Chain::Ethereum;
 
         let request = RequestType::JsonRpc(JsonRpcRequest::Single(JsonRpcCall {
@@ -227,8 +233,7 @@ mod tests {
 
     #[test]
     fn test_should_cache_call() {
-        let config = create_test_config();
-        let cache = MemoryCache::new(config.clone());
+        let cache = create_test_cache();
         let chain = Chain::Ethereum;
 
         let call = JsonRpcCall {
@@ -244,22 +249,23 @@ mod tests {
 
     #[test]
     fn test_should_cache_with_function_params() {
-        let mut config = create_test_config();
-        let mut aptos_rules = Vec::new();
-        let mut params = HashMap::new();
-        params.insert("function".to_string(), serde_json::json!("0x1::delegation_pool::operator_commission_percentage"));
-
-        aptos_rules.push(CacheRule {
-            path: Some("/v1/view".to_string()),
-            method: Some("POST".to_string()),
-            rpc_method: None,
-            ttl: Some(Duration::from_secs(3600)),
-            inflight: false,
-            params,
-        });
-
-        config.rules.insert("aptos".to_string(), aptos_rules);
-        let cache = MemoryCache::new(config);
+        let chain_types: ChainTypesConfig = serde_json::from_value(serde_json::json!({
+            "aptos": {
+                "cache": [
+                    {
+                        "path": "/v1/view",
+                        "method": "POST",
+                        "ttl": "1h",
+                        "params": {
+                            "function": "0x1::delegation_pool::operator_commission_percentage"
+                        }
+                    }
+                ]
+            }
+        }))
+        .unwrap();
+        let chains = vec![create_chain_config(Chain::Aptos)];
+        let cache = MemoryCache::new(CacheConfig { max_memory_mb: 64 }, &chain_types, chains.iter());
         let chain = Chain::Aptos;
 
         let body1 = r#"{
@@ -270,7 +276,7 @@ mod tests {
         .as_bytes()
         .to_vec();
 
-        let ttl = cache.should_cache(&chain, "/v1/view", "POST", Some(body1.as_slice()));
+        let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body1));
         assert_eq!(ttl, Some(Duration::from_secs(3600)));
 
         let body2 = r#"{
@@ -281,7 +287,7 @@ mod tests {
         .as_bytes()
         .to_vec();
 
-        let ttl = cache.should_cache(&chain, "/v1/view", "POST", Some(body2.as_slice()));
+        let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body2));
         assert_eq!(ttl, Some(Duration::from_secs(3600)));
 
         let body3 = r#"{
@@ -292,50 +298,42 @@ mod tests {
         .as_bytes()
         .to_vec();
 
-        let ttl = cache.should_cache(&chain, "/v1/view", "POST", Some(body3.as_slice()));
+        let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body3));
         assert_eq!(ttl, None);
     }
 
     #[tokio::test]
     async fn test_eviction() {
-        let mut rules = HashMap::new();
-        rules.insert("ethereum".to_string(), vec![]);
-
-        let config = CacheConfig {
-            max_memory_mb: 0, // Force eviction on any insert
-            rules,
-        };
-        let cache = MemoryCache::new(config);
+        let config = CacheConfig { max_memory_mb: 0 };
+        let chains = vec![create_chain_config(Chain::Ethereum)];
+        let cache = MemoryCache::new(config, &create_test_chain_types(), chains.iter());
         let chain = Chain::Ethereum;
 
-        // Insert first entry
         let response1 = CachedResponse::new(b"first".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
         cache.set(&chain, "key1".to_string(), response1, Duration::from_secs(60)).await;
 
-        // Insert second entry - should evict first due to max_memory_mb = 0
         let response2 = CachedResponse::new(b"second".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string(), Duration::from_secs(60));
         cache.set(&chain, "key2".to_string(), response2, Duration::from_secs(60)).await;
 
-        // First key should be evicted
         assert!(cache.get(&chain, "key1").await.is_none());
-        // Second key might also be evicted depending on size, but let's just verify eviction happened
     }
 
     #[test]
     fn test_should_inflight_request() {
-        let mut config = create_test_config();
-        config.rules.insert(
-            "tron".to_string(),
-            vec![CacheRule {
-                path: Some("/wallet/getaccount".to_string()),
-                method: Some("POST".to_string()),
-                rpc_method: None,
-                ttl: None,
-                inflight: true,
-                params: HashMap::new(),
-            }],
-        );
-        let cache = MemoryCache::new(config);
+        let chain_types: ChainTypesConfig = serde_json::from_value(serde_json::json!({
+            "tron": {
+                "cache": [
+                    {
+                        "path": "/wallet/getaccount",
+                        "method": "POST",
+                        "inflight": true
+                    }
+                ]
+            }
+        }))
+        .unwrap();
+        let chains = vec![create_chain_config(Chain::Tron)];
+        let cache = MemoryCache::new(CacheConfig { max_memory_mb: 64 }, &chain_types, chains.iter());
         let chain = Chain::Tron;
         let request_type = RequestType::Regular {
             path: "/wallet/getaccount".to_string(),
@@ -345,5 +343,46 @@ mod tests {
 
         assert!(cache.should_inflight_request(&chain, &request_type));
         assert_eq!(cache.should_cache_request(&chain, &request_type), None);
+    }
+
+    #[test]
+    fn test_chain_cache_replaces_chain_type_cache() {
+        let chain_types = create_test_chain_types();
+        let mut chain_config = create_chain_config(Chain::Ethereum);
+        chain_config.cache = Some(vec![CacheRule {
+            path: None,
+            method: None,
+            rpc_method: Some("eth_getLogs".to_string()),
+            ttl: Some(Duration::from_secs(30)),
+            inflight: false,
+            params: HashMap::new(),
+        }]);
+        let chains = vec![chain_config];
+        let cache = MemoryCache::new(CacheConfig { max_memory_mb: 64 }, &chain_types, chains.iter());
+
+        assert_eq!(
+            cache.should_cache_call(
+                &Chain::Ethereum,
+                &JsonRpcCall {
+                    jsonrpc: "2.0".to_string(),
+                    method: "eth_blockNumber".to_string(),
+                    params: serde_json::json!([]),
+                    id: 1,
+                }
+            ),
+            None
+        );
+        assert_eq!(
+            cache.should_cache_call(
+                &Chain::Ethereum,
+                &JsonRpcCall {
+                    jsonrpc: "2.0".to_string(),
+                    method: "eth_getLogs".to_string(),
+                    params: serde_json::json!([]),
+                    id: 1,
+                }
+            ),
+            Some(Duration::from_secs(30))
+        );
     }
 }

@@ -19,15 +19,15 @@ runs:
   steps:
     - name: Restore cargo cache
       if: ${{ inputs.restore-cache == 'true' }}
-      uses: Swatinem/rust-cache@v2
+      uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       with:
         shared-key: ${{ inputs.shared-key }}
 
     - name: Run sccache-cache
       if: ${{ inputs.sccache == 'true' }}
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
 
     - name: Install just
-      uses: extractions/setup-just@v4
+      uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
       with:
         just-version: "1.50.0"

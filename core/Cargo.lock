@@ -2553,6 +2553,7 @@ dependencies = [
  "settings_chain",
  "tokio",
  "url",
+ "uuid",
 ]
 
 [[package]]

@@ -35,7 +35,7 @@ impl ProxyBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::CacheConfig;
+    use crate::config::{CacheConfig, ChainTypesConfig};
     use primitives::Chain;
     use reqwest::header;
     use std::collections::HashMap;
@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_proxy_builder_creation() {
         let metrics = Metrics::new(MetricsConfig::default());
-        let cache = RequestCache::new(CacheConfig::default());
+        let cache = RequestCache::new(CacheConfig::default(), &ChainTypesConfig::default(), std::iter::empty());
         let client = reqwest::Client::new();
         let headers_config = create_test_headers_config();
         let broadcast_webhook = DynodeBroadcastWebhookClient::disabled();

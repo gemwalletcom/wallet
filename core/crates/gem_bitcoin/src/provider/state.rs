@@ -9,8 +9,8 @@ use crate::{provider::state_mapper, rpc::client::BitcoinClient};
 #[async_trait]
 impl<C: Client> ChainState for BitcoinClient<C> {
     async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        let block = self.get_block_info(1).await?;
-        block.previous_block_hash.ok_or_else(|| "Unable to get block hash".into())
+        let node_info = self.get_node_info().await?;
+        Ok(state_mapper::map_chain_id(self.chain, &node_info)?)
     }
 
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
@@ -46,7 +46,7 @@ mod chain_integration_tests {
         let chain_id = client.get_chain_id().await?;
 
         assert!(!chain_id.is_empty());
-        assert!(chain_id.len() == 64); // Bitcoin block hashes are 64 characters
+        assert_eq!(chain_id, primitives::Chain::Bitcoin.network_id());
         println!("Bitcoin chain ID: {}", chain_id);
 
         Ok(())

@@ -6,12 +6,19 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TransactionNotificationType {
+    NewTransaction,
+    StateChange,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionsPayload {
     pub chain: Chain,
     pub blocks: Vec<u64>,
     pub transactions: Vec<Transaction>,
     #[serde(default)]
     pub notify_devices: bool,
+    pub notification_type: TransactionNotificationType,
 }
 
 impl fmt::Display for TransactionsPayload {
@@ -27,6 +34,7 @@ impl TransactionsPayload {
             blocks: vec![],
             transactions,
             notify_devices: false,
+            notification_type: TransactionNotificationType::NewTransaction,
         }
     }
 
@@ -36,6 +44,17 @@ impl TransactionsPayload {
             blocks,
             transactions,
             notify_devices: true,
+            notification_type: TransactionNotificationType::NewTransaction,
+        }
+    }
+
+    pub fn new_state_change_with_notify(chain: Chain, transactions: Vec<Transaction>) -> Self {
+        Self {
+            chain,
+            blocks: vec![],
+            transactions,
+            notify_devices: true,
+            notification_type: TransactionNotificationType::StateChange,
         }
     }
 

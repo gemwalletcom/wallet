@@ -260,7 +260,8 @@ mod tests {
             Ok(br#"[
                     {"mayanAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
                     {"mayanAddress":"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
-                    {"mayanAddress":""}
+                    {"mayanAddress":""},
+                    {"chainId":1}
                 ]"#
             .to_vec())
         });

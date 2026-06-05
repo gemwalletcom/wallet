@@ -9,7 +9,7 @@ use std::io;
 
 use crate::{
     ChatwootConfigResponse, ChatwootContactResponse, ChatwootContactUpdate, ChatwootMessageInput, ChatwootMessagesResponse, ChatwootSession, ChatwootTypingInput, Message,
-    constants::{PATH_CONFIG, PATH_CONTACT_SET_USER, PATH_MESSAGES, PATH_TOGGLE_TYPING, PATH_UPDATE_LAST_SEEN, QUERY_CHATWOOT_AFTER, QUERY_WIDGET_PUBLIC_TOKEN},
+    constants::{PATH_CONFIG, PATH_CONTACT_SET_USER, PATH_MESSAGES, PATH_TOGGLE_TYPING, PATH_UPDATE_LAST_SEEN, QUERY_WIDGET_PUBLIC_TOKEN},
     support_messages,
 };
 
@@ -50,14 +50,11 @@ impl ChatwootClient {
     }
 
     pub async fn messages(&self, session: &ChatwootSession, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
-        let mut request = self.authenticated(self.client.get(self.widget_url(PATH_MESSAGES)), &session.auth_token)?;
-        if let Some(from_timestamp) = from_timestamp {
-            request = request.query(&[(QUERY_CHATWOOT_AFTER, from_timestamp)]);
-        }
+        let response: ChatwootMessagesResponse = self
+            .json(self.authenticated(self.client.get(self.widget_url(PATH_MESSAGES)), &session.auth_token)?.send().await?)
+            .await?;
 
-        let response: ChatwootMessagesResponse = self.json(request.send().await?).await?;
-
-        Ok(support_messages(&response.payload))
+        Ok(messages_from_timestamp(support_messages(&response.payload), from_timestamp))
     }
 
     pub async fn send_message(&self, session: &ChatwootSession, content: String) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
@@ -151,5 +148,42 @@ impl ChatwootClient {
         let status = response.status().as_u16();
         let message = response.text().await?;
         Err(io::Error::other(format!("Chatwoot HTTP error {status}: {message}")).into())
+    }
+}
+
+fn messages_from_timestamp(messages: Vec<SupportMessage>, from_timestamp: Option<u64>) -> Vec<SupportMessage> {
+    let Some(from_timestamp) = from_timestamp else {
+        return messages;
+    };
+    let Ok(from_timestamp) = i64::try_from(from_timestamp) else {
+        return vec![];
+    };
+    messages.into_iter().filter(|message| message.created_at.timestamp() > from_timestamp).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{SupportMessageDeliveryStatus, SupportMessageSender};
+
+    #[test]
+    fn test_messages_from_timestamp() {
+        let messages = vec![message("1", 10), message("2", 20)];
+
+        let filtered = messages_from_timestamp(messages.clone(), Some(10));
+
+        assert_eq!(filtered, vec![message("2", 20)]);
+        assert_eq!(messages_from_timestamp(messages, Some(u64::MAX)), Vec::<SupportMessage>::new());
+    }
+
+    fn message(id: &str, timestamp: i64) -> SupportMessage {
+        SupportMessage {
+            id: id.to_string(),
+            content: id.to_string(),
+            sender: SupportMessageSender::User,
+            delivery_status: SupportMessageDeliveryStatus::Sent,
+            created_at: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
+            images: vec![],
+        }
     }
 }

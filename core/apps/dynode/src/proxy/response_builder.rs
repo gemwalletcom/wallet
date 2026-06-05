@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use super::constants::{JSON_CONTENT_TYPE, JSON_HEADER};
 
-const X_UPSTREAM_HOST: HeaderName = HeaderName::from_static("x-upstream-host");
+const X_REQUEST_ID: HeaderName = HeaderName::from_static("x-request-id");
 const X_UPSTREAM_LATENCY: HeaderName = HeaderName::from_static("x-upstream-latency");
 
 #[derive(Debug, Clone)]
@@ -23,13 +23,10 @@ impl ProxyResponse {
 pub struct ResponseBuilder;
 
 impl ResponseBuilder {
-    pub fn create_upstream_headers(upstream_host: Option<&str>, latency: Duration) -> HeaderMap {
+    pub fn create_proxy_headers(request_id: &str, latency: Duration) -> HeaderMap {
         let mut headers = HeaderMap::new();
 
-        if let Some(host) = upstream_host {
-            headers.insert(X_UPSTREAM_HOST, HeaderValue::from_str(host).unwrap_or_else(|_| HeaderValue::from_static("unknown")));
-        }
-
+        headers.insert(X_REQUEST_ID, HeaderValue::from_str(request_id).unwrap_or_else(|_| HeaderValue::from_static("unknown")));
         headers.insert(
             X_UPSTREAM_LATENCY,
             HeaderValue::from_str(&format!("{}ms", latency.as_millis())).unwrap_or_else(|_| HeaderValue::from_static("0ms")),
@@ -71,5 +68,19 @@ impl ResponseBuilder {
     pub fn build_json_response_with_headers<T: serde::Serialize>(data: &T, headers: HeaderMap) -> Result<ProxyResponse, Box<dyn std::error::Error + Send + Sync>> {
         let response_body = serde_json::to_vec(data)?;
         Self::build_with_headers(response_body, StatusCode::OK.as_u16(), JSON_CONTENT_TYPE, headers)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_proxy_headers() {
+        let headers = ResponseBuilder::create_proxy_headers("request-id", Duration::from_millis(42));
+
+        assert_eq!(headers.get("x-request-id").unwrap(), "request-id");
+        assert_eq!(headers.get("x-upstream-latency").unwrap(), "42ms");
+        assert!(headers.get("x-upstream-host").is_none());
     }
 }

@@ -9,7 +9,7 @@ use dynode::monitoring::{NodeMonitor, NodeService};
 use dynode::proxy::{ProxyRequestBuilder, ProxyResponse};
 use dynode::response::{ErrorResponse, ProxyRocketResponse};
 use dynode::webhook::DynodeBroadcastWebhookClient;
-use gem_tracing::{error_with_fields, info_with_fields};
+use gem_tracing::{error_fields, info_with_fields};
 use primitives::Chain;
 use reqwest::Method;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
@@ -96,10 +96,9 @@ async fn process_proxy(chain: Chain, method: Method, request: &Request<'_>, data
         }
     };
 
-    node_service.handle_request(proxy_request).await.map_err(|err| {
-        let error_msg = err.to_string();
-        error_with_fields!("Proxy request failed", err.as_ref(),);
-        ErrorResponse::new(Status::InternalServerError, error_msg)
+    node_service.handle_request(proxy_request).await.map_err(|_| {
+        error_fields!("Proxy request failed");
+        ErrorResponse::new(Status::InternalServerError, "Proxy request failed".to_string())
     })
 }
 
@@ -143,6 +142,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         chains,
         metrics.clone(),
         client,
+        config.chain_types.clone(),
         config.cache.clone(),
         config.retry.clone(),
         config.headers.clone(),

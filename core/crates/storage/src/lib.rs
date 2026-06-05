@@ -28,7 +28,7 @@ pub use self::database::{
     transactions::{TransactionFilter, TransactionUpdate},
 };
 pub use self::error::{DatabaseError, DieselResultExt, ReferralValidationError, UsernameValidationError};
-pub use self::models::{AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewWalletRow, RewardRedemptionOptionRow};
+pub use self::models::{AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewSupportSessionRow, NewWalletRow, RewardRedemptionOptionRow};
 pub use self::repositories::{
     assets_addresses_repository::AssetsAddressesRepository,
     assets_links_repository::AssetsLinksRepository,
@@ -52,6 +52,7 @@ pub use self::repositories::{
     rewards_repository::{ReferrerInfo, RewardsEligibilityConfig, RewardsRepository},
     risk_signals_repository::RiskSignalsRepository,
     scan_addresses_repository::ScanAddressesRepository,
+    support_sessions_repository::SupportSessionsRepository,
     tag_repository::TagRepository,
     transactions_repository::TransactionsRepository,
     wallets_repository::WalletsRepository,
@@ -151,6 +152,10 @@ impl Database {
     }
 
     pub fn scan_addresses(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
+        self.client()
+    }
+
+    pub fn support_sessions(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
         self.client()
     }
 

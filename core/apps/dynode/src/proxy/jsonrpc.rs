@@ -9,7 +9,6 @@ use crate::proxy::request_url::RequestUrl;
 use crate::proxy::response_builder::ResponseBuilder;
 use crate::webhook::DynodeBroadcastWebhookClient;
 use gem_tracing::{DurationMs, info_with_fields};
-use primitives::Chain;
 use reqwest::header::HeaderMap;
 use reqwest::{Method, StatusCode};
 use settings_chain::BroadcastProviders;
@@ -77,8 +76,8 @@ impl JsonRpcHandler {
                     request.elapsed().as_millis(),
                 );
 
-                let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
-                return Self::build_json_response(&response, upstream_headers, StatusCode::OK.as_u16());
+                let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+                return Self::build_json_response(&response, proxy_headers, StatusCode::OK.as_u16());
             } else {
                 metrics.add_cache_miss(request.chain.as_ref(), &call.method);
             }
@@ -130,8 +129,8 @@ impl JsonRpcHandler {
 
         broadcast_webhook.notify_broadcast(request, response_status, &response_body, broadcast_providers);
 
-        let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
-        Self::build_json_response(&response, upstream_headers, response_status)
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        Self::build_json_response(&response, proxy_headers, response_status)
     }
 
     async fn handle_batch_request(
@@ -174,8 +173,8 @@ impl JsonRpcHandler {
             latency = DurationMs(request.elapsed()),
         );
 
-        let upstream_headers = ResponseBuilder::create_upstream_headers(url.url.host_str(), request.elapsed());
-        Self::build_json_response(&responses, upstream_headers, response_status)
+        let proxy_headers = ResponseBuilder::create_proxy_headers(request.id.as_str(), request.elapsed());
+        Self::build_json_response(&responses, proxy_headers, response_status)
     }
 
     async fn send_jsonrpc_request(
@@ -189,17 +188,6 @@ impl JsonRpcHandler {
         Ok(client.execute(request).await?)
     }
 
-    // TODO: Temporary dynode override for older app versions. Remove after clients send matching commitment.
-    fn override_solana_get_latest_blockhash(call: &JsonRpcCall) -> JsonRpcCall {
-        let mut call = call.clone();
-        if let serde_json::Value::Array(items) = &mut call.params
-            && let Some(serde_json::Value::Object(config)) = items.get_mut(0)
-        {
-            config.insert("commitment".to_string(), "finalized".into());
-        }
-        call
-    }
-
     async fn fetch_single_response(
         call: &JsonRpcCall,
         request: &ProxyRequest,
@@ -208,12 +196,7 @@ impl JsonRpcHandler {
         client: &reqwest::Client,
         forward_headers: &HeaderMap,
     ) -> Result<(JsonRpcResult, u16, Vec<u8>), Box<dyn std::error::Error + Send + Sync>> {
-        let upstream_call = if request.chain == Chain::Solana && call.method == "getLatestBlockhash" {
-            Self::override_solana_get_latest_blockhash(call)
-        } else {
-            call.clone()
-        };
-        let body = serde_json::to_vec(&upstream_call)?;
+        let body = serde_json::to_vec(call)?;
         let response = Self::send_jsonrpc_request(client, &request.method, url, body, forward_headers).await?;
         let status = response.status().as_u16();
         let body_bytes = response.bytes().await?.to_vec();
@@ -304,37 +287,6 @@ mod tests {
         let JsonRpcRequest::Batch(_) = batch_request else {
             panic!("Expected batch request");
         };
-    }
-
-    #[test]
-    fn test_override_solana_get_latest_blockhash() {
-        let confirmed_client = JsonRpcCall {
-            jsonrpc: "2.0".into(),
-            method: "getLatestBlockhash".into(),
-            params: json!([{ "commitment": "confirmed" }]),
-            id: 1,
-        };
-        let result = JsonRpcHandler::override_solana_get_latest_blockhash(&confirmed_client);
-        assert_eq!(result.params[0]["commitment"], "finalized");
-
-        let processed_client = JsonRpcCall {
-            jsonrpc: "2.0".into(),
-            method: "getLatestBlockhash".into(),
-            params: json!([{ "commitment": "processed", "minContextSlot": 100 }]),
-            id: 1,
-        };
-        let result = JsonRpcHandler::override_solana_get_latest_blockhash(&processed_client);
-        assert_eq!(result.params[0]["commitment"], "finalized");
-        assert_eq!(result.params[0]["minContextSlot"], 100);
-
-        let no_params = JsonRpcCall {
-            jsonrpc: "2.0".into(),
-            method: "getLatestBlockhash".into(),
-            params: json!([]),
-            id: 1,
-        };
-        let result = JsonRpcHandler::override_solana_get_latest_blockhash(&no_params);
-        assert_eq!(result.params, json!([]));
     }
 
     #[test]

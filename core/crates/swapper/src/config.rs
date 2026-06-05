@@ -1,4 +1,4 @@
-use crate::{SwapperSlippage, SwapperSlippageMode};
+use crate::{SwapperProvider, SwapperSlippage, SwapperSlippageMode};
 use primitives::Chain;
 
 pub const DEFAULT_SLIPPAGE_BPS: u32 = 100;
@@ -6,11 +6,13 @@ pub const DEFAULT_SWAP_FEE_BPS: u32 = 50;
 pub const DEFAULT_CHAINFLIP_FEE_BPS: u32 = 45;
 
 pub const API_BASE_URL: &str = "https://api.gemwallet.com";
-pub const API_BASE_URL_ENV: &str = "GEM_API_BASE_URL";
+
+pub fn get_swap_provider_url(provider: SwapperProvider) -> String {
+    format!("{API_BASE_URL}/v1/swaps/providers/{}", provider.id())
+}
 
 pub fn get_swap_proxy_url(path: &str) -> String {
-    let base_url = std::env::var(API_BASE_URL_ENV).unwrap_or_else(|_| API_BASE_URL.to_string());
-    format!("{}/proxy/swap/{path}", base_url.trim_end_matches('/'))
+    format!("{API_BASE_URL}/proxy/swap/{path}")
 }
 
 #[derive(Debug, Clone, PartialEq)]
