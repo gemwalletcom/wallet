@@ -22,7 +22,6 @@ import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.ScanTransaction
 import com.wallet.core.primitives.ScanTransactionPayload
 import com.wallet.core.primitives.SupportAction
-import com.wallet.core.primitives.SupportConversation
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageInput
 import com.wallet.core.primitives.Transaction
@@ -117,9 +116,6 @@ interface GemDeviceApiClient {
 
     @POST("/v2/devices/scan/transaction")
     suspend fun getScanTransaction(@Body payload: ScanTransactionPayload): ScanTransaction
-
-    @GET("/v2/devices/support")
-    suspend fun getSupportConversation(): SupportConversation?
 
     @GET("/v2/devices/support/messages")
     suspend fun getSupportMessages(

@@ -87,7 +87,6 @@ public protocol GemAPIScanService: Sendable {
 }
 
 public protocol GemAPISupportService: Sendable {
-    func getSupportConversation() async throws -> SupportConversation?
     func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage]
     func sendSupportMessage(input: SupportMessageInput) async throws -> SupportMessage
     func sendSupportImage(image: Data, fileName: String, mimeType: String) async throws -> SupportMessage
@@ -308,11 +307,6 @@ extension GemAPIService: GemAPIScanService {
 }
 
 extension GemAPIService: GemAPISupportService {
-    public func getSupportConversation() async throws -> SupportConversation? {
-        try await requestDevice(.getSupportConversation)
-            .mapResponse(as: SupportConversation?.self)
-    }
-
     public func getSupportMessages(fromTimestamp: Int) async throws -> [SupportMessage] {
         try await requestDevice(.getSupportMessages(fromTimestamp: fromTimestamp))
             .mapResponse(as: [SupportMessage].self)

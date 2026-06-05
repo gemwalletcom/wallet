@@ -29,7 +29,6 @@ public enum GemDeviceAPI: TargetType {
     case scanTransaction(payload: ScanTransactionPayload)
     case getWalletConfiguration(walletId: WalletId)
 
-    case getSupportConversation
     case getSupportMessages(fromTimestamp: Int)
     case sendSupportMessage(input: SupportMessageInput)
     case sendSupportImage(image: Data, fileName: String, mimeType: String)
@@ -83,7 +82,6 @@ public enum GemDeviceAPI: TargetType {
              .getFiatTransactions,
              .getNameRecord,
              .getWalletConfiguration,
-             .getSupportConversation,
              .getSupportMessages:
             .GET
         case .addDevice,
@@ -148,8 +146,6 @@ public enum GemDeviceAPI: TargetType {
             return "/v2/devices/scan/transaction"
         case .getWalletConfiguration:
             return "/v2/devices/wallet_configuration"
-        case .getSupportConversation:
-            return "/v2/devices/support"
         case let .getSupportMessages(fromTimestamp):
             return "/v2/devices/support/messages?from_timestamp=\(fromTimestamp)"
         case .sendSupportMessage:
@@ -237,7 +233,6 @@ public enum GemDeviceAPI: TargetType {
              .getFiatQuoteUrl,
              .getFiatTransactions,
              .getNameRecord,
-             .getSupportConversation,
              .getSupportMessages:
             return .plain
         case let .getPriceAlerts(assetId):

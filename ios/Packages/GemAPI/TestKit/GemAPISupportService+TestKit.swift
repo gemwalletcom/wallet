@@ -5,7 +5,6 @@ import GemAPI
 import Primitives
 
 public actor GemAPISupportServiceMock: GemAPISupportService {
-    private let conversation: SupportConversation?
     private let messages: [SupportMessage]
 
     public private(set) var sentMessages: [SupportMessageInput] = []
@@ -13,15 +12,9 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
     public private(set) var sentActions: [SupportAction] = []
 
     public init(
-        conversation: SupportConversation? = nil,
         messages: [SupportMessage] = [],
     ) {
-        self.conversation = conversation
         self.messages = messages
-    }
-
-    public func getSupportConversation() async throws -> SupportConversation? {
-        conversation
     }
 
     public func getSupportMessages(fromTimestamp _: Int) async throws -> [SupportMessage] {
@@ -32,10 +25,9 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
         sentMessages.append(input)
         return SupportMessage(
             id: "",
-            conversationId: "",
             content: input.content,
             sender: .user,
-            deliveryStatus: .sent,
+            status: .sent,
             createdAt: Date(),
             images: [],
         )
@@ -45,10 +37,9 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
         sentImages.append((image, fileName, mimeType))
         return SupportMessage(
             id: "",
-            conversationId: "",
             content: "",
             sender: .user,
-            deliveryStatus: .sent,
+            status: .sent,
             createdAt: Date(),
             images: [],
         )
