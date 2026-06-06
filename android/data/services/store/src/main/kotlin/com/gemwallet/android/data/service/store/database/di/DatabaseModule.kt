@@ -10,6 +10,7 @@ import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
+import com.gemwallet.android.data.service.store.database.ContactsDao
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
@@ -79,6 +80,7 @@ object DatabaseModule {
         .addMigrations(Migration_75_76)
         .addMigrations(Migration_76_77)
         .addMigrations(Migration_77_78)
+        .addMigrations(Migration_78_79)
         .build()
 
     @Singleton
@@ -96,6 +98,10 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideAddressesDao(db: GemDatabase): AddressesDao = db.addressesDao()
+
+    @Singleton
+    @Provides
+    fun provideContactsDao(db: GemDatabase): ContactsDao = db.contactsDao()
 
     @Singleton
     @Provides

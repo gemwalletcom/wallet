@@ -45,6 +45,7 @@ import java.util.Locale
 fun PreferencesScene(
     onCurrencies: () -> Unit,
     onNetworks: () -> Unit,
+    onContacts: () -> Unit,
     onCancel: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -105,10 +106,19 @@ fun PreferencesScene(
                 LinkItem(
                     title = stringResource(id = R.string.settings_networks_title),
                     icon = R.drawable.settings_networks,
-                    listPosition = ListPosition.Last
+                    listPosition = ListPosition.Middle
                 ) {
                     onNetworks()
                 }
+            }
+
+            item {
+                LinkItem(
+                    title = stringResource(id = R.string.contacts_title),
+                    icon = R.drawable.settings_contacts,
+                    listPosition = ListPosition.Last,
+                    onClick = onContacts,
+                )
             }
 
             item {

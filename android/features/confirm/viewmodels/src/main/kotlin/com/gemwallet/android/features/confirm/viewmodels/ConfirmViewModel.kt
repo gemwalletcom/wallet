@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
+import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
@@ -68,6 +69,7 @@ class ConfirmViewModel @Inject constructor(
     private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val getAddressName: GetAddressName,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -200,10 +202,18 @@ class ConfirmViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val txProperties = combine(request, assetsInfo) { request, assetsInfo ->
+    private val recipientAddressName = request
+        .filterNotNull()
+        .map { it.assetId.chain to it.destination()?.address?.takeIf { address -> address.isNotEmpty() } }
+        .distinctUntilChanged()
+        .flatMapLatest { (chain, address) ->
+            if (address == null) flowOf(null) else getAddressName.getAddressNameFlow(chain, address)
+        }
+
+    val txProperties = combine(request, assetsInfo, recipientAddressName) { request, assetsInfo, addressName ->
         request ?: return@combine emptyList()
         assetsInfo ?: return@combine emptyList()
-        buildConfirmProperties(request, assetsInfo)
+        buildConfirmProperties(request, assetsInfo, addressName)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

@@ -20,6 +20,7 @@ sealed interface EmptyContentType {
 
     data class Stake(val symbol: String) : EmptyContentType
     data object PriceAlerts : EmptyContentType
+    data object Contacts : EmptyContentType
     data object WalletConnect : EmptyContentType
     data object Recents : EmptyContentType
     data object Notifications : EmptyContentType

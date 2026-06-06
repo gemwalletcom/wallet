@@ -27,6 +27,7 @@ fun EmptyContentView(
 private fun EmptyContentType.title(): String = when (this) {
     is EmptyContentType.Nft -> stringResource(R.string.nft_state_empty_title)
     is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_title)
+    is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_title)
     is EmptyContentType.Asset -> if (isViewOnly) {
         stringResource(R.string.wallet_watch_tooltip_title)
     } else {
@@ -51,6 +52,7 @@ private fun EmptyContentType.title(): String = when (this) {
 private fun EmptyContentType.description(): String? = when (this) {
     is EmptyContentType.Nft -> if (onReceive != null) stringResource(R.string.nft_state_empty_description) else null
     is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_description)
+    is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_description)
     is EmptyContentType.Asset -> if (isViewOnly) null else stringResource(R.string.asset_state_empty_description, symbol)
     is EmptyContentType.Activity -> if (isViewOnly) null else stringResource(R.string.activity_state_empty_description)
     is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_description, symbol)
@@ -73,6 +75,7 @@ private fun EmptyContentType.icon() = when (this) {
     is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals -> null
     is EmptyContentType.Nft -> painterResource(R.drawable.empty_nfts)
     is EmptyContentType.PriceAlerts -> painterResource(R.drawable.empty_notifications)
+    is EmptyContentType.Contacts -> painterResource(R.drawable.empty_contacts)
     is EmptyContentType.Asset, is EmptyContentType.Activity -> painterResource(R.drawable.empty_activity)
     is EmptyContentType.Stake -> painterResource(R.drawable.empty_stake)
     is EmptyContentType.WalletConnect -> painterResource(R.drawable.empty_dapps)

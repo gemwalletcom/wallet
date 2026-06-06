@@ -31,7 +31,7 @@ struct SwapTokenView: View {
             if showLoading {
                 LoadingView()
             }
-            TextField(showLoading ? "" : String.zero, text: $text)
+            TextField(showLoading ? "" : model.amountPlaceholder, text: $text)
                 .keyboardType(.decimalPad)
                 .foregroundStyle(Colors.black)
                 .font(.app.title1)
@@ -41,8 +41,8 @@ struct SwapTokenView: View {
     }
 
     private var fiatBalanceView: some View {
-        Text(model.fiatBalance(amount: text))
-            .lineLimit(1)
+        Text(model.fiatBalance(amount: text) ?? "")
+            .lineLimit(1, reservesSpace: true)
             .font(.app.callout)
             .foregroundStyle(Colors.secondaryText)
     }

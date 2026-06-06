@@ -232,7 +232,7 @@ mod tests {
         assert_eq!(validator.chain, Chain::Celestia);
         assert_eq!(validator.id, "celestiavaloper1eualhqh07w7p45g45hvrjagkcxsfnflzdw5jzg");
         assert_eq!(validator.name, "don't stake");
-        assert_eq!(validator.is_active, false);
+        assert!(!validator.is_active);
         assert_eq!(validator.commission, 20.0);
         assert_eq!(validator.apr, 0.0);
     }

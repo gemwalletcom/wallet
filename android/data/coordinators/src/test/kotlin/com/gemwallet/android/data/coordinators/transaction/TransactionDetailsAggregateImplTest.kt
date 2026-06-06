@@ -56,8 +56,8 @@ class TransactionDetailsAggregateImplTest {
 
     private val tonAsset = mockAsset(
         chain = Chain.Ton,
-        name = "Toncoin",
-        symbol = "TON",
+        name = "TON",
+        symbol = "GRAM",
         decimals = 9,
     )
 
@@ -214,7 +214,7 @@ class TransactionDetailsAggregateImplTest {
         val tonAsset = mockAsset(
             chain = Chain.SmartChain,
             tokenId = "0x76A797A59Ba2C17726896976B7B3747BfD1d220f",
-            name = "Ton",
+            name = "TON",
             symbol = "TON",
             decimals = 9,
             type = AssetType.BEP20,

@@ -317,23 +317,23 @@ mod tests {
         let asset_id = AssetId::from_chain(Chain::Ethereum);
         let asset_id_usdt: AssetId = ETHEREUM_USDT_ASSET_ID.clone();
         let supported_assets_all = vec![SwapperChainAsset::All(Chain::Ethereum)];
-        assert_eq!(GemSwapper::filter_supported_assets(supported_assets_all, asset_id.clone()), true);
-        assert_eq!(
-            GemSwapper::filter_supported_assets(vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])], AssetId::from_chain(Chain::Cardano)),
-            true
-        );
-        assert_eq!(
-            GemSwapper::filter_supported_assets(vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])], AssetId::from_token(Chain::Cardano, "policy.asset")),
-            false
-        );
+        assert!(GemSwapper::filter_supported_assets(supported_assets_all, asset_id.clone()));
+        assert!(GemSwapper::filter_supported_assets(
+            vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])],
+            AssetId::from_chain(Chain::Cardano)
+        ));
+        assert!(!GemSwapper::filter_supported_assets(
+            vec![SwapperChainAsset::Assets(Chain::Cardano, vec![])],
+            AssetId::from_token(Chain::Cardano, "policy.asset")
+        ));
 
         let supported_assets = vec![
             SwapperChainAsset::All(Chain::Ethereum),
             SwapperChainAsset::Assets(Chain::Ethereum, vec![AssetId::from_token(Chain::Ethereum, &asset_id_usdt.clone().token_id.unwrap())]),
         ];
 
-        assert_eq!(GemSwapper::filter_supported_assets(supported_assets.clone(), asset_id_usdt.clone()), true);
-        assert_eq!(GemSwapper::filter_supported_assets(supported_assets, asset_id), true);
+        assert!(GemSwapper::filter_supported_assets(supported_assets.clone(), asset_id_usdt.clone()));
+        assert!(GemSwapper::filter_supported_assets(supported_assets, asset_id));
     }
 
     #[tokio::test]

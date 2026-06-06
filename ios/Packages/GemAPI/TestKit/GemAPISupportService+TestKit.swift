@@ -11,7 +11,9 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
     public private(set) var sentImages: [(image: Data, fileName: String, mimeType: String)] = []
     public private(set) var sentActions: [SupportAction] = []
 
-    public init(messages: [SupportMessage] = []) {
+    public init(
+        messages: [SupportMessage] = [],
+    ) {
         self.messages = messages
     }
 
@@ -25,7 +27,7 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
             id: "",
             content: input.content,
             sender: .user,
-            deliveryStatus: .sent,
+            status: .sent,
             createdAt: Date(),
             images: [],
         )
@@ -37,7 +39,7 @@ public actor GemAPISupportServiceMock: GemAPISupportService {
             id: "",
             content: "",
             sender: .user,
-            deliveryStatus: .sent,
+            status: .sent,
             createdAt: Date(),
             images: [],
         )

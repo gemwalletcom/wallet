@@ -187,7 +187,10 @@ fun ConfirmScreen(
             itemsIndexed(displayTxProperties) { index, item ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
-                    is ConfirmProperty.Destination -> PropertyDestination(item, listPosition)
+                    is ConfirmProperty.Destination -> PropertyDestination(
+                        model = item,
+                        listPosition = listPosition,
+                    )
                     is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
                     is ConfirmProperty.Network -> PropertyNetworkItem(item.data, listPosition)
                     is ConfirmProperty.Source -> PropertyItem(

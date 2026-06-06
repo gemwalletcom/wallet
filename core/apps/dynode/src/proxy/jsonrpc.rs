@@ -68,7 +68,7 @@ impl JsonRpcHandler {
                     id: Some(call.id),
                 });
 
-                metrics.add_proxy_response(
+                metrics.add_proxy_upstream_response(
                     request.chain.as_ref(),
                     &call.method,
                     url.url.host_str().unwrap_or_default(),
@@ -87,7 +87,7 @@ impl JsonRpcHandler {
 
         let (response, response_status, response_body) = Self::fetch_single_response(call, request, cache, url, client, forward_headers).await?;
 
-        metrics.add_proxy_response(
+        metrics.add_proxy_upstream_response(
             request.chain.as_ref(),
             &call.method,
             url.url.host_str().unwrap_or_default(),
@@ -150,7 +150,7 @@ impl JsonRpcHandler {
         let (responses, response_status) = Self::fetch_batch_responses(calls, url, client, &request.method, forward_headers).await?;
 
         for call in calls {
-            metrics.add_proxy_response(
+            metrics.add_proxy_upstream_response(
                 request.chain.as_ref(),
                 &call.method,
                 url.url.host_str().unwrap_or_default(),

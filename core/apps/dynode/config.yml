@@ -69,15 +69,6 @@ chain_types:
       - path: /wallet/listwitnesses
         method: GET
         ttl: 1d
-      - path: /wallet/getaccount
-        method: POST
-        inflight: true
-      - path: /wallet/getaccountresource
-        method: POST
-        inflight: true
-      - path: /wallet/getReward
-        method: POST
-        inflight: true
   solana:
     cache:
       - rpc_method: getVoteAccounts

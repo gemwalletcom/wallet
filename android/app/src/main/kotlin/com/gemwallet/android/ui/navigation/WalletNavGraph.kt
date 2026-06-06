@@ -42,6 +42,8 @@ import com.gemwallet.android.ui.navigation.routes.perpetualScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipientInput
 import com.gemwallet.android.ui.navigation.routes.referral
+import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
+import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
@@ -201,6 +203,7 @@ fun WalletNavGraph(
                 onAction = { action ->
                     when (action) {
                         SettingsAction.Currencies -> navigator.openCurrencies()
+                        SettingsAction.Contacts -> navigator.openContacts()
                         SettingsAction.Networks -> navigator.openNetworks()
                         SettingsAction.PriceAlerts -> navigator.openPriceAlerts()
                         is SettingsAction.AddPriceAlertTarget -> navigator.openAddPriceAlertTarget(action.assetId)
@@ -213,6 +216,16 @@ fun WalletNavGraph(
                 },
                 toastMessage = navigator::toastMessage,
                 onToastShown = navigator::clearToastMessage,
+            )
+
+            contactsScreen(
+                onAction = { action ->
+                    when (action) {
+                        is ContactsAction.OpenContact -> navigator.openContact(action.contactId)
+                        ContactsAction.AddContact -> navigator.openAddContact()
+                        ContactsAction.Cancel -> onCancel()
+                    }
+                },
             )
 
             acceptTermsScreen(

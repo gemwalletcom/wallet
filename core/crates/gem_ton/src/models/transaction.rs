@@ -73,14 +73,22 @@ pub struct TraceByAddressQuery {
 pub struct Trace {
     pub is_incomplete: bool,
     pub actions: Vec<TraceAction>,
+    #[serde(default)]
     pub transactions_order: Vec<String>,
     pub transactions: HashMap<String, TransactionMessage>,
 }
 
 impl Trace {
     pub fn root_transaction(&self) -> Option<&TransactionMessage> {
-        let transaction_id = self.transactions_order.first()?;
-        self.transactions.get(transaction_id)
+        if let Some(transaction_id) = self.transactions_order.first() {
+            return self.transactions.get(transaction_id);
+        }
+
+        if self.transactions.len() == 1 {
+            return self.transactions.values().next();
+        }
+
+        None
     }
 
     pub fn has_actions(&self) -> bool {

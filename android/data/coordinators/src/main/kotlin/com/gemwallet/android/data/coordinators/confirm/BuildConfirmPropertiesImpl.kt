@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
-import com.gemwallet.android.cases.addresses.GetAddressName
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.stake.StakeRepository
 import com.gemwallet.android.domains.asset.chain
@@ -12,6 +11,7 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
+import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.DelegationValidator
@@ -20,12 +20,12 @@ import uniffi.gemstone.Explorer
 class BuildConfirmPropertiesImpl(
     private val stakeRepository: StakeRepository,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
-    private val getAddressName: GetAddressName,
 ) : BuildConfirmProperties {
 
     override suspend fun invoke(
         request: ConfirmParams,
         assetsInfo: List<AssetInfo>,
+        addressName: AddressName?,
     ): List<ConfirmProperty> {
         val assetInfo = assetsInfo.getByAssetId(request.assetId) ?: return emptyList()
         val chain = assetInfo.asset.id.chain
@@ -33,9 +33,6 @@ class BuildConfirmPropertiesImpl(
         val chainExplorer = Explorer(chain.string)
         return mutableListOf<ConfirmProperty?>().apply {
             add(ConfirmProperty.Source(assetInfo.walletName, assetInfo.walletType, assetInfo.owner?.chain))
-            val addressName = request.destination()?.address
-                ?.takeIf { it.isNotEmpty() }
-                ?.let { getAddressName.getAddressName(chain, it) }
             val destination = ConfirmProperty.Destination.map(request, getValidator(request), addressName)
             add(
                 when (destination) {

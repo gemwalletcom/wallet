@@ -9,8 +9,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class SupportAgent (
-	val name: String,
-	val avatarUrl: String? = null
+	val name: String
 )
 
 @Serializable
@@ -49,7 +48,7 @@ data class SupportMessage (
 	val id: String,
 	val content: String,
 	val sender: SupportMessageSender,
-	val deliveryStatus: SupportMessageDeliveryStatus,
+	val status: SupportMessageDeliveryStatus,
 	val createdAt: SerializedDate,
 	val images: List<SupportMessageImage>
 )

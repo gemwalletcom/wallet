@@ -13,11 +13,11 @@ pub struct Metrics {
     proxy_requests: Family<ProxyRequestLabels, Counter>,
     proxy_requests_by_method: Family<ProxyRequestByMethodLabels, Counter>,
     proxy_response_latency: Family<ResponseLabels, Histogram>,
+    proxy_upstream_response_latency: Family<UpstreamResponseLabels, Histogram>,
+    proxy_retries: Family<RetryLabels, Counter>,
     node_host_current: Family<HostCurrentStateLabels, Gauge>,
     cache_hits: Family<CacheLabels, Counter>,
     cache_misses: Family<CacheLabels, Counter>,
-    inflight_hits: Family<CacheLabels, Counter>,
-    inflight_misses: Family<CacheLabels, Counter>,
     node_switches: Family<NodeSwitchLabels, Counter>,
     auth_requests: Family<AuthLabels, Counter>,
 }
@@ -42,9 +42,22 @@ pub struct HostCurrentStateLabels {
 #[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
 struct ResponseLabels {
     chain: String,
+    status: u16,
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+struct UpstreamResponseLabels {
+    chain: String,
     host: String,
     method: String,
     status: u16,
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+struct RetryLabels {
+    chain: String,
+    host: String,
+    reason: String,
 }
 
 #[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
@@ -71,11 +84,11 @@ impl Metrics {
         let proxy_requests = Family::<ProxyRequestLabels, Counter>::default();
         let proxy_requests_by_method = Family::<ProxyRequestByMethodLabels, Counter>::default();
         let proxy_response_latency = Family::<ResponseLabels, Histogram>::new_with_constructor(|| Histogram::new(exponential_buckets(50.0, 2.0, 6)));
+        let proxy_upstream_response_latency = Family::<UpstreamResponseLabels, Histogram>::new_with_constructor(|| Histogram::new(exponential_buckets(50.0, 2.0, 6)));
+        let proxy_retries = Family::<RetryLabels, Counter>::default();
         let node_host_current = Family::<HostCurrentStateLabels, Gauge>::default();
         let cache_hits = Family::<CacheLabels, Counter>::default();
         let cache_misses = Family::<CacheLabels, Counter>::default();
-        let inflight_hits = Family::<CacheLabels, Counter>::default();
-        let inflight_misses = Family::<CacheLabels, Counter>::default();
         let node_switches = Family::<NodeSwitchLabels, Counter>::default();
         let auth_requests = Family::<AuthLabels, Counter>::default();
 
@@ -87,16 +100,16 @@ impl Metrics {
             "Proxy requests by host and method (HTTP path or RPC method)",
             proxy_requests_by_method.clone(),
         );
+        registry.register("proxy_response_latency", "Proxy responses by chain and status", proxy_response_latency.clone());
         registry.register(
-            "proxy_response_latency",
-            "Proxy responses by host, path, method, and status",
-            proxy_response_latency.clone(),
+            "proxy_upstream_response_latency",
+            "Upstream proxy responses by host, path, method, and status",
+            proxy_upstream_response_latency.clone(),
         );
+        registry.register("proxy_retries", "Proxy retries by chain, upstream host, and reason", proxy_retries.clone());
         registry.register("node_host_current", "Node current host url", node_host_current.clone());
         registry.register("cache_hits", "Cache hits by host and path", cache_hits.clone());
         registry.register("cache_misses", "Cache misses by host and path", cache_misses.clone());
-        registry.register("inflight_hits", "In-flight coalescing hits by host and path", inflight_hits.clone());
-        registry.register("inflight_misses", "In-flight coalescing misses by host and path", inflight_misses.clone());
         registry.register("node_switches", "Node switches by chain", node_switches.clone());
         registry.register("auth_requests", "Auth requests by status", auth_requests.clone());
 
@@ -105,11 +118,11 @@ impl Metrics {
             proxy_requests,
             proxy_requests_by_method,
             proxy_response_latency,
+            proxy_upstream_response_latency,
+            proxy_retries,
             node_host_current,
             cache_hits,
             cache_misses,
-            inflight_hits,
-            inflight_misses,
             node_switches,
             auth_requests,
         }
@@ -137,16 +150,32 @@ impl Metrics {
         }
     }
 
-    pub fn add_proxy_response(&self, chain: &str, method: &str, host: &str, status: u16, latency: u128) {
+    pub fn add_proxy_upstream_response(&self, chain: &str, method: &str, host: &str, status: u16, latency: u128) {
         let method = self.truncate_method(method);
-        self.proxy_response_latency
-            .get_or_create(&ResponseLabels {
+        self.proxy_upstream_response_latency
+            .get_or_create(&UpstreamResponseLabels {
                 chain: chain.to_string(),
                 host: host.to_string(),
                 method,
                 status,
             })
             .observe(latency as f64);
+    }
+
+    pub fn add_proxy_response(&self, chain: &str, status: u16, latency: u128) {
+        self.proxy_response_latency
+            .get_or_create(&ResponseLabels { chain: chain.to_string(), status })
+            .observe(latency as f64);
+    }
+
+    pub fn add_proxy_retry(&self, chain: &str, host: &str, reason: &str) {
+        self.proxy_retries
+            .get_or_create(&RetryLabels {
+                chain: chain.to_string(),
+                host: host.to_string(),
+                reason: reason.to_string(),
+            })
+            .inc();
     }
 
     pub fn set_node_host_current(&self, chain: &str, host: &str) {
@@ -158,6 +187,16 @@ impl Metrics {
             .set(1);
     }
 
+    pub fn move_node_host_current(&self, chain: &str, old_host: &str, new_host: &str) {
+        self.node_host_current
+            .get_or_create(&HostCurrentStateLabels {
+                chain: chain.to_string(),
+                host: old_host.to_string(),
+            })
+            .set(0);
+        self.set_node_host_current(chain, new_host);
+    }
+
     pub fn add_cache_hit(&self, chain: &str, path: &str) {
         let path = self.truncate_path(path);
         self.cache_hits.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
@@ -166,16 +205,6 @@ impl Metrics {
     pub fn add_cache_miss(&self, chain: &str, path: &str) {
         let path = self.truncate_path(path);
         self.cache_misses.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
-    }
-
-    pub fn add_inflight_hit(&self, chain: &str, path: &str) {
-        let path = self.truncate_path(path);
-        self.inflight_hits.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
-    }
-
-    pub fn add_inflight_miss(&self, chain: &str, path: &str) {
-        let path = self.truncate_path(path);
-        self.inflight_misses.get_or_create(&CacheLabels { chain: chain.to_string(), path }).inc();
     }
 
     pub fn add_node_switch(&self, chain: &str, old_host: &str, new_host: &str, reason: &str) {
@@ -265,5 +294,33 @@ mod tests {
         assert_eq!(m.truncate_method("eth_getBalance"), "eth_getBalance");
         assert_eq!(m.truncate_method("/api/v1/blocks/by_height/12345"), "/api/v1/blocks/by_height/:number");
         assert_eq!(m.truncate_method("/v1/verylongsegmentthatisgreaterthan20characters"), "/v1/:value");
+    }
+
+    #[test]
+    fn records_response_once_and_retries_separately() {
+        let metrics = create_test_metrics();
+
+        metrics.add_proxy_response("tron", 200, 123);
+        metrics.add_proxy_retry("tron", "api.trongrid.io", "status=429");
+
+        let encoded = metrics.get_metrics();
+        assert!(encoded.contains("test_proxy_response_latency_count"));
+        assert!(encoded.contains("chain=\"tron\""));
+        assert!(encoded.contains("status=\"200\""));
+        assert!(encoded.contains("test_proxy_retries_total"));
+        assert!(encoded.contains("host=\"api.trongrid.io\""));
+        assert!(encoded.contains("reason=\"status=429\""));
+    }
+
+    #[test]
+    fn moves_current_node_host() {
+        let metrics = create_test_metrics();
+
+        metrics.set_node_host_current("thorchain", "thornode.ninerealms.com");
+        metrics.move_node_host_current("thorchain", "thornode.ninerealms.com", "gateway.liquify.com");
+
+        let encoded = metrics.get_metrics();
+        assert!(encoded.contains("test_node_host_current{chain=\"thorchain\",host=\"thornode.ninerealms.com\"} 0"));
+        assert!(encoded.contains("test_node_host_current{chain=\"thorchain\",host=\"gateway.liquify.com\"} 1"));
     }
 }

@@ -19,8 +19,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.cases.contacts.ContactRecipient
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.presents.components.RecipientHead
+import com.gemwallet.android.features.recipient.presents.components.contactsDestination
 import com.gemwallet.android.features.recipient.presents.components.destinationView
 import com.gemwallet.android.features.recipient.presents.components.walletsDestination
 import com.gemwallet.android.features.recipient.viewmodel.RecipientViewModel
@@ -51,6 +53,7 @@ fun RecipientScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val hasMemo by viewModel.hasMemo.collectAsStateWithLifecycle()
     val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressError by viewModel.addressError.collectAsStateWithLifecycle()
     val memoError by viewModel.memoErrorState.collectAsStateWithLifecycle()
     val address by viewModel.address.collectAsStateWithLifecycle()
@@ -69,6 +72,7 @@ fun RecipientScreen(
                 addressError = addressError,
                 memoError = memoError,
                 wallets = wallets,
+                contacts = contacts,
                 onAddress = viewModel::onAddress,
                 onMemo = viewModel::onMemo,
                 onQrScan = { scan = it },
@@ -98,6 +102,7 @@ fun RecipientScreen(
     addressError: RecipientError,
     memoError: RecipientError,
     wallets: List<Wallet>,
+    contacts: List<ContactRecipient>,
     onAddress: (String, NameRecord?) -> Unit,
     onMemo: (String) -> Unit,
     onQrScan: (QrScanField) -> Unit,
@@ -147,6 +152,15 @@ fun RecipientScreen(
                 onMemo = onMemo,
                 onQrScan = onQrScan,
             )
+            contactsDestination(contacts = contacts) { contact ->
+                onMemo(contact.memo ?: "")
+                onDestination(
+                    DestinationAddress(
+                        address = contact.address,
+                        name = contact.name,
+                    )
+                )
+            }
             walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
                 onDestination(
                     DestinationAddress(

@@ -95,12 +95,22 @@ impl NodeService {
             (old_host, new_host)
         };
 
-        Self::sync_current_node_metric(metrics, chain_config.chain, selected);
+        metrics.move_node_host_current(chain_config.chain.as_ref(), &old_host, &new_host);
         metrics.add_node_switch(chain_config.chain.as_ref(), &old_host, &new_host, reason.as_str());
         Some((old_host, new_host))
     }
 
     pub async fn handle_request(&self, request: ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
+        let request_for_metrics = request.clone();
+        let result = self.handle_request_inner(request).await;
+        if let Ok(response) = &result {
+            self.metrics
+                .add_proxy_response(request_for_metrics.chain.as_ref(), response.status, request_for_metrics.elapsed().as_millis());
+        }
+        result
+    }
+
+    async fn handle_request_inner(&self, request: ProxyRequest) -> Result<ProxyResponse, Box<dyn Error + Send + Sync>> {
         Self::log_incoming_request(&request);
 
         let chain_config = self.get_chain_config(&request)?;
@@ -144,7 +154,11 @@ impl NodeService {
                     if !retry_enabled {
                         return self.log_and_create_error_response(&request, Some(remote_host.as_str()), &format!("Upstream status code: {}", response.status), upstream_data);
                     }
-                    last_error = Some(format!("status={}", response.status));
+                    let retry_reason = format!("status={}", response.status);
+                    if index + 1 < max_attempts {
+                        self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), &retry_reason);
+                    }
+                    last_error = Some(retry_reason);
                     last_error_data = upstream_data;
                 }
                 Err(e) => {
@@ -163,6 +177,9 @@ impl NodeService {
                         error = UPSTREAM_REQUEST_FAILED,
                         latency = latency,
                     );
+                    if index + 1 < max_attempts {
+                        self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), UPSTREAM_REQUEST_FAILED);
+                    }
                     last_error = Some(UPSTREAM_REQUEST_FAILED.to_string());
                 }
             }

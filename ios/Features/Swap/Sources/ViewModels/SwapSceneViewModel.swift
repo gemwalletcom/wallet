@@ -170,7 +170,7 @@ public final class SwapSceneViewModel {
         }
         guard let assetData: AssetData = type == .pay ? fromAsset : toAsset else {
             return SwapTokenViewModel(
-                type: .placeholder(currencyCode: preferences.currency),
+                type: .placeholder,
                 interaction: interaction,
             )
         }

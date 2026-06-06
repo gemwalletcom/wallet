@@ -71,8 +71,7 @@ struct TransferDetails {
 
 fn map_root_trace_transaction(trace: Trace) -> Option<Transaction> {
     let state = if trace.is_incomplete || trace.has_actions() { Some(trace.action_state()) } else { None };
-    let root_hash = trace.transactions_order.first()?;
-    let root = trace.transactions.get(root_hash)?;
+    let root = trace.root_transaction()?;
 
     let details = jetton_swap_details(&trace.actions)
         .or_else(|| nft_transfer_details(&trace.actions))
@@ -262,7 +261,7 @@ mod tests {
     use crate::models::{MessageTransactions, TraceResponse};
     use crate::provider::testkit::{FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH, SUCCESS_SWAP_ROOT_TRANSACTION_HEX_HASH, TEST_TRANSACTION_ID};
     use primitives::testkit::signer_mock::TEST_TON_SENDER;
-    use serde_json::json;
+    use serde_json::{Map, Value, json};
 
     const NFT_NEW_OWNER: &str = "UQDSkZZueXRl0lUk4hagLa8KrJzZbmtTE_RPZwTDSIw32WNH";
 
@@ -493,5 +492,37 @@ mod tests {
         assert_eq!(hashes, vec![SUCCESS_SWAP_ROOT_TRANSACTION_HEX_HASH, FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH]);
         assert_eq!(transactions[0].state, TransactionState::Confirmed);
         assert_eq!(transactions[1].state, TransactionState::Reverted);
+    }
+
+    #[test]
+    fn test_map_trace_transactions_without_transactions_order() {
+        let message_transactions: MessageTransactions = serde_json::from_str(include_str!("../../testdata/transaction_transfer_state_success.json")).unwrap();
+        let root = message_transactions.transactions.first().unwrap();
+
+        let mut root_value = serde_json::to_value(root).unwrap();
+        if let Value::Object(transaction) = &mut root_value {
+            transaction.insert("total_fees".to_string(), json!(root.total_fees.to_string()));
+        }
+
+        let mut transactions = Map::new();
+        transactions.insert(root.hash.clone(), root_value);
+
+        let mut trace = Map::new();
+        trace.insert("is_incomplete".to_string(), json!(false));
+        trace.insert("actions".to_string(), json!([]));
+        trace.insert("transactions".to_string(), Value::Object(transactions));
+
+        let mut response = Map::new();
+        response.insert("traces".to_string(), Value::Array(vec![Value::Object(trace)]));
+
+        let traces: TraceResponse = serde_json::from_value(Value::Object(response)).unwrap();
+
+        assert_eq!(traces.traces[0].transactions_order, Vec::<String>::new());
+
+        let transactions = map_trace_transactions(traces.traces);
+
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].hash, "9ba7d317aaed24089e5cc3b0df4432294cb88ed485d202768cc2766432aec3e0");
+        assert_eq!(transactions[0].state, TransactionState::Confirmed);
     }
 }

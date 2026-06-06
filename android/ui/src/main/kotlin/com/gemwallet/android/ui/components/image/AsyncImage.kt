@@ -19,8 +19,8 @@ import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
 import coil3.transform.Transformation
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.iconSize
+import com.gemwallet.android.ui.theme.secondaryFaded
 import com.wallet.core.primitives.Asset
 
 private val DefaultCircleCropTransformation = CircleCropTransformation()
@@ -41,7 +41,7 @@ fun AsyncImage(
     val requestData = if (model is Asset) model.getIconUrl() else model
     val context = LocalContext.current
     val density = LocalDensity.current
-    val placeholderColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha50)
+    val placeholderColor = MaterialTheme.colorScheme.secondaryFaded
     val textMeasurer = rememberTextMeasurer()
     val placeholderSize = size?.let { with(density) { Size(it.toPx(), it.toPx()) } } ?: Size.Unspecified
     val placeholder = remember(placeholderText, placeholderColor, placeholderSize) {

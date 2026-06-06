@@ -40,6 +40,10 @@ val AssetInfo.availableBalanceFormatted: String // TODO: Out to BalanceExt
     get() = ValueFormatter(style = ValueFormatter.Style.Auto)
         .string(balance.balance.available.toBigInteger(), balance.asset)
 
+val AssetInfo.availableBalanceAmount: String
+    get() = ValueFormatter(style = ValueFormatter.Style.Auto)
+        .string(balance.balance.available.toBigInteger(), decimals = asset.decimals)
+
 
 fun AssetInfo.calculateFiat(rawInput: String): BigDecimal {
     val value = Crypto(rawInput.toBigIntegerOrNull() ?: BigInteger.ZERO)

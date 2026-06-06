@@ -10,7 +10,7 @@ use std::io;
 use crate::{
     ChatwootConfigResponse, ChatwootContactResponse, ChatwootContactUpdate, ChatwootMessageInput, ChatwootMessagesResponse, ChatwootSession, ChatwootTypingInput, Message,
     constants::{PATH_CONFIG, PATH_CONTACT_SET_USER, PATH_MESSAGES, PATH_TOGGLE_TYPING, PATH_UPDATE_LAST_SEEN, QUERY_WIDGET_PUBLIC_TOKEN},
-    support_messages,
+    support_public_messages,
 };
 
 #[derive(Clone)]
@@ -54,7 +54,7 @@ impl ChatwootClient {
             .json(self.authenticated(self.client.get(self.widget_url(PATH_MESSAGES)), &session.auth_token)?.send().await?)
             .await?;
 
-        Ok(messages_from_timestamp(support_messages(&response.payload), from_timestamp))
+        Ok(messages_from_timestamp(support_public_messages(&response.payload), from_timestamp))
     }
 
     pub async fn send_message(&self, session: &ChatwootSession, content: String) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
@@ -181,7 +181,7 @@ mod tests {
             id: id.to_string(),
             content: id.to_string(),
             sender: SupportMessageSender::User,
-            delivery_status: SupportMessageDeliveryStatus::Sent,
+            status: SupportMessageDeliveryStatus::Sent,
             created_at: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
             images: vec![],
         }

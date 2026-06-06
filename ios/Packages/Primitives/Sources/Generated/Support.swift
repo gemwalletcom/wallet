@@ -6,11 +6,9 @@ import Foundation
 
 public struct SupportAgent: Codable, Equatable, Sendable {
 	public let name: String
-	public let avatarUrl: String?
 
-	public init(name: String, avatarUrl: String?) {
+	public init(name: String) {
 		self.name = name
-		self.avatarUrl = avatarUrl
 	}
 }
 
@@ -86,15 +84,15 @@ public struct SupportMessage: Codable, Equatable, Sendable {
 	public let id: String
 	public let content: String
 	public let sender: SupportMessageSender
-	public let deliveryStatus: SupportMessageDeliveryStatus
+	public let status: SupportMessageDeliveryStatus
 	public let createdAt: Date
 	public let images: [SupportMessageImage]
 
-	public init(id: String, content: String, sender: SupportMessageSender, deliveryStatus: SupportMessageDeliveryStatus, createdAt: Date, images: [SupportMessageImage]) {
+	public init(id: String, content: String, sender: SupportMessageSender, status: SupportMessageDeliveryStatus, createdAt: Date, images: [SupportMessageImage]) {
 		self.id = id
 		self.content = content
 		self.sender = sender
-		self.deliveryStatus = deliveryStatus
+		self.status = status
 		self.createdAt = createdAt
 		self.images = images
 	}

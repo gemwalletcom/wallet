@@ -267,10 +267,7 @@ mod tests {
     }
 
     fn is_permit_warning(warning: &SimulationWarningType) -> bool {
-        match warning {
-            SimulationWarningType::PermitApproval(_) | SimulationWarningType::PermitBatchApproval(_) => true,
-            _ => false,
-        }
+        matches!(warning, SimulationWarningType::PermitApproval(_) | SimulationWarningType::PermitBatchApproval(_))
     }
 
     fn is_unlimited_permit_warning(warning: &SimulationWarningType) -> bool {
@@ -282,17 +279,11 @@ mod tests {
     }
 
     fn is_token_warning(warning: &SimulationWarningType) -> bool {
-        match warning {
-            SimulationWarningType::TokenApproval(_) => true,
-            _ => false,
-        }
+        matches!(warning, SimulationWarningType::TokenApproval(_))
     }
 
     fn is_nft_warning(warning: &SimulationWarningType) -> bool {
-        match warning {
-            SimulationWarningType::NftCollectionApproval(_) => true,
-            _ => false,
-        }
+        matches!(warning, SimulationWarningType::NftCollectionApproval(_))
     }
 
     #[test]

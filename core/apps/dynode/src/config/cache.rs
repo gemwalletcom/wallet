@@ -21,8 +21,6 @@ pub struct CacheRule {
     #[serde(default, alias = "ttl_seconds", deserialize_with = "duration::deserialize_option")]
     pub(crate) ttl: Option<Duration>,
     #[serde(default)]
-    pub(crate) inflight: bool,
-    #[serde(default)]
     pub(crate) params: HashMap<String, Value>,
 }
 
@@ -74,12 +72,10 @@ mod tests {
     fn test_ttl_default_none() {
         let rule: CacheRule = serde_json::from_value(serde_json::json!({
             "path": "/wallet/getaccount",
-            "method": "POST",
-            "inflight": true
+            "method": "POST"
         }))
         .unwrap();
 
-        assert!(rule.inflight);
         assert_eq!(rule.ttl, None);
     }
 
