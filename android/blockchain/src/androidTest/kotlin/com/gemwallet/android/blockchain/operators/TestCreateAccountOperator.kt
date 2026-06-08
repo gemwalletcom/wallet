@@ -1,35 +1,35 @@
 package com.gemwallet.android.blockchain.operators
 
-import com.gemwallet.android.blockchain.includeLibs
-import com.gemwallet.android.blockchain.operators.walletcore.WCCreateAccountOperator
+import androidx.test.core.app.ApplicationProvider
 import com.gemwallet.android.ext.available
 import com.gemwallet.android.testkit.LOCAL_KEYSTORE_TEST_PHRASE
 import com.gemwallet.android.testkit.TEST_PHRASE
+import com.gemwallet.android.testkit.gemstoneTestAccount
+import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
 class TestCreateAccountOperator {
     companion object {
         init {
-            includeLibs()
+            includeGemstoneLibs()
         }
     }
 
+    private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
     @Test
     fun testCreate_account_solana() {
-        val operator = WCCreateAccountOperator()
-        val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.Solana)
+        val result = gemstoneTestAccount(context, chain = Chain.Solana, phrase = TEST_PHRASE)
         assertEquals("4Yu2e1Wz5T1Ci2hAPswDqvMgSnJ1Ftw7ZZh8x7xKLx7S", result.address)
-        assertEquals("m/44'/501'/0'", result.derivationPath)
-        assertEquals("", result.extendedPublicKey)
+        assertEquals("m/44'/501'/0'/0'", result.derivationPath)
+        assertEquals("34bee4f639dc054e05c01a0d196aed6db69d56e4ea920b3c022d2f0d5bce73a9", result.extendedPublicKey)
     }
 
     @Test
     fun testCreate_account_bitcoincache() {
-        val operator = WCCreateAccountOperator()
-        val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.BitcoinCash)
+        val result = gemstoneTestAccount(context, chain = Chain.BitcoinCash, phrase = TEST_PHRASE)
         assertEquals("qq29xrkkd68alnrca375qlfyhwdqdkevsvmgkq9cmw", result.address)
         assertEquals("m/44'/145'/0'/0/0", result.derivationPath)
         assertEquals("xpub6Cd3LU6iyrbbhxPRYZpE5hGUdmrQVpQ79i9RYNLrs2iVrtYkKRv6swMWeTpPfomebgisrRGPrFvt1qaFiZLLuQdSFRVBWdbKD4HWnMrFsjR", result.extendedPublicKey)
@@ -38,23 +38,16 @@ class TestCreateAccountOperator {
 
     @Test
     fun testCreate_account_evm() {
-        val operator = WCCreateAccountOperator()
-        val result = operator(walletType = WalletType.Multicoin, data = TEST_PHRASE, Chain.Ethereum)
+        val result = gemstoneTestAccount(context, chain = Chain.Ethereum, phrase = TEST_PHRASE)
         assertEquals("0x9b1DB81180c31B1b428572Be105E209b5A6222b7", result.address)
         assertEquals("m/44'/60'/0'/0/0", result.derivationPath)
-        assertEquals("", result.extendedPublicKey)
+        assertEquals("045515e0ac635b35f12639f7df11f4488ba2f3dfa3ba4e11e286cfb59c45af60d8455161a6f2294f567ac4d8bc70fb26abd78338cbb5f9f238bdb5a875b390eaa2", result.extendedPublicKey)
     }
 
     @Test
     fun testCreate_account_derive_address_matches_ios_local_keystore() {
-        val operator = WCCreateAccountOperator()
-
         Chain.available().forEach { chain ->
-            val account = operator(
-                walletType = WalletType.Multicoin,
-                data = LOCAL_KEYSTORE_TEST_PHRASE,
-                chain = chain,
-            )
+            val account = gemstoneTestAccount(context, chain = chain, phrase = LOCAL_KEYSTORE_TEST_PHRASE)
 
             assertEquals("Unexpected derived address for $chain", expectedAddress(chain), account.address)
         }

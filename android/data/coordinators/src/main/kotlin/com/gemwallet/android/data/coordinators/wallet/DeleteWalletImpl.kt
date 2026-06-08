@@ -35,11 +35,12 @@ class DeleteWalletImpl @Inject constructor(
         val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return@withContext
         val currentWalletId = sessionRepository.session().firstOrNull()?.wallet?.id
 
-        if (!walletsRepository.removeWallet(walletId = walletId)) {
+        // Delete the keystore before the DB row; if it fails, keep the wallet so the secret is never orphaned silently.
+        if (wallet.type != WalletType.View && !deleteKeyStoreOperator(wallet)) {
             return@withContext
         }
-        if (wallet.type != WalletType.View) {
-            if (!deleteKeyStoreOperator(walletId.id)) return@withContext
+        if (!walletsRepository.removeWallet(walletId = walletId)) {
+            return@withContext
         }
 
         scope.launch {

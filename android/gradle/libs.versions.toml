@@ -47,7 +47,6 @@ turbine = "1.2.1"
 mockkVersion = "1.14.9"
 espressoCore = "3.7.0"
 
-wallet-core = "4.3.22"
 
 glance-widgets = "1.1.1"
 
@@ -105,9 +104,6 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 walletconnect-bom = { module = "com.reown:android-bom", version.ref = "walletconnect" }
 walletconnect-core = { module = "com.reown:android-core" }
 walletconnect-web3wallet = { module = "com.reown:walletkit" }
-
-# Wallet - core
-wallet-core = { module = "com.trustwallet:wallet-core", version.ref = "wallet-core" }
 
 # qr code scanning
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing-core" }

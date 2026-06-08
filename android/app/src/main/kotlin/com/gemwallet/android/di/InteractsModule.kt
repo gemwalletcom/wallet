@@ -4,22 +4,27 @@ import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
+import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.blockchain.operators.CreateAccountOperator
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
 import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
-import com.gemwallet.android.blockchain.operators.GemstoneValidateAddressOperator
+import com.gemwallet.android.blockchain.operators.GemValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
+import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCCreateAccountOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCCreateWalletOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCDeleteKeyStoreOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateDataOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCLoadPrivateKeyOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCStorePhraseOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCValidatePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemAddAccountsOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemCreateAccountOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemCreateWalletOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemDeleteKeyStoreOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemLoadPrivateDataOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemStorePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
+import com.gemwallet.android.blockchain.services.GemSignAuthOperator
+import com.gemwallet.android.blockchain.services.GemSignMessageOperator
+import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.data.password.PreferencePasswordStore
@@ -41,46 +46,72 @@ object InteractsModule {
 
     @Singleton
     @Provides
-    fun provideValidateAddressInteract(): ValidateAddressOperator = GemstoneValidateAddressOperator()
+    fun provideValidateAddressInteract(): ValidateAddressOperator = GemValidateAddressOperator()
 
     @Singleton
     @Provides
-    fun provideValidatePhraseInteract(): ValidatePhraseOperator = WCValidatePhraseOperator()
+    fun provideValidatePhraseInteract(): ValidatePhraseOperator = GemValidatePhraseOperator()
 
     @Singleton
     @Provides
-    fun provideCreateWalletInteract(): CreateWalletOperator = WCCreateWalletOperator()
+    fun provideCreateWalletInteract(): CreateWalletOperator = GemCreateWalletOperator()
 
     @Singleton
     @Provides
-    fun provideCreateAccountInteract(): CreateAccountOperator = WCCreateAccountOperator()
+    fun provideCreateAccountInteract(
+        @ApplicationContext context: Context,
+    ): CreateAccountOperator = GemCreateAccountOperator(context.dataDir.toString())
+
+    @Singleton
+    @Provides
+    fun provideAddAccountsInteract(
+        @ApplicationContext context: Context,
+    ): AddAccountsOperator = GemAddAccountsOperator(context.dataDir.toString())
+
+    @Singleton
+    @Provides
+    fun provideMigrateKeystoreOperator(
+        @ApplicationContext context: Context,
+    ): MigrateKeystoreOperator = GemMigrateKeystoreOperator(context.dataDir.toString())
 
     @Singleton
     @Provides
     fun provideStorePhraseInteract(
         @ApplicationContext context: Context
     ): StorePhraseOperator =
-        WCStorePhraseOperator(context.dataDir.toString())
+        GemStorePhraseOperator(context.dataDir.toString())
 
     @Singleton
     @Provides
     fun provideLoadPhraseInteract(
         @ApplicationContext context: Context
     ): LoadPrivateDataOperator =
-        WCLoadPrivateDataOperator(context.dataDir.toString())
+        GemLoadPrivateDataOperator(context.dataDir.toString())
 
     @Singleton
     @Provides
-    fun provideLoadPrivateKeyInteract(
+    fun provideSignTransactionOperator(
         @ApplicationContext context: Context,
-    ): LoadPrivateKeyOperator = WCLoadPrivateKeyOperator(context.dataDir.toString())
+    ): GemSignTransactionOperator = GemSignTransactionOperator(context.dataDir.toString())
+
+    @Singleton
+    @Provides
+    fun provideSignMessageOperator(
+        @ApplicationContext context: Context,
+    ): GemSignMessageOperator = GemSignMessageOperator(context.dataDir.toString())
+
+    @Singleton
+    @Provides
+    fun provideSignAuthOperator(
+        @ApplicationContext context: Context,
+    ): GemSignAuthOperator = GemSignAuthOperator(context.dataDir.toString())
 
     @Singleton
     @Provides
     fun provideDeleteKeyStoreOperator(
         @ApplicationContext context: Context,
         passwordStore: PasswordStore,
-    ): DeleteKeyStoreOperator = WCDeleteKeyStoreOperator(context.dataDir.toString(), passwordStore)
+    ): DeleteKeyStoreOperator = GemDeleteKeyStoreOperator(context.dataDir.toString(), passwordStore)
 
     @Provides
     @Singleton

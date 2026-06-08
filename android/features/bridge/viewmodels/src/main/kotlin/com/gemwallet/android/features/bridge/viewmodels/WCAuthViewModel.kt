@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
-import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
+import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.ChainNamespace
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
@@ -18,11 +18,12 @@ import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.PayloadField
-import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.Wallet as ReownWallet
 import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainType
+import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -37,7 +38,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
-import java.util.Arrays
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,19 +46,19 @@ class WCAuthViewModel @Inject constructor(
     private val bridgesRepository: BridgesRepository,
     private val walletsRepository: WalletsRepository,
     private val passwordStore: PasswordStore,
-    private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
+    private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
 ) : ViewModel() {
 
-    private var authRequest: Wallet.Model.SessionAuthenticate? = null
+    private var authRequest: ReownWallet.Model.SessionAuthenticate? = null
     private var hasResponded = false
 
     private val _state = MutableStateFlow<AuthSceneState>(AuthSceneState.Loading)
     val state: StateFlow<AuthSceneState> = _state.asStateFlow()
 
     fun onRequest(
-        request: Wallet.Model.SessionAuthenticate,
-        verifyContext: Wallet.Model.VerifyContext,
+        request: ReownWallet.Model.SessionAuthenticate,
+        verifyContext: ReownWallet.Model.VerifyContext,
     ) {
         authRequest = request
         hasResponded = false
@@ -140,20 +140,14 @@ class WCAuthViewModel @Inject constructor(
         _state.update { AuthSceneState.Approving(current) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            var privateKey: ByteArray? = null
             try {
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                privateKey = loadPrivateKeyOperator(
-                    approval.wallet,
-                    approval.account.chain,
-                    passwordStore.getPassword(approval.wallet.id.id),
-                )
                 val signature = signAuthMessage(
+                    wallet = approval.wallet,
                     chain = approval.account.chain,
                     message = approval.message,
-                    privateKey = privateKey,
                 )
                 if (!isActiveRequest(request)) {
                     return@launch
@@ -161,7 +155,7 @@ class WCAuthViewModel @Inject constructor(
                 val authObject = WalletKit.generateAuthObject(
                     payloadParams = approval.payloadParams,
                     issuer = approval.issuer,
-                    signature = Wallet.Model.Cacao.Signature(
+                    signature = ReownWallet.Model.Cacao.Signature(
                         t = "eip191",
                         s = signature,
                     ),
@@ -186,8 +180,6 @@ class WCAuthViewModel @Inject constructor(
                 if (authRequest?.id == request.id) {
                     _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
                 }
-            } finally {
-                privateKey?.let { Arrays.fill(it, 0) }
             }
         }
     }
@@ -211,7 +203,7 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun rejectRequest(
-        request: Wallet.Model.SessionAuthenticate,
+        request: ReownWallet.Model.SessionAuthenticate,
         state: AuthSceneState,
     ) {
         if (!isActiveRequest(request)) {
@@ -222,13 +214,13 @@ class WCAuthViewModel @Inject constructor(
         _state.update { state }
     }
 
-    private fun isActiveRequest(request: Wallet.Model.SessionAuthenticate): Boolean {
+    private fun isActiveRequest(request: ReownWallet.Model.SessionAuthenticate): Boolean {
         return authRequest?.id == request.id && !hasResponded
     }
 
     private fun buildApproval(
-        request: Wallet.Model.SessionAuthenticate,
-        wallet: com.wallet.core.primitives.Wallet,
+        request: ReownWallet.Model.SessionAuthenticate,
+        wallet: Wallet,
     ): AuthApproval {
         val supportedAccounts = supportedAccounts(wallet, request)
         val selectedAccount = supportedAccounts.firstOrNull()
@@ -241,7 +233,7 @@ class WCAuthViewModel @Inject constructor(
         )
         val issuer = selectedAccount.issuer
         val message = WalletKit.formatAuthMessage(
-            Wallet.Params.FormatAuthMessage(
+            ReownWallet.Params.FormatAuthMessage(
                 payloadParams = payloadParams,
                 issuer = issuer,
             )
@@ -260,8 +252,8 @@ class WCAuthViewModel @Inject constructor(
     }
 
     private fun supportedAccounts(
-        wallet: com.wallet.core.primitives.Wallet,
-        request: Wallet.Model.SessionAuthenticate,
+        wallet: Wallet,
+        request: ReownWallet.Model.SessionAuthenticate,
     ): List<AuthAccount> {
         val requestedChains = request.payloadParams.chains.toSet()
         if (requestedChains.isEmpty()) {
@@ -303,10 +295,10 @@ class WCAuthViewModel @Inject constructor(
         }
     }
 
-    private fun signAuthMessage(
+    private suspend fun signAuthMessage(
+        wallet: Wallet,
         chain: Chain,
         message: String,
-        privateKey: ByteArray,
     ): String {
         val signer = MessageSigner(
             SignMessage(
@@ -316,13 +308,13 @@ class WCAuthViewModel @Inject constructor(
             )
         )
         return try {
-            signer.sign(privateKey)
+            signMessageOperator.sign(signer, wallet, passwordStore.getPassword(wallet.id.id))
         } finally {
             signer.close()
         }
     }
 
-    private fun Wallet.Model.SessionAuthenticate.toSessionUI(): SessionUI {
+    private fun ReownWallet.Model.SessionAuthenticate.toSessionUI(): SessionUI {
         val metadata = participant.metadata
         return WalletConnectionSessionAppMetadata(
             name = walletConnectAppName(metadata?.name, metadata?.url),
@@ -346,15 +338,15 @@ sealed interface AuthSceneState {
 
     sealed interface Content : AuthSceneState {
         val peer: SessionUI
-        val availableWallets: List<com.wallet.core.primitives.Wallet>
-        val selectedWallet: com.wallet.core.primitives.Wallet
+        val availableWallets: List<Wallet>
+        val selectedWallet: Wallet
         val approval: AuthApproval
     }
 
     data class Request(
         override val peer: SessionUI,
-        override val availableWallets: List<com.wallet.core.primitives.Wallet>,
-        override val selectedWallet: com.wallet.core.primitives.Wallet,
+        override val availableWallets: List<Wallet>,
+        override val selectedWallet: Wallet,
         override val approval: AuthApproval,
     ) : Content
 
@@ -362,16 +354,16 @@ sealed interface AuthSceneState {
         private val request: Request,
     ) : Content {
         override val peer: SessionUI get() = request.peer
-        override val availableWallets: List<com.wallet.core.primitives.Wallet> get() = request.availableWallets
-        override val selectedWallet: com.wallet.core.primitives.Wallet get() = request.selectedWallet
+        override val availableWallets: List<Wallet> get() = request.availableWallets
+        override val selectedWallet: Wallet get() = request.selectedWallet
         override val approval: AuthApproval get() = request.approval
     }
 }
 
 data class AuthApproval(
-    val wallet: com.wallet.core.primitives.Wallet,
+    val wallet: Wallet,
     val account: Account,
-    val payloadParams: Wallet.Model.PayloadAuthRequestParams,
+    val payloadParams: ReownWallet.Model.PayloadAuthRequestParams,
     val issuer: String,
     val message: String,
     val primaryPayloadFields: List<PayloadField>,

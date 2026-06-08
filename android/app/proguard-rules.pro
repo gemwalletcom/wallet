@@ -28,11 +28,7 @@
 
 -dontwarn com.google.firebase.analytics.connector.AnalyticsConnector
 
--keep class wallet.core.jni.** { *; }
--keep class wallet.core.jni.proto.** { *; }
-
 -keep class com.gemwallet.android.** { *; }
--keep class com.wallet.core.** { *; }
 -keep class com.sun.jna.** { *; }
 -keep class * extends com.sun.jna.Structure { *; }
 -keepattributes *Annotation*,InnerClasses,EnclosingMethod,Signature

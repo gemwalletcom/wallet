@@ -52,9 +52,6 @@
 -keep,allowshrinking,allowoptimization class * { <methods>; }
 -keepattributes Signature
 
--keep class wallet.core.jni.** { *; }
--keep class wallet.core.jni.proto.** { *; }
-
 -keep class com.gemwallet.android.** { *; }
 -keep class com.wallet.core.** { *; }
 -keep class uniffi.** { *; }

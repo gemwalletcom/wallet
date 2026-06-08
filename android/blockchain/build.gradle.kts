@@ -49,8 +49,6 @@ android {
 
 dependencies {
     api(project(":gemcore"))
-    // WalletCore
-    api(libs.wallet.core)
 
     // Network
     api(libs.retrofit)

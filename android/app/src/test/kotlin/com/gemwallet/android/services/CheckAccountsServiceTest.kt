@@ -1,8 +1,7 @@
 package com.gemwallet.android.services
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.CreateAccountOperator
-import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
+import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -28,17 +27,15 @@ import org.junit.Test
 class CheckAccountsServiceTest {
     private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
     private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val loadPrivateDataOperator = mockk<LoadPrivateDataOperator>(relaxed = true)
+    private val addAccountsOperator = mockk<AddAccountsOperator>(relaxed = true)
     private val passwordStore = mockk<PasswordStore>(relaxed = true)
-    private val createAccountOperator = mockk<CreateAccountOperator>(relaxed = true)
     private val syncSubscription = mockk<SyncSubscription>(relaxed = true)
 
     private val subject = CheckAccountsService(
         walletsRepository = walletsRepository,
         assetsRepository = assetsRepository,
-        loadPrivateDataOperator = loadPrivateDataOperator,
+        addAccountsOperator = addAccountsOperator,
         passwordStore = passwordStore,
-        createAccountOperator = createAccountOperator,
         syncSubscription = syncSubscription,
     )
 
@@ -75,8 +72,7 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
         verify(exactly = 0) { passwordStore.getPassword(any()) }
-        verify(exactly = 0) { createAccountOperator(any(), any(), any()) }
-        coVerify(exactly = 0) { loadPrivateDataOperator(any(), any()) }
+        coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
         coVerify(exactly = 0) { syncSubscription.syncSubscription(any()) }
@@ -105,8 +101,7 @@ class CheckAccountsServiceTest {
         coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
         verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
         verify(exactly = 0) { passwordStore.getPassword(any()) }
-        verify(exactly = 0) { createAccountOperator(any(), any(), any()) }
-        coVerify(exactly = 0) { loadPrivateDataOperator(any(), any()) }
+        coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
         coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
         coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
         coVerify(exactly = 0) { syncSubscription.syncSubscription(any()) }
