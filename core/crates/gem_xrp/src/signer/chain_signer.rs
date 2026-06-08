@@ -25,7 +25,7 @@ impl ChainSigner for XrpChainSigner {
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-        let swap = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+        let swap = input.input_type.get_swap_data()?;
         let amount = XrpAmount::native(&swap.data.value)?;
         Ok(vec![sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?])
     }

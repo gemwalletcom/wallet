@@ -9,6 +9,13 @@ pub struct CosmosAddress {
 }
 
 impl CosmosAddress {
+    pub fn from_public_key_hash(chain: Chain, public_key_hash: [u8; 20]) -> Option<Self> {
+        Some(Self {
+            hrp: CosmosChain::from_chain(chain)?.hrp().to_string(),
+            bytes: public_key_hash.to_vec(),
+        })
+    }
+
     fn has_chain_hrp(address: &str, chain: Chain) -> bool {
         let Some(cosmos_chain) = CosmosChain::from_chain(chain) else {
             return false;
@@ -82,5 +89,13 @@ mod tests {
         assert_eq!(parsed.encode(), address);
         assert!(!validate_address(address, Chain::Osmosis));
         assert!(!validate_address("invalid", Chain::Cosmos));
+    }
+
+    #[test]
+    fn test_cosmos_address_from_public_key_hash() {
+        let public_key_hash = hex::decode("bc7fd0607be7fc51396ed4b519e21f7f5a993fce").unwrap().try_into().unwrap();
+        let address = CosmosAddress::from_public_key_hash(Chain::Cosmos, public_key_hash).unwrap();
+
+        assert_eq!(address.encode(), "cosmos1h3laqcrmul79zwtw6j63ncsl0adfj07wgupylj");
     }
 }

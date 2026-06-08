@@ -45,6 +45,10 @@ impl Address for PolkadotAddress {
 }
 
 impl PolkadotAddress {
+    pub fn from_public_key(public_key: [u8; ADDRESS_DATA_LENGTH]) -> Self {
+        Self(public_key)
+    }
+
     pub(crate) fn parse(value: &str) -> Result<Self, SignerError> {
         Self::try_parse(value).ok_or_else(|| SignerError::invalid_input("invalid Polkadot address"))
     }
@@ -94,5 +98,12 @@ mod tests {
         assert!(PolkadotAddress::from_str("invalid").is_err());
         assert!(!validate_address(&"1".repeat(ADDRESS_MAX_STRING_LENGTH + 1)));
         assert!(!validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXj"));
+    }
+
+    #[test]
+    fn test_polkadot_address_from_public_key() {
+        let public_key = hex::decode(PUBLIC_KEY).unwrap().try_into().unwrap();
+
+        assert_eq!(PolkadotAddress::from_public_key(public_key).to_string(), VALID_ADDRESS);
     }
 }

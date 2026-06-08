@@ -34,7 +34,6 @@ pub fn create_auth_message(address: &str, auth_nonce: GemAuthNonce) -> GemAuthMe
     }
 }
 
-#[uniffi::export]
 pub fn sign_auth_message_hash(hash: Vec<u8>, private_key: Vec<u8>) -> Result<String, GemstoneError> {
     let private_key = Zeroizing::new(private_key);
     if hash.len() != AUTH_SIGNING_BYTES_LENGTH || private_key.len() != AUTH_SIGNING_BYTES_LENGTH {

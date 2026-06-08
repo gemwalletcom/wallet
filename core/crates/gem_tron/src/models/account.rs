@@ -1,3 +1,4 @@
+#[cfg(feature = "rpc")]
 use primitives::Resource;
 use serde::{Deserialize, Serialize};
 
@@ -85,6 +86,7 @@ pub struct TronFrozen {
 }
 
 impl TronFrozen {
+    #[cfg(feature = "rpc")]
     pub(crate) fn resource(&self) -> Option<Resource> {
         match self.frozen_type.as_deref() {
             None => Some(Resource::Bandwidth),

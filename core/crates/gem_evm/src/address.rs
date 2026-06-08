@@ -27,6 +27,12 @@ impl AddressTrait for EthereumAddress {
     }
 }
 
+impl EthereumAddress {
+    pub fn from_bytes(bytes: [u8; 20]) -> Self {
+        Self(Address::from(bytes))
+    }
+}
+
 pub fn validate_address(address: &str) -> bool {
     EthereumAddress::is_valid(address)
 }

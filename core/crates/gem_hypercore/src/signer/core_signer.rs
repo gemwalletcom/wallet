@@ -63,7 +63,7 @@ impl HyperCoreSigner {
     }
 
     fn sign_swap_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
-        let swap_data = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+        let swap_data = input.input_type.get_swap_data()?;
 
         if let TransactionInputType::Swap(from_asset, to_asset, _) = &input.input_type
             && is_spot_swap(from_asset.chain(), to_asset.chain())

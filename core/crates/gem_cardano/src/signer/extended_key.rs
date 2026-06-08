@@ -3,7 +3,7 @@ use primitives::SignerError;
 use sha2::{Digest, Sha512};
 use zeroize::Zeroize;
 
-const EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
+const CARDANO_EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
 const KEY_LENGTH: usize = 32;
 const EXTENSION_OFFSET: usize = 32;
 
@@ -21,7 +21,7 @@ impl Drop for CardanoExtendedKeyPair {
 
 impl CardanoExtendedKeyPair {
     pub(super) fn from_private_key(private_key: &[u8]) -> Result<Self, SignerError> {
-        if private_key.len() != EXTENDED_PRIVATE_KEY_LENGTH {
+        if private_key.len() != CARDANO_EXTENDED_PRIVATE_KEY_LENGTH {
             return SignerError::invalid_input_err("invalid Cardano private key length");
         }
 
@@ -56,7 +56,7 @@ fn read_key(bytes: &[u8], offset: usize) -> [u8; KEY_LENGTH] {
     key
 }
 
-fn public_key_from_secret(secret: [u8; KEY_LENGTH]) -> [u8; KEY_LENGTH] {
+pub(crate) fn public_key_from_secret(secret: [u8; KEY_LENGTH]) -> [u8; KEY_LENGTH] {
     let scalar = Scalar::from_bytes_mod_order(secret);
     (&scalar * ED25519_BASEPOINT_TABLE).compress().to_bytes()
 }

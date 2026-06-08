@@ -1,6 +1,6 @@
 use gem_encoding::{decode_base32, encode_base32};
 use gem_hash::sha2::sha512_256;
-use primitives::Address;
+use primitives::{Address, SignerError};
 use signer::Base32Address;
 use std::fmt;
 
@@ -39,6 +39,12 @@ pub fn validate_address(address: &str) -> bool {
 }
 
 impl AlgorandAddress {
+    pub fn from_public_key(public_key_bytes: &[u8]) -> Result<Self, SignerError> {
+        Ok(Self {
+            base32: Base32Address::from_slice(public_key_bytes)?,
+        })
+    }
+
     fn checksum(bytes: &[u8; 32]) -> [u8; ADDRESS_CHECKSUM_LENGTH] {
         let digest = sha512_256(bytes);
         let mut checksum = [0u8; ADDRESS_CHECKSUM_LENGTH];

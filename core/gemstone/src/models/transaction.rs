@@ -329,6 +329,10 @@ pub enum GemTransactionInputType {
         earn_type: GemEarnType,
         data: GemContractCallData,
     },
+    // Gemstone-only: primitives has no withdrawal variant, so it routes to sign_withdrawal but lowers to Transfer.
+    Withdrawal {
+        asset: GemAsset,
+    },
 }
 
 impl GemTransactionInputType {
@@ -342,7 +346,8 @@ impl GemTransactionInputType {
             | Self::TransferNft { asset, .. }
             | Self::Account { asset, .. }
             | Self::Perpetual { asset, .. }
-            | Self::Earn { asset, .. } => asset,
+            | Self::Earn { asset, .. }
+            | Self::Withdrawal { asset } => asset,
             Self::Swap { from_asset, .. } => from_asset,
         }
     }
@@ -413,7 +418,9 @@ pub struct GemTransactionData {
     pub metadata: GemTransactionLoadMetadata,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+pub type GemTransactionLoadMetadata = TransactionLoadMetadata;
+
+#[uniffi::remote(Enum)]
 pub enum GemTransactionLoadMetadata {
     None,
     Solana {
@@ -496,186 +503,6 @@ pub enum GemTransactionLoadMetadata {
     },
 }
 
-impl From<TransactionLoadMetadata> for GemTransactionLoadMetadata {
-    fn from(value: TransactionLoadMetadata) -> Self {
-        match value {
-            TransactionLoadMetadata::None => GemTransactionLoadMetadata::None,
-            TransactionLoadMetadata::Solana {
-                sender_token_address,
-                recipient_token_address,
-                token_program,
-                nft,
-                block_hash,
-            } => GemTransactionLoadMetadata::Solana {
-                sender_token_address,
-                recipient_token_address,
-                token_program,
-                nft,
-                block_hash,
-            },
-            TransactionLoadMetadata::Ton {
-                sender_token_address,
-                recipient_token_address,
-                sequence,
-            } => GemTransactionLoadMetadata::Ton {
-                sender_token_address,
-                recipient_token_address,
-                sequence,
-            },
-            TransactionLoadMetadata::Cosmos {
-                account_number,
-                sequence,
-                chain_id,
-            } => GemTransactionLoadMetadata::Cosmos {
-                account_number,
-                sequence,
-                chain_id,
-            },
-            TransactionLoadMetadata::Bitcoin { utxos } => GemTransactionLoadMetadata::Bitcoin { utxos },
-            TransactionLoadMetadata::Zcash { utxos, branch_id } => GemTransactionLoadMetadata::Zcash { utxos, branch_id },
-            TransactionLoadMetadata::Cardano { utxos, block_number } => GemTransactionLoadMetadata::Cardano { utxos, block_number },
-            TransactionLoadMetadata::Evm { nonce, chain_id, contract_call } => GemTransactionLoadMetadata::Evm { nonce, chain_id, contract_call },
-            TransactionLoadMetadata::Near { sequence, block_hash } => GemTransactionLoadMetadata::Near { sequence, block_hash },
-            TransactionLoadMetadata::Stellar {
-                sequence,
-                is_destination_address_exist,
-            } => GemTransactionLoadMetadata::Stellar {
-                sequence,
-                is_destination_address_exist,
-            },
-            TransactionLoadMetadata::Xrp { sequence, block_number } => GemTransactionLoadMetadata::Xrp { sequence, block_number },
-            TransactionLoadMetadata::Algorand { sequence, block_hash, chain_id } => GemTransactionLoadMetadata::Algorand { sequence, block_hash, chain_id },
-            TransactionLoadMetadata::Aptos { sequence, data } => GemTransactionLoadMetadata::Aptos { sequence, data },
-            TransactionLoadMetadata::Polkadot {
-                sequence,
-                genesis_hash,
-                block_hash,
-                block_number,
-                spec_version,
-                transaction_version,
-                period,
-            } => GemTransactionLoadMetadata::Polkadot {
-                sequence,
-                genesis_hash,
-                block_hash,
-                block_number,
-                spec_version,
-                transaction_version,
-                period,
-            },
-            TransactionLoadMetadata::Tron {
-                block_number,
-                block_version,
-                block_timestamp,
-                transaction_tree_root,
-                parent_hash,
-                witness_address,
-                stake_data,
-            } => GemTransactionLoadMetadata::Tron {
-                block_number,
-                block_version,
-                block_timestamp,
-                transaction_tree_root,
-                parent_hash,
-                witness_address,
-                stake_data,
-            },
-            TransactionLoadMetadata::Sui { message_bytes } => GemTransactionLoadMetadata::Sui { message_bytes },
-            TransactionLoadMetadata::Hyperliquid { order } => GemTransactionLoadMetadata::Hyperliquid { order },
-        }
-    }
-}
-
-impl From<GemTransactionLoadMetadata> for TransactionLoadMetadata {
-    fn from(value: GemTransactionLoadMetadata) -> Self {
-        match value {
-            GemTransactionLoadMetadata::None => TransactionLoadMetadata::None,
-            GemTransactionLoadMetadata::Solana {
-                sender_token_address,
-                recipient_token_address,
-                token_program,
-                nft,
-                block_hash,
-            } => TransactionLoadMetadata::Solana {
-                sender_token_address,
-                recipient_token_address,
-                token_program,
-                nft,
-                block_hash,
-            },
-            GemTransactionLoadMetadata::Ton {
-                sender_token_address,
-                recipient_token_address,
-                sequence,
-            } => TransactionLoadMetadata::Ton {
-                sender_token_address,
-                recipient_token_address,
-                sequence,
-            },
-            GemTransactionLoadMetadata::Cosmos {
-                account_number,
-                sequence,
-                chain_id,
-            } => TransactionLoadMetadata::Cosmos {
-                account_number,
-                sequence,
-                chain_id,
-            },
-            GemTransactionLoadMetadata::Bitcoin { utxos } => TransactionLoadMetadata::Bitcoin { utxos },
-            GemTransactionLoadMetadata::Zcash { utxos, branch_id } => TransactionLoadMetadata::Zcash { utxos, branch_id },
-            GemTransactionLoadMetadata::Cardano { utxos, block_number } => TransactionLoadMetadata::Cardano { utxos, block_number },
-            GemTransactionLoadMetadata::Evm { nonce, chain_id, contract_call } => TransactionLoadMetadata::Evm { nonce, chain_id, contract_call },
-            GemTransactionLoadMetadata::Near { sequence, block_hash } => TransactionLoadMetadata::Near { sequence, block_hash },
-            GemTransactionLoadMetadata::Stellar {
-                sequence,
-                is_destination_address_exist,
-            } => TransactionLoadMetadata::Stellar {
-                sequence,
-                is_destination_address_exist,
-            },
-            GemTransactionLoadMetadata::Xrp { sequence, block_number } => TransactionLoadMetadata::Xrp { sequence, block_number },
-            GemTransactionLoadMetadata::Algorand { sequence, block_hash, chain_id } => TransactionLoadMetadata::Algorand { sequence, block_hash, chain_id },
-            GemTransactionLoadMetadata::Aptos { sequence, data } => TransactionLoadMetadata::Aptos { sequence, data },
-            GemTransactionLoadMetadata::Polkadot {
-                sequence,
-                genesis_hash,
-                block_hash,
-                block_number,
-                spec_version,
-                transaction_version,
-                period,
-            } => TransactionLoadMetadata::Polkadot {
-                sequence,
-                genesis_hash,
-                block_hash,
-                block_number,
-                spec_version,
-                transaction_version,
-                period,
-            },
-            GemTransactionLoadMetadata::Tron {
-                block_number,
-                block_version,
-                block_timestamp,
-                transaction_tree_root,
-                parent_hash,
-                witness_address,
-                stake_data,
-            } => TransactionLoadMetadata::Tron {
-                block_number,
-                block_version,
-                block_timestamp,
-                transaction_tree_root,
-                parent_hash,
-                witness_address,
-                stake_data,
-            },
-            GemTransactionLoadMetadata::Sui { message_bytes } => TransactionLoadMetadata::Sui { message_bytes },
-            GemTransactionLoadMetadata::Hyperliquid { order } => TransactionLoadMetadata::Hyperliquid { order },
-        }
-    }
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSuiCoin {
     pub coin_type: String,
@@ -703,7 +530,7 @@ impl From<GemTransactionLoadInput> for TransactionLoadInput {
             gas_price: value.gas_price.into(),
             memo: value.memo,
             is_max_value: value.is_max_value,
-            metadata: value.metadata.into(),
+            metadata: value.metadata,
         }
     }
 }
@@ -711,6 +538,30 @@ impl From<GemTransactionLoadInput> for TransactionLoadInput {
 impl From<GemSignerInput> for SignerInput {
     fn from(value: GemSignerInput) -> Self {
         SignerInput::new(value.input.into(), value.fee.into())
+    }
+}
+
+impl From<TransactionLoadInput> for GemTransactionLoadInput {
+    fn from(value: TransactionLoadInput) -> Self {
+        GemTransactionLoadInput {
+            input_type: value.input_type.into(),
+            sender_address: value.sender_address,
+            destination_address: value.destination_address,
+            value: value.value,
+            gas_price: value.gas_price.into(),
+            memo: value.memo,
+            is_max_value: value.is_max_value,
+            metadata: value.metadata,
+        }
+    }
+}
+
+impl From<SignerInput> for GemSignerInput {
+    fn from(value: SignerInput) -> Self {
+        GemSignerInput {
+            input: value.input.into(),
+            fee: value.fee.into(),
+        }
     }
 }
 
@@ -889,6 +740,7 @@ impl From<GemTransactionInputType> for TransactionInputType {
             GemTransactionInputType::Account { asset, account_type } => TransactionInputType::Account(asset, account_type),
             GemTransactionInputType::Perpetual { asset, perpetual_type } => TransactionInputType::Perpetual(asset, perpetual_type),
             GemTransactionInputType::Earn { asset, earn_type, data } => TransactionInputType::Earn(asset, earn_type, data),
+            GemTransactionInputType::Withdrawal { asset } => TransactionInputType::Transfer(asset),
         }
     }
 }

@@ -18,9 +18,10 @@ use super::{
     payload::{MessagePayloadPreview, eip712_payload_preview, siwe_payload_preview},
     sign_type::{SignDigestType, SignMessage},
 };
-use crate::{GemstoneError, siwe::SiweMessage};
+use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
 use gem_tron::signer::tron_hash_message;
 use primitives::{Chain, ChainSigner, SimulationPayloadField};
+use std::sync::Arc;
 use zeroize::Zeroizing;
 
 fn siwe_or_text_preview(chain: primitives::Chain, data: &[u8]) -> MessagePreview {
@@ -57,18 +58,16 @@ impl MessageSigner {
     pub fn preview(&self) -> Result<MessagePreview, GemstoneError> {
         match self.message.sign_type {
             SignDigestType::Eip191 | SignDigestType::Siwe => Ok(siwe_or_text_preview(self.message.chain, &self.message.data)),
-            SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(MessagePreview::Text(
-                String::from_utf8(self.message.data.clone()).unwrap_or(encode_with_0x(&self.message.data)),
-            )),
+            SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(MessagePreview::Text(self.data_as_utf8_or_hex())),
             SignDigestType::TonPersonal => {
-                let string = String::from_utf8(self.message.data.clone())?;
+                let string = self.data_as_utf8()?;
                 let Ok(ton_data) = TonSignMessageData::from_bytes(string.as_bytes()) else {
                     return Ok(MessagePreview::Text(string));
                 };
                 Ok(MessagePreview::Text(ton_data.payload.data().to_string()))
             }
             SignDigestType::Eip712 => {
-                let string = String::from_utf8(self.message.data.clone())?;
+                let string = self.data_as_utf8()?;
                 if string.is_empty() {
                     return Err(GemstoneError::from("Empty EIP712 message string"));
                 }
@@ -97,18 +96,16 @@ impl MessageSigner {
 
     pub fn plain_preview(&self) -> String {
         match self.message.sign_type {
-            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => {
-                String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data))
-            }
+            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
             SignDigestType::Base58 => match self.preview() {
                 Ok(MessagePreview::Text(preview)) => preview,
                 _ => "".to_string(),
             },
             SignDigestType::TonPersonal => match self.preview() {
                 Ok(MessagePreview::Text(preview)) => preview,
-                _ => String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data)),
+                _ => self.data_as_utf8_or_hex(),
             },
-            SignDigestType::Siwe => String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data)),
+            SignDigestType::Siwe => self.data_as_utf8_or_hex(),
             SignDigestType::Eip712 => {
                 let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
                 serde_json::to_string_pretty(&value).unwrap_or_default()
@@ -123,14 +120,14 @@ impl MessageSigner {
                 Ok(message.signing_digest().to_vec())
             }
             SignDigestType::TonPersonal => {
-                let string = String::from_utf8(self.message.data.clone())?;
+                let string = self.data_as_utf8()?;
                 let ton_data = TonSignMessageData::from_bytes(string.as_bytes())?;
                 Ok(ton_data.hash(self.timestamp)?)
             }
             SignDigestType::TronPersonal => Ok(tron_hash_message(&self.message.data).to_vec()),
             SignDigestType::Eip191 | SignDigestType::Siwe => Ok(eip191_hash_message(&self.message.data).to_vec()),
             SignDigestType::Eip712 => {
-                let json = String::from_utf8(self.message.data.clone())?;
+                let json = self.data_as_utf8()?;
                 let digest = hash_eip712(&json)?;
                 Ok(digest.to_vec())
             }
@@ -153,6 +150,13 @@ impl MessageSigner {
         }
     }
 
+    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
+        let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
+        self.sign(private_key)
+    }
+}
+
+impl MessageSigner {
     pub fn sign(&self, private_key: Vec<u8>) -> Result<String, GemstoneError> {
         let private_key = Zeroizing::new(private_key);
         match &self.message.sign_type {
@@ -178,9 +182,15 @@ impl MessageSigner {
             }
         }
     }
-}
 
-impl MessageSigner {
+    fn data_as_utf8(&self) -> Result<String, GemstoneError> {
+        Ok(String::from_utf8(self.message.data.clone())?)
+    }
+
+    fn data_as_utf8_or_hex(&self) -> String {
+        String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data))
+    }
+
     fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadPreview> {
         let string = String::from_utf8(self.message.data.clone()).ok()?;
         let message = SiweMessage::try_parse(&string)?;
@@ -188,7 +198,7 @@ impl MessageSigner {
     }
 
     fn get_ton_result(&self, result: &TonSignResult) -> Result<String, GemstoneError> {
-        let string = String::from_utf8(self.message.data.clone())?;
+        let string = self.data_as_utf8()?;
         let data = TonSignMessageData::from_bytes(string.as_bytes())?;
         let raw_address = base64_to_hex_address(&data.address).ok_or_else(|| GemstoneError::from("Invalid TON address"))?;
 
@@ -211,9 +221,26 @@ mod tests {
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
         sign_type::SignDigestType,
     };
+    use crate::signer::GemChainSigner;
     use gem_evm::EIP712Domain;
+    use primitives::Address;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Address, Chain};
+
+    #[test]
+    fn test_eip712_chain_signer_matches_message_signer() {
+        let json = include_str!("./test/eip712_seaport.json");
+        let via_chain_signer = GemChainSigner::new(Chain::Ethereum)
+            .sign_message(json.as_bytes().to_vec(), TEST_PRIVATE_KEY.to_vec())
+            .unwrap();
+        let via_message_signer = MessageSigner::new(SignMessage {
+            chain: Chain::Ethereum,
+            sign_type: SignDigestType::Eip712,
+            data: json.as_bytes().to_vec(),
+        })
+        .sign(TEST_PRIVATE_KEY.to_vec())
+        .unwrap();
+        assert_eq!(via_chain_signer, via_message_signer);
+    }
 
     #[test]
     fn test_eip191() {

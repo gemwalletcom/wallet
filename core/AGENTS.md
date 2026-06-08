@@ -16,6 +16,16 @@ Read this file first, then load the relevant skills for your current task. `proj
 - [Common Issues](skills/common-issues.md) — Known anti-patterns and their fixes
 - [Swapper Checklist](skills/swapper-checklist.md) — Integration checklist for swapper providers
 
+## Design Docs
+
+Subsystem references live in [docs/](docs). Read the relevant one before changing that area:
+
+- [Gem Keystore v4](docs/KEYSTORE_V4.md) — keystore file format, v3 migration, and the keystore-internal signing / device-auth contract (key never crosses the FFI boundary)
+- [Device Authentication](docs/DEVICE_AUTHENTICATION.md) — Ed25519 request signing and the `Gem` Authorization header
+- [Wallet Authentication](docs/WALLET_AUTHENTICATION.md)
+- [Device WebSockets](docs/DEVICE_WEBSOCKETS.md)
+- [Rewards and Referrals](docs/REWARDS_AND_REFERRALS.md)
+
 ## Before Coding
 
 - State assumptions explicitly. UniFFI bounds, lifetimes, provider trait contracts, and JSON shape assumptions are invisible — call them out so a reviewer can spot the wrong one

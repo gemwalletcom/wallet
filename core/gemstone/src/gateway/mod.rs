@@ -129,7 +129,7 @@ impl GemGateway {
         let metadata = self
             .with_provider(chain, |provider| async move { provider.get_transaction_preload(preload_input).await })
             .await?;
-        Ok(metadata.into())
+        Ok(metadata)
     }
 
     pub async fn get_transaction_scan(&self, _chain: Chain, input: GemTransactionPreloadInput) -> Result<Option<GemScanTransaction>, GatewayError> {
@@ -162,7 +162,7 @@ impl GemGateway {
 
         Ok(GemTransactionData {
             fee: load_data.fee.into(),
-            metadata: load_data.metadata.into(),
+            metadata: load_data.metadata,
         })
     }
 

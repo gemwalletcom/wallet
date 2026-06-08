@@ -1,0 +1,33 @@
+[package]
+name = "gem_keystore"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = ["mnemonic"]
+mnemonic = ["dep:bip39", "dep:gem_crypto", "gem_crypto/random", "dep:unicode-normalization", "dep:zeroize"]
+storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:borsh", "dep:uuid", "dep:zeroize"]
+v3 = ["storage", "dep:aes", "dep:ctr", "dep:hex", "dep:scrypt", "dep:serde", "dep:serde_json", "dep:sha3"]
+
+[dependencies]
+aes = { version = "0.9.1", optional = true }
+aes-gcm = { workspace = true, optional = true }
+argon2 = { version = "0.5.3", optional = true }
+bip39 = { workspace = true, optional = true }
+borsh = { workspace = true, optional = true }
+ctr = { version = "0.10.1", optional = true }
+gem_crypto = { path = "../gem_crypto", default-features = false, optional = true }
+hex = { workspace = true, optional = true }
+scrypt = { version = "0.12.0", optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+sha3 = { workspace = true, optional = true }
+unicode-normalization = { version = "0.1.25", optional = true }
+uuid = { workspace = true, optional = true }
+zeroize = { workspace = true, optional = true }
+
+[dev-dependencies]
+hex = { workspace = true }
+primitives = { path = "../primitives", features = ["testkit"] }
+serde_json = { workspace = true }
+tempfile = "3.24.0"
