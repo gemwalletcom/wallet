@@ -100,11 +100,6 @@ impl GemKeystore {
         Ok(encode_private_key(&chain, &private_key)?)
     }
 
-    pub fn private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<Vec<u8>, GemstoneError> {
-        let password = Zeroizing::new(password);
-        Ok(self.load_private_key(&keystore_id, chain, &password)?.to_vec())
-    }
-
     pub fn migrate_v3(&self, v3_path: String, v3_password: Vec<u8>, new_password: Vec<u8>, keystore_id: String) -> Result<GemStoredSecretMigration, GemstoneError> {
         let v3_password = Zeroizing::new(v3_password);
         let new_password = Zeroizing::new(new_password);
@@ -128,15 +123,24 @@ impl GemKeystore {
     }
 }
 
+#[cfg(any(test, debug_assertions))]
+#[uniffi::export]
+impl GemKeystore {
+    pub fn private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<Vec<u8>, GemstoneError> {
+        let password = Zeroizing::new(password);
+        Ok(self.load_private_key(&keystore_id, chain, &password)?.to_vec())
+    }
+}
+
 #[uniffi::export]
 pub fn keystore_id_for_wallet(wallet_id: String) -> String {
     KeystoreId::from_wallet_id(&wallet_id).into_string()
 }
 
 impl GemKeystore {
-    pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, password: Vec<u8>) -> Result<Vec<u8>, GemstoneError> {
+    pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, password: Vec<u8>) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
         let password = Zeroizing::new(password);
-        Ok(self.load_private_key(keystore_id, chain, &password)?.to_vec())
+        self.load_private_key(keystore_id, chain, &password)
     }
 
     fn load_private_key(&self, keystore_id: &str, chain: Chain, password: &[u8]) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {

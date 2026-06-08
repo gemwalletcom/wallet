@@ -1,9 +1,20 @@
+use std::fmt;
+
 use crate::GemstoneError;
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Clone, uniffi::Record)]
 pub struct GemDeviceKeyPair {
     pub private_key: Vec<u8>,
     pub public_key: Vec<u8>,
+}
+
+impl fmt::Debug for GemDeviceKeyPair {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GemDeviceKeyPair")
+            .field("private_key", &"<redacted>")
+            .field("public_key", &self.public_key)
+            .finish()
+    }
 }
 
 #[uniffi::export]

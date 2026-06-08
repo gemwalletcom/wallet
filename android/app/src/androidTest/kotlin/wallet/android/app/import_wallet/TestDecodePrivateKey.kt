@@ -38,6 +38,6 @@ class TestDecodePrivateKey {
         val base32Key = "SA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRJ"
         val key = PhraseAddressImportWalletService.decodePrivateKey(Chain.Stellar, base32Key)
         assertEquals("GADB4BDKTOE36L6QN2JLIPNNJ7EZPSY5BIVKWXLWYZLIPXNQWIRQQZKT", gemstoneTestAddressForPrivateKey(context, Chain.Stellar, base32Key))
-        assertEquals(base32Key, encodePrivateKey(Chain.Stellar.string, key))
+        assertEquals("0x3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9", encodePrivateKey(Chain.Stellar.string, key))
     }
 }

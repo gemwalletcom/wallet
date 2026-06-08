@@ -1,6 +1,7 @@
 use primitives::Chain;
 use primitives::testkit::ABANDON_PHRASE;
 use tempfile::TempDir;
+use zeroize::Zeroizing;
 
 use super::*;
 use crate::auth::sign_auth_message_hash;
@@ -66,7 +67,7 @@ fn test_gem_keystore_sign_with_keystore_matches_raw_key() {
         sign_type: SignDigestType::Eip191,
         data: b"hello world".to_vec(),
     });
-    let expected = signer.sign(raw_key).unwrap();
+    let expected = signer.sign(Zeroizing::new(raw_key)).unwrap();
     let actual = signer.sign_with_keystore(keystore, stored.keystore_id, b"password".to_vec()).unwrap();
     assert_eq!(actual, expected);
 }
@@ -80,7 +81,7 @@ fn test_gem_keystore_sign_auth_matches_raw_key() {
 
     // Auth signing through the keystore must match signing the hash with the exported raw key.
     let hash = vec![7u8; 32];
-    let expected = sign_auth_message_hash(hash.clone(), raw_key).unwrap();
+    let expected = sign_auth_message_hash(hash.clone(), Zeroizing::new(raw_key)).unwrap();
     let actual = keystore.sign_auth(stored.keystore_id, Chain::Ethereum, hash, b"password".to_vec()).unwrap();
     assert_eq!(actual, expected);
 }

@@ -157,8 +157,7 @@ impl MessageSigner {
 }
 
 impl MessageSigner {
-    pub fn sign(&self, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        let private_key = Zeroizing::new(private_key);
+    pub fn sign(&self, private_key: Zeroizing<Vec<u8>>) -> Result<String, GemstoneError> {
         match &self.message.sign_type {
             SignDigestType::SuiPersonal => {
                 let hash = self.hash()?;
@@ -237,7 +236,7 @@ mod tests {
             sign_type: SignDigestType::Eip712,
             data: json.as_bytes().to_vec(),
         })
-        .sign(TEST_PRIVATE_KEY.to_vec())
+        .sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec()))
         .unwrap();
         assert_eq!(via_chain_signer, via_message_signer);
     }
@@ -413,7 +412,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         });
 
         assert_eq!(
-            decoder.sign(TEST_PRIVATE_KEY.to_vec()).unwrap_err().to_string(),
+            decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap_err().to_string(),
             "Base58 sign message is not supported for ethereum"
         );
     }
@@ -710,7 +709,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         });
 
         let previewed = signer.hash().unwrap();
-        let response: serde_json::Value = serde_json::from_str(&signer.sign(TEST_PRIVATE_KEY.to_vec()).unwrap()).unwrap();
+        let response: serde_json::Value = serde_json::from_str(&signer.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap()).unwrap();
         let signed_timestamp = response["timestamp"].as_u64().unwrap();
 
         let re_hashed = TonSignMessageData::from_bytes(&data).unwrap().hash(signed_timestamp).unwrap();

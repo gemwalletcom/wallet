@@ -106,11 +106,10 @@ impl GemChainSigner {
 }
 
 impl GemChainSigner {
-    pub fn sign_input(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
+    pub fn sign_input(&self, input: GemSignerInput, private_key: Zeroizing<Vec<u8>>) -> Result<Vec<String>, GemstoneError> {
         // Withdrawal is gemstone-only and lowers to a plain Transfer, so capture it before conversion.
         let is_withdrawal = matches!(input.input.input_type, GemTransactionInputType::Withdrawal { .. });
         let signer_input: SignerInput = input.into();
-        let private_key = Zeroizing::new(private_key);
         self.route(&signer_input, private_key.as_slice(), is_withdrawal)
     }
 
@@ -217,7 +216,7 @@ mod tests {
     fn test_sign_input_routing() {
         let signer = GemChainSigner::new(Chain::Ethereum);
         let key = TEST_PRIVATE_KEY.to_vec();
-        let sign_one = |gem: GemSignerInput| signer.sign_input(gem, key.clone()).unwrap();
+        let sign_one = |gem: GemSignerInput| signer.sign_input(gem, Zeroizing::new(key.clone())).unwrap();
 
         let native: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::mock()), "1000000000000000000", 21000).into();
         assert_eq!(sign_one(native.clone()), vec![signer.sign_transfer(native, key.clone()).unwrap()]);
