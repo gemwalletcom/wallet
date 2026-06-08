@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Výchozí pákový efekt
 settings_preferences_perpetual_default_take_profit = Výchozí take profit
 settings_preferences_perpetual_default_stop_loss = Výchozí stop loss
 
+# Support
+
+support_state_empty_title = Jak vám můžeme pomoci?
+support_state_empty_description = Napište nám zprávu a my odpovíme co nejdříve.
+
 # Errors
 
 errors_transfer = Chyba přenosu: %@

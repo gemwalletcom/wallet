@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Standardhebel
 settings_preferences_perpetual_default_take_profit = Standard-Take-Profit
 settings_preferences_perpetual_default_stop_loss = Standard-Stop-Loss
 
+# Support
+
+support_state_empty_title = Wie können wir helfen?
+support_state_empty_description = Schreib uns eine Nachricht und wir antworten so schnell wie möglich.
+
 # Errors
 
 errors_transfer = Übertragungsfehler: %@

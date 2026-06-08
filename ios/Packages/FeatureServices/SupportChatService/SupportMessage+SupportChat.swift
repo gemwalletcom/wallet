@@ -10,7 +10,7 @@ extension SupportMessage {
             id: UUID().uuidString,
             content: content,
             sender: .user,
-            deliveryStatus: .sending,
+            status: .sending,
             createdAt: .now,
             images: [],
         )
@@ -21,7 +21,7 @@ extension SupportMessage {
             id: id,
             content: "",
             sender: .user,
-            deliveryStatus: .sending,
+            status: .sending,
             createdAt: .now,
             images: [SupportMessageImage(
                 id: id,
@@ -35,12 +35,23 @@ extension SupportMessage {
         )
     }
 
-    func with(deliveryStatus: SupportMessageDeliveryStatus) -> SupportMessage {
+    func with(status: SupportMessageDeliveryStatus) -> SupportMessage {
         SupportMessage(
             id: id,
             content: content,
             sender: sender,
-            deliveryStatus: deliveryStatus,
+            status: status,
+            createdAt: createdAt,
+            images: images,
+        )
+    }
+
+    func with(images: [SupportMessageImage]) -> SupportMessage {
+        SupportMessage(
+            id: id,
+            content: content,
+            sender: sender,
+            status: status,
             createdAt: createdAt,
             images: images,
         )

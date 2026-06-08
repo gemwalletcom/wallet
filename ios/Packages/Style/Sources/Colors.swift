@@ -4,6 +4,7 @@ public enum Colors {
     public static let white = Color.dynamicColor("#FFFFFF", dark: "#222222")
     public static let whiteSolid = Color.dynamicColor("FFFFFF")
     public static let black = Color.dynamicColor("#222222", dark: "FFFFFF")
+    public static let blackSolid = Color.dynamicColor("222222")
     public static let blue = Color.dynamicColor("#2D5BE6")
     public static let blueDark = Color.dynamicColor("#1742C5")
     public static let red = Color.dynamicColor("#F84E4E")

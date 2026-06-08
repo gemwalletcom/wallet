@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Standaard hefboomwerking
 settings_preferences_perpetual_default_take_profit = Standaard take profit
 settings_preferences_perpetual_default_stop_loss = Standaard stop loss
 
+# Support
+
+support_state_empty_title = Hoe kunnen we helpen?
+support_state_empty_description = Stuur ons een bericht en we reageren zo snel mogelijk.
+
 # Errors
 
 errors_transfer = Overdrachtsfout: %@

@@ -9,12 +9,17 @@ struct SupportChatDay: Identifiable {
     let groups: [SupportChatGroup]
 }
 
-enum SupportChatGroup: Identifiable {
-    case user(messages: [SupportMessageBubbleViewModel])
-    case agent(header: SupportAgentHeader, messages: [SupportMessageBubbleViewModel])
+struct SupportChatGroup: Identifiable {
+    enum Kind {
+        case user(messages: [SupportMessageBubbleViewModel])
+        case agent(header: SupportAgentHeader, messages: [SupportMessageBubbleViewModel])
+    }
+
+    let kind: Kind
+    let isLast: Bool
 
     var id: String {
-        switch self {
+        switch kind {
         case let .user(messages): "user-\(messages.first?.id ?? "")"
         case let .agent(_, messages): "agent-\(messages.first?.id ?? "")"
         }
@@ -23,10 +28,8 @@ enum SupportChatGroup: Identifiable {
 
 struct SupportAgentHeader {
     let name: String
-    let avatarURL: URL?
 
     init(agent: SupportAgent) {
         name = agent.name
-        avatarURL = agent.avatarUrl?.asURL
     }
 }

@@ -12,7 +12,6 @@ import SwiftUI
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: SupportChatService
-
     public let query: ObservableQuery<SupportMessagesRequest>
 
     public init(service: SupportChatService) {
@@ -21,9 +20,20 @@ public final class SupportChatSceneViewModel {
     }
 
     var title: String { Localized.Settings.support }
+    var emptyTitle: String { Localized.Support.stateEmptyTitle }
+    var emptyDescription: String { Localized.Support.stateEmptyDescription }
+
+    private var seenAgentCount = 0
+    var isAtBottom = true
+    var isEmpty: Bool { query.value.isEmpty }
+    var unreadAgentCount: Int { max(0, agentCount - seenAgentCount) }
+    var agentCount: Int { query.value.filter { $0.sender.isAgent }.count }
 
     var inputBarModel: SupportMessageInputBarViewModel {
-        SupportMessageInputBarViewModel(onSend: { [weak self] in self?.onSend($0) })
+        SupportMessageInputBarViewModel(
+            onSendText: { [weak self] in self?.sendText($0) },
+            onSendImages: { [weak self] in self?.sendImages($0) },
+        )
     }
 
     var days: [SupportChatDay] {
@@ -33,30 +43,42 @@ public final class SupportChatSceneViewModel {
         ).build()
     }
 
-    var isEmpty: Bool { query.value.isEmpty }
-
-    var emptyTitle: String { "How can we help?" }
-    var emptyDescription: String { "Send us a message and we'll reply as soon as we can." }
+    func setAtBottom(_ atBottom: Bool) {
+        isAtBottom = atBottom
+        if atBottom { seenAgentCount = agentCount }
+    }
 
     func fetch() async {
         do {
-            try await service.syncMessages(fromTimestamp: query.value.last.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0)
+            let fromTimestamp = query.value.last { $0.sender.isAgent }.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0
+            try await service.syncMessages(fromTimestamp: fromTimestamp)
         } catch {
             debugLog("SupportChatSceneViewModel fetch error: \(error)")
         }
     }
 
-    func onSend(_ input: SupportInputMessage) {
+    func sendText(_ content: String) {
+        Task {
+            do {
+                try await service.sendText(content)
+            } catch {
+                debugLog("SupportChatSceneViewModel send text error: \(error)")
+            }
+        }
+    }
+
+    func sendImages(_ items: [PhotosPickerItem]) {
         Task {
             var attachments: [ImageAttachment] = []
-            for item in input.attachments {
+            for item in items {
                 guard let attachment = try? await item.imageAttachment() else { continue }
                 attachments.append(attachment)
             }
+            guard !attachments.isEmpty else { return }
             do {
-                try await service.sendMessage(content: input.content, attachments: attachments)
+                try await service.sendImages(attachments)
             } catch {
-                debugLog("SupportChatSceneViewModel send error: \(error)")
+                debugLog("SupportChatSceneViewModel send images error: \(error)")
             }
         }
     }

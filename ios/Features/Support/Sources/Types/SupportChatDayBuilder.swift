@@ -8,51 +8,58 @@ struct SupportChatDayBuilder {
     let retryAction: (SupportMessage) -> Void
 
     func build() -> [SupportChatDay] {
-        Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
+        let sortedDays = Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
             .sorted { $0.key < $1.key }
-            .map { date, messages in
-                SupportChatDay(id: date.ISO8601Format(), date: date, groups: groups(from: messages))
-            }
+        return sortedDays.enumerated().map { index, day in
+            SupportChatDay(
+                id: day.key.ISO8601Format(),
+                date: day.key,
+                groups: groups(from: day.value, isLastDay: index == sortedDays.indices.last),
+            )
+        }
     }
 }
 
 // MARK: - Private
 
 private extension SupportChatDayBuilder {
-    func groups(from messages: [SupportMessage]) -> [SupportChatGroup] {
-        messages
-            .chunked(by: sameSender)
-            .compactMap(group(from:))
-    }
-
-    func group(from messages: [SupportMessage]) -> SupportChatGroup? {
-        guard let sender = messages.first?.sender else { return nil }
-        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction) }
-        switch sender {
-        case .user:
-            return .user(messages: bubbles)
-        case let .agent(agent):
-            return .agent(header: SupportAgentHeader(agent: agent), messages: bubbles)
+    func groups(from messages: [SupportMessage], isLastDay: Bool) -> [SupportChatGroup] {
+        let kinds = messages.chunked(on: senderKey).compactMap(kind(from:))
+        return kinds.enumerated().map { index, kind in
+            SupportChatGroup(kind: kind, isLast: isLastDay && index == kinds.indices.last)
         }
     }
 
-    func sameSender(_ lhs: SupportMessage, _ rhs: SupportMessage) -> Bool {
-        switch (lhs.sender, rhs.sender) {
-        case (.user, .user), (.agent, .agent): true
-        case (.user, .agent), (.agent, .user): false
+    func kind(from messages: [SupportMessage]) -> SupportChatGroup.Kind? {
+        guard let sender = messages.first?.sender else { return nil }
+        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction) }
+        switch sender {
+        case .user: return .user(messages: bubbles)
+        case let .agent(agent): return .agent(header: SupportAgentHeader(agent: agent), messages: bubbles)
+        }
+    }
+
+    func senderKey(_ message: SupportMessage) -> String {
+        switch message.sender {
+        case .user: "user"
+        case let .agent(agent): "agent-\(agent.name)"
         }
     }
 }
 
 private extension Array {
-    func chunked(by belongsInSameChunk: (Element, Element) -> Bool) -> [[Element]] {
+    func chunked<Key: Equatable>(on key: (Element) -> Key) -> [[Element]] {
         var chunks: [[Element]] = []
+        var currentChunk: [Element] = []
         for element in self {
-            if let last = chunks.last?.last, belongsInSameChunk(last, element) {
-                chunks[chunks.count - 1].append(element)
-            } else {
-                chunks.append([element])
+            if let last = currentChunk.last, key(last) != key(element) {
+                chunks.append(currentChunk)
+                currentChunk = []
             }
+            currentChunk.append(element)
+        }
+        if currentChunk.isNotEmpty {
+            chunks.append(currentChunk)
         }
         return chunks
     }

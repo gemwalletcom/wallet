@@ -24,8 +24,8 @@ struct SupportAgentMessageGroup: View {
         HStack(spacing: .small) {
             AssetImageView(
                 assetImage: AssetImage(
-                    imageURL: header.avatarURL,
-                    placeholder: Image(systemName: SystemImage.personCircleFill),
+                    imageURL: nil,
+                    placeholder: Images.Logo.logo,
                 ),
                 size: .image.small,
             )

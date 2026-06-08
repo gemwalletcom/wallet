@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Tsohuwar Leverage
 settings_preferences_perpetual_default_take_profit = Take Profit na asali
 settings_preferences_perpetual_default_stop_loss = Stop Loss na asali
 
+# Support
+
+support_state_empty_title = Yaya za mu taimaka?
+support_state_empty_description = Aiko mana saƙo, za mu amsa da wuri-wuri.
+
 # Errors
 
 errors_transfer = Kuskuren Canja wurin: %@

@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Плече за замовчу
 settings_preferences_perpetual_default_take_profit = Take Profit за замовчуванням
 settings_preferences_perpetual_default_stop_loss = Stop Loss за замовчуванням
 
+# Support
+
+support_state_empty_title = Чим ми можемо допомогти?
+support_state_empty_description = Напишіть нам, і ми відповімо якнайшвидше.
+
 # Errors
 
 errors_transfer = Помилка перенесення: %@

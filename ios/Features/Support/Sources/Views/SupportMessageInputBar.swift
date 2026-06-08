@@ -15,29 +15,16 @@ struct SupportMessageInputBar: View {
 
     var body: some View {
         @Bindable var model = model
-        VStack(alignment: .leading, spacing: .small) {
-            if model.selectedItems.isNotEmpty {
-                previewStrip
-            }
-            HStack(alignment: .bottom, spacing: .small) {
-                attachButton
-                textField
-                sendButton
-            }
+        HStack(alignment: .bottom, spacing: .small) {
+            attachButton
+            textField
+            sendButton
         }
         .padding(.horizontal, .medium)
         .padding(.vertical, .small)
         .frame(maxWidth: .infinity)
-        .background(Colors.grayBackground.ignoresSafeArea(edges: .bottom))
-    }
-
-    private var previewStrip: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: .small) {
-                ForEach(model.selectedItems, id: \.self) { item in
-                    SupportSelectedItemPreview(item: item, onRemove: { model.removeItem(item) })
-                }
-            }
+        .onChange(of: model.selectedItems) {
+            model.sendSelectedImages()
         }
     }
 

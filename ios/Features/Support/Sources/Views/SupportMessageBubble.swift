@@ -9,8 +9,8 @@ struct SupportMessageBubble: View {
     let model: SupportMessageBubbleViewModel
 
     private enum Constants {
-        static let maxImageWidth: CGFloat = 240
-        static let imageAspectRatio: CGFloat = 4.0 / 3.0
+        static let imageWidth: CGFloat = 240
+        static let imageHeight: CGFloat = 180
     }
 
     var body: some View {
@@ -26,9 +26,11 @@ struct SupportMessageBubble: View {
 
     private var textBubble: some View {
         HStack(alignment: .lastTextBaseline, spacing: .small) {
-            Text(model.content)
+            Text(.init(model.content))
                 .font(.body)
                 .foregroundStyle(model.palette.text)
+                .tint(model.palette.link)
+                .textSelection(.enabled)
             statusView
         }
         .padding(.vertical, .small)
@@ -48,15 +50,32 @@ struct SupportMessageBubble: View {
     private func imageView(_ image: SupportMessageImage) -> some View {
         ZStack {
             CachedAsyncImage(url: (image.thumbnailUrl ?? image.url).asURL) { loaded in
-                loaded.resizable().aspectRatio(contentMode: .fit)
+                loaded.resizable().scaledToFill()
             } placeholder: {
-                Colors.grayLightFaded.aspectRatio(Constants.imageAspectRatio, contentMode: .fit)
+                Colors.grayLightFaded
             }
-            .opacity(model.isSending ? .semiStrong : 1)
+            .frame(width: Constants.imageWidth, height: Constants.imageHeight)
+            .clipped()
             imageOverlay
         }
-        .frame(maxWidth: Constants.maxImageWidth)
+        .frame(width: Constants.imageWidth, height: Constants.imageHeight)
         .clipShape(RoundedRectangle(cornerRadius: .space12))
+        .overlay(alignment: .bottomTrailing) {
+            if !model.isSending {
+                timePill
+            }
+        }
+    }
+
+    private var timePill: some View {
+        Text(model.time)
+            .font(.caption2)
+            .foregroundStyle(Colors.whiteSolid)
+            .padding(.horizontal, .small)
+            .padding(.vertical, .tiny)
+            .background(Colors.blackSolid.opacity(.medium))
+            .clipShape(Capsule())
+            .padding(.small)
     }
 
     @ViewBuilder
@@ -72,7 +91,7 @@ struct SupportMessageBubble: View {
                     .font(.title2)
                     .foregroundStyle(Colors.whiteSolid)
                     .padding(.small)
-                    .background(Colors.black.opacity(.medium))
+                    .background(Colors.blackSolid.opacity(.medium))
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)

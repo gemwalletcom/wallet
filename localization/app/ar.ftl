@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = الرافعة المالية 
 settings_preferences_perpetual_default_take_profit = جني الأرباح الافتراضي
 settings_preferences_perpetual_default_stop_loss = إيقاف الخسارة الافتراضي
 
+# Support
+
+support_state_empty_title = كيف يمكننا مساعدتك؟
+support_state_empty_description = أرسل لنا رسالة وسنرد عليك في أقرب وقت ممكن.
+
 # Errors
 
 errors_transfer = خطأ النقل: %@

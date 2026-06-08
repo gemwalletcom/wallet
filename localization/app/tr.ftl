@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Varsayılan Kaldıraç
 settings_preferences_perpetual_default_take_profit = Varsayılan Take Profit
 settings_preferences_perpetual_default_stop_loss = Varsayılan Stop Loss
 
+# Support
+
+support_state_empty_title = Size nasıl yardımcı olabiliriz?
+support_state_empty_description = Bize bir mesaj gönderin, en kısa sürede yanıtlayalım.
+
 # Errors
 
 errors_transfer = Transfer Hatası: %@

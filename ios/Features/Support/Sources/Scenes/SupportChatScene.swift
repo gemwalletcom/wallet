@@ -14,42 +14,38 @@ public struct SupportChatScene: View {
     }
 
     public var body: some View {
-        ScrollView {
-            LazyVStack(spacing: .small) {
-                ForEach(model.days) { day in
-                    SupportDateSeparator(date: day.date)
-                    ForEach(day.groups) { group in
-                        switch group {
-                        case let .agent(header, messages):
-                            SupportAgentMessageGroup(header: header, messages: messages)
-                        case let .user(messages):
-                            SupportUserMessageGroup(messages: messages)
-                        }
-                    }
+        scrollContent
+            .bindQuery(model.query)
+            .background(Colors.grayBackground)
+            .overlay {
+                if model.isEmpty {
+                    StateEmptyView(
+                        title: model.emptyTitle,
+                        description: model.emptyDescription,
+                        image: Image(systemName: SystemImage.bubbleLeftAndBubbleRight),
+                    )
+                    .padding(.medium)
                 }
             }
-            .padding(.medium)
-        }
-        .defaultScrollAnchor(.bottom)
-        .bindQuery(model.query)
-        .background(Colors.grayBackground)
-        .overlay {
-            if model.isEmpty {
-                StateEmptyView(
-                    title: model.emptyTitle,
-                    description: model.emptyDescription,
-                    image: Image(systemName: SystemImage.bubbleLeftAndBubbleRight),
-                )
-                .padding(.medium)
+            .safeAreaView(edge: .bottom) {
+                SupportMessageInputBar(model: model.inputBarModel)
             }
-        }
-        .safeAreaInset(edge: .bottom) {
-            SupportMessageInputBar(model: model.inputBarModel)
-        }
-        .navigationTitle(model.title)
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
-            await model.fetch()
+            .navigationTitle(model.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .task {
+                await model.fetch()
+            }
+    }
+
+    @ViewBuilder
+    private var scrollContent: some View {
+        if #available(iOS 18, *) {
+            SupportChatMessagesView(model: model)
+        } else {
+            ScrollView {
+                SupportChatMessagesContent(model: model)
+            }
+            .defaultScrollAnchor(.bottom)
         }
     }
 }

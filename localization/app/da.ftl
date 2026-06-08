@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Standardgearing
 settings_preferences_perpetual_default_take_profit = Standard Take Profit
 settings_preferences_perpetual_default_stop_loss = Standard Stop Loss
 
+# Support
+
+support_state_empty_title = Hvordan kan vi hjælpe?
+support_state_empty_description = Send os en besked, så svarer vi hurtigst muligt.
+
 # Errors
 
 errors_transfer = Overførselsfejl: %@

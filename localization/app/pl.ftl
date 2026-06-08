@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = Domyślna dźwignia
 settings_preferences_perpetual_default_take_profit = Domyślny take profit
 settings_preferences_perpetual_default_stop_loss = Domyślny stop loss
 
+# Support
+
+support_state_empty_title = Jak możemy pomóc?
+support_state_empty_description = Wyślij nam wiadomość, a odpowiemy najszybciej, jak to możliwe.
+
 # Errors
 
 errors_transfer = Błąd transferu: %@

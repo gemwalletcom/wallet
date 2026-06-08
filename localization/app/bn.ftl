@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = ডিফল্ট লিভ�
 settings_preferences_perpetual_default_take_profit = ডিফল্ট টেক প্রফিট
 settings_preferences_perpetual_default_stop_loss = ডিফল্ট স্টপ লস
 
+# Support
+
+support_state_empty_title = আমরা কীভাবে সাহায্য করতে পারি?
+support_state_empty_description = আমাদের একটি বার্তা পাঠান, আমরা যত দ্রুত সম্ভব উত্তর দেব।
+
 # Errors
 
 errors_transfer = স্থানান্তর ত্রুটি: %@

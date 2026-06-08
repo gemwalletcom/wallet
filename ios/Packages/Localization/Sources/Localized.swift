@@ -1375,6 +1375,12 @@ public enum Localized {
       }
     }
   }
+  public enum Support {
+    /// Send us a message and we'll reply as soon as we can.
+    public static let stateEmptyDescription = Localized.tr("Localizable", "support.state_empty_description", fallback: "Send us a message and we'll reply as soon as we can.")
+    /// How can we help?
+    public static let stateEmptyTitle = Localized.tr("Localizable", "support.state_empty_title", fallback: "How can we help?")
+  }
   public enum Swap {
     /// Minimum Receive
     public static let minReceive = Localized.tr("Localizable", "swap.min_receive", fallback: "Minimum Receive")

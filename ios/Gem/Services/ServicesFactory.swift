@@ -197,6 +197,7 @@ struct ServicesFactory {
             nftService: nftService,
             perpetualService: perpetualService,
             fiatService: fiatService,
+            supportChatStore: storeManager.supportChatStore,
             preferences: preferences,
         )
         let streamObserverService = StreamObserverService(

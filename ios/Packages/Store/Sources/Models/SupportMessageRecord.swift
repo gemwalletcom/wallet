@@ -11,7 +11,7 @@ struct SupportMessageRecord: Codable, FetchableRecord, PersistableRecord {
         static let id = Column("id")
         static let content = Column("content")
         static let sender = Column("sender")
-        static let deliveryStatus = Column("deliveryStatus")
+        static let status = Column("status")
         static let createdAt = Column("createdAt")
         static let images = Column("images")
     }
@@ -19,7 +19,7 @@ struct SupportMessageRecord: Codable, FetchableRecord, PersistableRecord {
     var id: String
     var content: String
     var sender: SupportMessageSender
-    var deliveryStatus: SupportMessageDeliveryStatus
+    var status: SupportMessageDeliveryStatus
     var createdAt: Date
     var images: [SupportMessageImage]
 }
@@ -33,7 +33,7 @@ extension SupportMessageRecord: CreateTable {
                 .notNull()
             $0.column(Columns.sender.name, .jsonText)
                 .notNull()
-            $0.column(Columns.deliveryStatus.name, .text)
+            $0.column(Columns.status.name, .text)
                 .notNull()
             $0.column(Columns.createdAt.name, .datetime)
                 .notNull()
@@ -50,7 +50,7 @@ extension SupportMessageRecord {
             id: id,
             content: content,
             sender: sender,
-            deliveryStatus: deliveryStatus,
+            status: status,
             createdAt: createdAt,
             images: images,
         )
@@ -63,7 +63,7 @@ extension SupportMessage {
             id: id,
             content: content,
             sender: sender,
-            deliveryStatus: deliveryStatus,
+            status: status,
             createdAt: createdAt,
             images: images,
         )

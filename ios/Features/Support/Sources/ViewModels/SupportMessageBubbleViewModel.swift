@@ -19,21 +19,24 @@ struct SupportMessageBubbleViewModel: Identifiable {
     var hasContent: Bool { message.content.isNotEmpty }
     var hasImages: Bool { message.images.isNotEmpty }
     var images: [SupportMessageImage] { message.images }
-    var isSending: Bool { message.deliveryStatus == .sending }
+    var isSending: Bool { message.status == .sending }
+    var isFailed: Bool { message.status == .failed }
 
     var palette: Palette {
         switch message.sender {
         case .user:
-            Palette(text: Colors.whiteSolid, background: Colors.blue, secondary: Colors.whiteSolid)
+            Palette(text: Colors.whiteSolid, background: Colors.blue, secondary: Colors.whiteSolid, link: Colors.whiteSolid)
         case .agent:
-            Palette(text: Colors.black, background: Colors.white, secondary: Colors.secondaryText)
+            Palette(text: Colors.black, background: Colors.white, secondary: Colors.secondaryText, link: Colors.blue)
         }
     }
 
+    var time: String { message.createdAt.formatted(date: .omitted, time: .shortened) }
+
     var status: Status {
-        switch message.deliveryStatus {
+        switch message.status {
         case .sending: .sending
-        case .sent: .sent(time: message.createdAt.formatted(date: .omitted, time: .shortened))
+        case .sent: .sent(time: time)
         case .failed: .failed
         }
     }
@@ -50,6 +53,7 @@ extension SupportMessageBubbleViewModel {
         let text: Color
         let background: Color
         let secondary: Color
+        let link: Color
     }
 
     enum Status {

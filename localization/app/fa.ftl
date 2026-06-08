@@ -188,6 +188,11 @@ settings_preferences_perpetual_default_leverage = اهرم پیش‌فرض
 settings_preferences_perpetual_default_take_profit = حد سود پیشفرض
 settings_preferences_perpetual_default_stop_loss = حد ضرر پیشفرض
 
+# Support
+
+support_state_empty_title = چطور می‌توانیم کمک کنیم؟
+support_state_empty_description = برای ما پیامی بفرستید تا در اسرع وقت پاسخ دهیم.
+
 # Errors
 
 errors_transfer = خطای انتقال: %@
