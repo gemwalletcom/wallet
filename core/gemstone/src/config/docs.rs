@@ -64,7 +64,7 @@ pub fn get_docs_url(item: DocsUrl) -> String {
         DocsUrl::HowStoreSecretPhrase => "/faq/secure-recovery-phrase/#how-to-secure-my-secret-phrase/",
         DocsUrl::NoQuotes => "/troubleshoot/quote-error/",
         DocsUrl::Staking(chain) => &format!("/defi/stake-{}/", Asset::from_chain(chain.chain()).symbol.to_lowercase()),
-        DocsUrl::PerpetualsFundingRate => "/defi/perps/perps-terms/#what-is-perpetual-funding/",
+        DocsUrl::PerpetualsFundingRate => "/defi/perps/funding-apr/",
         DocsUrl::PerpetualsLiquidationPrice => "/defi/perps/liquidation-price/",
         DocsUrl::PerpetualsOpenInterest => "/defi/perps/open-interest/",
         DocsUrl::PerpetualsFundingPayments => "/defi/perps/funding-payment/",
@@ -87,5 +87,10 @@ mod tests {
     fn test_get_docs_url_staking() {
         use primitives::StakeChain;
         assert_eq!(get_docs_url(DocsUrl::Staking(StakeChain::Solana)), "https://docs.gemwallet.com/defi/stake-sol/");
+    }
+
+    #[test]
+    fn test_get_docs_url_perpetuals_funding() {
+        assert_eq!(get_docs_url(DocsUrl::PerpetualsFundingRate), "https://docs.gemwallet.com/defi/perps/funding-apr/");
     }
 }
