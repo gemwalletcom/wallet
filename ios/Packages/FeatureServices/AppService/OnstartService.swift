@@ -4,6 +4,7 @@ import AssetsService
 import Foundation
 import GemAPI
 import NodeService
+import os
 import Preferences
 import Primitives
 import Store
@@ -48,6 +49,7 @@ public struct OnstartService: Sendable {
         } catch {
             debugLog("configure error: \(error)")
         }
+        migrateV3Keystores()
         preferences.incrementLaunchesCount()
 
         #if DEBUG
@@ -70,6 +72,16 @@ extension OnstartService {
 
     private func setupWalletChains() throws {
         try walletService.setup(chains: AssetConfiguration.allChains)
+    }
+
+    private func migrateV3Keystores() {
+        Task { [walletService] in
+            do {
+                try await walletService.migrateV3Keystores()
+            } catch {
+                os_log("v3 keystore migration could not enumerate wallets: %{public}@", type: .error, error.localizedDescription)
+            }
+        }
     }
 
     private func configureDefaultCurrency() {

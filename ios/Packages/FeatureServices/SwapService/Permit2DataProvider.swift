@@ -39,7 +39,7 @@ struct Permit2DataProvider: Permit2DataProvidable {
         )
 
         let signer = Signer(wallet: wallet, keystore: keystore)
-        let hexSignature = try await signer.signMessage(chain: chain, message: .typed(json))
+        let hexSignature = try await signer.signTypedMessage(chain: chain, message: json)
         let signature = try Data.from(hex: hexSignature)
 
         return Permit2Data(permitSingle: permitSingle, signature: signature)

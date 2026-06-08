@@ -1,36 +1,35 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import CryptoKit
 import Foundation
+import GemstonePrimitives
 import Primitives
 
 public struct DeviceRequestSigner: Sendable {
-    private let privateKey: Curve25519.Signing.PrivateKey
-
-    public var publicKeyHex: String {
-        privateKey.publicKey.rawRepresentation.hex
-    }
+    private let privateKey: Data
+    public let publicKeyHex: String
 
     public init(privateKey: Data) throws {
-        self.privateKey = try Curve25519.Signing.PrivateKey(rawRepresentation: privateKey)
+        self.privateKey = privateKey
+        publicKeyHex = try devicePublicKey(privateKey: privateKey).hex
     }
 
     public init(privateKeyHex: String) throws {
-        let bytes = try Data.from(hex: privateKeyHex)
-        privateKey = try Curve25519.Signing.PrivateKey(rawRepresentation: bytes)
+        try self.init(privateKey: Data.from(hex: privateKeyHex))
     }
 
     public func sign(request: inout URLRequest, walletId: String = "") throws {
         let method = request.httpMethod ?? "GET"
         let path = request.url?.path ?? "/"
-        let bodyHash = Data(SHA256.hash(data: request.httpBody ?? Data())).hex
-        let timestamp = String(Int(Date().timeIntervalSince1970 * 1000))
-
-        let message = "\(timestamp).\(method).\(path).\(walletId).\(bodyHash)"
-        let signature = try privateKey.signature(for: Data(message.utf8))
-
-        let payload = "\(publicKeyHex).\(timestamp).\(walletId).\(bodyHash).\(signature.hex)"
-        let encoded = Data(payload.utf8).base64EncodedString()
-        request.setValue("Gem \(encoded)", forHTTPHeaderField: "Authorization")
+        let body = request.httpBody ?? Data()
+        let timestamp = UInt64(Date().timeIntervalSince1970 * 1000)
+        let header = try signDeviceAuth(
+            privateKey: privateKey,
+            method: method,
+            path: path,
+            walletId: walletId,
+            body: body,
+            timestampMs: timestamp,
+        )
+        request.setValue(header, forHTTPHeaderField: "Authorization")
     }
 }

@@ -16,9 +16,8 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Primitives", path: "../Primitives"),
-        .package(name: "Formatters", path: "../Formatters"),
-        .package(name: "WalletCore", path: "../WalletCore"),
         .package(name: "Keychain", path: "../Keychain"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
@@ -26,10 +25,8 @@ let package = Package(
         .target(
             name: "Keystore",
             dependencies: [
-                .product(name: "WalletCore", package: "WalletCore"),
-                .product(name: "WalletCorePrimitives", package: "WalletCore"),
+                "Gemstone",
                 "Primitives",
-                "Formatters",
                 "Keychain",
                 "GemstonePrimitives",
             ],
@@ -49,7 +46,9 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "KeystoreTestKit",
                 "Keystore",
+                "GemstonePrimitives",
             ],
+            resources: [.process("Resources")],
         ),
     ],
 )

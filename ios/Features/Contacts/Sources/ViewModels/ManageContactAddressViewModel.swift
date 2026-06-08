@@ -9,7 +9,6 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import Validators
-import WalletCorePrimitives
 
 @Observable
 @MainActor

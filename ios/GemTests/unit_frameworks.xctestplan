@@ -191,13 +191,6 @@
     },
     {
       "target" : {
-        "containerPath" : "container:Packages\/WalletCore",
-        "identifier" : "WalletCorePrimitivesTests",
-        "name" : "WalletCorePrimitivesTests"
-      }
-    },
-    {
-      "target" : {
         "containerPath" : "container:Features\/Settings",
         "identifier" : "CurrencyTests",
         "name" : "CurrencyTests"
