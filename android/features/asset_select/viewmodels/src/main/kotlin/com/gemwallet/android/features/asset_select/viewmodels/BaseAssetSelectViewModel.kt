@@ -15,7 +15,6 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.RecentType
-import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.components.list_item.AssetInfoUIModel
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -35,12 +34,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -73,6 +73,10 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
+    private val searchRequests = combine(currentQuery, selectedTag, session) { query, tag, session ->
+        SearchRequest(query, tag, session?.currency ?: Currency.USD, walletSearchChains(session?.wallet))
+    }.distinctUntilChanged()
+
     private val filters = combine(
         session,
         currentQuery,
@@ -81,7 +85,7 @@ open class BaseAssetSelectViewModel(
         balanceFilter,
     ) { session, query, tag, chainFilter, hasBalance ->
         SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, tag = tag)
-    }.onEach { request(it.query, it.tag, it.session) }
+    }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assets = combine(
@@ -196,15 +200,16 @@ open class BaseAssetSelectViewModel(
         return session.value?.wallet?.getAccount(assetId)
     }
 
-    private fun request(query: String, tags: AssetTag?, session: Session?) = viewModelScope.launch(Dispatchers.IO) {
-        delay(SEARCH_DEBOUNCE_MS)
-        val ok = searchTokensCase.search(
-            query = query,
-            currency = session?.currency ?: Currency.USD,
-            chains = walletSearchChains(session?.wallet),
-            tags = tags?.let { listOf(it) } ?: emptyList(),
-        )
-        noResultsQuery.value = if (ok) null else query
+    init {
+        if (remoteSearch) {
+            viewModelScope.launch(Dispatchers.IO) {
+                searchRequests.collectLatest { (query, tag, currency, chains) ->
+                    delay(SEARCH_DEBOUNCE_MS)
+                    val ok = searchTokensCase.search(query, currency, chains, tag?.let { listOf(it) }.orEmpty())
+                    noResultsQuery.value = if (ok) null else query
+                }
+            }
+        }
     }
 
     private fun walletSearchChains(wallet: Wallet?): List<Chain> = when (wallet?.type) {
@@ -219,7 +224,16 @@ open class BaseAssetSelectViewModel(
 
     open val showRecents: Boolean get() = true
 
+    protected open val remoteSearch: Boolean get() = true
+
     open fun assetFilters(): Set<AssetFilter> = emptySet()
+
+    private data class SearchRequest(
+        val query: String,
+        val tag: AssetTag?,
+        val currency: Currency,
+        val chains: List<Chain>,
+    )
 
     private companion object {
         private const val SEARCH_DEBOUNCE_MS = 250L

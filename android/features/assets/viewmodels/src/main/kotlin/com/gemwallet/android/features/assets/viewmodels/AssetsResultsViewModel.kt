@@ -44,6 +44,8 @@ class AssetsResultsViewModel @Inject constructor(
     BaseSelectSearch(searchSelectAssets),
 ) {
 
+    override val remoteSearch: Boolean get() = false
+
     init {
         val tag = savedStateHandle.get<String?>(RouteArgument.Tag.key)
             ?.let { value -> AssetTag.entries.firstOrNull { it.string == value } }
