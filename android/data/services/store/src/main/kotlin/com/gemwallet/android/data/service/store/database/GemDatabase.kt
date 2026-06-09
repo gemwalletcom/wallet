@@ -8,7 +8,6 @@ import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetLink
 import com.gemwallet.android.data.service.store.database.entities.DbAssetMarket
-import com.gemwallet.android.data.service.store.database.entities.DbAssetPriority
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
@@ -28,13 +27,14 @@ import com.gemwallet.android.data.service.store.database.entities.DbPerpetualPos
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
+import com.gemwallet.android.data.service.store.database.entities.DbSearchPriority
 import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 79,
+    version = 80,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -58,7 +58,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbNFTAssociation::class,
         DbAssetLink::class,
         DbAssetMarket::class,
-        DbAssetPriority::class,
+        DbSearchPriority::class,
         DbFiatRate::class,
         DbFiatTransaction::class,
         DbRecentActivity::class,
@@ -99,7 +99,7 @@ abstract class GemDatabase : RoomDatabase() {
 
     abstract fun nftDao(): NftDao
 
-    abstract fun assetsPriorityDao(): AssetsPriorityDao
+    abstract fun searchPriorityDao(): SearchPriorityDao
 
     abstract fun perpetualDao(): PerpetualDao
 

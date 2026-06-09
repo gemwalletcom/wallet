@@ -6,7 +6,6 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.BannersDao
 import com.gemwallet.android.data.service.store.database.ConnectionsDao
@@ -19,6 +18,7 @@ import com.gemwallet.android.data.service.store.database.NodesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
+import com.gemwallet.android.data.service.store.database.SearchPriorityDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.SessionDao
@@ -81,6 +81,7 @@ object DatabaseModule {
         .addMigrations(Migration_76_77)
         .addMigrations(Migration_77_78)
         .addMigrations(Migration_78_79)
+        .addMigrations(Migration_79_80)
         .build()
 
     @Singleton
@@ -149,7 +150,7 @@ object DatabaseModule {
 
     @Singleton
     @Provides
-    fun provideAssetsPriorityDao(db: GemDatabase): AssetsPriorityDao = db.assetsPriorityDao()
+    fun provideSearchPriorityDao(db: GemDatabase): SearchPriorityDao = db.searchPriorityDao()
 
     @Singleton
     @Provides
