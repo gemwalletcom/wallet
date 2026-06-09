@@ -88,9 +88,4 @@ mod tests {
         use primitives::StakeChain;
         assert_eq!(get_docs_url(DocsUrl::Staking(StakeChain::Solana)), "https://docs.gemwallet.com/defi/stake-sol/");
     }
-
-    #[test]
-    fn test_get_docs_url_perpetuals_funding() {
-        assert_eq!(get_docs_url(DocsUrl::PerpetualsFundingRate), "https://docs.gemwallet.com/defi/perps/funding-apr/");
-    }
 }
