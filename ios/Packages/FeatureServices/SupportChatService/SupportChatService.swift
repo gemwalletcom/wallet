@@ -42,22 +42,14 @@ public final class SupportChatService: Sendable {
         await deliver(message)
     }
 
-    public func imageFileURL(for image: SupportMessageImage) async throws -> URL {
-        guard let url = image.url.asURL else { throw SupportChatError.imageDataUnavailable }
-        if url.isFileURL {
-            return url
-        }
-        if let cached = previewStore.file(id: image.id, fileExtension: image.fileExtension) {
-            return cached
-        }
-        let data = try await loadData(from: url)
-        return try previewStore.store(data, id: image.id, fileExtension: image.fileExtension)
+    public func displayURL(for image: SupportMessageImage) -> URL? {
+        uploadStore.file(id: image.id, fileExtension: image.fileExtension) ?? image.url.asURL
     }
 
-    public func imageFileURLs(for images: [SupportMessageImage]) async throws -> [URL] {
+    public func previewFileURLs(for images: [SupportMessageImage]) async throws -> [URL] {
         var urls: [URL] = []
         for image in images {
-            try await urls.append(imageFileURL(for: image))
+            try await urls.append(previewFileURL(for: image))
         }
         return urls
     }
@@ -66,6 +58,18 @@ public final class SupportChatService: Sendable {
 // MARK: - Private
 
 private extension SupportChatService {
+    func previewFileURL(for image: SupportMessageImage) async throws -> URL {
+        if let local = uploadStore.file(id: image.id, fileExtension: image.fileExtension) {
+            return local
+        }
+        if let cached = previewStore.file(id: image.id, fileExtension: image.fileExtension) {
+            return cached
+        }
+        guard let url = image.url.asURL else { throw SupportChatError.imageDataUnavailable }
+        let data = try await loadData(from: url)
+        return try previewStore.store(data, id: image.id, fileExtension: image.fileExtension)
+    }
+
     func pendingImageMessage(_ attachment: ImageAttachment) throws -> SupportMessage {
         let id = UUID().uuidString
         let fileExtension = (attachment.fileName as NSString).pathExtension
@@ -76,7 +80,8 @@ private extension SupportChatService {
     func deliver(_ message: SupportMessage) async {
         do {
             let sent = try await send(message)
-            try store.replace(id: message.id, with: sent.with(images: message.images))
+            let images = zip(message.images, sent.images).map { $0.with(url: $1.url) }
+            try store.replace(id: message.id, with: sent.with(images: images))
         } catch {
             try? store.addMessages([message.with(status: .failed)])
         }

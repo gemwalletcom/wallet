@@ -60,8 +60,8 @@ extension SupportMessage {
 
 extension SupportMessageImage {
     var fileExtension: String {
-        let pathExtension = fileName.map { ($0 as NSString).pathExtension } ?? ""
-        if !pathExtension.isEmpty {
+        let name = fileName ?? url.asURL?.lastPathComponent
+        if let pathExtension = name.map({ ($0 as NSString).pathExtension }), pathExtension.isNotEmpty {
             return pathExtension.lowercased()
         }
         return UTType(mimeType: mimeType)?.preferredFilenameExtension ?? "jpg"
@@ -70,5 +70,9 @@ extension SupportMessageImage {
     var mimeType: String {
         let fileExtension = fileName.map { ($0 as NSString).pathExtension } ?? ""
         return UTType(filenameExtension: fileExtension)?.preferredMIMEType ?? "image/jpeg"
+    }
+
+    func with(url: String) -> SupportMessageImage {
+        SupportMessageImage(id: id, url: url, thumbnailUrl: thumbnailUrl, fileName: fileName, fileSize: fileSize, width: width, height: height)
     }
 }

@@ -52,10 +52,13 @@ struct SupportMessageBubble: View {
             model.onImageTap(image)
         } label: {
             ZStack {
-                CachedAsyncImage(url: (image.thumbnailUrl ?? image.url).asURL) { loaded in
+                CachedAsyncImage(url: model.displayURL(for: image)) { loaded in
                     loaded.resizable().scaledToFill()
                 } placeholder: {
-                    Colors.grayLightFaded
+                    ZStack {
+                        Colors.grayLightFaded
+                        ProgressView()
+                    }
                 }
                 .frame(width: Constants.imageWidth, height: Constants.imageHeight)
                 .clipped()
@@ -68,6 +71,7 @@ struct SupportMessageBubble: View {
                     timePill
                 }
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

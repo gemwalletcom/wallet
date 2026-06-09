@@ -15,19 +15,9 @@ public struct SupportChatScene: View {
     }
 
     public var body: some View {
-        scrollContent
+        content
             .bindQuery(model.query)
             .background(Colors.grayBackground)
-            .overlay {
-                if model.isEmpty {
-                    StateEmptyView(
-                        title: model.emptyTitle,
-                        description: model.emptyDescription,
-                        image: Image(systemName: SystemImage.bubbleLeftAndBubbleRight),
-                    )
-                    .padding(.medium)
-                }
-            }
             .safeAreaView(edge: .bottom) {
                 SupportMessageInputBar(model: model.inputBarModel)
             }
@@ -37,6 +27,21 @@ public struct SupportChatScene: View {
                 await model.fetch()
             }
             .quickLookPreview($model.isPresentingImagePreview, in: model.previewURLs)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        ZStack {
+            scrollContent
+            if model.isEmpty {
+                StateEmptyView(
+                    title: model.emptyTitle,
+                    description: model.emptyDescription,
+                    image: Image(systemName: SystemImage.bubbleLeftAndBubbleRight),
+                )
+                .padding(.medium)
+            }
+        }
     }
 
     @ViewBuilder

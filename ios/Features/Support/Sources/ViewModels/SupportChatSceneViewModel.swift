@@ -42,9 +42,8 @@ public final class SupportChatSceneViewModel {
         SupportChatDayBuilder(
             messages: query.value,
             retryAction: { [weak self] in self?.onRetry($0) },
-            imageAction: { [weak self] request in
-                Task { await self?.openPreview(request) }
-            },
+            imageAction: { [weak self] request in Task { await self?.openPreview(request) } },
+            displayURL: service.displayURL(for:),
         ).build()
     }
 
@@ -55,7 +54,7 @@ public final class SupportChatSceneViewModel {
 
     func openPreview(_ request: SupportImagePreviewRequest) async {
         do {
-            let urls = try await service.imageFileURLs(for: request.images)
+            let urls = try await service.previewFileURLs(for: request.images)
             previewURLs = urls
             isPresentingImagePreview = request.images.firstIndex { $0.id == request.selectedId }.map { urls[$0] } ?? urls.first
         } catch {

@@ -9,15 +9,18 @@ struct SupportMessageBubbleViewModel: Identifiable {
     private let message: SupportMessage
     private let retryAction: (SupportMessage) -> Void
     private let imageAction: (SupportImagePreviewRequest) -> Void
+    private let displayURLResolver: (SupportMessageImage) -> URL?
 
     init(
         message: SupportMessage,
         retryAction: @escaping (SupportMessage) -> Void,
         imageAction: @escaping (SupportImagePreviewRequest) -> Void,
+        displayURL: @escaping (SupportMessageImage) -> URL?,
     ) {
         self.message = message
         self.retryAction = retryAction
         self.imageAction = imageAction
+        self.displayURLResolver = displayURL
     }
 
     var id: String { message.id }
@@ -60,6 +63,10 @@ struct SupportMessageBubbleViewModel: Identifiable {
         case .sent:
             imageAction(SupportImagePreviewRequest(images: message.images, selectedId: image.id))
         }
+    }
+
+    func displayURL(for image: SupportMessageImage) -> URL? {
+        displayURLResolver(image)
     }
 }
 

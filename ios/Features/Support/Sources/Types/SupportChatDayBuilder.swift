@@ -7,6 +7,7 @@ struct SupportChatDayBuilder {
     let messages: [SupportMessage]
     let retryAction: (SupportMessage) -> Void
     let imageAction: (SupportImagePreviewRequest) -> Void
+    let displayURL: (SupportMessageImage) -> URL?
 
     func build() -> [SupportChatDay] {
         let sortedDays = Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
@@ -33,7 +34,7 @@ private extension SupportChatDayBuilder {
 
     func kind(from messages: [SupportMessage]) -> SupportChatGroup.Kind? {
         guard let sender = messages.first?.sender else { return nil }
-        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction, imageAction: imageAction) }
+        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction, imageAction: imageAction, displayURL: displayURL) }
         switch sender {
         case .user: return .user(messages: bubbles)
         case let .agent(agent): return .agent(header: SupportAgentHeader(agent: agent), messages: bubbles)

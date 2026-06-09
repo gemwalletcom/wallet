@@ -46,6 +46,11 @@ let package = Package(
             name: "SupportTests",
             dependencies: [
                 "Support",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "Store",
+                .product(name: "StoreTestKit", package: "Store"),
+                .product(name: "SupportChatService", package: "FeatureServices"),
             ],
         ),
     ],
