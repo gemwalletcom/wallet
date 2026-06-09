@@ -8,7 +8,10 @@ plugins {
     id("kotlinx-serialization")
     id("com.google.devtools.ksp")
     id("androidx.room")
-    id("com.google.gms.google-services")
+}
+
+if (System.getenv("FDROID_BUILD") != "true") {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 repositories {
@@ -57,6 +60,10 @@ android {
 
         create("fdroid") {
             dimension = channelDimension
+            ndk {
+                abiFilters.add("armeabi-v7a")
+                abiFilters.add("arm64-v8a")
+            }
             buildConfigField("String", "UPDATE_URL", "\"\"")
         }
         create("huawei") {
@@ -138,7 +145,17 @@ android {
         }
 
         getByName("release") {
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            val reproducibleBuild = System.getenv("ANDROID_REPRODUCIBLE_BUILD") == "true"
+            val releaseProguardFiles = mutableListOf<Any>(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            if (reproducibleBuild) {
+                releaseProguardFiles.add("proguard-reproducible-rules.pro")
+            } else if (System.getenv("FDROID_BUILD") != "true") {
+                releaseProguardFiles.add("proguard-stacktrace-rules.pro")
+            }
+            proguardFiles(*releaseProguardFiles.toTypedArray())
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false

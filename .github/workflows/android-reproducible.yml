@@ -1,0 +1,75 @@
+name: Android Reproducible Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: Release APK variant to verify
+        required: true
+        default: universal
+        type: choice
+        options:
+          - fdroid
+          - universal
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "android/app/build.gradle.kts"
+      - "android/app/proguard-rules.pro"
+      - "android/fdroid-build/**"
+      - "android/reproducible/**"
+      - "android/gradle/**"
+      - "shell.nix"
+      - ".github/workflows/android-reproducible.yml"
+  push:
+    paths:
+      - "android/app/build.gradle.kts"
+      - "android/app/proguard-rules.pro"
+      - "android/fdroid-build/**"
+      - "android/reproducible/**"
+      - "android/gradle/**"
+      - "shell.nix"
+      - ".github/workflows/android-reproducible.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  verify:
+    name: Verify ${{ github.event.inputs.variant || 'universal' }} APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GPR_USERNAME: ${{ github.actor }}
+      GPR_TOKEN: ${{ github.token }}
+      REPRO_VARIANT: ${{ github.event.inputs.variant || 'universal' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Verify reproducible APK
+        run: |
+          nix-shell shell.nix --run \
+            "android/reproducible/verify.sh --source . --variant $REPRO_VARIANT --work-dir $RUNNER_TEMP/gem-repro --keep"
+
+      - name: Upload verifier artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-reproducible-${{ env.REPRO_VARIANT }}
+          path: |
+            ${{ runner.temp }}/gem-repro/build-one/*.apk
+            ${{ runner.temp }}/gem-repro/build-two/*.apk
+            ${{ runner.temp }}/gem-repro/build-one/build.log
+            ${{ runner.temp }}/gem-repro/build-two/build.log
+            ${{ runner.temp }}/gem-repro/build-one/*mapping*.txt
+            ${{ runner.temp }}/gem-repro/build-two/*mapping*.txt
+            ${{ runner.temp }}/gem-repro/build-one/*configuration*.txt
+            ${{ runner.temp }}/gem-repro/build-two/*configuration*.txt
+            ${{ runner.temp }}/gem-repro/*.html

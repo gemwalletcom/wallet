@@ -12,8 +12,9 @@
 #   public *;
 #}
 
-# Preserve stack traces and fix R8 non-deterministic map-id for reproducible builds.
--keepattributes SourceFile,LineNumberTable
+# Keep SourceFile stable for stack traces and avoid R8 path-derived SourceFile names.
+# Store releases add LineNumberTable in proguard-stacktrace-rules.pro.
+-keepattributes SourceFile
 -renamesourcefileattribute SourceFile
 
 -verbose

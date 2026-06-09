@@ -3,7 +3,9 @@ buildscript {
         gradlePluginPortal()
         google()
         mavenCentral()
-        mavenLocal()
+        if (System.getenv("FDROID_BUILD") != "true") {
+            mavenLocal()
+        }
     }
     dependencies {
         classpath(libs.gradle)
@@ -33,7 +35,9 @@ allprojects {
         }
         google()
         mavenCentral()
-        mavenLocal()
+        if (System.getenv("FDROID_BUILD") != "true") {
+            mavenLocal()
+        }
         maven { url = uri("https://jitpack.io") }
     }
 

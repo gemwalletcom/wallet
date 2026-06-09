@@ -10,6 +10,16 @@ val rustSrcDir = gemstoneRoot.resolve("src")
 val cratesDir = rootProject.projectDir.resolve("../core/crates")
 val jniLibsDir = gemstoneSrc.resolve("main/jniLibs")
 val generatedKotlinDir = gemstoneSrc.resolve("main/java")
+val defaultCargoNdkAbis = if (System.getenv("UNIT_TESTS") == "true") {
+    "x86_64"
+} else {
+    "arm64-v8a,armeabi-v7a"
+}
+val cargoNdkTargets = (System.getenv("GEMSTONE_ANDROID_ABIS") ?: defaultCargoNdkAbis)
+    .split(",")
+    .map { it.trim() }
+    .filter { it.isNotEmpty() }
+    .joinToString(" ") { "-t $it" }
 
 android {
     namespace = "com.gemwallet.gemstone"
@@ -76,7 +86,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     inputs.dir(cratesDir)
     inputs.file(gemstoneRoot.resolve("Cargo.toml"))
     outputs.dir(jniLibsDir)
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 -o ${jniLibsDir.absolutePath} build --lib")
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} build --lib")
 }
 
 tasks.configureEach {

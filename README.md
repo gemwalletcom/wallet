@@ -17,6 +17,8 @@ Gem Wallet is an open-source mobile wallet for iOS and Android. This repository 
 
 🤖 [Android on Google Play](https://play.google.com/store/apps/details?id=com.gemwallet.android&utm_campaign=github&utm_source=referral&utm_medium=github)
 
+🔁 [Android reproducible builds](docs/android-reproducible-builds.md)
+
 ## Features
 
 - Open source, self-custodial wallet with multi-chain support
