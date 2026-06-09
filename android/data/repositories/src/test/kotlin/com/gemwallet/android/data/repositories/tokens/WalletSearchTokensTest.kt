@@ -14,6 +14,7 @@ import com.wallet.core.primitives.SearchResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -67,5 +68,17 @@ class WalletSearchTokensTest {
         assertTrue(result)
         coVerify { perpetualRepository.putPerpetuals(any()) }
         coVerify { searchPriorityDao.put(match { priorities -> priorities.any { it.type == "perpetual" } }) }
+    }
+
+    @Test
+    fun search_rethrowsCancellationWithoutStoring() = runTest {
+        coEvery { gemSearch.search(any(), any(), any()) } throws CancellationException("cancelled")
+
+        val result = runCatching {
+            subject.search(query = "btc", currency = Currency.USD, chains = emptyList(), tags = emptyList())
+        }
+
+        assertTrue(result.exceptionOrNull() is CancellationException)
+        coVerify(exactly = 0) { tokensRepository.storeAssets(any(), any(), any(), any()) }
     }
 }

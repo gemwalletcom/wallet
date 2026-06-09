@@ -54,6 +54,7 @@ open class BaseAssetSelectViewModel(
     private val toggleAssetPin: ToggleAssetPin,
     private val searchTokensCase: SearchTokensCase,
     val search: SelectSearch,
+    private val remoteSearch: Boolean = true,
 ) : ViewModel() {
 
     val queryState = TextFieldState()
@@ -225,8 +226,6 @@ open class BaseAssetSelectViewModel(
     open val showRecents: Boolean get() = true
 
     open val recentTypes: List<RecentType> get() = RecentType.entries
-
-    protected open val remoteSearch: Boolean get() = true
 
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 

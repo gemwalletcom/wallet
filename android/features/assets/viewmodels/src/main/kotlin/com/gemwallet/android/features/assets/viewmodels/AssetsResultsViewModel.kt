@@ -42,9 +42,8 @@ class AssetsResultsViewModel @Inject constructor(
     toggleAssetPin,
     searchTokensCase,
     BaseSelectSearch(searchSelectAssets),
+    remoteSearch = false,
 ) {
-
-    override val remoteSearch: Boolean get() = false
 
     init {
         val tag = savedStateHandle.get<String?>(RouteArgument.Tag.key)

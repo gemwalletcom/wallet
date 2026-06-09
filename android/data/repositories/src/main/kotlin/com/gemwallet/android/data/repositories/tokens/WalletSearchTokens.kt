@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualMetadata
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -26,6 +27,8 @@ class WalletSearchTokens(
         }
         val response = try {
             gemSearch.search(query = query, chains = chains, tags = tags)
+        } catch (err: CancellationException) {
+            throw err
         } catch (_: Throwable) {
             return@withContext false
         }
@@ -33,11 +36,14 @@ class WalletSearchTokens(
         val hasAssets = tokensRepository.storeAssets(query, response.assets, currency, priorityQuery)
         val perpetuals = if (tags.isEmpty()) response.perpetuals else emptyList()
         if (perpetuals.isNotEmpty()) {
-            runCatching {
+            try {
                 perpetualRepository.putPerpetuals(
                     perpetuals.map { PerpetualData(perpetual = it.perpetual, asset = it.asset, metadata = PerpetualMetadata(isPinned = false)) }
                 )
                 searchPriorityDao.put(perpetuals.toSearchPriority(priorityQuery))
+            } catch (err: CancellationException) {
+                throw err
+            } catch (_: Throwable) {
             }
         }
         hasAssets || perpetuals.isNotEmpty()

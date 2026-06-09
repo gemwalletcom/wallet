@@ -19,6 +19,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -41,6 +42,8 @@ class TokensRepository (
                 chains = chains,
                 tags = tags,
             )
+        } catch (err: CancellationException) {
+            throw err
         } catch (_: Throwable) {
             return@withContext false
         }
