@@ -222,7 +222,7 @@ impl StreamProducer {
     where
         T: serde::Serialize,
     {
-        let data = serde_json::to_vec(message)?;
+        let data = Arc::new(serde_json::to_vec(message)?);
         self.run(|channel| {
             let data = data.clone();
             async move {
@@ -231,7 +231,7 @@ impl StreamProducer {
                         exchange.into(),
                         routing_key.into(),
                         BasicPublishOptions::default(),
-                        &data,
+                        data.as_ref(),
                         BasicProperties::default().with_delivery_mode(2).with_content_type("application/json".into()),
                     )
                     .await?;

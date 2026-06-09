@@ -57,10 +57,10 @@ members = [
 
 [workspace.dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = { version = "1.0.149", features = ["preserve_order"] }
+serde_json = { version = "1.0.150", features = ["preserve_order"] }
 serde_urlencoded = { version = "0.7.1" }
 
-tokio = { version = "1.52.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
 reqwest = { version = "0.13.4", features = [
     "json",
     "gzip",
@@ -71,24 +71,24 @@ reqwest = { version = "0.13.4", features = [
 ] }
 
 url = { version = "2.5.8" }
-config = { version = "0.15.19", features = ["yaml"] }
+config = { version = "0.15.23", features = ["yaml"] }
 rocket = { version = "0.5.1", features = ["json"] }
 rocket_ws = { version = "0.1.1" }
 
 async-trait = { version = "0.1.89" }
-prometheus-client = { version = "0.24.0" }
+prometheus-client = { version = "0.24.1" }
 futures = { version = "0.3.32" }
-uuid = { version = "1.23.0", features = ["v4"] }
+uuid = { version = "1.23.2", features = ["v4"] }
 tracing = { version = "0.1.44" }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # db
-redis = { version = "1.2.0", default-features = false, features = [
+redis = { version = "1.2.2", default-features = false, features = [
     "tokio-comp",
     "connection-manager",
 ] }
 r2d2 = { version = "0.8.10" }
-chrono = { version = "0.4.43", features = ["serde"] }
+chrono = { version = "0.4.45", features = ["serde"] }
 
 # crypto
 base64 = { version = "0.22.1" }
@@ -112,10 +112,10 @@ rand = { version = "0.10.1" }
 strum = { version = "0.28.0", features = ["derive"] }
 curve25519-dalek = { version = "4.1.3" }
 ed25519-dalek = { version = "2", features = ["std"] }
-borsh = { version = "1.6.0", features = ["derive"] }
+borsh = { version = "1.6.1", features = ["derive"] }
 bcs = { version = "0.2.1" }
 pem-rfc7468 = { version = "1.0.0", features = ["std"] }
-sui-types = { package = "sui-sdk-types", version = "0.3.0", features = [
+sui-types = { package = "sui-sdk-types", version = "0.3.1", features = [
     "serde",
 ] }
 k256 = { version = "0.13.4", features = ["ecdsa", "sha256"] }

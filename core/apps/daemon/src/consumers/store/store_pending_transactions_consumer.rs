@@ -19,7 +19,7 @@ impl StorePendingTransactionsConsumer {
 
 #[async_trait]
 impl MessageConsumer<TransactionId, usize> for StorePendingTransactionsConsumer {
-    async fn should_process(&self, _payload: TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, _payload: &TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 

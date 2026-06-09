@@ -39,7 +39,7 @@ public extension DelegationBase {
             rewards: rewards,
             completionDate: completionDate,
             delegationId: delegationId,
-            validatorId: validatorId
+            validatorId: validatorId,
         )
     }
 }
@@ -47,6 +47,18 @@ public extension DelegationBase {
 public extension DelegationValidator {
     static let systemId = "system"
     static let legacySystemId = "unstaking"
+
+    static func inactive(chain: Chain, id: String, name: String) -> DelegationValidator {
+        DelegationValidator(
+            chain: chain,
+            id: id,
+            name: name,
+            isActive: false,
+            commission: .zero,
+            apr: .zero,
+            providerType: .stake,
+        )
+    }
 
     static func system(chain: Chain, name: String) -> DelegationValidator {
         DelegationValidator(

@@ -12,8 +12,6 @@ use primitives::{
 use std::{collections::HashMap, sync::LazyLock};
 
 pub const NEAR_INTENTS_WRAP_NEAR: &str = "nep141:wrap.near";
-// pub const NEAR_INTENTS_NEAR_USDC: &str = "nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1";
-// pub const NEAR_INTENTS_NEAR_USDT: &str = "nep141:usdt.tether-token.near";
 pub const NEAR_INTENTS_ETH_NATIVE: &str = "nep141:eth.omft.near";
 pub const NEAR_INTENTS_ETH_USDC: &str = "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near";
 pub const NEAR_INTENTS_ETH_USDT: &str = "nep141:eth-0xdac17f958d2ee523a2206206994597c13d831ec7.omft.near";
@@ -63,7 +61,6 @@ pub const NEAR_INTENTS_APT_NATIVE: &str = "nep141:aptos.omft.near";
 pub const NEAR_INTENTS_APT_USDT: &str = "nep141:aptos-88cb7619440a914fe6400149a12b443c3ac21d59.omft.near";
 pub const NEAR_INTENTS_ZEC_NATIVE: &str = "nep141:zec.omft.near";
 pub const NEAR_INTENTS_STELLAR_NATIVE: &str = "nep245:v2_1.omni.hot.tg:1100_111bzQBB5v7AhLyPMDwS8uJgQV24KaAPXtwyVWu2KXbbfQU6NXRCz";
-// pub const NEAR_INTENTS_STELLAR_USDC: &str = "nep245:v2_1.omni.hot.tg:1100_111bzQBB65GxAPAVoxqmMcgYo5oS3txhqs1Uh1cgahKQUeTUq1TJu";
 pub const NEAR_INTENTS_LTC_NATIVE: &str = "nep141:ltc.omft.near";
 pub const NEAR_INTENTS_BCH_NATIVE: &str = "nep141:bch.omft.near";
 pub const NEAR_INTENTS_BERA_USDT: &str = "nep141:bera-0x779ded0c9e1022225f8e0630b35a9b54be713736.omft.near";

@@ -9,12 +9,14 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.FiatTransactionAssetData
 
 @Composable
@@ -31,6 +33,7 @@ fun FiatTransactionsScene(
         onClose = onClose,
     ) {
         val uriHandler = LocalUriHandler.current
+        val context = LocalContext.current
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
@@ -52,9 +55,7 @@ fun FiatTransactionsScene(
                         items = transactions,
                         onTransactionClick = { info ->
                             info.detailsUrl?.let { url ->
-                                try {
-                                    uriHandler.openUri(url)
-                                } catch (_: Exception) { }
+                                uriHandler.open(context, url)
                             }
                         },
                     )

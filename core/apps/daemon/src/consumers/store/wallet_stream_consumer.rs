@@ -34,7 +34,7 @@ fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEve
 
 #[async_trait]
 impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
-    async fn should_process(&self, _payload: WalletStreamPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, _payload: &WalletStreamPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 

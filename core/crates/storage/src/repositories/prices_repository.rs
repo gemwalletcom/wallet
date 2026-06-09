@@ -19,6 +19,7 @@ pub trait PricesRepository {
     fn set_prices_assets(&mut self, values: Vec<PriceAssetRow>) -> Result<usize, DatabaseError>;
     fn get_prices_by_filter(&mut self, filters: Vec<PriceFilter>) -> Result<Vec<PriceRow>, DatabaseError>;
     fn get_prices_assets(&mut self) -> Result<Vec<PriceAssetRow>, DatabaseError>;
+    fn get_prices_asset_ids(&mut self) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_prices_assets_by_provider(&mut self, provider: PriceProvider) -> Result<Vec<PriceAssetRow>, DatabaseError>;
     fn get_primary_price_key(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<PriceId, DatabaseError>;
     fn get_primary_prices(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceRow)>, DatabaseError>;
@@ -47,6 +48,10 @@ impl PricesRepository for DatabaseClient {
 
     fn get_prices_assets(&mut self) -> Result<Vec<PriceAssetRow>, DatabaseError> {
         Ok(PricesStore::get_prices_assets(self)?)
+    }
+
+    fn get_prices_asset_ids(&mut self) -> Result<Vec<AssetId>, DatabaseError> {
+        Ok(PricesStore::get_prices_asset_ids(self)?.into_iter().filter_map(|id| AssetId::new(&id)).collect())
     }
 
     fn get_prices_assets_by_provider(&mut self, provider: PriceProvider) -> Result<Vec<PriceAssetRow>, DatabaseError> {

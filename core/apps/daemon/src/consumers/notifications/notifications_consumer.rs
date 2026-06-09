@@ -18,7 +18,7 @@ impl NotificationsConsumer {
 
 #[async_trait]
 impl MessageConsumer<NotificationsPayload, usize> for NotificationsConsumer {
-    async fn should_process(&self, _payload: NotificationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, _payload: &NotificationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 

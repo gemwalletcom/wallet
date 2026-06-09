@@ -58,7 +58,7 @@ impl FetchNftAssetsAddressesConsumer {
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchNftAssetsAddressesConsumer {
-    async fn should_process(&self, payload: ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher
             .can_process_cached(CacheKey::FetchNftAssetsAddresses(payload.value.chain.as_ref(), &payload.value.address))
             .await

@@ -40,7 +40,6 @@ pub struct ResolverData {
     address: String,
 }
 
-//const REGISTER_ADDRESS: &str = "inj1hm8vs8sr2h9nk0x66vctfs528wrp6k3gtgg275";
 const RESOLVER_ADDRESS: &str = "inj1x9m0hceug9qylcyrrtwqtytslv2jrph433thgu";
 
 impl InjectiveNameClient {

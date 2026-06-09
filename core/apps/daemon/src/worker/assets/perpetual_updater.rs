@@ -28,6 +28,7 @@ impl PerpetualUpdater {
         let assets = perpetuals_data.iter().map(|x| x.asset.clone()).collect::<Vec<_>>();
         let asset_ids = assets.iter().map(|x| x.id.clone()).collect::<Vec<_>>();
         let perpetuals = perpetuals_data.into_iter().map(|x| NewPerpetualRow::from_primitive(x.perpetual)).collect::<Vec<_>>();
+        let count = perpetuals.len();
 
         self.database.assets()?.upsert_assets(assets)?;
         self.database.assets()?.update_assets(
@@ -41,9 +42,9 @@ impl PerpetualUpdater {
             ],
         )?;
 
-        if let Err(e) = self.database.perpetuals()?.perpetuals_update(perpetuals.clone()) {
+        if let Err(e) = self.database.perpetuals()?.perpetuals_update(perpetuals) {
             error_with_fields!("failed perpetuals update", &e, chain = chain.as_ref());
         }
-        Ok(perpetuals.len())
+        Ok(count)
     }
 }

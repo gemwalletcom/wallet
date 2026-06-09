@@ -26,13 +26,13 @@ impl FetchAddressTransactionsConsumer {
     }
 
     pub async fn process_result(&self, chain: Chain, transactions: Vec<Transaction>) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.producer.publish_transactions(TransactionsPayload::new(chain, transactions.clone())).await
+        self.producer.publish_transactions(TransactionsPayload::new(chain, transactions)).await
     }
 }
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsConsumer {
-    async fn should_process(&self, payload: ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher
             .can_process_cached(CacheKey::FetchAddressTransactions(payload.value.chain.as_ref(), &payload.value.address))
             .await
@@ -42,7 +42,8 @@ impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsCon
             .providers
             .get_transactions_by_address(payload.value.chain, TransactionsRequest::new(payload.value.address.clone()))
             .await?;
-        let _ = self.process_result(payload.value.chain, transactions.clone()).await;
-        Ok(transactions.len())
+        let count = transactions.len();
+        let _ = self.process_result(payload.value.chain, transactions).await;
+        Ok(count)
     }
 }

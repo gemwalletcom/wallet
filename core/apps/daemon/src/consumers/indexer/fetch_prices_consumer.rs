@@ -12,7 +12,7 @@ pub struct FetchPricesConsumer {
 
 #[async_trait]
 impl MessageConsumer<FetchPricesPayload, usize> for FetchPricesConsumer {
-    async fn should_process(&self, _payload: FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, _payload: &FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 

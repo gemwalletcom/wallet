@@ -104,8 +104,13 @@ impl NodeService {
         let request_for_metrics = request.clone();
         let result = self.handle_request_inner(request).await;
         if let Ok(response) = &result {
-            self.metrics
-                .add_proxy_response(request_for_metrics.chain.as_ref(), response.status, request_for_metrics.elapsed().as_millis());
+            self.metrics.add_proxy_response(
+                request_for_metrics.chain.as_ref(),
+                request_for_metrics.method.as_str(),
+                request_for_metrics.path.as_str(),
+                response.status,
+                request_for_metrics.elapsed().as_millis(),
+            );
         }
         result
     }

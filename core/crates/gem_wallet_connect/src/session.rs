@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::str::FromStr;
 
 use primitives::Chain;
 
@@ -11,10 +10,6 @@ pub fn config_session_properties(mut properties: HashMap<String, String>, chains
         properties = tron_session_properties(properties);
     }
     properties
-}
-
-pub fn parse_chains(chains: &[String]) -> Vec<Chain> {
-    chains.iter().filter_map(|c| Chain::from_str(c).ok()).collect()
 }
 
 fn tron_session_properties(mut properties: HashMap<String, String>) -> HashMap<String, String> {

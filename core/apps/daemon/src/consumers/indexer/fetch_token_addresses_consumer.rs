@@ -29,7 +29,7 @@ impl FetchTokenAddressesConsumer {
 
 #[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchTokenAddressesConsumer {
-    async fn should_process(&self, payload: ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher
             .can_process_cached(CacheKey::FetchTokenAddresses(payload.value.chain.as_ref(), &payload.value.address))
             .await

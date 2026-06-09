@@ -1,7 +1,7 @@
 [versions]
 activityCompose = "1.13.0"
-compose = "1.11.1"
-material3 = "1.5.0-alpha19"
+compose = "1.12.0-alpha03"
+material3 = "1.5.0-alpha21"
 navigation3 = "1.1.1"
 accompanistPermissions = "0.37.3"
 camera2 = "1.6.1"

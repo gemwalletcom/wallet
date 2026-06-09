@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::future::Future;
 
 use futures::StreamExt;
 use gem_tracing::{error_fields, error_with_fields, info_with_fields};
@@ -74,10 +75,11 @@ impl StreamReader {
         }
     }
 
-    pub async fn read<T, F>(&mut self, queue: QueueName, routing_key: Option<&str>, mut callback: F, shutdown_rx: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
+    pub async fn read<T, F, Fut>(&mut self, queue: QueueName, routing_key: Option<&str>, mut callback: F, shutdown_rx: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned,
-        F: FnMut(T) -> Result<(), Box<dyn Error + Send + Sync>>,
+        F: FnMut(T) -> Fut,
+        Fut: Future<Output = Result<(), Box<dyn Error + Send + Sync>>>,
     {
         let (queue_name, consumer_tag) = match routing_key {
             Some(key) => (format!("{}.{}", queue, key), format!("consumer-{}-{}", queue, key)),
@@ -110,7 +112,7 @@ impl StreamReader {
                 }
             };
 
-            let result = self.consume::<T, _>(&mut consumer, &mut callback, shutdown_rx.clone()).await;
+            let result = self.consume::<T, _, _>(&mut consumer, &mut callback, shutdown_rx.clone()).await;
             if let Ok(true) = result {
                 break;
             }
@@ -128,10 +130,11 @@ impl StreamReader {
         Ok(())
     }
 
-    async fn consume<T, F>(&mut self, consumer: &mut lapin::Consumer, callback: &mut F, mut shutdown_rx: ShutdownReceiver) -> Result<bool, Box<dyn Error + Send + Sync>>
+    async fn consume<T, F, Fut>(&mut self, consumer: &mut lapin::Consumer, callback: &mut F, mut shutdown_rx: ShutdownReceiver) -> Result<bool, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned,
-        F: FnMut(T) -> Result<(), Box<dyn Error + Send + Sync>>,
+        F: FnMut(T) -> Fut,
+        Fut: Future<Output = Result<(), Box<dyn Error + Send + Sync>>>,
     {
         loop {
             let delivery = tokio::select! {
@@ -144,7 +147,7 @@ impl StreamReader {
                     let delivery_tag = delivery.delivery_tag;
                     let data = serde_json::from_slice::<T>(&delivery.data);
                     match data {
-                        Ok(obj) => match callback(obj) {
+                        Ok(obj) => match callback(obj).await {
                             Ok(_) => self.ack(delivery_tag).await?,
                             Err(_) => self.nack(delivery_tag, true).await?,
                         },

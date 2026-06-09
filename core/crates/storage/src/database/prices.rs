@@ -37,6 +37,7 @@ pub(crate) trait PricesStore {
     fn set_prices_assets(&mut self, values: Vec<PriceAssetRow>) -> Result<usize, diesel::result::Error>;
     fn get_prices_by_filter(&mut self, filters: Vec<PriceFilter>) -> Result<Vec<PriceRow>, diesel::result::Error>;
     fn get_prices_assets(&mut self) -> Result<Vec<PriceAssetRow>, diesel::result::Error>;
+    fn get_prices_asset_ids(&mut self) -> Result<Vec<String>, diesel::result::Error>;
     fn get_prices_assets_by_provider(&mut self, provider: PriceProvider) -> Result<Vec<PriceAssetRow>, diesel::result::Error>;
     fn get_prices_for_asset_ids(&mut self, asset_ids: &[String]) -> Result<Vec<(String, PriceRow)>, diesel::result::Error>;
     fn get_price_by_id(&mut self, price_id: &str) -> Result<PriceRow, diesel::result::Error>;
@@ -101,6 +102,11 @@ impl PricesStore for DatabaseClient {
     fn get_prices_assets(&mut self) -> Result<Vec<PriceAssetRow>, diesel::result::Error> {
         use crate::schema::prices_assets::dsl::*;
         prices_assets.select(PriceAssetRow::as_select()).load(&mut self.connection)
+    }
+
+    fn get_prices_asset_ids(&mut self) -> Result<Vec<String>, diesel::result::Error> {
+        use crate::schema::prices_assets::dsl::*;
+        prices_assets.select(asset_id).load(&mut self.connection)
     }
 
     fn get_prices_assets_by_provider(&mut self, price_provider: PriceProvider) -> Result<Vec<PriceAssetRow>, diesel::result::Error> {

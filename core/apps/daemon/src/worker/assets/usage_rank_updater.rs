@@ -16,13 +16,17 @@ impl UsageRankUpdater {
         let now = chrono::Utc::now().naive_utc();
         let thirty_days_ago = now - chrono::Duration::days(30);
 
-        let counts_1h = self.database.transactions()?.get_asset_usage_counts(now - chrono::Duration::hours(1))?;
-        let counts_24h = self.database.transactions()?.get_asset_usage_counts(now - chrono::Duration::days(1))?;
-        let counts_7d = self.database.transactions()?.get_asset_usage_counts(now - chrono::Duration::days(7))?;
-        let counts_30d = self.database.transactions()?.get_asset_usage_counts(thirty_days_ago)?;
+        let mut raw_scores: HashMap<AssetId, i64> = HashMap::new();
+        add_weighted_counts(
+            &mut raw_scores,
+            self.database.transactions()?.get_asset_usage_counts(now - chrono::Duration::hours(1))?,
+            250,
+        );
+        add_weighted_counts(&mut raw_scores, self.database.transactions()?.get_asset_usage_counts(now - chrono::Duration::days(1))?, 100);
+        add_weighted_counts(&mut raw_scores, self.database.transactions()?.get_asset_usage_counts(now - chrono::Duration::days(7))?, 10);
+        add_weighted_counts(&mut raw_scores, self.database.transactions()?.get_asset_usage_counts(thirty_days_ago)?, 1);
 
-        let usage_ranks = calculate_usage_ranks(&counts_1h, &counts_24h, &counts_7d, &counts_30d);
-        let rows: Vec<AssetUsageRankRow> = usage_ranks
+        let rows: Vec<AssetUsageRankRow> = usage_ranks_from_scores(raw_scores)
             .into_iter()
             .map(|(asset_id, usage_rank)| AssetUsageRankRow {
                 asset_id: asset_id.into(),
@@ -35,6 +39,13 @@ impl UsageRankUpdater {
     }
 }
 
+fn add_weighted_counts(raw_scores: &mut HashMap<AssetId, i64>, counts: Vec<(AssetId, i64)>, weight: i64) {
+    for (asset_id, count) in counts {
+        *raw_scores.entry(asset_id).or_insert(0) += count * weight;
+    }
+}
+
+#[cfg(test)]
 fn calculate_usage_ranks(counts_1h: &[(AssetId, i64)], counts_24h: &[(AssetId, i64)], counts_7d: &[(AssetId, i64)], counts_30d: &[(AssetId, i64)]) -> Vec<(AssetId, i32)> {
     let mut raw_scores: HashMap<AssetId, i64> = HashMap::new();
 
@@ -51,6 +62,10 @@ fn calculate_usage_ranks(counts_1h: &[(AssetId, i64)], counts_24h: &[(AssetId, i
         *raw_scores.entry(asset_id.clone()).or_insert(0) += count;
     }
 
+    usage_ranks_from_scores(raw_scores)
+}
+
+fn usage_ranks_from_scores(raw_scores: HashMap<AssetId, i64>) -> Vec<(AssetId, i32)> {
     if raw_scores.is_empty() {
         return vec![];
     }

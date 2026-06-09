@@ -17,7 +17,7 @@ where
     value.map(|raw| parse_duration(&raw)).transpose().map_err(serde::de::Error::custom)
 }
 
-pub fn parse_duration(s: &str) -> Result<Duration, String> {
+fn parse_duration(s: &str) -> Result<Duration, String> {
     let s = s.trim();
 
     if s.is_empty() {

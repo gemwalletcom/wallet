@@ -159,6 +159,7 @@ pub enum RelayStatus {
     Completed,
     Failed,
     Failure,
+    Refund,
     Refunded,
     #[serde(other)]
     Unknown,
@@ -169,7 +170,7 @@ impl RelayStatus {
         match self {
             RelayStatus::Pending | RelayStatus::Waiting | RelayStatus::Unknown => SwapStatus::Pending,
             RelayStatus::Success | RelayStatus::Completed => SwapStatus::Completed,
-            RelayStatus::Failed | RelayStatus::Failure | RelayStatus::Refunded => SwapStatus::Failed,
+            RelayStatus::Failed | RelayStatus::Failure | RelayStatus::Refund | RelayStatus::Refunded => SwapStatus::Failed,
         }
     }
 }
@@ -335,5 +336,16 @@ mod tests {
         };
 
         assert_eq!(response.deposit_addresses(), vec![ethereum_address_checksum(depository).unwrap()]);
+    }
+
+    #[test]
+    fn test_relay_status_refund_maps_to_failed() {
+        let request: RelayRequest = serde_json::from_value(serde_json::json!({
+            "status": "refund",
+            "data": null
+        }))
+        .unwrap();
+
+        assert_eq!(request.status.into_swap_status(), SwapStatus::Failed);
     }
 }

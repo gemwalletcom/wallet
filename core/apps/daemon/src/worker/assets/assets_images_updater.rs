@@ -22,9 +22,8 @@ impl AssetsImagesUpdater {
         let current: HashSet<AssetId> = self
             .database
             .assets()?
-            .get_assets_by_filter(vec![AssetFilter::HasImage(true), AssetFilter::Chain(chain.as_ref().to_string())])?
+            .get_asset_ids_by_filter(vec![AssetFilter::HasImage(true), AssetFilter::Chain(chain.as_ref().to_string())])?
             .into_iter()
-            .map(|a| a.asset.id)
             .collect();
 
         let additions: Vec<AssetId> = new.difference(&current).cloned().collect();

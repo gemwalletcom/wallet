@@ -20,7 +20,3 @@ pub fn encode_base64_url(bytes: &[u8]) -> String {
 pub fn decode_base64_url(value: &str) -> Result<Vec<u8>, EncodingError> {
     Ok(general_purpose::URL_SAFE_NO_PAD.decode(value)?)
 }
-
-pub fn decode_base64_url_padded(value: &str) -> Result<Vec<u8>, EncodingError> {
-    Ok(general_purpose::URL_SAFE.decode(value)?)
-}

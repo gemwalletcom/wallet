@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +29,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
@@ -51,6 +53,7 @@ fun FiatNavScreen(
     val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle()
     val showFiatTypePicker by viewModel.showFiatTypePicker.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val currentAssetInfo = asset
     val currentAsset = currentAssetInfo?.asset ?: return
@@ -81,7 +84,7 @@ fun FiatNavScreen(
         onBuy = {
             urlLoading.value = true
             viewModel.getUrl {
-                it?.let { uriHandler.openUri(it) }
+                it?.let { url -> uriHandler.open(context, url) }
                 urlLoading.value = false
             }
         }

@@ -110,7 +110,7 @@ impl NewTransactionRow {
         let utxo_outputs = if transaction.utxo_outputs.clone().unwrap_or_default().is_empty() {
             None
         } else {
-            serde_json::to_value(transaction.clone().utxo_outputs.clone()).ok()
+            serde_json::to_value(transaction.utxo_outputs.clone()).ok()
         };
         let metadata = if transaction.metadata.is_none() {
             None

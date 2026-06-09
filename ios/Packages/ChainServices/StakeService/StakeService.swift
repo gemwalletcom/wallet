@@ -30,8 +30,8 @@ public struct StakeService: StakeServiceable {
     }
 
     public func update(walletId: WalletId, chain: Chain, address: String) async throws {
-        try await updateValidators(chain: chain, address: address)
-        try await updateDelegations(walletId: walletId, chain: chain, address: address)
+        let validatorNamesById = try await updateValidators(chain: chain, address: address)
+        try await updateDelegations(walletId: walletId, chain: chain, address: address, validatorNamesById: validatorNamesById)
     }
 
     public func clearDelegations() throws {
@@ -46,19 +46,18 @@ public struct StakeService: StakeServiceable {
 // MARK: - Private
 
 extension StakeService {
-    private func updateValidators(chain: Chain, address: String) async throws {
+    private func updateValidators(chain: Chain, address: String) async throws -> [String: String] {
         let apr = try stakeApr(assetId: chain.assetId) ?? 0
         let service = chainServiceFactory.service(for: chain)
 
         async let getValidators = service.getValidators(apr: apr)
         async let getDelegationValidators = service.getDelegationValidators(address: address)
-        async let getValidatorsList = assetsService.getValidators(chain: chain)
 
-        let (validators, delegationValidators, validatorsList) = try await (
+        let (validators, delegationValidators) = try await (
             getValidators,
             getDelegationValidators,
-            getValidatorsList.toMap { $0.id },
         )
+        let validatorsList = await (try? assetsService.getValidators(chain: chain).toMap { $0.id }) ?? [:]
 
         let activeValidatorIds = validators.map(\.id).asSet()
         let updateValidators = (validators + delegationValidators.filter { !activeValidatorIds.contains($0.id) }).map {
@@ -79,30 +78,39 @@ extension StakeService {
             AddressName(chain: $0.chain, address: $0.id, name: $0.name, type: .validator, status: .verified)
         }
         try addressStore.addAddressNames(addressNames)
+        return validatorsList.mapValues { $0.name }
     }
 
-    private func updateDelegations(walletId: WalletId, chain: Chain, address: String) async throws {
+    private func updateDelegations(walletId: WalletId, chain: Chain, address: String, validatorNamesById: [String: String]) async throws {
         let delegations = try await getDelegations(chain: chain, address: address)
-        let existingDelegationsIds = try store.getDelegations(walletId: walletId, assetId: chain.assetId, providerType: .stake).map(\.id).asSet()
-        let delegationsIds = delegations.map(\.id).asSet()
-        let deleteDelegationsIds = existingDelegationsIds.subtracting(delegationsIds).asArray()
-
-        let validators = try store.getValidators(assetId: chain.assetId, providerType: .stake).toMap { $0.id }
+        let existingValidators = try store.getValidators(assetId: chain.assetId, providerType: .stake).toMap { $0.id }
         let delegationsValidatorIds = delegations.map(\.validatorId).asSet()
-        let missingValidatorIds = delegationsValidatorIds.subtracting(validators.keys)
-
-        if !missingValidatorIds.isEmpty {
-            debugLog("missingValidatorIds \(missingValidatorIds)")
+        let missingValidatorIds = delegationsValidatorIds.subtracting(existingValidators.keys)
+        let missingValidators = missingValidatorIds.map { validatorId in
+            DelegationValidator.inactive(
+                chain: chain,
+                id: validatorId,
+                name: validatorNamesById[validatorId].flatMap { $0.isEmpty ? nil : $0 } ?? validatorId,
+            )
         }
-        let updateDelegations = delegations.compactMap { delegation -> DelegationBase? in
+        if !missingValidators.isEmpty {
+            try store.updateValidators(missingValidators)
+        }
+
+        let validators = existingValidators.merging(missingValidators.toMap { $0.id }) { current, _ in current }
+        let updateDelegations = delegations.map { delegation in
             guard let validator = validators[delegation.validatorId] else {
-                return nil
+                return delegation
             }
             guard delegation.state == .active, !validator.isActive else {
                 return delegation
             }
             return delegation.with(state: .inactive)
         }
+
+        let existingDelegationsIds = try store.getDelegations(walletId: walletId, assetId: chain.assetId, providerType: .stake).map(\.id).asSet()
+        let updateDelegationsIds = updateDelegations.map(\.id).asSet()
+        let deleteDelegationsIds = existingDelegationsIds.subtracting(updateDelegationsIds).asArray()
 
         try store.updateAndDelete(walletId: walletId, delegations: updateDelegations, deleteIds: deleteDelegationsIds)
     }

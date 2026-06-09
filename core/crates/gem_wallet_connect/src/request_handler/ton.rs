@@ -24,18 +24,6 @@ impl TonRequestHandler {
         })
     }
 
-    #[allow(dead_code)]
-    pub fn parse_sign_transaction(_chain: Chain, params: Value) -> Result<WalletConnectAction, String> {
-        params.get_value("messages")?;
-        Ok(WalletConnectAction::SignTransaction {
-            chain: Chain::Ton,
-            transaction_type: WalletConnectTransactionType::Ton {
-                output_type: TransferDataOutputType::Signature,
-            },
-            data: params.to_string(),
-        })
-    }
-
     pub fn parse_send_transaction(_chain: Chain, params: Value) -> Result<WalletConnectAction, String> {
         params.get_value("messages")?;
         Ok(WalletConnectAction::SendTransaction {

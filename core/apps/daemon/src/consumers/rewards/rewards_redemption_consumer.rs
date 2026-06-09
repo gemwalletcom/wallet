@@ -55,7 +55,7 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
 
 #[async_trait]
 impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, PrimitiveRedemptionStatus> for RewardsRedemptionConsumer<S> {
-    async fn should_process(&self, payload: RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let redemption = self.database.rewards_redemptions()?.get_redemption(payload.redemption_id)?;
         Ok(*redemption.status == PrimitiveRedemptionStatus::Pending)
     }

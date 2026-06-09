@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
@@ -247,10 +248,12 @@ class FiatViewModel @Inject constructor(
     }
 
     fun getUrl(callback: (String?) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val data = assetData.value ?: return@launch callback(null)
             val quoteId = currentSelectedQuote.value?.id ?: return@launch callback(null)
-            val url = getBuyQuoteUrl(quoteId = quoteId, walletId = data.walletId)
+            val url = withContext(Dispatchers.IO) {
+                getBuyQuoteUrl(quoteId = quoteId, walletId = data.walletId)
+            }
             callback(url)
         }
     }

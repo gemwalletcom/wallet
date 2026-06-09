@@ -15,7 +15,7 @@ pub struct FetchAssetsConsumer {
 
 #[async_trait]
 impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
-    async fn should_process(&self, payload: FetchAssetsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, payload: &FetchAssetsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.cacher.can_process_cached(CacheKey::FetchAssets(&payload.asset_id.to_string())).await
     }
 

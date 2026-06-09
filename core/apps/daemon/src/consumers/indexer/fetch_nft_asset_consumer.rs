@@ -13,7 +13,7 @@ pub struct FetchNftAssetConsumer {
 
 #[async_trait]
 impl MessageConsumer<FetchNFTAssetPayload, usize> for FetchNftAssetConsumer {
-    async fn should_process(&self, payload: FetchNFTAssetPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, payload: &FetchNFTAssetPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let asset_id = payload.asset_id.to_string();
         self.cacher.can_process_cached(CacheKey::FetchNftAsset(&asset_id)).await
     }

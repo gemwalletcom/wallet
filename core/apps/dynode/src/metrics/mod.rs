@@ -42,6 +42,8 @@ pub struct HostCurrentStateLabels {
 #[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
 struct ResponseLabels {
     chain: String,
+    method: String,
+    path: String,
     status: u16,
 }
 
@@ -100,7 +102,11 @@ impl Metrics {
             "Proxy requests by host and method (HTTP path or RPC method)",
             proxy_requests_by_method.clone(),
         );
-        registry.register("proxy_response_latency", "Proxy responses by chain and status", proxy_response_latency.clone());
+        registry.register(
+            "proxy_response_latency",
+            "Proxy responses by chain, method, path, and status",
+            proxy_response_latency.clone(),
+        );
         registry.register(
             "proxy_upstream_response_latency",
             "Upstream proxy responses by host, path, method, and status",
@@ -162,9 +168,15 @@ impl Metrics {
             .observe(latency as f64);
     }
 
-    pub fn add_proxy_response(&self, chain: &str, status: u16, latency: u128) {
+    pub fn add_proxy_response(&self, chain: &str, method: &str, path: &str, status: u16, latency: u128) {
+        let path = self.truncate_path(path);
         self.proxy_response_latency
-            .get_or_create(&ResponseLabels { chain: chain.to_string(), status })
+            .get_or_create(&ResponseLabels {
+                chain: chain.to_string(),
+                method: method.to_string(),
+                path,
+                status,
+            })
             .observe(latency as f64);
     }
 
@@ -300,12 +312,14 @@ mod tests {
     fn records_response_once_and_retries_separately() {
         let metrics = create_test_metrics();
 
-        metrics.add_proxy_response("tron", 200, 123);
+        metrics.add_proxy_response("tron", "POST", "/wallet/getaccount?visible=true", 200, 123);
         metrics.add_proxy_retry("tron", "api.trongrid.io", "status=429");
 
         let encoded = metrics.get_metrics();
         assert!(encoded.contains("test_proxy_response_latency_count"));
         assert!(encoded.contains("chain=\"tron\""));
+        assert!(encoded.contains("method=\"POST\""));
+        assert!(encoded.contains("path=\"/wallet/getaccount\""));
         assert!(encoded.contains("status=\"200\""));
         assert!(encoded.contains("test_proxy_retries_total"));
         assert!(encoded.contains("host=\"api.trongrid.io\""));

@@ -40,6 +40,7 @@ pub enum AssetFilter {
     HasImage(bool),
     HasPrice(bool),
     Chain(String),
+    RankLte(i32),
 }
 
 pub(crate) trait AssetsStore {
@@ -48,12 +49,45 @@ pub(crate) trait AssetsStore {
     fn update_assets(&mut self, asset_ids: Vec<String>, updates: Vec<AssetUpdate>) -> Result<usize, diesel::result::Error>;
     fn upsert_assets(&mut self, values: Vec<NewAssetRow>) -> Result<usize, diesel::result::Error>;
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetRow>, diesel::result::Error>;
+    fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<String>, diesel::result::Error>;
     fn get_asset(&mut self, asset_id: &str) -> Result<AssetRow, diesel::result::Error>;
     fn get_assets(&mut self, asset_ids: Vec<String>) -> Result<Vec<AssetRow>, diesel::result::Error>;
     fn get_all_asset_ids(&mut self) -> Result<Vec<String>, diesel::result::Error>;
     fn get_asset_ids_updated_since(&mut self, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error>;
     fn get_swap_assets(&mut self) -> Result<Vec<String>, diesel::result::Error>;
     fn get_swap_assets_version(&mut self) -> Result<i32, diesel::result::Error>;
+}
+
+fn filter_assets(filters: Vec<AssetFilter>) -> crate::schema::assets::BoxedQuery<'static, diesel::pg::Pg> {
+    let mut query = assets.filter(is_enabled.eq(true)).into_boxed();
+
+    for filter in filters {
+        match filter {
+            AssetFilter::IsBuyable(value) => {
+                query = query.filter(is_buyable.eq(value));
+            }
+            AssetFilter::IsSellable(value) => {
+                query = query.filter(is_sellable.eq(value));
+            }
+            AssetFilter::IsSwappable(value) => {
+                query = query.filter(is_swappable.eq(value));
+            }
+            AssetFilter::HasImage(value) => {
+                query = query.filter(has_image.eq(value));
+            }
+            AssetFilter::HasPrice(value) => {
+                query = query.filter(has_price.eq(value));
+            }
+            AssetFilter::Chain(value) => {
+                query = query.filter(chain.eq(value));
+            }
+            AssetFilter::RankLte(value) => {
+                query = query.filter(rank.le(value));
+            }
+        }
+    }
+
+    query
 }
 
 impl AssetsStore for DatabaseClient {
@@ -105,32 +139,11 @@ impl AssetsStore for DatabaseClient {
     }
 
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetRow>, diesel::result::Error> {
-        let mut query = assets.filter(is_enabled.eq(true)).into_boxed();
+        filter_assets(filters).select(AssetRow::as_select()).load(&mut self.connection)
+    }
 
-        for filter in filters {
-            match filter {
-                AssetFilter::IsBuyable(value) => {
-                    query = query.filter(is_buyable.eq(value));
-                }
-                AssetFilter::IsSellable(value) => {
-                    query = query.filter(is_sellable.eq(value));
-                }
-                AssetFilter::IsSwappable(value) => {
-                    query = query.filter(is_swappable.eq(value));
-                }
-                AssetFilter::HasImage(value) => {
-                    query = query.filter(has_image.eq(value));
-                }
-                AssetFilter::HasPrice(value) => {
-                    query = query.filter(has_price.eq(value));
-                }
-                AssetFilter::Chain(value) => {
-                    query = query.filter(chain.eq(value));
-                }
-            }
-        }
-
-        query.select(AssetRow::as_select()).load(&mut self.connection)
+    fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<String>, diesel::result::Error> {
+        filter_assets(filters).select(id).load(&mut self.connection)
     }
 
     fn get_asset(&mut self, asset_id: &str) -> Result<AssetRow, diesel::result::Error> {

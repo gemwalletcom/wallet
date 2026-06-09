@@ -27,7 +27,7 @@ impl StorePricesConsumer {
 
 #[async_trait]
 impl MessageConsumer<PricesPayload, usize> for StorePricesConsumer {
-    async fn should_process(&self, _payload: PricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn should_process(&self, _payload: &PricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)
     }
 

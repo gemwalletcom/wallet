@@ -22,11 +22,4 @@ impl ProviderConfig {
     pub fn ankr_url(&self) -> String {
         format!("https://rpc.ankr.com/multichain/{}", self.ankr_key)
     }
-
-    pub fn with_url(&self, url: &str) -> Self {
-        Self {
-            url: url.to_string(),
-            ..self.clone()
-        }
-    }
 }

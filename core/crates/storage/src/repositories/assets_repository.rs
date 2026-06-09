@@ -12,6 +12,7 @@ pub trait AssetsRepository {
     fn update_assets(&mut self, asset_ids: Vec<AssetId>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
     fn upsert_assets(&mut self, values: Vec<Asset>) -> Result<usize, DatabaseError>;
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError>;
+    fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_asset(&mut self, asset_id: &AssetId) -> Result<Asset, DatabaseError>;
     fn get_asset_full(&mut self, asset_id: &AssetId, max_age: Duration) -> Result<AssetFull, DatabaseError>;
     fn get_assets(&mut self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
@@ -44,6 +45,13 @@ impl AssetsRepository for DatabaseClient {
 
     fn get_assets_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetBasic>, DatabaseError> {
         Ok(AssetsStore::get_assets_by_filter(self, filters)?.into_iter().map(|x| x.as_basic_primitive()).collect())
+    }
+
+    fn get_asset_ids_by_filter(&mut self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError> {
+        Ok(AssetsStore::get_asset_ids_by_filter(self, filters)?
+            .into_iter()
+            .filter_map(|id| AssetId::new(&id))
+            .collect())
     }
 
     fn get_asset(&mut self, asset_id: &AssetId) -> Result<Asset, DatabaseError> {

@@ -43,9 +43,6 @@ pub struct Transaction {
     pub from: String,
     #[serde(deserialize_with = "deserialize_u64_from_str_or_int")]
     pub gas: u64,
-    // pub gas_price: String,
-    // pub max_priority_fee_per_gas: Option<String>,
-    // pub max_fee_per_gas: Option<String>,
     pub hash: String,
     pub input: String,
     pub to: Option<String>,
@@ -53,8 +50,6 @@ pub struct Transaction {
     pub block_number: BigUint,
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str")]
     pub value: BigUint,
-    // #[serde(rename = "type")]
-    // pub transaction_type: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -75,6 +75,7 @@ pub struct Trace {
     pub actions: Vec<TraceAction>,
     #[serde(default)]
     pub transactions_order: Vec<String>,
+    #[serde(default)]
     pub transactions: HashMap<String, TransactionMessage>,
 }
 
