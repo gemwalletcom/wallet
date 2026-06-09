@@ -69,7 +69,7 @@ class WCRequestViewModel @Inject constructor(
 
                 val appMetadata = connection.session.metadata
                 if (originVerifier.verify(appMetadata.url, verifyContext).isScam) {
-                    throw BridgeRequestError.ScamSession
+                    throw BridgeRequestError.MaliciousSession
                 }
                 val chainId = sessionRequest.chainId ?: throw BridgeRequestError.UnresolvedChainId
                 val sessionDomain = appMetadata.url
@@ -264,7 +264,7 @@ class WCRequestViewModel @Inject constructor(
         error: BridgeRequestError,
         onNotify: (BridgeRequestError) -> Unit
     ) {
-        if (error is BridgeRequestError.ScamSession) {
+        if (error is BridgeRequestError.MaliciousSession) {
             onNotify(error)
         }
         rejectRequest(sessionRequest)
