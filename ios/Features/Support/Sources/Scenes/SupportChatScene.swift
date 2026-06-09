@@ -2,6 +2,7 @@
 
 import Components
 import Primitives
+import QuickLook
 import Store
 import Style
 import SwiftUI
@@ -35,6 +36,7 @@ public struct SupportChatScene: View {
             .task {
                 await model.fetch()
             }
+            .quickLookPreview($model.isPresentingImagePreview, in: model.previewURLs)
     }
 
     @ViewBuilder

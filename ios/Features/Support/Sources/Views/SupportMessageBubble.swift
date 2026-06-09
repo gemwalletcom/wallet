@@ -48,23 +48,28 @@ struct SupportMessageBubble: View {
     }
 
     private func imageView(_ image: SupportMessageImage) -> some View {
-        ZStack {
-            CachedAsyncImage(url: (image.thumbnailUrl ?? image.url).asURL) { loaded in
-                loaded.resizable().scaledToFill()
-            } placeholder: {
-                Colors.grayLightFaded
+        Button {
+            model.onImageTap(image)
+        } label: {
+            ZStack {
+                CachedAsyncImage(url: (image.thumbnailUrl ?? image.url).asURL) { loaded in
+                    loaded.resizable().scaledToFill()
+                } placeholder: {
+                    Colors.grayLightFaded
+                }
+                .frame(width: Constants.imageWidth, height: Constants.imageHeight)
+                .clipped()
+                imageOverlay
             }
             .frame(width: Constants.imageWidth, height: Constants.imageHeight)
-            .clipped()
-            imageOverlay
-        }
-        .frame(width: Constants.imageWidth, height: Constants.imageHeight)
-        .clipShape(RoundedRectangle(cornerRadius: .space12))
-        .overlay(alignment: .bottomTrailing) {
-            if !model.isSending {
-                timePill
+            .clipShape(RoundedRectangle(cornerRadius: .space12))
+            .overlay(alignment: .bottomTrailing) {
+                if !model.isSending {
+                    timePill
+                }
             }
         }
+        .buttonStyle(.plain)
     }
 
     private var timePill: some View {
@@ -86,15 +91,12 @@ struct SupportMessageBubble: View {
                 .controlSize(.large)
                 .tint(Colors.whiteSolid)
         case .failed:
-            Button(action: model.retry) {
-                Image(systemName: SystemImage.refresh)
-                    .font(.title2)
-                    .foregroundStyle(Colors.whiteSolid)
-                    .padding(.small)
-                    .background(Colors.blackSolid.opacity(.medium))
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
+            Image(systemName: SystemImage.refresh)
+                .font(.title2)
+                .foregroundStyle(Colors.whiteSolid)
+                .padding(.small)
+                .background(Colors.blackSolid.opacity(.medium))
+                .clipShape(Circle())
         case .sent:
             EmptyView()
         }

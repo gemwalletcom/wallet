@@ -3,19 +3,27 @@
 import Foundation
 
 struct SupportImageStore {
-    private let directoryName = "support_uploads"
-    private var directory: URL {
-        get throws {
-            let base = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            let directory = base.appendingPathComponent(directoryName, isDirectory: true)
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            return directory
-        }
+    enum Location {
+        case uploads
+        case previews
     }
 
-    func store(_ data: Data, id: String) throws -> URL {
-        let url = try directory.appendingPathComponent(id)
+    private let location: Location
+
+    init(_ location: Location) {
+        self.location = location
+    }
+
+    func store(_ data: Data, id: String, fileExtension: String) throws -> URL {
+        let url = try fileURL(id: id, fileExtension: fileExtension)
         try data.write(to: url, options: .atomic)
+        return url
+    }
+
+    func file(id: String, fileExtension: String) -> URL? {
+        guard let url = try? fileURL(id: id, fileExtension: fileExtension), FileManager.default.fileExists(atPath: url.path) else {
+            return nil
+        }
         return url
     }
 
@@ -27,5 +35,34 @@ struct SupportImageStore {
     func remove(at url: URL) {
         guard url.isFileURL else { return }
         try? FileManager.default.removeItem(at: url)
+    }
+}
+
+private extension SupportImageStore {
+    func fileURL(id: String, fileExtension: String) throws -> URL {
+        try directory().appendingPathComponent("\(id).\(fileExtension)")
+    }
+
+    func directory() throws -> URL {
+        let base = try FileManager.default.url(for: location.searchPath, in: .userDomainMask, appropriateFor: nil, create: true)
+        let directory = base.appendingPathComponent(location.directoryName, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+}
+
+private extension SupportImageStore.Location {
+    var searchPath: FileManager.SearchPathDirectory {
+        switch self {
+        case .uploads: .applicationSupportDirectory
+        case .previews: .cachesDirectory
+        }
+    }
+
+    var directoryName: String {
+        switch self {
+        case .uploads: "support_uploads"
+        case .previews: "support_image_previews"
+        }
     }
 }

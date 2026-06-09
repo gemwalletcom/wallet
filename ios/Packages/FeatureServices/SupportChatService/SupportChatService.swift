@@ -8,7 +8,8 @@ import Store
 public final class SupportChatService: Sendable {
     private let store: SupportChatStore
     private let provider: any GemAPISupportService
-    private let imageStore = SupportImageStore()
+    private let uploadStore = SupportImageStore(.uploads)
+    private let previewStore = SupportImageStore(.previews)
 
     public init(
         store: SupportChatStore,
@@ -19,7 +20,7 @@ public final class SupportChatService: Sendable {
     }
 
     public func syncMessages(fromTimestamp: Int) async throws {
-        try store.addMessages(await provider.getSupportMessages(fromTimestamp: fromTimestamp))
+        try await store.addMessages(provider.getSupportMessages(fromTimestamp: fromTimestamp))
     }
 
     public func sendText(_ content: String) async throws {
@@ -40,6 +41,26 @@ public final class SupportChatService: Sendable {
         try store.addMessages([message.with(status: .sending)])
         await deliver(message)
     }
+
+    public func imageFileURL(for image: SupportMessageImage) async throws -> URL {
+        guard let url = image.url.asURL else { throw SupportChatError.imageDataUnavailable }
+        if url.isFileURL {
+            return url
+        }
+        if let cached = previewStore.file(id: image.id, fileExtension: image.fileExtension) {
+            return cached
+        }
+        let data = try await loadData(from: url)
+        return try previewStore.store(data, id: image.id, fileExtension: image.fileExtension)
+    }
+
+    public func imageFileURLs(for images: [SupportMessageImage]) async throws -> [URL] {
+        var urls: [URL] = []
+        for image in images {
+            try await urls.append(imageFileURL(for: image))
+        }
+        return urls
+    }
 }
 
 // MARK: - Private
@@ -47,7 +68,8 @@ public final class SupportChatService: Sendable {
 private extension SupportChatService {
     func pendingImageMessage(_ attachment: ImageAttachment) throws -> SupportMessage {
         let id = UUID().uuidString
-        let url = try imageStore.store(attachment.data, id: id)
+        let fileExtension = (attachment.fileName as NSString).pathExtension
+        let url = try uploadStore.store(attachment.data, id: id, fileExtension: fileExtension.isEmpty ? "jpg" : fileExtension)
         return .userImage(id: id, url: url, fileName: attachment.fileName, fileSize: attachment.data.count)
     }
 
@@ -64,9 +86,22 @@ private extension SupportChatService {
         guard let image = message.images.first else {
             return try await provider.sendSupportMessage(input: SupportMessageInput(content: message.content))
         }
-        guard let url = image.url.asURL, let data = imageStore.data(at: url) else {
+        guard let url = image.url.asURL, let data = uploadStore.data(at: url) else {
             throw SupportChatError.imageDataUnavailable
         }
         return try await provider.sendSupportImage(image: data, fileName: image.fileName ?? "image", mimeType: image.mimeType)
+    }
+
+    func loadData(from url: URL) async throws -> Data {
+        let request = URLRequest(url: url)
+        if let cached = URLCache.shared.cachedResponse(for: request)?.data {
+            return cached
+        }
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if let http = response as? HTTPURLResponse, !(200 ..< 300).contains(http.statusCode) {
+            throw SupportChatError.imageDataUnavailable
+        }
+        URLCache.shared.storeCachedResponse(CachedURLResponse(response: response, data: data), for: request)
+        return data
     }
 }

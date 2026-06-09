@@ -6,6 +6,7 @@ import Primitives
 struct SupportChatDayBuilder {
     let messages: [SupportMessage]
     let retryAction: (SupportMessage) -> Void
+    let imageAction: (SupportImagePreviewRequest) -> Void
 
     func build() -> [SupportChatDay] {
         let sortedDays = Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
@@ -32,7 +33,7 @@ private extension SupportChatDayBuilder {
 
     func kind(from messages: [SupportMessage]) -> SupportChatGroup.Kind? {
         guard let sender = messages.first?.sender else { return nil }
-        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction) }
+        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction, imageAction: imageAction) }
         switch sender {
         case .user: return .user(messages: bubbles)
         case let .agent(agent): return .agent(header: SupportAgentHeader(agent: agent), messages: bubbles)
@@ -48,7 +49,7 @@ private extension SupportChatDayBuilder {
 }
 
 private extension Array {
-    func chunked<Key: Equatable>(on key: (Element) -> Key) -> [[Element]] {
+    func chunked(on key: (Element) -> some Equatable) -> [[Element]] {
         var chunks: [[Element]] = []
         var currentChunk: [Element] = []
         for element in self {

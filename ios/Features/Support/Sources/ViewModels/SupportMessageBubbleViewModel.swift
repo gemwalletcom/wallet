@@ -8,15 +8,21 @@ import SwiftUI
 struct SupportMessageBubbleViewModel: Identifiable {
     private let message: SupportMessage
     private let retryAction: (SupportMessage) -> Void
+    private let imageAction: (SupportImagePreviewRequest) -> Void
 
-    init(message: SupportMessage, retryAction: @escaping (SupportMessage) -> Void) {
+    init(
+        message: SupportMessage,
+        retryAction: @escaping (SupportMessage) -> Void,
+        imageAction: @escaping (SupportImagePreviewRequest) -> Void,
+    ) {
         self.message = message
         self.retryAction = retryAction
+        self.imageAction = imageAction
     }
 
     var id: String { message.id }
-    var content: String { message.content }
-    var hasContent: Bool { message.content.isNotEmpty }
+    var content: String { message.content.trimmingCharacters(in: .whitespacesAndNewlines) }
+    var hasContent: Bool { content.isNotEmpty }
     var hasImages: Bool { message.images.isNotEmpty }
     var images: [SupportMessageImage] { message.images }
     var isSending: Bool { message.status == .sending }
@@ -43,6 +49,17 @@ struct SupportMessageBubbleViewModel: Identifiable {
 
     func retry() {
         retryAction(message)
+    }
+
+    func onImageTap(_ image: SupportMessageImage) {
+        switch message.status {
+        case .sending:
+            break
+        case .failed:
+            retry()
+        case .sent:
+            imageAction(SupportImagePreviewRequest(images: message.images, selectedId: image.id))
+        }
     }
 }
 

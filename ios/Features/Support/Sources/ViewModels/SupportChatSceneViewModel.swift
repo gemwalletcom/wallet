@@ -25,6 +25,8 @@ public final class SupportChatSceneViewModel {
 
     private var seenAgentCount = 0
     var isAtBottom = true
+    var previewURLs: [URL] = []
+    var isPresentingImagePreview: URL?
     var isEmpty: Bool { query.value.isEmpty }
     var unreadAgentCount: Int { max(0, agentCount - seenAgentCount) }
     var agentCount: Int { query.value.filter { $0.sender.isAgent }.count }
@@ -40,12 +42,25 @@ public final class SupportChatSceneViewModel {
         SupportChatDayBuilder(
             messages: query.value,
             retryAction: { [weak self] in self?.onRetry($0) },
+            imageAction: { [weak self] request in
+                Task { await self?.openPreview(request) }
+            },
         ).build()
     }
 
     func setAtBottom(_ atBottom: Bool) {
         isAtBottom = atBottom
         if atBottom { seenAgentCount = agentCount }
+    }
+
+    func openPreview(_ request: SupportImagePreviewRequest) async {
+        do {
+            let urls = try await service.imageFileURLs(for: request.images)
+            previewURLs = urls
+            isPresentingImagePreview = request.images.firstIndex { $0.id == request.selectedId }.map { urls[$0] } ?? urls.first
+        } catch {
+            debugLog("SupportChatSceneViewModel preview error: \(error)")
+        }
     }
 
     func fetch() async {
