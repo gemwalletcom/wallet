@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.list_head
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,16 +11,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.modifiers.TextAutoSizeLayoutScope
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -68,7 +65,6 @@ import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.actionIconGlyphSize
 import com.gemwallet.android.ui.theme.actionIconSize
-import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -333,31 +329,19 @@ fun AmountHeadAction(
     onClick: () -> Unit
 ) {
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(paddingDefault))
-            .clickable(onClick = onClick, enabled = enabled)
-            .padding(paddingSmall)
-        ,
+        modifier = modifier.padding(paddingSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(paddingSmall / (fontSize.value * 0.5f))
     ) {
-        Box(
-            modifier = Modifier
-                .requiredSize(actionIconSize)
-                .background(
-                    color = MaterialTheme.colorScheme.primary.copy(
-                        alpha = if (enabled) 1f else alpha50,
-                    ),
-                    shape = CircleShape,
-                ),
-            contentAlignment = Alignment.Center,
+        FilledIconButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = Modifier.size(actionIconSize),
+            shape = CircleShape,
         ) {
             Icon(
                 modifier = Modifier.size(actionIconGlyphSize),
                 imageVector = imageVector,
-                tint = MaterialTheme.colorScheme.onPrimary.copy(
-                    alpha = if (enabled) 1f else alpha50,
-                ),
                 contentDescription = contentDescription,
             )
         }
