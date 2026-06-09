@@ -266,7 +266,7 @@ class AssetsRepository @Inject constructor(
     fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> {
         val query = tags.toPriorityQuery(query)
         return currentWalletId().flatMapLatest { walletId ->
-            searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.flatMapLatest { hasPriority ->
+            searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 when {
                     byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query)
                     byAllWallets -> assetsDao.searchByAllWallets(walletId, query)
@@ -283,7 +283,7 @@ class AssetsRepository @Inject constructor(
         val walletChains = wallet.accounts.map { it.chain }
         val includeChains = byChains.filter { walletChains.contains(it) }
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
-        return searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.flatMapLatest { hasPriority ->
+        return searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 if (hasPriority) {
                     assetsDao.swapSearchWithPriority(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 } else {

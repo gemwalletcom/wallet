@@ -24,6 +24,7 @@ import com.wallet.core.primitives.SearchItemType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
@@ -46,14 +47,17 @@ class PerpetualRepositoryImpl(
         if (searchQuery.isEmpty()) {
             return perpetualDao.getPerpetualsData().toPerpetualData()
         }
-        return searchPriorityDao.hasPriorities(searchQuery, SearchItemType.Perpetual.string).flatMapLatest { hasPriority ->
-            if (hasPriority > 0) {
-                perpetualDao.searchWithPriority(searchQuery).toPerpetualData()
-            } else {
-                perpetualDao.getPerpetualsData().toPerpetualData()
-                    .map { items -> items.filter { it.matches(searchQuery) } }
+        return searchPriorityDao.hasPriorities(searchQuery, SearchItemType.Perpetual.string)
+            .map { it > 0 }
+            .distinctUntilChanged()
+            .flatMapLatest { hasPriority ->
+                if (hasPriority) {
+                    perpetualDao.searchWithPriority(searchQuery).toPerpetualData()
+                } else {
+                    perpetualDao.getPerpetualsData().toPerpetualData()
+                        .map { items -> items.filter { it.matches(searchQuery) } }
+                }
             }
-        }
     }
 
     private fun Flow<List<DbPerpetualData>>.toPerpetualData(): Flow<List<PerpetualData>> =
