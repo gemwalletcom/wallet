@@ -54,6 +54,8 @@ android {
 dependencies {
     implementation(project(":ui"))
     implementation(project(":features:assets:viewmodels"))
+    implementation(project(":features:asset_select:presents"))
+    implementation(project(":features:asset_select:viewmodels"))
     implementation(project(":features:update_app:presents"))
     implementation(project(":features:banner:presents"))
     implementation(project(":features:perpetual:presents"))

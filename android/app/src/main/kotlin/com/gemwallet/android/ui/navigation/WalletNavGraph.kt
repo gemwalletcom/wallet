@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.features.activities.presents.details.TransactionDetailsAction
 import com.gemwallet.android.features.asset_select.presents.navigation.assetsManageScreen
+import com.gemwallet.android.features.assets.views.WalletSearchAction
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
 import com.gemwallet.android.features.onboarding.OnboardingRoute
@@ -51,6 +52,7 @@ import com.gemwallet.android.ui.navigation.routes.swap
 import com.gemwallet.android.ui.navigation.routes.swapSelect
 import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.walletScreen
+import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
 import com.wallet.core.primitives.WalletId
 
@@ -84,6 +86,19 @@ fun WalletNavGraph(
                 onAddAsset = navigator::openAddAsset,
                 onAssetClick = navigator::openAsset,
                 onCancel = onCancel,
+            )
+
+            walletSearchScreen(
+                onAction = { action ->
+                    when (action) {
+                        WalletSearchAction.AddAsset -> navigator.openAddAsset()
+                        WalletSearchAction.Cancel -> onCancel()
+                        WalletSearchAction.OpenPerpetuals -> navigator.openPerpetuals()
+                        is WalletSearchAction.OpenAsset -> navigator.openAsset(action.assetId)
+                        is WalletSearchAction.OpenPerpetual -> navigator.openPerpetualDetails(action.assetId)
+                        is WalletSearchAction.ShowAllAssets -> navigator.openAssetsResults(action.query, action.tag)
+                    }
+                },
             )
 
             assetScreen(

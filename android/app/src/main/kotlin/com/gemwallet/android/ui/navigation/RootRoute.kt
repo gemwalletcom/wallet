@@ -8,7 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
-import com.gemwallet.android.features.asset_select.presents.navigation.AssetsSearchRoute
+import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
+import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.ImportChainWalletRoute
@@ -74,6 +75,7 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
@@ -170,7 +172,8 @@ class WalletNavigator(
     fun openWallets() = push(WalletsRoute)
     fun openAcceptTerms(destination: AcceptTermsDestination) = push(AcceptTermsRoute(destination))
     fun openAssetsManage() = push(AssetsManageRoute)
-    fun openAssetsSearch() = push(AssetsSearchRoute)
+    fun openAssetsSearch() = push(WalletSearchRoute)
+    fun openAssetsResults(query: String, tag: AssetTag?) = push(AssetsResultsRoute(query, tag))
     fun openCreateWalletRules() = push(CreateWalletAlertRoute)
     fun openCreateWallet() = push(CreateWalletRoute)
     fun openImportWallet() = push(ImportSelectTypeRoute)

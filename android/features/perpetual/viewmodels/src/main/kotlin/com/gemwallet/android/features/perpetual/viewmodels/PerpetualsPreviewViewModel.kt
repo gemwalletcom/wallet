@@ -5,10 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.ext.hasPerpetualsSupport
+import com.gemwallet.android.data.repositories.config.showPerpetuals
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -19,12 +18,8 @@ class PerpetualsPreviewViewModel @Inject constructor(
     getPositions: GetPerpetualPositions,
 ) : ViewModel() {
 
-    val showPerpetuals = combine(
-        getSession(),
-        userConfig.isPerpetualEnabled(),
-    ) { session, enabled ->
-        enabled && (session?.wallet?.hasPerpetualsSupport == true)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val showPerpetuals = userConfig.showPerpetuals(getSession())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val positions = getPositions.getPerpetualPositions()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
