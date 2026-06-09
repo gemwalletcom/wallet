@@ -5,12 +5,12 @@ import com.gemwallet.android.blockchain.services.TokenService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.SearchPriorityDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
-import com.gemwallet.android.data.service.store.database.entities.toRecordPriority
+import com.gemwallet.android.data.service.store.database.entities.toSearchPriority
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.toIdentifier
@@ -26,7 +26,7 @@ import kotlinx.coroutines.withContext
 class TokensRepository (
     private val assetsDao: AssetsDao,
     private val pricesDao: PricesDao,
-    private val assetsPriorityDao: AssetsPriorityDao,
+    private val searchPriorityDao: SearchPriorityDao,
     private val searchAssets: SearchAssets,
     private val tokenService: TokenService,
 ) : SearchTokensCase, SyncAssetPrices {
@@ -36,7 +36,7 @@ class TokensRepository (
             return@withContext false
         }
         val tokens = try {
-            searchAssets.search(
+            searchAssets.searchAssets(
                 query = query,
                 chains = chains,
                 tags = tags,
@@ -44,16 +44,19 @@ class TokensRepository (
         } catch (_: Throwable) {
             return@withContext false
         }
-        val assets = if (tokens.isEmpty()) {
+        storeAssets(query, tokens, currency, tags.toPriorityQuery(query))
+    }
+
+    internal suspend fun storeAssets(query: String, tokens: List<AssetBasic>, currency: Currency, priorityQuery: String): Boolean {
+        return if (tokens.isEmpty()) {
             val assets = tokenService.search(query)
             runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
-            assets
+            assets.isNotEmpty()
         } else {
             updateAssets(tokens, currency)
-            assetsPriorityDao.put(tokens.toRecordPriority(tags.toPriorityQuery(query)))
-            tokens
+            searchPriorityDao.put(tokens.toSearchPriority(priorityQuery))
+            true
         }
-        assets.isNotEmpty()
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {

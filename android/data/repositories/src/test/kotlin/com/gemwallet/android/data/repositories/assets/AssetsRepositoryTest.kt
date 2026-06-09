@@ -8,9 +8,9 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.SearchPriorityDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbFiatRate
@@ -73,7 +73,7 @@ import uniffi.gemstone.assetDefaultRank
 class AssetsRepositoryTest {
 
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
-    private val assetsPriorityDao = mockk<AssetsPriorityDao>(relaxed = true)
+    private val searchPriorityDao = mockk<SearchPriorityDao>(relaxed = true)
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
     private val pricesDao = mockk<PricesDao>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>()
@@ -89,7 +89,7 @@ class AssetsRepositoryTest {
 
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
-        assetsPriorityDao = assetsPriorityDao,
+        searchPriorityDao = searchPriorityDao,
         balancesDao = balancesDao,
         pricesDao = pricesDao,
         sessionRepository = sessionRepository,
@@ -486,7 +486,7 @@ class AssetsRepositoryTest {
     fun swapSearch_includesEnabledHiddenAndUnlinkedAssets() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
-        every { assetsPriorityDao.hasPriorities("") } returns flowOf(0)
+        every { searchPriorityDao.hasPriorities("", "asset") } returns flowOf(0)
 
         val wallet = mockWallet(
             id = "wallet-1",
@@ -553,7 +553,7 @@ class AssetsRepositoryTest {
     fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
         every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
-        every { assetsPriorityDao.hasPriorities("usd") } returns flowOf(2)
+        every { searchPriorityDao.hasPriorities("usd", "asset") } returns flowOf(2)
 
         val wallet = mockWallet(
             id = "wallet-1",

@@ -20,8 +20,8 @@ import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
+import com.gemwallet.android.data.service.store.database.SearchPriorityDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
@@ -40,7 +40,7 @@ object AssetsModule {
     @Singleton
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
-        assetsPriorityDao: AssetsPriorityDao,
+        searchPriorityDao: SearchPriorityDao,
         balancesDao: BalancesDao,
         pricesDao: PricesDao,
         sessionRepository: SessionRepository,
@@ -52,7 +52,7 @@ object AssetsModule {
         streamSubscriptionService: StreamSubscriptionService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
-        assetsPriorityDao = assetsPriorityDao,
+        searchPriorityDao = searchPriorityDao,
         balancesDao = balancesDao,
         pricesDao = pricesDao,
         sessionRepository = sessionRepository,

@@ -11,9 +11,9 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.tokens.toPriorityQuery
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.SearchPriorityDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
@@ -55,6 +55,7 @@ import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
+import com.wallet.core.primitives.SearchItemType
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
@@ -88,7 +89,7 @@ private const val TAG = "AssetsRepository"
 @Singleton
 class AssetsRepository @Inject constructor(
     private val assetsDao: AssetsDao,
-    private val assetsPriorityDao: AssetsPriorityDao,
+    private val searchPriorityDao: SearchPriorityDao,
     private val balancesDao: BalancesDao,
     private val pricesDao: PricesDao,
     private val sessionRepository: SessionRepository,
@@ -265,7 +266,7 @@ class AssetsRepository @Inject constructor(
     fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> {
         val query = tags.toPriorityQuery(query)
         return currentWalletId().flatMapLatest { walletId ->
-            assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
+            searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.flatMapLatest { hasPriority ->
                 when {
                     byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query)
                     byAllWallets -> assetsDao.searchByAllWallets(walletId, query)
@@ -282,7 +283,7 @@ class AssetsRepository @Inject constructor(
         val walletChains = wallet.accounts.map { it.chain }
         val includeChains = byChains.filter { walletChains.contains(it) }
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
-        return assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
+        return searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.flatMapLatest { hasPriority ->
                 if (hasPriority) {
                     assetsDao.swapSearchWithPriority(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 } else {

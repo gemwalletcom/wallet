@@ -4,10 +4,12 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
+import com.gemwallet.android.data.service.store.database.SearchPriorityDao
 import com.gemwallet.android.data.service.store.database.entities.toDB
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toDto
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
+import com.gemwallet.android.data.service.store.database.entities.DbPerpetualData
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
@@ -18,8 +20,11 @@ import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
+import com.wallet.core.primitives.SearchItemType
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 class PerpetualRepositoryImpl(
@@ -27,6 +32,7 @@ class PerpetualRepositoryImpl(
     private val perpetualPositionDao: PerpetualPositionDao,
     private val assetsDao: AssetsDao,
     private val balancesDao: BalancesDao,
+    private val searchPriorityDao: SearchPriorityDao,
 ) : PerpetualRepository {
 
     override suspend fun putPerpetuals(items: List<PerpetualData>) {
@@ -34,17 +40,28 @@ class PerpetualRepositoryImpl(
         perpetualDao.upsert(items.map { it.perpetual.toDB() })
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getPerpetuals(query: String?): Flow<List<PerpetualData>> {
-        val needle = query?.trim().orEmpty()
-        return perpetualDao.getPerpetualsData().map { items ->
-            items.mapNotNull { it.toDTO() }.filter { needle.isEmpty() || it.matches(needle) }
+        val searchQuery = query?.trim().orEmpty()
+        if (searchQuery.isEmpty()) {
+            return perpetualDao.getPerpetualsData().toPerpetualData()
+        }
+        return searchPriorityDao.hasPriorities(searchQuery, SearchItemType.Perpetual.string).flatMapLatest { hasPriority ->
+            if (hasPriority > 0) {
+                perpetualDao.searchWithPriority(searchQuery).toPerpetualData()
+            } else {
+                perpetualDao.getPerpetualsData().toPerpetualData()
+                    .map { items -> items.filter { it.matches(searchQuery) } }
+            }
         }
     }
 
-    private fun PerpetualData.matches(needle: String): Boolean =
-        perpetual.name.contains(needle, ignoreCase = true) ||
-            asset.symbol.contains(needle, ignoreCase = true) ||
-            asset.name.contains(needle, ignoreCase = true)
+    private fun Flow<List<DbPerpetualData>>.toPerpetualData(): Flow<List<PerpetualData>> =
+        map { items -> items.mapNotNull { it.toDTO() } }
+
+    private fun PerpetualData.matches(query: String): Boolean =
+        perpetual.name.contains(query, ignoreCase = true) ||
+            asset.symbol.contains(query, ignoreCase = true)
 
     override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualData?> {
         return perpetualDao.getPerpetual(perpetualId.toIdentifier()).map { it?.toDTO() }
