@@ -15,10 +15,9 @@ import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.ext.walletConnectIcon
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
-import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.PayloadField
-import com.reown.android.Core
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
@@ -38,8 +37,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
-import uniffi.gemstone.WalletConnect
-import uniffi.gemstone.WalletConnectionVerificationStatus
 import java.util.Arrays
 import javax.inject.Inject
 
@@ -50,9 +47,9 @@ class WCAuthViewModel @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val passwordStore: PasswordStore,
     private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
+    private val originVerifier: WalletConnectOriginVerifier,
 ) : ViewModel() {
 
-    private val walletConnect = WalletConnect()
     private var authRequest: Wallet.Model.SessionAuthenticate? = null
     private var hasResponded = false
 
@@ -68,18 +65,13 @@ class WCAuthViewModel @Inject constructor(
         _state.update { AuthSceneState.Loading }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val validation = validateSession(request.participant.metadata, verifyContext)
+                val verification = originVerifier.verify(request.participant.metadata?.url, verifyContext)
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                when (validation) {
-                    WalletConnectionVerificationStatus.INVALID,
-                    WalletConnectionVerificationStatus.MALICIOUS -> {
-                        rejectRequest(request, AuthSceneState.ScamCanceled)
-                        return@launch
-                    }
-                    WalletConnectionVerificationStatus.UNKNOWN,
-                    WalletConnectionVerificationStatus.VERIFIED -> Unit
+                if (verification.isScam) {
+                    rejectRequest(request, AuthSceneState.ScamCanceled)
+                    return@launch
                 }
 
                 val availableWallets = (walletsRepository.getAll().firstOrNull() ?: emptyList())
@@ -232,17 +224,6 @@ class WCAuthViewModel @Inject constructor(
 
     private fun isActiveRequest(request: Wallet.Model.SessionAuthenticate): Boolean {
         return authRequest?.id == request.id && !hasResponded
-    }
-
-    private fun validateSession(
-        metadata: Core.Model.AppMetaData?,
-        verifyContext: Wallet.Model.VerifyContext,
-    ): WalletConnectionVerificationStatus {
-        return walletConnect.validateOrigin(
-            metadataUrl = metadata?.url ?: "",
-            origin = verifyContext.origin,
-            validation = verifyContext.map(),
-        )
     }
 
     private fun buildApproval(

@@ -11,7 +11,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
-import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
-import uniffi.gemstone.WalletConnectionVerificationStatus
 import java.util.Arrays
 import javax.inject.Inject
 
@@ -45,6 +44,7 @@ class WCRequestViewModel @Inject constructor(
     private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
     private val simulationService: com.gemwallet.android.blockchain.services.WalletConnectSimulationService,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val originVerifier: WalletConnectOriginVerifier,
 ) : ViewModel() {
 
     private val walletConnect = WalletConnect()
@@ -68,7 +68,9 @@ class WCRequestViewModel @Inject constructor(
                 }
 
                 val appMetadata = connection.session.metadata
-                validateSession(appMetadata.url, verifyContext)
+                if (originVerifier.verify(appMetadata.url, verifyContext).isScam) {
+                    throw BridgeRequestError.ScamSession
+                }
                 val chainId = sessionRequest.chainId ?: throw BridgeRequestError.UnresolvedChainId
                 val sessionDomain = appMetadata.url
                 val action = walletConnect.parseRequest(
@@ -219,27 +221,6 @@ class WCRequestViewModel @Inject constructor(
                 Arrays.fill(privateKey, 0)
             }
             response(request.sessionRequest.topic, request.sessionRequest.request.id, sign)
-        }
-    }
-
-    private fun validateSession(
-        metadataUrl: String,
-        verifyContext: Wallet.Model.VerifyContext
-    ) {
-        val validation = walletConnect.validateOrigin(
-            metadataUrl,
-            verifyContext.origin,
-            verifyContext.map()
-        )
-        when (validation) {
-            WalletConnectionVerificationStatus.UNKNOWN,
-            WalletConnectionVerificationStatus.VERIFIED -> {
-                return
-            }
-            WalletConnectionVerificationStatus.INVALID,
-            WalletConnectionVerificationStatus.MALICIOUS -> {
-                throw BridgeRequestError.ScamSession
-            }
         }
     }
 
