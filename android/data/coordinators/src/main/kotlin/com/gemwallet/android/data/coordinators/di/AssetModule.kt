@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.assets.coordinators.GemSearch
 import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.coordinators.GetAssetById
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
@@ -64,11 +65,19 @@ import javax.inject.Singleton
 object AssetModule {
     @Provides
     @Singleton
-    fun provideSearchAssets(
+    fun provideSearchAssetsImpl(
         gemApiClient: GemApiClient,
-    ): SearchAssets = SearchAssetsImpl(
+    ): SearchAssetsImpl = SearchAssetsImpl(
         gemApiClient = gemApiClient,
     )
+
+    @Provides
+    @Singleton
+    fun provideSearchAssets(impl: SearchAssetsImpl): SearchAssets = impl
+
+    @Provides
+    @Singleton
+    fun provideGemSearch(impl: SearchAssetsImpl): GemSearch = impl
 
     @Provides
     @Singleton

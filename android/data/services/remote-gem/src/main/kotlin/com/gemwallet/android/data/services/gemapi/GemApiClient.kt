@@ -5,6 +5,7 @@ import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Charts
 import com.wallet.core.primitives.ConfigResponse
+import com.wallet.core.primitives.SearchResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -27,9 +28,16 @@ interface GemApiClient {
     ): List<AssetBasic>
 
     @GET("/v1/assets/search")
-    suspend fun search(
+    suspend fun searchAssets(
         @Query("query") query: String,
         @Query("chains") chains: String,
         @Query("tags") tags: String,
     ): List<AssetBasic>
+
+    @GET("/v1/search")
+    suspend fun search(
+        @Query("query") query: String,
+        @Query("chains") chains: String,
+        @Query("tags") tags: String,
+    ): SearchResponse
 }
