@@ -72,20 +72,16 @@ fun WalletSearchScreen(
         onAction(WalletSearchAction.OpenPerpetual(assetId))
     }
 
-    val pinnedPerpetualsContent: (LazyListScope.() -> Unit)? = if (pinnedPerpetuals.isNotEmpty()) {
-        {
-            itemsPositioned(pinnedPerpetuals) { position, item ->
-                PerpetualItem(
-                    item = item,
-                    listPosition = position,
-                    longPressState = longPressedPerpetual,
-                    onTogglePin = viewModel::onTogglePerpetualPin,
-                    onClick = onPerpetualSelect,
-                )
-            }
+    val pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = pinnedPerpetuals.map { item ->
+        @Composable { position: ListPosition ->
+            PerpetualItem(
+                item = item,
+                listPosition = position,
+                longPressState = longPressedPerpetual,
+                onTogglePin = viewModel::onTogglePerpetualPin,
+                onClick = onPerpetualSelect,
+            )
         }
-    } else {
-        null
     }
 
     val perpetualsContent: (LazyListScope.() -> Unit)? = if (previewPerpetuals.isNotEmpty()) {
@@ -137,7 +133,7 @@ fun WalletSearchScreen(
         onTagSelect = viewModel::onTagSelect,
         itemTrailing = { asset -> getBalanceInfo(asset)() },
         contextActions = contextActions,
-        pinnedPerpetualsContent = pinnedPerpetualsContent,
+        pinnedPerpetualRows = pinnedPerpetualRows,
         perpetualsContent = perpetualsContent,
         assetsHeaderRes = R.string.assets_title,
         onAssetsHeaderClick = if (hasMoreAssets) {

@@ -173,7 +173,7 @@ fun AssetSelectScene(
     onSelectRecent: ((AssetId) -> Unit)? = null,
     onOpenRecentsSheet: (() -> Unit)? = null,
     contextActions: AssetContextActions = AssetContextActions.Empty,
-    pinnedPerpetualsContent: (LazyListScope.() -> Unit)? = null,
+    pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = emptyList(),
     perpetualsContent: (LazyListScope.() -> Unit)? = null,
     assetsHeaderRes: Int? = null,
     onAssetsHeaderClick: (() -> Unit)? = null,
@@ -246,10 +246,23 @@ fun AssetSelectScene(
             }
             recent(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
-            if (pinned.isNotEmpty() || pinnedPerpetualsContent != null) {
+            if (pinned.isNotEmpty() || pinnedPerpetualRows.isNotEmpty()) {
                 item { PinnedAssetsHeaderItem(AssetsGroupType.Pined) }
-                pinnedPerpetualsContent?.invoke(this)
-                assetRows(pinned, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+                val pinnedTotal = pinnedPerpetualRows.size + pinned.size
+                itemsPositioned(pinnedPerpetualRows, totalCount = pinnedTotal) { position, row ->
+                    row(position)
+                }
+                assetRows(
+                    pinned,
+                    onSelect,
+                    support,
+                    titleBadge,
+                    itemTrailing,
+                    longPressedAsset,
+                    contextActions,
+                    indexOffset = pinnedPerpetualRows.size,
+                    totalCount = pinnedTotal,
+                )
             }
             perpetualsContent?.invoke(this)
             if (assetsHeaderRes != null && unpinned.isNotEmpty()) {
@@ -301,8 +314,10 @@ fun LazyListScope.assetRows(
     itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
     contextActions: AssetContextActions,
+    indexOffset: Int = 0,
+    totalCount: Int = items.size,
 ) {
-    itemsPositioned(items) { position, item ->
+    itemsPositioned(items, indexOffset = indexOffset, totalCount = totalCount) { position, item ->
         AssetSelectRow(
             position = position,
             item = item,

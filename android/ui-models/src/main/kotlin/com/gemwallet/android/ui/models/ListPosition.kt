@@ -18,5 +18,3 @@ enum class ListPosition {
         }
     }
 }
-
-fun List<*>.getListPosition(index: Int) = ListPosition.getPosition(index, size = size)
