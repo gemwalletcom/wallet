@@ -84,7 +84,7 @@ public final class SelectAssetViewModel {
             RecentActivityRequest(
                 walletId: wallet.id,
                 limit: 10,
-                types: RecentActivityType.allCases,
+                types: selectType.recentActivityTypes,
                 filters: filter.defaultFilters,
             ),
             initialValue: [],
@@ -233,7 +233,10 @@ extension SelectAssetViewModel {
             Task {
                 await setPriceAlert(assetId: asset.id, enabled: true)
             }
-        case .manage, .send, .receive, .buy, .swap, .deposit, .withdraw: break
+        case .swap:
+            updateRecent(assetId: asset.id)
+        case .manage, .send, .receive, .buy, .deposit, .withdraw:
+            break
         }
         onSelectAssetAction?(asset)
     }
@@ -330,7 +333,7 @@ extension SelectAssetViewModel {
         case .send, .receive, .buy:
             assetSelection = .recent(SelectAssetInput(type: selectType, assetAddress: assetAddress(for: asset)))
         case .swap:
-            selectAsset(asset: asset)
+            onSelectAssetAction?(asset)
         case .manage, .priceAlert, .deposit, .withdraw:
             break
         }

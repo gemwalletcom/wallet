@@ -5,14 +5,12 @@ use gem_client::ClientError;
 use gem_jsonrpc::types::JsonRpcError;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use typeshare::typeshare;
 
 pub const INVALID_AMOUNT: &str = "Invalid amount";
 pub const INVALID_ADDRESS: &str = "Invalid address";
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "type", content = "message")]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 pub enum SwapperError {
     NotSupportedChain,
     NotSupportedAsset,

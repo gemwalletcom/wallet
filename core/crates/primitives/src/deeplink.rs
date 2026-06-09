@@ -1,6 +1,7 @@
 use url::Url;
 
 use crate::AssetId;
+use crate::url_query::query_value;
 
 const DEEPLINK_HOST: &str = "gemwallet.com";
 const DEEPLINK_WEB_SCHEME: &str = "https";
@@ -86,10 +87,6 @@ fn url_segments(url: &Url) -> Option<Vec<String>> {
         _ => return None,
     }
     Some(segments)
-}
-
-fn query_value(url: &Url, key: &str) -> Option<String> {
-    url.query_pairs().find(|(query_key, _)| query_key.as_ref() == key).map(|(_, value)| value.into_owned())
 }
 
 #[cfg(test)]

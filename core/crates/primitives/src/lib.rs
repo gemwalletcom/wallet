@@ -312,6 +312,7 @@ pub mod deeplink;
 pub use self::deeplink::Deeplink;
 pub mod url_action;
 pub use self::url_action::UrlAction;
+mod url_query;
 pub mod list_item;
 pub use self::list_item::{CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon};
 pub mod notification;

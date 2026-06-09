@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 use url::Url;
 
+use crate::url_query::query_value;
+
 const WALLET_CONNECT_SCHEME: &str = "wc";
 const WALLET_CONNECT_HOST: &str = "wc";
 const GEM_SCHEME: &str = "gem";
@@ -76,10 +78,6 @@ impl WalletConnectLink {
             None
         }
     }
-}
-
-fn query_value(url: &Url, key: &str) -> Option<String> {
-    url.query_pairs().find(|(query_key, _)| query_key.as_ref() == key).map(|(_, value)| value.into_owned())
 }
 
 #[cfg(test)]

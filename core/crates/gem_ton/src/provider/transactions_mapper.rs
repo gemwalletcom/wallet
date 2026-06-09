@@ -525,4 +525,16 @@ mod tests {
         assert_eq!(transactions[0].hash, "9ba7d317aaed24089e5cc3b0df4432294cb88ed485d202768cc2766432aec3e0");
         assert_eq!(transactions[0].state, TransactionState::Confirmed);
     }
+
+    #[test]
+    fn test_map_trace_transactions_skips_oversized_trace_without_transactions() {
+        let traces: TraceResponse = serde_json::from_str(include_str!("../../testdata/oversized_trace_without_transactions.json")).unwrap();
+
+        assert_eq!(traces.traces[0].transactions_order, Vec::<String>::new());
+        assert_eq!(traces.traces[0].transactions.len(), 0);
+
+        let transactions = map_trace_transactions(traces.traces);
+
+        assert_eq!(transactions.len(), 0);
+    }
 }

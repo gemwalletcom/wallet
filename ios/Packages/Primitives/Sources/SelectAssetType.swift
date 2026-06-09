@@ -31,7 +31,15 @@ public extension SelectAssetType {
         switch self {
         case .receive: RecentActivityData(type: .receive, assetId: assetId, toAssetId: nil)
         case .buy: RecentActivityData(type: .fiatBuy, assetId: assetId, toAssetId: nil)
-        case .send, .swap, .manage, .priceAlert, .deposit, .withdraw: .none
+        case .swap: RecentActivityData(type: .swapSelect, assetId: assetId, toAssetId: nil)
+        case .send, .manage, .priceAlert, .deposit, .withdraw: .none
+        }
+    }
+
+    var recentActivityTypes: [RecentActivityType] {
+        switch self {
+        case .swap: [.swapSelect, .swap]
+        case .send, .receive, .buy, .manage, .priceAlert, .deposit, .withdraw: RecentActivityType.allCases
         }
     }
 }

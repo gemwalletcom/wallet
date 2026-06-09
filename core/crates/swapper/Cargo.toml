@@ -28,7 +28,6 @@ sui-types = { workspace = true }
 sui-transaction-builder = { package = "sui-transaction-builder", version = "0.3.1", default-features = false }
 
 reqwest = { workspace = true, optional = true }
-typeshare = { version = "1.0.5" }
 
 strum = { workspace = true }
 

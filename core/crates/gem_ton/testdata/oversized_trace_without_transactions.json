@@ -1,0 +1,26 @@
+{
+  "traces": [
+    {
+      "trace_id": "udazhVx/5ljCD7+pWagjhMCOeGgh3EJSzAPYUSr7z6I=",
+      "external_hash": "CkPLO5Pb85qXZXrJ4NYXtZ8SLrcU0o+dxE6g1djoA2k=",
+      "mc_seqno_start": "71452993",
+      "mc_seqno_end": "71453436",
+      "start_lt": "81794660000001",
+      "start_utime": 1780695957,
+      "end_lt": "81795122000022",
+      "end_utime": 1780696140,
+      "trace_info": {
+        "trace_state": "complete",
+        "messages": 5993,
+        "transactions": 5993,
+        "pending_messages": 0,
+        "classification_state": "unclassified"
+      },
+      "is_incomplete": true,
+      "warning": "trace is too large",
+      "actions": []
+    }
+  ],
+  "address_book": {},
+  "metadata": {}
+}

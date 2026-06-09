@@ -4,6 +4,7 @@
 
 import Foundation
 
+
 /// Generated type representing the anonymous struct variant `ProgrammableNonFungible` of the `SolanaNftStandard` Rust enum
 public struct SolanaNftStandardProgrammableNonFungibleInner: Codable, Equatable, Sendable {
 	public let rule_set: String?

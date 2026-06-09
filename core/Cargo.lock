@@ -7462,7 +7462,6 @@ dependencies = [
  "sui-sdk-types",
  "sui-transaction-builder",
  "tokio",
- "typeshare",
 ]
 
 [[package]]
