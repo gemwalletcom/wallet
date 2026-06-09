@@ -42,8 +42,9 @@ fun SubheaderItem(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SubheaderItem(@StringRes title: Int, onClick: () -> Unit) {
-    SubheaderItem(stringResource(title), onClick)
+fun SubheaderItem(@StringRes title: Int, onClick: (() -> Unit)?) {
+    val text = stringResource(title)
+    if (onClick == null) SubheaderItem(text) else SubheaderItem(text, onClick)
 }
 
 @Composable
@@ -52,8 +53,7 @@ fun SubheaderItem(title: String, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(paddingHalfSmall))
-                .clickable(onClick = onClick)
-                .padding(paddingHalfSmall),
+                .clickable(onClick = onClick),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(

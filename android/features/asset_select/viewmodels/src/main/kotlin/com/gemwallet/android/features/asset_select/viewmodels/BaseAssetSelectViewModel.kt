@@ -70,7 +70,7 @@ open class BaseAssetSelectViewModel(
         .map { session -> session?.wallet?.accounts?.map { it.chain } ?: emptyList() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val currentQuery = snapshotFlow { queryState.text.toString() }
+    protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val filters = combine(

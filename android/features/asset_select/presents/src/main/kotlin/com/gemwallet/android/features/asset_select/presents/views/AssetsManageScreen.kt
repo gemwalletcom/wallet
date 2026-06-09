@@ -90,7 +90,3 @@ fun AssetsManageScreen(
         contextActions = AssetContextActions.Empty,
     )
 }
-
-fun getAssetBadge(item: AssetItemUIModel): String {
-    return if (item.asset.symbol == item.asset.name) "" else item.asset.symbol
-}

@@ -173,6 +173,10 @@ fun AssetSelectScene(
     onSelectRecent: ((AssetId) -> Unit)? = null,
     onOpenRecentsSheet: (() -> Unit)? = null,
     contextActions: AssetContextActions = AssetContextActions.Empty,
+    pinnedPerpetualsContent: (LazyListScope.() -> Unit)? = null,
+    perpetualsContent: (LazyListScope.() -> Unit)? = null,
+    assetsHeaderRes: Int? = null,
+    onAssetsHeaderClick: (() -> Unit)? = null,
 ) {
     val listState = rememberLazyListState()
     var isReturnToTop by remember { mutableStateOf(false) }
@@ -242,7 +246,17 @@ fun AssetSelectScene(
             }
             recent(recent, onSelectRecent, onOpenRecentsSheet)
             assets(popular, AssetsGroupType.Popular, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
-            assets(pinned, AssetsGroupType.Pined, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            if (pinned.isNotEmpty() || pinnedPerpetualsContent != null) {
+                item { PinnedAssetsHeaderItem(AssetsGroupType.Pined) }
+                pinnedPerpetualsContent?.invoke(this)
+                assetRows(pinned, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+            }
+            perpetualsContent?.invoke(this)
+            if (assetsHeaderRes != null && unpinned.isNotEmpty()) {
+                item {
+                    SubheaderItem(assetsHeaderRes, onAssetsHeaderClick)
+                }
+            }
             assets(unpinned, AssetsGroupType.None, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
             loading(state)
             notFound(state = state, onAddAsset = onAddAsset, isAddAvailable = isAddAvailable)
@@ -276,6 +290,18 @@ private fun LazyListScope.assets(
 
     item { PinnedAssetsHeaderItem(group) }
 
+    assetRows(items, onSelect, support, titleBadge, itemTrailing, longPressedAsset, contextActions)
+}
+
+fun LazyListScope.assetRows(
+    items: List<AssetItemUIModel>,
+    onSelect: ((AssetId) -> Unit)?,
+    support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
+    titleBadge: (AssetItemUIModel) -> String?,
+    itemTrailing: (@Composable (AssetItemUIModel) -> Unit)?,
+    longPressedAsset: MutableState<AssetId?>,
+    contextActions: AssetContextActions,
+) {
     itemsPositioned(items) { position, item ->
         AssetSelectRow(
             position = position,
@@ -291,7 +317,7 @@ private fun LazyListScope.assets(
 }
 
 @Composable
-private fun AssetSelectRow(
+fun AssetSelectRow(
     position: ListPosition,
     item: AssetItemUIModel,
     support: ((AssetItemUIModel) -> (@Composable () -> Unit)?)?,
@@ -364,11 +390,7 @@ private fun LazyListScope.recent(
         return
     }
     item {
-        if (onOpenRecentsSheet == null) {
-            SubheaderItem(R.string.recent_activity_title)
-        } else {
-            SubheaderItem(R.string.recent_activity_title, onClick = onOpenRecentsSheet)
-        }
+        SubheaderItem(R.string.recent_activity_title, onOpenRecentsSheet)
     }
     item {
         LazyRow(
