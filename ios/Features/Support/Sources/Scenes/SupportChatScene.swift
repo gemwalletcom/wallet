@@ -37,12 +37,13 @@ public struct SupportChatScene: View {
             }
         }
         .bindQuery(model.query)
-        .background(Colors.grayBackground)
+        .background(Colors.grayBackground.ignoresSafeArea())
         .safeAreaView(edge: .bottom) {
             SupportMessageInputBar(model: model.inputBarModel)
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .interactiveDismissDisabled()
         .task {
             await model.fetch()
         }
