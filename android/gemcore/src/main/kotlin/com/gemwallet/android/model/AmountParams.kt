@@ -34,6 +34,22 @@ sealed interface AmountParams {
     }
 
     @Serializable
+    @SerialName("perpetual.deposit")
+    data class Deposit(
+        override val assetId: AssetId,
+    ) : AmountParams {
+        override val transactionType: TransactionType get() = TransactionType.Transfer
+    }
+
+    @Serializable
+    @SerialName("perpetual.withdraw")
+    data class Withdraw(
+        override val assetId: AssetId,
+    ) : AmountParams {
+        override val transactionType: TransactionType get() = TransactionType.Transfer
+    }
+
+    @Serializable
     sealed interface Stake : AmountParams {
 
         @Serializable @SerialName("stake.delegate")

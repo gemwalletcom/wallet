@@ -11,6 +11,8 @@ import com.wallet.core.primitives.PerpetualDirection
 @Composable
 fun AmountTitle.asString(): String = when (this) {
     AmountTitle.Send -> stringResource(R.string.transfer_send_title)
+    AmountTitle.Deposit -> stringResource(R.string.wallet_deposit)
+    AmountTitle.Withdraw -> stringResource(R.string.wallet_withdraw)
     is AmountTitle.Stake -> stringResource(when (action) {
         is AmountParams.Stake.Delegate -> R.string.transfer_stake_title
         is AmountParams.Stake.Undelegate -> R.string.transfer_unstake_title

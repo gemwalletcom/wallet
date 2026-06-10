@@ -29,6 +29,7 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
     entry<PerpetualRoute> {
         PerpetualMarketNavScreen(
             onOpenPerpetualDetails = onOpenPerpetualDetails,
+            amountAction = amountAction,
             onCancel = onCancel,
         )
     }
