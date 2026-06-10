@@ -54,7 +54,7 @@ public enum SupportMessageSender: Codable, Equatable, Sendable {
 	}
 }
 
-public enum SupportMessageDeliveryStatus: String, Codable, CaseIterable, Equatable, Sendable {
+public enum SupportMessageStatus: String, Codable, CaseIterable, Equatable, Sendable {
 	case sending
 	case sent
 	case failed
@@ -84,11 +84,11 @@ public struct SupportMessage: Codable, Equatable, Sendable {
 	public let id: String
 	public let content: String
 	public let sender: SupportMessageSender
-	public let status: SupportMessageDeliveryStatus
+	public let status: SupportMessageStatus
 	public let createdAt: Date
 	public let images: [SupportMessageImage]
 
-	public init(id: String, content: String, sender: SupportMessageSender, status: SupportMessageDeliveryStatus, createdAt: Date, images: [SupportMessageImage]) {
+	public init(id: String, content: String, sender: SupportMessageSender, status: SupportMessageStatus, createdAt: Date, images: [SupportMessageImage]) {
 		self.id = id
 		self.content = content
 		self.sender = sender

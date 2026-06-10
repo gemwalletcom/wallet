@@ -8,7 +8,7 @@ public extension SupportMessage {
         id: String = "1",
         content: String = "content",
         sender: SupportMessageSender = .user,
-        status: SupportMessageDeliveryStatus = .sent,
+        status: SupportMessageStatus = .sent,
         createdAt: Date = Date(timeIntervalSince1970: 0),
         images: [SupportMessageImage] = [],
     ) -> SupportMessage {

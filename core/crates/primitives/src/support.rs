@@ -6,7 +6,7 @@ use typeshare::typeshare;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
-pub enum SupportMessageDeliveryStatus {
+pub enum SupportMessageStatus {
     Sending,
     Sent,
     Failed,
@@ -68,7 +68,7 @@ pub struct SupportMessage {
     pub id: String,
     pub content: String,
     pub sender: SupportMessageSender,
-    pub status: SupportMessageDeliveryStatus,
+    pub status: SupportMessageStatus,
     pub created_at: DateTime<Utc>,
     pub images: Vec<SupportMessageImage>,
 }

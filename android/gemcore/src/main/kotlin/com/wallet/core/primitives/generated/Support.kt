@@ -23,7 +23,7 @@ sealed class SupportMessageSender {
 }
 
 @Serializable
-enum class SupportMessageDeliveryStatus(val string: String) {
+enum class SupportMessageStatus(val string: String) {
 	@SerialName("sending")
 	Sending("sending"),
 	@SerialName("sent")
@@ -48,7 +48,7 @@ data class SupportMessage (
 	val id: String,
 	val content: String,
 	val sender: SupportMessageSender,
-	val status: SupportMessageDeliveryStatus,
+	val status: SupportMessageStatus,
 	val createdAt: SerializedDate,
 	val images: List<SupportMessageImage>
 )

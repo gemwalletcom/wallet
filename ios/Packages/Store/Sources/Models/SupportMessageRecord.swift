@@ -19,7 +19,7 @@ struct SupportMessageRecord: Codable, FetchableRecord, PersistableRecord {
     var id: String
     var content: String
     var sender: SupportMessageSender
-    var status: SupportMessageDeliveryStatus
+    var status: SupportMessageStatus
     var createdAt: Date
     var images: [SupportMessageImage]
 }

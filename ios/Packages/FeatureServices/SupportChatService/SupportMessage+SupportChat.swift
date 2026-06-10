@@ -16,7 +16,7 @@ extension SupportMessage {
         )
     }
 
-    func with(status: SupportMessageDeliveryStatus) -> SupportMessage {
+    func with(status: SupportMessageStatus) -> SupportMessage {
         SupportMessage(
             id: id,
             content: content,
