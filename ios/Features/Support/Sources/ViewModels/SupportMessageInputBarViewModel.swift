@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Localization
 import PhotosUI
 import Primitives
 import SwiftUI
@@ -22,14 +23,13 @@ final class SupportMessageInputBarViewModel {
         self.onSendImages = onSendImages
     }
 
-    var placeholder: String { "Message" }
-
-    var canSend: Bool { text.trimmingCharacters(in: .whitespacesAndNewlines).isNotEmpty }
+    var placeholder: String { Localized.Support.messagePlaceholder }
+    var canSend: Bool { trimmedText.isNotEmpty }
+    private var trimmedText: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     func send() {
-        let content = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard content.isNotEmpty else { return }
-        onSendText(content)
+        guard canSend else { return }
+        onSendText(trimmedText)
         text = ""
     }
 

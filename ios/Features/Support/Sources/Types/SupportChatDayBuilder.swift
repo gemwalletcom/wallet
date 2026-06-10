@@ -6,38 +6,32 @@ import Primitives
 struct SupportChatDayBuilder {
     let messages: [SupportMessage]
     let retryAction: (SupportMessage) -> Void
-    let imageAction: (SupportImagePreviewRequest) -> Void
-    let displayURL: (SupportMessageImage) -> URL?
+    let imageAction: (SupportMessageImage) -> Void
 
     func build() -> [SupportChatDay] {
-        let sortedDays = Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
+        Dictionary(grouping: messages) { Calendar.current.startOfDay(for: $0.createdAt) }
             .sorted { $0.key < $1.key }
-        return sortedDays.enumerated().map { index, day in
-            SupportChatDay(
-                id: day.key.ISO8601Format(),
-                date: day.key,
-                groups: groups(from: day.value, isLastDay: index == sortedDays.indices.last),
-            )
-        }
+            .map { day in
+                SupportChatDay(date: day.key, groups: groups(from: day.value))
+            }
     }
 }
 
 // MARK: - Private
 
 private extension SupportChatDayBuilder {
-    func groups(from messages: [SupportMessage], isLastDay: Bool) -> [SupportChatGroup] {
-        let kinds = messages.chunked(on: senderKey).compactMap(kind(from:))
-        return kinds.enumerated().map { index, kind in
-            SupportChatGroup(kind: kind, isLast: isLastDay && index == kinds.indices.last)
-        }
+    func groups(from messages: [SupportMessage]) -> [SupportChatGroup] {
+        messages.chunked(on: senderKey)
+            .compactMap(kind(from:))
+            .map { SupportChatGroup(kind: $0) }
     }
 
     func kind(from messages: [SupportMessage]) -> SupportChatGroup.Kind? {
         guard let sender = messages.first?.sender else { return nil }
-        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction, imageAction: imageAction, displayURL: displayURL) }
+        let bubbles = messages.map { SupportMessageBubbleViewModel(message: $0, retryAction: retryAction, imageAction: imageAction) }
         switch sender {
         case .user: return .user(messages: bubbles)
-        case let .agent(agent): return .agent(header: SupportAgentHeader(agent: agent), messages: bubbles)
+        case let .agent(agent): return .agent(name: agent.name, messages: bubbles)
         }
     }
 

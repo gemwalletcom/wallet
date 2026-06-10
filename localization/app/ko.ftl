@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = 기본 손절
 # Support
 
 support_state_empty_title = 무엇을 도와드릴까요?
-support_state_empty_description = 메시지를 보내주시면 최대한 빨리 답변드리겠습니다.
+support_state_empty_description = 무엇이든 물어보세요. 저희가 도와드리겠습니다.
+support_message_placeholder = 메시지
 
 # Errors
 

@@ -78,20 +78,6 @@ struct SupportChatDayBuilderTests {
     }
 
     @Test
-    func marksOnlyLastGroupOfLastDayAsLast() {
-        let days = build([
-            message("a", .user, day: 1),
-            message("b", agent("Gemma"), day: 2),
-            message("c", .user, day: 2),
-        ])
-
-        #expect(days.flatMap(\.groups).count(where: { $0.isLast }) == 1)
-        #expect(days[0].groups.allSatisfy { !$0.isLast })
-        #expect(days[1].groups.first?.isLast == false)
-        #expect(days[1].groups.last?.isLast == true)
-    }
-
-    @Test
     func emptyMessagesProduceNoDays() {
         #expect(build([]).isEmpty)
     }
@@ -101,7 +87,7 @@ struct SupportChatDayBuilderTests {
 
 private extension SupportChatDayBuilderTests {
     func build(_ messages: [SupportMessage]) -> [SupportChatDay] {
-        SupportChatDayBuilder(messages: messages, retryAction: { _ in }, imageAction: { _ in }, displayURL: { _ in nil }).build()
+        SupportChatDayBuilder(messages: messages, retryAction: { _ in }, imageAction: { _ in }).build()
     }
 
     func message(_ id: String, _ sender: SupportMessageSender, day: Int, hour: Int = 12) -> SupportMessage {
@@ -123,7 +109,7 @@ private extension SupportChatGroup {
     }
 
     var agentName: String? {
-        if case let .agent(header, _) = kind { header.name } else { nil }
+        if case let .agent(name, _) = kind { name } else { nil }
     }
 
     var bubbleIds: [String] {

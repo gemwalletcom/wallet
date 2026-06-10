@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Výchozí stop loss
 # Support
 
 support_state_empty_title = Jak vám můžeme pomoci?
-support_state_empty_description = Napište nám zprávu a my odpovíme co nejdříve.
+support_state_empty_description = Zeptejte se nás na cokoli. Jsme tu, abychom vám pomohli.
+support_message_placeholder = Zpráva
 
 # Errors
 

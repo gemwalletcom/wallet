@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Default na Stop Loss
 # Support
 
 support_state_empty_title = Paano ka namin matutulungan?
-support_state_empty_description = Magpadala sa amin ng mensahe at sasagutin ka namin sa lalong madaling panahon.
+support_state_empty_description = Magtanong ka sa amin ng kahit ano. Nandito kami para tumulong.
+support_message_placeholder = Mensahe
 
 # Errors
 

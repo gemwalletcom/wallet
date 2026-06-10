@@ -361,7 +361,9 @@ settings_preferences_perpetual_default_stop_loss = Default Stop Loss
 # Used in Support chat screen for the state empty title.
 support_state_empty_title = How can we help?
 # Used in Support chat screen for the state empty description.
-support_state_empty_description = Send us a message and we'll reply as soon as we can.
+support_state_empty_description = Ask us anything. We are here to help.
+# Used in Support chat input field as placeholder.
+support_message_placeholder = Message
 
 # Errors
 

@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = ডিফল্ট স্ট�
 # Support
 
 support_state_empty_title = আমরা কীভাবে সাহায্য করতে পারি?
-support_state_empty_description = আমাদের একটি বার্তা পাঠান, আমরা যত দ্রুত সম্ভব উত্তর দেব।
+support_state_empty_description = আমাদের যেকোনো প্রশ্ন করুন। আমরা সাহায্য করতে এখানে আছি।
+support_message_placeholder = বার্তা
 
 # Errors
 

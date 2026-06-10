@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = حد ضرر پیشفرض
 # Support
 
 support_state_empty_title = چطور می‌توانیم کمک کنیم؟
-support_state_empty_description = برای ما پیامی بفرستید تا در اسرع وقت پاسخ دهیم.
+support_state_empty_description = هر سوالی دارید از ما بپرسید. ما اینجا هستیم تا کمک کنیم.
+support_message_placeholder = پیام
 
 # Errors
 

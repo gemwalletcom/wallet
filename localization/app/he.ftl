@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Stop Loss כברירת מחד
 # Support
 
 support_state_empty_title = איך נוכל לעזור?
-support_state_empty_description = שלחו לנו הודעה ונחזור אליכם בהקדם האפשרי.
+support_state_empty_description = שאלו אותנו כל דבר. אנחנו כאן כדי לעזור.
+support_message_placeholder = הודעה
 
 # Errors
 

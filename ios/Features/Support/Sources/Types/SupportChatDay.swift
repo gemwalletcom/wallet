@@ -1,35 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 
 struct SupportChatDay: Identifiable {
-    let id: String
     let date: Date
     let groups: [SupportChatGroup]
+
+    var id: Date { date }
 }
 
 struct SupportChatGroup: Identifiable {
     enum Kind {
         case user(messages: [SupportMessageBubbleViewModel])
-        case agent(header: SupportAgentHeader, messages: [SupportMessageBubbleViewModel])
+        case agent(name: String, messages: [SupportMessageBubbleViewModel])
     }
 
     let kind: Kind
-    let isLast: Bool
 
     var id: String {
         switch kind {
-        case let .user(messages): "user-\(messages.first?.id ?? "")"
-        case let .agent(_, messages): "agent-\(messages.first?.id ?? "")"
+        case let .user(messages), let .agent(_, messages):
+            messages.first?.id ?? ""
         }
-    }
-}
-
-struct SupportAgentHeader {
-    let name: String
-
-    init(agent: SupportAgent) {
-        name = agent.name
     }
 }

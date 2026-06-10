@@ -1376,8 +1376,10 @@ public enum Localized {
     }
   }
   public enum Support {
-    /// Send us a message and we'll reply as soon as we can.
-    public static let stateEmptyDescription = Localized.tr("Localizable", "support.state_empty_description", fallback: "Send us a message and we'll reply as soon as we can.")
+    /// Message
+    public static let messagePlaceholder = Localized.tr("Localizable", "support.message_placeholder", fallback: "Message")
+    /// Ask us anything. We are here to help.
+    public static let stateEmptyDescription = Localized.tr("Localizable", "support.state_empty_description", fallback: "Ask us anything. We are here to help.")
     /// How can we help?
     public static let stateEmptyTitle = Localized.tr("Localizable", "support.state_empty_title", fallback: "How can we help?")
   }

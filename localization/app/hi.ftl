@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = डिफ़ॉल्ट स�
 # Support
 
 support_state_empty_title = हम आपकी कैसे मदद कर सकते हैं?
-support_state_empty_description = हमें एक संदेश भेजें और हम जल्द से जल्द जवाब देंगे।
+support_state_empty_description = हमसे कुछ भी पूछें। हम मदद के लिए यहाँ हैं।
+support_message_placeholder = संदेश
 
 # Errors
 

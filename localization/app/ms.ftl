@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Stop Loss lalai
 # Support
 
 support_state_empty_title = Bagaimana kami boleh membantu?
-support_state_empty_description = Hantar mesej kepada kami dan kami akan membalas secepat mungkin.
+support_state_empty_description = Tanya kami apa sahaja. Kami sedia membantu.
+support_message_placeholder = Mesej
 
 # Errors
 

@@ -51,27 +51,24 @@ struct SupportMessageBubble: View {
         Button {
             model.onImageTap(image)
         } label: {
-            ZStack {
-                CachedAsyncImage(url: model.displayURL(for: image)) { loaded in
-                    loaded.resizable().scaledToFill()
-                } placeholder: {
-                    ZStack {
-                        Colors.grayLightFaded
+            CachedAsyncImage(url: model.imageURL(for: image)) { loaded in
+                loaded.resizable().scaledToFill()
+            } placeholder: {
+                ZStack {
+                    Colors.grayLightFaded
+                    if !model.isFailed {
                         ProgressView()
                     }
                 }
-                .frame(width: Constants.imageWidth, height: Constants.imageHeight)
-                .clipped()
-                imageOverlay
             }
             .frame(width: Constants.imageWidth, height: Constants.imageHeight)
             .clipShape(RoundedRectangle(cornerRadius: .space12))
+            .contentShape(RoundedRectangle(cornerRadius: .space12))
             .overlay(alignment: .bottomTrailing) {
                 if !model.isSending {
                     timePill
                 }
             }
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -85,25 +82,6 @@ struct SupportMessageBubble: View {
             .background(Colors.blackSolid.opacity(.medium))
             .clipShape(Capsule())
             .padding(.small)
-    }
-
-    @ViewBuilder
-    private var imageOverlay: some View {
-        switch model.status {
-        case .sending:
-            ProgressView()
-                .controlSize(.large)
-                .tint(Colors.whiteSolid)
-        case .failed:
-            Image(systemName: SystemImage.refresh)
-                .font(.title2)
-                .foregroundStyle(Colors.whiteSolid)
-                .padding(.small)
-                .background(Colors.blackSolid.opacity(.medium))
-                .clipShape(Circle())
-        case .sent:
-            EmptyView()
-        }
     }
 
     @ViewBuilder

@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = 默认止损
 # Support
 
 support_state_empty_title = 有什么可以帮您?
-support_state_empty_description = 给我们发送消息，我们会尽快回复。
+support_state_empty_description = 有任何问题都可以问我们。我们随时为您提供帮助。
+support_message_placeholder = 消息
 
 # Errors
 

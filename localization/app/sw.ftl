@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Stop Loss chaguomsingi
 # Support
 
 support_state_empty_title = Tunawezaje kukusaidia?
-support_state_empty_description = Tutumie ujumbe nasi tutajibu haraka iwezekanavyo.
+support_state_empty_description = Tuulize chochote. Tupo hapa kukusaidia.
+support_message_placeholder = Ujumbe
 
 # Errors
 

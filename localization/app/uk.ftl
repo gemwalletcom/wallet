@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Stop Loss за замовчу
 # Support
 
 support_state_empty_title = Чим ми можемо допомогти?
-support_state_empty_description = Напишіть нам, і ми відповімо якнайшвидше.
+support_state_empty_description = Запитуйте нас про що завгодно. Ми завжди раді допомогти.
+support_message_placeholder = Повідомлення
 
 # Errors
 

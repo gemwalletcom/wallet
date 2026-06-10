@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Stop Loss mặc định
 # Support
 
 support_state_empty_title = Chúng tôi có thể giúp gì cho bạn?
-support_state_empty_description = Hãy gửi tin nhắn cho chúng tôi và chúng tôi sẽ phản hồi sớm nhất có thể.
+support_state_empty_description = Hãy hỏi chúng tôi bất cứ điều gì. Chúng tôi luôn sẵn sàng hỗ trợ bạn.
+support_message_placeholder = Tin nhắn
 
 # Errors
 

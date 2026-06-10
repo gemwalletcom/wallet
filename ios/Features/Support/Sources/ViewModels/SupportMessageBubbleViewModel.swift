@@ -8,19 +8,16 @@ import SwiftUI
 struct SupportMessageBubbleViewModel: Identifiable {
     private let message: SupportMessage
     private let retryAction: (SupportMessage) -> Void
-    private let imageAction: (SupportImagePreviewRequest) -> Void
-    private let displayURLResolver: (SupportMessageImage) -> URL?
+    private let imageAction: (SupportMessageImage) -> Void
 
     init(
         message: SupportMessage,
         retryAction: @escaping (SupportMessage) -> Void,
-        imageAction: @escaping (SupportImagePreviewRequest) -> Void,
-        displayURL: @escaping (SupportMessageImage) -> URL?,
+        imageAction: @escaping (SupportMessageImage) -> Void,
     ) {
         self.message = message
         self.retryAction = retryAction
         self.imageAction = imageAction
-        self.displayURLResolver = displayURL
     }
 
     var id: String { message.id }
@@ -33,10 +30,8 @@ struct SupportMessageBubbleViewModel: Identifiable {
 
     var palette: Palette {
         switch message.sender {
-        case .user:
-            Palette(text: Colors.whiteSolid, background: Colors.blue, secondary: Colors.whiteSolid, link: Colors.whiteSolid)
-        case .agent:
-            Palette(text: Colors.black, background: Colors.white, secondary: Colors.secondaryText, link: Colors.blue)
+        case .user: Palette(text: Colors.whiteSolid, background: Colors.blue, secondary: Colors.whiteSolid, link: Colors.whiteSolid)
+        case .agent: Palette(text: Colors.black, background: Colors.white, secondary: Colors.secondaryText, link: Colors.blue)
         }
     }
 
@@ -54,19 +49,12 @@ struct SupportMessageBubbleViewModel: Identifiable {
         retryAction(message)
     }
 
-    func onImageTap(_ image: SupportMessageImage) {
-        switch message.status {
-        case .sending:
-            break
-        case .failed:
-            retry()
-        case .sent:
-            imageAction(SupportImagePreviewRequest(images: message.images, selectedId: image.id))
-        }
+    func imageURL(for image: SupportMessageImage) -> URL? {
+        image.url.asURL
     }
 
-    func displayURL(for image: SupportMessageImage) -> URL? {
-        displayURLResolver(image)
+    func onImageTap(_ image: SupportMessageImage) {
+        imageAction(image)
     }
 }
 

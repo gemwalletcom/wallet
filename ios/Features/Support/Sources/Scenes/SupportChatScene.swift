@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Primitives
 import QuickLook
 import Store
 import Style
@@ -15,24 +14,19 @@ public struct SupportChatScene: View {
     }
 
     public var body: some View {
-        content
-            .bindQuery(model.query)
-            .background(Colors.grayBackground)
-            .safeAreaView(edge: .bottom) {
-                SupportMessageInputBar(model: model.inputBarModel)
-            }
-            .navigationTitle(model.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                await model.fetch()
-            }
-            .quickLookPreview($model.isPresentingImagePreview, in: model.previewURLs)
-    }
-
-    @ViewBuilder
-    private var content: some View {
         ZStack {
-            scrollContent
+            ScrollView {
+                VStack(spacing: .small) {
+                    ForEach(model.days) { day in
+                        SupportDateSeparator(date: day.date)
+                        ForEach(day.groups) { group in
+                            groupView(group)
+                        }
+                    }
+                }
+                .padding(.medium)
+            }
+            .defaultScrollAnchor(.bottom)
             if model.isEmpty {
                 StateEmptyView(
                     title: model.emptyTitle,
@@ -42,17 +36,26 @@ public struct SupportChatScene: View {
                 .padding(.medium)
             }
         }
+        .bindQuery(model.query)
+        .background(Colors.grayBackground)
+        .safeAreaView(edge: .bottom) {
+            SupportMessageInputBar(model: model.inputBarModel)
+        }
+        .navigationTitle(model.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await model.fetch()
+        }
+        .quickLookPreview($model.previewURL)
     }
 
     @ViewBuilder
-    private var scrollContent: some View {
-        if #available(iOS 18, *) {
-            SupportChatMessagesView(model: model)
-        } else {
-            ScrollView {
-                SupportChatMessagesContent(model: model)
-            }
-            .defaultScrollAnchor(.bottom)
+    private func groupView(_ group: SupportChatGroup) -> some View {
+        switch group.kind {
+        case let .agent(name, messages):
+            SupportAgentMessageGroup(name: name, messages: messages)
+        case let .user(messages):
+            SupportUserMessageGroup(messages: messages)
         }
     }
 }

@@ -5,7 +5,7 @@ import Style
 import SwiftUI
 
 struct SupportAgentMessageGroup: View {
-    let header: SupportAgentHeader
+    let name: String
     let messages: [SupportMessageBubbleViewModel]
 
     var body: some View {
@@ -29,7 +29,7 @@ struct SupportAgentMessageGroup: View {
                 ),
                 size: .image.small,
             )
-            Text(header.name)
+            Text(name)
                 .font(.caption)
                 .foregroundStyle(Colors.secondaryText)
         }

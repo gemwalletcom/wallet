@@ -2,7 +2,6 @@
 
 import Components
 import PhotosUI
-import Primitives
 import Style
 import SwiftUI
 
@@ -34,6 +33,16 @@ struct SupportMessageInputBar: View {
         }
     }
 
+    private struct AttachButtonLabel: View {
+        var body: some View {
+            Image(systemName: SystemImage.plus)
+                .font(.system(size: .space16, weight: .semibold))
+                .foregroundStyle(Colors.gray)
+                .frame(size: .space32 + .space6)
+                .liquidGlass(fallback: { $0.background(Colors.grayVeryLight).clipShape(Circle()) })
+        }
+    }
+
     private var textField: some View {
         TextField(model.placeholder, text: $model.text, axis: .vertical)
             .lineLimit(1 ... 8)
@@ -44,16 +53,6 @@ struct SupportMessageInputBar: View {
                 in: RoundedRectangle(cornerRadius: .space16),
                 fallback: { $0.background(Colors.grayVeryLight).clipShape(RoundedRectangle(cornerRadius: .space16)) },
             )
-    }
-
-    private struct AttachButtonLabel: View {
-        var body: some View {
-            Image(systemName: SystemImage.plus)
-                .font(.system(size: .space16, weight: .semibold))
-                .foregroundStyle(Colors.gray)
-                .frame(size: .space32 + .space6)
-                .liquidGlass(fallback: { $0.background(Colors.grayVeryLight).clipShape(Circle()) })
-        }
     }
 
     private var sendButton: some View {

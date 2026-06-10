@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = デフォルト損切り
 # Support
 
 support_state_empty_title = どのようなご用件でしょうか？
-support_state_empty_description = メッセージをお送りいただければ、できるだけ早く返信いたします。
+support_state_empty_description = 何でもお気軽にお尋ねください。私たちがサポートいたします。
+support_message_placeholder = メッセージ
 
 # Errors
 

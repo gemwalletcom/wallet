@@ -13,6 +13,7 @@ import SwiftUI
 public final class SupportChatSceneViewModel {
     private let service: SupportChatService
     public let query: ObservableQuery<SupportMessagesRequest>
+    var previewURL: URL?
 
     public init(service: SupportChatService) {
         self.service = service
@@ -22,88 +23,74 @@ public final class SupportChatSceneViewModel {
     var title: String { Localized.Settings.support }
     var emptyTitle: String { Localized.Support.stateEmptyTitle }
     var emptyDescription: String { Localized.Support.stateEmptyDescription }
-
-    private var seenAgentCount = 0
-    var isAtBottom = true
-    var previewURLs: [URL] = []
-    var isPresentingImagePreview: URL?
     var isEmpty: Bool { query.value.isEmpty }
-    var unreadAgentCount: Int { max(0, agentCount - seenAgentCount) }
-    var agentCount: Int { query.value.filter { $0.sender.isAgent }.count }
 
-    var inputBarModel: SupportMessageInputBarViewModel {
-        SupportMessageInputBarViewModel(
-            onSendText: { [weak self] in self?.sendText($0) },
-            onSendImages: { [weak self] in self?.sendImages($0) },
-        )
-    }
+    @ObservationIgnored
+    private(set) lazy var inputBarModel = SupportMessageInputBarViewModel(
+        onSendText: { [weak self] in self?.sendText($0) },
+        onSendImages: { [weak self] in self?.sendImages($0) },
+    )
 
     var days: [SupportChatDay] {
         SupportChatDayBuilder(
             messages: query.value,
-            retryAction: { [weak self] in self?.onRetry($0) },
-            imageAction: { [weak self] request in Task { await self?.openPreview(request) } },
-            displayURL: service.displayURL(for:),
+            retryAction: { [weak self] in self?.retry($0) },
+            imageAction: { [weak self] in self?.openPreview($0) },
         ).build()
     }
 
-    func setAtBottom(_ atBottom: Bool) {
-        isAtBottom = atBottom
-        if atBottom { seenAgentCount = agentCount }
-    }
-
-    func openPreview(_ request: SupportImagePreviewRequest) async {
-        do {
-            let urls = try await service.previewFileURLs(for: request.images)
-            previewURLs = urls
-            isPresentingImagePreview = request.images.firstIndex { $0.id == request.selectedId }.map { urls[$0] } ?? urls.first
-        } catch {
-            debugLog("SupportChatSceneViewModel preview error: \(error)")
-        }
-    }
-
     func fetch() async {
-        do {
-            let fromTimestamp = query.value.last { $0.sender.isAgent }.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0
+        let fromTimestamp = query.value.last { $0.sender.isAgent }.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0
+        await perform("fetch") {
             try await service.syncMessages(fromTimestamp: fromTimestamp)
-        } catch {
-            debugLog("SupportChatSceneViewModel fetch error: \(error)")
         }
     }
 
     func sendText(_ content: String) {
         Task {
-            do {
-                try await service.sendText(content)
-            } catch {
-                debugLog("SupportChatSceneViewModel send text error: \(error)")
+            await perform("send text") {
+                try await service.sendMessage(.text(content))
             }
         }
     }
 
     func sendImages(_ items: [PhotosPickerItem]) {
         Task {
-            var attachments: [ImageAttachment] = []
             for item in items {
                 guard let attachment = try? await item.imageAttachment() else { continue }
-                attachments.append(attachment)
-            }
-            guard !attachments.isEmpty else { return }
-            do {
-                try await service.sendImages(attachments)
-            } catch {
-                debugLog("SupportChatSceneViewModel send images error: \(error)")
+                await perform("send image") {
+                    try await service.sendMessage(.image(attachment))
+                }
             }
         }
     }
 
-    func onRetry(_ message: SupportMessage) {
+    func retry(_ message: SupportMessage) {
         Task {
-            do {
+            await perform("retry") {
                 try await service.retryMessage(message)
-            } catch {
-                debugLog("SupportChatSceneViewModel retry error: \(error)")
             }
+        }
+    }
+
+    func openPreview(_ image: SupportMessageImage) {
+        guard let url = image.url.asURL else { return }
+        Task {
+            await perform("preview") {
+                previewURL = try await service.imageFile(for: url)
+            }
+        }
+    }
+}
+
+// MARK: - Private
+
+private extension SupportChatSceneViewModel {
+    func perform(_ context: String, _ operation: () async throws -> Void) async {
+        do {
+            try await operation()
+        } catch {
+            debugLog("SupportChatSceneViewModel \(context) error: \(error)")
         }
     }
 }

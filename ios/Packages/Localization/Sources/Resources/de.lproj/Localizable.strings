@@ -160,7 +160,8 @@
 "settings.preferences.perpetual.default_take_profit" = "Standard-Take-Profit";
 "settings.preferences.perpetual.default_stop_loss" = "Standard-Stop-Loss";
 "support.state_empty_title" = "Wie können wir helfen?";
-"support.state_empty_description" = "Schreib uns eine Nachricht und wir antworten so schnell wie möglich.";
+"support.state_empty_description" = "Frag uns alles. Wir sind für dich da.";
+"support.message_placeholder" = "Nachricht";
 "errors.transfer" = "Übertragungsfehler: %@";
 "errors.validation" = "Validierungsfehler: %@";
 "errors.create_wallet" = "Fehler beim Erstellen der Brieftasche: %@";

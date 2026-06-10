@@ -191,7 +191,8 @@ settings_preferences_perpetual_default_stop_loss = Stop Loss na asali
 # Support
 
 support_state_empty_title = Yaya za mu taimaka?
-support_state_empty_description = Aiko mana saƙo, za mu amsa da wuri-wuri.
+support_state_empty_description = Tambaye mu kome. Muna nan don taimaka maka.
+support_message_placeholder = Saƙo
 
 # Errors
 
