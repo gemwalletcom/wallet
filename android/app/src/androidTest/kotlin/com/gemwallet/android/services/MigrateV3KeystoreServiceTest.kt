@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -59,7 +58,6 @@ class MigrateV3KeystoreServiceTest {
         val keystoreId = uniffi.gemstone.keystoreIdForWallet(walletId.id)
         assertTrue("v4 file must exist at the deterministic id", File(baseDir, "v4/$keystoreId.gemk").exists())
         assertTrue("v3 file must stay in place for downgrade safety", File(baseDir, walletId.id).exists())
-        assertFalse("v3 file must not be moved to a backup dir", File(baseDir, "v3_migrated/${walletId.id}").exists())
         assertEquals(EXPECTED_PRIVATE_KEY, loadKey(current, Chain.Ethereum, KEYSTORE_TEST_PASSWORD).hex)
 
         service()
@@ -95,7 +93,6 @@ class MigrateV3KeystoreServiceTest {
 
     private fun cleanup() {
         File(baseDir, "v4").deleteRecursively()
-        File(baseDir, "v3_migrated").deleteRecursively()
         File(baseDir, "multicoin_$ETH_ADDRESS").delete()
         File(baseDir, "privateKey_ethereum_$ETH_ADDRESS").delete()
     }

@@ -16,8 +16,6 @@ class GemDeleteKeyStoreOperator(
     override fun invoke(wallet: Wallet): Boolean {
         var deletedAll = true
 
-        // Remove the v4 secret. delete returns false when there is no v4 file (a wallet that never migrated); only a
-        // thrown error is a real failure that must keep the wallet.
         try {
             GemKeystore(baseDir).use { keystore -> keystore.delete(wallet.keystoreId) }
         } catch (e: Exception) {

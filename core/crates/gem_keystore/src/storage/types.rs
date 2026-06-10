@@ -18,7 +18,6 @@ pub struct StoredSecretMeta {
     pub keystore_id: String,
     pub kind: SecretKind,
     pub version: u8,
-    pub created_at: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -48,7 +47,6 @@ pub struct FileKeystore {
 pub(super) struct Header {
     pub(super) keystore_id: String,
     pub(super) kind: SecretKind,
-    pub(super) created_at: i64,
     pub(super) kdf: KdfParams,
     pub(super) cipher: CipherParams,
 }

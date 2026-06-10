@@ -1,7 +1,6 @@
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use zeroize::{Zeroize, Zeroizing};
 
@@ -11,7 +10,7 @@ use crate::v3::{ReaderV3, SecretV3};
 use crate::{KeystoreError, KeystoreId, Mnemonic};
 
 use super::{
-    constants::{AES_GCM_TAG_LEN, ENCRYPTED_BODY_CAP, HEADER_LEN_CAP, MAGIC, PREFIX_LEN, VERSION_V4, WHOLE_FILE_CAP},
+    constants::{AES_GCM_TAG_LEN, ENCRYPTED_BODY_CAP, FILE_EXTENSION, HEADER_LEN_CAP, MAGIC, PREFIX_LEN, VERSION_V4, WHOLE_FILE_CAP},
     crypto::derive_key,
     file_io::{new_secret_file_options, read_capped, set_owner_read_write, sync_directory},
     format::{meta_from_header, parse_v4, validate_payload_kind, validate_v4_password},
@@ -89,15 +88,13 @@ impl FileKeystore {
         let id = KeystoreId::parse(keystore_id)?;
         let parsed = self.read_parsed_by_id(&id)?;
         let kind = parsed.parsed.header.kind;
-        let created_at = parsed.parsed.header.created_at;
         let payload = self.decrypt_parsed(&parsed.bytes, Some(&id), old_password)?;
-        let body = self.encrypt_payload(&kind, payload, new_password, Some(id.clone()), Some(created_at))?;
+        let body = self.encrypt_payload(&kind, payload, new_password, Some(id.clone()))?;
         self.write_new_file(&id, &body, true)?;
         Ok(StoredSecretMeta {
             keystore_id: id.into_string(),
             kind,
             version: VERSION_V4,
-            created_at,
         })
     }
 
@@ -137,7 +134,7 @@ impl FileKeystore {
         for entry in fs::read_dir(self.v4_dir())? {
             let entry = entry?;
             let path = entry.path();
-            if path.extension().and_then(|extension| extension.to_str()) != Some("gemk") {
+            if path.extension().and_then(|extension| extension.to_str()) != Some(FILE_EXTENSION) {
                 continue;
             }
             let result = listed_meta(&path).map_err(|error| KeystoreFileError {
@@ -212,35 +209,17 @@ impl FileKeystore {
         if self.path_for_id(&id).exists() {
             return self.verify_unlocked(id.as_str(), password);
         }
-        let body = self.encrypt_payload(&kind, payload, password, Some(id.clone()), None)?;
+        let body = self.encrypt_payload(&kind, payload, password, Some(id.clone()))?;
         self.write_new_file(&id, &body, false)?;
         self.get_meta_unlocked(id.as_str())?.ok_or(KeystoreError::NotFound)
     }
 
-    fn encrypt_payload(
-        &self,
-        kind: &SecretKind,
-        payload: SecretPayload,
-        password: &[u8],
-        keystore_id: Option<KeystoreId>,
-        created_at: Option<i64>,
-    ) -> Result<Vec<u8>, KeystoreError> {
+    fn encrypt_payload(&self, kind: &SecretKind, payload: SecretPayload, password: &[u8], keystore_id: Option<KeystoreId>) -> Result<Vec<u8>, KeystoreError> {
         validate_v4_password(password)?;
         let id = keystore_id.unwrap_or_default();
-        let created_at = match created_at {
-            Some(created_at) => created_at,
-            None => {
-                let seconds = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .map_err(|error| KeystoreError::io(error.to_string()))?
-                    .as_secs();
-                i64::try_from(seconds).map_err(|_| KeystoreError::io("system time overflow"))?
-            }
-        };
         let header = Header {
             keystore_id: id.into_string(),
             kind: *kind,
-            created_at,
             kdf: self.default_kdf.with_random_salt()?,
             cipher: CipherParams::random_aes256_gcm()?,
         };
@@ -298,7 +277,7 @@ impl FileKeystore {
         if !replace && path.exists() {
             return Err(KeystoreError::AlreadyExists);
         }
-        let temp_path = self.v4_dir().join(format!("{}.gemk.tmp.{}", id.as_str(), KeystoreId::new()));
+        let temp_path = self.v4_dir().join(format!("{}.{FILE_EXTENSION}.tmp.{}", id.as_str(), KeystoreId::new()));
         let options = new_secret_file_options();
         let write_result = (|| -> Result<(), KeystoreError> {
             let mut file = options.open(&temp_path)?;
@@ -316,7 +295,7 @@ impl FileKeystore {
     }
 
     fn path_for_id(&self, id: &KeystoreId) -> PathBuf {
-        self.v4_dir().join(format!("{}.gemk", id.as_str()))
+        self.v4_dir().join(format!("{}.{FILE_EXTENSION}", id.as_str()))
     }
 
     fn v4_dir(&self) -> PathBuf {

@@ -37,11 +37,11 @@ impl GemKeystore {
                 Ok(GemWalletImport::new(wallet_id, WalletType::PrivateKey, vec![account]))
             }
             GemImportType::MulticoinPhrase { words, chains } => {
-                let (wallet_id, accounts) = import_mnemonic_wallet(words, chains, WalletType::Multicoin, Chain::Ethereum)?;
+                let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, chains, WalletType::Multicoin, Chain::Ethereum)?;
                 Ok(GemWalletImport::new(wallet_id, WalletType::Multicoin, accounts))
             }
             GemImportType::SinglePhrase { words, chain } => {
-                let (wallet_id, accounts) = import_mnemonic_wallet(words, vec![chain], WalletType::Single, chain)?;
+                let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, vec![chain], WalletType::Single, chain)?;
                 Ok(GemWalletImport::new(wallet_id, WalletType::Single, accounts))
             }
         }
@@ -150,11 +150,6 @@ impl GemKeystore {
             Err(error) => Err(error.into()),
         }
     }
-}
-
-fn import_mnemonic_wallet(words: Vec<String>, requested_chains: Vec<Chain>, wallet_type: WalletType, wallet_id_chain: Chain) -> Result<(WalletId, Vec<Account>), GemstoneError> {
-    let (wallet_id, accounts, _phrase) = derive_mnemonic_wallet(words, requested_chains, wallet_type, wallet_id_chain)?;
-    Ok((wallet_id, accounts))
 }
 
 fn derive_mnemonic_wallet(

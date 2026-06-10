@@ -8,6 +8,7 @@ internal inline fun <R> withGemKeystore(
     password: String,
     block: (keystore: GemKeystore, passwordBytes: ByteArray) -> R,
 ): R {
+    require(password.isNotEmpty()) { "keystore password is missing" }
     val passwordBytes = password.v4KeystorePasswordBytes()
     return try {
         GemKeystore(baseDir).use { keystore -> block(keystore, passwordBytes) }

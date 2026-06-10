@@ -45,7 +45,6 @@ Header fields:
 
 - `keystore_id`
 - `kind`: `Mnemonic` or `PrivateKey`
-- `created_at`
 - Argon2id KDF params and random salt
 - AES-256-GCM params and random nonce
 

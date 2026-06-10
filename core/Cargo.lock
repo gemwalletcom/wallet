@@ -3395,6 +3395,8 @@ dependencies = [
  "gem_tron",
  "gem_xrp",
  "primitives",
+ "serde",
+ "serde_json",
  "signer",
  "zeroize",
 ]

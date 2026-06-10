@@ -40,7 +40,6 @@ The Borsh header contains:
 | --- | --- |
 | `keystore_id` | Lowercase UUID string (v5, derived from the wallet id) |
 | `kind` | `Mnemonic` or `PrivateKey` |
-| `created_at` | Unix timestamp in seconds |
 | `kdf` | Argon2id parameters and random salt |
 | `cipher` | AES-256-GCM nonce and tag length |
 

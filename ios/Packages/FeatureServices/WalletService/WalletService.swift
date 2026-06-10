@@ -3,7 +3,6 @@
 import AvatarService
 import Foundation
 import Keystore
-import os
 import Preferences
 import Primitives
 import Store
@@ -134,12 +133,7 @@ public struct WalletService: Sendable {
             do {
                 _ = try await keystore.migrateV3Keystore(for: wallet)
             } catch {
-                os_log(
-                    "v3 keystore migration failed for %{public}@: %{public}@",
-                    type: .error,
-                    wallet.id.id,
-                    error.localizedDescription,
-                )
+                debugLog("v3 keystore migration failed for \(wallet.id.id): \(error)")
             }
         }
     }

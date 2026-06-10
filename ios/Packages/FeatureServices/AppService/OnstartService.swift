@@ -4,7 +4,6 @@ import AssetsService
 import Foundation
 import GemAPI
 import NodeService
-import os
 import Preferences
 import Primitives
 import Store
@@ -79,7 +78,7 @@ extension OnstartService {
             do {
                 try await walletService.migrateV3Keystores()
             } catch {
-                os_log("v3 keystore migration could not enumerate wallets: %{public}@", type: .error, error.localizedDescription)
+                debugLog("v3 keystore migration could not enumerate wallets: \(error)")
             }
         }
     }

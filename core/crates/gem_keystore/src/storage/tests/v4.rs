@@ -129,9 +129,10 @@ fn test_v4_rejects_roundtrip_tampering() {
     write_tampered(&tampered_path, &version);
     assert_verify_path_error(&tampered_path, password, KeystoreError::unsupported("version"));
 
-    let created_at_offset = PREFIX_LEN + 4 + meta.keystore_id.len() + 1;
+    // borsh header layout: id len (4) + id + kind tag (1) + kdf tag (1) + memory/iterations/parallelism (12), then the salt
+    let kdf_salt_offset = PREFIX_LEN + 4 + meta.keystore_id.len() + 1 + 1 + 12;
     let mut header = original.clone();
-    header[created_at_offset] ^= 0xff;
+    header[kdf_salt_offset] ^= 0xff;
     write_tampered(&tampered_path, &header);
     assert_verify_path_error(&tampered_path, password, KeystoreError::AuthenticationFailed);
 

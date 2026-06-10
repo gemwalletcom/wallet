@@ -17,7 +17,6 @@ Usage:
 """
 
 import argparse
-import datetime
 import json
 import struct
 import sys
@@ -52,9 +51,6 @@ class BorshReader:
     def u32(self) -> int:
         return struct.unpack("<I", self.take(4))[0]
 
-    def i64(self) -> int:
-        return struct.unpack("<q", self.take(8))[0]
-
     def string(self) -> str:
         return self.take(self.u32()).decode("utf-8")
 
@@ -62,7 +58,6 @@ class BorshReader:
 def parse_header(reader: BorshReader) -> dict:
     keystore_id = reader.string()
     kind = reader.u8()
-    created_at = reader.i64()
 
     kdf_variant = reader.u8()
     if kdf_variant != 0:
@@ -88,8 +83,6 @@ def parse_header(reader: BorshReader) -> dict:
     return {
         "keystore_id": keystore_id,
         "kind": SECRET_KIND.get(kind, f"unknown({kind})"),
-        "created_at": created_at,
-        "created_at_iso": datetime.datetime.fromtimestamp(created_at, datetime.timezone.utc).isoformat(),
         "kdf": kdf,
         "cipher": cipher,
     }

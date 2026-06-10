@@ -3,7 +3,7 @@ use primitives::{Chain, WalletType, hex};
 use crate::{AccountDerivationError, derive_wallet_id_from_account};
 
 use super::super::derivation::{derive_accounts_from_mnemonic, derive_private_key_from_mnemonic};
-use super::fixtures::{BITCOIN_FAMILY_V3_VECTORS, PHRASE, TEST_PHRASE, expected_derivation};
+use super::{PHRASE, TEST_PHRASE, bitcoin_family_v3_vectors, expected_derivation};
 
 #[test]
 fn test_derive_accounts_from_mnemonic_selected_chains() {
@@ -49,10 +49,10 @@ fn test_derive_accounts_from_mnemonic_deduplicates_and_rejects_empty_chains() {
 
 #[test]
 fn test_derive_accounts_from_mnemonic_bitcoin_family_v3_vectors() {
-    for vector in BITCOIN_FAMILY_V3_VECTORS {
-        let account = derive_accounts_from_mnemonic(vector.phrase, vec![vector.chain]).unwrap().remove(0);
+    for vector in bitcoin_family_v3_vectors() {
+        let account = derive_accounts_from_mnemonic(&vector.phrase, vec![vector.chain]).unwrap().remove(0);
         assert_eq!(account.address, vector.address);
-        assert_eq!(account.extended_public_key.as_deref(), Some(vector.extended_public_key));
+        assert_eq!(account.extended_public_key.as_deref(), Some(vector.extended_public_key.as_str()));
     }
 
     let bitcoincash = derive_accounts_from_mnemonic(TEST_PHRASE, vec![Chain::BitcoinCash]).unwrap().remove(0);

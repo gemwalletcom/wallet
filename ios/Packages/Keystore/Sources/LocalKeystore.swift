@@ -104,7 +104,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
             .compactMap { wallet -> Primitives.Wallet? in
                 let existingChains = wallet.accounts.map(\.chain)
                 let newChains = chains.asSet().subtracting(existingChains.asSet()).asArray()
-                // Pre-v4 wallets are skipped; the startup migration writes the v4 file first.
                 guard v4KeystoreExists(wallet.keystoreId) else {
                     return nil
                 }
@@ -147,7 +146,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
                     newPassword: newPassword,
                     keystoreId: wallet.keystoreId,
                 )
-                // The v3 file is intentionally left in place; wallet deletion removes every copy.
                 return migration.keystoreId
             }
         }
@@ -289,6 +287,9 @@ func withV4Password<T>(
     _ password: String,
     _ operation: (Data) throws -> T,
 ) throws -> T {
+    guard password.isNotEmpty else {
+        throw AnyError("keystore password is missing")
+    }
     var passwordBytes = try password.v4KeystorePasswordBytes()
     defer { passwordBytes.zeroize() }
     return try operation(passwordBytes)

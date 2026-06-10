@@ -1,5 +1,6 @@
 pub(super) const MAGIC: &[u8; 4] = b"GEMK";
 pub(super) const VERSION_V4: u8 = 4;
+pub(super) const FILE_EXTENSION: &str = "gemk";
 pub(super) const PREFIX_LEN: usize = 9;
 pub(super) const HEADER_LEN_OFFSET: usize = 5;
 pub(super) const HEADER_LEN_END: usize = 9;

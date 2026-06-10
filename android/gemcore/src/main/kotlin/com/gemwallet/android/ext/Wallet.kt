@@ -23,8 +23,6 @@ val Wallet.keystoreId: String
 
 fun String.v4KeystorePasswordBytes(): ByteArray = fromHex()
 
-fun String.legacyAndroidV3PasswordBytes(): ByteArray = fromHex()
-
 val Wallet.hyperliquidAccount: Account?
     get() = accounts.firstOrNull {
         it.chain == Chain.Arbitrum || it.chain == Chain.HyperCore || it.chain == Chain.Hyperliquid

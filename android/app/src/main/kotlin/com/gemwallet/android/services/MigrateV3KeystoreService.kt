@@ -41,7 +41,6 @@ class MigrateV3KeystoreService @Inject constructor(
 
         val passwordBytes = passwordStore.getPassword(wallet.id.id).fromHex()
         try {
-            // Writes v4 at the deterministic id. The v3 file is left in place, wallet deletion removes every copy.
             migrateKeystoreOperator(legacyFile.path, passwordBytes, passwordBytes, wallet.keystoreId)
         } finally {
             passwordBytes.fill(0)
