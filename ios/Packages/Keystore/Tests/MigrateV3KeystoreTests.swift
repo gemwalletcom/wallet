@@ -36,6 +36,26 @@ struct MigrateV3KeystoreTests {
     }
 
     @Test
+    func migrationWithoutV3FileDoesNotReadThePassword() async throws {
+        let directory = "migrate-test-\(UUID().uuidString)"
+        let baseDir = try FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appending(path: directory, directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: baseDir) }
+
+        let mockPassword = MockKeystorePassword(memoryPassword: Self.password)
+        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword)
+        let migrated = Wallet.mock(
+            id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
+            type: .privateKey,
+            source: .import,
+        )
+
+        #expect(try await keystore.migrateV3Keystore(for: migrated) == nil)
+        #expect(mockPassword.getPasswordCallsCount == 0)
+    }
+
+    @Test
     func deleteAfterMigrationRemovesEveryCopy() async throws {
         let directory = "migrate-test-\(UUID().uuidString)"
         let baseDir = try FileManager.default

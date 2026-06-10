@@ -123,12 +123,13 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         case .view:
             return nil
         case .multicoin, .single, .privateKey:
+            // Check for a v3 file before reading password from Keychain (trigger Face ID prompt)
+            guard let v3URL = Self.findV3File(in: keystoreURL, matching: wallet.legacyV3Id) else {
+                return nil
+            }
             let password = try await getPassword()
             guard !password.isEmpty else { return nil }
-            return try await queue.asyncTask { [gemKeystore, keystoreURL] in
-                guard let v3URL = Self.findV3File(in: keystoreURL, matching: wallet.legacyV3Id) else {
-                    return nil
-                }
+            return try await queue.asyncTask { [gemKeystore] in
                 var v3Password = password.v3PasswordBytes()
                 var newPassword = try password.v4KeystorePasswordBytes()
                 defer {
@@ -289,4 +290,3 @@ func withV4Password<T>(
     defer { passwordBytes.zeroize() }
     return try operation(passwordBytes)
 }
-
