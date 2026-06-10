@@ -1,0 +1,32 @@
+[
+  {
+    "phrase": "shoot island position soft burden budget tooth cruel issue economy destroy above",
+    "chain": "bitcoin",
+    "address": "bc1quvuarfksewfeuevuc6tn0kfyptgjvwsvrprk9d",
+    "extended_public_key": "zpub6r7CMEBpuNt4XH7pAVT2eH5kcz3S6w37AXHRpBfNPc4tAVuyaX4dahz5zs5knwVQH26bLKUDj3webt2NjpYD3i6mqqZ3Xa7vnaS4WW13fGW"
+  },
+  {
+    "phrase": "shoot island position soft burden budget tooth cruel issue economy destroy above",
+    "chain": "bitcoincash",
+    "address": "qpzl3jxkzgvfd9flnd26leud5duv795fnv7vuaha70",
+    "extended_public_key": "xpub6CdXPxcVxcAJDED1NgMQnoDk5btzaLZy6W2BKvRXpXvVWib8w7nzmTfH1bLpbk4wTxTg9Nb1NSa3F28UYJqG7f51RezF9dRDP8K6iEkBTqB"
+  },
+  {
+    "phrase": "shoot island position soft burden budget tooth cruel issue economy destroy above",
+    "chain": "litecoin",
+    "address": "ltc1qhd8fxxp2dx3vsmpac43z6ev0kllm4n53t5sk0u",
+    "extended_public_key": "zpub6rZRpnf2TEQS8C4tEEYZ9SqXZVxrDaPBj5prm3JCmr7AxdGKyxx3SghwQrd8KhpS9qy7ZRZeu9ugya1o3hAv9NneSpMwrzGcLTjVR4WHZ1P"
+  },
+  {
+    "phrase": "shoot island position soft burden budget tooth cruel issue economy destroy above",
+    "chain": "doge",
+    "address": "DJRFZNg8jkUtjcpo2zJd92FUAzwRjitw6f",
+    "extended_public_key": "dgub8sRb9TVDFn6uAqq5cqGQWftQ4JCHxdDCBd34f3WtAqprKW89Fiajv4g9fRMEFoxNE3pjRUYTje3thTmNurC2hRYVcu8PUsqRUq8QkPYXCqs"
+  },
+  {
+    "phrase": "shoot island position soft burden budget tooth cruel issue economy destroy above",
+    "chain": "zcash",
+    "address": "t1YYnByMzdGhQv3W3rnjHMrJs6HH4Y231gy",
+    "extended_public_key": "xpub6C9VfHLXZrdRSkBE7MnfvGEkk9eZgSB6rTi2DVpiykKgZYTvZtKcHZKCfZRmJKXvZzqrtWSNVwJGSs9uTvy3bVbSkb4o9g8NN6GMBvGE9cm"
+  }
+]

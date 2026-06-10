@@ -20,6 +20,7 @@ import ExplorerService
 import FiatService
 import Foundation
 import GemAPI
+import GemAPIDevice
 import Gemstone
 import GemstonePrimitives
 import Keystore
@@ -89,10 +90,13 @@ struct ServicesFactory {
 
         let nodeService = NodeService(nodeStore: storeManager.nodeStore)
         let nodeAuthProvider = NodeAuthTokenProvider(securePreferences: securePreferences)
-        let nodeProvider = AuthenticatedNodeProvider(nodeProvider: nodeService, requestInterceptor: nodeAuthProvider)
-        let nativeProvider = NativeProvider(nodeProvider: nodeProvider)
+        let nodeProvider: any NodeURLFetchable = nodeService
+        let nativeProvider = NativeProvider(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
         let gatewayService = GatewayService(provider: nativeProvider)
-        let chainServiceFactory = ChainServiceFactory(nodeProvider: nodeProvider)
+        let chainServiceFactory = ChainServiceFactory(
+            gatewayService: gatewayService,
+            requestInterceptor: nodeAuthProvider,
+        )
 
         let avatarService = AvatarService(store: storeManager.walletStore)
         let assetsService = Self.makeAssetsService(
@@ -168,6 +172,7 @@ struct ServicesFactory {
             priceStore: storeManager.priceStore,
             balanceStore: storeManager.balanceStore,
             nodeProvider: nodeProvider,
+            requestInterceptor: nodeAuthProvider,
             preferences: preferences,
         )
         let webSocket = Self.makeWebSocket(securePreferences: securePreferences)
@@ -206,7 +211,7 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let explorerService = ExplorerService.standard
-        let swapService = SwapService(nodeProvider: nodeProvider)
+        let swapService = SwapService(nodeProvider: nodeProvider, requestInterceptor: nodeAuthProvider)
 
         let walletSessionService = WalletSessionService(
             walletStore: storeManager.walletStore,
@@ -219,6 +224,7 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             interactor: walletConnectorManager,
             nodeProvider: nodeProvider,
+            requestInterceptor: nodeAuthProvider,
         )
 
         let assetsEnabler = AssetsEnablerService(
@@ -557,6 +563,7 @@ extension ServicesFactory {
         walletSessionService: WalletSessionService,
         interactor: any WalletConnectorInteractable,
         nodeProvider: any NodeURLFetchable,
+        requestInterceptor: any RequestInterceptable,
     ) -> ConnectionsService {
         ConnectionsService(
             store: connectionsStore,
@@ -566,6 +573,7 @@ extension ServicesFactory {
                 walletConnectorInteractor: interactor,
             ),
             nodeProvider: nodeProvider,
+            requestInterceptor: requestInterceptor,
         )
     }
 
@@ -649,6 +657,7 @@ extension ServicesFactory {
         priceStore: PriceStore,
         balanceStore: BalanceStore,
         nodeProvider: any NodeURLFetchable,
+        requestInterceptor: any RequestInterceptable,
         preferences: Preferences,
     ) -> PerpetualService {
         PerpetualService(
@@ -656,7 +665,7 @@ extension ServicesFactory {
             assetStore: assetStore,
             priceStore: priceStore,
             balanceStore: balanceStore,
-            provider: PerpetualProviderFactory(nodeProvider: nodeProvider).createProvider(),
+            provider: PerpetualProviderFactory(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor).createProvider(),
             preferences: preferences,
         )
     }

@@ -1,15 +1,18 @@
 use gem_tracing::info_with_fields;
 use primitives::{TransactionId, WebhookKind};
 use rocket::http::Status;
-use rocket::request::FromParam;
-use rocket::{State, post, serde::json::Json, tokio::sync::Mutex};
+use rocket::outcome::Outcome::{Error, Success};
+use rocket::request::{FromParam, FromRequest, Outcome};
+use rocket::{Request, State, post, serde::json::Json, tokio::sync::Mutex};
 use std::str::FromStr;
-use storage::Database;
-use storage::database::webhooks::WebhooksStore;
+use storage::{ApiClientResource, ApiClientScope, ApiClientsRepository, Database};
 use streamer::{QueueName, StreamProducer, SupportWebhookPayload};
 
 use crate::devices::FiatQuotesClient;
 use crate::responders::ApiError;
+
+const AUTHORIZATION_HEADER: &str = "Authorization";
+const BEARER_PREFIX: &str = "Bearer ";
 
 pub struct WebhooksClient {
     stream_producer: StreamProducer,
@@ -45,22 +48,35 @@ impl<'r> FromParam<'r> for WebhookKindParam {
     }
 }
 
+pub struct WebhookSecret(String);
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for WebhookSecret {
+    type Error = String;
+
+    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, String> {
+        let Some(auth_value) = req.headers().get_one(AUTHORIZATION_HEADER) else {
+            return Error((Status::Unauthorized, "Missing Authorization header".to_string()));
+        };
+
+        match auth_value.strip_prefix(BEARER_PREFIX).filter(|secret| !secret.is_empty()) {
+            Some(secret) => Success(Self(secret.to_string())),
+            None => Error((Status::Unauthorized, "Invalid authorization format".to_string())),
+        }
+    }
+}
+
 fn authorize_webhook(database: &State<Database>, kind: WebhookKind, sender: &str, secret: &str) -> Result<(), ApiError> {
-    let enabled = database
-        .client()
-        .and_then(|mut c| WebhooksStore::get_webhook_endpoint(&mut c, kind, sender, secret).map_err(Into::into))
+    database
+        .api_clients()
+        .and_then(|mut client| Ok(client.get_enabled_api_client(secret, ApiClientScope::webhook(kind), ApiClientResource::WebhookSender(sender.to_string()))?))
         .map_err(|_| ApiError::InternalServerError("Failed to load webhook endpoint".to_string()))?
         .ok_or_else(|| ApiError::NotFound("Webhook endpoint not found".to_string()))?;
-
-    if !enabled {
-        return Err(ApiError::NotFound("Webhook endpoint not found".to_string()));
-    }
 
     Ok(())
 }
 
-#[post("/webhooks/<kind>/<sender>/<secret>", data = "<webhook_data>")]
-pub async fn create_webhook(
+async fn process_webhook(
     kind: WebhookKindParam,
     sender: &str,
     secret: &str,
@@ -85,4 +101,30 @@ pub async fn create_webhook(
         }
     }
     Ok(Status::Ok)
+}
+
+#[post("/webhooks/<kind>/<sender>/<secret>", data = "<webhook_data>")]
+pub async fn create_webhook(
+    kind: WebhookKindParam,
+    sender: &str,
+    secret: &str,
+    database: &State<Database>,
+    webhook_data: Json<serde_json::Value>,
+    fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
+    webhooks_client: &State<Mutex<WebhooksClient>>,
+) -> Result<Status, ApiError> {
+    process_webhook(kind, sender, secret, database, webhook_data, fiat_quotes_client, webhooks_client).await
+}
+
+#[post("/webhooks/<kind>/<sender>", data = "<webhook_data>")]
+pub async fn create_webhook_with_header(
+    kind: WebhookKindParam,
+    sender: &str,
+    secret: WebhookSecret,
+    database: &State<Database>,
+    webhook_data: Json<serde_json::Value>,
+    fiat_quotes_client: &State<Mutex<FiatQuotesClient>>,
+    webhooks_client: &State<Mutex<WebhooksClient>>,
+) -> Result<Status, ApiError> {
+    process_webhook(kind, sender, &secret.0, database, webhook_data, fiat_quotes_client, webhooks_client).await
 }

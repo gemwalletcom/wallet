@@ -13,6 +13,10 @@ impl SolanaAddress {
     pub fn parse(address: &str) -> Result<Self, SolanaError> {
         Pubkey::from_base58(address).map(Self)
     }
+
+    pub fn from_bytes(bytes: [u8; 32]) -> Self {
+        Self(Pubkey::new(bytes))
+    }
 }
 
 impl AddressTrait for SolanaAddress {

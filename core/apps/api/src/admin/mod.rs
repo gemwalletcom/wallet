@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod devices;
 pub mod fiat;
 pub mod nft;
 pub mod prices;
@@ -8,6 +9,7 @@ use rocket::Request;
 use rocket::http::Status;
 use rocket::outcome::Outcome::{Error, Success};
 use rocket::request::{FromRequest, Outcome};
+use storage::{ApiClientResource, ApiClientScope, ApiClientsRepository, Database};
 
 use crate::responders::cache_error;
 
@@ -25,6 +27,10 @@ pub struct AdminConfig {
 }
 
 pub struct AdminAuthorized;
+
+pub struct DeviceRead;
+pub struct DeviceSubscriptionsRead;
+pub struct DeviceTransactionsRead;
 
 #[rocket::async_trait]
 impl<'r> FromRequest<'r> for AdminAuthorized {
@@ -55,21 +61,83 @@ impl<'r> FromRequest<'r> for AdminAuthorized {
     }
 }
 
+fn api_client_secret<'r>(req: &'r Request<'_>) -> Result<&'r str, Outcome<(), String>> {
+    let Some(auth_value) = req.headers().get_one(AUTHORIZATION_HEADER) else {
+        return Err(error_outcome(req, Status::Unauthorized, "Missing Authorization header"));
+    };
+
+    auth_value
+        .strip_prefix(BEARER_PREFIX)
+        .filter(|secret| !secret.is_empty())
+        .ok_or_else(|| error_outcome(req, Status::Unauthorized, "Invalid authorization format"))
+}
+
+async fn authorize_api_client(req: &Request<'_>, scope: ApiClientScope) -> Outcome<(), String> {
+    let secret = match api_client_secret(req) {
+        Ok(secret) => secret,
+        Err(outcome) => return outcome,
+    };
+
+    let Success(database) = req.guard::<&rocket::State<Database>>().await else {
+        return error_outcome(req, Status::InternalServerError, "Database not available");
+    };
+
+    let client = match database
+        .api_clients()
+        .and_then(|mut client| Ok(client.get_enabled_api_client(secret, scope, ApiClientResource::Global)?))
+    {
+        Ok(client) => client,
+        Err(_) => return error_outcome(req, Status::InternalServerError, "Failed to load API client"),
+    };
+
+    if client.is_none() {
+        return error_outcome(req, Status::Unauthorized, "Invalid API client");
+    }
+
+    Success(())
+}
+
+macro_rules! api_client_guard {
+    ($guard:ident, $scope:expr) => {
+        #[rocket::async_trait]
+        impl<'r> FromRequest<'r> for $guard {
+            type Error = String;
+
+            async fn from_request(req: &'r Request<'_>) -> Outcome<Self, String> {
+                match authorize_api_client(req, $scope).await {
+                    Success(()) => Success($guard),
+                    Error(error) => Error(error),
+                    Outcome::Forward(status) => Outcome::Forward(status),
+                }
+            }
+        }
+    };
+}
+
+api_client_guard!(DeviceRead, ApiClientScope::DevicesRead);
+api_client_guard!(DeviceSubscriptionsRead, ApiClientScope::DevicesSubscriptionsRead);
+api_client_guard!(DeviceTransactionsRead, ApiClientScope::DevicesTransactionsRead);
+
 #[cfg(test)]
 mod tests {
     use rocket::http::{Header, Status};
     use rocket::local::asynchronous::Client;
     use rocket::{Build, Rocket, get, routes};
 
-    use super::{AdminAuthorized, AdminConfig};
+    use super::{AdminAuthorized, AdminConfig, DeviceRead};
 
     #[get("/protected")]
     async fn protected(_admin: AdminAuthorized) -> &'static str {
         "ok"
     }
 
+    #[get("/protected-client")]
+    async fn protected_client(_admin: DeviceRead) -> &'static str {
+        "ok"
+    }
+
     fn rocket(config: AdminConfig) -> Rocket<Build> {
-        rocket::build().manage(config).mount("/", routes![protected])
+        rocket::build().manage(config).mount("/", routes![protected, protected_client])
     }
 
     fn bearer_header(token: &str) -> Header<'static> {
@@ -101,5 +169,14 @@ mod tests {
         let response = client.get("/protected").dispatch().await;
 
         assert_eq!(response.status(), Status::InternalServerError);
+    }
+
+    #[rocket::async_test]
+    async fn test_api_client_missing_authorization_returns_unauthorized() {
+        let client = Client::tracked(rocket(AdminConfig { token: "secret".to_string() })).await.unwrap();
+
+        let response = client.get("/protected-client").dispatch().await;
+
+        assert_eq!(response.status(), Status::Unauthorized);
     }
 }

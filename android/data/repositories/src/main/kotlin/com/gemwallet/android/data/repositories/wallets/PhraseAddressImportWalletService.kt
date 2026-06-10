@@ -7,21 +7,19 @@ import com.gemwallet.android.blockchain.operators.InvalidWords
 import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
-import com.gemwallet.android.blockchain.operators.walletcore.WCChainTypeProxy
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.ImportWalletService
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.math.append0x
+import com.gemwallet.android.ext.words
 import com.gemwallet.android.math.hex
 import com.gemwallet.android.model.ImportType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
-import wallet.core.jni.PrivateKey
 
 class PhraseAddressImportWalletService(
     private val walletsRepository: WalletsRepository,
@@ -71,7 +69,7 @@ class PhraseAddressImportWalletService(
     }
 
     private suspend fun handlePhrase(importType: ImportType, walletName: String, rawData: String, source: WalletSource): Wallet {
-        val cleanedData = rawData.trim().split("\\s+".toRegex()).joinToString(" ") { it.trim() }
+        val cleanedData = rawData.words().joinToString(" ")
         val validateResult = phraseValidate(cleanedData)
         if (validateResult.isFailure || validateResult.getOrNull() != true) {
             val error = validateResult.exceptionOrNull() ?: InvalidPhrase
@@ -108,11 +106,7 @@ class PhraseAddressImportWalletService(
     private suspend fun handlePrivateKey(chain: Chain, walletName: String, data: String): Wallet {
         val key = try {
             val data = decodePrivateKey(chain, data.trim())
-
-            if (!PrivateKey.isValid(data, WCChainTypeProxy().invoke(chain).curve())) {
-                throw Exception()
-            }
-            data.hex.append0x()
+            data.hex
         } catch (_: Throwable) {
             throw ImportError.InvalidationPrivateKey
         }
@@ -131,7 +125,8 @@ class PhraseAddressImportWalletService(
 
     companion object {
         fun decodePrivateKey(chain: Chain, data: String): ByteArray {
-            return uniffi.gemstone.decodePrivateKey(chain = chain.string, data)
+            return uniffi.gemstone.decodePrivateKey(chain = chain.string, value = data)
         }
     }
+
 }

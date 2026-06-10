@@ -73,7 +73,7 @@ public struct WalletService: Sendable {
     }
 
     public func loadOrCreateWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
-        if let existing = try existingWallet(type: type) {
+        if let existing = try await existingWallet(type: type) {
             return .existing(existing)
         }
         let wallet = try await keystore.importWallet(
@@ -87,12 +87,10 @@ public struct WalletService: Sendable {
         return .new(wallet)
     }
 
-    private func existingWallet(type: KeystoreImportType) throws -> Wallet? {
-        let (chain, address) = try ImportIdentifier.from(type).deriveAddress()
+    private func existingWallet(type: KeystoreImportType) async throws -> Wallet? {
+        let preview = try await keystore.previewImport(type: type)
         return wallets.first { wallet in
-            wallet.type == type.walletType && wallet.accounts.contains {
-                $0.chain == chain && $0.address == address
-            }
+            wallet.id == preview.walletId && wallet.type == preview.walletType
         }
     }
 
@@ -126,6 +124,17 @@ public struct WalletService: Sendable {
         }
         if setupWallets.isNotEmpty {
             preferences.invalidateSubscriptions()
+        }
+    }
+
+    public func migrateV3Keystores() async throws {
+        let wallets = try walletStore.getWallets()
+        for wallet in wallets {
+            do {
+                _ = try await keystore.migrateV3Keystore(for: wallet)
+            } catch {
+                debugLog("v3 keystore migration failed for \(wallet.id.id): \(error)")
+            }
         }
     }
 

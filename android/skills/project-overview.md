@@ -50,7 +50,6 @@ android/
 - Retrofit
 - WalletConnect / Reown
 - Rust core via JNI
-- Wallet Core
 - Gemstone
 - Coil
 - Ktor

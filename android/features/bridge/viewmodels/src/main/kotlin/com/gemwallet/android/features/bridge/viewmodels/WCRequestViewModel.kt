@@ -3,7 +3,7 @@ package com.gemwallet.android.features.bridge.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
+import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
@@ -11,7 +11,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
-import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import com.wallet.core.primitives.Account
@@ -33,8 +33,6 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectAction
-import uniffi.gemstone.WalletConnectionVerificationStatus
-import java.util.Arrays
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,9 +40,10 @@ class WCRequestViewModel @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val bridgeRepository: BridgesRepository,
     private val passwordStore: PasswordStore,
-    private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
+    private val signMessageOperator: GemSignMessageOperator,
     private val simulationService: com.gemwallet.android.blockchain.services.WalletConnectSimulationService,
     private val getCurrentBlockExplorer: GetCurrentBlockExplorer,
+    private val originVerifier: WalletConnectOriginVerifier,
 ) : ViewModel() {
 
     private val walletConnect = WalletConnect()
@@ -68,7 +67,9 @@ class WCRequestViewModel @Inject constructor(
                 }
 
                 val appMetadata = connection.session.metadata
-                validateSession(appMetadata.url, verifyContext)
+                if (originVerifier.verify(appMetadata.url, verifyContext).isScam) {
+                    throw BridgeRequestError.MaliciousSession
+                }
                 val chainId = sessionRequest.chainId ?: throw BridgeRequestError.UnresolvedChainId
                 val sessionDomain = appMetadata.url
                 val action = walletConnect.parseRequest(
@@ -209,37 +210,13 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(responseState = RequestResponseState.Responding) }
         viewModelScope.launch(Dispatchers.IO) {
             val password = passwordStore.getPassword(wallet.id.id)
-            val privateKey = loadPrivateKeyOperator(wallet, chain, password)
             val sign = try {
-                request.execute(privateKey)
+                request.execute(signMessageOperator, wallet, password)
             } catch (err: Throwable) {
                 state.update { it.copy(responseState = RequestResponseState.Idle, error = err.message ?: "Sign failed") }
                 return@launch
-            } finally {
-                Arrays.fill(privateKey, 0)
             }
             response(request.sessionRequest.topic, request.sessionRequest.request.id, sign)
-        }
-    }
-
-    private fun validateSession(
-        metadataUrl: String,
-        verifyContext: Wallet.Model.VerifyContext
-    ) {
-        val validation = walletConnect.validateOrigin(
-            metadataUrl,
-            verifyContext.origin,
-            verifyContext.map()
-        )
-        when (validation) {
-            WalletConnectionVerificationStatus.UNKNOWN,
-            WalletConnectionVerificationStatus.VERIFIED -> {
-                return
-            }
-            WalletConnectionVerificationStatus.INVALID,
-            WalletConnectionVerificationStatus.MALICIOUS -> {
-                throw BridgeRequestError.ScamSession
-            }
         }
     }
 
@@ -283,7 +260,7 @@ class WCRequestViewModel @Inject constructor(
         error: BridgeRequestError,
         onNotify: (BridgeRequestError) -> Unit
     ) {
-        if (error is BridgeRequestError.ScamSession) {
+        if (error is BridgeRequestError.MaliciousSession) {
             onNotify(error)
         }
         rejectRequest(sessionRequest)

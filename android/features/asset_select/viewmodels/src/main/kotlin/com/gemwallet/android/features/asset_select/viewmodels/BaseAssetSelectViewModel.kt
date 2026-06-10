@@ -130,7 +130,7 @@ open class BaseAssetSelectViewModel(
             if (query.isNotEmpty() || !showRecents) {
                 flow { emit(emptyList()) }
             } else {
-                getRecentAssets(RecentAssetsRequest(filters = assetFilters()))
+                getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
             }
         }
     .map { items -> items.map { it.asset }.toImmutableList() }
@@ -218,6 +218,8 @@ open class BaseAssetSelectViewModel(
     }
 
     open val showRecents: Boolean get() = true
+
+    open val recentTypes: List<RecentType> get() = RecentType.entries
 
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 

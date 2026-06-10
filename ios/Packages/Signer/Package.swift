@@ -40,13 +40,5 @@ let package = Package(
             ],
             path: "TestKit",
         ),
-        .testTarget(
-            name: "SignerTests",
-            dependencies: [
-                "Signer",
-                .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "KeystoreTestKit", package: "Keystore"),
-            ],
-        ),
     ],
 )

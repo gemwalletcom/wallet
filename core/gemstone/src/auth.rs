@@ -34,9 +34,7 @@ pub fn create_auth_message(address: &str, auth_nonce: GemAuthNonce) -> GemAuthMe
     }
 }
 
-#[uniffi::export]
-pub fn sign_auth_message_hash(hash: Vec<u8>, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-    let private_key = Zeroizing::new(private_key);
+pub fn sign_auth_message_hash(hash: Vec<u8>, private_key: Zeroizing<Vec<u8>>) -> Result<String, GemstoneError> {
     if hash.len() != AUTH_SIGNING_BYTES_LENGTH || private_key.len() != AUTH_SIGNING_BYTES_LENGTH {
         return Err(GemstoneError::from("Invalid auth message signing input"));
     }
@@ -66,15 +64,15 @@ mod tests {
         };
         let message = create_auth_message(&address, auth_nonce);
 
-        let signature = sign_auth_message_hash(message.hash, TEST_PRIVATE_KEY.to_vec()).unwrap();
+        let signature = sign_auth_message_hash(message.hash, Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap();
 
         assert!(verify_auth_signature(&auth_message, &signature));
     }
 
     #[test]
     fn test_sign_auth_message_hash_rejects_invalid_input_length() {
-        assert!(sign_auth_message_hash(vec![0; 31], TEST_PRIVATE_KEY.to_vec()).is_err());
-        assert!(sign_auth_message_hash(vec![0; 32], vec![0; 31]).is_err());
+        assert!(sign_auth_message_hash(vec![0; 31], Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).is_err());
+        assert!(sign_auth_message_hash(vec![0; 32], Zeroizing::new(vec![0; 31])).is_err());
     }
 
     fn address_from_private_key(private_key: &[u8]) -> String {

@@ -7,6 +7,7 @@ import com.gemwallet.android.data.repositories.bridge.BridgesRepository
 import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
+import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.services.SyncService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,7 @@ class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val bridgesRepository: BridgesRepository,
     private val syncService: SyncService,
+    private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
@@ -69,7 +71,10 @@ class MainViewModel @Inject constructor(
 
     internal fun maintain() {
         viewModelScope.launch(Dispatchers.IO) { syncService.sync() }
-        viewModelScope.launch(Dispatchers.IO) { checkAccountsService() }
+        viewModelScope.launch(Dispatchers.IO) {
+            migrateV3KeystoreService()
+            checkAccountsService()
+        }
     }
 
     fun requestAuth(requestId: Long) {

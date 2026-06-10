@@ -17,6 +17,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAsset
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -75,6 +76,8 @@ class SwapSelectViewModel @Inject constructor(
     }
 
     override fun assetFilters() = setOf(AssetFilter.Swappable)
+
+    override val recentTypes: List<RecentType> get() = listOf(RecentType.SwapSelect, RecentType.Swap)
 }
 
 private fun SavedStateHandle.requireSwapItemType(): SwapItemType =

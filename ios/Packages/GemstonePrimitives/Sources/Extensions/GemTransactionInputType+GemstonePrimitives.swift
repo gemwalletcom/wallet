@@ -18,6 +18,7 @@ public extension GemTransactionInputType {
         case let .account(asset, _): asset
         case .perpetual(asset: let asset, perpetualType: _): asset
         case .earn(asset: let asset, earnType: _, data: _): asset
+        case let .withdrawal(asset): asset
         }
     }
 }
@@ -45,6 +46,8 @@ public extension GemTransactionInputType {
             try TransferDataType.perpetual(asset.map(), perpetualType.map())
         case let .earn(asset, earnType, data):
             try TransferDataType.earn(asset.map(), earnType.map(), data.map())
+        case let .withdrawal(asset):
+            try TransferDataType.withdrawal(asset.map())
         }
     }
 }
@@ -68,7 +71,7 @@ public extension TransferDataType {
             return .generic(asset: asset.map(), metadata: metadata.map(), extra: extra.map())
         case let .withdrawal(asset):
             if asset.chain == .hyperCore {
-                return .transfer(asset: asset.map())
+                return .withdrawal(asset: asset.map())
             }
             throw AnyError("Unsupported transaction type: \(self)")
         case let .account(asset, accountData):

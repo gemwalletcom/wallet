@@ -1,9 +1,7 @@
 package com.gemwallet.android.data.services.gemapi.http
 
-import com.gemwallet.android.data.services.gemapi.DeviceKeyPairFixture
 import com.gemwallet.android.testkit.mockMulticoinWalletId
 import com.wallet.core.primitives.WalletId
-import java.util.Base64
 import java.util.concurrent.TimeUnit
 import okhttp3.Call
 import okhttp3.Connection
@@ -21,16 +19,15 @@ class SecurityInterceptorTest {
 
     @Test
     fun interceptSignsWalletIdFromRequestTagAndBody() {
-        var hashedBody: ByteArray? = null
-        val signer = DeviceRequestSigner(
-            getDeviceId = mockGetDeviceId(),
-            bodyHash = { body ->
-                hashedBody = body
-                "bodyhash"
-            },
-            signMessage = { _, _ -> "signaturehex" },
-            currentTimeMillis = { 123L },
-        )
+        var signedWalletId: String? = null
+        var signedBody: ByteArray? = null
+        val signer = object : DeviceRequestSigner {
+            override fun sign(method: String, path: String, body: ByteArray?, walletId: String): DeviceSignature {
+                signedWalletId = walletId
+                signedBody = body
+                return DeviceSignature("Gem signed")
+            }
+        }
         val walletId = mockMulticoinWalletId()
         val body = """{"device":"android"}"""
         val request = Request.Builder()
@@ -42,12 +39,11 @@ class SecurityInterceptorTest {
         val chain = FakeChain(request)
         SecurityInterceptor(signer).intercept(chain)
         val signedRequest = chain.proceededRequest!!
-        val authorization = signedRequest.header("Authorization")!!
-        val payload = String(Base64.getDecoder().decode(authorization.removePrefix("Gem ")))
 
-        assertEquals("${DeviceKeyPairFixture.publicKeyHex}.123.${walletId.id}.bodyhash.signaturehex", payload)
+        assertEquals("Gem signed", signedRequest.header("Authorization"))
+        assertEquals(walletId.id, signedWalletId)
+        assertEquals(body, signedBody!!.toString(Charsets.UTF_8))
         assertNull(signedRequest.header("x-wallet-id"))
-        assertEquals(body, hashedBody!!.toString(Charsets.UTF_8))
     }
 }
 

@@ -18,6 +18,12 @@ impl SuiAddress {
             .map(Self)
             .map_err(|err| SuiError::invalid_input(format!("Invalid Sui address {address}: {err}")))
     }
+
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, SuiError> {
+        Address::from_bytes(bytes)
+            .map(Self)
+            .map_err(|err| SuiError::invalid_input(format!("Invalid Sui address bytes: {err}")))
+    }
 }
 
 impl AddressTrait for SuiAddress {

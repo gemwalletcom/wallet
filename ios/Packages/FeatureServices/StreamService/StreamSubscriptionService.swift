@@ -23,10 +23,15 @@ public actor StreamSubscriptionService: Sendable {
 
     public func setupAssets(walletId: WalletId) async throws {
         currentWalletId = walletId
+        guard await webSocket.state == .connected else { return }
+
         let assets = try priceService.observableAssets(walletId: walletId)
+        let assetIds = Set(assets)
+        guard subscribedAssetIds != assetIds else { return }
+
         let message = StreamMessage.subscribePrices(StreamMessagePrices(assets: assets))
         try await sendMessage(message)
-        subscribedAssetIds = Set(assets)
+        subscribedAssetIds = assetIds
     }
 
     public func resubscribe() async {
@@ -36,6 +41,10 @@ public actor StreamSubscriptionService: Sendable {
         } catch {
             debugLog("stream subscription: resubscribe failed: \(error)")
         }
+    }
+
+    func resetSubscriptions() {
+        subscribedAssetIds.removeAll()
     }
 
     private func sendMessage(_ message: StreamMessage) async throws {

@@ -3,8 +3,6 @@ package com.gemwallet.android.di
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
 import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
-import com.gemwallet.android.blockchain.services.SignClientProxy
-import com.gemwallet.android.blockchain.services.SignService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.cases.device.SyncDeviceInfo
 import com.gemwallet.android.services.SyncService
@@ -36,10 +34,6 @@ object DataModule {
             gateway = gateway,
         )
     }
-
-    @Provides
-    @Singleton
-    fun provideSignService(): SignClientProxy = SignClientProxy(SignService())
 
     @Singleton
     @Provides

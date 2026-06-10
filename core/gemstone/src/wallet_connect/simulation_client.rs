@@ -7,7 +7,7 @@ use primitives::{Chain, EVMChain, SimulationResult};
 
 use crate::{
     GemstoneError,
-    alien::{AlienClient, AlienProvider, new_alien_client},
+    alien::{AlienClient, AlienProvider, coalescing_provider, new_alien_client},
     message::sign_type::SignDigestType,
     network::JsonRpcClient,
 };
@@ -23,7 +23,9 @@ pub struct WalletConnectSimulationClient {
 impl WalletConnectSimulationClient {
     #[uniffi::constructor]
     pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
-        Self { provider }
+        Self {
+            provider: coalescing_provider(provider),
+        }
     }
 
     pub async fn simulate_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String, session_domain: String) -> Result<SimulationResult, GemstoneError> {

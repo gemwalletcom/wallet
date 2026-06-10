@@ -1,0 +1,28 @@
+{
+  "activeAccounts": [
+    {
+      "address": "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3",
+      "coin": 60,
+      "derivationPath": "m/44'/60'/0'/0/0",
+      "publicKey": "043b3b6f8bb4a1ea77bc9fc10b7390e52b602bb8b8fc1e231fbdd6eb132793cdac62e7eaeef5a232a19df1f10cb84ca48f1c6c6b307f397929eb1786c4764f8d9a"
+    }
+  ],
+  "crypto": {
+    "cipher": "aes-128-ctr",
+    "cipherparams": { "iv": "7a2e8f96c8c6447de1e03c1814d6554a" },
+    "ciphertext": "49eb851dc8c85c4e9b68c932f2d871e36f993a37710cae6f1900f107d1419aa0",
+    "kdf": "scrypt",
+    "kdfparams": {
+      "dklen": 32,
+      "n": 16384,
+      "p": 4,
+      "r": 8,
+      "salt": "c0c8784a1b1f21f603795c02c9d097aac09f0b4fc91668bac0999b5b325f744e"
+    },
+    "mac": "8b790015fe4d715ba02ad7273e933a31f1198fe9e6471319897af752ba7ca04f"
+  },
+  "id": "d6604f82-9e31-47b3-81db-bab91ab9d72d",
+  "name": "Fixture Private Key",
+  "type": "private-key",
+  "version": 3
+}

@@ -4,7 +4,6 @@ import Foundation
 import Primitives
 import Style
 import SwiftUI
-import WalletCore
 
 struct WordSuggestionView: View {
     let words: [String]

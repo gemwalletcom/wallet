@@ -16,6 +16,7 @@ import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHo
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.swap.viewmodels.SwapSelectViewModel
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.model.RecentType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import kotlinx.collections.immutable.toImmutableList
@@ -66,9 +67,9 @@ fun SwapSelectScreen(
         onChainFilter = viewModel::onChainFilter,
         onBalanceFilter = viewModel::onBalanceFilter,
         onClearFilters = viewModel::onClearFilters,
-        onSelect = onSelectAsset,
+        onSelect = { viewModel.updateRecent(it, RecentType.SwapSelect); onSelectAsset(it) },
         onSelectRecent = onSelectAsset,
-        onOpenRecentsSheet = { recentsViewModel.show(filters = viewModel.assetFilters()) },
+        onOpenRecentsSheet = { recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes) },
         onCancel = onCancel,
         onAddAsset = null,
         itemTrailing = { getBalanceInfo(it)() },

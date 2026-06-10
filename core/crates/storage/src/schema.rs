@@ -6,6 +6,10 @@ pub mod sql_types {
     pub struct AddressType;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "api_client_scope"))]
+    pub struct ApiClientScope;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "asset_type"))]
     pub struct AssetType;
 
@@ -76,10 +80,33 @@ pub mod sql_types {
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "wallet_type"))]
     pub struct WalletType;
+}
 
-    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "webhook_kind"))]
-    pub struct WebhookKind;
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::ApiClientScope;
+
+    api_client_scopes (client_id, scope, resource) {
+        client_id -> Int4,
+        scope -> ApiClientScope,
+        #[max_length = 128]
+        resource -> Varchar,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    api_clients (id) {
+        id -> Int4,
+        #[max_length = 128]
+        name -> Varchar,
+        #[max_length = 64]
+        secret -> Varchar,
+        enabled -> Bool,
+        updated_at -> Timestamp,
+        created_at -> Timestamp,
+    }
 }
 
 diesel::table! {
@@ -896,22 +923,7 @@ diesel::table! {
     }
 }
 
-diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::WebhookKind;
-
-    webhook_endpoints (kind, sender) {
-        kind -> WebhookKind,
-        #[max_length = 128]
-        sender -> Varchar,
-        #[max_length = 64]
-        secret -> Varchar,
-        enabled -> Bool,
-        updated_at -> Timestamp,
-        created_at -> Timestamp,
-    }
-}
-
+diesel::joinable!(api_client_scopes -> api_clients (client_id));
 diesel::joinable!(assets -> chains (chain));
 diesel::joinable!(assets_addresses -> assets (asset_id));
 diesel::joinable!(assets_addresses -> chains (chain));
@@ -982,6 +994,8 @@ diesel::joinable!(wallets_subscriptions -> wallets (wallet_id));
 diesel::joinable!(wallets_subscriptions -> wallets_addresses (address_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    api_client_scopes,
+    api_clients,
     assets,
     assets_addresses,
     assets_links,
@@ -1029,5 +1043,4 @@ diesel::allow_tables_to_appear_in_same_query!(
     wallets,
     wallets_addresses,
     wallets_subscriptions,
-    webhook_endpoints,
 );

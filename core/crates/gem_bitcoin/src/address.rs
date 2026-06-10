@@ -1,7 +1,10 @@
-use bitcoin::ScriptBuf;
-use primitives::{Address as AddressTrait, BitcoinChain, Chain};
+use bech32::{Hrp, segwit};
+use bitcoin::{Address as BitcoinNativeAddress, CompressedPublicKey, Network, ScriptBuf};
+use primitives::{Address as AddressTrait, BitcoinChain, Chain, SignerError};
 
-use crate::signer::address::script_for_address;
+use crate::hash::hash160;
+use crate::models::address::Address as ModelAddress;
+use crate::signer::address::{DOGE_P2PKH_PREFIX, LITECOIN_HRP, ZCASH_TRANSPARENT_P2PKH_PREFIX, script_for_address};
 
 #[derive(Debug, Clone)]
 pub struct BitcoinAddress {
@@ -26,6 +29,19 @@ impl BitcoinAddress {
 
     pub fn bitcoin_chain(&self) -> BitcoinChain {
         self.chain
+    }
+
+    pub fn from_public_key(chain: BitcoinChain, public_key: &[u8]) -> Result<Self, SignerError> {
+        let public_key = CompressedPublicKey::from_slice(public_key).map_err(|_| SignerError::invalid_input("invalid Bitcoin public key"))?;
+        let public_key_hash = hash160(&public_key.to_bytes());
+        let address = match chain {
+            BitcoinChain::Bitcoin => BitcoinNativeAddress::p2wpkh(&public_key, Network::Bitcoin).to_string(),
+            BitcoinChain::BitcoinCash => bitcoin_cash_address(public_key_hash)?,
+            BitcoinChain::Litecoin => segwit_address(LITECOIN_HRP, &public_key_hash)?,
+            BitcoinChain::Doge => prefixed_base58_address(&DOGE_P2PKH_PREFIX, &public_key_hash),
+            BitcoinChain::Zcash => prefixed_base58_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, &public_key_hash),
+        };
+        Self::try_parse_for_chain(&address, chain).ok_or_else(|| SignerError::invalid_input("invalid derived Bitcoin address"))
     }
 }
 
@@ -53,6 +69,30 @@ impl AddressTrait for BitcoinAddress {
 
 pub fn validate_address(address: &str, chain: Chain) -> bool {
     BitcoinAddress::is_valid_for_chain(address, chain)
+}
+
+fn bitcoin_cash_address(public_key_hash: [u8; 20]) -> Result<String, SignerError> {
+    let address = bitcoincash_addr::Address::new(
+        public_key_hash.to_vec(),
+        bitcoincash_addr::Scheme::CashAddr,
+        bitcoincash_addr::HashType::Key,
+        bitcoincash_addr::Network::Main,
+    )
+    .encode()
+    .map_err(SignerError::from_display)?;
+    Ok(ModelAddress::new(address, Chain::BitcoinCash).short().to_string())
+}
+
+fn segwit_address(hrp: &str, public_key_hash: &[u8; 20]) -> Result<String, SignerError> {
+    let hrp = Hrp::parse(hrp).map_err(SignerError::from_display)?;
+    segwit::encode_v0(hrp, public_key_hash).map_err(SignerError::from_display)
+}
+
+fn prefixed_base58_address(prefix: &[u8], public_key_hash: &[u8; 20]) -> String {
+    let mut payload = Vec::with_capacity(prefix.len() + public_key_hash.len());
+    payload.extend_from_slice(prefix);
+    payload.extend_from_slice(public_key_hash);
+    bs58::encode(payload).with_check().into_string()
 }
 
 #[cfg(test)]

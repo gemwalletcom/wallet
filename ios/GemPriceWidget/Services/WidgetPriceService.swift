@@ -2,8 +2,8 @@
 
 import Foundation
 import GemAPI
-import Preferences
 import Primitives
+import SharedPreferences
 import Style
 import SwiftUI
 import WidgetKit

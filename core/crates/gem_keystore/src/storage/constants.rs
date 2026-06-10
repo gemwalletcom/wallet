@@ -1,0 +1,15 @@
+pub(super) const VERSION_V4: u8 = 4;
+pub(super) const FILE_EXTENSION: &str = "json";
+pub(super) const ENCRYPTED_BODY_CAP: usize = 64 * 1024;
+pub(super) const WHOLE_FILE_CAP: usize = 128 * 1024;
+pub(super) const PASSWORD_CAP: usize = 1024 * 1024;
+pub(super) const ARGON2_SALT_LEN: usize = 16;
+pub(super) const AES_GCM_NONCE_LEN: usize = 12;
+pub(super) const AES_GCM_TAG_LEN: u8 = 16;
+pub(super) const DEFAULT_ARGON2_MEMORY_KIB: u32 = 19_456;
+pub(super) const DEFAULT_ARGON2_ITERATIONS: u32 = 2;
+pub(super) const DEFAULT_ARGON2_PARALLELISM: u32 = 1;
+pub(super) const DEFAULT_ARGON2_OUTPUT_LEN: u32 = 32;
+pub(super) const MAX_ARGON2_MEMORY_KIB: u32 = 262_144;
+pub(super) const MAX_ARGON2_ITERATIONS: u32 = 10;
+pub(super) const MAX_ARGON2_PARALLELISM: u32 = 4;

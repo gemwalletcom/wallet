@@ -177,8 +177,7 @@ extension ChainSettingsSceneViewModel {
         guard let url = URL(string: node.node.url) else {
             return .error(error: URLError(.badURL))
         }
-        let nodeProvider = CustomNodeURLFetchable(url: url, requestInterceptor: chainServiceFactory.requestInterceptor)
-        let service = ChainServiceFactory(nodeProvider: nodeProvider).service(for: chain)
+        let service = chainServiceFactory.service(for: chain, url: url)
 
         do {
             let nodeStatus = try await service.getNodeStatus(url: node.node.url)

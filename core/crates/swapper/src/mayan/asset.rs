@@ -1,4 +1,4 @@
-use crate::SwapperChainAsset;
+use crate::{SwapperChainAsset, SwapperError};
 use gem_evm::{EVM_ZERO_ADDRESS, ethereum_address_checksum};
 use gem_solana::WSOL_TOKEN_ADDRESS;
 use gem_sui::SUI_COIN_TYPE;
@@ -68,12 +68,13 @@ pub fn supported_assets() -> Vec<SwapperChainAsset> {
     ]
 }
 
-pub fn token_id_for_asset(asset_id: &AssetId) -> String {
+pub fn token_id_for_asset(asset_id: &AssetId) -> Result<String, SwapperError> {
     match (asset_id.chain, asset_id.token_id.as_deref()) {
-        (Chain::Sui, None) => SUI_COIN_TYPE.to_string(),
-        (Chain::HyperCore, Some(HYPERCORE_SPOT_USDC_TOKEN_ID)) => HYPERCORE_SPOT_USDC_CONTRACT.to_string(),
-        (_, None) => EVM_ZERO_ADDRESS.to_string(),
-        (_, Some(token_id)) => token_id.to_string(),
+        (Chain::Sui, None) => Ok(SUI_COIN_TYPE.to_string()),
+        (Chain::HyperCore, Some(HYPERCORE_SPOT_USDC_TOKEN_ID)) => Ok(HYPERCORE_SPOT_USDC_CONTRACT.to_string()),
+        (Chain::HyperCore, _) => Err(SwapperError::NotSupportedAsset),
+        (_, None) => Ok(EVM_ZERO_ADDRESS.to_string()),
+        (_, Some(token_id)) => Ok(token_id.to_string()),
     }
 }
 
@@ -108,7 +109,7 @@ pub fn asset_id_for_token(chain: Chain, token_address: &str) -> Option<AssetId> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::asset_constants::ETHEREUM_USDC_ASSET_ID;
+    use primitives::asset_constants::{ETHEREUM_USDC_ASSET_ID, HYPERCORE_SPOT_HYPE_ASSET_ID};
 
     #[test]
     fn test_asset_id_for_token() {
@@ -128,10 +129,12 @@ mod tests {
 
     #[test]
     fn test_token_id_for_asset() {
-        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::Ethereum)), EVM_ZERO_ADDRESS);
-        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::Solana)), EVM_ZERO_ADDRESS);
-        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::Sui)), SUI_COIN_TYPE);
-        assert_eq!(token_id_for_asset(&HYPERCORE_SPOT_USDC_ASSET_ID), HYPERCORE_SPOT_USDC_CONTRACT);
-        assert_eq!(token_id_for_asset(&ETHEREUM_USDC_ASSET_ID), ETHEREUM_USDC_ASSET_ID.token_id.clone().unwrap());
+        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::Ethereum)).unwrap(), EVM_ZERO_ADDRESS);
+        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::Solana)).unwrap(), EVM_ZERO_ADDRESS);
+        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::Sui)).unwrap(), SUI_COIN_TYPE);
+        assert_eq!(token_id_for_asset(&HYPERCORE_SPOT_USDC_ASSET_ID).unwrap(), HYPERCORE_SPOT_USDC_CONTRACT);
+        assert_eq!(token_id_for_asset(&ETHEREUM_USDC_ASSET_ID).unwrap(), ETHEREUM_USDC_ASSET_ID.token_id.clone().unwrap());
+        assert_eq!(token_id_for_asset(&AssetId::from_chain(Chain::HyperCore)).unwrap_err(), SwapperError::NotSupportedAsset);
+        assert_eq!(token_id_for_asset(&HYPERCORE_SPOT_HYPE_ASSET_ID).unwrap_err(), SwapperError::NotSupportedAsset);
     }
 }

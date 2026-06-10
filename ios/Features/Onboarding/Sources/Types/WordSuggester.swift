@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import WalletCore
+import Keystore
 
 struct WordSuggester {
     func wordSuggestionCalculate(value: String) -> [String] {
@@ -26,8 +26,6 @@ struct WordSuggester {
     }
 
     private func suggest(word: String) -> [String] {
-        WalletCore.Mnemonic.suggest(prefix: word)
-            .split(separator: " ")
-            .map { String($0) }
+        Mnemonic.suggestWords(prefix: word, limit: 20)
     }
 }

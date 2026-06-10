@@ -119,6 +119,7 @@ impl NewTransactionRow {
         };
         let from_address = if transaction.from.is_empty() { None } else { Some(transaction.from) };
         let to_address = if transaction.to.is_empty() { None } else { Some(transaction.to) };
+        let memo = transaction.memo.map(|memo| memo.replace('\0', "")).filter(|memo| !memo.is_empty());
         let value = if transaction.value.is_empty() || transaction.value == "0" {
             None
         } else {
@@ -128,7 +129,7 @@ impl NewTransactionRow {
         Self {
             chain: transaction.asset_id.chain.into(),
             hash: transaction.hash,
-            memo: transaction.memo,
+            memo,
             asset_id: transaction.asset_id.into(),
             value,
             fee: transaction.fee.into(),
@@ -142,5 +143,26 @@ impl NewTransactionRow {
             metadata,
             created_at: transaction.created_at.naive_utc(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::NewTransactionRow;
+    use primitives::Transaction;
+
+    #[test]
+    fn test_from_primitive_strips_nul_from_memo() {
+        let stripped = NewTransactionRow::from_primitive(Transaction {
+            memo: Some("a\0b".to_string()),
+            ..Transaction::mock()
+        });
+        assert_eq!(stripped.memo.as_deref(), Some("ab"));
+
+        let only_nul = NewTransactionRow::from_primitive(Transaction {
+            memo: Some("\0".to_string()),
+            ..Transaction::mock()
+        });
+        assert_eq!(only_nul.memo, None);
     }
 }

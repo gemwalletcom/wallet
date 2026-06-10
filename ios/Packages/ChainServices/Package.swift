@@ -158,6 +158,7 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Blockchain",
+                "NativeProviderService",
             ],
             path: "ChainService",
             exclude: ["TestKit"],

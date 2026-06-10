@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-@testable import Preferences
 import PreferencesTestKit
 import Primitives
+@testable import SharedPreferences
 import Testing
 
 struct SharedPreferencesTests {
@@ -16,6 +16,6 @@ struct SharedPreferencesTests {
 
         sharedPrefs.currency = Currency.jpy.rawValue
         #expect(sharedPrefs.currency == Currency.jpy.rawValue)
-        #expect(mockDefaults.string(forKey: Preferences.Keys.currency) == Currency.jpy.rawValue)
+        #expect(mockDefaults.string(forKey: "currency") == Currency.jpy.rawValue)
     }
 }

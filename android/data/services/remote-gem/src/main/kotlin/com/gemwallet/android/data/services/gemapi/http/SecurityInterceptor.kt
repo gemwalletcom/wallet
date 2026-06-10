@@ -11,7 +11,7 @@ class SecurityInterceptor internal constructor(
     private val signer: DeviceRequestSigner,
 ) : Interceptor {
 
-    constructor(getDeviceId: GetDeviceId) : this(DeviceRequestSigner(getDeviceId))
+    constructor(getDeviceId: GetDeviceId) : this(GemDeviceRequestSigner(getDeviceId))
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()

@@ -24,6 +24,10 @@ public struct WheelPickerSheet<T: WheelPickerDisplayable>: View {
                         type: .close,
                         placement: .topBarLeading,
                     )
+                    ToolbarDismissItem(
+                        type: .confirm,
+                        placement: .topBarTrailing,
+                    )
                 }
         }
         .presentationDetents([.height(300)])

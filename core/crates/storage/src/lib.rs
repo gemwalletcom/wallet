@@ -28,8 +28,12 @@ pub use self::database::{
     transactions::{TransactionFilter, TransactionUpdate},
 };
 pub use self::error::{DatabaseError, DieselResultExt, ReferralValidationError, UsernameValidationError};
-pub use self::models::{AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewSupportSessionRow, NewWalletRow, RewardRedemptionOptionRow};
+pub use self::models::{
+    ApiClientGrant, ApiClientResource, ApiClientRow, ApiClientScope, AssetUsageRankRow, FiatAssetRowsExt, NewNotificationRow, NewSupportSessionRow, NewWalletRow,
+    RewardRedemptionOptionRow,
+};
 pub use self::repositories::{
+    api_clients_repository::ApiClientsRepository,
     assets_addresses_repository::AssetsAddressesRepository,
     assets_links_repository::AssetsLinksRepository,
     assets_repository::AssetsRepository,
@@ -56,7 +60,6 @@ pub use self::repositories::{
     tag_repository::TagRepository,
     transactions_repository::TransactionsRepository,
     wallets_repository::WalletsRepository,
-    webhooks_repository::WebhooksRepository,
 };
 pub use self::sql_types::{NotificationType, TransactionState, TransactionType, WalletSource, WalletType};
 pub use diesel::OptionalExtension;
@@ -76,6 +79,10 @@ impl Database {
 
 impl Database {
     pub fn assets(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
+        self.client()
+    }
+
+    pub fn api_clients(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
         self.client()
     }
 
@@ -168,10 +175,6 @@ impl Database {
     }
 
     pub fn wallets(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
-        self.client()
-    }
-
-    pub fn webhooks(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {
         self.client()
     }
 }

@@ -39,7 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.blockchain.operators.walletcore.WCFindPhraseWord
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import com.gemwallet.android.cases.wallet.ImportError
 import com.gemwallet.android.cases.wallet.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
@@ -249,7 +249,7 @@ private fun DataInput(
             if (word.isNullOrEmpty()) {
                 return@ImportInput
             }
-            val result = WCFindPhraseWord().invoke(word)
+            val result = GemFindPhraseWord().invoke(word)
             suggestions.addAll(result)
         }
     ) {

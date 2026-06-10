@@ -14,26 +14,15 @@ public actor NativeProvider {
     private let cache: MemoryCache
     private let requestInterceptor: any RequestInterceptable
 
-    private init(
-        session: URLSession,
+    public init(
+        session: URLSession = .shared,
         nodeProvider: any NodeURLFetchable,
-        requestInterceptor: any RequestInterceptable,
+        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
     ) {
         self.session = session
         self.nodeProvider = nodeProvider
         self.cache = MemoryCache()
         self.requestInterceptor = requestInterceptor
-    }
-
-    public init(
-        session: URLSession = .shared,
-        nodeProvider: any NodeURLFetchable,
-    ) {
-        self.init(
-            session: session,
-            nodeProvider: nodeProvider,
-            requestInterceptor: nodeProvider.requestInterceptor,
-        )
     }
 
     public init(session: URLSession = .shared, url: URL, requestInterceptor: any RequestInterceptable) {
