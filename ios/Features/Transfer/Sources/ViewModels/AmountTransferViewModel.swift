@@ -2,6 +2,7 @@
 
 import BigInt
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 
@@ -46,8 +47,8 @@ public final class AmountTransferViewModel: AmountDataProvidable {
     var minimumValue: BigInt {
         switch action {
         case .send: .zero
-        case .deposit: asset.symbol == "USDC" ? AmountPerpetualLimits.minDeposit : .zero
-        case .withdraw: asset.symbol == "USDC" ? AmountPerpetualLimits.minWithdraw : .zero
+        case .deposit: asset.symbol == "USDC" ? PerpetualConfig.minDeposit : .zero
+        case .withdraw: asset.symbol == "USDC" ? PerpetualConfig.minWithdraw : .zero
         }
     }
 
