@@ -2,7 +2,7 @@
 
 ## Overview
 
-All `/v2/devices/*` endpoints require Ed25519 request signing with a single Gem `Authorization` header. Legacy individual `x-device-*` and `x-wallet-id` headers are no longer accepted.
+All `/v2/devices/*` endpoints require Ed25519 request signing with a single Gem `Authorization` header.
 
 ```
 Authorization: Gem base64(<device_id_hex>.<timestamp_ms>.<wallet_id>.<body_hash_hex>.<signature_hex>)

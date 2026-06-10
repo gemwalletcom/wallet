@@ -15,6 +15,8 @@ mod responders;
 mod status;
 mod support;
 mod swap;
+#[cfg(test)]
+mod testkit;
 mod webhooks;
 mod websocket;
 mod websocket_prices;

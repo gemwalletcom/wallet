@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -45,29 +45,6 @@ impl WalletSubscription {
             .flat_map(|x| x.chains.iter().map(|&chain| ChainAddress::new(chain, x.address.clone())))
             .filter(|x| seen.insert((x.chain, x.address.clone())))
             .collect()
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct WalletSubscriptionLegacy {
-    pub wallet_id: WalletId,
-    #[serde(default)]
-    pub source: Option<WalletSource>,
-    pub subscriptions: Vec<ChainAddress>,
-}
-
-impl From<WalletSubscriptionLegacy> for WalletSubscription {
-    fn from(legacy: WalletSubscriptionLegacy) -> Self {
-        let mut by_address: BTreeMap<String, Vec<Chain>> = BTreeMap::new();
-        for subscription in &legacy.subscriptions {
-            by_address.entry(subscription.address.clone()).or_default().push(subscription.chain);
-        }
-        Self {
-            wallet_id: legacy.wallet_id,
-            source: legacy.source,
-            subscriptions: by_address.into_iter().map(|(address, chains)| AddressChains::new(address, chains)).collect(),
-        }
     }
 }
 

@@ -82,7 +82,7 @@ mod tests {
         let asset_request = ChainAddress::new(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7".to_string());
         let scan_request = ChainAddress::new(Chain::Ethereum, "0x123".to_string());
         let asset_name = AddressName::mock("0xdAC17F958D2ee523a2206206994597C13D831ec7", "USDT", AddressType::Contract, VerificationStatus::Verified);
-        let scan_name = AddressName::mock("0x123", "Legacy Name", AddressType::Address, VerificationStatus::Unverified);
+        let scan_name = AddressName::mock("0x123", "Scan Name", AddressType::Address, VerificationStatus::Unverified);
 
         let scan_names = HashMap::from([(asset_request.clone(), scan_name.clone()), (scan_request.clone(), scan_name.clone())]);
         let asset_names = HashMap::from([(asset_request.clone(), asset_name.clone())]);

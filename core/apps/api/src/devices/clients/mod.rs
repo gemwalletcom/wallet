@@ -18,5 +18,4 @@ pub use rewards_redemption::RewardsRedemptionClient;
 pub use scan::{ScanClient, ScanProviderFactory};
 pub use transactions::TransactionsClient;
 pub use wallet_configuration::WalletConfigurationClient;
-pub(crate) use wallets::WalletSubscriptionInput;
 pub use wallets::WalletsClient;

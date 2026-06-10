@@ -17,8 +17,6 @@ strum = { workspace = true }
 redis = { workspace = true }
 chrono = { workspace = true }
 futures = { workspace = true }
-gem_hash = { path = "../../crates/gem_hash" }
-hex = { workspace = true }
 reqwest = { workspace = true }
 
 gem_tracing = { path = "../../crates/tracing" }
@@ -45,7 +43,6 @@ gem_rewards = { path = "../../crates/gem_rewards" }
 
 security_provider = { path = "../../crates/security_provider" }
 gem_auth = { path = "../../crates/gem_auth", features = ["client"] }
-unic-langid = "0.9.6"
 
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }

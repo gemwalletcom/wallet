@@ -2,10 +2,13 @@ mod client;
 
 pub use client::SupportApiClient;
 use primitives::{SupportAction, SupportMessage, SupportMessageInput};
-use rocket::{Data, State, data::ToByteUnit, get, http::ContentType, post, serde::json::Json, tokio::sync::Mutex};
+use rocket::{State, get, http::ContentType, post, tokio::sync::Mutex};
 
 use crate::{
-    devices::guard::AuthenticatedDevice,
+    devices::{
+        body::{DeviceBody, DeviceJson},
+        guard::AuthenticatedDevice,
+    },
     responders::{ApiError, ApiResponse},
 };
 
@@ -23,7 +26,7 @@ pub async fn get_support_messages(
 #[post("/devices/support/messages", format = "json", data = "<input>")]
 pub async fn post_support_message(
     device: AuthenticatedDevice,
-    input: Json<SupportMessageInput>,
+    input: DeviceJson<SupportMessageInput>,
     client: &State<Mutex<SupportApiClient>>,
 ) -> Result<ApiResponse<SupportMessage>, ApiError> {
     Ok(client.lock().await.send_message(&device.device_row, input.into_inner()).await?.into())
@@ -34,32 +37,23 @@ pub async fn post_support_image(
     device: AuthenticatedDevice,
     file_name: Option<String>,
     content_type: &ContentType,
-    data: Data<'_>,
+    data: DeviceBody<{ MAX_SUPPORT_IMAGE_BYTES }>,
     client: &State<Mutex<SupportApiClient>>,
 ) -> Result<ApiResponse<SupportMessage>, ApiError> {
     if content_type.top() != "image" {
         return Err(ApiError::BadRequest("Only image uploads are supported".to_string()));
     }
 
-    let bytes = data
-        .open(MAX_SUPPORT_IMAGE_BYTES.bytes())
-        .into_bytes()
-        .await
-        .map_err(|error| ApiError::BadRequest(format!("Invalid image upload: {error}")))?;
-    if !bytes.is_complete() {
-        return Err(ApiError::BadRequest(format!("Image upload exceeds {MAX_SUPPORT_IMAGE_BYTES} bytes")));
-    }
-
     let file_name = file_name.unwrap_or_else(|| format!("support.{}", content_type.sub()));
     Ok(client
         .lock()
         .await
-        .send_image(&device.device_row, bytes.into_inner(), file_name, content_type.to_string())
+        .send_image(&device.device_row, data.into_inner(), file_name, content_type.to_string())
         .await?
         .into())
 }
 
 #[post("/devices/support/action", format = "json", data = "<action>")]
-pub async fn post_support_action(device: AuthenticatedDevice, action: Json<SupportAction>, client: &State<Mutex<SupportApiClient>>) -> Result<ApiResponse<bool>, ApiError> {
+pub async fn post_support_action(device: AuthenticatedDevice, action: DeviceJson<SupportAction>, client: &State<Mutex<SupportApiClient>>) -> Result<ApiResponse<bool>, ApiError> {
     Ok(client.lock().await.run_action(&device.device_row, action.into_inner()).await?.into())
 }

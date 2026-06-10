@@ -1,13 +1,10 @@
 use primitives::currency::Currency;
-use primitives::{AssetId, Chain, ChartPeriod, Device, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, SwapProvider, TransactionId};
-use rocket::data::{FromData, Outcome, ToByteUnit};
+use primitives::{AssetId, Chain, ChartPeriod, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, SwapProvider, TransactionId};
+use rocket::Request;
 use rocket::form::{self, FromFormField, ValueField};
 use rocket::http::Status;
-use rocket::outcome::Outcome::{Error, Success};
 use rocket::request::FromParam;
-use rocket::{Data, Request};
 use std::str::FromStr;
-use unic_langid::LanguageIdentifier;
 
 const MAX_ADDRESS_LENGTH: usize = 256;
 const MAX_ASSET_ID_LENGTH: usize = 256;
@@ -198,31 +195,5 @@ impl<'r> rocket::request::FromRequest<'r> for UserAgent {
             Some(ua) => rocket::request::Outcome::Success(UserAgent(ua.to_string())),
             None => rocket::request::Outcome::Error((Status::BadRequest, ())),
         }
-    }
-}
-
-pub struct DeviceParam(pub Device);
-
-#[rocket::async_trait]
-impl<'r> FromData<'r> for DeviceParam {
-    type Error = String;
-
-    async fn from_data(_req: &'r Request<'_>, data: Data<'r>) -> Outcome<'r, Self> {
-        let Ok(bytes) = data.open(64.kibibytes()).into_bytes().await else {
-            return Error((Status::BadRequest, "Failed to read body".to_string()));
-        };
-        if !bytes.is_complete() {
-            return Error((Status::BadRequest, "Request body too large".to_string()));
-        }
-
-        let Ok(device) = serde_json::from_slice::<Device>(&bytes.into_inner()) else {
-            return Error((Status::BadRequest, "Invalid JSON".to_string()));
-        };
-
-        if device.locale.parse::<LanguageIdentifier>().is_err() {
-            return Error((Status::BadRequest, format!("Invalid locale: {}", device.locale)));
-        }
-
-        Success(DeviceParam(device))
     }
 }

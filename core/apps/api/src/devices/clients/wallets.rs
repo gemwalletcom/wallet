@@ -1,28 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
 
-use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains, WalletSubscriptionLegacy};
-use serde::Deserialize;
+use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
 use storage::models::NewWalletRow;
 use storage::sql_types::WalletType;
 use storage::{Database, DevicesRepository, WalletsRepository};
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue};
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(untagged)]
-pub(crate) enum WalletSubscriptionInput {
-    New(WalletSubscription),
-    Legacy(WalletSubscriptionLegacy),
-}
-
-impl WalletSubscriptionInput {
-    pub fn into_wallet_subscription(self) -> WalletSubscription {
-        match self {
-            Self::New(ws) => ws,
-            Self::Legacy(legacy) => WalletSubscription::from(legacy),
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct WalletsClient {
