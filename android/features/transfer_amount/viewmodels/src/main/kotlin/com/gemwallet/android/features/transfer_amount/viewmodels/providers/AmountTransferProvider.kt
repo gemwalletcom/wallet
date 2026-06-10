@@ -38,13 +38,15 @@ class AmountTransferProvider(
     override val canSwitchInputType: Boolean = true
     override val reserveForFee: BigInteger = BigInteger.ZERO
 
-    override val minimumValue: StateFlow<BigInteger> = MutableStateFlow(
-        when (params) {
-            is AmountParams.Deposit -> AmountPerpetualLimits.minDeposit
-            is AmountParams.Withdraw -> AmountPerpetualLimits.minWithdraw
-            else -> BigInteger.ZERO
-        }
-    )
+    override val minimumValue: StateFlow<BigInteger> by lazy {
+        MutableStateFlow(
+            when (params) {
+                is AmountParams.Deposit -> PerpetualConfig.minDeposit
+                is AmountParams.Withdraw -> PerpetualConfig.minWithdraw
+                else -> BigInteger.ZERO
+            }
+        )
+    }
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)
@@ -76,9 +78,4 @@ class AmountTransferProvider(
             else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
         }
     }
-}
-
-object AmountPerpetualLimits {
-    val minDeposit: BigInteger = BigInteger("5000000")
-    val minWithdraw: BigInteger = BigInteger("2000000")
 }

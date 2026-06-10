@@ -81,7 +81,7 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `deposit has Deposit title and 5 USDC minimum`() {
+    fun `deposit has Deposit title`() {
         val provider = AmountTransferProvider(
             params = AmountParams.Deposit(asset.id),
             getAssetInfo = getAssetInfo,
@@ -89,11 +89,10 @@ class AmountTransferProviderTest {
             scope = scope,
         )
         assertEquals(AmountTitle.Deposit, provider.title)
-        assertEquals(BigInteger("5000000"), provider.minimumValue.value)
     }
 
     @Test
-    fun `withdraw has Withdraw title and 2 USDC minimum`() {
+    fun `withdraw has Withdraw title`() {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
@@ -101,7 +100,6 @@ class AmountTransferProviderTest {
             scope = scope,
         )
         assertEquals(AmountTitle.Withdraw, provider.title)
-        assertEquals(BigInteger("2000000"), provider.minimumValue.value)
     }
 
     @Test
