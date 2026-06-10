@@ -10,6 +10,14 @@ public struct PerpetualConfig {
         Config.shared.getPerpetualConfig().defaultLeverage
     }
 
+    public static var depositAddress: String {
+        Config.shared.getPerpetualConfig().depositAddress
+    }
+
+    public static var depositAssetId: String {
+        Config.shared.getPerpetualConfig().depositAssetId
+    }
+
     public static var leverageOptions: [UInt8] {
         Array(Config.shared.getPerpetualConfig().leverageOptions)
     }
