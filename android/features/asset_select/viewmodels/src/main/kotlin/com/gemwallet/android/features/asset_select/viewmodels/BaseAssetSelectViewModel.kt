@@ -202,6 +202,13 @@ open class BaseAssetSelectViewModel(
     }
 
     init {
+        viewModelScope.launch {
+            currentQuery.collect { query ->
+                if (query.isNotEmpty() && selectedTag.value != null) {
+                    selectedTag.value = null
+                }
+            }
+        }
         if (remoteSearch) {
             viewModelScope.launch(Dispatchers.IO) {
                 searchRequests.collectLatest { (query, tag, currency, chains) ->

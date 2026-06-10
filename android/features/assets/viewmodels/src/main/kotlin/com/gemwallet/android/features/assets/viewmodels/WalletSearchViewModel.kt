@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -118,16 +117,6 @@ class WalletSearchViewModel @Inject constructor(
         query.isNotEmpty() -> WalletSearchLimits.ASSETS_SEARCH
         tag != null -> WalletSearchLimits.ASSETS_TAG
         else -> WalletSearchLimits.ASSETS_INITIAL
-    }
-
-    init {
-        viewModelScope.launch {
-            currentQuery.collect { query ->
-                if (query.isNotEmpty() && selectedTag.value != null) {
-                    selectedTag.value = null
-                }
-            }
-        }
     }
 
     fun onPinAsset(assetId: AssetId) {
