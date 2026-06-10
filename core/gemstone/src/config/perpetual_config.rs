@@ -5,6 +5,9 @@ pub const LEVERAGE_OPTIONS: &[u8] = &[1, 2, 3, 5, 10, 20, 25, 30, 40, 50];
 
 pub const HYPERLIQUID_DEPOSIT_ADDRESS: &str = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7";
 
+pub const MIN_DEPOSIT_AMOUNT: u64 = 5_000_000;
+pub const MIN_WITHDRAW_AMOUNT: u64 = 2_000_000;
+
 pub const TAKE_PROFIT_PERCENT_OPTIONS: &[u8] = &[0, 10, 25, 50, 100, 200];
 pub const STOP_LOSS_PERCENT_OPTIONS: &[u8] = &[0, 3, 5, 10, 25, 50];
 pub const DEFAULT_TAKE_PROFIT_PERCENT: u8 = 0;
@@ -22,6 +25,8 @@ pub struct PerpetualConfig {
     pub default_stop_loss_percent: u8,
     pub deposit_address: String,
     pub deposit_asset_id: String,
+    pub min_deposit: u64,
+    pub min_withdraw: u64,
 }
 
 pub fn get_perpetual_config() -> PerpetualConfig {
@@ -34,6 +39,8 @@ pub fn get_perpetual_config() -> PerpetualConfig {
         default_stop_loss_percent: DEFAULT_STOP_LOSS_PERCENT,
         deposit_address: HYPERLIQUID_DEPOSIT_ADDRESS.to_string(),
         deposit_asset_id: ARBITRUM_USDC_ASSET_ID.to_string(),
+        min_deposit: MIN_DEPOSIT_AMOUNT,
+        min_withdraw: MIN_WITHDRAW_AMOUNT,
     }
 }
 
@@ -86,6 +93,8 @@ mod tests {
         assert_eq!(config.default_stop_loss_percent, DEFAULT_STOP_LOSS_PERCENT);
         assert_eq!(config.deposit_address, HYPERLIQUID_DEPOSIT_ADDRESS);
         assert_eq!(config.deposit_asset_id, ARBITRUM_USDC_ASSET_ID.to_string());
+        assert_eq!(config.min_deposit, MIN_DEPOSIT_AMOUNT);
+        assert_eq!(config.min_withdraw, MIN_WITHDRAW_AMOUNT);
     }
 
     #[test]
