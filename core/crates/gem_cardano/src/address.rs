@@ -1,5 +1,6 @@
 use primitives::SignerError;
 
+const ADDRESS_HRP: &str = "addr";
 const MAINNET_NETWORK_ID: u8 = 1;
 const BASE_KEY_ADDRESS_TYPE: u8 = 0;
 const ENTERPRISE_KEY_ADDRESS_TYPE: u8 = 6;
@@ -7,6 +8,8 @@ const ADDRESS_HEADER_LENGTH: usize = 1;
 const KEY_HASH_LENGTH: usize = 28;
 const ENTERPRISE_ADDRESS_LENGTH: usize = ADDRESS_HEADER_LENGTH + KEY_HASH_LENGTH;
 const BASE_ADDRESS_LENGTH: usize = ADDRESS_HEADER_LENGTH + KEY_HASH_LENGTH + KEY_HASH_LENGTH;
+#[cfg(any(test, feature = "signer"))]
+const MAINNET_BASE_KEY_ADDRESS_HEADER: u8 = (BASE_KEY_ADDRESS_TYPE << 4) | MAINNET_NETWORK_ID;
 
 #[derive(Debug)]
 pub(crate) struct ShelleyAddress {
@@ -16,7 +19,7 @@ pub(crate) struct ShelleyAddress {
 impl ShelleyAddress {
     pub(crate) fn parse(address: &str) -> Result<Self, SignerError> {
         let (hrp, bytes) = bech32::decode(address).map_err(|_| SignerError::invalid_input("invalid Cardano address"))?;
-        if hrp.as_str() != "addr" {
+        if hrp.as_str() != ADDRESS_HRP {
             return SignerError::invalid_input_err("unsupported Cardano address network");
         }
 
@@ -64,6 +67,22 @@ impl ShelleyAddress {
     }
 }
 
+#[cfg(any(test, feature = "signer"))]
+impl ShelleyAddress {
+    pub(crate) fn from_public_key_hashes(payment_hash: [u8; KEY_HASH_LENGTH], stake_hash: [u8; KEY_HASH_LENGTH]) -> Self {
+        let mut bytes = Vec::with_capacity(BASE_ADDRESS_LENGTH);
+        bytes.push(MAINNET_BASE_KEY_ADDRESS_HEADER);
+        bytes.extend_from_slice(&payment_hash);
+        bytes.extend_from_slice(&stake_hash);
+        Self { bytes }
+    }
+
+    pub(crate) fn encode(&self) -> Result<String, SignerError> {
+        let hrp = bech32::hrp::Hrp::parse(ADDRESS_HRP).map_err(|_| SignerError::invalid_input("invalid Cardano address hrp"))?;
+        bech32::encode::<bech32::Bech32>(hrp, &self.bytes).map_err(|_| SignerError::invalid_input("invalid Cardano address bytes"))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -76,6 +95,18 @@ mod tests {
             "01df58ee97ce7a46cd8bdeec4e5f3a03297eb197825ed5681191110804df22424b6880b39e4bac8c58de9fe6d23d79aaf44756389d827aa09b"
         );
         assert_eq!(hex::encode(address.payment_hash()), "df58ee97ce7a46cd8bdeec4e5f3a03297eb197825ed5681191110804");
+    }
+
+    #[test]
+    fn test_shelley_address_from_public_key_hashes() {
+        let payment_hash = hex::decode("df58ee97ce7a46cd8bdeec4e5f3a03297eb197825ed5681191110804").unwrap().try_into().unwrap();
+        let stake_hash = hex::decode("df22424b6880b39e4bac8c58de9fe6d23d79aaf44756389d827aa09b").unwrap().try_into().unwrap();
+        let address = ShelleyAddress::from_public_key_hashes(payment_hash, stake_hash);
+
+        assert_eq!(
+            address.encode().unwrap(),
+            "addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23"
+        );
     }
 
     #[test]

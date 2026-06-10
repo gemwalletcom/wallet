@@ -171,6 +171,8 @@ pub mod webhook_kind;
 pub use self::webhook_kind::WebhookKind;
 pub mod wallet_id;
 pub use self::wallet_id::WalletId;
+pub mod wallet_import;
+pub use self::wallet_import::WalletImport;
 pub mod wallet_connector;
 pub use self::wallet_connector::{
     WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionAppMetadata,
@@ -311,6 +313,7 @@ pub use self::deeplink::Deeplink;
 pub mod url_action;
 pub use self::url_action::UrlAction;
 pub mod list_item;
+mod url_query;
 pub use self::list_item::{CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon};
 pub mod notification;
 pub use self::notification::InAppNotification;

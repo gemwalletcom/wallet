@@ -19,7 +19,7 @@ pub(crate) fn sign_token_transfer(input: &SignerInput, private_key: &[u8]) -> Re
 }
 
 pub(crate) fn sign_swap(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-    let swap = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+    let swap = input.input_type.get_swap_data()?;
     let from_asset = input.input_type.get_asset();
 
     let result = if from_asset.id.is_token() {

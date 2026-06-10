@@ -22,7 +22,7 @@ pub fn map_asset_chain(network: &str, coin_id: Option<&str>) -> Option<Chain> {
         "osmosis" => Some(Chain::Osmosis),
         "fantom" => Some(Chain::Fantom),
         "injective" => Some(Chain::Injective),
-        "sei" => Some(Chain::Sei),
+        "sei" => Some(Chain::SeiEvm),
         "linea" => Some(Chain::Linea),
         "zksync" => Some(Chain::ZkSync),
         "celo" => Some(Chain::Celo),
@@ -154,7 +154,7 @@ fn map_payment_type(payment_id: &str) -> Option<PaymentType> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::providers::transak::models::{Data, FiatCurrency, Response, TransakOrderResponse};
+    use crate::providers::transak::models::{AssetNetwork, Data, FiatCurrency, Response, TransakOrderResponse};
     use primitives::{FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 
     #[test]
@@ -180,7 +180,6 @@ mod tests {
     fn test_map_asset_with_limits() {
         let fiat_response: Response<Vec<FiatCurrency>> = serde_json::from_str(include_str!("../../../testdata/transak/fiat_currencies.json")).unwrap();
 
-        use crate::providers::transak::models::{Asset, AssetNetwork};
         let asset = Asset {
             coin_id: "ethereum".to_string(),
             unique_id: "eth".to_string(),

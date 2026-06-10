@@ -1,5 +1,5 @@
 use gem_encoding::{decode_base32, encode_base32};
-use primitives::Address;
+use primitives::{Address, SignerError};
 use signer::Base32Address;
 use std::fmt;
 
@@ -48,6 +48,12 @@ pub fn validate_address(address: &str) -> bool {
 }
 
 impl StellarAddress {
+    pub fn from_public_key(public_key_bytes: &[u8]) -> Result<Self, SignerError> {
+        Ok(Self {
+            base32: Base32Address::from_slice(public_key_bytes)?,
+        })
+    }
+
     fn crc16_xmodem(data: &[u8]) -> u16 {
         let mut crc: u16 = 0;
         for &byte in data {

@@ -115,8 +115,7 @@ extension AddNodeSceneViewModel {
         }
 
         state = .loading
-        let nodeProvider = CustomNodeURLFetchable(url: url, requestInterceptor: chainServiceFactory.requestInterceptor)
-        let service = ChainServiceFactory(nodeProvider: nodeProvider).service(for: chain)
+        let service = chainServiceFactory.service(for: chain, url: url)
 
         do {
             let nodeStatus = try await service.getNodeStatus(url: urlInputModel.text)

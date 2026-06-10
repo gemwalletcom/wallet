@@ -31,10 +31,6 @@ install-swifttools:
     @echo "==> Install SwiftGen and SwiftFormat"
     @brew install swiftgen swiftformat
 
-download-wallet-core VERSION:
-    @echo "==> Install wallet-core {{VERSION}}"
-    @curl -sL https://github.com/trustwallet/wallet-core/releases/download/{{VERSION}}/Package.swift -o Packages/WalletCore/Package.swift
-
 setup-git:
     @echo "==> Setup git submodules"
     @git submodule update --init --recursive

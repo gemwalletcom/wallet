@@ -1,0 +1,18 @@
+[package]
+name = "gem_crypto"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+hash = ["dep:gem_hash", "dep:zeroize"]
+pbkdf = ["hash"]
+random = ["dep:getrandom"]
+
+[dependencies]
+gem_hash = { path = "../gem_hash", optional = true }
+getrandom = { workspace = true, optional = true }
+zeroize = { workspace = true, optional = true }
+
+[dev-dependencies]
+hex = { workspace = true }

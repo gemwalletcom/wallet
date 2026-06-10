@@ -14,6 +14,10 @@ let package = Package(
             targets: ["Preferences"],
         ),
         .library(
+            name: "SharedPreferences",
+            targets: ["SharedPreferences"],
+        ),
+        .library(
             name: "PreferencesTestKit",
             targets: ["PreferencesTestKit"],
         ),
@@ -21,6 +25,7 @@ let package = Package(
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "Keychain", path: "../Keychain"),
+        .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
     targets: [
         .target(
@@ -28,8 +33,16 @@ let package = Package(
             dependencies: [
                 "Primitives",
                 "Keychain",
+                "GemstonePrimitives",
             ],
             path: "Sources",
+        ),
+        .target(
+            name: "SharedPreferences",
+            dependencies: [
+                "Primitives",
+            ],
+            path: "SharedPreferences",
         ),
         .target(
             name: "PreferencesTestKit",
@@ -43,6 +56,7 @@ let package = Package(
             name: "PreferencesTest",
             dependencies: [
                 "Preferences",
+                "SharedPreferences",
                 "PreferencesTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],

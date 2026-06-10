@@ -11,5 +11,6 @@ public enum RecentActivityType: String, Codable, CaseIterable, Equatable, Sendab
 	case fiatBuy
 	case fiatSell
 	case swap
+	case swapSelect
 	case perpetual
 }

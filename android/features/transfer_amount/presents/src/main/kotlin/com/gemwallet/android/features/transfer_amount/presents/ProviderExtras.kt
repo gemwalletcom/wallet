@@ -116,6 +116,7 @@ private fun PerpetualLeverageSection(provider: AmountPerpetualProvider) {
     SelectLeverageDialog(
         isVisible = showLeverageSelect,
         leverages = state.options,
+        selected = state.current,
         onDismiss = { showLeverageSelect = false },
         onSelect = provider::setLeverage,
     )

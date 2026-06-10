@@ -2,8 +2,9 @@ package com.gemwallet.android.data.coordinators.device
 
 import com.gemwallet.android.application.SecurityStore
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
-import com.gemwallet.android.data.services.gemapi.DeviceKeyPair
+import com.gemwallet.android.math.hex
 import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.generateDeviceKeyPair
 
 class GetDeviceIdImpl(
     private val store: SecurityStore<Any>
@@ -22,9 +23,9 @@ class GetDeviceIdImpl(
             return data
         } catch (_: Throwable) {}
 
-        val deviceKey = DeviceKeyPair.generate()
-        val privateKey = deviceKey.privateKeyHex
-        val publicKey = deviceKey.publicKeyHex
+        val deviceKey = generateDeviceKeyPair()
+        val privateKey = deviceKey.privateKey.hex
+        val publicKey = deviceKey.publicKey.hex
 
         store.putValue(Keys.PrivateKey, privateKey)
         store.putValue(Keys.PublicKey, publicKey)

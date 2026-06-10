@@ -1,6 +1,6 @@
 use crate::config::HypercoreConfig;
 use crate::models::referral::Referral;
-use crate::models::user::{AgentSession, UserFee};
+use crate::models::user::{AgentApproval, AgentSession, UserFee};
 use crate::rpc::client::agent_owner_cache_key;
 use primitives::{Preferences, PreferencesExt};
 use std::error::Error;
@@ -19,6 +19,8 @@ pub(crate) struct HyperCoreCache {
 }
 
 impl HyperCoreCache {
+    const AGENT_NAME_PREFIX: &'static str = "gemwallet_";
+    const MAX_NAMED_AGENT_SESSIONS: usize = 3;
     const REFERRAL_APPROVED_KEY: &'static str = "referral_approved";
     const BUILDER_FEE_APPROVED_KEY: &'static str = "builder_fee_approved";
     const AGENT_VALID_UNTIL_KEY: &'static str = "agent_valid_until";
@@ -37,6 +39,23 @@ impl HyperCoreCache {
 
     fn current_time() -> Result<i64, Box<dyn Error + Send + Sync>> {
         Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as i64)
+    }
+
+    fn agent_name(agent_address: &str) -> String {
+        format!("{}{}", Self::AGENT_NAME_PREFIX, &agent_address[agent_address.len().saturating_sub(6)..])
+    }
+
+    fn agent_name_for_approval(agents: &[AgentSession], agent_address: &str) -> String {
+        if agents.iter().filter(|agent| !agent.name.is_empty()).count() < Self::MAX_NAMED_AGENT_SESSIONS {
+            return Self::agent_name(agent_address);
+        }
+
+        agents
+            .iter()
+            .filter(|agent| !agent.name.is_empty())
+            .min_by_key(|agent| agent.valid_until)
+            .map(|agent| agent.name.clone())
+            .unwrap_or_else(|| Self::agent_name(agent_address))
     }
 
     pub(crate) async fn needs_referral_approval<F>(&self, address: &str, checker: F) -> Result<bool, Box<dyn Error + Send + Sync>>
@@ -114,12 +133,13 @@ impl HyperCoreCache {
         sender_address: &str,
         secure_preferences: Arc<dyn primitives::Preferences>,
         get_agents: F,
-    ) -> Result<(bool, String, String), Box<dyn Error + Send + Sync>>
+    ) -> Result<AgentApproval, Box<dyn Error + Send + Sync>>
     where
         F: Future<Output = Result<Vec<AgentSession>, Box<dyn Error + Send + Sync>>>,
     {
         let agent = crate::agent::Agent::new(secure_preferences);
         let (agent_address, agent_private_key) = agent.get_or_create_credentials(sender_address)?;
+        let agent_name = Self::agent_name(&agent_address);
         self.preferences.set(agent_owner_cache_key(&agent_address), sender_address.to_lowercase())?;
         let cache_key = self.cache_key(&agent_address, Self::AGENT_VALID_UNTIL_KEY);
         let current_time = Self::current_time()?;
@@ -127,24 +147,96 @@ impl HyperCoreCache {
         if let Some(cached_valid_until) = self.preferences.get_i64(&cache_key)?
             && current_time < cached_valid_until
         {
-            return Ok((false, agent_address, agent_private_key));
+            return Ok(AgentApproval {
+                approval_required: false,
+                name: agent_name,
+                address: agent_address,
+                private_key: agent_private_key,
+            });
         }
 
         let agents = get_agents.await?;
 
-        if let Some(api_agent) = agents.iter().find(|a| a.address.to_lowercase() == agent_address.to_lowercase()) {
+        if let Some(api_agent) = agents.iter().find(|agent| agent.address.eq_ignore_ascii_case(&agent_address)) {
             let valid_until = (api_agent.valid_until / 1000) as i64;
             self.preferences.set_i64(&cache_key, valid_until)?;
 
             if current_time >= valid_until {
                 let (new_address, new_key) = agent.regenerate_credentials(sender_address)?;
                 self.preferences.set(agent_owner_cache_key(&new_address), sender_address.to_lowercase())?;
-                Ok((true, new_address, new_key))
+                Ok(AgentApproval {
+                    approval_required: true,
+                    name: api_agent.name.clone(),
+                    address: new_address,
+                    private_key: new_key,
+                })
             } else {
-                Ok((false, agent_address, agent_private_key))
+                Ok(AgentApproval {
+                    approval_required: false,
+                    name: api_agent.name.clone(),
+                    address: agent_address,
+                    private_key: agent_private_key,
+                })
             }
         } else {
-            Ok((true, agent_address, agent_private_key))
+            let agent_name = Self::agent_name_for_approval(&agents, &agent_address);
+            Ok(AgentApproval {
+                approval_required: true,
+                name: agent_name,
+                address: agent_address,
+                private_key: agent_private_key,
+            })
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::InMemoryPreferences;
+
+    fn cache() -> HyperCoreCache {
+        HyperCoreCache::new(Arc::new(InMemoryPreferences::new()), HypercoreConfig::default())
+    }
+
+    fn agent_session(name: &str, address: &str, valid_until: u64) -> AgentSession {
+        AgentSession {
+            name: name.to_string(),
+            address: address.to_string(),
+            valid_until,
+        }
+    }
+
+    #[tokio::test]
+    async fn test_manage_agent_replaces_oldest_named_session_at_limit() {
+        let cache = cache();
+        let secure_preferences = Arc::new(InMemoryPreferences::new());
+        let agents = vec![
+            agent_session("", "0x0000000000000000000000000000000000000000", 500),
+            agent_session("newest", "0x1111111111111111111111111111111111111111", 3_000),
+            agent_session("oldest", "0x2222222222222222222222222222222222222222", 1_000),
+            agent_session("middle", "0x3333333333333333333333333333333333333333", 2_000),
+        ];
+
+        let approval = cache.manage_agent("0xsender", secure_preferences, async { Ok(agents) }).await.unwrap();
+
+        assert!(approval.approval_required);
+        assert_eq!(approval.name, "oldest");
+    }
+
+    #[tokio::test]
+    async fn test_manage_agent_uses_new_agent_name_below_limit() {
+        let cache = cache();
+        let secure_preferences = Arc::new(InMemoryPreferences::new());
+        let agents = vec![
+            agent_session("newest", "0x1111111111111111111111111111111111111111", 3_000),
+            agent_session("oldest", "0x2222222222222222222222222222222222222222", 1_000),
+            agent_session("", "0x0000000000000000000000000000000000000000", 500),
+        ];
+
+        let approval = cache.manage_agent("0xsender", secure_preferences, async { Ok(agents) }).await.unwrap();
+
+        assert!(approval.approval_required);
+        assert_eq!(approval.name, HyperCoreCache::agent_name(&approval.address));
     }
 }

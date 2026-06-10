@@ -7,7 +7,7 @@ import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.walletConnectAppName
 import com.gemwallet.android.ext.walletConnectIcon
-import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.reown.walletkit.client.Wallet
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.WalletConnect
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
 
@@ -36,6 +35,7 @@ class ProposalSceneViewModel @Inject constructor(
     sessionRepository: SessionRepository,
     private val bridgesRepository: BridgesRepository,
     private val walletsRepository: WalletsRepository,
+    private val originVerifier: WalletConnectOriginVerifier,
 ) : ViewModel() {
 
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
@@ -78,18 +78,13 @@ class ProposalSceneViewModel @Inject constructor(
         proposal: Wallet.Model.SessionProposal,
         verifyContext: Wallet.Model.VerifyContext
     ) {
-        val validation = WalletConnect().validateOrigin(proposal.url, verifyContext.origin, verifyContext.map())
-        when (validation) {
-            WalletConnectionVerificationStatus.UNKNOWN,
-            WalletConnectionVerificationStatus.VERIFIED -> {
-                state.update { ProposalSceneState.Init(validation) }
-                _proposal.update { proposal }
-            }
-            WalletConnectionVerificationStatus.INVALID,
-            WalletConnectionVerificationStatus.MALICIOUS -> {
-                onReject(proposal, ProposalSceneState.ScamCanceled)
-            }
+        val verification = originVerifier.verify(proposal.url, verifyContext)
+        if (verification.isScam) {
+            onReject(proposal, ProposalSceneState.ScamCanceled)
+            return
         }
+        state.update { ProposalSceneState.Init(verification.status) }
+        _proposal.update { proposal }
     }
 
     fun onApprove() {

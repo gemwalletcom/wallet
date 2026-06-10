@@ -49,7 +49,12 @@ impl AddressTrait for AccountAddress {
     }
 
     fn encode(&self) -> String {
-        self.to_string()
+        // Match v3 (and backend-registered addresses): AIP-40 short form (strip leading zero nibbles).
+        let hex = ::hex::encode(self.0);
+        match hex.trim_start_matches('0') {
+            "" => "0x0".to_string(),
+            trimmed => format!("0x{trimmed}"),
+        }
     }
 }
 
@@ -66,20 +71,31 @@ impl fmt::Display for AccountAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Address;
 
     const VALID_ADDRESS: &str = "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc";
 
     #[test]
     fn test_aptos_address() {
         let parsed = AccountAddress::from_hex(VALID_ADDRESS).unwrap();
+        let padded = "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30";
+        let unpadded = "0x7968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30";
 
         assert!(validate_address(VALID_ADDRESS));
+        assert!(validate_address(padded));
+        assert!(validate_address(unpadded));
+
+        assert_eq!(AccountAddress::from_hex(padded).unwrap().encode(), unpadded);
+        assert_eq!(AccountAddress::from_hex(unpadded).unwrap().encode(), unpadded);
+        assert_eq!(parsed.encode(), VALID_ADDRESS);
+
+        assert_eq!(AccountAddress::from_hex(unpadded).unwrap().to_string(), padded);
         assert_eq!(parsed.to_string(), VALID_ADDRESS);
         assert_eq!(parsed.as_bytes().len(), 32);
         assert!(!validate_address("invalid"));
 
-        // short hex is left-padded to 32 bytes (Aptos framework address convention)
         let short = AccountAddress::from_hex("0x1").unwrap();
         assert_eq!(short.to_string(), format!("0x{}", "00".repeat(31) + "01"));
+        assert_eq!(short.encode(), "0x1");
     }
 }

@@ -77,15 +77,9 @@ public struct SelectAssetScene: View {
                     onSelectRecents: model.onSelectRecents,
                 ) { assetModel in
                     switch model.selectType {
-                    case .send, .receive, .buy:
+                    case .send, .receive, .buy, .swap:
                         Button {
                             model.onSelectRecent(assetModel.asset)
-                        } label: {
-                            AssetChipView(model: assetModel)
-                        }
-                    case .swap:
-                        Button {
-                            model.selectAsset(asset: assetModel.asset)
                         } label: {
                             AssetChipView(model: assetModel)
                         }

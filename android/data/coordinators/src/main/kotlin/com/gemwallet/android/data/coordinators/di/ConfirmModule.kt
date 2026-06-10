@@ -4,9 +4,8 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
 import com.gemwallet.android.application.confirm.coordinators.ValidateBalance
-import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.BroadcastService
-import com.gemwallet.android.blockchain.services.SignClientProxy
+import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
@@ -32,15 +31,13 @@ object ConfirmModule {
     @Singleton
     fun provideConfirmTransaction(
         passwordStore: PasswordStore,
-        loadPrivateKeyOperator: LoadPrivateKeyOperator,
-        signClient: SignClientProxy,
+        signTransactionOperator: GemSignTransactionOperator,
         broadcastService: BroadcastService,
         createTransactionsCase: CreateTransaction,
         assetsRepository: AssetsRepository,
     ): ConfirmTransaction = ConfirmTransactionImpl(
         passwordStore,
-        loadPrivateKeyOperator,
-        signClient,
+        signTransactionOperator,
         broadcastService,
         createTransactionsCase,
         assetsRepository,

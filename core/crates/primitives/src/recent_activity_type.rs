@@ -11,5 +11,6 @@ pub enum RecentActivityType {
     FiatBuy,
     FiatSell,
     Swap,
+    SwapSelect,
     Perpetual,
 }

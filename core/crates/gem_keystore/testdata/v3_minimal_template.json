@@ -1,0 +1,30 @@
+{
+  "activeAccounts": [
+    {
+      "address": "__ETHEREUM_ADDRESS__",
+      "coin": 60,
+      "derivationPath": "m/44'/60'/0'/0/0",
+      "publicKey": "04__PUBLIC_KEY_SUFFIX__"
+    }
+  ],
+  "crypto": {
+    "cipher": "aes-128-ctr",
+    "cipherparams": {
+      "iv": "__IV__"
+    },
+    "ciphertext": "__CIPHERTEXT__",
+    "kdf": "scrypt",
+    "kdfparams": {
+      "dklen": 32,
+      "n": 16,
+      "p": 1,
+      "r": 1,
+      "salt": "__SALT__"
+    },
+    "mac": "__MAC__"
+  },
+  "id": "4b8fc216-dc74-481e-8011-bd4d1bc968ab",
+  "name": "Ethereum Wallet #4",
+  "type": "__KIND__",
+  "version": 3
+}

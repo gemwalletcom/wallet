@@ -14,6 +14,7 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
 import uniffi.gemstone.MessageSigner
+import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.blockchain.gemstone.toGem
 import com.gemwallet.android.blockchain.gemstone.toPrimitives
 import com.wallet.core.primitives.SimulationResult
@@ -85,8 +86,12 @@ sealed class WCRequest(
         val hasPayload: Boolean
             get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 
-        suspend fun execute(privateKey: ByteArray): String {
-            val signature = signer.getOrThrow().sign(privateKey)
+        suspend fun execute(
+            signMessageOperator: GemSignMessageOperator,
+            wallet: com.wallet.core.primitives.Wallet,
+            password: String,
+        ): String {
+            val signature = signMessageOperator.sign(signer.getOrThrow(), wallet, password)
             return walletConnect.encodeSignMessage(chain.string, signature).payload()
         }
     }

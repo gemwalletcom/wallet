@@ -27,8 +27,11 @@ public final class SwapService: Sendable, SwappableChainsProvider {
         self.swapper = swapper
     }
 
-    public convenience init(nodeProvider: any NodeURLFetchable) {
-        self.init(swapper: GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider)))
+    public convenience init(
+        nodeProvider: any NodeURLFetchable,
+        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
+    ) {
+        self.init(swapper: GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor)))
     }
 
     public func supportedChains() -> [Chain] {

@@ -8,6 +8,7 @@ pub struct HyperliquidOrder {
     pub approve_referral_required: bool,
     pub approve_builder_required: bool,
     pub builder_fee_bps: u32,
+    pub agent_name: String,
     pub agent_address: String,
     pub agent_private_key: String,
 }
@@ -233,6 +234,7 @@ mod tests {
                 approve_referral_required: false,
                 approve_builder_required: true,
                 builder_fee_bps: 10,
+                agent_name: "gemwallet_agent".into(),
                 agent_address: "0xagent".into(),
                 agent_private_key: "0xkey".into(),
             }),

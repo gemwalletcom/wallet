@@ -5,6 +5,7 @@ public struct HyperliquidOrder: Sendable {
     public let approveReferralRequired: Bool
     public let approveBuilderRequired: Bool
     public let builderFeeBps: UInt32
+    public let agentName: String
     public let agentAddress: String
     public let agentPrivateKey: String
 
@@ -13,6 +14,7 @@ public struct HyperliquidOrder: Sendable {
         approveReferralRequired: Bool,
         approveBuilderRequired: Bool,
         builderFeeBps: UInt32,
+        agentName: String,
         agentAddress: String,
         agentPrivateKey: String,
     ) {
@@ -20,6 +22,7 @@ public struct HyperliquidOrder: Sendable {
         self.approveReferralRequired = approveReferralRequired
         self.approveBuilderRequired = approveBuilderRequired
         self.builderFeeBps = builderFeeBps
+        self.agentName = agentName
         self.agentAddress = agentAddress
         self.agentPrivateKey = agentPrivateKey
     }

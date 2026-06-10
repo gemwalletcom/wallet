@@ -4,12 +4,12 @@ use primitives::Address;
 #[cfg(feature = "signer")]
 use primitives::SignerError;
 
-const CLASSIC_ACCOUNT_ID_LENGTH: usize = 20;
-const CLASSIC_ADDRESS_LENGTH: usize = CLASSIC_ACCOUNT_ID_LENGTH + 1;
+const CLASSIC_PUBLIC_KEY_HASH_LENGTH: usize = 20;
+const CLASSIC_ADDRESS_LENGTH: usize = CLASSIC_PUBLIC_KEY_HASH_LENGTH + 1;
 const CLASSIC_PREFIX: u8 = 0x00;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct XrpAddress([u8; CLASSIC_ACCOUNT_ID_LENGTH]);
+pub struct XrpAddress([u8; CLASSIC_PUBLIC_KEY_HASH_LENGTH]);
 
 impl Address for XrpAddress {
     fn try_parse(value: &str) -> Option<Self> {
@@ -19,8 +19,8 @@ impl Address for XrpAddress {
             return None;
         }
 
-        let account_id = decoded[1..].try_into().ok()?;
-        Some(Self(account_id))
+        let public_key_hash = decoded[1..].try_into().ok()?;
+        Some(Self(public_key_hash))
     }
 
     fn as_bytes(&self) -> &[u8] {
@@ -36,13 +36,17 @@ impl Address for XrpAddress {
 }
 
 impl XrpAddress {
+    pub fn from_public_key_hash(public_key_hash: [u8; CLASSIC_PUBLIC_KEY_HASH_LENGTH]) -> Self {
+        Self(public_key_hash)
+    }
+
     #[cfg(feature = "signer")]
     pub(crate) fn parse(value: &str) -> Result<Self, SignerError> {
         Self::try_parse(value).ok_or_else(|| SignerError::invalid_input("invalid XRP classic address"))
     }
 
     #[cfg(feature = "signer")]
-    pub(crate) fn as_bytes(&self) -> &[u8; CLASSIC_ACCOUNT_ID_LENGTH] {
+    pub(crate) fn as_bytes(&self) -> &[u8; CLASSIC_PUBLIC_KEY_HASH_LENGTH] {
         &self.0
     }
 }
@@ -72,5 +76,12 @@ mod tests {
         assert!(validate_address(CLASSIC_ADDRESS));
         assert!(XrpAddress::from_str("invalid").is_err());
         assert!(!validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J"));
+    }
+
+    #[test]
+    fn test_xrp_address_from_public_key_hash() {
+        let public_key_hash = hex::decode("2decab42ca805119a9ba2ff305c9afa12f0b86a1").unwrap().try_into().unwrap();
+
+        assert_eq!(XrpAddress::from_public_key_hash(public_key_hash).to_string(), CLASSIC_ADDRESS);
     }
 }

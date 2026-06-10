@@ -21,6 +21,8 @@ enum class RecentActivityType(val string: String) {
 	FiatSell("fiatSell"),
 	@SerialName("swap")
 	Swap("swap"),
+	@SerialName("swapSelect")
+	SwapSelect("swapSelect"),
 	@SerialName("perpetual")
 	Perpetual("perpetual"),
 }

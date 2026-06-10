@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.operators.ValidateAddressOperator
-import com.gemwallet.android.blockchain.operators.walletcore.checksumAddress
+import com.gemwallet.android.blockchain.operators.gemstone.checksumAddress
 import com.gemwallet.android.cases.contacts.AddContact
 import com.gemwallet.android.cases.contacts.GetContacts
 import com.gemwallet.android.cases.contacts.UpdateContact

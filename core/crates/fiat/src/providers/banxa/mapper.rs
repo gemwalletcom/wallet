@@ -39,6 +39,7 @@ pub fn map_asset_chain(chain: &str) -> Option<Chain> {
         "BASE" => Some(Chain::Base),
         "S" => Some(Chain::Sonic),
         "INJ" => Some(Chain::Injective),
+        "SEI" => Some(Chain::SeiEvm),
         "MNT" => Some(Chain::Mantle),
         _ => None,
     }

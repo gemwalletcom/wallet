@@ -33,12 +33,13 @@ public final class ConnectionsService: Sendable {
         store: ConnectionsStore,
         signer: any WalletConnectorSignable,
         nodeProvider: any NodeURLFetchable,
+        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
         preferences: Preferences = .standard,
     ) {
         self.init(
             store: store,
             signer: signer,
-            connector: WalletConnectorService(signer: signer, nodeProvider: nodeProvider),
+            connector: WalletConnectorService(signer: signer, nodeProvider: nodeProvider, requestInterceptor: requestInterceptor),
             preferences: preferences,
         )
     }

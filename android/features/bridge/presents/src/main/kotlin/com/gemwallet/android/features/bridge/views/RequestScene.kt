@@ -52,7 +52,7 @@ fun RequestScene(
     DisposableEffect(request.topic, request.request.id) {
         viewModel.onRequest(request, verifyContext) { error ->
             when (error) {
-                BridgeRequestError.ScamSession -> Toast.makeText(
+                BridgeRequestError.MaliciousSession -> Toast.makeText(
                     context,
                     R.string.errors_connections_malicious_origin,
                     Toast.LENGTH_LONG

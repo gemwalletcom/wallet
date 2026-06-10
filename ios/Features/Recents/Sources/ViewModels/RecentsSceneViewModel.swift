@@ -77,7 +77,7 @@ public final class RecentsSceneViewModel {
 extension RecentsSceneViewModel {
     func onSelectClear() {
         do {
-            try activityService.clearRecent(walletId: walletId, types: RecentActivityType.allCases)
+            try activityService.clearRecent(walletId: walletId, types: query.request.types)
         } catch {
             debugLog("RecentsSceneViewModel clear error: \(error)")
         }

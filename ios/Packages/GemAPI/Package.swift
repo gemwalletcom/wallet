@@ -11,6 +11,10 @@ let package = Package(
             targets: ["GemAPI"],
         ),
         .library(
+            name: "GemAPIDevice",
+            targets: ["GemAPIDevice"],
+        ),
+        .library(
             name: "GemAPITestKit",
             targets: ["GemAPITestKit"],
         ),
@@ -18,6 +22,7 @@ let package = Package(
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "SwiftHTTPClient", path: "../SwiftHTTPClient"),
+        .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
     ],
     targets: [
         .target(
@@ -27,6 +32,14 @@ let package = Package(
                 "SwiftHTTPClient",
             ],
             path: "Sources",
+        ),
+        .target(
+            name: "GemAPIDevice",
+            dependencies: [
+                "Primitives",
+                "GemstonePrimitives",
+            ],
+            path: "GemAPIDevice",
         ),
         .target(
             name: "GemAPITestKit",
@@ -41,6 +54,7 @@ let package = Package(
             name: "GemAPITests",
             dependencies: [
                 "GemAPI",
+                "GemAPIDevice",
                 "Primitives",
                 "SwiftHTTPClient",
             ],

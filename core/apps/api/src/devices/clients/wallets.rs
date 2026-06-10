@@ -1,11 +1,11 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::error::Error;
 
-use primitives::{Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains, WalletSubscriptionLegacy};
+use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains, WalletSubscriptionLegacy};
 use serde::Deserialize;
 use storage::models::NewWalletRow;
 use storage::sql_types::WalletType;
-use storage::{Database, WalletsRepository};
+use storage::{Database, DevicesRepository, WalletsRepository};
 use streamer::{ChainAddressPayload, StreamProducer, StreamProducerQueue};
 
 #[derive(Clone, Debug, Deserialize)]
@@ -52,6 +52,34 @@ impl WalletsClient {
             .map(|(wallet_id, mut chains)| {
                 chains.sort_by(|a, b| a.as_ref().cmp(b.as_ref()));
                 WalletSubscriptionChains { wallet_id, chains }
+            })
+            .collect())
+    }
+
+    pub fn get_wallet_subscriptions(&self, device_id: &str) -> Result<Vec<WalletSubscription>, Box<dyn Error + Send + Sync>> {
+        let device_row_id = self.database.devices()?.get_device_row_id(device_id)?;
+        let rows = self.database.wallets()?.get_subscriptions(device_row_id)?;
+        let mut subscriptions = BTreeMap::<String, (WalletId, WalletSource, BTreeMap<String, BTreeSet<Chain>>)>::new();
+
+        for (wallet, subscription, address) in rows {
+            subscriptions
+                .entry(wallet.wallet_id.0.id())
+                .or_insert_with(|| (wallet.wallet_id.0, wallet.source.0, BTreeMap::new()))
+                .2
+                .entry(address.address)
+                .or_default()
+                .insert(subscription.chain.0);
+        }
+
+        Ok(subscriptions
+            .into_values()
+            .map(|(wallet_id, source, addresses)| WalletSubscription {
+                wallet_id,
+                source: Some(source),
+                subscriptions: addresses
+                    .into_iter()
+                    .map(|(address, chains)| AddressChains::new(address, chains.into_iter().collect()))
+                    .collect(),
             })
             .collect())
     }

@@ -6,7 +6,7 @@ mod remote_types;
 use remote_types::*;
 type Swapper = swapper::swapper::GemSwapper;
 
-use crate::alien::{AlienProvider, AlienProviderWrapper};
+use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
 use primitives::{AssetId, Chain};
 use std::sync::Arc;
 
@@ -19,6 +19,7 @@ pub struct GemSwapper {
 impl GemSwapper {
     #[uniffi::constructor]
     pub fn new(rpc_provider: Arc<dyn AlienProvider>) -> Self {
+        let rpc_provider = coalescing_provider(rpc_provider);
         Self {
             inner: Swapper::new(Arc::new(AlienProviderWrapper::new(rpc_provider))),
         }

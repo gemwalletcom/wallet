@@ -1,4 +1,4 @@
-use crate::{SignatureScheme, SignerError};
+use crate::{CARDANO_EXTENDED_PRIVATE_KEY_LENGTH, SignatureScheme, SignerError};
 use primitives::hex::encode_with_0x;
 use primitives::{Chain, ChainType, decode_hex};
 use zeroize::Zeroizing;
@@ -32,15 +32,10 @@ pub fn supports_private_key_import(chain: &Chain) -> bool {
 
 fn scheme_for_chain(chain: &Chain) -> SignatureScheme {
     match chain.chain_type() {
-        ChainType::Solana
-        | ChainType::Ton
-        | ChainType::Aptos
-        | ChainType::Sui
-        | ChainType::Near
-        | ChainType::Stellar
-        | ChainType::Algorand
-        | ChainType::Polkadot
-        | ChainType::Cardano => SignatureScheme::Ed25519,
+        ChainType::Solana | ChainType::Ton | ChainType::Aptos | ChainType::Sui | ChainType::Near | ChainType::Stellar | ChainType::Algorand | ChainType::Polkadot => {
+            SignatureScheme::Ed25519
+        }
+        ChainType::Cardano => SignatureScheme::Ed25519CardanoExtended,
         _ => SignatureScheme::Secp256k1,
     }
 }
@@ -118,6 +113,12 @@ fn validate_key(bytes: &[u8], scheme: SignatureScheme) -> Result<(), SignerError
         }
         SignatureScheme::Secp256k1 => {
             k256::ecdsa::SigningKey::from_slice(bytes).map_err(|_| SignerError::invalid_input("Invalid secp256k1 private key"))?;
+            Ok(())
+        }
+        SignatureScheme::Ed25519CardanoExtended => {
+            if bytes.len() != CARDANO_EXTENDED_PRIVATE_KEY_LENGTH {
+                return Err(SignerError::invalid_input("Invalid Cardano extended private key"));
+            }
             Ok(())
         }
     }

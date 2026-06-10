@@ -1,0 +1,172 @@
+{
+  "activeAccounts": [
+    {
+      "address": "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3",
+      "coin": 60,
+      "derivationPath": "m/44'/60'/0'/0/0",
+      "publicKey": "043b3b6f8bb4a1ea77bc9fc10b7390e52b602bb8b8fc1e231fbdd6eb132793cdac62e7eaeef5a232a19df1f10cb84ca48f1c6c6b307f397929eb1786c4764f8d9a"
+    },
+    {
+      "address": "5T1JAioMm5vd9S5RE2JHBu3GVfG5FpUoV1BT5CNhZR2W",
+      "coin": 501,
+      "derivation": 6,
+      "derivationPath": "m/44'/501'/0'/0'",
+      "publicKey": "42182ef4baf63a1f67ca36299e5ef1c46566a0b53684baa5d0d5f5ec971a3e17"
+    },
+    {
+      "address": "12DZp5w1tmvaepTpTqmp6Nvk2WEkse8AFUiG4W25APZyKRSZ",
+      "coin": 354,
+      "derivationPath": "m/44'/354'/0'/0'/0'",
+      "publicKey": "35d1a1f90974dc7c8cd5f6adc9d4d31e0a0724de0a369ab7526ce8d453480906"
+    },
+    {
+      "address": "thor1ngzpatlqvytyt9lcd8nv3kdzsffvsw6s8a7jvt",
+      "coin": 931,
+      "derivationPath": "m/44'/931'/0'/0/0",
+      "publicKey": "03cc339bcdbccd9fd16b01a3b02ade8d426cac5ebfeb1e66f674a6ac5c77d20bed"
+    },
+    {
+      "address": "fe98763dab01089e10b52ccb233806c3021dc63a0082877ca967321a857114de",
+      "coin": 397,
+      "derivationPath": "m/44'/397'/0'",
+      "publicKey": "fe98763dab01089e10b52ccb233806c3021dc63a0082877ca967321a857114de"
+    },
+    {
+      "address": "ltc1qccg956d0m9jlzs4u5mysvj8ec8qcj66rw7k2fr",
+      "coin": 2,
+      "derivationPath": "m/84'/2'/0'/0/0",
+      "extendedPublicKey": "zpub6s8rddMofGg39KuYw4PQr5wLR8Av5pWwdt2JhUZNcbqcChDcPf523PsqsNJhc9oVUFNzUjCm7VpdQ3RfasRtAs9z4awEWwRfowXQHQ4nwnG",
+      "publicKey": "03d0da9e76ffdfa7829b07e6924c6a471c7af76c3d0169df3a62b5199e8c71fd83"
+    },
+    {
+      "address": "r91qWJ5oRrcWw1DgSpciLNvdbjw8ssNawT",
+      "coin": 144,
+      "derivationPath": "m/44'/144'/0'/0/0",
+      "publicKey": "02c339eaaef008534cfbef9f221e3800f62c2eb739d00be97f005a69c0efef18f8"
+    },
+    {
+      "address": "addr1qyf0uvg7xk4mtu3mvmjz6uf03wsl4nspud9kzmat5nqkczc5cvmgcldvtskf43alk5q6h8cqazxa4tqt7j3z542prxcqmru3nx",
+      "coin": 1815,
+      "derivationPath": "m/1852'/1815'/0'/0/0",
+      "publicKey": "3a9efd9add09118fdc3469ac421f9ee96d8c06333716ba490cc58606f2d97c1d3d13bdd9ab28652933e97a7dcd4f78188557ac5621bd27474707844ba7ad6dec0515db6232afaedb54cb8d32945df8cb948f4d8bd2fe183ac805493b4e0677649dd4b34189afe2b13a9115028020eaa63c7c7ded26abd3ede1ae817609b48705"
+    },
+    {
+      "address": "0x95daeb75699849ec41bd5c8a492abce2e518875c90b6c77889cf87c280e10f9b",
+      "coin": 637,
+      "derivationPath": "m/44'/637'/0'/0'/0'",
+      "publicKey": "cb9257c3f396a3f35cf9da88196809191508663ae15e289f1177e536ec5158e2"
+    },
+    {
+      "address": "4O3NSFTS35OQ4NPCLXXTZFOODSAPTTRGM72FV3B5ZTMFDI22VTZ4ARSAWI",
+      "coin": 283,
+      "derivationPath": "m/44'/283'/0'/0'/0'",
+      "publicKey": "e3b6d91672df5d0e35e25def3c95ce1c80f9ce2667f45aec3dccd851a35aacf3"
+    },
+    {
+      "address": "celestia1lm7665pwc6zsgsgkcd89ey6lkwcv2d9frxs9t9",
+      "coin": 21000118,
+      "derivationPath": "m/44'/118'/0'/0/0",
+      "publicKey": "0346045621985e955c3d0e08eebed9bac7e72c3892ffb503c870a56bac2b50f6c6"
+    },
+    {
+      "address": "0xcca956a89741ddb16bc0bbf672f33087646e79253a6dd0ea4d2ea5f3c9b8cd82",
+      "coin": 784,
+      "derivationPath": "m/44'/784'/0'/0'/0'",
+      "publicKey": "f8935413f25ebfdeddd59d5bb7f0420d7b202afad8c16d01e2fc74200c695670"
+    },
+    {
+      "address": "DSRbxo67Wf6ycz6ezzTYwabFp5eoqLJa6U",
+      "coin": 3,
+      "derivationPath": "m/44'/3'/0'/0/0",
+      "extendedPublicKey": "dgub8rK5Ec3rZRmQRJYzAgeujqdK92GWkrmQRWE2zwa43HhdDZxoHxQmQsxRhuSMc1KghSYoa7rX7Qq5qE2ikmBudtctgi9XmZ6ztHMuN5MwhQb",
+      "publicKey": "02ca90130a58b49adf0c99871898eecc713fbdc813cedd662331a5105e2f0e5abc"
+    },
+    {
+      "address": "cosmos1lm7665pwc6zsgsgkcd89ey6lkwcv2d9fjvp43g",
+      "coin": 118,
+      "derivationPath": "m/44'/118'/0'/0/0",
+      "publicKey": "0346045621985e955c3d0e08eebed9bac7e72c3892ffb503c870a56bac2b50f6c6"
+    },
+    {
+      "address": "inj1t28hpdz2lgqvkurptkwfeju6yjfna5knedqy2u",
+      "coin": 10000060,
+      "derivationPath": "m/44'/60'/0'/0/0",
+      "publicKey": "043b3b6f8bb4a1ea77bc9fc10b7390e52b602bb8b8fc1e231fbdd6eb132793cdac62e7eaeef5a232a19df1f10cb84ca48f1c6c6b307f397929eb1786c4764f8d9a"
+    },
+    {
+      "address": "sei1lm7665pwc6zsgsgkcd89ey6lkwcv2d9flqsrhf",
+      "coin": 19000118,
+      "derivationPath": "m/44'/118'/0'/0/0",
+      "publicKey": "0346045621985e955c3d0e08eebed9bac7e72c3892ffb503c870a56bac2b50f6c6"
+    },
+    {
+      "address": "bitcoincash:qpfv5m8dz4apglvzxqdgcx5hnz0fs4yy9y88l80xj0",
+      "coin": 145,
+      "derivationPath": "m/44'/145'/0'/0/0",
+      "extendedPublicKey": "xpub6DAnEo97QQp8toWpXm1rVvkfZysF2KogFfHbf26msDJYABmNd1h6UYDsDNtk8Sd7xUPDRy2eLRyBbmeGkA9CK3UwLF4r1Uj17ukuWnUQeih",
+      "publicKey": "0290cc235ea7ef121ea7fbe47e72e25a13880bb5ced8b0dd5bc17d78ad020e8681"
+    },
+    {
+      "address": "osmo1lm7665pwc6zsgsgkcd89ey6lkwcv2d9f6hj986",
+      "coin": 10000118,
+      "derivationPath": "m/44'/118'/0'/0/0",
+      "publicKey": "0346045621985e955c3d0e08eebed9bac7e72c3892ffb503c870a56bac2b50f6c6"
+    },
+    {
+      "address": "TNTqWwwez1nA3j67ZY6mAnTH5onpkkX3zM",
+      "coin": 195,
+      "derivationPath": "m/44'/195'/0'/0/0",
+      "publicKey": "046759cdc0036fe233b86f71af2d9886ba2c29372ddcc4c26cfef0d4df16f3b4dace12b9262ccabb67be828fd10e07c3dfa0d4205ec3900a4b03394511ecb78c63"
+    },
+    {
+      "address": "bc1qatdu3yntmctfzlss9f9htep4dahmrnsa54xx77",
+      "coin": 0,
+      "derivationPath": "m/84'/0'/0'/0/0",
+      "extendedPublicKey": "zpub6qPSHsjKxFaurmEWgHTPwi82XzCoudeC1ZDK1WYNuDQdHd44DzDyc6Vvunsz2h9yEhiFeTSBZfaU9aAEQw4fKwy8DAA7aobjurwrKj8gVnr",
+      "publicKey": "03806f1d330d5d3e2eaf2be3be6603d2f78a56e771af866459a10ec1f6e216a19f"
+    },
+    {
+      "address": "t1STWCD71AWwzi9JtdHrSCSzwFESP1uacEf",
+      "coin": 133,
+      "derivationPath": "m/44'/133'/0'/0/0",
+      "extendedPublicKey": "xpub6CMNHJW4gMDuGcUYEvZcshc6toqdJqm8C7DaC2d7D6rbnm3dGmT6oGG8wkbB6aWmn8GqcFd4JkEAsKPjBxpeSPnVKyjm9rEhhLTb2YTJpZv",
+      "publicKey": "03fb15d235fb77b0005ecac522f334ee0221dc1383d6cf1aea2fd01869cec31d09"
+    },
+    {
+      "address": "UQAFT9Qae6MlTbe54WOZdx3_XgJLokbgOgRn90q3rocS0zRr",
+      "coin": 607,
+      "derivationPath": "m/44'/607'/0'",
+      "publicKey": "bb964111d19b6f0c3fd6172f7f791d2739d986aa22afc65b926b6b6f946cf642"
+    },
+    {
+      "address": "noble1lm7665pwc6zsgsgkcd89ey6lkwcv2d9f605afx",
+      "coin": 18000118,
+      "derivationPath": "m/44'/118'/0'/0/0",
+      "publicKey": "0346045621985e955c3d0e08eebed9bac7e72c3892ffb503c870a56bac2b50f6c6"
+    },
+    {
+      "address": "GBC5NEYZLFZ76VNHXMLT7VWTE52ZFTDLMMVJK44OKACKMBRWS4OD32PD",
+      "coin": 148,
+      "derivationPath": "m/44'/148'/0'",
+      "publicKey": "45d693195973ff55a7bb173fd6d3277592cc6b632a95738e5004a60636971c3d"
+    }
+  ],
+  "crypto": {
+    "cipher": "aes-128-ctr",
+    "cipherparams": { "iv": "bfa2984b82367c13f23be2dfe8c5658e" },
+    "ciphertext": "55ca8a9328818a684ba8563a8882f4ea0f3d69d6ed8648032b97cc4842feabeece6994278a1019c75dc45584fb00a371b8ce98b5a67c2ac8f25c73e913a969bbacccd95dc7a2eabaf8afd1ed1752d1606ccf88c52f540d6726a46635b22b966973feabdec598f68e8f32bae8dd86a5241f293f10262df33a4c51d7a8b943172f5b32874ced27be5041d0fb5222a1bb38f65eff2ae3b71b4f999147e5e5d8cb15cb",
+    "kdf": "scrypt",
+    "kdfparams": {
+      "dklen": 32,
+      "n": 16384,
+      "p": 4,
+      "r": 8,
+      "salt": "8582aa4c09a2228226688b9b420f9dd0b3fd6a8d9d1d45646649646240504e16"
+    },
+    "mac": "2d1d27b4b39f95891f507ce94aadbd00cb19d9b431a9b29922929307928f17fc"
+  },
+  "id": "d4b27ee8-c826-4c5d-9d00-ad82f8269938",
+  "name": "Fixture Mnemonic",
+  "type": "mnemonic",
+  "version": 3
+}

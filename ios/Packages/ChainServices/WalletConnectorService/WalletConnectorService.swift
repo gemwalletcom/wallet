@@ -24,9 +24,13 @@ public final class WalletConnectorService {
     private let walletConnect = WalletConnect()
     private let simulationClient: WalletConnectSimulationClient
 
-    public init(signer: WalletConnectorSignable, nodeProvider: any NodeURLFetchable) {
+    public init(
+        signer: WalletConnectorSignable,
+        nodeProvider: any NodeURLFetchable,
+        requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
+    ) {
         self.signer = signer
-        simulationClient = WalletConnectSimulationClient(provider: NativeProvider(nodeProvider: nodeProvider))
+        simulationClient = WalletConnectSimulationClient(provider: NativeProvider(nodeProvider: nodeProvider, requestInterceptor: requestInterceptor))
     }
 }
 

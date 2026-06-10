@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.blockchain.operators.InvalidWords
-import com.gemwallet.android.blockchain.operators.walletcore.WCValidatePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
@@ -187,7 +187,7 @@ internal fun ImportInput(
 }
 
 private fun highlightErrors(text: String, errorColor: Color): AnnotatedString {
-    val validateResult = WCValidatePhraseOperator().invoke(text)
+    val validateResult = GemValidatePhraseOperator().invoke(text)
     val error = validateResult.exceptionOrNull()
     val invalidWords = (error as? InvalidWords)?.words.orEmpty().filter { it.isNotBlank() }.toSet()
 
