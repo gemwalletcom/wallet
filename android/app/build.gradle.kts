@@ -28,8 +28,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 779
-        versionName = "2.80"
+        versionCode = 782
+        versionName = "2.83"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -330,4 +330,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.uiautomator)
+    androidTestImplementation(testFixtures(project(":gemcore")))
 }

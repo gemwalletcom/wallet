@@ -18,8 +18,12 @@ impl From<hex::FromHexError> for HexError {
     }
 }
 
+pub fn encode(data: impl AsRef<[u8]>) -> String {
+    hex::encode(data)
+}
+
 pub fn encode_with_0x(data: &[u8]) -> String {
-    format!("0x{}", hex::encode(data))
+    format!("0x{}", encode(data))
 }
 
 pub fn parse_u64_from_hex_or_decimal(value: &str) -> Result<u64, HexError> {
@@ -75,6 +79,12 @@ mod tests {
         assert_eq!(decode_hex_array::<2>("0x0a0b").expect("decode"), [0x0a, 0x0b]);
         assert_eq!(decode_hex_array::<2>("a0b").expect("decode"), [0x0a, 0x0b]);
         assert!(decode_hex_array::<2>("0x0a").is_err());
+    }
+
+    #[test]
+    fn test_encode() {
+        assert_eq!(encode([0x0a, 0x0b]), "0a0b");
+        assert_eq!(encode_with_0x(&[0x0a, 0x0b]), "0x0a0b");
     }
 
     #[test]

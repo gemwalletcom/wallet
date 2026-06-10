@@ -76,6 +76,7 @@
 		C35DA07C2A9C3B4B008CCEFA /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = C35DA07B2A9C3B4B008CCEFA /* Settings */; };
 		C366790A2A0B7E5800F1D74D /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36679092A0B7E5800F1D74D /* Environment.swift */; };
 		C36679162A119C6200F1D74D /* GemAPI in Frameworks */ = {isa = PBXBuildFile; productRef = C36679152A119C6200F1D74D /* GemAPI */; };
+		C36679202F41000000F1D74D /* GemAPIDevice in Frameworks */ = {isa = PBXBuildFile; productRef = C366791F2F41000000F1D74D /* GemAPIDevice */; };
 		C366791D2A18623800F1D74D /* QRScanner in Frameworks */ = {isa = PBXBuildFile; productRef = C366791C2A18623800F1D74D /* QRScanner */; };
 		C3A7CB7C29CA5F7000431341 /* Store in Frameworks */ = {isa = PBXBuildFile; productRef = C3A7CB7B29CA5F7000431341 /* Store */; };
 		C3CF3B7729A98C7B00E96586 /* Blockchain in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3B7629A98C7B00E96586 /* Blockchain */; };
@@ -84,7 +85,6 @@
 		C3CF3BA729B5317300E96586 /* Keystore in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3BA629B5317300E96586 /* Keystore */; };
 		C3CF3BDB29BBE45D00E96586 /* Style in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3BDA29BBE45D00E96586 /* Style */; };
 		C3D1C4E22A2A9485006E8EEA /* Signer in Frameworks */ = {isa = PBXBuildFile; productRef = C3D1C4E12A2A9485006E8EEA /* Signer */; };
-		C3E99BBF2A71E932005DF35F /* WalletCorePrimitives in Frameworks */ = {isa = PBXBuildFile; productRef = C3E99BBE2A71E932005DF35F /* WalletCorePrimitives */; };
 		D80312AF2E2EE3E1005A5C77 /* PerpetualService in Frameworks */ = {isa = PBXBuildFile; productRef = D80312AE2E2EE3E1005A5C77 /* PerpetualService */; };
 		D807004A2BBB1FB600ED770B /* SettingsNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80700492BBB1FB600ED770B /* SettingsNavigationStack.swift */; };
 		D807004C2BBB26DD00ED770B /* TransactionsNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004B2BBB26DD00ED770B /* TransactionsNavigationStack.swift */; };
@@ -125,7 +125,7 @@
 		D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */ = {isa = PBXBuildFile; productRef = D8CF19E22CC747370025D6B4 /* Transfer */; };
 		D8CFDE9E2E37FC2500D27283 /* Style in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9D2E37FC2500D27283 /* Style */; };
 		D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9F2E37FC3B00D27283 /* Primitives */; };
-		D8CFDEA82E37FC8800D27283 /* Preferences in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA72E37FC8800D27283 /* Preferences */; };
+		D8CFDEA82E37FC8800D27283 /* SharedPreferences in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA72E37FC8800D27283 /* SharedPreferences */; };
 		D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA92E37FC8C00D27283 /* GemAPI */; };
 		D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAD2E37FCA800D27283 /* Formatters */; };
 		D8CFDEB02E37FCB000D27283 /* Components in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAF2E37FCB000D27283 /* Components */; };
@@ -295,7 +295,6 @@
 		D9F015752F10654000000001 /* InAppNotifications */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = InAppNotifications; sourceTree = "<group>"; };
 		DBA467CA776E4FE56A659D9C /* ConfirmTransferNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmTransferNavigationView.swift; sourceTree = "<group>"; };
 		DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		DFBDD9AE2C77EC90002A1706 /* WalletCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WalletCore; sourceTree = "<group>"; };
 		E1B4C7082E85B00000EARN01 /* Stake */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Stake; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -330,7 +329,6 @@
 				833931A82D2D663C0063BB6A /* PriceService in Frameworks */,
 				B6STREAM02F5000000000001 /* StreamService in Frameworks */,
 				839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */,
-				C3E99BBF2A71E932005DF35F /* WalletCorePrimitives in Frameworks */,
 				83D0114F2EFB6341009274B8 /* TransactionStateService in Frameworks */,
 				D8D203D32AE0818C00261CA2 /* SwiftHTTPClient in Frameworks */,
 				B60C6C352E68848900899BAC /* Support in Frameworks */,
@@ -359,6 +357,7 @@
 				D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */,
 				D83D3C252D6E62F4002959EA /* ScanService in Frameworks */,
 				C36679162A119C6200F1D74D /* GemAPI in Frameworks */,
+				C36679202F41000000F1D74D /* GemAPIDevice in Frameworks */,
 				D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */,
 				C3CF3B7729A98C7B00E96586 /* Blockchain in Frameworks */,
 				8352C8D52D393E05000DEDD9 /* ExplorerService in Frameworks */,
@@ -417,7 +416,7 @@
 				D8WIDGBF12345678901234 /* WidgetLocalization in Frameworks */,
 				D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */,
 				D8CFDEB02E37FCB000D27283 /* Components in Frameworks */,
-				D8CFDEA82E37FC8800D27283 /* Preferences in Frameworks */,
+				D8CFDEA82E37FC8800D27283 /* SharedPreferences in Frameworks */,
 				D838194B2E256A5A0076CDB3 /* SwiftUI.framework in Frameworks */,
 				D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */,
 				D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */,
@@ -658,7 +657,6 @@
 			children = (
 				837D7DE62E005D2800BBBDDA /* Formatters */,
 				832F57E92D36A6D50066024D /* Preferences */,
-				DFBDD9AE2C77EC90002A1706 /* WalletCore */,
 				D8EFE3EA2BAB580300608363 /* GemstonePrimitives */,
 				D8D203D12AE0813E00261CA2 /* SwiftHTTPClient */,
 				C36679142A0FF81000F1D74D /* GemAPI */,
@@ -814,9 +812,9 @@
 				C3CF3BDA29BBE45D00E96586 /* Style */,
 				C3A7CB7B29CA5F7000431341 /* Store */,
 				C36679152A119C6200F1D74D /* GemAPI */,
+				C366791F2F41000000F1D74D /* GemAPIDevice */,
 				C366791C2A18623800F1D74D /* QRScanner */,
 				C3D1C4E12A2A9485006E8EEA /* Signer */,
-				C3E99BBE2A71E932005DF35F /* WalletCorePrimitives */,
 				C35DA07B2A9C3B4B008CCEFA /* Settings */,
 				D8D203D22AE0818C00261CA2 /* SwiftHTTPClient */,
 				DF8421ED2C1526ED003F558C /* GemstonePrimitives */,
@@ -970,7 +968,7 @@
 			packageProductDependencies = (
 				D8CFDE9D2E37FC2500D27283 /* Style */,
 				D8CFDE9F2E37FC3B00D27283 /* Primitives */,
-				D8CFDEA72E37FC8800D27283 /* Preferences */,
+				D8CFDEA72E37FC8800D27283 /* SharedPreferences */,
 				D8CFDEA92E37FC8C00D27283 /* GemAPI */,
 				D8CFDEAD2E37FCA800D27283 /* Formatters */,
 				D8CFDEAF2E37FCB000D27283 /* Components */,
@@ -1495,7 +1493,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gem/Resources/Gem.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
@@ -1529,7 +1527,7 @@
 				);
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.80;
+				MARKETING_VERSION = 2.83;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-lgemstone",
@@ -1560,7 +1558,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
@@ -1596,7 +1594,7 @@
 				);
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.80;
+				MARKETING_VERSION = 2.83;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-lgemstone",
@@ -1625,7 +1623,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1646,7 +1644,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1666,7 +1664,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1687,7 +1685,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1712,7 +1710,7 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1726,7 +1724,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.80;
+				MARKETING_VERSION = 2.83;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1747,7 +1745,7 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1761,7 +1759,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.80;
+				MARKETING_VERSION = 2.83;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1779,7 +1777,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1802,7 +1800,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 137;
+				CURRENT_PROJECT_VERSION = 140;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2048,6 +2046,10 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = GemAPI;
 		};
+		C366791F2F41000000F1D74D /* GemAPIDevice */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GemAPIDevice;
+		};
 		C366791C2A18623800F1D74D /* QRScanner */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = QRScanner;
@@ -2079,10 +2081,6 @@
 		C3D1C4E12A2A9485006E8EEA /* Signer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Signer;
-		};
-		C3E99BBE2A71E932005DF35F /* WalletCorePrimitives */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = WalletCorePrimitives;
 		};
 		D80312AE2E2EE3E1005A5C77 /* PerpetualService */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2244,9 +2242,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Primitives;
 		};
-		D8CFDEA72E37FC8800D27283 /* Preferences */ = {
+		D8CFDEA72E37FC8800D27283 /* SharedPreferences */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Preferences;
+			productName = SharedPreferences;
 		};
 		D8CFDEA92E37FC8C00D27283 /* GemAPI */ = {
 			isa = XCSwiftPackageProductDependency;

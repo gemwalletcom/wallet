@@ -70,6 +70,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 prices::get_charts,
                 prices::get_fiat_rates,
                 webhooks::create_webhook,
+                webhooks::create_webhook_with_header,
                 config::get_config,
                 assets::get_asset,
                 assets::get_assets,
@@ -156,6 +157,9 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
         rocket.mount(
             "/v1/admin",
             routes![
+                admin::devices::get_device,
+                admin::devices::get_device_subscriptions,
+                admin::devices::get_device_transactions,
                 admin::assets::add_asset,
                 admin::transactions::add_transaction,
                 admin::prices::add_price,

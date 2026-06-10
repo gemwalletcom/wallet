@@ -1,0 +1,15 @@
+pub(super) const WHOLE_FILE_CAP: usize = 128 * 1024;
+pub(super) const CIPHERTEXT_CAP: usize = 64 * 1024;
+pub(super) const MNEMONIC_PLAINTEXT_CAP: usize = 512;
+pub(super) const V3_PASSWORD_CAP: usize = 1024 * 1024;
+pub(super) const AES_128_KEY_LEN: usize = 16;
+pub(super) const AES_128_CTR_IV_LEN: usize = 16;
+pub(super) const DERIVED_KEY_LEN: usize = 32;
+pub(super) const MAC_LEN: usize = 32;
+pub(super) const MIN_SALT_LEN: usize = 16;
+pub(super) const MAX_SALT_LEN: usize = 64;
+pub(super) const MAX_SCRYPT_N: u64 = 16_384;
+pub(super) const MAX_SCRYPT_R: u32 = 8;
+pub(super) const MAX_SCRYPT_P: u32 = 4;
+pub(super) const V3_CIPHER: &str = "aes-128-ctr";
+pub(super) const V3_KDF: &str = "scrypt";

@@ -5,7 +5,7 @@ use primitives::{SignerError, SignerInput, TransactionFee};
 use solana_primitives::sign_message as sign_solana_message;
 
 pub(crate) fn sign(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-    let swap_data = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+    let swap_data = input.input_type.get_swap_data()?;
     let transaction_base64 = &swap_data.data.data;
 
     let unit_price = input.fee.unit_price_u64()?;

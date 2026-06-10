@@ -109,7 +109,6 @@ class PricesWidget : GlanceAppWidget() {
 
     companion object {
         init {
-            System.loadLibrary("TrustWalletCore")
             System.loadLibrary("gemstone")
         }
     }

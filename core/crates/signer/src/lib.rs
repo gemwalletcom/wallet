@@ -10,6 +10,8 @@ pub(crate) mod testkit {
     pub const TEST_PRIVATE_KEY: &str = "1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34";
 }
 
+use zeroize::Zeroizing;
+
 pub use crate::address::Base32Address;
 pub use crate::ed25519::{ED25519_KEY_TYPE, Ed25519KeyPair};
 pub use crate::error::InvalidInput;
@@ -22,26 +24,32 @@ pub use decode::{decode_private_key, encode_private_key, supports_private_key_im
 pub use eip712::{hash_typed_data as hash_eip712, validate_eip712_domain_chain_id_binding};
 pub use primitives::SignerError;
 
+pub const CARDANO_EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
+
 #[derive(Debug, Default)]
 pub struct Signer;
 
 #[derive(Clone, Copy, Debug)]
 pub enum SignatureScheme {
     Ed25519,
+    Ed25519CardanoExtended,
     Secp256k1,
 }
 
 impl Signer {
     pub fn sign_digest(scheme: SignatureScheme, digest: &[u8], private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
+        let private_key = Zeroizing::new(private_key.to_vec());
         match scheme {
-            SignatureScheme::Ed25519 => Ok(Ed25519KeyPair::from_private_key(private_key)?.sign(digest).to_vec()),
-            SignatureScheme::Secp256k1 => secp256k1::sign_digest_append_recovery(digest, private_key),
+            SignatureScheme::Ed25519 => Ok(Ed25519KeyPair::from_private_key(private_key.as_slice())?.sign(digest).to_vec()),
+            SignatureScheme::Ed25519CardanoExtended => Err(SignerError::signing_error("Cardano extended key signing is handled by gem_cardano")),
+            SignatureScheme::Secp256k1 => secp256k1::sign_digest_append_recovery(digest, private_key.as_slice()),
         }
     }
 
     /// Sign a secp256k1 digest returning [r(32), s(32), v(1)] where v ∈ {27, 28}.
     pub fn sign_ethereum_digest(digest: &[u8], private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
-        secp256k1::sign_ethereum_digest(digest, private_key)
+        let private_key = Zeroizing::new(private_key.to_vec());
+        secp256k1::sign_ethereum_digest(digest, private_key.as_slice())
     }
 
     pub fn sign_eip712(typed_data_json: &str, private_key: &[u8]) -> Result<String, SignerError> {

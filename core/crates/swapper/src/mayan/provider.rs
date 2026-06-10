@@ -108,9 +108,9 @@ where
             .get_quotes(
                 QuoteParams {
                     amount_in64: from_value.clone(),
-                    from_token: token_id_for_asset(&from_asset),
+                    from_token: token_id_for_asset(&from_asset)?,
                     from_chain: wormhole_chain::name_for_chain(from_asset.chain)?.to_string(),
-                    to_token: token_id_for_asset(&to_asset),
+                    to_token: token_id_for_asset(&to_asset)?,
                     to_chain: wormhole_chain::name_for_chain(to_asset.chain)?.to_string(),
                     referrer: default_referral_address(Chain::Solana),
                     referrer_bps: referral_fees.bps_for_chain(from_asset.chain),
@@ -323,6 +323,26 @@ mod tests {
         let quote = provider.get_quote(&request).await.unwrap();
 
         assert_eq!(quote.to_value, "602333700");
+    }
+
+    #[tokio::test]
+    async fn test_get_quote_rejects_hypercore_native_asset_before_quote_request() {
+        let price_client = MockClient::new().with_get(|_| panic!("unsupported asset should not call Mayan"));
+        let provider = Mayan::with_clients(
+            MayanClient::new(price_client),
+            MayanClient::new(MockClient::new()),
+            Arc::new(ProviderMock::new("{}".to_string())),
+        );
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::HyperCore)),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: "30000000000000000".to_string(),
+            options: Options::default(),
+        };
+
+        assert_eq!(provider.get_quote(&request).await.unwrap_err(), SwapperError::NotSupportedAsset);
     }
 
     #[test]

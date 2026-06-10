@@ -70,7 +70,6 @@ class App : Application(), SingletonImageLoader.Factory, Application.ActivityLif
 
     companion object {
         init {
-            System.loadLibrary("TrustWalletCore")
             System.loadLibrary("gemstone")
         }
     }

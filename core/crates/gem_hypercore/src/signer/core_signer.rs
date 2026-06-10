@@ -24,7 +24,6 @@ use crate::{
     models::timestamp::TimestampField,
 };
 
-const AGENT_NAME_PREFIX: &str = "gemwallet_";
 const REFERRAL_CODE: &str = "GEMWALLET";
 const BUILDER_ADDRESS: &str = "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc";
 
@@ -47,7 +46,7 @@ impl HyperCoreSigner {
             transactions.push(self.sign_set_referrer(private_key, REFERRAL_CODE, timestamp_incrementer.next_val())?);
         }
         if order.approve_agent_required {
-            transactions.push(self.sign_approve_agent(&order.agent_address, private_key, timestamp_incrementer.next_val())?);
+            transactions.push(self.sign_approve_agent(&order.agent_address, &order.agent_name, private_key, timestamp_incrementer.next_val())?);
         }
         if order.approve_builder_required {
             transactions.push(self.sign_approve_builder_address(private_key, BUILDER_ADDRESS, order.builder_fee_bps, timestamp_incrementer.next_val())?);
@@ -64,7 +63,7 @@ impl HyperCoreSigner {
     }
 
     fn sign_swap_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<Vec<String>> {
-        let swap_data = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+        let swap_data = input.input_type.get_swap_data()?;
 
         if let TransactionInputType::Swap(from_asset, to_asset, _) = &input.input_type
             && is_spot_swap(from_asset.chain(), to_asset.chain())
@@ -145,9 +144,8 @@ impl HyperCoreSigner {
         self.sign_action(typed_data_json, &action, timestamp.value, private_key)
     }
 
-    fn sign_approve_agent(&self, agent_address: &str, private_key: &[u8], timestamp: u64) -> SignerResult<String> {
-        let agent_name = format!("{}{}", AGENT_NAME_PREFIX, &agent_address[agent_address.len().saturating_sub(6)..]);
-        let agent = ApproveAgent::new(agent_address.to_string(), agent_name, timestamp);
+    fn sign_approve_agent(&self, agent_address: &str, agent_name: &str, private_key: &[u8], timestamp: u64) -> SignerResult<String> {
+        let agent = ApproveAgent::new(agent_address.to_string(), agent_name.to_string(), timestamp);
         self.sign_serialized_action(agent, timestamp, private_key, approve_agent_typed_data, "approve agent")
     }
 
@@ -400,7 +398,8 @@ mod tests {
     use crate::core::actions::Grouping;
     use num_bigint::BigUint;
     use primitives::{
-        Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput,
+        Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, SignerInput, StakeType, TransactionFee, TransactionInputType,
+        TransactionLoadInput,
     };
 
     #[test]
@@ -479,6 +478,30 @@ mod tests {
         let undelegate_nonce = undelegate["action"]["nonce"].as_u64().expect("nonce");
         let withdraw_nonce = withdraw["action"]["nonce"].as_u64().expect("nonce");
         assert!(undelegate_nonce < withdraw_nonce, "unstake actions should advance nonce");
+    }
+
+    #[test]
+    fn approve_agent_uses_order_agent_name() {
+        let signer = HyperCoreSigner;
+        let order = HyperliquidOrder {
+            approve_agent_required: true,
+            approve_referral_required: false,
+            approve_builder_required: false,
+            builder_fee_bps: 45,
+            agent_name: "oldest".to_string(),
+            agent_address: "0xbec81216a5edeaed508709d8526078c750e307ad".to_string(),
+            agent_private_key: String::new(),
+        };
+        let private_key = [1u8; 32];
+        let mut timestamp_incrementer = NumberIncrementer::new(1753576844319);
+
+        let responses = signer.sign_approval_transactions(&order, &private_key, &mut timestamp_incrementer).unwrap();
+        let request: serde_json::Value = serde_json::from_str(&responses[0]).unwrap();
+
+        assert_eq!(responses.len(), 1);
+        assert_eq!(request["action"]["type"], "approveAgent");
+        assert_eq!(request["action"]["agentAddress"], "0xbec81216a5edeaed508709d8526078c750e307ad");
+        assert_eq!(request["action"]["agentName"], "oldest");
     }
 
     #[test]

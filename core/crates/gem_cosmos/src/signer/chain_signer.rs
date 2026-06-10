@@ -28,7 +28,7 @@ impl ChainSigner for CosmosChainSigner {
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-        let swap_data = input.input_type.get_swap_data().map_err(SignerError::invalid_input)?;
+        let swap_data = input.input_type.get_swap_data()?;
         let chain = Self::chain(input)?;
 
         let messages = CosmosMessage::parse_array(&swap_data.data.data)?;

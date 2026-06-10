@@ -1,8 +1,8 @@
+import Foundation
 @testable import Keystore
 import KeystoreTestKit
 import Primitives
 import Testing
-import WalletCore
 
 struct LocalKeystoreTests {
     let chains: [Chain] = [.ethereum, .solana]
@@ -62,10 +62,10 @@ struct LocalKeystoreTests {
             )
 
             #expect(wallet.accounts == chains.map {
-                Account(chain: $0,
-                        address: "0x8f348F300873Fd5DA36950B2aC75a26584584feE",
-                        derivationPath: "m/44'/60'/0'/0/0",
-                        extendedPublicKey: "")
+                        Account(chain: $0,
+                                address: "0x8f348F300873Fd5DA36950B2aC75a26584584feE",
+                                derivationPath: "m/44'/60'/0'/0/0",
+                                extendedPublicKey: "045a0c6b83b8bd9827e507270cadb499b7e3a9095246f6a2213281f783d877c98b256742741b0639f317768fe4f4c2762660c2112283a7685d815507dee3229173")
             })
         }
     }
@@ -93,8 +93,9 @@ struct LocalKeystoreTests {
                 source: .import,
             )
             let exportedKey = try await keystore2.getPrivateKey(wallet: wallet2, chain: .solana)
+            let originalKey = try #require(Data(fromHex: hex))
 
-            #expect(Base58.encodeNoCheck(data: exportedKey) == exported)
+            #expect(exportedKey == originalKey)
         }
     }
 
@@ -113,24 +114,6 @@ struct LocalKeystoreTests {
             let exported = try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: .ethereum)
             #expect(exported == hex)
         }
-    }
-
-    @Test
-    func signSolanaMessage() async throws {
-        let keystore = LocalKeystore.mock()
-        let wallet = try await keystore.importWallet(
-            name: "Test Solana",
-            type: .phrase(words: LocalKeystore.words, chains: [.solana]),
-            isWalletsEmpty: true,
-            source: .import,
-        )
-
-        let text = "5A2EYggC6hiAAuRArnkAANGySDyqQUGrbBHXfKQD9DQ5XcSkReDswnRqb7x3KRrnie9qSL"
-        let hash = try #require(Base58.decodeNoCheck(string: text))
-        let signature = try await keystore.sign(hash: hash, wallet: wallet, chain: .solana)
-        let encoded = Base58.encodeNoCheck(data: signature)
-
-        #expect(encoded == "5ZRaXVuDePowJjZmKaMjfcuqBVZet6e8QiCjTkGXBn7xhCvoEswUKXiGs2wmPxcqTfJUH28eCC91J1vLSjANNM9v")
     }
 
     @Test
@@ -306,7 +289,7 @@ struct LocalKeystoreTests {
 
     @Test
     func concurrentImportAndDelete() async throws {
-        let keystore = LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: "test-password"))
+        let keystore = LocalKeystore.mock(keystorePassword: MockKeystorePassword(memoryPassword: LocalKeystore.password))
 
         let wallets = try await withThrowingTaskGroup(of: Primitives.Wallet.self) { group in
             for index in 0 ..< 5 {

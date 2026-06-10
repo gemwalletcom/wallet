@@ -1,3 +1,4 @@
+pub mod api_client;
 pub mod asset;
 pub mod asset_address;
 pub mod asset_usage_rank;
@@ -28,8 +29,8 @@ pub mod transaction;
 pub mod transaction_addresses;
 pub mod username;
 pub mod wallet;
-pub mod webhook;
 
+pub use self::api_client::{ApiClientGrant, ApiClientResource, ApiClientRow, ApiClientScope};
 pub use self::asset::{AssetLinkRow, AssetRow, NewAssetRow};
 pub use self::asset_address::{AssetAddressRow, AssetAddressRowsExt};
 pub use self::asset_usage_rank::AssetUsageRankRow;
@@ -62,4 +63,3 @@ pub use self::transaction::{NewTransactionRow, TransactionRow};
 pub use self::transaction_addresses::{AddressChainIdResultRow, NewTransactionAddressesRow, TransactionAddressesRow};
 pub use self::username::{NewUsernameRow, UsernameRow};
 pub use self::wallet::{NewWalletAddressRow, NewWalletRow, NewWalletSubscriptionRow, WalletAddressRow, WalletRow, WalletSubscriptionRow};
-pub use self::webhook::NewWebhookEndpointRow;

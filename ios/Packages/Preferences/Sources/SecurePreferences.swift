@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import CryptoKit
 import Foundation
+import GemstonePrimitives
 import Keychain
 import Primitives
 
@@ -56,9 +56,9 @@ public final class SecurePreferences: Sendable {
             return (privateKey, publicKey)
         }
 
-        let privateKey = Curve25519.Signing.PrivateKey()
-        let publicKey = try set(value: privateKey.publicKey.rawRepresentation, key: .devicePublicKey)
-        let privateKeyData = try set(value: privateKey.rawRepresentation, key: .devicePrivateKey)
+        let keyPair = generateDeviceKeyPair()
+        let publicKey = try set(value: keyPair.publicKey, key: .devicePublicKey)
+        let privateKeyData = try set(value: keyPair.privateKey, key: .devicePrivateKey)
         return (privateKeyData, publicKey)
     }
 

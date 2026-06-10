@@ -2,9 +2,8 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.confirm.coordinators.ConfirmTransaction
-import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
 import com.gemwallet.android.blockchain.services.BroadcastService
-import com.gemwallet.android.blockchain.services.SignClientProxy
+import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
 import com.gemwallet.android.cases.transactions.CreateTransaction
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.domains.confirm.ConfirmError
@@ -25,12 +24,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Arrays
 
 class ConfirmTransactionImpl(
     private val passwordStore: PasswordStore,
-    private val loadPrivateKeyOperator: LoadPrivateKeyOperator,
-    private val signClient: SignClientProxy,
+    private val signTransactionOperator: GemSignTransactionOperator,
     private val broadcastService: BroadcastService,
     private val createTransactionsCase: CreateTransaction,
     private val assetsRepository: AssetsRepository,
@@ -44,7 +41,7 @@ class ConfirmTransactionImpl(
     ): String {
         val account = assetInfo.owner ?: throw ConfirmError.TransactionIncorrect
 
-        val signs = sign(signerParams, session, assetInfo)
+        val signs = sign(signerParams, session)
         if (signs.isEmpty()) {
             throw IllegalStateException("Not implemented")
         }
@@ -73,24 +70,16 @@ class ConfirmTransactionImpl(
     private suspend fun sign(
         signerParams: SignerParams,
         session: Session,
-        assetInfo: AssetInfo,
     ): List<ByteArray> {
-        val key = loadPrivateKeyOperator(
-            session.wallet,
-            assetInfo.id().chain,
-            passwordStore.getPassword(session.wallet.id.id)
-        )
-        val sign = try {
-            signClient.signTransaction(
-                params = signerParams,
-                privateKey = key
+        return try {
+            signTransactionOperator(
+                session.wallet,
+                signerParams,
+                passwordStore.getPassword(session.wallet.id.id),
             )
         } catch (_: Throwable) {
             throw ConfirmError.SignFail
-        } finally {
-            Arrays.fill(key, 0)
         }
-        return sign
     }
 
     private suspend fun addTransaction(

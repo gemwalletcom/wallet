@@ -13,7 +13,9 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 alloy-primitives = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
+gem_hash = { path = "../gem_hash" }
 ed25519-dalek = { workspace = true }
+zeroize = { workspace = true }
 
 # Optional dependencies for client feature (server-side only)
 cacher = { path = "../cacher", optional = true }

@@ -10,7 +10,7 @@ pub use preferences::EmptyPreferences;
 pub use preferences::GemPreferences;
 pub(crate) use preferences::PreferencesWrapper;
 
-use crate::alien::{AlienProvider, AlienProviderWrapper};
+use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
 use crate::api_client::GemApiClient;
 use crate::models::*;
 use crate::transaction_state::StatusProvider;
@@ -51,6 +51,7 @@ impl GemGateway {
 impl GemGateway {
     #[uniffi::constructor]
     pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferences>, secure_preferences: Arc<dyn GemPreferences>, api_url: String) -> Self {
+        let provider = coalescing_provider(provider);
         let api_client = GemApiClient::new(api_url, provider.clone());
         let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
         let alien_wrapper = Arc::new(AlienProviderWrapper::new(provider));
@@ -128,7 +129,7 @@ impl GemGateway {
         let metadata = self
             .with_provider(chain, |provider| async move { provider.get_transaction_preload(preload_input).await })
             .await?;
-        Ok(metadata.into())
+        Ok(metadata)
     }
 
     pub async fn get_transaction_scan(&self, _chain: Chain, input: GemTransactionPreloadInput) -> Result<Option<GemScanTransaction>, GatewayError> {
@@ -161,7 +162,7 @@ impl GemGateway {
 
         Ok(GemTransactionData {
             fee: load_data.fee.into(),
-            metadata: load_data.metadata.into(),
+            metadata: load_data.metadata,
         })
     }
 

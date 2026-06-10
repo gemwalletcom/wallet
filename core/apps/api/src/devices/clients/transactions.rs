@@ -1,9 +1,12 @@
 use std::error::Error;
 
 use primitives::{AssetId, Transaction, TransactionId, TransactionsResponse};
-use storage::{Database, ScanAddressesRepository, TransactionsRepository, WalletsRepository};
+use storage::models::TransactionRow;
+use storage::{Database, DevicesRepository, ScanAddressesRepository, TransactionsRepository, WalletsRepository};
 
 use chrono::{DateTime, Utc};
+
+const DEVICE_TRANSACTIONS_LIMIT: i64 = 50;
 
 pub struct TransactionsClient {
     database: Database,
@@ -26,13 +29,35 @@ impl TransactionsClient {
         let addresses = subscriptions.iter().map(|(_, addr)| addr.address.clone()).collect::<Vec<_>>();
         let chains = subscriptions.iter().map(|(sub, _)| sub.chain.0.as_ref().to_string()).collect::<Vec<_>>();
         let from_datetime = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
-        let transactions = self
+        let rows = self
             .database
             .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime)?
-            .into_iter()
-            .map(|x| x.as_primitive(addresses.clone()).finalize(addresses.clone()))
-            .collect::<Vec<_>>();
+            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, None)?;
+
+        self.transactions_response(rows, addresses)
+    }
+
+    pub fn get_transactions_by_device_id(&self, device_id: &str) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
+        let device_row_id = self.database.devices()?.get_device_row_id(device_id)?;
+        let subscriptions = self.database.wallets()?.get_subscriptions(device_row_id)?;
+        let addresses = subscriptions.iter().map(|(_, _, addr)| addr.address.clone()).collect::<Vec<_>>();
+        let chains = subscriptions.iter().map(|(_, sub, _)| sub.chain.0.as_ref().to_string()).collect::<Vec<_>>();
+
+        if addresses.is_empty() || chains.is_empty() {
+            return Ok(TransactionsResponse::new(Vec::new(), Vec::new()));
+        }
+
+        let rows = self
+            .database
+            .transactions()?
+            .get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, Some(DEVICE_TRANSACTIONS_LIMIT))?;
+
+        self.transactions_response(rows, addresses)
+    }
+
+    fn transactions_response(&self, rows: Vec<TransactionRow>, addresses: Vec<String>) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
+        let transactions = rows.into_iter().map(|x| x.as_primitive(addresses.clone()).finalize(addresses.clone())).collect::<Vec<_>>();
+
         let address_names = self
             .database
             .scan_addresses()?

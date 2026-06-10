@@ -7,8 +7,7 @@ import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.GetSwapSupported
 import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
 import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
-import com.gemwallet.android.blockchain.operators.LoadPrivateKeyOperator
-import com.gemwallet.android.blockchain.services.SignClientProxy
+import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.data.coordinators.swap.BuildSwapConfirmParamsImpl
 import com.gemwallet.android.data.coordinators.swap.GetSwapQuoteDataImpl
 import com.gemwallet.android.data.coordinators.swap.GetSwapQuotesImpl
@@ -51,14 +50,12 @@ object SwapModule {
     @Provides
     fun provideGetSwapQuoteData(
         gemSwapper: GemSwapper,
-        signClient: SignClientProxy,
         passwordStore: PasswordStore,
-        loadPrivateKeyOperator: LoadPrivateKeyOperator,
+        signMessageOperator: GemSignMessageOperator,
     ): GetSwapQuoteData = GetSwapQuoteDataImpl(
         gemSwapper = gemSwapper,
-        signClient = signClient,
         passwordStore = passwordStore,
-        loadPrivateKeyOperator = loadPrivateKeyOperator,
+        signMessageOperator = signMessageOperator,
     )
 
     @Singleton

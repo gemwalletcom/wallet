@@ -202,6 +202,7 @@ extension GemHyperliquidOrder {
             approveReferralRequired: approveReferralRequired,
             approveBuilderRequired: approveBuilderRequired,
             builderFeeBps: UInt32(builderFeeBps),
+            agentName: agentName,
             agentAddress: agentAddress,
             agentPrivateKey: agentPrivateKey,
         )
@@ -215,6 +216,7 @@ extension HyperliquidOrder {
             approveReferralRequired: approveReferralRequired,
             approveBuilderRequired: approveBuilderRequired,
             builderFeeBps: builderFeeBps,
+            agentName: agentName,
             agentAddress: agentAddress,
             agentPrivateKey: agentPrivateKey,
         )

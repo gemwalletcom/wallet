@@ -1,0 +1,32 @@
+[package]
+name = "gem_derivation"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+gem_algorand = { path = "../gem_algorand" }
+gem_aptos = { path = "../gem_aptos" }
+gem_bitcoin = { path = "../gem_bitcoin", features = ["signer"] }
+gem_cardano = { path = "../gem_cardano", features = ["signer"] }
+gem_cosmos = { path = "../gem_cosmos" }
+gem_crypto = { path = "../gem_crypto", features = ["hash", "pbkdf"] }
+gem_evm = { path = "../gem_evm" }
+gem_hash = { path = "../gem_hash" }
+gem_keystore = { path = "../gem_keystore" }
+gem_polkadot = { path = "../gem_polkadot" }
+gem_solana = { path = "../gem_solana", default-features = false }
+gem_stellar = { path = "../gem_stellar", features = ["signer"] }
+gem_sui = { path = "../gem_sui" }
+gem_ton = { path = "../gem_ton", features = ["signer"] }
+gem_tron = { path = "../gem_tron", default-features = false }
+gem_xrp = { path = "../gem_xrp" }
+bitcoin = { workspace = true }
+bs58 = { workspace = true }
+primitives = { path = "../primitives" }
+signer = { path = "../signer" }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+primitives = { path = "../primitives", features = ["testkit"] }
+serde = { workspace = true }
+serde_json = { workspace = true }

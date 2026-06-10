@@ -1,4 +1,4 @@
-use bitcoin::hashes::{Hash, hash160 as bitcoin_hash160, sha256d};
+use bitcoin::hashes::{Hash, sha256d};
 use primitives::SignerError;
 
 pub(crate) const HASH160_LEN: usize = 20;
@@ -8,7 +8,7 @@ pub(crate) fn double_sha256(bytes: &[u8]) -> [u8; 32] {
 }
 
 pub(crate) fn hash160(bytes: &[u8]) -> [u8; HASH160_LEN] {
-    bitcoin_hash160::Hash::hash(bytes).to_byte_array()
+    gem_hash::sha2::hash160(bytes)
 }
 
 pub(crate) fn public_key_hash(public_key: &[u8]) -> [u8; HASH160_LEN] {

@@ -1,8 +1,7 @@
 package com.gemwallet.android.services
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.CreateAccountOperator
-import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
+import com.gemwallet.android.blockchain.operators.AddAccountsOperator
 import com.gemwallet.android.cases.device.SyncSubscription
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
@@ -20,9 +19,8 @@ import javax.inject.Singleton
 class CheckAccountsService @Inject constructor(
     private val walletsRepository: WalletsRepository,
     private val assetsRepository: AssetsRepository,
-    private val loadPrivateDataOperator: LoadPrivateDataOperator,
+    private val addAccountsOperator: AddAccountsOperator,
     private val passwordStore: PasswordStore,
-    private val createAccountOperator: CreateAccountOperator,
     private val syncSubscription: SyncSubscription,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
@@ -44,9 +42,13 @@ class CheckAccountsService @Inject constructor(
             val accountChains = wallet.accounts.map { it.chain }.toSet()
             val newChains = Chain.available().filterNot(accountChains::contains)
 
-            if (newChains.isNotEmpty()) {
-                val data = loadPrivateDataOperator(wallet, passwordStore.getPassword(wallet.id.id))
-                val newAccounts = newChains.map { createAccountOperator(wallet.type, data, it) }
+            // Backfill new chains via add_accounts, skips gracefully if the v4 keystore isn't ready (e.g. migration pending) and retries next launch.
+            val newAccounts = if (newChains.isNotEmpty()) {
+                runCatching { addAccountsOperator(wallet, newChains, passwordStore.getPassword(wallet.id.id)) }.getOrNull()
+            } else {
+                null
+            }
+            if (newAccounts != null) {
                 val newWallet = wallet.copy(accounts = wallet.accounts + newAccounts)
                 walletsRepository.updateWallet(newWallet)
                 walletsRepository.updateAccounts(newWallet)

@@ -22,8 +22,16 @@ pub enum UserAbstractionMode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AgentSession {
+    pub name: String,
     pub address: String,
     pub valid_until: UInt64,
+}
+
+pub(crate) struct AgentApproval {
+    pub(crate) approval_required: bool,
+    pub(crate) name: String,
+    pub(crate) address: String,
+    pub(crate) private_key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -151,10 +151,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public func signMessage() async throws {
-        var privateKey = try await keystore.getPrivateKey(wallet: payload.wallet, chain: payload.chain)
-        defer { privateKey.zeroize() }
-
-        let signature = try signer.sign(privateKey: privateKey)
+        let signature = try await keystore.signMessage(signer: signer, wallet: payload.wallet)
         confirmTransferDelegate(.success(signature))
     }
 }

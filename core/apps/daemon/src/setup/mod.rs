@@ -12,13 +12,14 @@ use settings::Settings;
 use std::collections::HashSet;
 use storage::Database;
 use storage::models::{
-    ChartRow, ConfigRow, FiatAssetRow, FiatProviderCountryRow, FiatRateRow, NewFiatTransactionRow, NewWebhookEndpointRow, PriceAssetRow, UpdateDeviceRow, price::NewPriceRow,
+    ApiClientGrant, ApiClientResource, ChartRow, ConfigRow, FiatAssetRow, FiatProviderCountryRow, FiatRateRow, NewFiatTransactionRow, PriceAssetRow, UpdateDeviceRow,
+    price::NewPriceRow,
 };
 use storage::sql_types::{Platform, PlatformStore};
 use storage::{
-    AssetsRepository, ChainsRepository, ChartsRepository, ConfigRepository, DevicesRepository, MigrationsRepository, NewNotificationRow, NewWalletRow, NotificationsRepository,
-    PriceAlertsRepository, PricesProvidersRepository, PricesRepository, ReleasesRepository, RewardsRepository, TagRepository, WalletSource, WalletType, WalletsRepository,
-    WebhooksRepository,
+    ApiClientScope, ApiClientsRepository, AssetsRepository, ChainsRepository, ChartsRepository, ConfigRepository, DevicesRepository, MigrationsRepository, NewNotificationRow,
+    NewWalletRow, NotificationsRepository, PriceAlertsRepository, PricesProvidersRepository, PricesRepository, ReleasesRepository, RewardsRepository, TagRepository, WalletSource,
+    WalletType, WalletsRepository,
 };
 use streamer::{ExchangeKind, ExchangeName, QueueName, StreamProducer, StreamProducerConfig};
 
@@ -62,8 +63,8 @@ fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error +
         .collect::<Vec<_>>();
     let _ = database.fiat()?.add_fiat_providers(providers);
 
-    info_with_fields!("setup", step = "webhook endpoints");
-    let _ = database.webhooks()?.add_webhook_endpoints(webhook_endpoints());
+    info_with_fields!("setup", step = "api clients");
+    let _ = database.api_clients()?.add_api_client_grants(api_client_grants());
 
     info_with_fields!("setup", step = "releases");
     let releases = PrimitivePlatformStore::all()
@@ -111,16 +112,29 @@ fn setup_database(database: &Database) -> Result<(), Box<dyn std::error::Error +
     Ok(())
 }
 
-fn webhook_endpoints() -> Vec<NewWebhookEndpointRow> {
-    let endpoints = [(WebhookKind::Transactions, "dynode"), (WebhookKind::Support, "chatwoot")]
-        .into_iter()
-        .map(|(kind, sender)| NewWebhookEndpointRow::new(kind, sender));
+fn api_client_grants() -> Vec<ApiClientGrant> {
+    let agent = [
+        ApiClientScope::DevicesRead,
+        ApiClientScope::DevicesSubscriptionsRead,
+        ApiClientScope::DevicesTransactionsRead,
+    ]
+    .into_iter()
+    .map(|scope| ApiClientGrant {
+        client_name: "agent".to_string(),
+        scope,
+        resource: ApiClientResource::Global,
+    });
 
-    let fiat = FiatProviderName::all()
+    let webhooks = [(WebhookKind::Transactions, "dynode".to_string()), (WebhookKind::Support, "chatwoot".to_string())]
         .into_iter()
-        .map(|provider| NewWebhookEndpointRow::new(WebhookKind::Fiat, provider.id()));
+        .chain(FiatProviderName::all().into_iter().map(|provider| (WebhookKind::Fiat, provider.id().to_string())))
+        .map(|(kind, sender)| ApiClientGrant {
+            client_name: format!("webhook:{}:{}", kind.as_ref(), sender),
+            scope: ApiClientScope::webhook(kind),
+            resource: ApiClientResource::WebhookSender(sender),
+        });
 
-    endpoints.chain(fiat).collect()
+    agent.chain(webhooks).collect()
 }
 
 async fn setup_search_index(settings: &Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

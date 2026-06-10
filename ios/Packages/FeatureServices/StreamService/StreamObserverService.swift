@@ -41,6 +41,7 @@ public actor StreamObserverService: Sendable {
 
         observeTask?.cancel()
         observeTask = nil
+        await subscriptionService.resetSubscriptions()
 
         await webSocket.disconnect()
     }
@@ -54,7 +55,7 @@ public actor StreamObserverService: Sendable {
             switch event {
             case .connected: await subscriptionService.resubscribe()
             case let .message(data): await handleMessage(data)
-            case .disconnected: break
+            case .disconnected: await subscriptionService.resetSubscriptions()
             }
         }
     }

@@ -26,6 +26,7 @@ import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
+import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -122,7 +123,7 @@ object AssetsModule {
     @Singleton
     fun provideDeviceRequestSigner(
         getDeviceId: GetDeviceId,
-    ): DeviceRequestSigner = DeviceRequestSigner(
+    ): DeviceRequestSigner = GemDeviceRequestSigner(
         getDeviceId = getDeviceId,
     )
 

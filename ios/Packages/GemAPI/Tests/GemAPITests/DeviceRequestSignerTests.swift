@@ -2,7 +2,7 @@
 
 import CryptoKit
 import Foundation
-@testable import GemAPI
+@testable import GemAPIDevice
 import Primitives
 import Testing
 

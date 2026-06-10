@@ -8,9 +8,10 @@ mod zcash;
 use primitives::{BitcoinChain, SignerError};
 
 pub(crate) use crate::hash::public_key_hash;
+pub(crate) use doge::P2PKH_VERSIONS as DOGE_P2PKH_PREFIX;
+pub(crate) use litecoin::HRP as LITECOIN_HRP;
 use script::AddressScript;
 pub(crate) use script::{UnlockingScript, script_for_public_key_hash};
-#[cfg(test)]
 pub(crate) use zcash::TRANSPARENT_P2PKH_PREFIX as ZCASH_TRANSPARENT_P2PKH_PREFIX;
 
 pub(crate) fn script_for_address(chain: BitcoinChain, address: &str) -> Result<AddressScript, SignerError> {

@@ -3,6 +3,7 @@
 import DeviceService
 import Foundation
 import GemAPI
+import GemAPIDevice
 import Preferences
 import Primitives
 import WebSocketClient

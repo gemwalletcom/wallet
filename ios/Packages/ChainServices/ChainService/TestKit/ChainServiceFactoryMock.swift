@@ -9,10 +9,6 @@ import Primitives
 public final class ChainServiceFactoryMock: ChainServiceFactorable, Sendable {
     private let chainService: any ChainServiceable
 
-    public var requestInterceptor: any RequestInterceptable {
-        EmptyRequestInterceptor()
-    }
-
     public init(chainService: any ChainServiceable = ChainServiceMock()) {
         self.chainService = chainService
     }

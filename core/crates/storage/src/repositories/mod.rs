@@ -1,3 +1,4 @@
+pub mod api_clients_repository;
 pub mod assets_addresses_repository;
 pub mod assets_links_repository;
 pub mod assets_repository;
@@ -24,4 +25,3 @@ pub mod support_sessions_repository;
 pub mod tag_repository;
 pub mod transactions_repository;
 pub mod wallets_repository;
-pub mod webhooks_repository;
