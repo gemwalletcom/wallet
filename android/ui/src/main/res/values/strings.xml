@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Suspicious or spam tokens are identified as potential scams or harmful assets. They may appear in your wallet due to airdrops, transfers, or manual imports.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s required</string>
   <string name="info_insufficient_network_fee_balance_description">This transaction requires %1$s to cover the network fee paid to %2$s miners, not Gem Wallet. Ensure you have enough %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s required for fees</string>
+  <string name="info_receive_network_fee_description">You\'re receiving %1$s, but you have no %2$s. You\'ll need it to pay network fees for future transactions on %3$s.</string>
   <string name="info_insufficient_balance_title">Insufficient Balance</string>
   <string name="info_insufficient_balance_description">You don\'t have enough %1$s to complete this transaction. Please top up, receive, or swap in your wallet and try again.</string>
   <string name="info_account_minimum_balance_title">Minimum balance</string>

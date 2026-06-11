@@ -74,6 +74,15 @@ sealed class InfoSheetEntity(
         descriptionArgs = listOf("**$value**", "**${chain.asset().name}**", "**${chain.asset().symbol}**"),
     )
 
+    class ReceiveNetworkFeeInfo(asset: Asset) : InfoSheetEntity(
+        icon = asset.id.chain.asset().getIconUrl(),
+        title = R.string.info_receive_network_fee_title,
+        description = R.string.info_receive_network_fee_description,
+        infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
+        titleArgs = listOf(asset.id.chain.asset().symbol),
+        descriptionArgs = listOf("**${asset.symbol}**", "**${asset.id.chain.asset().symbol}**", "**${asset.id.chain.asset().name}**"),
+    )
+
     class MinimumAccountBalanceInfo(asset: Asset, value: String) : InfoSheetEntity(
         icon = asset.getIconUrl(),
         title = R.string.info_account_minimum_balance_title,

@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Los tokens sospechosos o spam se identifican como posibles estafas o activos dañinos. Pueden aparecer en tu billetera debido a airdrops, transferencias o importaciones manuales.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s requerido</string>
   <string name="info_insufficient_network_fee_balance_description">Esta transacción requiere %1$s para cubrir la tarifa de red pagada a %2$s mineros, no Gem WalletAsegúrese de tener suficiente %3$s.</string>
+  <string name="info_receive_network_fee_title">Se necesita %1$s para las comisiones</string>
+  <string name="info_receive_network_fee_description">Estás recibiendo %1$s, pero no tienes %2$s. Lo necesitarás para pagar las comisiones de red de futuras transacciones en %3$s.</string>
   <string name="info_insufficient_balance_title">Saldo insuficiente</string>
   <string name="info_insufficient_balance_description">No tienes suficientes %1$s para completar esta transacción. Recarga, recibe o intercambia tu billetera y vuelve a intentarlo.</string>
   <string name="info_account_minimum_balance_title">Saldo mínimo</string>

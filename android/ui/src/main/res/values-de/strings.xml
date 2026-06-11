@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Verdächtige oder Spam-Token werden als potenzieller Betrug oder schädliche Vermögenswerte identifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrer Wallet erscheinen.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s erforderlich</string>
   <string name="info_insufficient_network_fee_balance_description">Für diese Transaktion ist Folgendes erforderlich %1$s um die Netzwerkgebühr zu decken, die an %2$s Bergleute, nicht Gem WalletStellen Sie sicher, dass Sie genügend haben. %3$sDie</string>
+  <string name="info_receive_network_fee_title">%1$s für Gebühren erforderlich</string>
+  <string name="info_receive_network_fee_description">Du erhältst %1$s, hast aber kein %2$s. Du benötigst es, um Netzwerkgebühren für zukünftige Transaktionen auf %3$s zu bezahlen.</string>
   <string name="info_insufficient_balance_title">Unzureichendes Guthaben</string>
   <string name="info_insufficient_balance_description">Sie haben nicht genügend %1$s, um diese Transaktion abzuschließen. Bitte laden Sie Ihr Wallet auf, empfangen Sie es oder tauschen Sie es um und versuchen Sie es erneut.</string>
   <string name="info_account_minimum_balance_title">Mindestguthaben</string>

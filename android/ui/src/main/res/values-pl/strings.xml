@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Podejrzane lub spamowe tokeny są identyfikowane jako potencjalne oszustwa lub szkodliwe aktywa. Mogą pojawić się w Twoim portfelu z powodu airdropów, transferów lub ręcznych importów.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s wymagane</string>
   <string name="info_insufficient_network_fee_balance_description">Ta transakcja wymaga %1$s aby pokryć opłatę sieciową uiszczaną %2$s górnicy, nie Gem Wallet. Upewnij się, że masz wystarczająco dużo %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s wymagany do opłat</string>
+  <string name="info_receive_network_fee_description">Otrzymujesz %1$s, ale nie masz %2$s. Będzie potrzebny do zapłaty opłat sieciowych za przyszłe transakcje w sieci %3$s.</string>
   <string name="info_insufficient_balance_title">Niewystarczające saldo</string>
   <string name="info_insufficient_balance_description">Nie masz wystarczająco %1$s aby ukończyć tę transakcję. Doładuj, odbierz lub wymień w swoim portfelu i spróbuj ponownie.</string>
   <string name="info_account_minimum_balance_title">Minimalne saldo</string>

@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Les jetons suspects ou indésirables sont identifiés comme des arnaques potentielles ou des actifs dangereux. Ils peuvent apparaître dans votre portefeuille suite à des airdrops, des transferts ou des importations manuelles.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s requis</string>
   <string name="info_insufficient_network_fee_balance_description">Cette transaction nécessite %1$s pour couvrir les frais de réseau payés à %2$s mineurs, pas Gem WalletAssurez-vous d\'en avoir suffisamment %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s requis pour les frais</string>
+  <string name="info_receive_network_fee_description">Vous recevez des %1$s, mais vous n\'avez pas d\'%2$s. Vous en aurez besoin pour payer les frais de réseau des futures transactions sur %3$s.</string>
   <string name="info_insufficient_balance_title">Solde insuffisant</string>
   <string name="info_insufficient_balance_description">Vous n\'avez pas assez de %1$s pour finaliser cette transaction. Veuillez recharger, recevoir ou échanger votre portefeuille et réessayer.</string>
   <string name="info_account_minimum_balance_title">Solde minimum</string>

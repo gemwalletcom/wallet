@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Tokeni zinazotiliwa shaka au taka zinatambuliwa kuwa ulaghai au mali hatari. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s inahitajika</string>
   <string name="info_insufficient_network_fee_balance_description">Muamala huu unahitaji %1$s ili kufidia ada ya mtandao iliyolipwa kwa %2$s wachimbaji, si Gem WalletHakikisha una vya kutosha %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s inahitajika kwa ada</string>
+  <string name="info_receive_network_fee_description">Unapokea %1$s, lakini huna %2$s. Utahitaji ili kulipia ada za mtandao kwa miamala ijayo kwenye %3$s.</string>
   <string name="info_insufficient_balance_title">Mizani isiyotosha</string>
   <string name="info_insufficient_balance_description">Huna %1$s ya kutosha kukamilisha muamala huu. Tafadhali jaza, pokea, au ubadilishe pochi yako na ujaribu tena.</string>
   <string name="info_account_minimum_balance_title">Kiwango cha chini cha usawa</string>

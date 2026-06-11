@@ -20,6 +20,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +48,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -66,12 +71,20 @@ private val qrMinSize = 100.dp
 fun ReceiveScreen(onCancel: () -> Unit) {
     val viewModel: ReceiveViewModel = hiltViewModel()
     val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
+    val showFeeWarning by viewModel.showFeeWarning.collectAsStateWithLifecycle()
     val info = assetInfo
 
     if (info != null) {
         ReceiveScene(info, viewModel::setVisible, onCancel)
     } else {
         LoadingScene(title = stringResource(R.string.wallet_receive), onCancel)
+    }
+
+    if (showFeeWarning && info != null) {
+        var isShowInfoSheet by remember { mutableStateOf(true) }
+        if (isShowInfoSheet) {
+            InfoBottomSheet(InfoSheetEntity.ReceiveNetworkFeeInfo(info.asset)) { isShowInfoSheet = false }
+        }
     }
 }
 

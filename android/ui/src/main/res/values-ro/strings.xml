@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Tokenurile suspecte sau spam sunt identificate ca potențiale escrocherii sau active dăunătoare. Acestea pot apărea în portofelul dvs. din cauza lansărilor prin airdrop, transferuri sau importuri manuale.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s necesar</string>
   <string name="info_insufficient_network_fee_balance_description">Această tranzacție necesită %1$s pentru a acoperi taxa de rețea plătită către %2$s mineri, nu Gem WalletAsigurați-vă că aveți suficienți %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s necesar pentru taxe</string>
+  <string name="info_receive_network_fee_description">Primești %1$s, dar nu ai %2$s. Vei avea nevoie de el pentru a plăti taxele de rețea pentru tranzacțiile viitoare pe %3$s.</string>
   <string name="info_insufficient_balance_title">Sold insuficient</string>
   <string name="info_insufficient_balance_description">Nu aveți suficienți %1$s pentru a finaliza această tranzacție. Vă rugăm să încărcați, să primiți sau să schimbați contul în portofelul dvs. și să încercați din nou.</string>
   <string name="info_account_minimum_balance_title">Sold minim</string>

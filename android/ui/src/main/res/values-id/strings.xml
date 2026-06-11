@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Token yang mencurigakan atau spam diidentifikasi sebagai potensi penipuan atau aset berbahaya. Token tersebut mungkin muncul di dompet Anda karena airdrop, transfer, atau impor manual.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s diperlukan</string>
   <string name="info_insufficient_network_fee_balance_description">Transaksi ini memerlukan %1$s untuk menutupi biaya jaringan yang dibayarkan kepada %2$s penambang, bukan Gem WalletPastikan Anda memiliki cukup %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s diperlukan untuk biaya</string>
+  <string name="info_receive_network_fee_description">Anda menerima %1$s, tetapi Anda tidak memiliki %2$s. Anda akan membutuhkannya untuk membayar biaya jaringan transaksi di masa mendatang di %3$s.</string>
   <string name="info_insufficient_balance_title">Saldo Tidak Cukup</string>
   <string name="info_insufficient_balance_description">Anda tidak memiliki cukup %1$s untuk menyelesaikan transaksi ini. Harap isi ulang, terima, atau tukarkan di dompet Anda dan coba lagi.</string>
   <string name="info_account_minimum_balance_title">Saldo minimum</string>

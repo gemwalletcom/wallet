@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Şüpheli veya spam token\'lar potansiyel dolandırıcılık veya zararlı varlıklar olarak tanımlanır. Airdrop\'lar, transferler veya manuel ithalatlar nedeniyle cüzdanınızda görünebilirler.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s gerekli</string>
   <string name="info_insufficient_network_fee_balance_description">Bu işlem %1$s \'un %2$s madencilerine ödenen ağ ücretini karşılamasını gerektirir, Gem Walletdeğil. Yeterli %3$solduğundan emin olun.</string>
+  <string name="info_receive_network_fee_title">Ücretler için %1$s gerekli</string>
+  <string name="info_receive_network_fee_description">%1$s alıyorsunuz, ancak %2$s yok. %3$s üzerindeki gelecekteki işlemlerin ağ ücretlerini ödemek için buna ihtiyacınız olacak.</string>
   <string name="info_insufficient_balance_title">Yetersiz Bakiye</string>
   <string name="info_insufficient_balance_description">Bu işlemi tamamlamak için yeterli %1$s iniz yok. Lütfen cüzdanınıza para yükleyin, alın veya takas edin ve tekrar deneyin.</string>
   <string name="info_account_minimum_balance_title">Minimum bakiye</string>

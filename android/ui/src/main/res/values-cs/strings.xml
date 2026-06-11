@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Podezřelé nebo spamové tokeny jsou identifikovány jako potenciální podvody nebo škodlivá aktiva. Mohou se objevit ve vaší peněžence v důsledku airdropů, převodů nebo ručního importu.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s je vyžadováno</string>
   <string name="info_insufficient_network_fee_balance_description">Tato transakce vyžaduje %1$s na pokrytí síťového poplatku placeného %2$s horníci, ne Gem WalletUjistěte se, že máte dostatek %3$s.</string>
+  <string name="info_receive_network_fee_title">Pro poplatky je potřeba %1$s</string>
+  <string name="info_receive_network_fee_description">Přijímáte %1$s, ale nemáte žádné %2$s. Budete je potřebovat k zaplacení síťových poplatků za budoucí transakce na síti %3$s.</string>
   <string name="info_insufficient_balance_title">Nedostatečný zůstatek</string>
   <string name="info_insufficient_balance_description">Nemáte dostatek %1$s k dokončení této transakce. Dobijte si prosím peněženku, přijměte ji nebo ji vyměňte a zkuste to znovu.</string>
   <string name="info_account_minimum_balance_title">Minimální zůstatek</string>

@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">संदिग्ध या स्पैम टोकन को संभावित घोटाले या हानिकारक संपत्ति के रूप में पहचाना जाता है। वे एयरड्रॉप, ट्रांसफ़र या मैन्युअल आयात के कारण आपके वॉलेट में दिखाई दे सकते हैं।</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s आवश्यक</string>
   <string name="info_insufficient_network_fee_balance_description">इस लेनदेन के लिए आवश्यकता है %1$s नेटवर्क शुल्क का भुगतान करने के लिए %2$s खनिक, नहीं Gem Walletसुनिश्चित करें कि आपके पास पर्याप्त मात्रा में हो। %3$s.</string>
+  <string name="info_receive_network_fee_title">शुल्क के लिए %1$s आवश्यक है</string>
+  <string name="info_receive_network_fee_description">आप %1$s प्राप्त कर रहे हैं, लेकिन आपके पास %2$s नहीं है। %3$s पर भविष्य के लेन-देन के नेटवर्क शुल्क चुकाने के लिए आपको इसकी आवश्यकता होगी।</string>
   <string name="info_insufficient_balance_title">अपर्याप्त शेषराशि</string>
   <string name="info_insufficient_balance_description">इस लेनदेन को पूरा करने के लिए आपके पास पर्याप्त %1$s नहीं है। कृपया अपने वॉलेट में टॉप अप करें, प्राप्त करें या स्वैप करें और फिर से प्रयास करें।</string>
   <string name="info_account_minimum_balance_title">न्यूनतम शेष</string>

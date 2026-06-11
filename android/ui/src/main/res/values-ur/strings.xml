@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">مشکوک یا سپیم ٹوکنز کی شناخت ممکنہ گھوٹالوں یا نقصان دہ اثاثوں کے طور پر کی جاتی ہے۔ وہ ایئر ڈراپس، ٹرانسفرز، یا دستی درآمدات کی وجہ سے آپ کے بٹوے میں ظاہر ہو سکتے ہیں۔</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s درکار ہے۔</string>
   <string name="info_insufficient_network_fee_balance_description">اس لین دین کی ضرورت ہے۔ %1$s نیٹ ورک کی فیس کو پورا کرنے کے لیے %2$s کان کنوں، نہیں Gem Wallet. یقینی بنائیں کہ آپ کے پاس کافی ہے۔ %3$s.</string>
+  <string name="info_receive_network_fee_title">فیس کے لیے %1$s درکار ہے</string>
+  <string name="info_receive_network_fee_description">آپ %1$s وصول کر رہے ہیں، لیکن آپ کے پاس %2$s نہیں ہے۔ %3$s پر مستقبل کے لین دین کی نیٹ ورک فیس ادا کرنے کے لیے آپ کو اس کی ضرورت ہوگی۔</string>
   <string name="info_insufficient_balance_title">ناکافی بیلنس</string>
   <string name="info_insufficient_balance_description">آپ کے پاس اس لین دین کو مکمل کرنے کے لیے کافی %1$s نہیں ہے۔ براہ کرم اپنے بٹوے میں ٹاپ اپ کریں، وصول کریں یا تبدیل کریں اور دوبارہ کوشش کریں۔</string>
   <string name="info_account_minimum_balance_title">کم از کم بیلنس</string>

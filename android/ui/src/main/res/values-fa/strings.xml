@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">توکن‌های مشکوک یا اسپم به عنوان کلاهبرداری‌های بالقوه یا دارایی‌های مضر شناسایی می‌شوند. آنها ممکن است به دلیل ایردراپ‌ها، انتقال‌ها یا واردات دستی در کیف پول شما ظاهر شوند.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s مورد نیاز</string>
   <string name="info_insufficient_network_fee_balance_description">این تراکنش مستلزم %1$s برای پوشش هزینه شبکه پرداخت شده به %2$s معدنچیان، نه Gem Walletمطمئن شوید که به اندازه کافی دارید. %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s برای کارمزد لازم است</string>
+  <string name="info_receive_network_fee_description">شما در حال دریافت %1$s هستید، اما هیچ %2$s ندارید. برای پرداخت کارمزد شبکه برای تراکنش‌های آینده در %3$s به آن نیاز خواهید داشت.</string>
   <string name="info_insufficient_balance_title">موجودی ناکافی</string>
   <string name="info_insufficient_balance_description">شما %1$s کافی برای تکمیل این تراکنش ندارید. لطفاً کیف پول خود را شارژ، دریافت یا مبادله کنید و دوباره امتحان کنید.</string>
   <string name="info_account_minimum_balance_title">حداقل موجودی</string>

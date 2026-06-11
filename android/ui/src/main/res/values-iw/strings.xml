@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">אסימונים חשודים או ספאם מזוהים כתרמיות פוטנציאליות או נכסים מזיקים. הם עשויים להופיע בארנק שלך עקב הטלות אוויר, העברות או ייבוא ידני.</string>
   <string name="info_insufficient_network_fee_balance_title">נדרש %1$s</string>
   <string name="info_insufficient_network_fee_balance_description">עסקה זו דורשת %1$s כדי לכסות את דמי הרשת ששולמו %2$s כורים, לא Gem Walletודא שיש לך מספיק %3$s.</string>
+  <string name="info_receive_network_fee_title">נדרש %1$s עבור עמלות</string>
+  <string name="info_receive_network_fee_description">אתה מקבל %1$s, אך אין לך %2$s. תזדקק לזה כדי לשלם עמלות רשת עבור עסקאות עתידיות ב-%3$s.</string>
   <string name="info_insufficient_balance_title">יתרה לא מספקת</string>
   <string name="info_insufficient_balance_description">אין לך מספיק %1$s כדי להשלים עסקה זו. אנא טען, קבל או החלף בארנק שלך ונסה שוב.</string>
   <string name="info_account_minimum_balance_title">יתרה מינימלית</string>

@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Ang mga kahina-hinalang token o spam ay tinutukoy bilang mga potensyal na scam o mapaminsalang asset. Maaaring lumabas ang mga ito sa iyong wallet dahil sa mga airdrop, paglilipat, o manual na pag-import.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s kinakailangan</string>
   <string name="info_insufficient_network_fee_balance_description">Ang transaksyong ito ay nangangailangan ng %1$s para mabayaran ang bayad sa network na ibinayad sa %2$s mga minero, hindi Gem WalletTiyaking mayroon kang sapat %3$s.</string>
+  <string name="info_receive_network_fee_title">Kailangan ng %1$s para sa mga bayarin</string>
+  <string name="info_receive_network_fee_description">Tumatanggap ka ng %1$s, ngunit wala kang %2$s. Kakailanganin mo ito para bayaran ang mga network fee para sa mga susunod na transaksyon sa %3$s.</string>
   <string name="info_insufficient_balance_title">Hindi Sapat na Balanse</string>
   <string name="info_insufficient_balance_description">Wala kang sapat na %1$s upang makumpleto ang transaksyong ito. Mangyaring mag-top up, tumanggap, o magpalit sa iyong wallet at subukang muli.</string>
   <string name="info_account_minimum_balance_title">Minimum na balanse</string>

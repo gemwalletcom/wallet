@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">의심스럽거나 스팸 토큰은 잠재적 사기 또는 유해 자산으로 식별됩니다. 이러한 토큰은 에어드랍, 이체 또는 수동 가져오기를 통해 지갑에 나타날 수 있습니다.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s 이 필요합니다</string>
   <string name="info_insufficient_network_fee_balance_description">이 거래에는 다음이 필요합니다. %1$s 지불된 네트워크 수수료를 충당하기 위해 %2$s 광부들이 아니라 Gem Wallet충분한 양을 확보하세요. %3$s.</string>
+  <string name="info_receive_network_fee_title">수수료를 위해 %1$s가 필요합니다</string>
+  <string name="info_receive_network_fee_description">%1$s를 받고 있지만 %2$s가 없습니다. %3$s에서 향후 거래의 네트워크 수수료를 지불하려면 이것이 필요합니다.</string>
   <string name="info_insufficient_balance_title">잔액이 부족합니다</string>
   <string name="info_insufficient_balance_description">이 거래를 완료하기에 %1$s 잔액이 부족합니다. 지갑에 충전, 수령 또는 스왑한 후 다시 시도해 주세요.</string>
   <string name="info_account_minimum_balance_title">최소 잔액</string>

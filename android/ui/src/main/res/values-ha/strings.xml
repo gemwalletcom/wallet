@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Ana gano alamun tuhuma ko spam a matsayin masu yuwuwar zamba ko kadarorin cutarwa. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s ake bukata</string>
   <string name="info_insufficient_network_fee_balance_description">Wannan ciniki yana buƙatar %1$s don biyan kuɗin hanyar sadarwa da aka biya %2$s masu hakar ma\'adinai, ba Gem WalletTabbatar kana da isassun kayan aiki %3$s.</string>
+  <string name="info_receive_network_fee_title">Ana buƙatar %1$s don kuɗaɗe</string>
+  <string name="info_receive_network_fee_description">Kana karɓar %1$s, amma ba ka da %2$s. Za ka buƙace shi don biyan kuɗin hanyar sadarwa na ma\'amaloli na gaba a kan %3$s.</string>
   <string name="info_insufficient_balance_title">Rashin Isasshen Ma\'auni</string>
   <string name="info_insufficient_balance_description">Baku da isassun %1$s don kammala wannan ciniki. Da fatan za a yi sama, karɓa, ko musanya a cikin walat ɗin ku kuma a sake gwadawa.</string>
   <string name="info_account_minimum_balance_title">Mafi ƙarancin ma\'auni</string>

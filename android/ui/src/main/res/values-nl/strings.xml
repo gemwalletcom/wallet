@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Verdachte of spamtokens worden herkend als potentiële oplichting of schadelijke activa. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.</string>
   <string name="info_insufficient_network_fee_balance_title">%1$s vereist</string>
   <string name="info_insufficient_network_fee_balance_description">Deze transactie vereist %1$s om de netwerkkosten te dekken die betaald worden aan %2$s mijnwerkers, niet Gem WalletZorg ervoor dat je voldoende hebt. %3$s.</string>
+  <string name="info_receive_network_fee_title">%1$s vereist voor kosten</string>
+  <string name="info_receive_network_fee_description">Je ontvangt %1$s, maar je hebt geen %2$s. Je hebt het nodig om netwerkkosten voor toekomstige transacties op %3$s te betalen.</string>
   <string name="info_insufficient_balance_title">Onvoldoende saldo</string>
   <string name="info_insufficient_balance_description">Je hebt niet genoeg %1$s om deze transactie te voltooien. Vul je wallet aan, ontvang of wissel in en probeer het opnieuw.</string>
   <string name="info_account_minimum_balance_title">Minimumsaldo</string>

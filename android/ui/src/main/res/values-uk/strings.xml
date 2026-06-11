@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">Підозрілі або спам-токени ідентифікуються як потенційні шахрайські або шкідливі активи. Вони можуть з\'явитися у вашому гаманці через аїрдропи, перекази або ручний імпорт.</string>
   <string name="info_insufficient_network_fee_balance_title">Потрібно %1$s</string>
   <string name="info_insufficient_network_fee_balance_description">Ця транзакція вимагає %1$s для покриття мережевої комісії, що виплачується майнерам %2$s , а не Gem Wallet. Переконайтеся, що у вас достатньо %3$s.</string>
+  <string name="info_receive_network_fee_title">Для комісії потрібен %1$s</string>
+  <string name="info_receive_network_fee_description">Ви отримуєте %1$s, але у вас немає %2$s. Він знадобиться для оплати комісій мережі за майбутні транзакції в %3$s.</string>
   <string name="info_insufficient_balance_title">Недостатній баланс</string>
   <string name="info_insufficient_balance_description">У вас недостатньо %1$s для завершення цієї транзакції. Будь ласка, поповніть, отримайте або обміняйте свій гаманець і спробуйте ще раз.</string>
   <string name="info_account_minimum_balance_title">Мінімальний баланс</string>

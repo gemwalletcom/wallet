@@ -443,6 +443,8 @@
   <string name="info_asset_status_suspicious_description">可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在您的钱包中。</string>
   <string name="info_insufficient_network_fee_balance_title">需要%1$s</string>
   <string name="info_insufficient_network_fee_balance_description">此交易需要 %1$s 用于支付网络费用 %2$s 矿工，而不是 Gem Wallet确保你有足够的 %3$s。</string>
+  <string name="info_receive_network_fee_title">支付手续费需要 %1$s</string>
+  <string name="info_receive_network_fee_description">您正在接收 %1$s，但您没有 %2$s。您将需要它来支付 %3$s 上未来交易的网络手续费。</string>
   <string name="info_insufficient_balance_title">余额不足</string>
   <string name="info_insufficient_balance_description">您的余额不足%1$s ，无法完成此交易。请充值、接收或兑换您的钱包，然后重试。</string>
   <string name="info_account_minimum_balance_title">最低余额</string>
