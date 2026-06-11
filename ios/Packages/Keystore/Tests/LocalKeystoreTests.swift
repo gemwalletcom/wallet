@@ -62,10 +62,10 @@ struct LocalKeystoreTests {
             )
 
             #expect(wallet.accounts == chains.map {
-                        Account(chain: $0,
-                                address: "0x8f348F300873Fd5DA36950B2aC75a26584584feE",
-                                derivationPath: "m/44'/60'/0'/0/0",
-                                extendedPublicKey: "045a0c6b83b8bd9827e507270cadb499b7e3a9095246f6a2213281f783d877c98b256742741b0639f317768fe4f4c2762660c2112283a7685d815507dee3229173")
+                Account(chain: $0,
+                        address: "0x8f348F300873Fd5DA36950B2aC75a26584584feE",
+                        derivationPath: "m/44'/60'/0'/0/0",
+                        extendedPublicKey: "045a0c6b83b8bd9827e507270cadb499b7e3a9095246f6a2213281f783d877c98b256742741b0639f317768fe4f4c2762660c2112283a7685d815507dee3229173")
             })
         }
     }
@@ -246,6 +246,25 @@ struct LocalKeystoreTests {
                 #expect(wallet.accounts.map(\.chain).asSet() == chains.asSet())
             }
         }
+    }
+
+    @Test
+    func setupChainsSkipsWalletsWithoutV4Keystore() async throws {
+        let mockPassword = MockKeystorePassword()
+        let keystore = LocalKeystore.mock(keystorePassword: mockPassword)
+        let wallet = try await keystore.importWallet(
+            name: "ETH only",
+            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            isWalletsEmpty: true,
+            source: .import,
+        )
+        try await keystore.deleteKey(for: wallet)
+        let passwordReadsBefore = mockPassword.getPasswordCallsCount
+
+        let result = try keystore.setupChains(chains: chains, for: [wallet])
+
+        #expect(result.isEmpty)
+        #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore, "a wallet without a v4 keystore must not trigger a password read")
     }
 
     @Test

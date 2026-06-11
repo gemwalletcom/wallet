@@ -90,7 +90,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         let filteredWallets = wallets.filter {
             let enabled = Set($0.accounts.map(\.chain)).intersection(chains).map(\.self)
             let missing = Set(chains).subtracting(enabled)
-            return missing.isNotEmpty
+            return missing.isNotEmpty && v4KeystoreExists($0.keystoreId)
         }
         guard filteredWallets.isNotEmpty else {
             return []
@@ -99,12 +99,9 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 
         return try filteredWallets
             .prefix(25)
-            .compactMap { wallet -> Primitives.Wallet? in
+            .map { wallet -> Primitives.Wallet in
                 let existingChains = wallet.accounts.map(\.chain)
                 let newChains = chains.asSet().subtracting(existingChains.asSet()).asArray()
-                guard v4KeystoreExists(wallet.keystoreId) else {
-                    return nil
-                }
                 let accounts = try withV4Password(password) { passwordBytes in
                     try queue.sync {
                         try gemKeystore.addAccounts(
@@ -118,33 +115,27 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
             }
     }
 
-    public func migrateV3Keystore(for wallet: Primitives.Wallet) async throws -> String? {
-        switch wallet.type {
-        case .view:
-            return nil
-        case .multicoin, .single, .privateKey:
-            // Check for a v3 file before reading password from Keychain (trigger Face ID prompt)
-            guard let v3URL = Self.findV3File(in: keystoreURL, matching: wallet.legacyV3Id) else {
-                return nil
-            }
-            let password = try await getPassword()
-            guard !password.isEmpty else { return nil }
-            return try await queue.asyncTask { [gemKeystore] in
-                var v3Password = password.v3PasswordBytes()
-                var newPassword = try password.v4KeystorePasswordBytes()
-                defer {
-                    v3Password.zeroize()
-                    newPassword.zeroize()
-                }
-                let migration = try gemKeystore.migrateV3(
-                    v3Path: v3URL.path,
-                    v3Password: v3Password,
-                    newPassword: newPassword,
-                    walletId: wallet.id.id,
-                )
-                return migration.keystoreId
+    public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
+        let pendingWallets = pendingV3Migrations(for: wallets)
+        guard pendingWallets.isNotEmpty else {
+            return []
+        }
+        let password = try await getPassword()
+        guard !password.isEmpty else {
+            return pendingWallets.map {
+                KeystoreMigrationFailure(walletId: $0.wallet.id, error: AnyError("keystore password is missing"))
             }
         }
+
+        var failures: [KeystoreMigrationFailure] = []
+        for pending in pendingWallets {
+            do {
+                try await migrateV3Keystore(wallet: pending.wallet, v3URL: pending.v3URL, password: password)
+            } catch {
+                failures.append(KeystoreMigrationFailure(walletId: pending.wallet.id, error: error))
+            }
+        }
+        return failures
     }
 
     public func deleteKey(for wallet: Primitives.Wallet) async throws {
@@ -237,6 +228,37 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private func v4KeystoreExists(_ keystoreId: String) -> Bool {
         let url = keystoreURL.appendingPathComponent("\(keystoreId).json")
         return FileManager.default.fileExists(atPath: url.path)
+    }
+
+    private func pendingV3Migrations(for wallets: [Primitives.Wallet]) -> [(wallet: Primitives.Wallet, v3URL: URL)] {
+        wallets.compactMap { wallet in
+            switch wallet.type {
+            case .view:
+                return nil
+            case .multicoin, .single, .privateKey:
+                guard let v3URL = Self.findV3File(in: keystoreURL, matching: wallet.legacyV3Id) else {
+                    return nil
+                }
+                return (wallet, v3URL)
+            }
+        }
+    }
+
+    private func migrateV3Keystore(wallet: Primitives.Wallet, v3URL: URL, password: String) async throws {
+        try await queue.asyncTask { [gemKeystore] in
+            var v3Password = password.v3PasswordBytes()
+            var newPassword = try password.v4KeystorePasswordBytes()
+            defer {
+                v3Password.zeroize()
+                newPassword.zeroize()
+            }
+            _ = try gemKeystore.migrateV3(
+                v3Path: v3URL.path,
+                v3Password: v3Password,
+                newPassword: newPassword,
+                walletId: wallet.id.id,
+            )
+        }
     }
 
     private static func findV3File(in directory: URL, matching keystoreId: String) -> URL? {

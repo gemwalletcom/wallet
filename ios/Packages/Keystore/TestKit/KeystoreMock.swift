@@ -24,8 +24,8 @@ public struct KeystoreMock: Keystore {
         [.mock()]
     }
 
-    public func migrateV3Keystore(for _: Primitives.Wallet) throws -> String? {
-        nil
+    public func migrateV3Keystores(for _: [Primitives.Wallet]) throws -> [KeystoreMigrationFailure] {
+        []
     }
 
     public func deleteKey(for _: Primitives.Wallet) throws {}
