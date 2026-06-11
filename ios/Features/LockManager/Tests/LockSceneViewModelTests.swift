@@ -30,71 +30,201 @@ struct LockSceneViewModelTests {
         #expect(!viewModel.isPrivacyLockVisible)
     }
 
-    func testUnlockClearsStateAndSetsTimerToFuture() async {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
-
-        await viewModel.unlock()
-        #expect(viewModel.state == .unlocked)
-        #expect(viewModel.shouldShowLockScreen == false)
-        #expect(viewModel.lastUnlockTime == .distantFuture)
-        #expect(mockService.didCallAuthenticate)
-    }
-
-    @Test
-    func cancelledUnlockStaysOnPlaceholder() async {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        mockService.errorToThrow = BiometryAuthenticationError.cancelled
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
-
-        await viewModel.unlock()
-
-        #expect(viewModel.state == .lockedCanceled)
-        #expect(viewModel.shouldShowLockScreen)
-    }
-
     @Test
     func unlockSuccess() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
         )
-        mockService.shouldAuthenticateSucceed = true
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
 
-        await viewModel.unlock()
+        await viewModel.startUnlock()?.value
 
         #expect(viewModel.state == .unlocked)
-        #expect(viewModel.lastUnlockTime == Date.distantFuture)
+        #expect(viewModel.shouldShowLockScreen == false)
+        #expect(viewModel.lastUnlockTime == .distantFuture)
+        #expect(mockService.authenticateCallsCount == 1)
     }
 
     @Test
-    func unlockFailure() async {
+    func userCancelledUnlockShowsUnlockButton() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.errorToThrow = BiometryAuthenticationError.cancelledByUser
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        await viewModel.startUnlock()?.value
+
+        #expect(viewModel.state == .lockedCanceled)
+        #expect(viewModel.isUnlockButtonVisible)
+        #expect(viewModel.shouldShowLockScreen)
+    }
+
+    @Test
+    func systemCancelledUnlockLocksForNextActivation() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.errorToThrow = BiometryAuthenticationError.cancelledBySystem
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        await viewModel.startUnlock()?.value
+
+        #expect(viewModel.state == .locked)
+        #expect(viewModel.shouldShowLockScreen)
+    }
+
+    @Test
+    func failedUnlockShowsUnlockButton() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
         )
         mockService.errorToThrow = BiometryAuthenticationError.authenticationFailed
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
 
-        await viewModel.unlock()
+        await viewModel.startUnlock()?.value
 
-        #expect(viewModel.state == .locked)
-        #expect(viewModel.lastUnlockTime != Date.distantFuture)
+        #expect(viewModel.state == .lockedCanceled)
+        #expect(viewModel.isUnlockButtonVisible)
     }
 
     @Test
-    func inactiveThenActiveNoGracePeriodLocksImmediately() {
+    func biometryUnavailableShowsUnlockButton() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.errorToThrow = BiometryAuthenticationError.biometryUnavailable
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        await viewModel.startUnlock()?.value
+
+        #expect(viewModel.state == .lockedCanceled)
+        #expect(viewModel.isUnlockButtonVisible)
+    }
+
+    @Test
+    func unexpectedErrorShowsUnlockButton() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.errorToThrow = NSError(domain: "TestError", code: 999, userInfo: nil)
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        await viewModel.startUnlock()?.value
+
+        #expect(viewModel.state == .lockedCanceled)
+        #expect(viewModel.isUnlockButtonVisible)
+    }
+
+    @Test
+    func startUnlockJoinsAttemptInFlight() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.holdAuthentication = true
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        let first = viewModel.startUnlock()
+        #expect(viewModel.isUnlocking)
+        let second = viewModel.startUnlock()
+
+        mockService.releaseAuthentication()
+        await first?.value
+        await second?.value
+
+        #expect(mockService.authenticateCallsCount == 1)
+        #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func backgroundInterruptionRepromptsOnNextActivation() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.holdAuthentication = true
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        let first = viewModel.startUnlock()
+        viewModel.handleSceneChange(to: .inactive)
+        viewModel.handleSceneChange(to: .background)
+
+        mockService.errorToThrow = BiometryAuthenticationError.cancelledBySystem
+        mockService.releaseAuthentication()
+        await first?.value
+        #expect(viewModel.state == .locked)
+
+        mockService.errorToThrow = nil
+        viewModel.handleSceneChange(to: .active)
+        #expect(viewModel.isUnlocking)
+
+        await viewModel.startUnlock()?.value
+        #expect(viewModel.state == .unlocked)
+        #expect(mockService.authenticateCallsCount == 2)
+    }
+
+    @Test
+    func inactiveBlipDoesNotInterruptAttemptInFlight() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        mockService.holdAuthentication = true
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        let task = viewModel.startUnlock()
+        viewModel.handleSceneChange(to: .inactive)
+        viewModel.handleSceneChange(to: .active)
+        #expect(viewModel.isUnlocking)
+
+        mockService.releaseAuthentication()
+        await task?.value
+
+        #expect(viewModel.state == .unlocked)
+        #expect(mockService.authenticateCallsCount == 1)
+    }
+
+    @Test
+    func activationStartsUnlockWhenLocked() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        viewModel.handleSceneChange(to: .active)
+        #expect(viewModel.isUnlocking)
+
+        await viewModel.startUnlock()?.value
+
+        #expect(viewModel.state == .unlocked)
+        #expect(mockService.authenticateCallsCount == 1)
+    }
+
+    @Test
+    func activationDoesNotRetryAfterUserCancel() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .lockedCanceled
+
+        viewModel.handleSceneChange(to: .active)
+
+        #expect(viewModel.state == .lockedCanceled)
+        #expect(mockService.authenticateCallsCount == 0)
+    }
+
+    @Test
+    func activationLocksAndStartsUnlockWhenGracePeriodExpired() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
@@ -102,14 +232,35 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0) // long ago → shouldLock = true
+        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0)
 
         viewModel.handleSceneChange(to: .inactive)
         viewModel.handleSceneChange(to: .background)
         viewModel.handleSceneChange(to: .active)
 
-        #expect(viewModel.state == .locked)
+        #expect(viewModel.isUnlocking)
         #expect(viewModel.shouldShowLockScreen)
+
+        await viewModel.startUnlock()?.value
+        #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func activationKeepsUnlockedWithinGracePeriod() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+            lockPeriod: .oneMinute,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+        viewModel.state = .unlocked
+        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+
+        viewModel.handleSceneChange(to: .background)
+        viewModel.handleSceneChange(to: .active)
+
+        #expect(viewModel.state == .unlocked)
+        #expect(mockService.authenticateCallsCount == 0)
     }
 
     @Test
@@ -137,7 +288,6 @@ struct LockSceneViewModelTests {
             availableAuth: .biometrics,
         )
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
         viewModel.handleSceneChange(to: .inactive) // showPlaceholderPreview true
 
         try await mockService.enableAuthentication(false, reason: "unit")
@@ -164,7 +314,8 @@ struct LockSceneViewModelTests {
         #expect(viewModel.lastUnlockTime == .distantFuture)
     }
 
-    func testIsLockedPropertyWhenAuthEnabled() {
+    @Test
+    func isLockedProperty() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
@@ -177,7 +328,7 @@ struct LockSceneViewModelTests {
         viewModel.state = .locked
         #expect(viewModel.isLocked)
 
-        viewModel.state = .unlocking
+        viewModel.state = .unlocking(UnlockAttempt(context: LAContext(), task: Task {}))
         #expect(viewModel.isLocked)
     }
 
@@ -194,13 +345,10 @@ struct LockSceneViewModelTests {
 
         viewModel.state = .locked
         #expect(!viewModel.isLocked)
-
-        viewModel.state = .unlocking
-        #expect(!viewModel.isLocked)
     }
 
     @Test
-    func testShouldShowLockScreen() {
+    func shouldShowLockScreen() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
@@ -237,19 +385,7 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func shouldLockWhenAutoLockDisabled() {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: false,
-            availableAuth: .none,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0)
-
-        #expect(!viewModel.shouldLock)
-    }
-
-    @Test
-    func unlockWhenAutoLockDisabled() async {
+    func startUnlockWhenAutoLockDisabled() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: false,
             availableAuth: .none,
@@ -257,9 +393,41 @@ struct LockSceneViewModelTests {
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
 
-        await viewModel.unlock()
+        let task = viewModel.startUnlock()
 
+        #expect(task == nil)
         #expect(viewModel.state == .unlocked)
+        #expect(mockService.authenticateCallsCount == 0)
+    }
+
+    @Test
+    func shouldLockWhenAutoLockEnabled() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        viewModel.lastUnlockTime = Date().addingTimeInterval(-1000)
+        #expect(viewModel.shouldLock)
+
+        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+        #expect(!viewModel.shouldLock)
+    }
+
+    @Test
+    func shouldLockWhenAutoLockDisabled() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: false,
+            availableAuth: .none,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        viewModel.lastUnlockTime = Date().addingTimeInterval(-1000)
+        #expect(!viewModel.shouldLock)
+
+        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+        #expect(!viewModel.shouldLock)
     }
 
     @Test
@@ -269,10 +437,9 @@ struct LockSceneViewModelTests {
             availableAuth: .biometrics,
             lockPeriod: .oneMinute,
         )
-
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000) // Future date
+        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
 
         viewModel.handleSceneChange(to: .background)
         viewModel.handleSceneChange(to: .active)
@@ -283,154 +450,7 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func unlockWithUnexpectedError() async {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let unexpectedError = NSError(domain: "TestError", code: 999, userInfo: nil)
-        mockService.errorToThrow = unexpectedError
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
-
-        await viewModel.unlock()
-
-        #expect(viewModel.state == .locked)
-    }
-
-    @Test
-    func stateTransitionsWithAutoLockDisabled() async {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: false,
-            availableAuth: .none,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
-
-        await viewModel.unlock()
-        #expect(viewModel.state == .unlocked)
-
-        viewModel.handleSceneChange(to: .background)
-        #expect(viewModel.state == .unlocked)
-    }
-
-    @Test
-    func isAutoLockEnabledProperty() {
-        let mockServiceEnabled = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let viewModelEnabled = LockSceneViewModel(service: mockServiceEnabled)
-        #expect(viewModelEnabled.isAutoLockEnabled)
-
-        let mockServiceDisabled = MockBiometryAuthenticationService(
-            isAuthEnabled: false,
-            availableAuth: .none,
-        )
-        let viewModelDisabled = LockSceneViewModel(service: mockServiceDisabled)
-        #expect(!viewModelDisabled.isAutoLockEnabled)
-    }
-
-    @Test
-    func shouldLockPropertyWhenAutoLockEnabled() {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-
-        viewModel.lastUnlockTime = Date().addingTimeInterval(-1000) // Past date
-        #expect(viewModel.shouldLock)
-
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000) // Future date
-        #expect(!viewModel.shouldLock)
-    }
-
-    @Test
-    func shouldLockPropertyWhenAutoLockDisabled() {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: false,
-            availableAuth: .none,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-
-        viewModel.lastUnlockTime = Date().addingTimeInterval(-1000) // Past date
-        #expect(!viewModel.shouldLock)
-
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000) // Future date
-        #expect(!viewModel.shouldLock)
-    }
-
-    @Test
-    func handleSceneChangeToActiveWhenUnlockedAndShouldLock() {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0) // Past date
-
-        // Simulate going to background
-        viewModel.handleSceneChange(to: .background)
-        // Now simulate becoming active
-        viewModel.handleSceneChange(to: .active)
-
-        #expect(viewModel.state == .locked)
-        #expect(viewModel.shouldShowLockScreen)
-    }
-
-    @Test
-    func handleSceneChangeWhenStateIsNotUnlocked() {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-        let initialStates: [LockSceneState] = [.locked, .lockedCanceled]
-
-        for state in initialStates {
-            viewModel.state = state
-            viewModel.handleSceneChange(to: .background)
-            #expect(viewModel.state == state)
-
-            viewModel.handleSceneChange(to: .active)
-            #expect(viewModel.state == state)
-        }
-    }
-
-    @Test
-    func resumeFromBackgroundDemotesStuckUnlocking() {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .unlocking
-
-        viewModel.handleSceneChange(to: .background)
-        viewModel.handleSceneChange(to: .active)
-
-        #expect(viewModel.state == .locked)
-    }
-
-    @Test
-    func unlockWithBiometryUnavailableError() async {
-        let mockService = MockBiometryAuthenticationService(
-            isAuthEnabled: true,
-            availableAuth: .biometrics,
-        )
-        mockService.errorToThrow = BiometryAuthenticationError.biometryUnavailable
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .locked
-
-        await viewModel.unlock()
-
-        #expect(viewModel.state == .locked)
-    }
-
-    @Test
-    func testResetLockState() {
+    func resetLockState() {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
@@ -438,30 +458,40 @@ struct LockSceneViewModelTests {
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .locked
 
-        // Perform reset
         viewModel.resetLockState()
 
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldShowLockScreen)
         #expect(!viewModel.isLocked)
+        #expect(viewModel.lastUnlockTime == .distantFuture)
     }
 
     @Test
-    func inactiveToActiveTransitionWithoutBackgroundLocksWhenExpired() {
+    func waitUntilUnlockedReturnsWhenAlreadyUnlocked() async {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: false,
+            availableAuth: .none,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+
+        await viewModel.waitUntilUnlocked()
+
+        #expect(viewModel.state == .unlocked)
+    }
+
+    @Test
+    func waitUntilUnlockedResumesAfterUnlock() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
-            lockPeriod: .oneMinute,
         )
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0)
+        let waiter = Task { await viewModel.waitUntilUnlocked() }
 
-        viewModel.handleSceneChange(to: .inactive)
-        viewModel.handleSceneChange(to: .active)
+        viewModel.startUnlock()
+        await waiter.value
 
-        #expect(viewModel.state == .locked)
-        #expect(viewModel.shouldShowLockScreen)
+        #expect(viewModel.state == .unlocked)
     }
 }
 
@@ -477,7 +507,10 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
 
     var shouldAuthenticateSucceed: Bool = true
     var errorToThrow: (any Error)?
-    var didCallAuthenticate: Bool = false
+    var holdAuthentication: Bool = false
+    private(set) var authenticateCallsCount: Int = 0
+
+    private var holdContinuation: CheckedContinuation<Void, Never>?
 
     init(isAuthEnabled: Bool,
          availableAuth: KeystoreAuthentication,
@@ -488,9 +521,9 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
         availableAuthentication = availableAuth
         self.lockPeriod = lockPeriod
         self.isPrivacyLockEnabled = isPrivacyLockEnabled
-        self.lockPeriod = lockPeriod
     }
 
+    @MainActor
     func enableAuthentication(_ enable: Bool, context _: LAContext, reason _: String) async throws {
         isAuthenticationEnabled = enable
         if !enable {
@@ -499,14 +532,24 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
         }
     }
 
+    @MainActor
     func authenticate(context _: LAContext, reason _: String) async throws {
-        didCallAuthenticate = true
+        authenticateCallsCount += 1
+        if holdAuthentication {
+            await withCheckedContinuation { holdContinuation = $0 }
+        }
         if let error = errorToThrow {
             throw error
         }
         if !shouldAuthenticateSucceed {
-            throw BiometryAuthenticationError.cancelled
+            throw BiometryAuthenticationError.cancelledByUser
         }
+    }
+
+    func releaseAuthentication() {
+        holdAuthentication = false
+        holdContinuation?.resume()
+        holdContinuation = nil
     }
 
     func update(period: LockPeriod) throws {

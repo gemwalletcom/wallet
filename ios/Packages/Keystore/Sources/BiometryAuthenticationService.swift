@@ -46,11 +46,13 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         keystorePassword.getAvailableAuthentication()
     }
 
+    @MainActor
     public func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws {
         try await authenticate(context: context, reason: reason)
         try keystorePassword.enableAuthentication(enable, context: context)
     }
 
+    @MainActor
     public func authenticate(context: LAContext, reason: String) async throws {
         do {
             try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)

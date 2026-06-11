@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Keystore
+import LocalAuthentication
 import Localization
+import Observation
 import Style
 import SwiftUI
 
@@ -16,7 +18,6 @@ public class LockSceneViewModel {
     var state: LockSceneState
 
     private var showPlaceholderPreview: Bool = false
-    private var inBackground: Bool = false
 
     public init(
         service: any BiometryAuthenticatable = BiometryAuthenticationService(),
@@ -43,6 +44,14 @@ public class LockSceneViewModel {
 
     var isLocked: Bool {
         state != .unlocked && isAutoLockEnabled
+    }
+
+    var isUnlocking: Bool {
+        if case .unlocking = state { true } else { false }
+    }
+
+    var isUnlockButtonVisible: Bool {
+        state == .locked || state == .lockedCanceled
     }
 
     var shouldLock: Bool {
@@ -82,7 +91,9 @@ extension LockSceneViewModel {
     func handleSceneChange(to phase: ScenePhase) {
         switch phase {
         case .background:
-            inBackground = true
+            if case let .unlocking(attempt) = state {
+                attempt.context.invalidate()
+            }
             if state == .unlocked, !shouldLock {
                 lastUnlockTime = Date().addingTimeInterval(TimeInterval(lockPeriod.value))
             }
@@ -90,10 +101,10 @@ extension LockSceneViewModel {
             showPlaceholderPreview = false
             if state == .unlocked, shouldLock {
                 state = .locked
-            } else if inBackground, state == .unlocking {
-                state = .locked
             }
-            inBackground = false
+            if state == .locked {
+                startUnlock()
+            }
         case .inactive:
             showPlaceholderPreview = true
         @unknown default:
@@ -101,23 +112,57 @@ extension LockSceneViewModel {
         }
     }
 
-    func unlock() async {
-        guard state != .unlocking else { return }
-        state = .unlocking
-        do {
-            try await service.authenticate(reason: Self.reason)
-            resetLockState()
-        } catch let error as BiometryAuthenticationError {
-            state = error.isAuthenticationCancelled ? .lockedCanceled : .locked
-        } catch {
-            state = .locked
+    @discardableResult
+    func startUnlock() -> Task<Void, Never>? {
+        switch state {
+        case let .unlocking(attempt):
+            return attempt.task
+        case .unlocked:
+            return nil
+        case .locked, .lockedCanceled:
+            guard isAutoLockEnabled else {
+                resetLockState()
+                return nil
+            }
+            let context = LAContext()
+            let task = Task {
+                await authenticate(context: context)
+            }
+            state = .unlocking(UnlockAttempt(context: context, task: task))
+            return task
         }
     }
 
     func resetLockState() {
-        inBackground = false
         showPlaceholderPreview = false
         lastUnlockTime = .distantFuture
         state = .unlocked
+    }
+
+    public func waitUntilUnlocked() async {
+        while state != .unlocked {
+            await withCheckedContinuation { continuation in
+                withObservationTracking {
+                    _ = state
+                } onChange: {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Private
+
+extension LockSceneViewModel {
+    private func authenticate(context: LAContext) async {
+        do {
+            try await service.authenticate(context: context, reason: Self.reason)
+            resetLockState()
+        } catch let error as BiometryAuthenticationError {
+            state = error == .cancelledBySystem ? .locked : .lockedCanceled
+        } catch {
+            state = .lockedCanceled
+        }
     }
 }
