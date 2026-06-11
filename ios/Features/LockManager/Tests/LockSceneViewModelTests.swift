@@ -530,7 +530,7 @@ struct LockSceneViewModelTests {
 class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sendable {
     var lockPeriod: LockPeriod
 
-    var isAuthenticationEnabled: Bool
+    var requiresAuthentication: Bool
     var isPrivacyLockEnabled: Bool
     var availableAuthentication: KeystoreAuthentication
 
@@ -546,7 +546,7 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
          lockPeriod: LockPeriod = .default,
          isPrivacyLockEnabled: Bool = false)
     {
-        isAuthenticationEnabled = isAuthEnabled
+        requiresAuthentication = isAuthEnabled
         availableAuthentication = availableAuth
         self.lockPeriod = lockPeriod
         self.isPrivacyLockEnabled = isPrivacyLockEnabled
@@ -554,7 +554,7 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
 
     @MainActor
     func enableAuthentication(_ enable: Bool, context _: LAContext, reason _: String) async throws {
-        isAuthenticationEnabled = enable
+        requiresAuthentication = enable
         if !enable {
             isPrivacyLockEnabled = false
             lockPeriod = .default

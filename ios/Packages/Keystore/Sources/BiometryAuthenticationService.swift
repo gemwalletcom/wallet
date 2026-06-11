@@ -9,11 +9,11 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         self.keystorePassword = keystorePassword
     }
 
-    public var isAuthenticationEnabled: Bool {
+    public var requiresAuthentication: Bool {
         do {
             return try keystorePassword.getAuthentication() != .none
         } catch {
-            return false
+            return true
         }
     }
 

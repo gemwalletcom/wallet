@@ -23,7 +23,7 @@ public class LockSceneViewModel {
         service: any BiometryAuthenticatable = BiometryAuthenticationService(),
     ) {
         self.service = service
-        state = service.isAuthenticationEnabled ? .locked : .unlocked
+        state = service.requiresAuthentication ? .locked : .unlocked
     }
 
     var unlockTitle: String {
@@ -39,7 +39,7 @@ public class LockSceneViewModel {
     }
 
     var isAutoLockEnabled: Bool {
-        service.isAuthenticationEnabled
+        service.requiresAuthentication
     }
 
     var isLocked: Bool {

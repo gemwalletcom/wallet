@@ -4,7 +4,7 @@ import Foundation
 import LocalAuthentication
 
 public protocol BiometryAuthenticatable: Sendable {
-    var isAuthenticationEnabled: Bool { get }
+    var requiresAuthentication: Bool { get }
     var availableAuthentication: KeystoreAuthentication { get }
     var lockPeriod: LockPeriod { get }
     var isPrivacyLockEnabled: Bool { get }

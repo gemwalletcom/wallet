@@ -43,7 +43,7 @@ public final class SecurityViewModel {
         self.preferences = preferences
 
         lockPeriod = service.lockPeriod
-        isEnabled = service.isAuthenticationEnabled
+        isEnabled = service.requiresAuthentication
         isPrivacyLockEnabled = service.isPrivacyLockEnabled
     }
 
@@ -83,7 +83,7 @@ public final class SecurityViewModel {
 
 extension SecurityViewModel {
     func toggleBiometrics() async {
-        guard isEnabled != service.isAuthenticationEnabled else { return }
+        guard isEnabled != service.requiresAuthentication else { return }
         do {
             try await service.enableAuthentication(isEnabled, reason: SecurityViewModel.reason)
             isPrivacyLockEnabled = service.isPrivacyLockEnabled
