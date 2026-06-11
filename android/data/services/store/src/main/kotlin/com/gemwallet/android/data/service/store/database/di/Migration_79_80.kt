@@ -7,7 +7,7 @@ object Migration_79_80 : Migration(79, 80) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("DROP TABLE IF EXISTS `assets_priority`")
         db.execSQL(
-            "CREATE TABLE IF NOT EXISTS `search_priority` (" +
+            "CREATE TABLE IF NOT EXISTS `search` (" +
                 "`query` TEXT NOT NULL, " +
                 "`type` TEXT NOT NULL, " +
                 "`item_id` TEXT NOT NULL, " +

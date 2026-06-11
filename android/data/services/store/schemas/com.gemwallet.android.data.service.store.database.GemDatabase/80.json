@@ -1842,7 +1842,7 @@
         ]
       },
       {
-        "tableName": "search_priority",
+        "tableName": "search",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`query` TEXT NOT NULL, `type` TEXT NOT NULL, `item_id` TEXT NOT NULL, `priority` INTEGER NOT NULL, PRIMARY KEY(`query`, `type`, `item_id`))",
         "fields": [
           {

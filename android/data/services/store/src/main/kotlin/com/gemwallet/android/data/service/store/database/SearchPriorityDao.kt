@@ -14,7 +14,7 @@ interface SearchPriorityDao {
     @Insert(onConflict = REPLACE)
     suspend fun insert(priorities: List<DbSearchPriority>)
 
-    @Query("DELETE FROM search_priority WHERE `query` = :query AND type = :type")
+    @Query("DELETE FROM search WHERE `query` = :query AND type = :type")
     suspend fun deleteByQuery(query: String, type: String)
 
     @Transaction
@@ -23,6 +23,6 @@ interface SearchPriorityDao {
         insert(priorities)
     }
 
-    @Query("SELECT COUNT(item_id) FROM search_priority WHERE `query` = :query AND type = :type")
+    @Query("SELECT COUNT(item_id) FROM search WHERE `query` = :query AND type = :type")
     fun hasPriorities(query: String, type: String): Flow<Int>
 }

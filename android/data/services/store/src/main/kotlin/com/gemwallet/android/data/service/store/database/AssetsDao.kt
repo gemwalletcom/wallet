@@ -269,14 +269,14 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search_priority ON asset_info.id = search_priority.item_id AND search_priority.type = 'asset'
+        JOIN search ON asset_info.id = search.item_id AND search.type = 'asset'
         WHERE
             asset_info.id NOT IN (:exclude)
             AND chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
             AND (walletId = :walletId OR walletId IS NULL)
             AND assetRank > 0
-            AND search_priority.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, search_priority.priority ASC, assetRank DESC
+            AND search.`query` = :query
+            ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
         """)
     fun searchWithPriority(walletId: String, query: String, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
 
@@ -295,12 +295,12 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search_priority ON asset_info.id = search_priority.item_id AND search_priority.type = 'asset'
+        JOIN search ON asset_info.id = search.item_id AND search.type = 'asset'
         WHERE
             assetRank > 0
             AND
-            search_priority.`query` = :query
-            ORDER BY balanceFiatTotalAmount DESC, search_priority.priority ASC, assetRank DESC
+            search.`query` = :query
+            ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
         """)
     fun searchByAllWalletsWithPriority(walletId: String, query: String): Flow<List<DbAssetInfo>>
 
@@ -318,12 +318,12 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search_priority ON asset_info.id = search_priority.item_id AND search_priority.type = 'asset'
+        JOIN search ON asset_info.id = search.item_id AND search.type = 'asset'
         WHERE
             (chain IN (:byChains) OR id IN (:byAssets) )
             AND assetRank > 0
-            AND search_priority.`query` = :query
-            ORDER BY search_priority.priority ASC, assetRank DESC
+            AND search.`query` = :query
+            ORDER BY search.priority ASC, assetRank DESC
         """)
     fun swapSearchWithPriority(walletId: String, query: String, byChains: List<Chain>, byAssets: List<String>): Flow<List<DbAssetInfo>>
 

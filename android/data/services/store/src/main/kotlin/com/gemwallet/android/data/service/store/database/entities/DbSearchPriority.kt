@@ -8,7 +8,7 @@ import com.wallet.core.primitives.PerpetualSearchData
 import com.wallet.core.primitives.SearchItemType
 
 @Entity(
-    tableName = "search_priority",
+    tableName = "search",
     primaryKeys = ["query", "type", "item_id"],
 )
 data class DbSearchPriority(
