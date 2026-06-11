@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Ana gano alamun tuhuma ko spam a matsayin masu yuwuwar zamba ko kadarorin cutarwa. Suna iya bayyana a cikin walat ɗin ku saboda ɗigon iska, canja wuri, ko shigo da hannu.";
 "info.insufficient_network_fee_balance.title" = "%@ ake bukata";
 "info.insufficient_network_fee_balance.description" = "Wannan ciniki yana buƙatar %@ don biyan kuɗin hanyar sadarwa da aka biya %@ masu hakar ma'adinai, ba Gem WalletTabbatar kana da isassun kayan aiki %@.";
+"info.receive_network_fee_title" = "Ana buƙatar %@ don kuɗaɗe";
+"info.receive_network_fee_description" = "Kana karɓar %@, amma ba ka da %@. Za ka buƙace shi don biyan kuɗin hanyar sadarwa na ma'amaloli na gaba a kan %@.";
 "info.insufficient_balance.title" = "Rashin Isasshen Ma'auni";
 "info.insufficient_balance.description" = "Baku da isassun %@ don kammala wannan ciniki. Da fatan za a yi sama, karɓa, ko musanya a cikin walat ɗin ku kuma a sake gwadawa.";
 "info.account_minimum_balance.title" = "Mafi ƙarancin ma'auni";

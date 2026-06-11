@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "疑わしいトークンやスパムトークンは、詐欺や有害な資産の可能性があると判断されます。エアドロップ、送金、または手動インポートによってウォレットに表示される場合があります。";
 "info.insufficient_network_fee_balance.title" = "%@が必要です";
 "info.insufficient_network_fee_balance.description" = "この取引には %@ ネットワーク料金を賄うために %@ 鉱夫ではなく Gem Wallet十分な量があることを確認してください %@。";
+"info.receive_network_fee_title" = "手数料に %@ が必要です";
+"info.receive_network_fee_description" = "%@ を受け取ろうとしていますが、%@ がありません。%@ での今後の取引のネットワーク手数料の支払いに必要になります。";
 "info.insufficient_balance.title" = "残高不足";
 "info.insufficient_balance.description" = "この取引を完了するには%@が足りません。ウォレットにチャージ、受け取り、または交換して、もう一度お試しください。";
 "info.account_minimum_balance.title" = "最低残高";

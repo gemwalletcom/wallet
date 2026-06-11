@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import InfoSheet
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -75,6 +76,9 @@ public struct ReceiveScene: View {
         }
         .sheet(isPresented: $model.isPresentingShareSheet) {
             ShareSheet(activityItems: model.activityItems(qrImage: model.renderedImage))
+        }
+        .sheet(item: $model.isPresentingInfoSheet) {
+            InfoSheetScene(type: $0)
         }
         .copyToast(
             model: model.copyModel,

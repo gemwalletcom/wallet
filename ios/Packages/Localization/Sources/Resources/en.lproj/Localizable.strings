@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Suspicious or spam tokens are identified as potential scams or harmful assets. They may appear in your wallet due to airdrops, transfers, or manual imports.";
 "info.insufficient_network_fee_balance.title" = "%@ required";
 "info.insufficient_network_fee_balance.description" = "This transaction requires %@ to cover the network fee paid to %@ miners, not Gem Wallet. Ensure you have enough %@.";
+"info.receive_network_fee_title" = "%@ required for fees";
+"info.receive_network_fee_description" = "You're receiving %@, but you have no %@. You'll need it to pay network fees for future transactions on %@.";
 "info.insufficient_balance.title" = "Insufficient Balance";
 "info.insufficient_balance.description" = "You don't have enough %@ to complete this transaction. Please top up, receive, or swap in your wallet and try again.";
 "info.account_minimum_balance.title" = "Minimum balance";

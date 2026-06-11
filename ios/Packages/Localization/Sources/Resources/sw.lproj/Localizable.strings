@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Tokeni zinazotiliwa shaka au taka zinatambuliwa kuwa ulaghai au mali hatari. Huenda zikaonekana kwenye mkoba wako kwa sababu ya matone ya hewa, uhamisho, au uagizaji wa mikono.";
 "info.insufficient_network_fee_balance.title" = "%@ inahitajika";
 "info.insufficient_network_fee_balance.description" = "Muamala huu unahitaji %@ ili kufidia ada ya mtandao iliyolipwa kwa %@ wachimbaji, si Gem WalletHakikisha una vya kutosha %@.";
+"info.receive_network_fee_title" = "%@ inahitajika kwa ada";
+"info.receive_network_fee_description" = "Unapokea %@, lakini huna %@. Utahitaji ili kulipia ada za mtandao kwa miamala ijayo kwenye %@.";
 "info.insufficient_balance.title" = "Mizani isiyotosha";
 "info.insufficient_balance.description" = "Huna %@ ya kutosha kukamilisha muamala huu. Tafadhali jaza, pokea, au ubadilishe pochi yako na ujaribu tena.";
 "info.account_minimum_balance.title" = "Kiwango cha chini cha usawa";

@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "يتم تحديد الرموز المشبوهة أو غير المرغوب فيها على أنها عمليات احتيال محتملة أو أصول ضارة. قد تظهر في محفظتك نتيجةً لعمليات الإنزال الجوي أو التحويلات أو الاستيراد اليدوي.";
 "info.insufficient_network_fee_balance.title" = "%@ مطلوب";
 "info.insufficient_network_fee_balance.description" = "تتطلب هذه المعاملة %@ لتغطية رسوم الشبكة المدفوعة لعمال التعدين %@ ، وليس Gem Wallet. تأكد من أن لديك ما يكفي %@.";
+"info.receive_network_fee_title" = "%@ مطلوب لرسوم الشبكة";
+"info.receive_network_fee_description" = "أنت تستلم %@، لكن لا تملك %@. ستحتاج إليه لدفع رسوم الشبكة للمعاملات المستقبلية على %@.";
 "info.insufficient_balance.title" = "رصيد غير كاف";
 "info.insufficient_balance.description" = "ليس لديك رصيد كافٍ %@ لإتمام هذه المعاملة. يُرجى شحن رصيدك أو استلامه أو استبداله في محفظتك والمحاولة مرة أخرى.";
 "info.account_minimum_balance.title" = "الحد الأدنى للرصيد";

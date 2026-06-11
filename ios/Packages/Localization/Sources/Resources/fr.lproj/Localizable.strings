@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Les jetons suspects ou indésirables sont identifiés comme des arnaques potentielles ou des actifs dangereux. Ils peuvent apparaître dans votre portefeuille suite à des airdrops, des transferts ou des importations manuelles.";
 "info.insufficient_network_fee_balance.title" = "%@ requis";
 "info.insufficient_network_fee_balance.description" = "Cette transaction nécessite %@ pour couvrir les frais de réseau payés à %@ mineurs, pas Gem WalletAssurez-vous d'en avoir suffisamment %@.";
+"info.receive_network_fee_title" = "%@ requis pour les frais";
+"info.receive_network_fee_description" = "Vous recevez des %@, mais vous n'avez pas d'%@. Vous en aurez besoin pour payer les frais de réseau des futures transactions sur %@.";
 "info.insufficient_balance.title" = "Solde insuffisant";
 "info.insufficient_balance.description" = "Vous n'avez pas assez de %@ pour finaliser cette transaction. Veuillez recharger, recevoir ou échanger votre portefeuille et réessayer.";
 "info.account_minimum_balance.title" = "Solde minimum";

@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Mã thông báo đáng ngờ hoặc thư rác được xác định là lừa đảo tiềm ẩn hoặc tài sản có hại. Chúng có thể xuất hiện trong ví của bạn do airdrop, chuyển khoản hoặc nhập thủ công.";
 "info.insufficient_network_fee_balance.title" = "%@ bắt buộc";
 "info.insufficient_network_fee_balance.description" = "Giao dịch này yêu cầu %@ để trang trải phí mạng đã trả cho %@ thợ mỏ, không phải Gem WalletHãy đảm bảo bạn có đủ %@.";
+"info.receive_network_fee_title" = "Cần %@ để trả phí";
+"info.receive_network_fee_description" = "Bạn đang nhận %@, nhưng bạn không có %@. Bạn sẽ cần nó để trả phí mạng cho các giao dịch trong tương lai trên %@.";
 "info.insufficient_balance.title" = "Số dư không đủ";
 "info.insufficient_balance.description" = "Bạn không có đủ %@ để hoàn tất giao dịch này. Vui lòng nạp tiền, nhận hoặc đổi trong ví của bạn và thử lại.";
 "info.account_minimum_balance.title" = "Số dư tối thiểu";

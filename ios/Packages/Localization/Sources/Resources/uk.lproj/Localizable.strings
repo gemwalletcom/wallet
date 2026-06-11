@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Підозрілі або спам-токени ідентифікуються як потенційні шахрайські або шкідливі активи. Вони можуть з'явитися у вашому гаманці через аїрдропи, перекази або ручний імпорт.";
 "info.insufficient_network_fee_balance.title" = "Потрібно %@";
 "info.insufficient_network_fee_balance.description" = "Ця транзакція вимагає %@ для покриття мережевої комісії, що виплачується майнерам %@ , а не Gem Wallet. Переконайтеся, що у вас достатньо %@.";
+"info.receive_network_fee_title" = "Для комісії потрібен %@";
+"info.receive_network_fee_description" = "Ви отримуєте %@, але у вас немає %@. Він знадобиться для оплати комісій мережі за майбутні транзакції в %@.";
 "info.insufficient_balance.title" = "Недостатній баланс";
 "info.insufficient_balance.description" = "У вас недостатньо %@ для завершення цієї транзакції. Будь ласка, поповніть, отримайте або обміняйте свій гаманець і спробуйте ще раз.";
 "info.account_minimum_balance.title" = "Мінімальний баланс";

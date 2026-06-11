@@ -9,7 +9,6 @@ import Transfer
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.assetsEnabler) private var assetsEnabler
     @Environment(\.activityService) private var activityService
 
     @State private var navigationPath = NavigationPath()
@@ -48,11 +47,10 @@ struct SelectedAssetNavigationStack: View {
                     )
                 case .receive:
                     ReceiveScene(
-                        model: ReceiveViewModel(
-                            assetModel: AssetViewModel(asset: input.asset),
+                        model: viewModelFactory.receiveScene(
+                            asset: input.asset,
                             wallet: wallet,
                             address: input.address,
-                            assetsEnabler: assetsEnabler,
                         ),
                     )
                 case let .buy(_, amount):

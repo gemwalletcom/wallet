@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Verdachte of spamtokens worden herkend als potentiële oplichting of schadelijke activa. Ze kunnen in uw wallet verschijnen via airdrops, overschrijvingen of handmatige imports.";
 "info.insufficient_network_fee_balance.title" = "%@ vereist";
 "info.insufficient_network_fee_balance.description" = "Deze transactie vereist %@ om de netwerkkosten te dekken die betaald worden aan %@ mijnwerkers, niet Gem WalletZorg ervoor dat je voldoende hebt. %@.";
+"info.receive_network_fee_title" = "%@ vereist voor kosten";
+"info.receive_network_fee_description" = "Je ontvangt %@, maar je hebt geen %@. Je hebt het nodig om netwerkkosten voor toekomstige transacties op %@ te betalen.";
 "info.insufficient_balance.title" = "Onvoldoende saldo";
 "info.insufficient_balance.description" = "Je hebt niet genoeg %@ om deze transactie te voltooien. Vul je wallet aan, ontvang of wissel in en probeer het opnieuw.";
 "info.account_minimum_balance.title" = "Minimumsaldo";

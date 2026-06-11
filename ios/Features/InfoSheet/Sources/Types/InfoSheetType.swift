@@ -14,6 +14,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Chain)
     case insufficientBalance(Asset, image: AssetImage)
     case insufficientNetworkFee(Asset, image: AssetImage, required: BigInt?, action: InfoSheetAction)
+    case receiveNetworkFee(asset: Asset, feeAsset: Asset, image: AssetImage)
     case transactionState(imageURL: URL?, placeholder: Image?, state: TransactionState)
     case watchWallet
     case stakeLockTime(Image?)
@@ -50,6 +51,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         switch self {
         case .networkFee: "networkFees"
         case .insufficientNetworkFee: "insufficientNetworkFee"
+        case .receiveNetworkFee: "receiveNetworkFee"
         case let .insufficientBalance(asset, _): "insufficientBalance_\(asset.id.identifier)"
         case let .transactionState(_, _, state): state.id
         case .watchWallet: "watchWallet"

@@ -987,6 +987,10 @@ info_asset_status_suspicious_description = Suspicious or spam tokens are identif
 info_insufficient_network_fee_balance_title = %@ required
 # Used in Info bottom sheets for the insufficient network fee balance description. Contains 3 string placeholders.
 info_insufficient_network_fee_balance_description = This transaction requires %@ to cover the network fee paid to %@ miners, not Gem Wallet. Ensure you have enough %@.
+# Used in the Receive screen info bottom sheet when the wallet has no native asset to pay network fees. Contains 1 string placeholder (native asset symbol).
+info_receive_network_fee_title = %@ required for fees
+# Used in the Receive screen info bottom sheet describing the native asset needed for fees. Contains 3 string placeholders (received asset symbol, native asset symbol, network name).
+info_receive_network_fee_description = You're receiving %@, but you have no %@. You'll need it to pay network fees for future transactions on %@.
 # Used in Info bottom sheets for the insufficient balance title.
 info_insufficient_balance_title = Insufficient Balance
 # Used in Info bottom sheets for the insufficient balance description. Contains 1 string placeholder.

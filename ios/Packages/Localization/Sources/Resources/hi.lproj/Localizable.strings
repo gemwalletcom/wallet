@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "संदिग्ध या स्पैम टोकन को संभावित घोटाले या हानिकारक संपत्ति के रूप में पहचाना जाता है। वे एयरड्रॉप, ट्रांसफ़र या मैन्युअल आयात के कारण आपके वॉलेट में दिखाई दे सकते हैं।";
 "info.insufficient_network_fee_balance.title" = "%@ आवश्यक";
 "info.insufficient_network_fee_balance.description" = "इस लेनदेन के लिए आवश्यकता है %@ नेटवर्क शुल्क का भुगतान करने के लिए %@ खनिक, नहीं Gem Walletसुनिश्चित करें कि आपके पास पर्याप्त मात्रा में हो। %@.";
+"info.receive_network_fee_title" = "शुल्क के लिए %@ आवश्यक है";
+"info.receive_network_fee_description" = "आप %@ प्राप्त कर रहे हैं, लेकिन आपके पास %@ नहीं है। %@ पर भविष्य के लेन-देन के नेटवर्क शुल्क चुकाने के लिए आपको इसकी आवश्यकता होगी।";
 "info.insufficient_balance.title" = "अपर्याप्त शेषराशि";
 "info.insufficient_balance.description" = "इस लेनदेन को पूरा करने के लिए आपके पास पर्याप्त %@ नहीं है। कृपया अपने वॉलेट में टॉप अप करें, प्राप्त करें या स्वैप करें और फिर से प्रयास करें।";
 "info.account_minimum_balance.title" = "न्यूनतम शेष";

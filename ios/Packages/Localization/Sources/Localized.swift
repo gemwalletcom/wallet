@@ -551,6 +551,14 @@ public enum Localized {
     public static let types = Localized.tr("Localizable", "filter.types", fallback: "Types")
   }
   public enum Info {
+    /// You're receiving %@, but you have no %@. You'll need it to pay network fees for future transactions on %@.
+    public static func receiveNetworkFeeDescription(_ p1: Any, _ p2: Any, _ p3: Any) -> String {
+      return Localized.tr("Localizable", "info.receive_network_fee_description", String(describing: p1), String(describing: p2), String(describing: p3), fallback: "You're receiving %@, but you have no %@. You'll need it to pay network fees for future transactions on %@.")
+    }
+    /// %@ required for fees
+    public static func receiveNetworkFeeTitle(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "info.receive_network_fee_title", String(describing: p1), fallback: "%@ required for fees")
+    }
     public enum AccountMinimumBalance {
       /// Minimum balance
       public static let title = Localized.tr("Localizable", "info.account_minimum_balance.title", fallback: "Minimum balance")

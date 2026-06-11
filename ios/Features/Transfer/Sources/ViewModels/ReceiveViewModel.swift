@@ -2,6 +2,7 @@ import BalanceService
 import Components
 import Foundation
 import GemstonePrimitives
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -18,10 +19,12 @@ public final class ReceiveViewModel: Sendable {
     let wallet: Wallet
     let address: String
     let assetsEnabler: any AssetsEnabler
+    let balanceService: BalanceService
     let generator = QRCodeGenerator()
 
     public var isPresentingShareSheet: Bool = false
     public var isPresentingCopyToast: Bool = false
+    public var isPresentingInfoSheet: InfoSheetType?
     public var renderedImage: UIImage?
 
     public init(
@@ -29,11 +32,17 @@ public final class ReceiveViewModel: Sendable {
         wallet: Wallet,
         address: String,
         assetsEnabler: any AssetsEnabler,
+        balanceService: BalanceService,
     ) {
         self.assetModel = assetModel
         self.wallet = wallet
         self.address = address
         self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
+    }
+
+    private var feeAsset: Asset {
+        assetModel.asset.chain.asset
     }
 
     var title: String {
@@ -88,6 +97,16 @@ public final class ReceiveViewModel: Sendable {
         }
     }
 
+    func presentFeeWarningIfNeeded() {
+        guard assetModel.asset.id.type == .token, feeAsset.chain != .hyperCore else { return }
+        guard let balance = try? balanceService.getBalance(walletId: wallet.id, assetId: feeAsset.id), balance.available == .zero else { return }
+        isPresentingInfoSheet = .receiveNetworkFee(
+            asset: assetModel.asset,
+            feeAsset: feeAsset,
+            image: AssetViewModel(asset: feeAsset).assetImage,
+        )
+    }
+
     func generateQRCode() async -> UIImage? {
         await generator.generate(
             from: address,
@@ -104,6 +123,7 @@ public final class ReceiveViewModel: Sendable {
 
 extension ReceiveViewModel {
     func onTaskOnce() {
+        presentFeeWarningIfNeeded()
         Task {
             await enableAsset()
         }

@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "Podezřelé nebo spamové tokeny jsou identifikovány jako potenciální podvody nebo škodlivá aktiva. Mohou se objevit ve vaší peněžence v důsledku airdropů, převodů nebo ručního importu.";
 "info.insufficient_network_fee_balance.title" = "%@ je vyžadováno";
 "info.insufficient_network_fee_balance.description" = "Tato transakce vyžaduje %@ na pokrytí síťového poplatku placeného %@ horníci, ne Gem WalletUjistěte se, že máte dostatek %@.";
+"info.receive_network_fee_title" = "Pro poplatky je potřeba %@";
+"info.receive_network_fee_description" = "Přijímáte %@, ale nemáte žádné %@. Budete je potřebovat k zaplacení síťových poplatků za budoucí transakce na síti %@.";
 "info.insufficient_balance.title" = "Nedostatečný zůstatek";
 "info.insufficient_balance.description" = "Nemáte dostatek %@ k dokončení této transakce. Dobijte si prosím peněženku, přijměte ji nebo ji vyměňte a zkuste to znovu.";
 "info.account_minimum_balance.title" = "Minimální zůstatek";

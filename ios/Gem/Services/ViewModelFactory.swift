@@ -151,6 +151,21 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
+    public func receiveScene(
+        asset: Asset,
+        wallet: Wallet,
+        address: String,
+    ) -> ReceiveViewModel {
+        ReceiveViewModel(
+            assetModel: AssetViewModel(asset: asset),
+            wallet: wallet,
+            address: address,
+            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
+        )
+    }
+
+    @MainActor
     public func amountScene(
         input: AmountInput,
         wallet: Wallet,

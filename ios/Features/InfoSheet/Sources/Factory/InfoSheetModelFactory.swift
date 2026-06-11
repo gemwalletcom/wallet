@@ -45,6 +45,17 @@ public enum InfoSheetModelFactory {
                 image: .assetImage(image),
                 button: .action(title: Localized.Asset.buyAsset(asset.feeAsset.symbol), action: action),
             )
+        case let .receiveNetworkFee(asset, feeAsset, image):
+            return InfoSheetModel(
+                title: Localized.Info.receiveNetworkFeeTitle(feeAsset.symbol),
+                description: Localized.Info.receiveNetworkFeeDescription(
+                    asset.symbol.boldMarkdown(),
+                    feeAsset.symbol.boldMarkdown(),
+                    feeAsset.name.boldMarkdown(),
+                ),
+                image: .assetImage(image),
+                button: .url(AppUrl.docs(.networkFees)),
+            )
         case let .transactionState(imageURL, placeholder, state):
             let model = TransactionStateViewModel(state: state)
             return InfoSheetModel(

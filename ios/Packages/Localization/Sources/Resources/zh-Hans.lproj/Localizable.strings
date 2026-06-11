@@ -428,6 +428,8 @@
 "info.asset_status.suspicious.description" = "可疑或垃圾代币会被识别为潜在的诈骗或有害资产。它们可能因空投、转账或手动导入而出现在您的钱包中。";
 "info.insufficient_network_fee_balance.title" = "需要%@";
 "info.insufficient_network_fee_balance.description" = "此交易需要 %@ 用于支付网络费用 %@ 矿工，而不是 Gem Wallet确保你有足够的 %@。";
+"info.receive_network_fee_title" = "支付手续费需要 %@";
+"info.receive_network_fee_description" = "您正在接收 %@，但您没有 %@。您将需要它来支付 %@ 上未来交易的网络手续费。";
 "info.insufficient_balance.title" = "余额不足";
 "info.insufficient_balance.description" = "您的余额不足%@ ，无法完成此交易。请充值、接收或兑换您的钱包，然后重试。";
 "info.account_minimum_balance.title" = "最低余额";
