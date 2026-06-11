@@ -27,7 +27,6 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
 
@@ -51,25 +50,33 @@ fun WalletSearchScreen(
 
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
 
-    val onRecentClick: (AssetId) -> Unit = { assetId ->
-        onAction(if (assetId.toIdentifier() in perpetualRecentIds) WalletSearchAction.OpenPerpetual(assetId) else WalletSearchAction.OpenAsset(assetId))
-    }
-
-    val contextActions = remember(viewModel) {
-        AssetContextActions(
-            onTogglePin = viewModel::onPinAsset,
-            onAddToWallet = { id -> viewModel.onChangeVisibility(id, true) },
-        )
-    }
-
-    val selectAsset: (AssetId) -> Unit = { id ->
-        viewModel.updateRecent(id, RecentType.Search)
-        onAction(WalletSearchAction.OpenAsset(id))
-    }
-
-    val onPerpetualSelect: (AssetId) -> Unit = { assetId ->
-        viewModel.onOpenPerpetual(assetId)
-        onAction(WalletSearchAction.OpenPerpetual(assetId))
+    val handleAction: (WalletSearchAction) -> Unit = { action ->
+        when (action) {
+            is WalletSearchAction.PinAsset -> viewModel.onPinAsset(action.assetId)
+            is WalletSearchAction.AddToWallet -> viewModel.onChangeVisibility(action.assetId, true)
+            is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
+            is WalletSearchAction.SelectTag -> viewModel.onTagSelect(action.tag)
+            WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
+            is WalletSearchAction.OpenRecent -> onAction(
+                if (action.assetId.toIdentifier() in perpetualRecentIds) {
+                    WalletSearchAction.OpenPerpetual(action.assetId)
+                } else {
+                    WalletSearchAction.OpenAsset(action.assetId)
+                }
+            )
+            is WalletSearchAction.OpenAsset -> {
+                viewModel.updateRecent(action.assetId, RecentType.Search)
+                onAction(action)
+            }
+            is WalletSearchAction.OpenPerpetual -> {
+                viewModel.onOpenPerpetual(action.assetId)
+                onAction(action)
+            }
+            WalletSearchAction.AddAsset,
+            WalletSearchAction.Cancel,
+            WalletSearchAction.OpenPerpetuals,
+            is WalletSearchAction.ShowAllAssets -> onAction(action)
+        }
     }
 
     val pinnedPerpetualRows: List<@Composable (ListPosition) -> Unit> = pinnedPerpetuals.map { item ->
@@ -78,8 +85,8 @@ fun WalletSearchScreen(
                 item = item,
                 listPosition = position,
                 longPressState = longPressedPerpetual,
-                onTogglePin = viewModel::onTogglePerpetualPin,
-                onClick = onPerpetualSelect,
+                onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
+                onClick = { handleAction(WalletSearchAction.OpenPerpetual(it)) },
             )
         }
     }
@@ -87,15 +94,15 @@ fun WalletSearchScreen(
     val perpetualsContent: (LazyListScope.() -> Unit)? = if (previewPerpetuals.isNotEmpty()) {
         {
             item {
-                SubheaderItem(R.string.perpetuals_title, if (hasMorePerpetuals) ({ onAction(WalletSearchAction.OpenPerpetuals) }) else null)
+                SubheaderItem(R.string.perpetuals_title, if (hasMorePerpetuals) ({ handleAction(WalletSearchAction.OpenPerpetuals) }) else null)
             }
             itemsPositioned(previewPerpetuals) { position, item ->
                 PerpetualItem(
                     item = item,
                     listPosition = position,
                     longPressState = longPressedPerpetual,
-                    onTogglePin = viewModel::onTogglePerpetualPin,
-                    onClick = onPerpetualSelect,
+                    onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
+                    onClick = { handleAction(WalletSearchAction.OpenPerpetual(it)) },
                 )
             }
         }
@@ -125,23 +132,26 @@ fun WalletSearchScreen(
         onChainFilter = {},
         onBalanceFilter = {},
         onClearFilters = {},
-        onCancel = { onAction(WalletSearchAction.Cancel) },
-        onAddAsset = if (isAddAssetAvailable) ({ onAction(WalletSearchAction.AddAsset) }) else null,
-        onSelect = selectAsset,
-        onSelectRecent = onRecentClick,
-        onOpenRecentsSheet = { recentsViewModel.show(filters = viewModel.assetFilters()) },
-        onTagSelect = viewModel::onTagSelect,
+        onCancel = { handleAction(WalletSearchAction.Cancel) },
+        onAddAsset = if (isAddAssetAvailable) ({ handleAction(WalletSearchAction.AddAsset) }) else null,
+        onSelect = { handleAction(WalletSearchAction.OpenAsset(it)) },
+        onSelectRecent = { handleAction(WalletSearchAction.OpenRecent(it)) },
+        onOpenRecentsSheet = { handleAction(WalletSearchAction.OpenRecentsSheet) },
+        onTagSelect = { handleAction(WalletSearchAction.SelectTag(it)) },
         itemTrailing = { asset -> getBalanceInfo(asset)() },
-        contextActions = contextActions,
+        contextActions = AssetContextActions(
+            onTogglePin = { handleAction(WalletSearchAction.PinAsset(it)) },
+            onAddToWallet = { handleAction(WalletSearchAction.AddToWallet(it)) },
+        ),
         pinnedPerpetualRows = pinnedPerpetualRows,
         perpetualsContent = perpetualsContent,
         assetsHeaderRes = R.string.assets_title,
         onAssetsHeaderClick = if (hasMoreAssets) {
-            { onAction(WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag)) }
+            { handleAction(WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag)) }
         } else {
             null
         },
     )
 
-    RecentsSheetHost(viewModel = recentsViewModel, onSelect = onRecentClick)
+    RecentsSheetHost(viewModel = recentsViewModel, onSelect = { handleAction(WalletSearchAction.OpenRecent(it)) })
 }
