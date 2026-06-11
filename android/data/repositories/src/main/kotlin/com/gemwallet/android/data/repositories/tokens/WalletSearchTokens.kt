@@ -3,8 +3,8 @@ package com.gemwallet.android.data.repositories.tokens
 import com.gemwallet.android.application.assets.coordinators.GemSearch
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
-import com.gemwallet.android.data.service.store.database.entities.toSearchPriority
+import com.gemwallet.android.data.service.store.database.SearchDao
+import com.gemwallet.android.data.service.store.database.entities.toSearchRecord
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -17,7 +17,7 @@ class WalletSearchTokens(
     private val tokensRepository: TokensRepository,
     private val gemSearch: GemSearch,
     private val perpetualRepository: PerpetualRepository,
-    private val searchPriorityDao: SearchPriorityDao,
+    private val searchDao: SearchDao,
 ) : SearchTokensCase by tokensRepository {
 
     override suspend fun search(query: String, currency: Currency, chains: List<Chain>, tags: List<AssetTag>): Boolean = withContext(Dispatchers.IO) {
@@ -35,7 +35,7 @@ class WalletSearchTokens(
                 perpetualRepository.putPerpetuals(
                     perpetuals.map { PerpetualData(perpetual = it.perpetual, asset = it.asset, metadata = PerpetualMetadata(isPinned = false)) }
                 )
-                searchPriorityDao.put(perpetuals.toSearchPriority(priorityQuery))
+                searchDao.put(perpetuals.toSearchRecord(priorityQuery))
             }
         }
         hasAssets || perpetuals.isNotEmpty()

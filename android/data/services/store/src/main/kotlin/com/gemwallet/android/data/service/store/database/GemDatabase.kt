@@ -27,7 +27,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbPerpetualPos
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
-import com.gemwallet.android.data.service.store.database.entities.DbSearchPriority
+import com.gemwallet.android.data.service.store.database.entities.DbSearch
 import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
@@ -58,7 +58,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbNFTAssociation::class,
         DbAssetLink::class,
         DbAssetMarket::class,
-        DbSearchPriority::class,
+        DbSearch::class,
         DbFiatRate::class,
         DbFiatTransaction::class,
         DbRecentActivity::class,
@@ -99,7 +99,7 @@ abstract class GemDatabase : RoomDatabase() {
 
     abstract fun nftDao(): NftDao
 
-    abstract fun searchPriorityDao(): SearchPriorityDao
+    abstract fun searchDao(): SearchDao
 
     abstract fun perpetualDao(): PerpetualDao
 

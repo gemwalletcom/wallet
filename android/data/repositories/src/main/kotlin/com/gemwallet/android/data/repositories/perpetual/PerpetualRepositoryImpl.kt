@@ -4,7 +4,7 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toDB
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toDto
@@ -33,7 +33,7 @@ class PerpetualRepositoryImpl(
     private val perpetualPositionDao: PerpetualPositionDao,
     private val assetsDao: AssetsDao,
     private val balancesDao: BalancesDao,
-    private val searchPriorityDao: SearchPriorityDao,
+    private val searchDao: SearchDao,
 ) : PerpetualRepository {
 
     override suspend fun putPerpetuals(items: List<PerpetualData>) {
@@ -47,7 +47,7 @@ class PerpetualRepositoryImpl(
         if (searchQuery.isEmpty()) {
             return perpetualDao.getPerpetualsData().toPerpetualData()
         }
-        return searchPriorityDao.hasPriorities(searchQuery, SearchItemType.Perpetual.string)
+        return searchDao.hasPriorities(searchQuery, SearchItemType.Perpetual.string)
             .map { it > 0 }
             .distinctUntilChanged()
             .flatMapLatest { hasPriority ->

@@ -6,11 +6,11 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.cases.tokens.SyncAssetPrices
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
-import com.gemwallet.android.data.service.store.database.entities.toSearchPriority
+import com.gemwallet.android.data.service.store.database.entities.toSearchRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.toIdentifier
@@ -27,7 +27,7 @@ import kotlinx.coroutines.withContext
 class TokensRepository (
     private val assetsDao: AssetsDao,
     private val pricesDao: PricesDao,
-    private val searchPriorityDao: SearchPriorityDao,
+    private val searchDao: SearchDao,
     private val searchAssets: SearchAssets,
     private val tokenService: TokenService,
 ) : SearchTokensCase, SyncAssetPrices {
@@ -53,7 +53,7 @@ class TokensRepository (
             assets.isNotEmpty()
         } else {
             updateAssets(tokens, currency)
-            searchPriorityDao.put(tokens.toSearchPriority(priorityQuery))
+            searchDao.put(tokens.toSearchRecord(priorityQuery))
             true
         }
     }

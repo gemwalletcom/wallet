@@ -11,16 +11,16 @@ import com.wallet.core.primitives.SearchItemType
     tableName = "search",
     primaryKeys = ["query", "type", "item_id"],
 )
-data class DbSearchPriority(
+data class DbSearch(
     val query: String,
     val type: String,
     @ColumnInfo(name = "item_id") val itemId: String,
     val priority: Int,
 )
 
-@JvmName("assetsToSearchPriority")
-fun List<AssetBasic>.toSearchPriority(query: String): List<DbSearchPriority> = mapIndexed { index, basic ->
-    DbSearchPriority(
+@JvmName("assetsToSearchRecord")
+fun List<AssetBasic>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, basic ->
+    DbSearch(
         query = query,
         type = SearchItemType.Asset.string,
         itemId = basic.asset.id.toIdentifier(),
@@ -28,9 +28,9 @@ fun List<AssetBasic>.toSearchPriority(query: String): List<DbSearchPriority> = m
     )
 }
 
-@JvmName("perpetualsToSearchPriority")
-fun List<PerpetualSearchData>.toSearchPriority(query: String): List<DbSearchPriority> = mapIndexed { index, data ->
-    DbSearchPriority(
+@JvmName("perpetualsToSearchRecord")
+fun List<PerpetualSearchData>.toSearchRecord(query: String): List<DbSearch> = mapIndexed { index, data ->
+    DbSearch(
         query = query,
         type = SearchItemType.Perpetual.string,
         itemId = data.perpetual.id.toIdentifier(),

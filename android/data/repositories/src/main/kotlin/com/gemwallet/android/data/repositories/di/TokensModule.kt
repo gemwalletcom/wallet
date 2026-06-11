@@ -11,7 +11,7 @@ import com.gemwallet.android.data.repositories.tokens.WalletSearch
 import com.gemwallet.android.data.repositories.tokens.WalletSearchTokens
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,13 +27,13 @@ object TokensModule {
     fun provideTokensRepository(
         assetsDao: AssetsDao,
         pricesDao: PricesDao,
-        searchPriorityDao: SearchPriorityDao,
+        searchDao: SearchDao,
         gateway: GemGateway,
         searchAssets: SearchAssets,
     ): TokensRepository = TokensRepository(
         assetsDao = assetsDao,
         pricesDao = pricesDao,
-        searchPriorityDao = searchPriorityDao,
+        searchDao = searchDao,
         searchAssets = searchAssets,
         tokenService = TokenService(
             gateway = gateway,
@@ -51,8 +51,8 @@ object TokensModule {
         tokensRepository: TokensRepository,
         gemSearch: GemSearch,
         perpetualRepository: PerpetualRepository,
-        searchPriorityDao: SearchPriorityDao,
-    ): SearchTokensCase = WalletSearchTokens(tokensRepository, gemSearch, perpetualRepository, searchPriorityDao)
+        searchDao: SearchDao,
+    ): SearchTokensCase = WalletSearchTokens(tokensRepository, gemSearch, perpetualRepository, searchDao)
 
     @Provides
     @Singleton

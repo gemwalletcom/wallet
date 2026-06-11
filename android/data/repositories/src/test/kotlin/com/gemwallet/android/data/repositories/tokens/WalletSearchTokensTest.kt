@@ -2,7 +2,7 @@ package com.gemwallet.android.data.repositories.tokens
 
 import com.gemwallet.android.application.assets.coordinators.GemSearch
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockPerpetual
@@ -24,13 +24,13 @@ class WalletSearchTokensTest {
     private val tokensRepository = mockk<TokensRepository>(relaxed = true)
     private val gemSearch = mockk<GemSearch>()
     private val perpetualRepository = mockk<PerpetualRepository>(relaxed = true)
-    private val searchPriorityDao = mockk<SearchPriorityDao>(relaxed = true)
+    private val searchDao = mockk<SearchDao>(relaxed = true)
 
     private val subject = WalletSearchTokens(
         tokensRepository = tokensRepository,
         gemSearch = gemSearch,
         perpetualRepository = perpetualRepository,
-        searchPriorityDao = searchPriorityDao,
+        searchDao = searchDao,
     )
 
     @Test
@@ -60,7 +60,7 @@ class WalletSearchTokensTest {
 
         assertTrue(result)
         coVerify { perpetualRepository.putPerpetuals(any()) }
-        coVerify { searchPriorityDao.put(match { priorities -> priorities.any { it.type == "perpetual" } }) }
+        coVerify { searchDao.put(match { priorities -> priorities.any { it.type == "perpetual" } }) }
     }
 
     @Test

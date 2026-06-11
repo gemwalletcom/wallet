@@ -3,7 +3,7 @@ package com.gemwallet.android.data.repositories.assets
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.tokens.toPriorityQuery
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
@@ -24,14 +24,14 @@ import javax.inject.Singleton
 @Singleton
 class AssetsSearchService @Inject constructor(
     private val assetsDao: AssetsDao,
-    private val searchPriorityDao: SearchPriorityDao,
+    private val searchDao: SearchDao,
     private val sessionRepository: SessionRepository,
 ) {
 
     fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> {
         val query = tags.toPriorityQuery(query)
         return sessionRepository.currentWalletId().flatMapLatest { walletId ->
-            searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
+            searchDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 when {
                     byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query)
                     byAllWallets -> assetsDao.searchByAllWallets(walletId, query)
@@ -48,7 +48,7 @@ class AssetsSearchService @Inject constructor(
         val walletChains = wallet.accounts.map { it.chain }
         val includeChains = byChains.filter { walletChains.contains(it) }
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
-        return searchPriorityDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
+        return searchDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 if (hasPriority) {
                     assetsDao.swapSearchWithPriority(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 } else {

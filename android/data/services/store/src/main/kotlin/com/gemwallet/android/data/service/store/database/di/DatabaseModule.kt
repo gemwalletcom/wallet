@@ -18,7 +18,7 @@ import com.gemwallet.android.data.service.store.database.NodesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.SessionDao
@@ -150,7 +150,7 @@ object DatabaseModule {
 
     @Singleton
     @Provides
-    fun provideSearchPriorityDao(db: GemDatabase): SearchPriorityDao = db.searchPriorityDao()
+    fun provideSearchDao(db: GemDatabase): SearchDao = db.searchDao()
 
     @Singleton
     @Provides

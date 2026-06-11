@@ -6,7 +6,7 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PerpetualDao
 import com.gemwallet.android.data.service.store.database.PerpetualPositionDao
-import com.gemwallet.android.data.service.store.database.SearchPriorityDao
+import com.gemwallet.android.data.service.store.database.SearchDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,14 +24,14 @@ object PerpetualModule {
         perpetualPositionDao: PerpetualPositionDao,
         assetsDao: AssetsDao,
         balancesDao: BalancesDao,
-        searchPriorityDao: SearchPriorityDao,
+        searchDao: SearchDao,
     ): PerpetualRepository {
         return PerpetualRepositoryImpl(
             perpetualDao = perpetualDao,
             perpetualPositionDao = perpetualPositionDao,
             assetsDao = assetsDao,
             balancesDao = balancesDao,
-            searchPriorityDao = searchPriorityDao,
+            searchDao = searchDao,
         )
     }
 }
