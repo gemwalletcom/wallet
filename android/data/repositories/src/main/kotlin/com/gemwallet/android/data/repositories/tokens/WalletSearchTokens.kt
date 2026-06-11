@@ -5,6 +5,7 @@ import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.service.store.database.SearchDao
 import com.gemwallet.android.data.service.store.database.entities.toSearchRecord
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency

@@ -13,13 +13,13 @@ import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toSearchRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
 import com.gemwallet.android.domains.asset.defaultBasic
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -112,11 +112,3 @@ private fun List<AssetTag>.toGemQuery() = if (isEmpty()) {
 }
 
 fun List<AssetTag>.toPriorityQuery(query: String) = if (isEmpty()) query.trim() else "${query.trim()}::${toGemQuery()}"
-
-internal suspend fun <T> runCatchingCancellable(block: suspend () -> T): Result<T> = try {
-    Result.success(block())
-} catch (err: CancellationException) {
-    throw err
-} catch (err: Throwable) {
-    Result.failure(err)
-}
