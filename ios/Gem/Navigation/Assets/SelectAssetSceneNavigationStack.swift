@@ -3,6 +3,7 @@
 import Assets
 import Components
 import FiatConnect
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -93,7 +94,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 input: AmountInput(
                                     type: .deposit(
                                         recipient: RecipientData(
-                                            recipient: .hyperliquid,
+                                            recipient: .hyperliquidDeposit,
                                             amount: .none,
                                         ),
                                     ),

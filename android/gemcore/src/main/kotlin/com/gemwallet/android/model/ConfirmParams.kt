@@ -87,6 +87,22 @@ sealed class ConfirmParams() {
             }
         }
 
+        fun deposit(destination: DestinationAddress): TransferParams.Deposit = TransferParams.Deposit(
+            asset = asset,
+            from = from,
+            amount = amount,
+            destination = destination,
+            useMaxAmount = useMaxAmount,
+        )
+
+        fun withdrawal(destination: DestinationAddress): TransferParams.Withdrawal = TransferParams.Withdrawal(
+            asset = asset,
+            from = from,
+            amount = amount,
+            destination = destination,
+            useMaxAmount = useMaxAmount,
+        )
+
         fun approval(approvalData: String, provider: String, contract: String = ""): TokenApprovalParams {
             return TokenApprovalParams(asset, from, approvalData, provider, contract)
         }
@@ -253,6 +269,32 @@ sealed class ConfirmParams() {
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = Transfer(asset.toGem())
 
+        }
+
+        @Serializable
+        class Deposit(
+            override val asset: Asset,
+            override val from: Account,
+            @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
+            override val destination: DestinationAddress,
+            override val memo: String? = null,
+            override val useMaxAmount: Boolean = false,
+            override val inputType: InputType? = null,
+        ) : TransferParams() {
+            override fun toDto(): GemTransactionInputType = GemTransactionInputType.Deposit(asset.toGem())
+        }
+
+        @Serializable
+        class Withdrawal(
+            override val asset: Asset,
+            override val from: Account,
+            @Serializable(BigIntegerSerializer::class) override val amount: BigInteger,
+            override val destination: DestinationAddress,
+            override val memo: String? = null,
+            override val useMaxAmount: Boolean = false,
+            override val inputType: InputType? = null,
+        ) : TransferParams() {
+            override fun toDto(): GemTransactionInputType = GemTransactionInputType.Withdrawal(asset.toGem())
         }
 
         @Serializable
@@ -639,6 +681,8 @@ sealed class ConfirmParams() {
                     TransferParams.Generic::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Generic>(json)
                     TransferParams.Native::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Native>(json)
                     TransferParams.Token::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Token>(json)
+                    TransferParams.Deposit::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Deposit>(json)
+                    TransferParams.Withdrawal::class.qualifiedName -> jsonEncoder.decodeFromString<TransferParams.Withdrawal>(json)
                     SwapParams::class.qualifiedName -> jsonEncoder.decodeFromString<SwapParams>(json)
                     TokenApprovalParams::class.qualifiedName -> jsonEncoder.decodeFromString<TokenApprovalParams>(json)
                     Stake.DelegateParams::class.qualifiedName -> jsonEncoder.decodeFromString<Stake.DelegateParams>(json)

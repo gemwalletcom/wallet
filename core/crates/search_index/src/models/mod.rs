@@ -1,8 +1,10 @@
 mod asset;
+mod asset_list;
 mod nft;
 mod perpetual;
 
 pub use asset::*;
+pub use asset_list::*;
 pub use nft::*;
 pub use perpetual::*;
 
@@ -23,6 +25,13 @@ pub const INDEX_CONFIGS: &[IndexConfig] = &[
         sorts: ASSETS_SORTS,
         search_attributes: ASSETS_SEARCH_ATTRIBUTES,
         ranking_rules: ASSETS_RANKING_RULES,
+    },
+    IndexConfig {
+        name: ASSET_LISTS_INDEX_NAME,
+        filters: ASSET_LISTS_FILTERS,
+        sorts: ASSET_LISTS_SORTS,
+        search_attributes: ASSET_LISTS_SEARCH_ATTRIBUTES,
+        ranking_rules: ASSET_LISTS_RANKING_RULES,
     },
     IndexConfig {
         name: PERPETUALS_INDEX_NAME,

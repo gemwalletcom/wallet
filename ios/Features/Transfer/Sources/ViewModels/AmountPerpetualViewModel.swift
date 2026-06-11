@@ -12,11 +12,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 
-enum AmountPerpetualLimits {
-    static let minDeposit = BigInt(5_000_000)
-    static let minWithdraw = BigInt(2_000_000)
-}
-
 @Observable
 public final class AmountPerpetualViewModel: AmountDataProvidable {
     let asset: Asset

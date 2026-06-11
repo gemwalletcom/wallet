@@ -8,6 +8,7 @@ use primitives::AssetId;
 pub trait TagRepository {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, DatabaseError>;
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError>;
+    fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, DatabaseError>;
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, DatabaseError>;
     fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, DatabaseError>;
@@ -22,6 +23,10 @@ impl TagRepository for DatabaseClient {
 
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError> {
         Ok(TagStore::add_assets_tags(self, values)?)
+    }
+
+    fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError> {
+        Ok(TagStore::get_asset_list_tags(self)?)
     }
 
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, DatabaseError> {

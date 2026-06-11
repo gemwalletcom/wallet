@@ -24,6 +24,6 @@ class SyncPerpetualPositionsImpl @Inject constructor(
         val walletId = wallet.id
         perpetualRepository.putAsset(HypercoreUSDC)
         perpetualRepository.diffPositions(walletId, summary.positions)
-        perpetualRepository.putBalance(walletId, HypercoreUSDC.id, summary.balance)
+        perpetualRepository.putBalance(walletId, HypercoreUSDC, summary.balance)
     }
 }

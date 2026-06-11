@@ -6,6 +6,7 @@ import LocalAuthentication
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
+    public var getAuthenticationError: (any Error)?
 
     private var memoryPassword: String
     private var isAuthenticationEnabled: Bool
@@ -37,7 +38,10 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     }
 
     public func getAuthentication() throws -> KeystoreAuthentication {
-        availableAuthentication
+        if let getAuthenticationError {
+            throw getAuthenticationError
+        }
+        return availableAuthentication
     }
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {

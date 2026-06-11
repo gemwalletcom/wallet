@@ -48,15 +48,19 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func resumeFromBackgroundWithStuckUnlockingKeepsLockVisible() {
-        let manager = LockWindowManagerMock.mock()
+    func interruptedUnlockKeepsLockVisible() async {
+        let service = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        service.errorToThrow = BiometryAuthenticationError.cancelledBySystem
+        let manager = LockWindowManagerMock(lockModel: LockSceneViewModel(service: service))
         manager.toggleLock(show: true)
-        manager.lockModel.state = .unlocking
 
-        manager.setPhase(phase: .background)
-        manager.setPhase(phase: .active)
+        await manager.lockModel.startUnlock()?.value
 
-        #expect(manager.lockModel.state == .locked)
+        #expect(manager.lockModel.state == .lockedCanceled)
+        #expect(manager.lockModel.isUnlockButtonVisible)
         #expect(manager.showLockScreen)
         #expect(manager.overlayWindow?.isHidden == false)
         #expect(manager.overlayWindow?.alpha == 1)
@@ -70,10 +74,15 @@ struct LockWindowManagerTests {
     }
 
     @Test
-    func setPhaseActiveAutoLocks() {
+    func setPhaseActiveStartsUnlock() async {
         let manager = LockWindowManagerMock.mock()
         manager.setPhase(phase: .active)
-        #expect(manager.lockModel.state == .locked)
+
+        #expect(manager.lockModel.isUnlocking)
+        #expect(manager.showLockScreen)
+
+        await manager.lockModel.startUnlock()?.value
+        #expect(manager.lockModel.state == .unlocked)
     }
 
     @Test

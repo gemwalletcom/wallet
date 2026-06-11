@@ -5,8 +5,10 @@ use super::filter::{build_assets_filters, build_filter};
 use super::model::SearchRequest;
 use chrono::{DateTime, Utc};
 use pricer::PriceClient;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
-use search_index::{ASSETS_INDEX_NAME, AssetDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetList, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
+use search_index::{
+    ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetDocument, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient,
+};
 use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, WalletsRepository};
 
 #[derive(Clone)]
@@ -99,6 +101,15 @@ impl SearchClient {
                 }
             })
             .collect())
+    }
+
+    pub async fn get_asset_lists_search(&self, request: &SearchRequest) -> Result<Vec<AssetList>, Box<dyn Error + Send + Sync>> {
+        let lists: Vec<AssetListDocument> = self
+            .client
+            .search(ASSET_LISTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset)
+            .await?;
+
+        Ok(lists.into_iter().map(Into::into).collect())
     }
 
     pub async fn get_perpetuals_search(&self, request: &SearchRequest) -> Result<Vec<PerpetualSearchData>, Box<dyn Error + Send + Sync>> {

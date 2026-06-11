@@ -4,10 +4,19 @@ use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Codable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct AssetList {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Codable, Sendable")]
 pub struct SearchResponse {
     pub assets: Vec<AssetBasic>,
     pub perpetuals: Vec<PerpetualSearchData>,
     pub nfts: Vec<NFTCollection>,
+    pub lists: Vec<AssetList>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,4 +26,5 @@ pub enum SearchItemType {
     Asset,
     Perpetual,
     Nft,
+    List,
 }

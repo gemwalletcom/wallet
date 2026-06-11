@@ -12,7 +12,7 @@ private struct LockWindowManagerViewModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .onChange(of: scenePhase) { _, newPhase in
+            .onChange(of: scenePhase, initial: true) { _, newPhase in
                 lockManager.setPhase(phase: newPhase)
             }
             .onChange(of: lockManager.isPrivacyLockVisible) { _, visible in

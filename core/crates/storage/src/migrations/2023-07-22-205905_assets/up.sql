@@ -35,6 +35,7 @@ CREATE INDEX assets_updated_at_idx ON assets (updated_at);
 
 CREATE TABLE tags (
     id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(64) NOT NULL,
     created_at timestamp NOT NULL default current_timestamp
 );
 

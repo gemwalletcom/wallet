@@ -60,6 +60,8 @@ private const val ASSET_INFO_COLUMNS = """
     balances.rewards_amount AS balanceRewardsAmount,
     balances.reserved AS balanceReserved,
     balances.reserved_amount AS balanceReservedAmount,
+    balances.withdrawable AS balanceWithdrawable,
+    balances.withdrawableAmount AS balanceWithdrawableAmount,
     balances.total_amount AS balanceTotalAmount,
     (balances.total_amount * prices.value) AS balanceFiatTotalAmount,
     balances.updated_at AS balanceUpdatedAt,

@@ -201,6 +201,7 @@ pub enum ConfigKey {
 
     // Search
     SearchAssetsUpdateInterval,
+    SearchAssetListsUpdateInterval,
     SearchPerpetualsUpdateInterval,
     SearchNftsUpdateInterval,
     SearchAssetsLastUpdatedAt,
@@ -385,6 +386,7 @@ impl ConfigKey {
             Self::PerpetualPriorityTriggerBps => "100",
             Self::PerpetualPriorityLiquidationBps => "300",
             Self::SearchAssetsUpdateInterval => "30m",
+            Self::SearchAssetListsUpdateInterval => "30m",
             Self::SearchPerpetualsUpdateInterval => "30m",
             Self::SearchNftsUpdateInterval => "30m",
             Self::SearchAssetsLastUpdatedAt => "0",

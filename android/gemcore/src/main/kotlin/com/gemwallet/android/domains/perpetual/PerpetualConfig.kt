@@ -1,11 +1,24 @@
 package com.gemwallet.android.domains.perpetual
 
+import com.gemwallet.android.ext.toAssetId
+import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.Config
+import java.math.BigInteger
 
 object PerpetualConfig {
     private val config get() = Config().getPerpetualConfig()
 
     val defaultLeverage: Int get() = config.defaultLeverage.toInt()
+
+    val depositAddress: String get() = config.depositAddress
+
+    val depositAssetId: AssetId get() = requireNotNull(config.depositAssetId.toAssetId()) {
+        "Invalid perpetual deposit asset id: ${config.depositAssetId}"
+    }
+
+    val minDeposit: BigInteger get() = config.minDeposit.toLong().toBigInteger()
+
+    val minWithdraw: BigInteger get() = config.minWithdraw.toLong().toBigInteger()
 
     val leverageOptions: List<Int> get() = config.leverageOptions.toUnsignedInts()
 
