@@ -59,7 +59,8 @@ struct LockWindowManagerTests {
 
         await manager.lockModel.startUnlock()?.value
 
-        #expect(manager.lockModel.state == .locked)
+        #expect(manager.lockModel.state == .lockedCanceled)
+        #expect(manager.lockModel.isUnlockButtonVisible)
         #expect(manager.showLockScreen)
         #expect(manager.overlayWindow?.isHidden == false)
         #expect(manager.overlayWindow?.alpha == 1)

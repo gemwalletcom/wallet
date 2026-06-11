@@ -63,7 +63,7 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func systemCancelledUnlockLocksForNextActivation() async {
+    func systemCancelledUnlockWithoutBackgroundingShowsUnlockButton() async {
         let mockService = MockBiometryAuthenticationService(
             isAuthEnabled: true,
             availableAuth: .biometrics,
@@ -73,8 +73,20 @@ struct LockSceneViewModelTests {
 
         await viewModel.startUnlock()?.value
 
+        #expect(viewModel.state == .lockedCanceled)
+        #expect(viewModel.isUnlockButtonVisible)
+    }
+
+    @Test
+    func lockedStateDoesNotShowUnlockButton() {
+        let mockService = MockBiometryAuthenticationService(
+            isAuthEnabled: true,
+            availableAuth: .biometrics,
+        )
+        let viewModel = LockSceneViewModel(service: mockService)
+
         #expect(viewModel.state == .locked)
-        #expect(viewModel.shouldShowLockScreen)
+        #expect(!viewModel.isUnlockButtonVisible)
     }
 
     @Test

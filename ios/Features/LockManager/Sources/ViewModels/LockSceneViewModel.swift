@@ -51,7 +51,7 @@ public class LockSceneViewModel {
     }
 
     var isUnlockButtonVisible: Bool {
-        state == .locked || state == .lockedCanceled
+        state == .lockedCanceled
     }
 
     var shouldLock: Bool {
@@ -160,11 +160,14 @@ extension LockSceneViewModel {
 extension LockSceneViewModel {
     private func authenticate(context: LAContext) async {
         let newState = await getAuthenticationState(context: context)
-        guard isCurrentAttempt(context: context) else { return }
+        guard case let .unlocking(attempt) = state, attempt.context === context else { return }
 
-        if newState == .unlocked {
+        switch newState {
+        case .unlocked:
             resetLockState()
-        } else {
+        case .locked where !attempt.isInvalidated:
+            state = .lockedCanceled
+        default:
             state = newState
         }
     }
@@ -177,14 +180,6 @@ extension LockSceneViewModel {
             return error == .cancelledBySystem ? .locked : .lockedCanceled
         } catch {
             return .lockedCanceled
-        }
-    }
-
-    private func isCurrentAttempt(context: LAContext) -> Bool {
-        if case let .unlocking(attempt) = state {
-            attempt.context === context
-        } else {
-            false
         }
     }
 }
