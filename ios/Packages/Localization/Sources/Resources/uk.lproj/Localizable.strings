@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Додати до контактів";
 "simulation.header.unlimited_asset" = "Безлімітний %@";
 "simulation.warning.unlimited_token_approval.description" = "Це надає споживачеві доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.";
+"simulation.warning_externally_owned_spender_description" = "Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте лише якщо довіряєте цій адресі.";
 "simulation.warning.nft_collection_approval.title" = "Запитується повний доступ до колекції NFT";
 "simulation.warning.unlimited_token_approval.title" = "Необмежене схвалення токенів";

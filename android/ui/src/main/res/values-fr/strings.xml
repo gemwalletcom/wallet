@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">Ajouter aux contacts</string>
   <string name="simulation_header_unlimited_asset">Illimité %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Cela donne au détenteur du jeton l\'accès à utiliser jusqu\'à ce que vous révoquiez l\'autorisation ou que celle-ci expire.</string>
+  <string name="simulation_warning_externally_owned_spender_description">Cette approbation permet à une adresse de portefeuille classique (EOA) d’utiliser vos actifs. Confirmez uniquement si vous faites confiance à cette adresse.</string>
   <string name="simulation_warning_nft_collection_approval_title">Demande d\'accès à l\'intégralité de la collection NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Approbation illimitée des jetons</string>
   <string name="application_name">Gem</string>

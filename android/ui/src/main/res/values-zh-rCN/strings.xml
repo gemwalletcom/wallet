@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">添加到联系人</string>
   <string name="simulation_header_unlimited_asset">无限 %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">这样，消费者就可以一直使用该代币，直到你撤销授权或代币过期为止。</string>
+  <string name="simulation_warning_externally_owned_spender_description">此授权允许普通钱包地址 (EOA) 使用你的资产。仅在你信任该地址时确认。</string>
   <string name="simulation_warning_nft_collection_approval_title">请求访问完整的NFT收藏集</string>
   <string name="simulation_warning_unlimited_token_approval_title">无限代币批准</string>
   <string name="application_name">Gem</string>

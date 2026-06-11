@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">Adăugați la Contacte</string>
   <string name="simulation_header_unlimited_asset">Nelimitat %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Aceasta îi oferă utilizatorului acces la utilizarea acestui token până când îi revocați aprobarea sau expiră.</string>
+  <string name="simulation_warning_externally_owned_spender_description">Această aprobare permite unei adrese obișnuite de portofel (EOA) să folosească activele tale. Confirmă doar dacă ai încredere în această adresă.</string>
   <string name="simulation_warning_nft_collection_approval_title">Acces complet la colecția NFT solicitat</string>
   <string name="simulation_warning_unlimited_token_approval_title">Aprobare nelimitată de tokenuri</string>
   <string name="application_name">Gem</string>

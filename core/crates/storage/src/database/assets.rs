@@ -34,6 +34,8 @@ impl AssetUpdate {
 
 #[derive(Debug, Clone)]
 pub enum AssetFilter {
+    Ids(Vec<String>),
+    IsEnabled(bool),
     IsSwappable(bool),
     IsBuyable(bool),
     IsSellable(bool),
@@ -59,10 +61,16 @@ pub(crate) trait AssetsStore {
 }
 
 fn filter_assets(filters: Vec<AssetFilter>) -> crate::schema::assets::BoxedQuery<'static, diesel::pg::Pg> {
-    let mut query = assets.filter(is_enabled.eq(true)).into_boxed();
+    let mut query = assets.into_boxed();
 
     for filter in filters {
         match filter {
+            AssetFilter::Ids(values) => {
+                query = query.filter(id.eq_any(values));
+            }
+            AssetFilter::IsEnabled(value) => {
+                query = query.filter(is_enabled.eq(value));
+            }
             AssetFilter::IsBuyable(value) => {
                 query = query.filter(is_buyable.eq(value));
             }

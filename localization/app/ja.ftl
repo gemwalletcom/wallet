@@ -733,6 +733,7 @@ contacts_add_to_contacts = 連絡先に追加
 
 simulation_header_unlimited_asset = 無制限 %@
 simulation_warning_unlimited_token_approval_description = これにより、承認を取り消すか期限が切れるまで、支出者はこのトークンを使用できるようになります。
+simulation_warning_externally_owned_spender_description = この承認により、通常のウォレットアドレス（EOA）があなたの資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。
 simulation_warning_nft_collection_approval_title = NFTコレクションへのフルアクセスをリクエスト
 simulation_warning_unlimited_token_approval_title = 無制限のトークン承認
 

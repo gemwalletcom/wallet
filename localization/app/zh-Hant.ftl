@@ -733,6 +733,7 @@ contacts_add_to_contacts = 加入聯絡人
 
 simulation_header_unlimited_asset = 無限 %@
 simulation_warning_unlimited_token_approval_description = 這樣，消費者就可以一直使用該代幣，直到你撤銷授權或代幣過期為止。
+simulation_warning_externally_owned_spender_description = 此授權允許一般錢包地址 (EOA) 使用你的資產。僅在你信任該地址時確認。
 simulation_warning_nft_collection_approval_title = 請求訪問完整的NFT收藏集
 simulation_warning_unlimited_token_approval_title = 無限代幣批准
 

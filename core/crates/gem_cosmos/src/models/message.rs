@@ -88,12 +88,6 @@ pub struct MsgWithdrawDelegatorReward {
     pub validator_address: String,
 }
 
-impl Message {
-    pub fn supported_types() -> &'static [&'static str] {
-        constants::SUPPORTED_MESSAGES
-    }
-}
-
 impl MsgSend {
     pub fn get_amount(&self, denom: &str) -> Option<BigInt> {
         Some(self.amount.iter().filter(|c| c.denom == denom).flat_map(Coin::get_amount).sum())

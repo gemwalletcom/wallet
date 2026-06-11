@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use alloy_primitives::{Address, U256, hex::decode as HexDecode};
+use alloy_primitives::{Address, U256};
 use alloy_sol_types::SolCall;
 use num_bigint::{BigInt, Sign};
 use primitives::{Chain, contract_constants::ETHEREUM_ACROSS_HUB_POOL_CONTRACT};
@@ -12,7 +12,6 @@ use crate::{
 };
 use gem_evm::{
     across::contracts::HubPoolInterface,
-    jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
     multicall3::{IMulticall3, create_call3, decode_call3_return},
 };
 use gem_jsonrpc::JsonRpcClient;
@@ -100,15 +99,5 @@ impl HubPoolClient {
     pub fn decoded_current_time(&self, result: &IMulticall3::Result) -> Result<u32, SwapperError> {
         let value = decode_call3_return::<HubPoolInterface::getCurrentTimeCall>(result).map_err(SwapperError::compute_quote_error)?;
         value.try_into().map_err(|_| SwapperError::ComputeQuoteError("decode current time failed".into()))
-    }
-
-    pub async fn fetch_utilization(&self, pool_token: &Address, amount: U256) -> Result<BigInt, SwapperError> {
-        let call3 = self.utilization_call3(pool_token, amount);
-        let call = EthereumRpc::Call(TransactionObject::new_call(&self.contract, call3.callData.to_vec()), BlockParameter::Latest);
-        let result: String = self.client.request(call).await?;
-        let hex_data = HexDecode(result).map_err(SwapperError::compute_quote_error)?;
-        let value = HubPoolInterface::liquidityUtilizationCurrentCall::abi_decode_returns(&hex_data).map_err(SwapperError::from)?;
-        let result = BigInt::from_bytes_le(num_bigint::Sign::Plus, &value.to_le_bytes::<32>());
-        Ok(result)
     }
 }

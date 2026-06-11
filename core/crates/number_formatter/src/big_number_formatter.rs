@@ -69,10 +69,6 @@ impl BigNumberFormatter {
         Self::value_from_amount(&truncated.to_string(), decimals)
     }
 
-    pub fn f64_as_value(amount: f64, decimals: u32) -> Option<String> {
-        Self::value_from_amount(&amount.to_string(), decimals).ok()
-    }
-
     pub fn value_from_amount_biguint(amount: &str, decimals: u32) -> Result<BigUint, NumberFormatterError> {
         let big_decimal = BigDecimal::from_str(amount).map_err(|_| NumberFormatterError::InvalidNumber(amount.to_string()))?;
         let multiplier = BigInt::from(10).pow(decimals);

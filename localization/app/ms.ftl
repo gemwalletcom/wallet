@@ -733,6 +733,7 @@ contacts_add_to_contacts = Tambah ke Kenalan
 
 simulation_header_unlimited_asset = Tidak terhad %@
 simulation_warning_unlimited_token_approval_description = Ini memberi pembeli akses untuk menggunakan token ini sehingga anda membatalkan kelulusan atau ia tamat tempoh.
+simulation_warning_externally_owned_spender_description = Kelulusan ini membenarkan alamat dompet biasa (EOA) menggunakan aset anda. Sahkan hanya jika anda mempercayai alamat ini.
 simulation_warning_nft_collection_approval_title = Akses koleksi NFT penuh diminta
 simulation_warning_unlimited_token_approval_title = Kelulusan token tanpa had
 

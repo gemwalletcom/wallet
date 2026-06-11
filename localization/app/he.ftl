@@ -733,6 +733,7 @@ contacts_add_to_contacts = הוסף לאנשי קשר
 
 simulation_header_unlimited_asset = בִּלתִי מוּגבָּל %@
 simulation_warning_unlimited_token_approval_description = זה נותן למוציא גישה להשתמש באסימון זה עד שתבטל את האישור או שהוא יפוג תוקפו.
+simulation_warning_externally_owned_spender_description = אישור זה מאפשר לכתובת ארנק רגילה (EOA) להשתמש בנכסים שלך. אשר רק אם אתה סומך על כתובת זו.
 simulation_warning_nft_collection_approval_title = התבקשה גישה מלאה לאוסף NFT
 simulation_warning_unlimited_token_approval_title = אישור אסימונים ללא הגבלה
 

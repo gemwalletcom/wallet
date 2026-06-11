@@ -50,17 +50,6 @@ impl TransactionObject {
             data: hex::encode_prefixed(data),
         }
     }
-
-    pub fn new_call_with_from_value(from: &str, to: &str, value: &str, data: Vec<u8>) -> Self {
-        Self {
-            from: Some(from.to_string()),
-            to: to.to_string(),
-            gas: None,
-            gas_price: None,
-            value: Some(value.to_string()),
-            data: hex::encode_prefixed(data),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

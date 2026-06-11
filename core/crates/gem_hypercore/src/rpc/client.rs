@@ -260,14 +260,6 @@ impl<C: Client> HyperCoreClient<C> {
     pub async fn get_perpetual_portfolio_with_dex(&self, user: &str, dex: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
         self.info(json!({"type": "portfolio", "user": user, "dex": dex})).await
     }
-
-    pub fn cache_agent_owner(&self, agent_address: &str, sender_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.preferences.set(agent_owner_cache_key(agent_address), sender_address.to_lowercase())
-    }
-
-    pub fn get_cached_agent_owner(&self, agent_address: &str) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        self.preferences.get(agent_owner_cache_key(agent_address))
-    }
 }
 
 impl<C: Client> ChainTraits for HyperCoreClient<C> {}

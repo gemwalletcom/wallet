@@ -102,6 +102,19 @@ class SimulationWarningExtTest {
         assertNull(warning.descriptionRes())
     }
 
+    @Test
+    fun externallyOwnedSpender_usesSpecificWarningDescription() {
+        val warning = SimulationWarning(
+            severity = SimulationSeverity.Warning,
+            warning = SimulationWarningType.ExternallyOwnedSpender,
+            message = null,
+        )
+
+        assertTrue(warning.isVisible())
+        assertEquals(R.string.common_warning, warning.titleRes())
+        assertEquals(R.string.simulation_warning_externally_owned_spender_description, warning.descriptionRes())
+    }
+
     private fun approvalWarning(warning: SimulationWarningType): SimulationWarning {
         return SimulationWarning(
             severity = SimulationSeverity.Warning,

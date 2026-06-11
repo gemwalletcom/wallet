@@ -227,16 +227,34 @@ mod tests {
             SwapperProvider::PancakeswapV3,
             SwapperProvider::Jupiter,
             SwapperProvider::Thorchain,
+            SwapperProvider::NearIntents,
         ];
+        let filter = |from_chain, to_chain| {
+            providers
+                .iter()
+                .filter(|x| GemSwapper::filter_by_provider_mode(&ProviderType::new(**x).mode, from_chain, to_chain))
+                .cloned()
+                .collect::<Vec<_>>()
+        };
 
         // Cross chain swaps (same chain will be filtered out)
-        let filtered = providers
-            .iter()
-            .filter(|x| GemSwapper::filter_by_provider_mode(&ProviderType::new(**x).mode, Chain::Ethereum, Chain::Optimism))
-            .cloned()
-            .collect::<Vec<_>>();
+        assert_eq!(filter(Chain::Ethereum, Chain::Optimism), vec![SwapperProvider::Thorchain, SwapperProvider::NearIntents]);
 
-        assert_eq!(filtered, vec![SwapperProvider::Thorchain]);
+        assert_eq!(
+            filter(Chain::Tron, Chain::Tron),
+            vec![
+                SwapperProvider::UniswapV3,
+                SwapperProvider::PancakeswapV3,
+                SwapperProvider::Jupiter,
+                SwapperProvider::Thorchain,
+                SwapperProvider::NearIntents
+            ]
+        );
+
+        assert_eq!(
+            filter(Chain::Ethereum, Chain::Ethereum),
+            vec![SwapperProvider::UniswapV3, SwapperProvider::PancakeswapV3, SwapperProvider::Jupiter]
+        );
     }
 
     #[test]

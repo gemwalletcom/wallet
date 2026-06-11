@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Føj til Kontakter";
 "simulation.header.unlimited_asset" = "Ubegrænset %@";
 "simulation.warning.unlimited_token_approval.description" = "Dette giver brugeren adgang til at bruge denne token, indtil du tilbagekalder godkendelsen, eller den udløber.";
+"simulation.warning_externally_owned_spender_description" = "Denne godkendelse lader en almindelig walletadresse (EOA) bruge dine aktiver. Bekræft kun, hvis du har tillid til denne adresse.";
 "simulation.warning.nft_collection_approval.title" = "Fuld adgang til NFT-samling anmodes";
 "simulation.warning.unlimited_token_approval.title" = "Ubegrænset tokengodkendelse";

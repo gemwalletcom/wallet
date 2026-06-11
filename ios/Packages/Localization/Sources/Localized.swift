@@ -1268,6 +1268,8 @@ public enum Localized {
     public static let viewFullMessage = Localized.tr("Localizable", "sign_message.view_full_message", fallback: "View Full Message")
   }
   public enum Simulation {
+    /// This approval lets a regular wallet address (EOA) use your assets. Confirm only if you trust this address.
+    public static let warningExternallyOwnedSpenderDescription = Localized.tr("Localizable", "simulation.warning_externally_owned_spender_description", fallback: "This approval lets a regular wallet address (EOA) use your assets. Confirm only if you trust this address.")
     public enum Header {
       /// Unlimited %@
       public static func unlimitedAsset(_ p1: Any) -> String {

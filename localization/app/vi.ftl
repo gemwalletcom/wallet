@@ -733,6 +733,7 @@ contacts_add_to_contacts = Thêm vào danh bạ
 
 simulation_header_unlimited_asset = Không giới hạn %@
 simulation_warning_unlimited_token_approval_description = Điều này cho phép người chi tiêu có quyền sử dụng mã thông báo này cho đến khi bạn thu hồi sự chấp thuận hoặc mã thông báo hết hạn.
+simulation_warning_externally_owned_spender_description = Phê duyệt này cho phép một địa chỉ ví thông thường (EOA) sử dụng tài sản của bạn. Chỉ xác nhận nếu bạn tin tưởng địa chỉ này.
 simulation_warning_nft_collection_approval_title = Yêu cầu quyền truy cập đầy đủ vào bộ sưu tập NFT
 simulation_warning_unlimited_token_approval_title = Phê duyệt mã thông báo không giới hạn
 

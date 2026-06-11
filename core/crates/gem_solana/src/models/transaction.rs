@@ -47,14 +47,6 @@ impl Meta {
         self.post_token_balances.iter().find(|b| b.account_index == account_index).cloned()
     }
 
-    pub fn get_pre_token_balance_by_owner(&self, owner: &str) -> Vec<TokenBalance> {
-        self.pre_token_balances.iter().filter(|b| b.owner == owner).cloned().collect()
-    }
-
-    pub fn get_post_token_balance_by_owner(&self, owner: &str) -> Vec<TokenBalance> {
-        self.post_token_balances.iter().filter(|b| b.owner == owner).cloned().collect()
-    }
-
     pub fn get_token_balance_changes_by_owner(&self, owner: &str) -> Vec<TokenBalanceChange> {
         let pre_balances: HashMap<_, _> = self
             .pre_token_balances

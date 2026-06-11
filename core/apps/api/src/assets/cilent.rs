@@ -5,9 +5,9 @@ use super::filter::{build_assets_filters, build_filter};
 use super::model::SearchRequest;
 use chrono::{DateTime, Utc};
 use pricer::PriceClient;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
 use search_index::{ASSETS_INDEX_NAME, AssetDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient};
-use storage::{AssetsAddressesRepository, AssetsRepository, Database, WalletsRepository};
+use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, WalletsRepository};
 
 #[derive(Clone)]
 pub struct AssetsClient {
@@ -26,6 +26,11 @@ impl AssetsClient {
     }
 
     pub fn get_assets(&self, asset_ids: Vec<AssetId>, rate: f64) -> Result<Vec<AssetBasic>, Box<dyn Error + Send + Sync>> {
+        let asset_ids = self
+            .database
+            .assets()?
+            .get_asset_ids_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::Ids(asset_ids.ids())])?;
+
         Ok(self
             .database
             .assets()?

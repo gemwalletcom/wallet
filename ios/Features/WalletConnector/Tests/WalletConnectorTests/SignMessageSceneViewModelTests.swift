@@ -273,7 +273,7 @@ struct SignMessageSceneViewModelTests {
                     message: nil,
                 ),
                 SimulationWarning(
-                    severity: .critical,
+                    severity: .warning,
                     warning: .externallyOwnedSpender,
                     message: nil,
                 ),
@@ -289,6 +289,7 @@ struct SignMessageSceneViewModelTests {
 
         #expect(viewModel.simulationWarnings.count == 2)
         #expect(viewModel.simulationWarnings.last?.warning == .externallyOwnedSpender)
+        #expect(!viewModel.isButtonDisabled)
     }
 
     @Test
@@ -340,7 +341,7 @@ struct SignMessageSceneViewModelTests {
             wallet: .mock(),
             message: SignMessage(chain: "ethereum", signType: .eip712, data: Data(message.utf8)),
             simulation: .mock(
-                warnings: [SimulationWarning(severity: .critical, warning: .externallyOwnedSpender, message: nil)],
+                warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)],
                 payload: [
                     .standard(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .primary),
                     .standard(kind: .method, value: "Permit Batch", fieldType: .text, display: .primary),
@@ -358,7 +359,7 @@ struct SignMessageSceneViewModelTests {
 
         #expect(viewModel.simulationWarnings.count == 1)
         #expect(viewModel.simulationWarnings.first?.warning == .externallyOwnedSpender)
-        #expect(viewModel.isButtonDisabled)
+        #expect(!viewModel.isButtonDisabled)
         #expect(viewModel.hasPayload)
         #expect(viewModel.primaryPayloadFields.contains(where: { $0.kind == .spender && $0.value == "0x3333333333333333333333333333333333333333" }))
     }

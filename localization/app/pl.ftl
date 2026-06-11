@@ -733,6 +733,7 @@ contacts_add_to_contacts = Dodaj do kontaktów
 
 simulation_header_unlimited_asset = Nieograniczony %@
 simulation_warning_unlimited_token_approval_description = Dzięki temu osoba wydająca token uzyskuje dostęp do jego wykorzystania do momentu odwołania zatwierdzenia lub wygaśnięcia.
+simulation_warning_externally_owned_spender_description = To zatwierdzenie pozwala zwykłemu adresowi portfela (EOA) używać Twoich aktywów. Potwierdź tylko wtedy, gdy ufasz temu adresowi.
 simulation_warning_nft_collection_approval_title = Zażądano pełnego dostępu do kolekcji NFT
 simulation_warning_unlimited_token_approval_title = Nieograniczone zatwierdzanie tokenów
 

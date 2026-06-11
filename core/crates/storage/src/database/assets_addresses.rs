@@ -1,12 +1,10 @@
 use crate::schema::assets_addresses::dsl::*;
-
 use crate::sql_types::AssetId as AssetIdRow;
 use crate::{DatabaseClient, models::asset_address::AssetAddressRow};
 use chrono::NaiveDateTime;
 use diesel::Connection;
-use diesel::dsl::sql;
 use diesel::prelude::*;
-use diesel::sql_types::{Nullable, Text};
+use diesel::upsert::excluded;
 use primitives::{AssetId as PrimitiveAssetId, ChainAddress};
 
 pub(crate) trait AssetsAddressesStore {
@@ -19,14 +17,19 @@ pub(crate) trait AssetsAddressesStore {
 
 impl AssetsAddressesStore for DatabaseClient {
     fn add_assets_addresses(&mut self, values: Vec<AssetAddressRow>) -> Result<usize, diesel::result::Error> {
+        use diesel::query_dsl::methods::FilterDsl;
+
         if values.is_empty() {
             return Ok(0);
         }
-        diesel::insert_into(assets_addresses)
+        let insert = diesel::insert_into(assets_addresses)
             .values(&values)
             .on_conflict((asset_id, address))
             .do_update()
-            .set(value.eq(sql::<Nullable<Text>>("COALESCE(excluded.value, assets_addresses.value)")))
+            .set(value.eq(excluded(value)));
+
+        insert
+            .filter(excluded(value).is_not_null().and(value.is_distinct_from(excluded(value))))
             .execute(&mut self.connection)
     }
 

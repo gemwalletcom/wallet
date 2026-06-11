@@ -48,10 +48,6 @@ impl CellBuilder {
         Ok(self)
     }
 
-    pub fn store_string(&mut self, value: &str) -> Result<&mut Self, TvmError> {
-        self.store_slice(value.as_bytes())
-    }
-
     pub fn store_slice_snake(&mut self, slice: &[u8]) -> Result<&mut Self, TvmError> {
         let byte_capacity = self.remaining_bits() / 8;
         if slice.len() <= byte_capacity {

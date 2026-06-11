@@ -733,6 +733,7 @@ contacts_add_to_contacts = Додати до контактів
 
 simulation_header_unlimited_asset = Безлімітний %@
 simulation_warning_unlimited_token_approval_description = Це надає споживачеві доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.
+simulation_warning_externally_owned_spender_description = Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте лише якщо довіряєте цій адресі.
 simulation_warning_nft_collection_approval_title = Запитується повний доступ до колекції NFT
 simulation_warning_unlimited_token_approval_title = Необмежене схвалення токенів
 

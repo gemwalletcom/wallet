@@ -1,8 +1,8 @@
 use super::{
-    ChainflipEnvironment, ChainflipIngressEgress, VaultSwapExtras, VaultSwapResponse,
-    model::{ChainflipAsset, DcaParameters, DepositAddressResponse, RefundParameters},
+    VaultSwapExtras, VaultSwapResponse,
+    model::{ChainflipAsset, DcaParameters},
 };
-use crate::{STATIC_READ_CACHE_TTL_SECONDS, SwapperError};
+use crate::SwapperError;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use serde_json::{Value, json};
@@ -22,48 +22,6 @@ where
 {
     pub fn new(client: JsonRpcClient<C>) -> Self {
         Self { client }
-    }
-
-    pub async fn get_swap_limits(&self) -> Result<ChainflipIngressEgress, SwapperError> {
-        let result = self
-            .client
-            .call_method_with_param("cf_environment", json!([]), Some(STATIC_READ_CACHE_TTL_SECONDS))
-            .await
-            .map_err(SwapperError::from)?;
-
-        let env: ChainflipEnvironment = result.take().map_err(SwapperError::from)?;
-        Ok(env.ingress_egress)
-    }
-
-    pub async fn get_deposit_address(
-        &self,
-        src_asset: ChainflipAsset,
-        dst_asset: ChainflipAsset,
-        dst_address: String,
-        broker_commission_bps: u32,
-        boost_fee: Option<u32>,
-        refund_params: Option<RefundParameters>,
-        dca_params: Option<DcaParameters>,
-    ) -> Result<DepositAddressResponse, SwapperError> {
-        let params = json!([
-            src_asset,
-            dst_asset,
-            dst_address,
-            broker_commission_bps,
-            Value::Null,
-            boost_fee,
-            Vec::<Value>::new(),
-            refund_params,
-            dca_params,
-        ]);
-
-        let result = self
-            .client
-            .call_method_with_param("broker_request_swap_deposit_address", params, None)
-            .await
-            .map_err(SwapperError::from)?;
-
-        result.take().map_err(SwapperError::from)
     }
 
     pub async fn encode_vault_swap(

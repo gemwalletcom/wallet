@@ -22,7 +22,11 @@ impl AssetsImagesUpdater {
         let current: HashSet<AssetId> = self
             .database
             .assets()?
-            .get_asset_ids_by_filter(vec![AssetFilter::HasImage(true), AssetFilter::Chain(chain.as_ref().to_string())])?
+            .get_asset_ids_by_filter(vec![
+                AssetFilter::IsEnabled(true),
+                AssetFilter::HasImage(true),
+                AssetFilter::Chain(chain.as_ref().to_string()),
+            ])?
             .into_iter()
             .collect();
 

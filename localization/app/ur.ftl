@@ -733,6 +733,7 @@ contacts_add_to_contacts = رابطوں میں شامل کریں۔
 
 simulation_header_unlimited_asset = لا محدود %@
 simulation_warning_unlimited_token_approval_description = یہ خرچ کرنے والے کو اس ٹوکن کو استعمال کرنے تک رسائی دیتا ہے جب تک کہ آپ منظوری منسوخ نہیں کرتے یا اس کی میعاد ختم نہیں ہوجاتی۔
+simulation_warning_externally_owned_spender_description = یہ منظوری ایک عام والیٹ ایڈریس (EOA) کو آپ کے اثاثے استعمال کرنے دیتی ہے۔ صرف اس صورت میں تصدیق کریں جب آپ اس ایڈریس پر اعتماد کرتے ہیں۔
 simulation_warning_nft_collection_approval_title = مکمل NFT جمع کرنے تک رسائی کی درخواست کی گئی۔
 simulation_warning_unlimited_token_approval_title = لامحدود ٹوکن کی منظوری
 

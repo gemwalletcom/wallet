@@ -131,7 +131,7 @@ fun Chain.Companion.findByString(value: String): Chain? {
     return Chain.entries.firstOrNull{ it.string == value}
 }
 
-fun Chain.Companion.available() = Chain.entries.filterNot { it == Chain.Mayachain }.toSet()
+fun Chain.Companion.available() = Chain.entries.toSet()
 
 fun List<Chain>.filter(query: String): List<Chain> {
     return filter {

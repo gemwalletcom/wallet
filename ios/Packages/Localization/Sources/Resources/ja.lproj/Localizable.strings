@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "連絡先に追加";
 "simulation.header.unlimited_asset" = "無制限 %@";
 "simulation.warning.unlimited_token_approval.description" = "これにより、承認を取り消すか期限が切れるまで、支出者はこのトークンを使用できるようになります。";
+"simulation.warning_externally_owned_spender_description" = "この承認により、通常のウォレットアドレス（EOA）があなたの資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。";
 "simulation.warning.nft_collection_approval.title" = "NFTコレクションへのフルアクセスをリクエスト";
 "simulation.warning.unlimited_token_approval.title" = "無制限のトークン承認";

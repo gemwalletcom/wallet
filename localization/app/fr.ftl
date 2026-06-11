@@ -733,6 +733,7 @@ contacts_add_to_contacts = Ajouter aux contacts
 
 simulation_header_unlimited_asset = Illimité %@
 simulation_warning_unlimited_token_approval_description = Cela donne au détenteur du jeton l'accès à utiliser jusqu'à ce que vous révoquiez l'autorisation ou que celle-ci expire.
+simulation_warning_externally_owned_spender_description = Cette approbation permet à une adresse de portefeuille classique (EOA) d’utiliser vos actifs. Confirmez uniquement si vous faites confiance à cette adresse.
 simulation_warning_nft_collection_approval_title = Demande d'accès à l'intégralité de la collection NFT
 simulation_warning_unlimited_token_approval_title = Approbation illimitée des jetons
 

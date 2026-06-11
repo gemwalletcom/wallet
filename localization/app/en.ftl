@@ -1321,6 +1321,8 @@ contacts_add_to_contacts = Add to Contacts
 simulation_header_unlimited_asset = Unlimited %@
 # Used in simulation UI for the warning unlimited token approval description.
 simulation_warning_unlimited_token_approval_description = This gives the spender access to use this token until you revoke the approval or it expires.
+# Used in simulation UI for the warning externally owned spender description.
+simulation_warning_externally_owned_spender_description = This approval lets a regular wallet address (EOA) use your assets. Confirm only if you trust this address.
 # Used in simulation UI for the warning nft collection approval title.
 simulation_warning_nft_collection_approval_title = Full NFT collection access requested
 # Used in simulation UI for the warning unlimited token approval title.

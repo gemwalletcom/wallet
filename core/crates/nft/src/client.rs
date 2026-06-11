@@ -35,11 +35,6 @@ impl NFTClient {
         Ok(true)
     }
 
-    pub async fn update_asset(&self, asset_id: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.refresh_asset(asset_id.parse()?).await?;
-        Ok(true)
-    }
-
     pub async fn refresh_collection(&self, collection_id: NFTCollectionId) -> Result<NFTCollection, Box<dyn Error + Send + Sync>> {
         let collection = self.provider_client.get_nft_collection(collection_id).await?;
         self.upsert_collection(collection.clone())?;

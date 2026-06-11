@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">Добавить в контакты</string>
   <string name="simulation_header_unlimited_asset">Без ограничений %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Это дает плательщику доступ к использованию этого токена до тех пор, пока вы не отзовете разрешение или он не истечет.</string>
+  <string name="simulation_warning_externally_owned_spender_description">Это разрешение позволяет обычному адресу кошелька (EOA) использовать ваши активы. Подтверждайте только если доверяете этому адресу.</string>
   <string name="simulation_warning_nft_collection_approval_title">Запрошен полный доступ к коллекции NFT.</string>
   <string name="simulation_warning_unlimited_token_approval_title">Неограниченное количество одобрений токенов</string>
   <string name="application_name">Gem</string>

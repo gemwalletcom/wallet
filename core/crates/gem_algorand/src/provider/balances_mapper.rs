@@ -1,4 +1,4 @@
-use crate::models::{Account, Asset};
+use crate::models::Account;
 use num_bigint::BigUint;
 use primitives::{AssetBalance, AssetId, Balance, Chain};
 
@@ -30,13 +30,6 @@ pub fn map_balance_tokens(account: &Account, token_ids: Vec<String>, chain: Chai
 
             AssetBalance::new_with_active(AssetId { chain, token_id: Some(token_id) }, Balance::coin_balance(BigUint::from(balance)), is_active)
         })
-        .collect()
-}
-
-pub fn map_assets_balance(assets: Vec<Asset>) -> Vec<AssetBalance> {
-    assets
-        .into_iter()
-        .map(|asset| AssetBalance::new(AssetId::from_token(Chain::Algorand, &asset.asset_id.to_string()), BigUint::from(asset.amount.max(0) as u64)))
         .collect()
 }
 

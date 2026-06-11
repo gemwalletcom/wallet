@@ -121,7 +121,6 @@ struct LocalKeystoreTests {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let chains = AssetConfiguration.allChains
-            #expect(!chains.contains(.mayachain))
             let wallet = try await keystore.importWallet(
                 name: "test",
                 type: .phrase(words: LocalKeystore.words, chains: chains),
@@ -130,7 +129,6 @@ struct LocalKeystoreTests {
             )
 
             #expect(wallet.accounts.count == chains.count)
-            #expect(!wallet.accounts.map(\.chain).contains(.mayachain))
 
             for account in wallet.accounts {
                 let chain = account.chain
@@ -175,7 +173,7 @@ struct LocalKeystoreTests {
                 case .thorchain:
                     "thor1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2kyhc65"
                 case .mayachain:
-                    fatalError("Mayachain accounts are not derived")
+                    "maya1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2knf5vy"
                 case .cosmos:
                     "cosmos142j9u5eaduzd7faumygud6ruhdwme98qsy2ekn"
                 case .osmosis:

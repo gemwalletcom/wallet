@@ -8,7 +8,7 @@ struct NFTAttributeViewModel: Identifiable {
     let name: String
     let value: String
 
-    init(attribute: NFTAttribute, relativeDateFormatter: RelativeDateFormatter = RelativeDateFormatter()) {
+    init(attribute: NFTAttribute, relativeDateFormatter: RelativeDateFormatter = RelativeDateFormatter(type: .date)) {
         id = attribute.id
         name = attribute.name
         value = switch attribute.valueType ?? .string {

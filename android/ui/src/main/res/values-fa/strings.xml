@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">اضافه کردن به مخاطبین</string>
   <string name="simulation_header_unlimited_asset">نامحدود %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">این به خرج‌کننده دسترسی می‌دهد تا زمانی که تأییدیه را لغو کنید یا منقضی شود، از این توکن استفاده کند.</string>
+  <string name="simulation_warning_externally_owned_spender_description">این تأییدیه به یک آدرس کیف پول معمولی (EOA) اجازه می‌دهد از دارایی‌های شما استفاده کند. فقط اگر به این آدرس اعتماد دارید تأیید کنید.</string>
   <string name="simulation_warning_nft_collection_approval_title">دسترسی کامل به مجموعه NFT درخواست شد</string>
   <string name="simulation_warning_unlimited_token_approval_title">تایید نامحدود توکن</string>
   <string name="application_name">Gem</string>

@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "رابطوں میں شامل کریں۔";
 "simulation.header.unlimited_asset" = "لا محدود %@";
 "simulation.warning.unlimited_token_approval.description" = "یہ خرچ کرنے والے کو اس ٹوکن کو استعمال کرنے تک رسائی دیتا ہے جب تک کہ آپ منظوری منسوخ نہیں کرتے یا اس کی میعاد ختم نہیں ہوجاتی۔";
+"simulation.warning_externally_owned_spender_description" = "یہ منظوری ایک عام والیٹ ایڈریس (EOA) کو آپ کے اثاثے استعمال کرنے دیتی ہے۔ صرف اس صورت میں تصدیق کریں جب آپ اس ایڈریس پر اعتماد کرتے ہیں۔";
 "simulation.warning.nft_collection_approval.title" = "مکمل NFT جمع کرنے تک رسائی کی درخواست کی گئی۔";
 "simulation.warning.unlimited_token_approval.title" = "لامحدود ٹوکن کی منظوری";

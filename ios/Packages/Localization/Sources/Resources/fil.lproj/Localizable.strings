@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Idagdag sa Mga Kontak";
 "simulation.header.unlimited_asset" = "Walang limitasyon %@";
 "simulation.warning.unlimited_token_approval.description" = "Nagbibigay ito sa gumagastos ng access na gamitin ang token na ito hanggang sa bawiin mo ang pag-apruba o hanggang sa mag-expire ito.";
+"simulation.warning_externally_owned_spender_description" = "Hinahayaan ng pag-aprubang ito ang isang karaniwang wallet address (EOA) na gamitin ang iyong mga asset. Kumpirmahin lang kung pinagkakatiwalaan mo ang address na ito.";
 "simulation.warning.nft_collection_approval.title" = "Hiniling ang kumpletong access sa koleksyon ng NFT";
 "simulation.warning.unlimited_token_approval.title" = "Walang limitasyong pag-apruba ng token";

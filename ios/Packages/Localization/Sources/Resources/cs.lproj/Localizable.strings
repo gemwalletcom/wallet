@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Přidat do kontaktů";
 "simulation.header.unlimited_asset" = "Neomezený %@";
 "simulation.warning.unlimited_token_approval.description" = "To dává útratě přístup k používání tohoto tokenu, dokud schválení nezrušíte nebo dokud nevyprší jeho platnost.";
+"simulation.warning_externally_owned_spender_description" = "Toto schválení umožní běžné adrese peněženky (EOA) používat vaše aktiva. Potvrďte pouze tehdy, pokud této adrese důvěřujete.";
 "simulation.warning.nft_collection_approval.title" = "Požadován plný přístup k NFT kolekci";
 "simulation.warning.unlimited_token_approval.title" = "Neomezené schvalování tokenů";

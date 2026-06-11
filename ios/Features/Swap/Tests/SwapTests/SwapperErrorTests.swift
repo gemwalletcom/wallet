@@ -27,4 +27,17 @@ struct SwapperErrorTests {
                 "Minimum trade amount is **0.1234 USDT**. Please enter a higher amount.",
         )
     }
+
+    @Test
+    func userFacingMessages() {
+        let asset = Asset.mockBNB()
+
+        #expect(SwapperError.NotSupportedAsset.message(asset: asset) == "Not supported asset.")
+        #expect(SwapperError.NotSupportedChain.message(asset: asset) == "Not supported asset.")
+        #expect(SwapperError.NoQuoteAvailable.message(asset: asset) == "No quote available.")
+        #expect(SwapperError.NoAvailableProvider.message(asset: asset) == "No quote available.")
+        #expect(SwapperError.InvalidRoute.message(asset: asset) == "No quote available.")
+        #expect(SwapperError.ComputeQuoteError("HTTP error: status 500").message(asset: asset) == "No quote available.")
+        #expect(SwapperError.TransactionError("failed to decode transaction").message(asset: asset) == "No quote available.")
+    }
 }

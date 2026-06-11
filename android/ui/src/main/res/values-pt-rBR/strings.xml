@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">Adicionar aos contatos</string>
   <string name="simulation_header_unlimited_asset">Ilimitado %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Isso dá ao usuário acesso ao uso desse token até que você revogue a aprovação ou ele expire.</string>
+  <string name="simulation_warning_externally_owned_spender_description">Esta aprovação permite que um endereço de carteira comum (EOA) use seus ativos. Confirme somente se você confia neste endereço.</string>
   <string name="simulation_warning_nft_collection_approval_title">É solicitado acesso à coleção completa de NFTs.</string>
   <string name="simulation_warning_unlimited_token_approval_title">Aprovação ilimitada de tokens</string>
   <string name="application_name">Gem</string>

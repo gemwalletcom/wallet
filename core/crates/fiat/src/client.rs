@@ -59,7 +59,10 @@ impl FiatClient {
     }
 
     pub async fn get_on_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        let assets = self.database.assets()?.get_assets_by_filter(vec![AssetFilter::IsBuyable(true)])?;
+        let assets = self
+            .database
+            .assets()?
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?;
         Ok(FiatAssets {
             version: assets.clone().len() as u32,
             asset_ids: assets.into_iter().map(|x| x.asset.id.to_string()).collect::<Vec<String>>(),
@@ -67,7 +70,10 @@ impl FiatClient {
     }
 
     pub async fn get_off_ramp_assets(&self) -> Result<FiatAssets, Box<dyn Error + Send + Sync>> {
-        let assets = self.database.assets()?.get_assets_by_filter(vec![AssetFilter::IsSellable(true)])?;
+        let assets = self
+            .database
+            .assets()?
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?;
         Ok(FiatAssets {
             version: assets.clone().len() as u32,
             asset_ids: assets.into_iter().map(|x| x.asset.id.to_string()).collect::<Vec<String>>(),

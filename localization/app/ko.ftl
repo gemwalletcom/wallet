@@ -733,6 +733,7 @@ contacts_add_to_contacts = 연락처에 추가
 
 simulation_header_unlimited_asset = 제한 없는 %@
 simulation_warning_unlimited_token_approval_description = 이렇게 하면 사용자가 승인을 취소하거나 만료될 때까지 해당 토큰을 사용할 수 있습니다.
+simulation_warning_externally_owned_spender_description = 이 승인은 일반 지갑 주소(EOA)가 내 자산을 사용할 수 있게 합니다. 이 주소를 신뢰하는 경우에만 확인하세요.
 simulation_warning_nft_collection_approval_title = NFT 컬렉션 전체 접근 권한이 요청되었습니다.
 simulation_warning_unlimited_token_approval_title = 무제한 토큰 승인
 

@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "添加到联系人";
 "simulation.header.unlimited_asset" = "无限 %@";
 "simulation.warning.unlimited_token_approval.description" = "这样，消费者就可以一直使用该代币，直到你撤销授权或代币过期为止。";
+"simulation.warning_externally_owned_spender_description" = "此授权允许普通钱包地址 (EOA) 使用你的资产。仅在你信任该地址时确认。";
 "simulation.warning.nft_collection_approval.title" = "请求访问完整的NFT收藏集";
 "simulation.warning.unlimited_token_approval.title" = "无限代币批准";

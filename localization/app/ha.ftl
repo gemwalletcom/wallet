@@ -733,6 +733,7 @@ contacts_add_to_contacts = Ƙara zuwa Lambobin Sadarwa
 
 simulation_header_unlimited_asset = Unlimited %@
 simulation_warning_unlimited_token_approval_description = Wannan yana ba mai kashe kuɗi damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.
+simulation_warning_externally_owned_spender_description = Wannan amincewar tana ba adireshin walat na yau da kullum (EOA) damar amfani da kadarorinku. Tabbatar kawai idan kun amince da wannan adireshin.
 simulation_warning_nft_collection_approval_title = An nemi cikakken damar tattara NFT
 simulation_warning_unlimited_token_approval_title = Amincewa da alamar mara iyaka
 

@@ -27,7 +27,7 @@ use settings_chain::BroadcastProviders;
 const NODE_NOT_FOUND: &str = "Node not found";
 const REQUEST_NOT_ALLOWED: &str = "Request not allowed";
 const UPSTREAMS_FAILED: &str = "All upstream URLs failed";
-const UPSTREAM_REQUEST_FAILED: &str = "Upstream request failed";
+const RETRY_REASON_REQUEST_ERROR: &str = "request_error";
 
 #[derive(Clone)]
 pub struct NodeService {
@@ -174,18 +174,27 @@ impl NodeService {
                     let request_id = request.id.as_str();
                     let chain = request.chain.as_ref();
                     let latency = DurationMs(request.elapsed());
+                    let retry_reason = e.downcast_ref::<reqwest::Error>().map_or(RETRY_REASON_REQUEST_ERROR, |err| {
+                        if err.is_timeout() {
+                            "timeout"
+                        } else if err.is_connect() {
+                            "connect_error"
+                        } else {
+                            RETRY_REASON_REQUEST_ERROR
+                        }
+                    });
                     info_with_fields!(
                         "Upstream error",
                         id = request_id,
                         chain = chain,
                         remote_host = remote_host.as_str(),
-                        error = UPSTREAM_REQUEST_FAILED,
+                        error = retry_reason,
                         latency = latency,
                     );
                     if index + 1 < max_attempts {
-                        self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), UPSTREAM_REQUEST_FAILED);
+                        self.metrics.add_proxy_retry(request.chain.as_ref(), remote_host.as_str(), retry_reason);
                     }
-                    last_error = Some(UPSTREAM_REQUEST_FAILED.to_string());
+                    last_error = Some(retry_reason.to_string());
                 }
             }
         }

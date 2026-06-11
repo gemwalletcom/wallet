@@ -2,13 +2,9 @@ package com.gemwallet.android.features.swap.viewmodels.models
 
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError.IncorrectInput
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError.InputAmountTooSmall
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError.NoAvailableProvider
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError.NoQuote
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError.NotSupportedAsset
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError.NotSupportedChain
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError.TransactionError
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.SwapperException
 import java.math.BigDecimal
@@ -17,8 +13,6 @@ import java.math.BigInteger
 sealed class SwapError : Throwable() {
     object None : SwapError()
     object NoQuote : SwapError()
-    object IncorrectInput : SwapError()
-    object NotSupportedChain : SwapError()
     object NotSupportedAsset : SwapError()
     class InputAmountTooSmall(val minAmount: String?) : SwapError() {
         fun getValue(asset: Asset): BigDecimal = try {
@@ -35,8 +29,6 @@ sealed class SwapError : Throwable() {
             null
         } ?: ""
     }
-    object NoAvailableProvider : SwapError()
-    object TransactionError : SwapError()
     data class InsufficientBalance(val symbol: String) : SwapError()
     data class Unknown(val data: String) : SwapError()
 
@@ -44,13 +36,13 @@ sealed class SwapError : Throwable() {
 }
 
 fun SwapError.Companion.toError(err: Throwable) = when (err) {
-    is SwapperException.NotSupportedAsset -> NotSupportedAsset
-    is SwapperException.NotSupportedChain -> NotSupportedChain
+    is SwapperException.NotSupportedAsset,
+    is SwapperException.NotSupportedChain -> NotSupportedAsset
     is SwapperException.ComputeQuoteException,
-    is SwapperException.NoQuoteAvailable -> NoQuote
-    is SwapperException.InvalidRoute -> IncorrectInput
+    is SwapperException.NoQuoteAvailable,
+    is SwapperException.InvalidRoute,
+    is SwapperException.NoAvailableProvider,
+    is SwapperException.TransactionException -> NoQuote
     is SwapperException.InputAmountException -> InputAmountTooSmall(err.minAmount)
-    is SwapperException.NoAvailableProvider -> NoAvailableProvider
-    is SwapperException.TransactionException -> TransactionError
     else -> SwapError.Unknown(err.localizedMessage ?: err.message ?: "")
 }

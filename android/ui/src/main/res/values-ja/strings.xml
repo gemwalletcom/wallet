@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">連絡先に追加</string>
   <string name="simulation_header_unlimited_asset">無制限 %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">これにより、承認を取り消すか期限が切れるまで、支出者はこのトークンを使用できるようになります。</string>
+  <string name="simulation_warning_externally_owned_spender_description">この承認により、通常のウォレットアドレス（EOA）があなたの資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。</string>
   <string name="simulation_warning_nft_collection_approval_title">NFTコレクションへのフルアクセスをリクエスト</string>
   <string name="simulation_warning_unlimited_token_approval_title">無制限のトークン承認</string>
   <string name="application_name">Gem</string>

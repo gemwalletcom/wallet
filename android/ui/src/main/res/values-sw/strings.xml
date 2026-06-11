@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">Ongeza kwenye Anwani</string>
   <string name="simulation_header_unlimited_asset">Isiyo na kikomo %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">Hii inampa mtumiaji uwezo wa kutumia tokeni hii hadi utakapobatilisha idhini au itakapoisha muda wake.</string>
+  <string name="simulation_warning_externally_owned_spender_description">Idhini hii inaruhusu anwani ya kawaida ya pochi (EOA) kutumia mali zako. Thibitisha tu ikiwa unaiamini anwani hii.</string>
   <string name="simulation_warning_nft_collection_approval_title">Ufikiaji kamili wa ukusanyaji wa NFT umeombwa</string>
   <string name="simulation_warning_unlimited_token_approval_title">Idhini ya tokeni isiyo na kikomo</string>
   <string name="application_name">Gem</string>

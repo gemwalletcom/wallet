@@ -34,8 +34,8 @@ fun SimulationWarning.titleRes(): Int? = when (warning) {
     is SimulationWarningType.TokenApproval,
     is SimulationWarningType.PermitApproval,
     is SimulationWarningType.PermitBatchApproval -> if (isVisible()) R.string.simulation_warning_unlimited_token_approval_title else null
-    SimulationWarningType.SuspiciousSpender,
-    SimulationWarningType.ExternallyOwnedSpender -> R.string.errors_error_occured
+    SimulationWarningType.ExternallyOwnedSpender -> R.string.common_warning
+    SimulationWarningType.SuspiciousSpender -> R.string.errors_error_occured
 }
 
 @StringRes
@@ -43,8 +43,8 @@ fun SimulationWarning.descriptionRes(): Int? = when (warning) {
     is SimulationWarningType.TokenApproval,
     is SimulationWarningType.PermitApproval,
     is SimulationWarningType.PermitBatchApproval -> if (isVisible()) R.string.simulation_warning_unlimited_token_approval_description else null
-    SimulationWarningType.SuspiciousSpender,
-    SimulationWarningType.ExternallyOwnedSpender -> R.string.common_suspicious_address
+    SimulationWarningType.ExternallyOwnedSpender -> R.string.simulation_warning_externally_owned_spender_description
+    SimulationWarningType.SuspiciousSpender -> R.string.common_suspicious_address
     SimulationWarningType.ValidationError -> if (severity == SimulationSeverity.Critical) R.string.errors_error_occured else null
     is SimulationWarningType.NftCollectionApproval -> null
 }

@@ -74,4 +74,14 @@ struct SimulationWarningViewModelTests {
         #expect(model.title == Localized.Errors.errorOccured)
         #expect(model.message == Localized.Common.suspiciousAddress)
     }
+
+    @Test
+    func externallyOwnedSpenderUsesSpecificWarningDescription() {
+        let model = SimulationWarningViewModel(
+            warning: SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil),
+        )
+
+        #expect(model.title == Localized.Common.warning)
+        #expect(model.message == Localized.Simulation.warningExternallyOwnedSpenderDescription)
+    }
 }

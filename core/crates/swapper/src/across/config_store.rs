@@ -8,7 +8,6 @@ use alloy_sol_types::SolCall;
 use gem_evm::{
     across::{contracts::AcrossConfigStore, fees},
     jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
-    multicall3::IMulticall3,
 };
 use gem_jsonrpc::{JsonRpcClient, types::JsonRpcResult};
 use primitives::{Chain, contract_constants::ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT};
@@ -57,24 +56,6 @@ impl ConfigStoreClient {
         ConfigStoreClient {
             contract: ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT.into(),
             client: create_client_with_chain(provider.clone(), chain),
-        }
-    }
-
-    pub fn config_call3(&self, l1token: &Address) -> IMulticall3::Call3 {
-        IMulticall3::Call3 {
-            target: self.contract.parse().unwrap(),
-            allowFailure: true,
-            callData: AcrossConfigStore::l1TokenConfigCall { l1Token: *l1token }.abi_encode().into(),
-        }
-    }
-
-    pub fn decoded_config_call3(&self, result: &IMulticall3::Result) -> Result<TokenConfig, SwapperError> {
-        if result.success {
-            let decoded = AcrossConfigStore::l1TokenConfigCall::abi_decode_returns(&result.returnData).map_err(SwapperError::from)?;
-            let result: TokenConfig = serde_json::from_str(&decoded).map_err(SwapperError::from)?;
-            Ok(result)
-        } else {
-            Err(SwapperError::ComputeQuoteError("config call failed".into()))
         }
     }
 

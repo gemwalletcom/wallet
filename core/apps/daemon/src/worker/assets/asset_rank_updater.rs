@@ -20,7 +20,7 @@ impl AssetRankUpdater {
     }
 
     pub async fn update_suspicious_assets(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let assets = self.database.assets()?.get_assets_by_filter(vec![AssetFilter::RankLte(15)])?;
+        let assets = self.database.assets()?.get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::RankLte(15)])?;
         let asset_ids: Vec<AssetId> = assets
             .into_iter()
             .filter(|x| is_suspicious(x.score.rank, &x.asset.name, &x.asset.symbol))

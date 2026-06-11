@@ -733,6 +733,7 @@ contacts_add_to_contacts = Adăugați la Contacte
 
 simulation_header_unlimited_asset = Nelimitat %@
 simulation_warning_unlimited_token_approval_description = Aceasta îi oferă utilizatorului acces la utilizarea acestui token până când îi revocați aprobarea sau expiră.
+simulation_warning_externally_owned_spender_description = Această aprobare permite unei adrese obișnuite de portofel (EOA) să folosească activele tale. Confirmă doar dacă ai încredere în această adresă.
 simulation_warning_nft_collection_approval_title = Acces complet la colecția NFT solicitat
 simulation_warning_unlimited_token_approval_title = Aprobare nelimitată de tokenuri
 

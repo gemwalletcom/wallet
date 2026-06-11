@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Add to Contacts";
 "simulation.header.unlimited_asset" = "Unlimited %@";
 "simulation.warning.unlimited_token_approval.description" = "This gives the spender access to use this token until you revoke the approval or it expires.";
+"simulation.warning_externally_owned_spender_description" = "This approval lets a regular wallet address (EOA) use your assets. Confirm only if you trust this address.";
 "simulation.warning.nft_collection_approval.title" = "Full NFT collection access requested";
 "simulation.warning.unlimited_token_approval.title" = "Unlimited token approval";

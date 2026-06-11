@@ -130,14 +130,6 @@ impl JsonRpcClient<gem_client::ReqwestClient> {
     }
 }
 
-// Convenience functions for creating JsonRpcClient
-#[cfg(feature = "reqwest")]
-impl JsonRpcClient<gem_client::ReqwestClient> {
-    pub fn new_default(url: String) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        Ok(Self::new_reqwest(url))
-    }
-}
-
 // Module-level convenience function
 #[cfg(feature = "reqwest")]
 pub fn new_client(url: String) -> Result<JsonRpcClient<gem_client::ReqwestClient>, Box<dyn Error + Send + Sync>> {

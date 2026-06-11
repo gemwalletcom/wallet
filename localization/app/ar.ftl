@@ -733,6 +733,7 @@ contacts_add_to_contacts = أضف إلى جهات الاتصال
 
 simulation_header_unlimited_asset = غير محدود %@
 simulation_warning_unlimited_token_approval_description = يمنح هذا المنفق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.
+simulation_warning_externally_owned_spender_description = تسمح هذه الموافقة لعنوان محفظة عادي (EOA) باستخدام أصولك. أكّد فقط إذا كنت تثق بهذا العنوان.
 simulation_warning_nft_collection_approval_title = تم طلب الوصول الكامل إلى مجموعة NFT
 simulation_warning_unlimited_token_approval_title = الموافقة على الرموز المميزة غير محدودة
 

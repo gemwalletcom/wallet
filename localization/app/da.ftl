@@ -733,6 +733,7 @@ contacts_add_to_contacts = Føj til Kontakter
 
 simulation_header_unlimited_asset = Ubegrænset %@
 simulation_warning_unlimited_token_approval_description = Dette giver brugeren adgang til at bruge denne token, indtil du tilbagekalder godkendelsen, eller den udløber.
+simulation_warning_externally_owned_spender_description = Denne godkendelse lader en almindelig walletadresse (EOA) bruge dine aktiver. Bekræft kun, hvis du har tillid til denne adresse.
 simulation_warning_nft_collection_approval_title = Fuld adgang til NFT-samling anmodes
 simulation_warning_unlimited_token_approval_title = Ubegrænset tokengodkendelse
 

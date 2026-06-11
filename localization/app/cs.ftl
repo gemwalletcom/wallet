@@ -733,6 +733,7 @@ contacts_add_to_contacts = Přidat do kontaktů
 
 simulation_header_unlimited_asset = Neomezený %@
 simulation_warning_unlimited_token_approval_description = To dává útratě přístup k používání tohoto tokenu, dokud schválení nezrušíte nebo dokud nevyprší jeho platnost.
+simulation_warning_externally_owned_spender_description = Toto schválení umožní běžné adrese peněženky (EOA) používat vaše aktiva. Potvrďte pouze tehdy, pokud této adrese důvěřujete.
 simulation_warning_nft_collection_approval_title = Požadován plný přístup k NFT kolekci
 simulation_warning_unlimited_token_approval_title = Neomezené schvalování tokenů
 

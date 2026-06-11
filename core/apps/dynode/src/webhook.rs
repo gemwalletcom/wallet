@@ -10,16 +10,18 @@ use crate::proxy::proxy_request::ProxyRequest;
 pub struct DynodeBroadcastWebhookClient {
     enabled: bool,
     url: String,
+    token: String,
     client: reqwest::Client,
 }
 
 impl DynodeBroadcastWebhookClient {
-    pub fn new(config: WebhookConfig) -> Result<Self, reqwest::Error> {
-        Ok(Self {
+    pub fn new(config: WebhookConfig) -> Self {
+        Self {
             enabled: config.enabled,
             url: config.url,
-            client: reqwest::Client::builder().timeout(config.timeout).build()?,
-        })
+            token: config.token,
+            client: reqwest::Client::new(),
+        }
     }
 
     #[cfg(test)]
@@ -27,6 +29,7 @@ impl DynodeBroadcastWebhookClient {
         Self {
             enabled: false,
             url: String::new(),
+            token: String::new(),
             client: reqwest::Client::new(),
         }
     }
@@ -44,7 +47,7 @@ impl DynodeBroadcastWebhookClient {
     }
 
     fn should_notify(&self, request: &ProxyRequest, response_status: u16, broadcast_providers: &BroadcastProviders) -> bool {
-        self.enabled && !self.url.is_empty() && is_broadcast_request(request, broadcast_providers) && is_success_status(response_status)
+        self.enabled && !self.url.is_empty() && !self.token.is_empty() && is_broadcast_request(request, broadcast_providers) && is_success_status(response_status)
     }
 
     fn extract_payload(&self, request: &ProxyRequest, response_body: &[u8], broadcast_providers: &BroadcastProviders) -> Option<TransactionId> {
@@ -54,15 +57,16 @@ impl DynodeBroadcastWebhookClient {
 
     fn spawn_notify(&self, payload: TransactionId, request_id: String) {
         let url = self.url.clone();
+        let token = self.token.clone();
         let client = self.client.clone();
 
-        tokio::spawn(Self::deliver(client, url, payload, request_id));
+        tokio::spawn(Self::deliver(client, url, token, payload, request_id));
     }
 
-    async fn deliver(client: reqwest::Client, url: String, payload: TransactionId, request_id: String) {
+    async fn deliver(client: reqwest::Client, url: String, token: String, payload: TransactionId, request_id: String) {
         let transaction_id = payload.to_string();
 
-        match client.post(&url).json(&payload).send().await {
+        match client.post(&url).bearer_auth(token).json(&payload).send().await {
             Ok(response) => {
                 if response.status().is_success() {
                     info_with_fields!("broadcast webhook delivered", transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);

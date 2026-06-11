@@ -71,8 +71,8 @@ pub const NEAR_INTENTS_MONAD_USDC: &str = "nep245:v2_1.omni.hot.tg:143_2dmLwYWkC
 pub const NEAR_INTENTS_XLAYER_NATIVE: &str = "nep245:v2_1.omni.hot.tg:196_11111111111111111111";
 pub const NEAR_INTENTS_XLAYER_USDT: &str = "nep245:v2_1.omni.hot.tg:196_2fezDCvVYRsG8wrK6deJ2VRPiAS1";
 pub const NEAR_INTENTS_XLAYER_USDC: &str = "nep245:v2_1.omni.hot.tg:196_2dK9kLNR7Ekq7su8FxNGiUW3djTw";
-pub const NEAR_INTENTS_PLASMA_NATIVE: &str = "nep245:v2_1.omni.hot.tg:9745_11111111111111111111";
-pub const NEAR_INTENTS_PLASMA_USDT: &str = "nep245:v2_1.omni.hot.tg:9745_3aL9skCy1yhPoDB8oKMmRHRN7SJW";
+pub const NEAR_INTENTS_PLASMA_NATIVE: &str = "nep141:plasma.omft.near";
+pub const NEAR_INTENTS_PLASMA_USDT: &str = "nep141:plasma-0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb.omft.near";
 
 type AssetsMap = HashMap<AssetId, &'static str>;
 

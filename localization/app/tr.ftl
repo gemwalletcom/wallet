@@ -733,6 +733,7 @@ contacts_add_to_contacts = Kişilere Ekle
 
 simulation_header_unlimited_asset = Sınırsız %@
 simulation_warning_unlimited_token_approval_description = Bu, harcama yapan kişiye, siz onayı iptal edene veya süresi dolana kadar bu belirteci kullanma erişimi sağlar.
+simulation_warning_externally_owned_spender_description = Bu onay, normal bir cüzdan adresinin (EOA) varlıklarınızı kullanmasına izin verir. Yalnızca bu adrese güveniyorsanız onaylayın.
 simulation_warning_nft_collection_approval_title = NFT koleksiyonunun tamamına erişim talep edildi.
 simulation_warning_unlimited_token_approval_title = Sınırsız token onayı
 

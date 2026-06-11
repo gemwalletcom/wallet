@@ -154,20 +154,6 @@ impl StreamProducer {
         Ok(())
     }
 
-    pub async fn delete_queue(&self, queue: &str) -> Result<u32, Box<dyn Error + Send + Sync>> {
-        self.run(|channel| async move { Ok(channel.queue_delete(queue.into(), QueueDeleteOptions::default()).await?) })
-            .await
-    }
-
-    pub async fn clear_queue(&self, queue: QueueName) -> Result<u32, Box<dyn Error + Send + Sync>> {
-        let queue_name = queue.to_string();
-        self.run(|channel| {
-            let queue_name = queue_name.clone();
-            async move { Ok(channel.queue_purge(queue_name.as_str().into(), QueuePurgeOptions::default()).await?) }
-        })
-        .await
-    }
-
     // Exchange methods
 
     pub async fn declare_exchange(&self, name: &str, kind: ExchangeKind) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -277,19 +263,6 @@ impl StreamProducer {
         T: serde::Serialize,
     {
         self.publish_message(&exchange.to_string(), routing_key, message).await
-    }
-
-    pub async fn publish_to_exchange_batch<T>(&self, exchange: ExchangeName, messages: &[T]) -> Result<bool, Box<dyn Error + Send + Sync>>
-    where
-        T: serde::Serialize,
-    {
-        let exchange_name = exchange.to_string();
-        for message in messages {
-            if !self.publish_message(&exchange_name, "", message).await? {
-                return Ok(false);
-            }
-        }
-        Ok(true)
     }
 
     pub async fn publish_with_routing_key<T>(&self, queue: QueueName, routing_key: &str, message: &T) -> Result<bool, Box<dyn Error + Send + Sync>>

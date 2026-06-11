@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Dodaj do kontaktów";
 "simulation.header.unlimited_asset" = "Nieograniczony %@";
 "simulation.warning.unlimited_token_approval.description" = "Dzięki temu osoba wydająca token uzyskuje dostęp do jego wykorzystania do momentu odwołania zatwierdzenia lub wygaśnięcia.";
+"simulation.warning_externally_owned_spender_description" = "To zatwierdzenie pozwala zwykłemu adresowi portfela (EOA) używać Twoich aktywów. Potwierdź tylko wtedy, gdy ufasz temu adresowi.";
 "simulation.warning.nft_collection_approval.title" = "Zażądano pełnego dostępu do kolekcji NFT";
 "simulation.warning.unlimited_token_approval.title" = "Nieograniczone zatwierdzanie tokenów";

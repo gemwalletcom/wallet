@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Ƙara zuwa Lambobin Sadarwa";
 "simulation.header.unlimited_asset" = "Unlimited %@";
 "simulation.warning.unlimited_token_approval.description" = "Wannan yana ba mai kashe kuɗi damar amfani da wannan alamar har sai kun soke amincewa ko kuma ta ƙare.";
+"simulation.warning_externally_owned_spender_description" = "Wannan amincewar tana ba adireshin walat na yau da kullum (EOA) damar amfani da kadarorinku. Tabbatar kawai idan kun amince da wannan adireshin.";
 "simulation.warning.nft_collection_approval.title" = "An nemi cikakken damar tattara NFT";
 "simulation.warning.unlimited_token_approval.title" = "Amincewa da alamar mara iyaka";

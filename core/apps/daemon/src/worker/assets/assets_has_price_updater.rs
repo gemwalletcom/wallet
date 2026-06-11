@@ -15,7 +15,12 @@ impl AssetsHasPriceUpdater {
     pub async fn update(&self) -> Result<(usize, usize), Box<dyn Error + Send + Sync>> {
         let eligible: HashSet<AssetId> = self.database.prices()?.get_prices_asset_ids()?.into_iter().collect();
 
-        let current: HashSet<AssetId> = self.database.assets()?.get_asset_ids_by_filter(vec![AssetFilter::HasPrice(true)])?.into_iter().collect();
+        let current: HashSet<AssetId> = self
+            .database
+            .assets()?
+            .get_asset_ids_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::HasPrice(true)])?
+            .into_iter()
+            .collect();
 
         let additions: Vec<AssetId> = eligible.difference(&current).cloned().collect();
         let removals: Vec<AssetId> = current.difference(&eligible).cloned().collect();

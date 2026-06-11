@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">رابطوں میں شامل کریں۔</string>
   <string name="simulation_header_unlimited_asset">لا محدود %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">یہ خرچ کرنے والے کو اس ٹوکن کو استعمال کرنے تک رسائی دیتا ہے جب تک کہ آپ منظوری منسوخ نہیں کرتے یا اس کی میعاد ختم نہیں ہوجاتی۔</string>
+  <string name="simulation_warning_externally_owned_spender_description">یہ منظوری ایک عام والیٹ ایڈریس (EOA) کو آپ کے اثاثے استعمال کرنے دیتی ہے۔ صرف اس صورت میں تصدیق کریں جب آپ اس ایڈریس پر اعتماد کرتے ہیں۔</string>
   <string name="simulation_warning_nft_collection_approval_title">مکمل NFT جمع کرنے تک رسائی کی درخواست کی گئی۔</string>
   <string name="simulation_warning_unlimited_token_approval_title">لامحدود ٹوکن کی منظوری</string>
   <string name="application_name">Gem</string>

@@ -586,6 +586,7 @@
   <string name="contacts_add_to_contacts">เพิ่มลงในรายชื่อติดต่อ</string>
   <string name="simulation_header_unlimited_asset">ไม่จำกัด %1$s</string>
   <string name="simulation_warning_unlimited_token_approval_description">これにより ผู้ใช้สามารถใช้โทเค็นนี้ได้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ</string>
+  <string name="simulation_warning_externally_owned_spender_description">การอนุมัตินี้ทำให้ที่อยู่วอลเล็ตทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้</string>
   <string name="simulation_warning_nft_collection_approval_title">ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด</string>
   <string name="simulation_warning_unlimited_token_approval_title">อนุมัติโทเค็นได้ไม่จำกัดจำนวน</string>
   <string name="application_name">Gem</string>

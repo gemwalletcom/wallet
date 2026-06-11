@@ -1,8 +1,9 @@
 use chrono::DateTime;
-use num_bigint::Sign;
+use num_bigint::{BigUint, Sign};
 
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM,
+    TOKEN_PROGRAM_2022,
     models::{BlockTransaction, BlockTransactions, Signature},
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
@@ -10,6 +11,10 @@ use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, Transact
 const CHAIN: Chain = Chain::Solana;
 const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
+const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
+const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
+const SPL_TRANSFER_CHECKED: u8 = 12;
+const SPL_TRANSFER_CHECKED_MINT_ACCOUNT_INDEX: usize = 1;
 
 struct MetaplexCoreNftTransfer {
     sender: String,
@@ -38,6 +43,57 @@ fn map_metaplex_core_nft_transfer(transaction: &BlockTransaction, account_keys: 
         collection: resolve(1)?,
         sender: resolve(2)?,
         new_owner: resolve(4)?,
+    })
+}
+
+fn is_nft_token_transfer(transaction: &BlockTransaction, account_keys: &[String], token_id: &str, value: &BigUint) -> bool {
+    if value != &BigUint::from(1u8) {
+        return false;
+    }
+    if !transaction
+        .meta
+        .pre_token_balances
+        .iter()
+        .chain(transaction.meta.post_token_balances.iter())
+        .all(|balance| balance.ui_token_amount.decimals == 0)
+    {
+        return false;
+    }
+
+    transaction.transaction.message.instructions.iter().any(|instruction| {
+        let Some(program) = account_keys.get(instruction.program_id_index).map(String::as_str) else {
+            return false;
+        };
+        let mint_account_index = if program == METAPLEX_PROGRAM {
+            MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX
+        } else if program == TOKEN_PROGRAM || program == TOKEN_PROGRAM_2022 {
+            SPL_TRANSFER_CHECKED_MINT_ACCOUNT_INDEX
+        } else {
+            return false;
+        };
+        let Some(mint) = instruction.accounts.get(mint_account_index).and_then(|index| account_keys.get(*index as usize)) else {
+            return false;
+        };
+        if mint != token_id {
+            return false;
+        }
+        let Ok(data) = bs58::decode(&instruction.data).into_vec() else {
+            return false;
+        };
+        if program == METAPLEX_PROGRAM {
+            data.first().copied() == Some(MPL_TOKEN_METADATA_TRANSFER_V1)
+        } else {
+            let [instruction, amount @ .., decimals] = data.as_slice() else {
+                return false;
+            };
+            if *instruction != SPL_TRANSFER_CHECKED || *decimals != 0 {
+                return false;
+            }
+            let Ok(amount) = <[u8; 8]>::try_from(amount) else {
+                return false;
+            };
+            u64::from_le_bytes(amount) == 1
+        }
     })
 }
 
@@ -101,7 +157,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     }
 
     let chain = CHAIN;
-    let account_keys = transaction.transaction.message.account_keys.clone();
+    let account_keys = &transaction.transaction.message.account_keys;
     let hash = transaction.transaction.signatures.first()?.to_string();
     let fee = transaction.meta.fee;
     let state = if transaction.meta.has_error() {
@@ -114,7 +170,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
 
     // system transfer
     if (account_keys.len() == 3) && account_keys.last()? == SYSTEM_PROGRAM_ID
-        || (account_keys.len() == 4 && account_keys.last()? == SYSTEM_PROGRAM_ID && account_keys.contains(&COMPUTE_BUDGET_PROGRAM_ID.to_string()))
+        || (account_keys.len() == 4 && account_keys.last()? == SYSTEM_PROGRAM_ID && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))
     {
         let from = account_keys.first()?.clone();
         let to = account_keys[1].clone();
@@ -139,13 +195,13 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         return Some(transaction);
     }
 
-    let pre_token_balances = transaction.meta.pre_token_balances.clone();
-    let post_token_balances = transaction.meta.post_token_balances.clone();
+    let pre_token_balances = &transaction.meta.pre_token_balances;
+    let post_token_balances = &transaction.meta.post_token_balances;
 
     // SPL token transfer (regular tokens or NFTs that go through the SPL Token program).
     if let Some(first_balance) = pre_token_balances.first() {
         let token_id = &first_balance.mint;
-        if account_keys.contains(&TOKEN_PROGRAM.to_string())
+        if account_keys.iter().any(|key| key == TOKEN_PROGRAM || key == TOKEN_PROGRAM_2022)
             && (pre_token_balances.len() == 1 || pre_token_balances.len() == 2)
             && post_token_balances.len() == 2
             && pre_token_balances.iter().all(|b| &b.mint == token_id)
@@ -172,7 +228,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             let from = sender.owner.clone();
             let to = recipient.owner.clone();
 
-            let is_nft = account_keys.iter().any(|key| key == METAPLEX_PROGRAM);
+            let is_nft = is_nft_token_transfer(transaction, account_keys, token_id, &value);
             let (transaction_type, asset_id, metadata) = if is_nft {
                 let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, token_id, token_id));
                 (TransactionType::TransferNFT, chain.as_asset_id(), serde_json::to_value(metadata).ok())
@@ -207,7 +263,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     }
 
     // Metaplex Core NFT transfer (single instruction, no SPL token balances).
-    if let Some(nft) = map_metaplex_core_nft_transfer(transaction, &account_keys) {
+    if let Some(nft) = map_metaplex_core_nft_transfer(transaction, account_keys) {
         let metadata = TransactionNFTTransferMetadata::from_asset_id(NFTAssetId::new(chain, &nft.collection, &nft.asset));
         return Some(Transaction::new(
             hash,
@@ -226,7 +282,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         ));
     }
 
-    if let Some((provider, program_id)) = get_swap_provider(&account_keys) {
+    if let Some((provider, program_id)) = get_swap_provider(account_keys) {
         let sender = account_keys.first()?.clone();
         let swap = map_swap_metadata(transaction, &sender, provider)?;
 
@@ -288,19 +344,47 @@ mod tests {
     use gem_jsonrpc::types::JsonRpcErrorResponse;
     use primitives::{JsonRpcResult, asset_constants::SOLANA_USDC_ASSET_ID};
 
+    const SPL_NFT_MINT: &str = "4umMdShNxbdnoV2EZjUp6h5GYYneZFLH9otBEU2K3ZYP";
     const PNFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
     const CORE_ASSET: &str = "JATWmjADckr2M7TX5xMfo1HNfYS66DKot15fJ4hVLrVE";
     const CORE_COLLECTION: &str = "5pQfZttNUtaj8sySRY9RsdtB81aEAQDh2vnacpxiwTpT";
 
-    #[test]
-    fn test_transaction_nft_token_program_transfer() {
-        let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/nft_token_program_transfer.json")).unwrap();
+    fn map_single_transaction(payload: &str) -> primitives::Transaction {
+        let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
+        let block_transaction = BlockTransaction {
+            meta: result.result.meta,
+            transaction: result.result.transaction,
+        };
+        map_transaction(&block_transaction, result.result.block_time).unwrap()
+    }
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+    #[test]
+    fn test_transaction_nft_spl_token_transfer() {
+        let transaction = map_single_transaction(include_str!("../../testdata/nft_spl_token_transfer.json"));
+
+        assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
+        assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
+        assert_eq!(transaction.from, "2k5AXX4guW9XwRQ1AKCpAuUqgWDpQpwFfpVFh3hnm2Ha");
+        assert_eq!(transaction.to, "2xSHLfiPs3aEhzbLnYbyzWYMEaYnwSwJwAnVh5CwHWwX");
+        assert_eq!(transaction.value, "1");
+        assert_eq!(transaction.fee, "10000");
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1687444563, 0).unwrap());
+
+        let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
+        assert_eq!(metadata.asset_id, NFTAssetId::new(Chain::Solana, SPL_NFT_MINT, SPL_NFT_MINT));
+    }
+
+    #[test]
+    fn test_transaction_nft_token_metadata_transfer() {
+        let transaction = map_single_transaction(include_str!("../../testdata/nft_token_program_transfer.json"));
 
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
         assert_eq!(transaction.from, "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H");
+        assert_eq!(transaction.to, "FGbkx8rYTPJubjyScReeps6GA83D1nSmFr3BrN7buokb");
+        assert_eq!(transaction.value, "1");
+        assert_eq!(transaction.fee, "7500");
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1779221552, 0).unwrap());
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.asset_id, NFTAssetId::new(Chain::Solana, PNFT_MINT, PNFT_MINT));
@@ -308,14 +392,15 @@ mod tests {
 
     #[test]
     fn test_transaction_nft_mplcore_transfer() {
-        let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/nft_mplcore_transfer.json")).unwrap();
-
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_single_transaction(include_str!("../../testdata/nft_mplcore_transfer.json"));
 
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
         assert_eq!(transaction.from, "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H");
         assert_eq!(transaction.to, "G7B17AigRCGvwnxFc5U8zY5T3NBGduLzT7KYApNU2VdR");
+        assert_eq!(transaction.value, "0");
+        assert_eq!(transaction.fee, "79998");
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1752111467, 0).unwrap());
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.asset_id, NFTAssetId::new(Chain::Solana, CORE_COLLECTION, CORE_ASSET));

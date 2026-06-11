@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "เพิ่มลงในรายชื่อติดต่อ";
 "simulation.header.unlimited_asset" = "ไม่จำกัด %@";
 "simulation.warning.unlimited_token_approval.description" = "これにより ผู้ใช้สามารถใช้โทเค็นนี้ได้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ";
+"simulation.warning_externally_owned_spender_description" = "การอนุมัตินี้ทำให้ที่อยู่วอลเล็ตทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้";
 "simulation.warning.nft_collection_approval.title" = "ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด";
 "simulation.warning.unlimited_token_approval.title" = "อนุมัติโทเค็นได้ไม่จำกัดจำนวน";

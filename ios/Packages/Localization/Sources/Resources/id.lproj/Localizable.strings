@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "Tambahkan ke Kontak";
 "simulation.header.unlimited_asset" = "Tak terbatas %@";
 "simulation.warning.unlimited_token_approval.description" = "Ini memberi pihak yang mengeluarkan dana akses untuk menggunakan token ini hingga Anda mencabut persetujuan atau token tersebut kedaluwarsa.";
+"simulation.warning_externally_owned_spender_description" = "Persetujuan ini memungkinkan alamat dompet biasa (EOA) menggunakan aset Anda. Konfirmasikan hanya jika Anda mempercayai alamat ini.";
 "simulation.warning.nft_collection_approval.title" = "Akses penuh ke koleksi NFT diminta.";
 "simulation.warning.unlimited_token_approval.title" = "Persetujuan token tanpa batas";

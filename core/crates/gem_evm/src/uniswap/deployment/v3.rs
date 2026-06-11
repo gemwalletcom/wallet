@@ -98,6 +98,11 @@ pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploym
             permit2,
             universal_router: "0x0D97Dc33264bfC1c226207428A79b26757fb9dc3",
         }),
+        Chain::XLayer => Some(V3Deployment {
+            quoter_v2: "0xD1b797D92d87B688193A2B976eFc8D577D204343",
+            permit2,
+            universal_router: "0xDa00aE15d3A71466517129255255db7c0c0956d3",
+        }),
         // See: https://swap.stable.xyz/deployments
         Chain::Stable => Some(V3Deployment {
             quoter_v2: "0xb070179E7032CdA868b53e6C1742F80c9e940d1A",

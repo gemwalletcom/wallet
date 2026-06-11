@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_serializers::deserialize_option_u64_from_str_or_int;
-use signer::{hash_eip712, validate_eip712_domain_chain_id_binding};
+use signer::validate_eip712_domain_chain_id_binding;
 use std::collections::HashMap;
 
 use crate::address::ethereum_address_checksum;
@@ -73,11 +73,6 @@ pub fn eip712_domain_types() -> Vec<EIP712Type> {
             r#type: "address".into(),
         },
     ]
-}
-
-pub fn eip712_hash_message(value: Value) -> Result<Vec<u8>, String> {
-    let json = serde_json::to_string(&value).map_err(|e| format!("Invalid EIP712 JSON: serialize error: {e}"))?;
-    hash_eip712(&json).map(|digest| digest.to_vec()).map_err(|e| e.to_string())
 }
 
 pub fn validate_eip712_chain_id(data: &str, expected_chain_id: u64) -> Result<(), String> {

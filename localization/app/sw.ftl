@@ -733,6 +733,7 @@ contacts_add_to_contacts = Ongeza kwenye Anwani
 
 simulation_header_unlimited_asset = Isiyo na kikomo %@
 simulation_warning_unlimited_token_approval_description = Hii inampa mtumiaji uwezo wa kutumia tokeni hii hadi utakapobatilisha idhini au itakapoisha muda wake.
+simulation_warning_externally_owned_spender_description = Idhini hii inaruhusu anwani ya kawaida ya pochi (EOA) kutumia mali zako. Thibitisha tu ikiwa unaiamini anwani hii.
 simulation_warning_nft_collection_approval_title = Ufikiaji kamili wa ukusanyaji wa NFT umeombwa
 simulation_warning_unlimited_token_approval_title = Idhini ya tokeni isiyo na kikomo
 

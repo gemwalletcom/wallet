@@ -67,7 +67,8 @@ impl EthereumMapper {
         let is_smart_contract_call = transaction.to.is_some() && transaction.input.len() > 2;
         let is_erc20_approve = transaction.input.starts_with(FUNCTION_ERC20_APPROVE);
         let is_erc20_transfer = transaction.input.starts_with(FUNCTION_ERC20_TRANSFER);
-        let is_native_transfer = transaction.input == INPUT_0X && transaction_reciept.gas_used == BigUint::from(TRANSFER_GAS_LIMIT);
+        let has_native_transfer_value = transaction.value > BigUint::from(0u8) || from == to;
+        let is_native_transfer = transaction.to.is_some() && transaction.input == INPUT_0X && transaction_reciept.logs.is_empty() && has_native_transfer_value;
         let is_native_transfer_with_data = transaction.input.len() > 2
             && transaction.gas > TRANSFER_GAS_LIMIT
             && Self::get_data_cost(&transaction.input).is_some_and(|data_cost| transaction_reciept.gas_used <= BigUint::from(TRANSFER_GAS_LIMIT + data_cost));
@@ -379,6 +380,47 @@ mod tests {
         assert_eq!(tx.to, "0x0700572b54ccA24Dad0eD4Cdad2c3d3ab6dB652a");
         assert_eq!(tx.value, "2739900000000000000");
         assert_eq!(tx.id.to_string(), "ethereum_0x0c0626172dbba6984a2e95b3abf1caba39cf11d3c9bc99d7de9ac814671c0cb1");
+    }
+
+    #[test]
+    fn test_arbitrum_native_self_transfer_with_l1_gas() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/arbitrum_native_self_transfer_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReciept>(include_str!("../../testdata/arbitrum_native_self_transfer_receipt.json"));
+
+        let mapped_transaction = EthereumMapper::map_transaction(Chain::Arbitrum, &transaction, &receipt, None, &BigUint::from(1746499794u64), None).unwrap();
+
+        assert_eq!(mapped_transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(mapped_transaction.asset_id, AssetId::from_chain(Chain::Arbitrum));
+        assert_eq!(mapped_transaction.from, "0x951454CaD517FcB54a5A60f20C934Df90966b2a7");
+        assert_eq!(mapped_transaction.to, "0x951454CaD517FcB54a5A60f20C934Df90966b2a7");
+        assert_eq!(mapped_transaction.value, "0");
+    }
+
+    #[test]
+    fn test_zero_value_empty_transaction_to_different_address_is_not_transfer() {
+        let transaction = Transaction {
+            hash: "0xabc123".to_string(),
+            from: "0xf1a3687303606a6fd48179ce503164cdcbabeab6".to_string(),
+            gas: 50000,
+            input: INPUT_0X.to_string(),
+            to: Some("0x0700572b54cca24dad0ed4cdad2c3d3ab6db652a".to_string()),
+            block_number: BigUint::from(1000u32),
+            value: BigUint::from(0u8),
+        };
+        let receipt = TransactionReciept {
+            gas_used: BigUint::from(21442u64),
+            effective_gas_price: BigUint::from(5_000_000_000u64),
+            l1_fee: None,
+            logs: vec![],
+            status: "0x1".to_string(),
+            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
+            block_number: BigUint::from(1000u32),
+        };
+
+        assert_eq!(
+            EthereumMapper::map_transaction(Chain::Arbitrum, &transaction, &receipt, None, &BigUint::from(1735671600u64), None),
+            None
+        );
     }
 
     #[test]

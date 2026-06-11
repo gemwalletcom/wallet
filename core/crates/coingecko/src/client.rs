@@ -118,11 +118,6 @@ impl<C: Client> CoinGeckoClient<C> {
         self.get_json(&path).await
     }
 
-    pub async fn get_coin_markets_id(&self, id: &str) -> Result<CoinMarket, Box<dyn Error + Send + Sync>> {
-        let markets = self.get_coin_markets_ids(vec![id.to_string()], 1).await?;
-        markets.first().cloned().ok_or_else(|| format!("market {id} not found").into())
-    }
-
     pub async fn get_coin(&self, id: &str) -> Result<CoinInfo, Box<dyn Error + Send + Sync>> {
         let query = CoinQuery {
             market_data: false,
@@ -183,11 +178,6 @@ impl<C: Client> CoinGeckoClient<C> {
 
     pub async fn get_market_chart(&self, coin_id: &str, interval: &str, days: &str) -> Result<MarketChart, Box<dyn Error + Send + Sync>> {
         let path = format!("/api/v3/coins/{}/market_chart?vs_currency=usd&days={}&interval={}&precision=full", coin_id, days, interval);
-        self.get_json(&path).await
-    }
-
-    pub async fn get_market_chart_auto(&self, coin_id: &str, days: &str) -> Result<MarketChart, Box<dyn Error + Send + Sync>> {
-        let path = format!("/api/v3/coins/{}/market_chart?vs_currency=usd&days={}&precision=full", coin_id, days);
         self.get_json(&path).await
     }
 }

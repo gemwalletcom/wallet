@@ -733,6 +733,7 @@ contacts_add_to_contacts = পরিচিতিতে যোগ করুন
 
 simulation_header_unlimited_asset = সীমাহীন %@
 simulation_warning_unlimited_token_approval_description = এটি ব্যয়কারীকে এই টোকেনটি ব্যবহার করার অনুমতি দেয় যতক্ষণ না আপনি অনুমোদন প্রত্যাহার করেন অথবা এটির মেয়াদ শেষ হয়ে যায়।
+simulation_warning_externally_owned_spender_description = এই অনুমোদন একটি সাধারণ ওয়ালেট ঠিকানাকে (EOA) আপনার সম্পদ ব্যবহার করতে দেয়। আপনি এই ঠিকানাকে বিশ্বাস করলেই নিশ্চিত করুন।
 simulation_warning_nft_collection_approval_title = সম্পূর্ণ NFT সংগ্রহের অ্যাক্সেসের অনুরোধ করা হয়েছে
 simulation_warning_unlimited_token_approval_title = সীমাহীন টোকেন অনুমোদন
 

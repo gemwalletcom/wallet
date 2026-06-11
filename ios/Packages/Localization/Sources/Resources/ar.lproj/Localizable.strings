@@ -571,5 +571,6 @@
 "contacts.add_to_contacts" = "أضف إلى جهات الاتصال";
 "simulation.header.unlimited_asset" = "غير محدود %@";
 "simulation.warning.unlimited_token_approval.description" = "يمنح هذا المنفق إمكانية استخدام هذا الرمز المميز حتى تقوم بإلغاء الموافقة أو تنتهي صلاحيته.";
+"simulation.warning_externally_owned_spender_description" = "تسمح هذه الموافقة لعنوان محفظة عادي (EOA) باستخدام أصولك. أكّد فقط إذا كنت تثق بهذا العنوان.";
 "simulation.warning.nft_collection_approval.title" = "تم طلب الوصول الكامل إلى مجموعة NFT";
 "simulation.warning.unlimited_token_approval.title" = "الموافقة على الرموز المميزة غير محدودة";
