@@ -91,8 +91,8 @@ extension LockSceneViewModel {
     func handleSceneChange(to phase: ScenePhase) {
         switch phase {
         case .background:
-            if case let .unlocking(attempt) = state {
-                attempt.context.invalidate()
+            if case let .unlocking(attempt) = state, !attempt.isInvalidated {
+                state = .unlocking(attempt.invalidated())
             }
             if state == .unlocked, !shouldLock {
                 lastUnlockTime = Date().addingTimeInterval(TimeInterval(lockPeriod.value))
@@ -100,6 +100,9 @@ extension LockSceneViewModel {
         case .active:
             showPlaceholderPreview = false
             if state == .unlocked, shouldLock {
+                state = .locked
+            }
+            if case let .unlocking(attempt) = state, attempt.isInvalidated {
                 state = .locked
             }
             if state == .locked {
@@ -156,13 +159,32 @@ extension LockSceneViewModel {
 
 extension LockSceneViewModel {
     private func authenticate(context: LAContext) async {
+        let newState = await getAuthenticationState(context: context)
+        guard isCurrentAttempt(context: context) else { return }
+
+        if newState == .unlocked {
+            resetLockState()
+        } else {
+            state = newState
+        }
+    }
+
+    private func getAuthenticationState(context: LAContext) async -> LockSceneState {
         do {
             try await service.authenticate(context: context, reason: Self.reason)
-            resetLockState()
+            return .unlocked
         } catch let error as BiometryAuthenticationError {
-            state = error == .cancelledBySystem ? .locked : .lockedCanceled
+            return error == .cancelledBySystem ? .locked : .lockedCanceled
         } catch {
-            state = .lockedCanceled
+            return .lockedCanceled
+        }
+    }
+
+    private func isCurrentAttempt(context: LAContext) -> Bool {
+        if case let .unlocking(attempt) = state {
+            attempt.context === context
+        } else {
+            false
         }
     }
 }
