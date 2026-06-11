@@ -36,17 +36,13 @@ class TokensRepository (
         if (query.isEmpty() && tags.isEmpty()) {
             return@withContext false
         }
-        val tokens = try {
+        val tokens = runCatchingCancellable {
             searchAssets.searchAssets(
                 query = query,
                 chains = chains,
                 tags = tags,
             )
-        } catch (err: CancellationException) {
-            throw err
-        } catch (_: Throwable) {
-            return@withContext false
-        }
+        }.getOrElse { return@withContext false }
         storeAssets(query, tokens, currency, tags.toPriorityQuery(query))
     }
 
@@ -116,3 +112,11 @@ private fun List<AssetTag>.toGemQuery() = if (isEmpty()) {
 }
 
 fun List<AssetTag>.toPriorityQuery(query: String) = if (isEmpty()) query.trim() else "${query.trim()}::${toGemQuery()}"
+
+internal suspend fun <T> runCatchingCancellable(block: suspend () -> T): Result<T> = try {
+    Result.success(block())
+} catch (err: CancellationException) {
+    throw err
+} catch (err: Throwable) {
+    Result.failure(err)
+}
