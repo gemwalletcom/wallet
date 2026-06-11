@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
@@ -11,17 +12,6 @@ enum WalletSearchMode {
 }
 
 struct WalletSearchModel {
-    enum Limits {
-        static let fetch = 100
-        static let perpetuals = 3
-
-        enum Assets {
-            static let initial = 12
-            static let tagBrowse = 18
-            static let search = 25
-        }
-    }
-
     var assetSearch: AssetSearchViewModel
 
     var searchableQuery: String {
@@ -48,11 +38,11 @@ struct WalletSearchModel {
 
 extension WalletSearchModel {
     var perpetualsLimit: Int {
-        Limits.perpetuals
+        WalletSearchConfig.perpetualsPreviewLimit
     }
 
     static var initialFetchLimit: Int {
-        Limits.Assets.initial + 1
+        WalletSearchConfig.assetsInitialLimit + 1
     }
 
     static var searchItemTypes: [SearchItemType] {
@@ -71,16 +61,16 @@ extension WalletSearchModel {
 
     func assetsLimit(tag: String?) -> Int {
         switch searchMode(tag: tag) {
-        case .initial: Limits.Assets.initial
-        case .tagBrowsing: Limits.Assets.tagBrowse
-        case .searching: Limits.Assets.search
+        case .initial: WalletSearchConfig.assetsInitialLimit
+        case .tagBrowsing: WalletSearchConfig.assetsTagLimit
+        case .searching: WalletSearchConfig.assetsSearchLimit
         }
     }
 
     func fetchLimit(tag: String?) -> Int {
         switch searchMode(tag: tag) {
         case .initial, .tagBrowsing: assetsLimit(tag: tag) + 1
-        case .searching: Limits.fetch
+        case .searching: WalletSearchConfig.resultsLimit
         }
     }
 }

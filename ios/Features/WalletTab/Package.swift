@@ -24,6 +24,7 @@ let package = Package(
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
 
         .package(name: "Store", path: "../../Packages/Store"),
@@ -43,6 +44,7 @@ let package = Package(
                 "Style",
                 "Components",
                 "PrimitivesComponents",
+                "GemstonePrimitives",
                 "InfoSheet",
                 "Store",
                 "Preferences",
