@@ -4,6 +4,7 @@ pub mod node;
 pub mod perpetual_config;
 pub mod public;
 pub mod rewards;
+pub mod search_config;
 pub mod social;
 pub mod stake;
 pub mod swap_config;
@@ -22,6 +23,7 @@ use {
     perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
     public::{ASSETS_URL, PublicUrl, get_public_url},
     rewards::{RewardsUrl, get_rewards_url},
+    search_config::{WalletSearchConfig, get_wallet_search_config},
     social::{SocialUrl, get_social_url, get_social_url_deeplink},
     stake::{StakeChainConfig, get_stake_config},
     swap_config::{SwapConfig, get_swap_config},
@@ -54,6 +56,10 @@ impl Config {
 
     fn get_perpetual_config(&self) -> PerpetualConfig {
         get_perpetual_config()
+    }
+
+    fn get_wallet_search_config(&self) -> WalletSearchConfig {
+        get_wallet_search_config()
     }
 
     fn select_leverage(&self, desired: u8, options: Vec<u8>) -> u8 {
