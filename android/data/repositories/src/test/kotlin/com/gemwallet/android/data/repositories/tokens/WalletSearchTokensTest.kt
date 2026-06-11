@@ -7,8 +7,6 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetBasic
 import com.gemwallet.android.testkit.mockPerpetual
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualSearchData
 import com.wallet.core.primitives.SearchResponse
 import io.mockk.coEvery
@@ -35,19 +33,11 @@ class WalletSearchTokensTest {
 
     @Test
     fun search_ingestsPerpetualsAndStoresPerpPriority() = runTest {
-        val perpAsset = mockAsset()
-        val perpetual = mockPerpetual(
-            id = PerpetualId(provider = PerpetualProvider.Hypercore, symbol = "BTC"),
-            name = "Bitcoin",
-            assetId = perpAsset.id,
-            price = 1.0,
-            volume24h = 1.0,
-        )
         coEvery {
             gemSearch.search(query = "btc", chains = emptyList(), tags = emptyList())
         } returns SearchResponse(
             assets = listOf(mockAssetBasic()),
-            perpetuals = listOf(PerpetualSearchData(perpetual = perpetual, asset = perpAsset)),
+            perpetuals = listOf(PerpetualSearchData(perpetual = mockPerpetual(), asset = mockAsset())),
             nfts = emptyList(),
         )
 
