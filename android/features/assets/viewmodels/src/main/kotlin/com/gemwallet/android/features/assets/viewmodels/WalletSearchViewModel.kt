@@ -14,6 +14,7 @@ import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.config.showPerpetuals
 import com.gemwallet.android.data.repositories.tokens.WalletSearch
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
+import com.gemwallet.android.domains.search.WalletSearchConfig
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
@@ -79,11 +80,11 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = perpetuals
-        .map { items -> items.take(WalletSearchLimits.PERPETUALS_PREVIEW) }
+        .map { items -> items.take(WalletSearchConfig.perpetualsPreviewLimit) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hasMorePerpetuals: StateFlow<Boolean> = visiblePerpetuals
-        .map { items -> items.size > WalletSearchLimits.PERPETUALS_PREVIEW }
+        .map { items -> items.size > WalletSearchConfig.perpetualsPreviewLimit }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val perpetualRecentIds: StateFlow<Set<String>> =
@@ -114,9 +115,9 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
     private fun assetsLimit(query: String, tag: AssetTag?): Int = when {
-        query.isNotEmpty() -> WalletSearchLimits.ASSETS_SEARCH
-        tag != null -> WalletSearchLimits.ASSETS_TAG
-        else -> WalletSearchLimits.ASSETS_INITIAL
+        query.isNotEmpty() -> WalletSearchConfig.assetsSearchLimit
+        tag != null -> WalletSearchConfig.assetsTagLimit
+        else -> WalletSearchConfig.assetsInitialLimit
     }
 
     fun onPinAsset(assetId: AssetId) {

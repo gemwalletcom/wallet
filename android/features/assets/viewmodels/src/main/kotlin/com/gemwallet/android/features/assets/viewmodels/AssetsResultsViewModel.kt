@@ -10,6 +10,7 @@ import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPi
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.domains.search.WalletSearchConfig
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
@@ -53,7 +54,7 @@ class AssetsResultsViewModel @Inject constructor(
     }
 
     val cappedAssets: StateFlow<List<AssetItemUIModel>> = combine(pinned, unpinned) { pinned, unpinned ->
-        unpinned.take((WalletSearchLimits.RESULTS - pinned.size).coerceAtLeast(0))
+        unpinned.take((WalletSearchConfig.resultsLimit - pinned.size).coerceAtLeast(0))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 }
