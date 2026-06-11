@@ -5,6 +5,7 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.math.fromHex
+import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.WalletId
@@ -51,7 +52,7 @@ class MigrateV3KeystoreServiceTest {
 
     @Test
     fun migrateWallet_invokesOperatorWithDecodedPasswordAndZeroizesIt() = runBlocking {
-        val walletId = WalletId("privateKey_ethereum_$ETH_ADDRESS")
+        val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
         every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId)
@@ -80,7 +81,7 @@ class MigrateV3KeystoreServiceTest {
         listOf("", "0x").forEach { password ->
             baseDir.deleteRecursively()
             baseDir.mkdirs()
-            val walletId = WalletId("privateKey_ethereum_$ETH_ADDRESS")
+            val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
             val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
             every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
             prepareV3File(walletId, password)
@@ -97,7 +98,4 @@ class MigrateV3KeystoreServiceTest {
         every { passwordStore.getPassword(walletId.id) } returns password
     }
 
-    companion object {
-        private const val ETH_ADDRESS = "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3"
-    }
 }
