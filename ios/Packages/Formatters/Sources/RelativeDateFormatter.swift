@@ -2,46 +2,39 @@
 
 import Foundation
 
+public enum RelativeDateFormatterType: Sendable {
+    case dateTime
+    case date
+}
+
 public struct RelativeDateFormatter: Sendable {
+    private let type: RelativeDateFormatterType
     public let calendar: Calendar
 
-    private let relativeDateFormatter: DateFormatter
-    private let timeFormatter: DateFormatter
-    private let dateTimeFormatter: DateFormatter
-
-    public init(locale: Locale = .current, timeZone: TimeZone = .current) {
+    public init(
+        type: RelativeDateFormatterType = .dateTime,
+        locale: Locale = .current,
+        timeZone: TimeZone = .current,
+    ) {
+        self.type = type
         var calendar = Calendar.current
         calendar.locale = locale
         calendar.timeZone = timeZone
         self.calendar = calendar
-
-        relativeDateFormatter = Self.makeDateFormatter(
-            locale: locale,
-            timeZone: timeZone,
-            dateStyle: .medium,
-            timeStyle: .none,
-            relative: true,
-        )
-        timeFormatter = Self.makeDateFormatter(
-            locale: locale,
-            timeZone: timeZone,
-            dateStyle: .none,
-            timeStyle: .short,
-        )
-        dateTimeFormatter = Self.makeDateFormatter(
-            locale: locale,
-            timeZone: timeZone,
-            dateStyle: .long,
-            timeStyle: .short,
-        )
     }
 
     public func string(from date: Date) -> String {
-        guard calendar.isDateInToday(date) || calendar.isDateInYesterday(date) else {
-            return dateTimeFormatter.string(from: date)
+        switch type {
+        case .dateTime:
+            guard calendar.isDateInToday(date) || calendar.isDateInYesterday(date) else {
+                return formatter(dateStyle: .long, timeStyle: .short).string(from: date)
+            }
+            let relative = formatter(dateStyle: .medium, timeStyle: .none, relative: true).string(from: date)
+            let time = formatter(dateStyle: .none, timeStyle: .short).string(from: date)
+            return "\(relative), \(time)"
+        case .date:
+            return formatter(dateStyle: .medium, timeStyle: .none).string(from: date)
         }
-
-        return "\(relativeDateFormatter.string(from: date)), \(timeFormatter.string(from: date))"
     }
 
     public func string(fromTimestampValue value: String) -> String {
@@ -67,16 +60,10 @@ private extension RelativeDateFormatter {
         .time(includingFractionalSeconds: false)
         .timeZone(separator: .omitted)
 
-    static func makeDateFormatter(
-        locale: Locale,
-        timeZone: TimeZone,
-        dateStyle: DateFormatter.Style,
-        timeStyle: DateFormatter.Style,
-        relative: Bool = false,
-    ) -> DateFormatter {
+    func formatter(dateStyle: DateFormatter.Style, timeStyle: DateFormatter.Style, relative: Bool = false) -> DateFormatter {
         let formatter = DateFormatter()
-        formatter.locale = locale
-        formatter.timeZone = timeZone
+        formatter.locale = calendar.locale
+        formatter.timeZone = calendar.timeZone
         formatter.dateStyle = dateStyle
         formatter.timeStyle = timeStyle
         formatter.doesRelativeDateFormatting = relative
