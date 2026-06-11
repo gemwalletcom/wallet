@@ -1,4 +1,4 @@
-use crate::devices::signature::verify_request_body_hash;
+use crate::devices::body::read_verified_body;
 use crate::responders::cache_error;
 use gem_auth::{AuthClient, verify_auth_signature};
 use primitives::{AuthMessage, AuthenticatedRequest};
@@ -24,18 +24,10 @@ async fn verify_wallet_signature<'r, T: DeserializeOwned + Send, O>(req: &'r Req
         return Err(error_outcome(req, Status::InternalServerError, "Auth client not available"));
     };
 
-    let Ok(bytes) = data.open(32.mebibytes()).into_bytes().await else {
-        return Err(error_outcome(req, Status::BadRequest, "Failed to read body"));
+    let raw_body = match read_verified_body(req, data, 32.mebibytes()).await {
+        Ok(body) => body,
+        Err((status, message)) => return Err(error_outcome(req, status, &message)),
     };
-    if !bytes.is_complete() {
-        return Err(error_outcome(req, Status::BadRequest, "Request body too large"));
-    }
-
-    let raw_body = bytes.into_inner();
-
-    if let Err((status, message)) = verify_request_body_hash(req, &raw_body).await {
-        return Err(error_outcome(req, status, &message));
-    }
 
     let Ok(body) = serde_json::from_slice::<AuthenticatedRequest<T>>(&raw_body) else {
         return Err(error_outcome(req, Status::BadRequest, "Invalid JSON"));

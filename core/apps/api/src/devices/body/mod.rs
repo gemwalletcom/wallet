@@ -18,7 +18,7 @@ fn error_outcome<'r, T>(req: &'r Request<'_>, status: Status, message: impl Into
     Error((status, message))
 }
 
-async fn read_verified_body<'r>(req: &'r Request<'_>, data: Data<'r>, limit: ByteUnit) -> Result<Vec<u8>, (Status, String)> {
+pub(crate) async fn read_verified_body<'r>(req: &'r Request<'_>, data: Data<'r>, limit: ByteUnit) -> Result<Vec<u8>, (Status, String)> {
     let bytes = data.open(limit).into_bytes().await.map_err(|_| (Status::BadRequest, "Failed to read body".to_string()))?;
     if !bytes.is_complete() {
         return Err((Status::BadRequest, "Request body too large".to_string()));
