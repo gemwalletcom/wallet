@@ -95,24 +95,29 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         guard filteredWallets.isNotEmpty else {
             return []
         }
+
         let password = try keystorePassword.getPassword()
 
-        return try filteredWallets
-            .prefix(25)
-            .map { wallet -> Primitives.Wallet in
+        return try withV4Password(password) { passwordBytes in
+            filteredWallets.prefix(25).compactMap { wallet -> Primitives.Wallet? in
                 let existingChains = wallet.accounts.map(\.chain)
                 let newChains = chains.asSet().subtracting(existingChains.asSet()).asArray()
-                let accounts = try withV4Password(password) { passwordBytes in
-                    try queue.sync {
+
+                do {
+                    let accounts = try queue.sync {
                         try gemKeystore.addAccounts(
                             keystoreId: wallet.keystoreId,
                             password: passwordBytes,
                             chains: newChains.map(\.rawValue),
                         )
                     }
+                    return try wallet.adding(accounts: accounts.map { try $0.mapToAccount() })
+                } catch {
+                    debugLog("wallet chains setup failed for \(wallet.id.id): \(error)")
+                    return nil
                 }
-                return try wallet.adding(accounts: accounts.map { try $0.mapToAccount() })
             }
+        }
     }
 
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {

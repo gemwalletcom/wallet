@@ -94,6 +94,12 @@ fn test_v3_rejects_wrong_password_and_malformed_inputs() {
         KeystoreError::corrupt_file("invalid v3 mnemonic")
     );
 
+    let invalid_utf8_mnemonic = mock_v3_json("mnemonic", &[0xff, 0xfe], password);
+    assert_eq!(
+        ReaderV3::decrypt_json(&invalid_utf8_mnemonic, password).unwrap_err(),
+        KeystoreError::corrupt_file("invalid v3 mnemonic")
+    );
+
     let large_password = vec![b'a'; 1024 * 1024 + 1];
     assert_eq!(ReaderV3::decrypt_json(&json, &large_password).unwrap_err(), KeystoreError::invalid_input("password input"));
 }
