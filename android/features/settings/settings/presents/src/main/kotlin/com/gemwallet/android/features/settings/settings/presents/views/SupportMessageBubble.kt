@@ -8,23 +8,36 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -42,6 +55,7 @@ private val messageBubbleMaxWidth = 300.dp
 private val attachmentImageWidth = 240.dp
 private val attachmentImageHeight = 180.dp
 private val statusIconSize = 14.dp
+internal val imageLoaderSize = 40.dp
 
 @Composable
 internal fun SupportMessageBubble(
@@ -53,6 +67,7 @@ internal fun SupportMessageBubble(
     val bubbleColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
     val textColor = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface
     val metaColor = if (isUser) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondary
+    val time = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(message.createdAt))
 
     Column(
         modifier = Modifier.widthIn(max = messageBubbleMaxWidth),
@@ -60,26 +75,54 @@ internal fun SupportMessageBubble(
         verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
     ) {
         message.images.forEach { image ->
-            MessageImage(image = image, sending = message.status == SupportMessageStatus.Sending, onClick = onImageClick)
+            MessageImage(
+                image = image,
+                time = time,
+                sending = message.status == SupportMessageStatus.Sending,
+                onClick = onImageClick,
+            )
         }
         if (message.content.isNotBlank()) {
-            Surface(color = bubbleColor, shape = RoundedCornerShape(messageBubbleCornerRadius)) {
-                Row(
-                    modifier = Modifier.padding(horizontal = space12, vertical = paddingSmall),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(paddingSmall),
-                ) {
-                    Text(
-                        text = parseMarkdownToAnnotatedString(message.content),
-                        color = textColor,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f, fill = false),
+            val context = LocalContext.current
+            val clipboard = LocalClipboard.current.nativeClipboard
+            var menuExpanded by remember { mutableStateOf(false) }
+            DropDownContextItem(
+                isExpanded = menuExpanded,
+                onDismiss = { menuExpanded = false },
+                onLongClick = { menuExpanded = true },
+                onClick = {},
+                menuItems = {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.common_copy)) },
+                        leadingIcon = { Icon(AppIcons.ContentCopy, contentDescription = null) },
+                        onClick = {
+                            clipboard.setPlainText(context, message.content)
+                            menuExpanded = false
+                        },
                     )
-                    MessageMeta(message = message, color = metaColor, onRetry = onRetry)
-                }
-            }
-        } else {
-            MessageMeta(message = message, color = MaterialTheme.colorScheme.secondary, onRetry = onRetry)
+                },
+                content = { contentModifier ->
+                    Surface(
+                        color = bubbleColor,
+                        shape = RoundedCornerShape(messageBubbleCornerRadius),
+                        modifier = contentModifier,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = space12, vertical = paddingSmall),
+                            verticalAlignment = Alignment.Bottom,
+                            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+                        ) {
+                            Text(
+                                text = parseMarkdownToAnnotatedString(message.content),
+                                color = textColor,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            MessageMeta(message = message, time = time, color = metaColor, onRetry = onRetry)
+                        }
+                    }
+                },
+            )
         }
     }
 }
@@ -87,12 +130,13 @@ internal fun SupportMessageBubble(
 @Composable
 private fun MessageMeta(
     message: SupportMessage,
+    time: String,
     color: Color,
     onRetry: (SupportMessage) -> Unit,
 ) {
     Box(contentAlignment = Alignment.Center) {
         Text(
-            text = DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(message.createdAt)),
+            text = time,
             style = MaterialTheme.typography.labelSmall,
             color = color,
             modifier = Modifier.alpha(if (message.status == SupportMessageStatus.Sent) 1f else 0f),
@@ -107,14 +151,14 @@ private fun MessageMeta(
                 Icon(
                     imageVector = AppIcons.Refresh,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = color,
                     modifier = Modifier.size(statusIconSize).clickable { onRetry(message) },
                 )
             } else {
                 Icon(
                     imageVector = AppIcons.Error,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = color,
                     modifier = Modifier.size(statusIconSize),
                 )
             }
@@ -124,7 +168,7 @@ private fun MessageMeta(
 }
 
 @Composable
-private fun MessageImage(image: SupportMessageImage, sending: Boolean, onClick: (String) -> Unit) {
+private fun MessageImage(image: SupportMessageImage, time: String, sending: Boolean, onClick: (String) -> Unit) {
     Box(
         modifier = Modifier
             .size(width = attachmentImageWidth, height = attachmentImageHeight)
@@ -134,15 +178,31 @@ private fun MessageImage(image: SupportMessageImage, sending: Boolean, onClick: 
         contentAlignment = Alignment.Center,
     ) {
         if (image.url.isNotBlank()) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = image.url,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
+                loading = { CircularProgressIndicator(modifier = Modifier.requiredSize(imageLoaderSize)) },
             )
+        } else {
+            CircularProgressIndicator(modifier = Modifier.requiredSize(imageLoaderSize))
         }
-        if (sending) {
-            CircularProgressIndicator()
+        if (!sending) {
+            TimePill(time = time, modifier = Modifier.align(Alignment.BottomEnd))
         }
     }
+}
+
+@Composable
+private fun TimePill(time: String, modifier: Modifier = Modifier) {
+    Text(
+        text = time,
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.White,
+        modifier = modifier
+            .padding(paddingSmall)
+            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+            .padding(horizontal = paddingSmall, vertical = paddingHalfSmall),
+    )
 }
