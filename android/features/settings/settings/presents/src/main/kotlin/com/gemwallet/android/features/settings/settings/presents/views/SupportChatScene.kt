@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatSceneViewModel
 import com.gemwallet.android.ui.R
@@ -36,6 +38,10 @@ fun SupportChatNavScreen(
 
     val imagePicker = rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
         uri?.let(viewModel::sendImage)
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.fetch()
     }
 
     Scene(

@@ -8,6 +8,7 @@ import SwiftUI
 
 public struct SupportChatScene: View {
     @State private var model: SupportChatSceneViewModel
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(model: SupportChatSceneViewModel) {
         _model = State(initialValue: model)
@@ -47,6 +48,7 @@ public struct SupportChatScene: View {
         .task {
             await model.fetch()
         }
+        .onChange(of: scenePhase, model.onScenePhaseChange)
         .quickLookPreview($model.previewURL)
     }
 

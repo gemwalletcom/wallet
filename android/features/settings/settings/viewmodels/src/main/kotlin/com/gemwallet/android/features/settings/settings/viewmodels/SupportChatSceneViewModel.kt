@@ -34,10 +34,6 @@ class SupportChatSceneViewModel @Inject constructor(
         .map { it.isEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    init {
-        fetch()
-    }
-
     fun fetch() = viewModelScope.launch(Dispatchers.IO) {
         perform("fetch") {
             repository.failPendingMessages()

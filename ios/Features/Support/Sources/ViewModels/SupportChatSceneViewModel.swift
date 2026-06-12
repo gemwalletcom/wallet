@@ -46,6 +46,14 @@ public final class SupportChatSceneViewModel {
         }
     }
 
+    func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
+        switch newPhase {
+        case .active: Task { await fetch() }
+        case .inactive, .background: break
+        @unknown default: break
+        }
+    }
+
     func sendText(_ content: String) {
         Task {
             await perform("send text") {
