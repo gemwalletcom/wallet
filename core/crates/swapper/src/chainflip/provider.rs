@@ -319,7 +319,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Options, SwapperQuoteAsset};
+    use crate::SwapperQuoteAsset;
     use primitives::AssetId;
 
     #[test]

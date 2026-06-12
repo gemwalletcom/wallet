@@ -244,7 +244,7 @@ mod tests {
     use gem_client::testkit::MockClient;
     use primitives::{
         AssetId,
-        asset_constants::{ARBITRUM_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID},
+        asset_constants::{ARBITRUM_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     };
     use std::collections::BTreeSet;
 
