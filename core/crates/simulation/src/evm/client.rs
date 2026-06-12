@@ -41,7 +41,7 @@ impl<'a, C: Client + Clone> SimulationClient<'a, C> {
     async fn approval_warnings(&self, approval: &ApprovalRequest) -> Result<Vec<SimulationWarning>, Box<dyn Error + Send + Sync>> {
         if self.spender_is_externally_owned(&approval.spender_address).await? {
             return Ok(vec![SimulationWarning::new(
-                SimulationSeverity::Critical,
+                SimulationSeverity::Warning,
                 SimulationWarningType::ExternallyOwnedSpender,
                 None,
             )]);
@@ -72,7 +72,7 @@ mod tests {
     use super::SimulationClient;
 
     #[tokio::test]
-    async fn eip712_permit_with_externally_owned_spender_adds_critical_warning() -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn eip712_permit_with_externally_owned_spender_adds_warning() -> Result<(), Box<dyn Error + Send + Sync>> {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json"))?;
         let message = parse_eip712_json(&json)?;
         let client = ethereum_client("0x");
@@ -82,11 +82,7 @@ mod tests {
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(
             result.warnings.first(),
-            Some(&SimulationWarning {
-                severity: SimulationSeverity::Critical,
-                warning: SimulationWarningType::ExternallyOwnedSpender,
-                message: None,
-            })
+            Some(&SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,))
         );
 
         Ok(())
@@ -152,7 +148,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn eip712_permit_batch_with_externally_owned_spender_adds_critical_warning() -> Result<(), Box<dyn Error + Send + Sync>> {
+    async fn eip712_permit_batch_with_externally_owned_spender_adds_warning() -> Result<(), Box<dyn Error + Send + Sync>> {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_batch_multiple_tokens.json"))?;
         let message = parse_eip712_json(&json)?;
         let client = ethereum_client("0x");
@@ -162,11 +158,7 @@ mod tests {
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(
             result.warnings.first(),
-            Some(&SimulationWarning {
-                severity: SimulationSeverity::Critical,
-                warning: SimulationWarningType::ExternallyOwnedSpender,
-                message: None,
-            })
+            Some(&SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,))
         );
 
         Ok(())

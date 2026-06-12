@@ -37,7 +37,7 @@ pub mod uniswap;
 
 use number_formatter::BigNumberFormatter;
 
-pub(crate) use cache::{STATIC_READ_CACHE_TTL_SECONDS, cache_headers, static_read_cache_headers};
+pub(crate) use cache::{cache_headers, static_read_cache_headers};
 
 /// Converts a human-readable amount string to base units value.
 pub fn amount_to_value(token: &str, decimals: u32) -> Option<String> {

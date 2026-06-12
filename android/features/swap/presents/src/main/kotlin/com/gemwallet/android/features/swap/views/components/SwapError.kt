@@ -30,17 +30,10 @@ internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
     val errorText = when (error) {
         SwapError.None,
         is SwapError.InsufficientBalance -> return
-        SwapError.IncorrectInput -> stringResource(
-            R.string.common_required_field,
-            stringResource(R.string.swap_you_pay)
-        )
         SwapError.NotSupportedAsset -> stringResource(R.string.errors_swap_not_supported_asset)
-        SwapError.NotSupportedChain -> stringResource(R.string.errors_swap_not_supported_chain)
         is SwapError.Unknown -> "${stringResource(R.string.errors_unknown_try_again)}: ${error.data}"
         is SwapError.InputAmountTooSmall -> "${stringResource(R.string.errors_swap_amount_too_small)} ${pay?.asset?.let { error.getFormattedValue(it) } ?: ""}"
-        SwapError.NoAvailableProvider,
-        SwapError.NoQuote,
-        SwapError.TransactionError -> stringResource(R.string.errors_swap_no_quote_available)
+        SwapError.NoQuote -> stringResource(R.string.errors_swap_no_quote_available)
     }
     Column(
         modifier = Modifier

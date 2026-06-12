@@ -9,7 +9,7 @@ jwt:
 webhook:
   enabled: false
   url: ""
-  timeout: 2s
+  token: ""
 
 monitoring:
   enabled: false

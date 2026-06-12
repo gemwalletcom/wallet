@@ -212,8 +212,7 @@ pub struct JwtConfig {
 pub struct WebhookConfig {
     pub enabled: bool,
     pub url: String,
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub timeout: Duration,
+    pub token: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

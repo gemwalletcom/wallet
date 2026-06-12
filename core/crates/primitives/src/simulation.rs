@@ -52,8 +52,8 @@ impl SimulationWarningType {
 
     fn collapse_priority(&self, severity: SimulationSeverity) -> u8 {
         match self {
+            Self::ValidationError if severity == SimulationSeverity::Critical => 3,
             Self::ExternallyOwnedSpender => 2,
-            Self::ValidationError if severity == SimulationSeverity::Critical => 2,
             _ if self.approval_value().is_some_and(Option::is_none) => 1,
             _ => 0,
         }
@@ -199,11 +199,10 @@ impl SimulationResult {
     }
 
     fn collapse_warnings(warnings: Vec<SimulationWarning>) -> Vec<SimulationWarning> {
-        if let Some(warning) = warnings.iter().find(|warning| warning.collapse_priority() == 2).cloned() {
-            return vec![warning];
-        }
-
-        if let Some(warning) = warnings.iter().find(|warning| warning.collapse_priority() == 1).cloned() {
+        let max_priority = warnings.iter().map(SimulationWarning::collapse_priority).max().unwrap_or(0);
+        if max_priority > 0
+            && let Some(warning) = warnings.iter().find(|warning| warning.collapse_priority() == max_priority).cloned()
+        {
             return vec![warning];
         }
 
@@ -242,7 +241,7 @@ mod tests {
     use num_bigint::BigInt;
 
     #[test]
-    fn simulation_result_keeps_only_blocking_warning() {
+    fn externally_owned_spender_warning_suppresses_secondary_approval_warning() {
         let result = SimulationResult::new(
             vec![
                 SimulationWarning::new(
@@ -253,14 +252,38 @@ mod tests {
                     }),
                     None,
                 ),
-                SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ExternallyOwnedSpender, None),
+                SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None),
             ],
             Vec::<SimulationPayloadField>::new(),
         );
 
         assert_eq!(
             result.warnings,
-            vec![SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::ExternallyOwnedSpender, None,)]
+            vec![SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None,)]
+        );
+    }
+
+    #[test]
+    fn critical_validation_warning_suppresses_externally_owned_spender_warning() {
+        let result = SimulationResult::new(
+            vec![
+                SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ExternallyOwnedSpender, None),
+                SimulationWarning::new(
+                    SimulationSeverity::Critical,
+                    SimulationWarningType::ValidationError,
+                    Some("Unable to verify spender is a contract".to_string()),
+                ),
+            ],
+            vec![],
+        );
+
+        assert_eq!(
+            result.warnings,
+            vec![SimulationWarning::new(
+                SimulationSeverity::Critical,
+                SimulationWarningType::ValidationError,
+                Some("Unable to verify spender is a contract".to_string()),
+            )]
         );
     }
 

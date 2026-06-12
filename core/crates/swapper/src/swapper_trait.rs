@@ -2,7 +2,7 @@ use super::{
     SwapperProviderMode, SwapperQuoteData,
     cross_chain::VaultAddresses,
     error::SwapperError,
-    models::{FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapResult, SwapperChainAsset},
+    models::{FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapperChainAsset},
 };
 use async_trait::async_trait;
 use std::fmt::Debug;
@@ -13,6 +13,7 @@ use primitives::{Chain, swap::SwapStatus};
 pub trait Swapper: Send + Sync + Debug {
     fn provider(&self) -> &ProviderType;
     fn supported_assets(&self) -> Vec<SwapperChainAsset>;
+    fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode;
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError>;
     async fn get_permit2_for_quote(&self, _quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
         Ok(None)

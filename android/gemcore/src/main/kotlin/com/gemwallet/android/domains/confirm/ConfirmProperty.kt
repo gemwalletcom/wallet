@@ -45,6 +45,8 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.TokenApprovalParams -> Provider(data = params.provider)
                 is ConfirmParams.NftParams,
                 is ConfirmParams.TransferParams.Token,
+                is ConfirmParams.TransferParams.Deposit,
+                is ConfirmParams.TransferParams.Withdrawal,
                 is ConfirmParams.TransferParams.Native -> params.destination()?.let {
                     Transfer(domain = it.name ?: addressName?.name, address = it.address)
                 } ?: throw ConfirmError.RecipientEmpty

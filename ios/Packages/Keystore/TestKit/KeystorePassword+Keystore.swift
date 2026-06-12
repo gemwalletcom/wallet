@@ -5,6 +5,9 @@ import Keystore
 import LocalAuthentication
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
+    public private(set) var getPasswordCallsCount = 0
+    public var getAuthenticationError: (any Error)?
+
     private var memoryPassword: String
     private var isAuthenticationEnabled: Bool
     private var lockPeriod: LockPeriod?
@@ -30,11 +33,15 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     }
 
     public func getPassword() throws -> String {
-        memoryPassword
+        getPasswordCallsCount += 1
+        return memoryPassword
     }
 
     public func getAuthentication() throws -> KeystoreAuthentication {
-        availableAuthentication
+        if let getAuthenticationError {
+            throw getAuthenticationError
+        }
+        return availableAuthentication
     }
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {

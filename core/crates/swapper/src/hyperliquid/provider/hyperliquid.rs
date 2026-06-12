@@ -8,7 +8,7 @@ use primitives::{
     swap::SwapResult,
 };
 
-use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, alien::RpcProvider};
+use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, alien::RpcProvider};
 use gem_hypercore::is_spot_swap;
 
 use super::{bridge::HyperCoreBridge, spot::HyperCoreSpot};
@@ -52,6 +52,10 @@ impl Swapper for Hyperliquid {
         let mut assets = self.spot.supported_assets();
         assets.extend(self.bridge.supported_assets());
         assets
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Flexible
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

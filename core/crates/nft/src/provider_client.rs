@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 
 use primitives::{Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData};
@@ -29,9 +28,5 @@ impl NFTProviderClient {
 
     pub async fn get_nft_data(&self, chain: Chain, address: &str) -> Result<Vec<NFTData>, Box<dyn Error + Send + Sync>> {
         self.providers.get_nft_data(chain, address).await
-    }
-
-    pub async fn get_asset_ids_for_addresses(&self, addresses: HashMap<Chain, String>) -> Vec<NFTAssetId> {
-        self.providers.get_assets(addresses).await
     }
 }

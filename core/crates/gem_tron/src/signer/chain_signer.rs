@@ -253,52 +253,56 @@ mod tests {
         assert_eq!(output["raw_data"]["fee_limit"], 20);
     }
 
-    #[test]
-    fn sign_transfer_based_swap_uses_swap_destination() {
-        let input = signer_input(
-            TransactionInputType::Swap(
-                Asset::from_chain(Chain::Tron),
-                Asset::from_chain(Chain::Tron),
-                primitives::swap::SwapData {
-                    quote: primitives::swap::SwapQuote {
-                        from_address: SENDER.to_string(),
-                        from_value: "2000000".to_string(),
-                        min_from_value: None,
-                        to_address: "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z".to_string(),
-                        to_value: "1".to_string(),
-                        provider_data: primitives::swap::SwapProviderData {
-                            provider: primitives::SwapProvider::Okx,
-                            name: "OKX".to_string(),
-                            protocol_name: "okx".to_string(),
-                        },
-                        slippage_bps: 50,
-                        eta_in_seconds: None,
-                        use_max_amount: None,
-                    },
-                    data: primitives::swap::SwapQuoteData {
-                        to: "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z".to_string(),
-                        data_type: primitives::swap::SwapQuoteDataType::Transfer,
-                        value: "2000000".to_string(),
-                        data: String::new(),
-                        memo: None,
-                        approval: None,
-                        gas_limit: None,
-                    },
-                },
-            ),
+    fn swap_input(use_max_amount: Option<bool>, min_from_value: Option<&str>, value: &str, transaction_fee: TransactionFee) -> SignerInput {
+        let mut swap_data = primitives::swap::SwapData::mock_transfer(primitives::SwapProvider::Okx, value, "1", "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z");
+        swap_data.quote.use_max_amount = use_max_amount;
+        swap_data.quote.min_from_value = min_from_value.map(str::to_string);
+        signer_input(
+            TransactionInputType::Swap(Asset::from_chain(Chain::Tron), Asset::from_chain(Chain::Tron), swap_data),
             SENDER,
             RECIPIENT,
-            "2000000",
-            TransactionFee::default(),
+            value,
+            transaction_fee,
             None,
             metadata(TronStakeData::Votes(vec![])),
-        );
+        )
+    }
+
+    #[test]
+    fn sign_transfer_based_swap_uses_swap_destination() {
+        let input = swap_input(None, None, "2000000", TransactionFee::default());
         let output = signed_json(TronChainSigner.sign_swap(&input, &private_key()).unwrap().remove(0));
 
         assert_eq!(
             output["raw_data"]["contract"][0]["parameter"]["value"]["to_address"],
             "41dbd7c53729b3310e1843083000fa84abad996961"
         );
+        assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["amount"], 2000000);
+    }
+
+    #[test]
+    fn sign_swap_max_amount_excludes_fee() {
+        let input = swap_input(Some(true), None, "2000000", fee(1_100_000, 0));
+        let output = signed_json(TronChainSigner.sign_swap(&input, &private_key()).unwrap().remove(0));
+
+        assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["amount"], 900000);
+        assert_eq!(output["raw_data"]["fee_limit"], 1_100_000);
+
+        let input = swap_input(Some(false), None, "2000000", fee(1_100_000, 0));
+        let output = signed_json(TronChainSigner.sign_swap(&input, &private_key()).unwrap().remove(0));
+
+        assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["amount"], 2000000);
+
+        let input = swap_input(Some(true), None, "1000000", fee(1_100_000, 0));
+        assert!(TronChainSigner.sign_swap(&input, &private_key()).is_err());
+
+        let input = swap_input(Some(true), Some("900000"), "2000000", fee(1_100_000, 0));
+        let output = signed_json(TronChainSigner.sign_swap(&input, &private_key()).unwrap().remove(0));
+
+        assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["amount"], 900000);
+
+        let input = swap_input(Some(true), Some("950000"), "2000000", fee(1_100_000, 0));
+        assert!(TronChainSigner.sign_swap(&input, &private_key()).is_err());
     }
 
     // Source vector:

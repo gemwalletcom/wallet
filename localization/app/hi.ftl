@@ -739,6 +739,7 @@ contacts_add_to_contacts = संपर्क के खाते में ज�
 
 simulation_header_unlimited_asset = असीमित %@
 simulation_warning_unlimited_token_approval_description = इससे खर्च करने वाले को इस टोकन का उपयोग तब तक करने की अनुमति मिलती है जब तक आप अनुमोदन रद्द नहीं कर देते या यह समाप्त नहीं हो जाता।
+simulation_warning_externally_owned_spender_description = यह स्वीकृति एक सामान्य वॉलेट पते (EOA) को आपकी संपत्तियों का उपयोग करने देती है। केवल तभी पुष्टि करें जब आप इस पते पर भरोसा करते हों।
 simulation_warning_nft_collection_approval_title = संपूर्ण एनएफटी संग्रह तक पहुंच का अनुरोध किया गया है
 simulation_warning_unlimited_token_approval_title = असीमित टोकन अनुमोदन
 

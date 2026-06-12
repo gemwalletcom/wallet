@@ -5,9 +5,11 @@ use super::filter::{build_assets_filters, build_filter};
 use super::model::SearchRequest;
 use chrono::{DateTime, Utc};
 use pricer::PriceClient;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
-use search_index::{ASSETS_INDEX_NAME, AssetDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient};
-use storage::{AssetsAddressesRepository, AssetsRepository, Database, WalletsRepository};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetList, ChainAddress, NFTCollection, PerpetualSearchData, PriceConfig};
+use search_index::{
+    ASSET_LISTS_INDEX_NAME, ASSETS_INDEX_NAME, AssetDocument, AssetListDocument, NFTDocument, NFTS_INDEX_NAME, PERPETUALS_INDEX_NAME, PerpetualDocument, SearchIndexClient,
+};
+use storage::{AssetFilter, AssetsAddressesRepository, AssetsRepository, Database, WalletsRepository};
 
 #[derive(Clone)]
 pub struct AssetsClient {
@@ -26,6 +28,11 @@ impl AssetsClient {
     }
 
     pub fn get_assets(&self, asset_ids: Vec<AssetId>, rate: f64) -> Result<Vec<AssetBasic>, Box<dyn Error + Send + Sync>> {
+        let asset_ids = self
+            .database
+            .assets()?
+            .get_asset_ids_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::Ids(asset_ids.ids())])?;
+
         Ok(self
             .database
             .assets()?
@@ -94,6 +101,15 @@ impl SearchClient {
                 }
             })
             .collect())
+    }
+
+    pub async fn get_asset_lists_search(&self, request: &SearchRequest) -> Result<Vec<AssetList>, Box<dyn Error + Send + Sync>> {
+        let lists: Vec<AssetListDocument> = self
+            .client
+            .search(ASSET_LISTS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset)
+            .await?;
+
+        Ok(lists.into_iter().map(Into::into).collect())
     }
 
     pub async fn get_perpetuals_search(&self, request: &SearchRequest) -> Result<Vec<PerpetualSearchData>, Box<dyn Error + Send + Sync>> {

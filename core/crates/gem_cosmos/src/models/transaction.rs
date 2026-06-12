@@ -27,16 +27,6 @@ pub struct TransactionResult {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionResponseLegacy {
-    pub tx_response: TransactionResult,
-}
-
-#[derive(Debug, Clone)]
-pub struct TransactionDecode {
-    pub hash: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionResponse {
     pub tx: TransactionResponseTx,
     pub tx_response: TransactionResponseData,

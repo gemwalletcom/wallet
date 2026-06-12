@@ -19,7 +19,7 @@ pub trait TransactionsRepository {
         limit: Option<i64>,
     ) -> Result<Vec<TransactionRow>, DatabaseError>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, DatabaseError>;
-    fn delete_transactions_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<i64>, DatabaseError>;
+    fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, DatabaseError>;
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError>;
     fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError>;
     fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<TransactionRow>, DatabaseError>;
@@ -64,8 +64,8 @@ impl TransactionsRepository for DatabaseClient {
         Ok(TransactionsStore::get_transactions_addresses(self, min_count, limit, since)?)
     }
 
-    fn delete_transactions_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<i64>, DatabaseError> {
-        Ok(TransactionsStore::delete_transactions_addresses(self, addresses)?)
+    fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, DatabaseError> {
+        Ok(TransactionsStore::delete_transactions_addresses(self, chain_addresses)?)
     }
 
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError> {

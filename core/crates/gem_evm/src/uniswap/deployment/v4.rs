@@ -93,6 +93,11 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             universal_router: "0x112908daC86e20e7241B0927479Ea3Bf935d1fa0",
         }),
+        // Chain::XLayer => Some(V4Deployment {
+        //     quoter: "0x8928074CA1b241D8Ec02815881c1Af11E8bC5219",
+        //     permit2,
+        //     universal_router: "0xDa00aE15d3A71466517129255255db7c0c0956d3",
+        // }),
         _ => None,
     }
 }

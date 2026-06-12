@@ -37,18 +37,6 @@ impl ScanAddressRow {
             },
         })
     }
-
-    pub fn as_scan_address_primitive(self) -> ScanAddress {
-        ScanAddress {
-            chain: self.chain.0,
-            address: self.address,
-            name: self.name,
-            address_type: Some(self.type_.0.clone()),
-            is_malicious: Some(self.is_fraudulent),
-            is_memo_required: Some(self.is_memo_required),
-            is_verified: Some(self.is_verified),
-        }
-    }
 }
 
 #[derive(Debug, Insertable, Serialize, Deserialize, Clone)]

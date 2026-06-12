@@ -5,21 +5,17 @@ use std::{error::Error, fmt};
 
 pub mod account;
 pub mod block;
-pub mod chain;
 pub mod contract;
 pub mod contract_type;
 #[cfg(feature = "signer")]
 pub(crate) mod signing;
-pub mod transaction;
 
 pub use account::*;
 pub use block::*;
-pub use chain::*;
 pub use contract::*;
 pub use contract_type::*;
 #[cfg(feature = "signer")]
 pub(crate) use signing::*;
-pub use transaction::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Block {

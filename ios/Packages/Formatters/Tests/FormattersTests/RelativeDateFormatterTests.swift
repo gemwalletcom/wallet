@@ -8,10 +8,12 @@ struct RelativeDateFormatterTests {
     private let locale = Locale.US
     private let timeZone = TimeZone.NewYork!
     private let formatter: RelativeDateFormatter
+    private let dateFormatter: RelativeDateFormatter
     private let calendar: Calendar
 
     init() {
         formatter = RelativeDateFormatter(locale: locale, timeZone: timeZone)
+        dateFormatter = RelativeDateFormatter(type: .date, locale: locale, timeZone: timeZone)
         calendar = formatter.calendar
     }
 
@@ -42,5 +44,10 @@ struct RelativeDateFormatterTests {
         let date = try #require(calendar.date(from: components))
 
         #expect(formatter.string(from: date) == "February 2, 2025 at 10:25 AM")
+    }
+
+    @Test
+    func dateTypeFromTimestampValue() {
+        #expect(dateFormatter.string(fromTimestampValue: "1662714817") == "Sep 9, 2022")
     }
 }

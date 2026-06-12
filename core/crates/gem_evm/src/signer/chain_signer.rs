@@ -76,7 +76,7 @@ impl ChainSigner for EvmChainSigner {
                     )?])
                 } else {
                     Ok(vec![sign_and_encode(
-                        &build_eip1559_transaction(&params, &swap_data.to, value_u256(&input.value)?, Bytes::new())?,
+                        &build_eip1559_transaction(&params, &swap_data.to, value_u256(&input.swap_value()?.to_string())?, Bytes::new())?,
                         private_key,
                     )?])
                 }

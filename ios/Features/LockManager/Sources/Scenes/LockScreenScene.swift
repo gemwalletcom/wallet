@@ -12,11 +12,6 @@ struct LockScreenScene: View {
             .overlay(alignment: .bottom) { unlockButton }
             .animation(.smooth, value: model.isLocked)
             .frame(maxWidth: .infinity)
-            .onChange(of: model.state, initial: true) { _, newState in
-                if newState == .locked {
-                    unlock()
-                }
-            }
     }
 }
 
@@ -25,8 +20,10 @@ struct LockScreenScene: View {
 extension LockScreenScene {
     @ViewBuilder
     private var unlockButton: some View {
-        if model.state == .lockedCanceled {
-            Button(action: unlock) {
+        if model.isUnlockButtonVisible {
+            Button {
+                model.startUnlock()
+            } label: {
                 HStack {
                     if let image = model.unlockImage {
                         Image(systemName: image)
@@ -43,10 +40,6 @@ extension LockScreenScene {
     private var placeholderView: some View {
         LogoView()
             .background(Colors.white)
-    }
-
-    private func unlock() {
-        Task { await model.unlock() }
     }
 }
 

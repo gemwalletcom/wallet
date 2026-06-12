@@ -12,7 +12,7 @@ use primitives::{
     swap::{SwapResult, SwapStatus},
 };
 
-use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 use super::spot::scale_quote_value;
 
@@ -46,6 +46,10 @@ impl Swapper for HyperCoreBridge {
             SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_HYPE.id.clone()]),
             SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_HYPE.id.clone()]),
         ]
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Flexible
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

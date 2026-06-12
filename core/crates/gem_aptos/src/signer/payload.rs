@@ -1,5 +1,4 @@
 use crate::ENTRY_FUNCTION_PAYLOAD_TYPE;
-use crate::models::TransactionPayload;
 use primitives::SignerError;
 use serde::Deserialize;
 use serde_json::Value;
@@ -18,15 +17,6 @@ pub struct EntryFunctionPayload {
 }
 
 impl EntryFunctionPayload {
-    pub fn to_transaction_payload(&self) -> TransactionPayload {
-        TransactionPayload {
-            function: Some(self.function.clone()),
-            type_arguments: self.type_arguments.clone(),
-            arguments: self.arguments.clone(),
-            payload_type: self.payload_type.clone(),
-        }
-    }
-
     pub fn to_entry_function(&self, abi: Option<&[&str]>) -> Result<EntryFunction, SignerError> {
         if self.payload_type != ENTRY_FUNCTION_PAYLOAD_TYPE {
             return Err(SignerError::InvalidInput(format!("Unsupported Aptos payload type: {}", self.payload_type)));

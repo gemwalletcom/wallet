@@ -67,6 +67,7 @@ struct CollectibleViewModelTests {
     @Test
     func attributeValueFormatting() throws {
         let formatter = try RelativeDateFormatter(
+            type: .date,
             locale: Locale(identifier: "en_US_POSIX"),
             timeZone: #require(TimeZone(secondsFromGMT: 0)),
         )
@@ -80,7 +81,7 @@ struct CollectibleViewModelTests {
             relativeDateFormatter: formatter,
         )
 
-        #expect(date.value == formatter.string(fromTimestampValue: "1662714817"))
+        #expect(date.value == "Sep 9, 2022")
         #expect(string.value == "9")
     }
 

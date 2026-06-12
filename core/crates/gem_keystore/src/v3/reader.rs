@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroize;
 
 use crate::{KeystoreError, Mnemonic};
 
@@ -36,9 +36,10 @@ impl ReaderV3 {
                     plaintext.zeroize();
                     return Err(KeystoreError::corrupt_file("v3 mnemonic plaintext too large"));
                 }
-                let phrase = Zeroizing::new(String::from_utf8(plaintext.to_vec()).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?);
+                let phrase = std::str::from_utf8(&plaintext).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
+                let sanitized = Mnemonic::sanitize(phrase).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?;
                 plaintext.zeroize();
-                SecretV3::Mnemonic(Mnemonic::sanitize(&phrase).map_err(|_| KeystoreError::corrupt_file("invalid v3 mnemonic"))?)
+                SecretV3::Mnemonic(sanitized)
             }
             KindV3::PrivateKey => {
                 if plaintext.len() != 32 {

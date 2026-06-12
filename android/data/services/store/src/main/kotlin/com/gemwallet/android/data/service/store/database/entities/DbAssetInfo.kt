@@ -63,6 +63,8 @@ data class DbAssetInfo(
     val balanceRewardsAmount: Double?,
     val balanceReserved: String?,
     val balanceReservedAmount: Double?,
+    val balanceWithdrawable: String?,
+    val balanceWithdrawableAmount: Double?,
     val balanceTotalAmount: Double?,
     val balanceFiatTotalAmount: Double?,
     val votes: Long?,
@@ -98,7 +100,8 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             staked = entity.balanceStaked ?: "0",
             pending = entity.balancePending ?: "0",
             rewards = entity.balanceRewards ?: "0",
-            reserved = entity.balanceReserved ?: "0"
+            reserved = entity.balanceReserved ?: "0",
+            withdrawable = entity.balanceWithdrawable ?: "0",
         ),
         balanceAmount = Balance(
             available = entity.balanceAvailableAmount ?: 0.0,
@@ -108,6 +111,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             pending = entity.balancePendingAmount ?: 0.0,
             rewards = entity.balanceRewardsAmount ?: 0.0,
             reserved = entity.balanceReservedAmount ?: 0.0,
+            withdrawable = entity.balanceWithdrawableAmount ?: 0.0,
         ),
         totalAmount = entity.balanceTotalAmount ?: 0.0,
         fiatTotalAmount = entity.balanceFiatTotalAmount ?: 0.0,

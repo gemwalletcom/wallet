@@ -24,16 +24,6 @@ pub struct QuoteRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct IncludedFee {
-    #[serde(rename = "type")]
-    pub fee_type: String,
-    pub chain: String,
-    pub asset: String,
-    pub amount: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct DcaParams {
     pub number_of_chunks: u32,
     pub chunk_interval_blocks: u32,

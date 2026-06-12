@@ -7,7 +7,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use super::{
     ChainflipRouteData,
-    broker::{BrokerClient, ChainflipAsset, DcaParameters, RefundParameters, VaultSwapBtcExtras, VaultSwapEvmExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras},
+    broker::{BrokerClient, ChainflipAsset, DcaParameters, RefundParameters, VaultSwapEvmExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras},
     capitalize::capitalize_first_letter,
     client::{CHAINFLIP_SUPPORTED_ASSETS, ChainflipClient, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, map_swap_result},
     price::{apply_slippage, price_to_hex_price},
@@ -15,12 +15,13 @@ use super::{
     tx_builder,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
+    SwapperQuoteData,
     alien::RpcProvider,
     amount_to_value,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
-    fees::{DEFAULT_CHAINFLIP_FEE_BPS, apply_slippage_in_bp, quote_value_after_reserve_by_chain},
+    fees::DEFAULT_CHAINFLIP_FEE_BPS,
     solana::DEFAULT_SWAP_GAS_LIMIT,
 };
 use primitives::{Asset, ChainType, chain::Chain, swap::QuoteAsset};
@@ -30,9 +31,6 @@ const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
 const VAULT_ETH: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const VAULT_ARB: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const VAULT_SOL: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
-
-// Solana vault swap: tx fee (5K) + createAccount rent (2.31M) + event transfer (223K) + wallet rent exemption (891K) ≈ 3.43M lamports
-const SOLANA_VAULT_SWAP_RESERVE: u64 = 4_000_000;
 
 #[derive(Debug)]
 pub struct ChainflipProvider<CX, BR>
@@ -77,28 +75,12 @@ fn map_asset_id(asset: &QuoteAsset) -> ChainflipAsset {
     ChainflipAsset { chain: chain_name, asset: symbol }
 }
 
-fn get_quote_value(request: &QuoteRequest) -> Result<String, SwapperError> {
-    let value = quote_value_after_reserve_by_chain(request)?;
-    if !request.options.use_max_amount || !request.from_asset.asset_id().is_native() {
-        return Ok(value);
-    }
-    match request.from_asset.chain() {
-        Chain::Solana => {
-            let amount: u64 = value.parse().map_err(|_| SwapperError::ComputeQuoteError(format!("invalid amount: {value}")))?;
-            let reserved = amount.saturating_sub(SOLANA_VAULT_SWAP_RESERVE);
-            if reserved == 0 {
-                return Err(SwapperError::InputAmountError {
-                    min_amount: Some(SOLANA_VAULT_SWAP_RESERVE.to_string()),
-                });
-            }
-            Ok(reserved.to_string())
-        }
-        _ => Ok(value),
-    }
-}
-
 fn build_quote_request(request: &QuoteRequest) -> Result<ChainflipQuoteRequestData, SwapperError> {
-    let from_value = get_quote_value(request)?;
+    match request.from_asset.chain().chain_type() {
+        ChainType::Ethereum | ChainType::Solana => {}
+        _ => return Err(SwapperError::NotSupportedChain),
+    }
+    let from_value = request.value.clone();
     let src_asset = map_asset_id(&request.from_asset);
     let dest_asset = map_asset_id(&request.to_asset);
     let fee_bps = DEFAULT_CHAINFLIP_FEE_BPS;
@@ -198,6 +180,10 @@ where
         CHAINFLIP_SUPPORTED_ASSETS.clone()
     }
 
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let fee_bps = DEFAULT_CHAINFLIP_FEE_BPS;
         let quote_request_data = build_quote_request(request)?;
@@ -244,8 +230,8 @@ where
         let quote_asset_decimals = quote.request.to_asset.decimals;
         let base_asset_decimals = quote.request.from_asset.decimals;
         let min_price = price_to_hex_price(price_slippage, quote_asset_decimals, base_asset_decimals).map_err(SwapperError::TransactionError)?;
-        let extra_params = if from_asset.chain.chain_type() == ChainType::Ethereum {
-            VaultSwapExtras::Evm(VaultSwapEvmExtras {
+        let extra_params = match from_asset.chain.chain_type() {
+            ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapEvmExtras {
                 chain,
                 input_amount: input_amount.clone(),
                 refund_parameters: RefundParameters {
@@ -253,17 +239,8 @@ where
                     refund_address: quote.request.wallet_address.clone(),
                     min_price,
                 },
-            })
-        } else if from_asset.chain.chain_type() == ChainType::Bitcoin {
-            let output_amount: U256 = quote.to_value.parse()?;
-            let min_output_amount = apply_slippage_in_bp(&output_amount, quote.data.slippage_bps);
-            VaultSwapExtras::Bitcoin(VaultSwapBtcExtras {
-                chain,
-                min_output_amount: BigUint::from_bytes_le(&min_output_amount.to_le_bytes::<32>()),
-                retry_duration: 6,
-            })
-        } else if from_asset.chain.chain_type() == ChainType::Solana {
-            VaultSwapExtras::Solana(VaultSwapSolanaExtras {
+            }),
+            ChainType::Solana => VaultSwapExtras::Solana(VaultSwapSolanaExtras {
                 from: quote.request.wallet_address.clone(),
                 seed: hex::encode_prefixed(generate_random_seed(32)),
                 chain,
@@ -273,9 +250,8 @@ where
                     refund_address: quote.request.wallet_address.clone(),
                     min_price,
                 },
-            })
-        } else {
-            VaultSwapExtras::None
+            }),
+            _ => VaultSwapExtras::None,
         };
 
         let response = self
@@ -314,13 +290,6 @@ where
 
                 Ok(SwapperQuoteData::new_contract(response.to, value, response.calldata, approval, gas_limit))
             }
-            VaultSwapResponse::Bitcoin(response) => Ok(SwapperQuoteData::new_contract(
-                response.deposit_address,
-                quote.from_value.clone(),
-                response.nulldata_payload,
-                None,
-                None,
-            )),
             VaultSwapResponse::Solana(response) => {
                 let data = tx_builder::build_solana_tx(&quote.request.wallet_address, &response, self.rpc_provider.clone())
                     .await
@@ -375,28 +344,15 @@ mod tests {
     }
 
     #[test]
-    fn test_build_quote_request_supports_bitcoin_source() {
+    fn test_build_quote_request_rejects_bitcoin_source() {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
             value: "89100".to_string(),
-            options: Options {
-                use_max_amount: true,
-                ..Default::default()
-            },
             ..QuoteRequest::mock(Chain::Bitcoin, None)
         };
 
-        let quote_request = build_quote_request(&request).unwrap();
-
-        assert_eq!(quote_request.from_value, "74100");
-        assert_eq!(quote_request.quote_request.amount, "74100");
-        assert_eq!(quote_request.quote_request.src_chain, "Bitcoin");
-        assert_eq!(quote_request.quote_request.src_asset, "BTC");
-        assert_eq!(quote_request.quote_request.dest_chain, "Ethereum");
-        assert_eq!(quote_request.quote_request.dest_asset, "ETH");
-        assert!(quote_request.quote_request.is_vault_swap);
-        assert_eq!(quote_request.quote_request.broker_commission_bps, Some(DEFAULT_CHAINFLIP_FEE_BPS));
+        assert!(build_quote_request(&request).is_err());
     }
 
     #[test]

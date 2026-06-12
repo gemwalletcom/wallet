@@ -13,8 +13,16 @@ impl ConfigClient {
     }
 
     pub fn get_config(&self) -> Result<ConfigResponse, Box<dyn Error + Send + Sync>> {
-        let fiat_on_ramp_assets = self.database.assets()?.get_assets_by_filter(vec![AssetFilter::IsBuyable(true)])?.len() as i32;
-        let fiat_off_ramp_assets = self.database.assets()?.get_assets_by_filter(vec![AssetFilter::IsSellable(true)])?.len() as i32;
+        let fiat_on_ramp_assets = self
+            .database
+            .assets()?
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?
+            .len() as i32;
+        let fiat_off_ramp_assets = self
+            .database
+            .assets()?
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?
+            .len() as i32;
         let swap_assets_version = self.database.assets()?.get_swap_assets_version()?;
         let releases = self.database.releases()?.get_releases()?;
 

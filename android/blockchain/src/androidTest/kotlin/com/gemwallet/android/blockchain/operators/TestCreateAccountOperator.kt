@@ -88,7 +88,7 @@ class TestCreateAccountOperator {
         Chain.Stable -> "0x8f348F300873Fd5DA36950B2aC75a26584584feE"
         Chain.Solana -> "57mwmnV2rFuVDmhiJEjonD7cfuFtcaP9QvYNGfDEWK71"
         Chain.Thorchain -> "thor1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2kyhc65"
-        Chain.Mayachain -> error("Mayachain accounts are not derived")
+        Chain.Mayachain -> "maya1c8jd7ad9pcw4k3wkuqlkz4auv95mldr2knf5vy"
         Chain.Cosmos -> "cosmos142j9u5eaduzd7faumygud6ruhdwme98qsy2ekn"
         Chain.Osmosis -> "osmo142j9u5eaduzd7faumygud6ruhdwme98qclefqp"
         Chain.Ton -> "UQDgEMqToTacHic7SnvnPFmvceG5auFkCcAw0mSCvzvKUaT4"

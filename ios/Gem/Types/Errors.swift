@@ -25,14 +25,12 @@ extension Gemstone.GemstoneError: @retroactive LocalizedError {
 extension Gemstone.SwapperError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case .NotSupportedChain: Localized.Errors.Swap.notSupportedChain
-        case .NotSupportedAsset: Localized.Errors.Swap.notSupportedAsset
-        case .NoQuoteAvailable: Localized.Errors.Swap.noQuoteAvailable
-        case .NoAvailableProvider: Localized.Errors.Swap.notSupportedPair
+        case .NotSupportedChain, .NotSupportedAsset:
+            Localized.Errors.Swap.notSupportedAsset
+        case .NoQuoteAvailable, .NoAvailableProvider, .InvalidRoute,
+             .ComputeQuoteError, .TransactionError:
+            Localized.Errors.Swap.noQuoteAvailable
         case .InputAmountError: Localized.Errors.Swap.amountTooSmall
-        case let .ComputeQuoteError(error),
-             let .TransactionError(error): error
-        case .InvalidRoute: "Invalid Route"
         }
     }
 }

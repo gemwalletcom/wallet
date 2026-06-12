@@ -2,6 +2,7 @@ use super::SearchRequest;
 
 pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     let mut filters = vec![];
+    filters.push("properties.isEnabled = true".to_string());
     filters.push(format!("score.rank > {}", request.rank_threshold()));
 
     if !request.tags.is_empty() {
@@ -32,7 +33,7 @@ mod tests {
         let request = SearchRequest::new("USDT", None, None, None, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters[0], "score.rank > 15");
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 15"]);
     }
 
     #[test]
@@ -40,7 +41,7 @@ mod tests {
         let request = SearchRequest::new("ethereum", None, None, None, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters[0], "score.rank > 5");
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5"]);
     }
 
     #[test]
@@ -48,8 +49,7 @@ mod tests {
         let request = SearchRequest::new("longquery", None, Some("defi"), None, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters[0], "score.rank > 5");
-        assert_eq!(filters[1], "tags IN [\"defi\"]");
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "tags IN [\"defi\"]"]);
     }
 
     #[test]
@@ -57,8 +57,7 @@ mod tests {
         let request = SearchRequest::new("longquery", Some("ethereum"), None, None, None);
         let filters = build_assets_filters(&request);
 
-        assert_eq!(filters[0], "score.rank > 5");
-        assert_eq!(filters[1], "asset.chain IN [\"ethereum\"]");
+        assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "asset.chain IN [\"ethereum\"]"]);
     }
 
     #[test]

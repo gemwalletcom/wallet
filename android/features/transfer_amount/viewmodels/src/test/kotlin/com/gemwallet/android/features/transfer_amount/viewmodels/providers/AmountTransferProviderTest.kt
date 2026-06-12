@@ -4,6 +4,7 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
 import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.DestinationAddress
@@ -63,7 +64,7 @@ class AmountTransferProviderTest {
     @Test
     fun `minimumValue and reserveForFee are zero`() {
         val provider = makeProvider()
-        assertEquals(BigInteger.ZERO, provider.minimumValue)
+        assertEquals(BigInteger.ZERO, provider.minimumValue.value)
         assertEquals(BigInteger.ZERO, provider.reserveForFee)
     }
 
@@ -77,5 +78,60 @@ class AmountTransferProviderTest {
         assertEquals(BigInteger.ONE, confirm.amount)
         assertEquals("to", confirm.destination.address)
         assertEquals("memo", confirm.memo)
+    }
+
+    @Test
+    fun `deposit has Deposit title`() {
+        val provider = AmountTransferProvider(
+            params = AmountParams.Deposit(asset.id),
+            getAssetInfo = getAssetInfo,
+            transactionBalanceService = balanceService,
+            scope = scope,
+        )
+        assertEquals(AmountTitle.Deposit, provider.title)
+    }
+
+    @Test
+    fun `withdraw has Withdraw title`() {
+        val provider = AmountTransferProvider(
+            params = AmountParams.Withdraw(asset.id),
+            getAssetInfo = getAssetInfo,
+            transactionBalanceService = balanceService,
+            scope = scope,
+        )
+        assertEquals(AmountTitle.Withdraw, provider.title)
+    }
+
+    @Test
+    fun `withdraw availableBalance uses withdrawable, not available`() = runBlocking {
+        val info = mockAssetInfo(
+            asset = asset,
+            balance = AssetBalance.create(asset = asset, available = "9000000", withdrawable = "5000000"),
+        )
+        val getInfo = mockk<GetAssetInfo> {
+            every { this@mockk.invoke(asset.id) } returns flowOf(info)
+        }
+        val provider = AmountTransferProvider(
+            params = AmountParams.Withdraw(asset.id),
+            getAssetInfo = getInfo,
+            transactionBalanceService = balanceService,
+            scope = scope,
+        )
+        assertEquals(BigInteger("5000000"), provider.availableBalance.first { it != BigInteger.ZERO })
+    }
+
+    @Test
+    fun `withdraw buildConfirmParams produces Withdrawal to own address`() = runBlocking {
+        val provider = AmountTransferProvider(
+            params = AmountParams.Withdraw(asset.id),
+            getAssetInfo = getAssetInfo,
+            transactionBalanceService = balanceService,
+            scope = scope,
+        )
+        val owner = provider.assetInfo.filterNotNull().first().owner
+        val confirm = provider.buildConfirmParams(amount = Crypto(BigInteger.ONE), isMax = false)
+        assertTrue(confirm is ConfirmParams.TransferParams.Withdrawal)
+        confirm as ConfirmParams.TransferParams.Withdrawal
+        assertEquals(owner?.address, confirm.destination.address)
     }
 }

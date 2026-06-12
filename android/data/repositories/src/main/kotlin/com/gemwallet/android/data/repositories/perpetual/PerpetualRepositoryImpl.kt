@@ -10,6 +10,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDto
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartCandleStick
@@ -82,22 +83,8 @@ class PerpetualRepositoryImpl(
         assetsDao.insert(asset.toRecord())
     }
 
-    override suspend fun putBalance(walletId: WalletId, assetId: AssetId, balance: PerpetualBalance) {
-        balancesDao.insert(
-            DbBalance(
-                assetId = assetId.toIdentifier(),
-                walletId = walletId.id,
-                available = balance.available.toString(),
-                availableAmount = balance.available,
-                reserved = balance.reserved.toString(),
-                reservedAmount = balance.reserved,
-                withdrawable = balance.withdrawable.toString(),
-                withdrawableAmount = balance.withdrawable,
-                totalAmount = balance.available + balance.reserved,
-                isActive = true,
-                updatedAt = System.currentTimeMillis(),
-            )
-        )
+    override suspend fun putBalance(walletId: WalletId, asset: Asset, balance: PerpetualBalance) {
+        balancesDao.insert(balance.toDbBalance(walletId, asset, System.currentTimeMillis()))
     }
 
     override fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?> {
@@ -109,3 +96,24 @@ class PerpetualRepositoryImpl(
         perpetualDao.setPinned(perpetualId.toIdentifier(), isPinned)
     }
 }
+
+internal fun PerpetualBalance.toDbBalance(
+    walletId: WalletId,
+    asset: Asset,
+    updatedAt: Long,
+): DbBalance = DbBalance(
+    assetId = asset.id.toIdentifier(),
+    walletId = walletId.id,
+    available = available.toAtomicUnits(asset.decimals),
+    availableAmount = available,
+    reserved = reserved.toAtomicUnits(asset.decimals),
+    reservedAmount = reserved,
+    withdrawable = withdrawable.toAtomicUnits(asset.decimals),
+    withdrawableAmount = withdrawable,
+    totalAmount = available + reserved,
+    isActive = true,
+    updatedAt = updatedAt,
+)
+
+private fun Double.toAtomicUnits(decimals: Int): String =
+    Crypto(toBigDecimal(), decimals).atomicValue.toString()

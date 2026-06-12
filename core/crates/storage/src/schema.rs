@@ -826,6 +826,8 @@ diesel::table! {
     tags (id) {
         #[max_length = 64]
         id -> Varchar,
+        #[max_length = 64]
+        name -> Varchar,
         created_at -> Timestamp,
     }
 }

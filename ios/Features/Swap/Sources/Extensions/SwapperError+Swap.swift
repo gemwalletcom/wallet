@@ -17,14 +17,17 @@ extension Gemstone.SwapperError: @retroactive RetryableError {
 
     public func message(asset: Asset) -> String {
         switch self {
+        case .NotSupportedChain, .NotSupportedAsset:
+            return Localized.Errors.Swap.notSupportedAsset
+        case .NoQuoteAvailable, .NoAvailableProvider, .InvalidRoute,
+             .ComputeQuoteError, .TransactionError:
+            return Localized.Errors.Swap.noQuoteAvailable
         case let .InputAmountError(minAmount):
             if let minAmount, let value = BigInt(minAmount), !value.isZero {
                 let value = ValueFormatter(style: .auto).string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
                 return Localized.Errors.Swap.minimumAmount(value.boldMarkdown())
             }
             return Localized.Errors.Swap.amountTooSmall
-        default:
-            return localizedDescription
         }
     }
 }

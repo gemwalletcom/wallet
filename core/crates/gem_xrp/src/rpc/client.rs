@@ -1,5 +1,5 @@
 use serde::de::DeserializeOwned;
-use serde_json::json;
+use serde_json::{Value, json};
 use std::error::Error;
 
 use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerCurrent, LedgerData, TransactionBroadcast, TransactionStatus};
@@ -7,6 +7,7 @@ use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountO
 use chain_traits::{ChainAddressStatus, ChainPerpetual, ChainProvider, ChainStaking, ChainTraits};
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient as GenericJsonRpcClient;
+use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
 #[derive(Clone, Debug)]
@@ -28,6 +29,14 @@ impl<C: Client + Clone> XRPClient<C> {
         &self.client
     }
 
+    async fn call<T>(&self, method: &str, params: impl Into<Value>) -> Result<T, Box<dyn Error + Send + Sync>>
+    where
+        T: DeserializeOwned + Send,
+    {
+        let result: Value = self.client.call(method, params).await?;
+        deserialize_result(result)
+    }
+
     pub async fn get_account_info(&self, address: &str) -> Result<Option<AccountInfo>, Box<dyn Error + Send + Sync>> {
         let result = self.get_account_info_full(address).await?;
         Ok(result.account_data)
@@ -41,12 +50,12 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        Ok(self.client.call("account_info", params).await?)
+        self.call("account_info", params).await
     }
 
     pub async fn get_ledger_current(&self) -> Result<LedgerCurrent, Box<dyn Error + Send + Sync>> {
         let params = json!([{}]);
-        Ok(self.client.call("ledger_current", params).await?)
+        self.call("ledger_current", params).await
     }
 
     pub async fn get_last_ledger_sequence(&self) -> Result<u32, Box<dyn Error + Send + Sync>> {
@@ -56,7 +65,7 @@ impl<C: Client + Clone> XRPClient<C> {
 
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {
         let params = json!([{}]);
-        Ok(self.client.call("fee", params).await?)
+        self.call("fee", params).await
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
@@ -67,7 +76,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        Ok(self.client.call("submit", params).await?)
+        self.call("submit", params).await
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
@@ -83,7 +92,7 @@ impl<C: Client + Clone> XRPClient<C> {
                 "transaction": transaction_id
             }
         ]);
-        Ok(self.client.call("tx", params).await?)
+        self.call("tx", params).await
     }
 
     pub async fn get_account_objects(&self, address: &str) -> Result<AccountObjects, Box<dyn Error + Send + Sync>> {
@@ -95,7 +104,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        Ok(self.client.call("account_objects", params).await?)
+        self.call("account_objects", params).await
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
@@ -107,7 +116,7 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        let result: LedgerData = self.client.call("ledger", params).await?;
+        let result: LedgerData = self.call("ledger", params).await?;
         Ok(result.ledger)
     }
 
@@ -121,8 +130,41 @@ impl<C: Client + Clone> XRPClient<C> {
             }
         ]);
 
-        Ok(self.client.call("account_tx", params).await?)
+        self.call("account_tx", params).await
     }
+}
+
+fn deserialize_result<T>(result: Value) -> Result<T, Box<dyn Error + Send + Sync>>
+where
+    T: DeserializeOwned,
+{
+    if let Some(error) = map_error_result(&result) {
+        return Err(Box::new(error));
+    }
+
+    Ok(serde_json::from_value(result)?)
+}
+
+fn map_error_result(result: &Value) -> Option<JsonRpcError> {
+    if result.get("status").and_then(Value::as_str) != Some("error") {
+        return None;
+    }
+
+    let code = result
+        .get("error_code")
+        .and_then(Value::as_i64)
+        .and_then(|value| i32::try_from(value).ok())
+        .unwrap_or(ERROR_CLIENT_ERROR);
+    let error = result.get("error").and_then(Value::as_str);
+    let error_message = result.get("error_message").and_then(Value::as_str);
+    let message = match (error, error_message) {
+        (Some(error), Some(error_message)) if error != error_message => format!("{error}: {error_message}"),
+        (Some(error), _) => error.to_string(),
+        (None, Some(error_message)) => error_message.to_string(),
+        (None, None) => "XRP RPC error".to_string(),
+    };
+
+    Some(JsonRpcError { code, message })
 }
 
 impl<C: Client + Clone> ChainStaking for XRPClient<C> {}
@@ -138,5 +180,32 @@ impl<C: Client + Clone> ChainTraits for XRPClient<C> {}
 impl<C: Client + Clone> ChainProvider for XRPClient<C> {
     fn get_chain(&self) -> Chain {
         self.chain
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_result() {
+        let ledger = deserialize_result::<LedgerCurrent>(json!({
+            "ledger_current_index": 80123456,
+            "status": "success"
+        }))
+        .unwrap();
+        assert_eq!(ledger.ledger_current_index, 80123456);
+
+        let error = deserialize_result::<LedgerCurrent>(json!({
+            "error": "amendmentBlocked",
+            "error_code": 14,
+            "error_message": "Amendment blocked, need upgrade.",
+            "request": {
+                "command": "ledger_current"
+            },
+            "status": "error"
+        }))
+        .unwrap_err();
+        assert_eq!(error.to_string(), "amendmentBlocked: Amendment blocked, need upgrade. (14)");
     }
 }

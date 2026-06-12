@@ -45,10 +45,9 @@ impl TransactionCleanup {
             .collect();
         self.database.wallets()?.add_subscriptions_exclude_addresses(subscriptions_exclude)?;
 
-        let addresses: Vec<String> = heavy_addresses.into_iter().map(|x| x.address).collect();
-        let total_addresses = addresses.len();
+        let total_addresses = heavy_addresses.len();
 
-        let affected_transaction_ids = self.database.transactions()?.delete_transactions_addresses(addresses)?;
+        let affected_transaction_ids = self.database.transactions()?.delete_transactions_addresses(heavy_addresses)?;
         let total_transactions_addresses = affected_transaction_ids.len();
 
         let unique_ids: Vec<i64> = affected_transaction_ids.into_iter().collect::<HashSet<_>>().into_iter().collect();

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -19,8 +20,8 @@ struct AmountTransferViewModelTests {
         let usdc = Asset.mock(symbol: "USDC")
 
         #expect(AmountTransferViewModel(asset: .mock(), action: .send(.mock())).minimumValue == .zero)
-        #expect(AmountTransferViewModel(asset: usdc, action: .deposit(.mock())).minimumValue == AmountPerpetualLimits.minDeposit)
-        #expect(AmountTransferViewModel(asset: usdc, action: .withdraw(.mock())).minimumValue == AmountPerpetualLimits.minWithdraw)
+        #expect(AmountTransferViewModel(asset: usdc, action: .deposit(.mock())).minimumValue == PerpetualConfig.minDeposit)
+        #expect(AmountTransferViewModel(asset: usdc, action: .withdraw(.mock())).minimumValue == PerpetualConfig.minWithdraw)
     }
 
     @Test

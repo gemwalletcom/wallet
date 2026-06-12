@@ -1,3 +1,4 @@
+mod asset_lists_index_updater;
 mod assets_index_updater;
 mod nfts_index_updater;
 mod perpetuals_index_updater;
@@ -6,6 +7,7 @@ mod sync;
 use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
 use crate::worker::jobs::WorkerJob;
+use asset_lists_index_updater::AssetListsIndexUpdater;
 use assets_index_updater::AssetsIndexUpdater;
 use job_runner::{JobHandle, ShutdownReceiver};
 use nfts_index_updater::NftsIndexUpdater;
@@ -28,6 +30,14 @@ pub async fn jobs(ctx: WorkerContext, shutdown_rx: ShutdownReceiver) -> Result<V
             let search_index_client = search_index_client.clone();
             move |_| {
                 let updater = AssetsIndexUpdater::new(database.clone(), &search_index_client, primary_price_max_age);
+                async move { updater.update().await }
+            }
+        })
+        .job(WorkerJob::UpdateAssetListsIndex, {
+            let database = database.clone();
+            let search_index_client = search_index_client.clone();
+            move |_| {
+                let updater = AssetListsIndexUpdater::new(database.clone(), &search_index_client);
                 async move { updater.update().await }
             }
         })

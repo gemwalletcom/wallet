@@ -4,7 +4,8 @@ use std::{fmt::Debug, str::FromStr, sync::Arc};
 
 use super::client::ProxyClient;
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperProviderMode,
+    SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, check_approval_erc20, get_swap_gas_limit_with_approval},
     config::get_swap_provider_url,
@@ -146,6 +147,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         self.assets.clone()
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Flexible
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

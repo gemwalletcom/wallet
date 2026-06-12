@@ -63,10 +63,6 @@ pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction
     }
 }
 
-pub fn is_token_address(token_id: &str) -> bool {
-    token_id.len() > 32 && token_id.contains('-')
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

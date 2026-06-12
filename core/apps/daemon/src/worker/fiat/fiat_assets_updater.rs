@@ -26,7 +26,7 @@ impl FiatAssetsUpdater {
         let buyable_assets_ids = self
             .database
             .assets()?
-            .get_assets_by_filter(vec![AssetFilter::IsBuyable(true)])?
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsBuyable(true)])?
             .into_iter()
             .map(|x| x.asset.id)
             .collect::<Vec<AssetId>>();
@@ -43,7 +43,7 @@ impl FiatAssetsUpdater {
         let sellable_assets_ids = self
             .database
             .assets()?
-            .get_assets_by_filter(vec![AssetFilter::IsSellable(true)])?
+            .get_assets_by_filter(vec![AssetFilter::IsEnabled(true), AssetFilter::IsSellable(true)])?
             .into_iter()
             .filter(|x| x.score.rank > 25)
             .map(|x| x.asset.id)

@@ -81,11 +81,15 @@ pub struct StakeDelegation {
 pub struct TokenAmount {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub amount: BigUint,
+    pub decimals: u8,
 }
 
 impl Default for TokenAmount {
     fn default() -> Self {
-        Self { amount: BigUint::from(0u64) }
+        Self {
+            amount: BigUint::from(0u64),
+            decimals: 0,
+        }
     }
 }
 

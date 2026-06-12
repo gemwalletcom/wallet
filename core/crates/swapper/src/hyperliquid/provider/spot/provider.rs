@@ -18,7 +18,8 @@ use primitives::{
 };
 
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
+    SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     error::INVALID_AMOUNT,
 };
@@ -130,6 +131,10 @@ impl Swapper for HyperCoreSpot {
             Chain::HyperCore,
             vec![HYPERCORE_SPOT_HYPE.id.clone(), HYPERCORE_SPOT_USDC.id.clone(), HYPERCORE_SPOT_UBTC.id.clone()],
         )]
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Flexible
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

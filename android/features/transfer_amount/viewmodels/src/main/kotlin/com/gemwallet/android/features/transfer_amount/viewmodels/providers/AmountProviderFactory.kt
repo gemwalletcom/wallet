@@ -25,7 +25,9 @@ class AmountProviderFactory @Inject constructor(
     private val userConfig: UserConfig,
 ) {
     fun create(params: AmountParams, scope: CoroutineScope): AmountDataProvider = when (params) {
-        is AmountParams.Transfer -> AmountTransferProvider(
+        is AmountParams.Transfer,
+        is AmountParams.Deposit,
+        is AmountParams.Withdraw -> AmountTransferProvider(
             params = params,
             getAssetInfo = getAssetInfo,
             transactionBalanceService = transactionBalanceService,

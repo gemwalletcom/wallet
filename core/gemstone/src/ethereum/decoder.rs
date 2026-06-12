@@ -20,12 +20,6 @@ pub struct GemDecodedCallParam {
 #[derive(Debug, Default, uniffi::Object)]
 pub struct EthereumDecoder;
 
-impl EthereumDecoder {
-    pub fn decode_call_internal(calldata: &str, abi: Option<&str>) -> Result<GemDecodedCall, Box<dyn std::error::Error + Send + Sync>> {
-        call_decoder::decode_call(calldata, abi)
-    }
-}
-
 #[uniffi::export]
 impl EthereumDecoder {
     #[uniffi::constructor]
@@ -34,6 +28,6 @@ impl EthereumDecoder {
     }
 
     pub fn decode_call(&self, calldata: String, abi: Option<String>) -> Result<GemDecodedCall, GemstoneError> {
-        Self::decode_call_internal(&calldata, abi.as_deref()).map_err(GemstoneError::from)
+        call_decoder::decode_call(&calldata, abi.as_deref()).map_err(GemstoneError::from)
     }
 }

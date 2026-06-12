@@ -58,14 +58,6 @@ impl<T> OwnedCoins<T> {
             address_balance: self.address_balance,
         }
     }
-
-    pub fn try_map<U, E>(self, f: impl FnMut(T) -> Result<U, E>) -> Result<OwnedCoins<U>, E> {
-        Ok(OwnedCoins {
-            coin_type: self.coin_type,
-            coins: self.coins.into_iter().map(f).collect::<Result<_, _>>()?,
-            address_balance: self.address_balance,
-        })
-    }
 }
 
 impl OwnedCoins<Coin> {

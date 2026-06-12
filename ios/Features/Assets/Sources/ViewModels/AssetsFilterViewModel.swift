@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -62,7 +63,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
             }
         case .manage: [.enabled]
         case .priceAlert: [.enabled, .priceAlerts]
-        case .deposit: [.chainsOrAssets([], [AssetId(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831").identifier])]
+        case .deposit: [.chainsOrAssets([], [PerpetualConfig.depositAssetId])]
         case .withdraw: [.chainsOrAssets([], [Asset.hypercoreUSDC().id.identifier])]
         }
     }

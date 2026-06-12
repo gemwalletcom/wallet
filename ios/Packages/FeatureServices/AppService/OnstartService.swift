@@ -47,12 +47,24 @@ public struct OnstartService: Sendable {
         } catch {
             debugLog("configure error: \(error)")
         }
-        migrateV3KeystoresThenSetupChains()
         preferences.incrementLaunchesCount()
 
         #if DEBUG
             configureScreenshots()
         #endif
+    }
+
+    public func migrateV3KeystoresThenSetupChains() async {
+        do {
+            try await walletService.migrateV3Keystores()
+        } catch {
+            debugLog("v3 keystore migration could not enumerate wallets: \(error)")
+        }
+        do {
+            try walletService.setup(chains: AssetConfiguration.allChains)
+        } catch {
+            debugLog("wallet chains setup error: \(error)")
+        }
     }
 }
 
@@ -66,22 +78,6 @@ extension OnstartService {
             assetStore: assetStore,
             preferences: preferences,
         ).migrate()
-    }
-
-    /// Chain setup skips wallets without a v4 keystore, so it must run after the v3 migration.
-    private func migrateV3KeystoresThenSetupChains() {
-        Task { [walletService] in
-            do {
-                try await walletService.migrateV3Keystores()
-            } catch {
-                debugLog("v3 keystore migration could not enumerate wallets: \(error)")
-            }
-            do {
-                try walletService.setup(chains: AssetConfiguration.allChains)
-            } catch {
-                debugLog("wallet chains setup error: \(error)")
-            }
-        }
     }
 
     private func configureDefaultCurrency() {

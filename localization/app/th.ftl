@@ -739,6 +739,7 @@ contacts_add_to_contacts = เพิ่มลงในรายชื่อต�
 
 simulation_header_unlimited_asset = ไม่จำกัด %@
 simulation_warning_unlimited_token_approval_description = これにより ผู้ใช้สามารถใช้โทเค็นนี้ได้จนกว่าคุณจะเพิกถอนการอนุมัติหรือโทเค็นหมดอายุ
+simulation_warning_externally_owned_spender_description = การอนุมัตินี้ทำให้ที่อยู่วอลเล็ตทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้
 simulation_warning_nft_collection_approval_title = ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด
 simulation_warning_unlimited_token_approval_title = อนุมัติโทเค็นได้ไม่จำกัดจำนวน
 

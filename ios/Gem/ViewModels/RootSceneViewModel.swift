@@ -23,6 +23,7 @@ import WalletService
 @Observable
 @MainActor
 final class RootSceneViewModel {
+    private let onstartService: OnstartService
     private let onstartWalletService: OnstartWalletService
     private let transactionStateScheduler: TransactionStateScheduler
     private let connectionsService: ConnectionsService
@@ -76,6 +77,7 @@ final class RootSceneViewModel {
     init(
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
+        onstartService: OnstartService,
         onstartWalletService: OnstartWalletService,
         transactionStateScheduler: TransactionStateScheduler,
         connectionsService: ConnectionsService,
@@ -93,6 +95,7 @@ final class RootSceneViewModel {
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
+        self.onstartService = onstartService
         self.onstartWalletService = onstartWalletService
         self.transactionStateScheduler = transactionStateScheduler
         self.connectionsService = connectionsService
@@ -119,6 +122,7 @@ extension RootSceneViewModel {
         Task { try await deviceService.update() }
         transactionStateScheduler.setup()
         Task { await appLifecycleService.setup() }
+        Task { await migrateV3KeystoresThenSetupChains() }
     }
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {
@@ -185,6 +189,11 @@ extension RootSceneViewModel {
         Task {
             await appLifecycleService.setupWallet(wallet)
         }
+    }
+
+    private func migrateV3KeystoresThenSetupChains() async {
+        await lockManager.lockModel.waitUntilUnlocked()
+        await onstartService.migrateV3KeystoresThenSetupChains()
     }
 
     private func checkForUpdate() async {

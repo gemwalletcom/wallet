@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use primitives::AssetTag;
+use primitives::{AssetList, AssetTag};
 use serde::{Deserialize, Serialize};
 
 use crate::sql_types::AssetId;
@@ -9,6 +9,7 @@ use crate::sql_types::AssetId;
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct TagRow {
     pub id: String,
+    pub name: String,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
@@ -22,8 +23,15 @@ pub struct AssetTagRow {
 
 impl TagRow {
     pub fn from_primitive(primitive: AssetTag) -> Self {
-        Self {
-            id: primitive.as_ref().to_lowercase(),
+        let id = primitive.as_ref().to_lowercase();
+        let name = id.clone();
+        Self { id, name }
+    }
+
+    pub fn as_primitive(&self) -> AssetList {
+        AssetList {
+            id: self.id.clone(),
+            name: self.name.clone(),
         }
     }
 }

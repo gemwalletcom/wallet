@@ -74,15 +74,25 @@ impl AssetBalance {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Balance {
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub available: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub frozen: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub locked: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub staked: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub pending: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub pending_unconfirmed: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub rewards: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub reserved: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub earn: BigUint,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint")]
     pub withdrawable: BigUint,
     pub metadata: Option<BalanceMetadata>,
 }
@@ -165,5 +175,35 @@ impl Balance {
             withdrawable: BigUint::from(0u32),
             metadata,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn test_balance_json_uses_decimal_strings() {
+        let balance = Balance::with_pending_unconfirmed(BigUint::from(4_386_329_430u64), BigUint::from(12u32));
+        let value = serde_json::to_value(&balance).unwrap();
+
+        assert_eq!(
+            value,
+            json!({
+                "available": "4386329430",
+                "frozen": "0",
+                "locked": "0",
+                "staked": "0",
+                "pending": "0",
+                "pendingUnconfirmed": "12",
+                "rewards": "0",
+                "reserved": "0",
+                "earn": "0",
+                "withdrawable": "0",
+                "metadata": null
+            })
+        );
     }
 }

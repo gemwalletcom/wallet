@@ -371,7 +371,7 @@ struct ConfirmTransferSceneViewModelTests {
                     message: nil,
                 ),
                 SimulationWarning(
-                    severity: .critical,
+                    severity: .warning,
                     warning: .externallyOwnedSpender,
                     message: nil,
                 ),
@@ -380,6 +380,7 @@ struct ConfirmTransferSceneViewModelTests {
 
         #expect(model.simulationWarnings.count == 2)
         #expect(model.simulationWarnings.last?.warning == .externallyOwnedSpender)
+        #expect(!model.isButtonDisabled)
     }
 
     @Test

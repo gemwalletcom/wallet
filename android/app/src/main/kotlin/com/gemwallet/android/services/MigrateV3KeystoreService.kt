@@ -38,7 +38,12 @@ class MigrateV3KeystoreService @Inject constructor(
         val legacyFile = File(baseDir, wallet.id.id)
         if (!legacyFile.exists()) return
 
-        val passwordBytes = passwordStore.getPassword(wallet.id.id).fromHex()
+        val password = passwordStore.getPassword(wallet.id.id)
+        if (password.isEmpty()) return
+
+        val passwordBytes = password.fromHex()
+        if (passwordBytes.isEmpty()) return
+
         try {
             migrateKeystoreOperator(legacyFile.path, passwordBytes, passwordBytes, wallet.id.id)
         } finally {

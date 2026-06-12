@@ -17,7 +17,6 @@ strum = { workspace = true }
 # RPC specific dependencies (optional)
 chrono = { workspace = true, features = ["serde"], optional = true }
 num-bigint = { workspace = true, optional = true }
-num-traits = { workspace = true, optional = true }
 number_formatter = { path = "../number_formatter", optional = true }
 gem_evm = { path = "../gem_evm", optional = true }
 gem_client = { path = "../gem_client", optional = true }
@@ -34,14 +33,12 @@ signer = [
     "dep:gem_encoding",
     "dep:gem_hash",
     "dep:num-bigint",
-    "dep:num-traits",
     "dep:serde_serializers",
     "dep:signer",
 ]
 rpc = [
     "dep:chrono",
     "dep:num-bigint",
-    "dep:num-traits",
     "dep:number_formatter",
     "dep:gem_evm",
     "dep:gem_client",

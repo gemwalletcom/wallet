@@ -5,7 +5,7 @@ use crate::{
     sql_types::{AssetId, TransactionState, TransactionType},
 };
 use chrono::NaiveDateTime;
-use diesel::dsl::{count, sql};
+use diesel::dsl::{count, exists, sql};
 use diesel::prelude::*;
 use diesel::sql_types::{Jsonb, Nullable};
 use diesel::upsert::excluded;
@@ -37,7 +37,7 @@ pub(crate) trait TransactionsStore {
         limit: Option<i64>,
     ) -> Result<Vec<TransactionRow>, diesel::result::Error>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, diesel::result::Error>;
-    fn delete_transactions_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<i64>, diesel::result::Error>;
+    fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, diesel::result::Error>;
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, diesel::result::Error>;
     fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, diesel::result::Error>;
     fn get_transactions_by_wallet_since(&mut self, wallet_id: i32, since: NaiveDateTime, filters: Vec<TransactionFilter>) -> Result<Vec<TransactionRow>, diesel::result::Error>;
@@ -158,12 +158,26 @@ impl TransactionsStore for DatabaseClient {
             .load::<AddressChainIdResultRow>(&mut self.connection)
     }
 
-    fn delete_transactions_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<i64>, diesel::result::Error> {
-        use crate::schema::transactions_addresses::dsl::*;
-        diesel::delete(transactions_addresses)
-            .filter(address.eq_any(addresses))
-            .returning(transaction_id)
-            .load(&mut self.connection)
+    fn delete_transactions_addresses(&mut self, chain_addresses: Vec<AddressChainIdResultRow>) -> Result<Vec<i64>, diesel::result::Error> {
+        use crate::schema::transactions::dsl as tx_dsl;
+        use crate::schema::transactions_addresses::dsl as addr_dsl;
+
+        if chain_addresses.is_empty() {
+            return Ok(vec![]);
+        }
+
+        self.connection.transaction(|connection| {
+            let mut transaction_ids = vec![];
+            for row in chain_addresses {
+                let mut deleted_ids = diesel::delete(addr_dsl::transactions_addresses.filter(addr_dsl::address.eq(row.address)).filter(exists(
+                    tx_dsl::transactions.filter(tx_dsl::id.eq(addr_dsl::transaction_id)).filter(tx_dsl::chain.eq(row.chain_id)),
+                )))
+                .returning(addr_dsl::transaction_id)
+                .load(connection)?;
+                transaction_ids.append(&mut deleted_ids);
+            }
+            Ok(transaction_ids)
+        })
     }
 
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, diesel::result::Error> {
