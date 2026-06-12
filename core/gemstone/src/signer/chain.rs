@@ -213,6 +213,16 @@ mod tests {
     };
 
     #[test]
+    fn test_sign_input_checksums_destination() {
+        let mut gem: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::mock()), "0", 21000).into();
+        gem.input.destination_address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a".to_string();
+
+        let signer_input: SignerInput = gem.into();
+
+        assert_eq!(signer_input.input.destination_address, "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+    }
+
+    #[test]
     fn test_sign_input_routing() {
         let signer = GemChainSigner::new(Chain::Ethereum);
         let key = TEST_PRIVATE_KEY.to_vec();
