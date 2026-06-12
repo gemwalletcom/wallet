@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
 import com.gemwallet.android.domains.price.PriceChange
+import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
@@ -46,10 +47,10 @@ internal fun ChartUIModel.Companion.from(
             y = chartValue.value,
             price = chartValue.value.toDouble(),
             priceChangePercentage = PriceChange.percentage(from = basePrice.toDouble(), to = chartValue.value.toDouble()),
-            timestamp = chartValue.timestamp * 1000L,
+            timestamp = chartValue.timestamp.toLong().secondsToMillis(),
         )
     }
-    val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0) * 1000L
+    val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0).toLong().secondsToMillis()
     val currentPoint: PricePoint? = priceInfo
         ?.takeIf { historicalPoints.isNotEmpty() && it.price.updatedAt >= lastTimestampMillis }
         ?.let { assetInfo ->

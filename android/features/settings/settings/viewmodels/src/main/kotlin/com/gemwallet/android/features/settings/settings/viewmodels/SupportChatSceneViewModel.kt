@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.repositories.support.SupportChatRepository
+import com.gemwallet.android.ext.millisToSeconds
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,7 +43,7 @@ class SupportChatSceneViewModel @Inject constructor(
             repository.failPendingMessages()
             val fromTimestamp = repository.getMessages().first()
                 .lastOrNull { it.sender is SupportMessageSender.Agent }
-                ?.let { it.createdAt / 1000 } ?: 0L
+                ?.let { it.createdAt.millisToSeconds() } ?: 0L
             repository.syncMessages(fromTimestamp)
         }
     }

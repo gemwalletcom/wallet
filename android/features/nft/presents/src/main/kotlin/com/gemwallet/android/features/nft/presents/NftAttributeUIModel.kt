@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.nft.presents
 
+import com.gemwallet.android.ext.secondsToMillis
 import com.wallet.core.primitives.NFTAttribute
 import com.wallet.core.primitives.NFTAttributeType
 import java.text.DateFormat
@@ -17,7 +18,7 @@ internal data class NftAttributeUIModel(
         value = when (attribute.valueType ?: NFTAttributeType.String) {
             NFTAttributeType.Timestamp -> attribute.value
                 .toLongOrNull()
-                ?.let { dateFormat.format(Date(it * 1000L)) }
+                ?.let { dateFormat.format(Date(it.secondsToMillis())) }
                 ?: attribute.value
             NFTAttributeType.String -> attribute.value
         },

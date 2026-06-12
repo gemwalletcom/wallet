@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components.simulation
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -85,7 +86,7 @@ private fun fieldValue(field: SimulationPayloadField): String = when (field.fiel
 }
 
 private fun String.toTimestampText(): String {
-    toLongOrNull()?.let { return getRelativeDate(it * 1000) }
+    toLongOrNull()?.let { return getRelativeDate(it.secondsToMillis()) }
     return runCatching {
         getRelativeDate(Instant.parse(this).toEpochMilli())
     }.getOrElse {

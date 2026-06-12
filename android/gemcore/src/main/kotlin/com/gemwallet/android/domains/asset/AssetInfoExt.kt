@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.asset
 
 import android.text.format.DateUtils
+import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -28,7 +29,7 @@ val AssetInfo.chain: Chain
 
 val AssetInfo.lockTime: Int?  // TODO: Out to StakeExt
     get() = owner?.chain?.string?.let {
-        (Config().getStakeConfig(it).timeLock.toLong() / (DateUtils.DAY_IN_MILLIS / 1000)).toInt()
+        (Config().getStakeConfig(it).timeLock.toLong() / DateUtils.DAY_IN_MILLIS.millisToSeconds()).toInt()
     }
 
 val AssetInfo.availableBalance: String  // TODO: Out to BalanceExt
