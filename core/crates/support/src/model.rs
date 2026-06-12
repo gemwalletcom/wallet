@@ -236,7 +236,6 @@ pub(crate) struct ChatwootMessagesResponse {
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct ChatwootContactUpdate {
     pub(crate) identifier: String,
-    pub(crate) name: String,
     pub(crate) custom_attributes: HashMap<String, String>,
 }
 
@@ -244,7 +243,6 @@ impl ChatwootContactUpdate {
     pub(crate) fn new(device: &Device) -> Self {
         Self {
             identifier: device.id.clone(),
-            name: device.model.clone(),
             custom_attributes: HashMap::from([
                 ("device_id".to_string(), device.id.clone()),
                 ("platform".to_string(), format!("{}: {}", device.platform_store.as_ref(), device.os)),
