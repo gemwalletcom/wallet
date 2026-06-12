@@ -1,0 +1,72 @@
+package com.gemwallet.android.features.settings.settings.presents.views
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatGroup
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.wallet.core.primitives.SupportMessage
+
+@Composable
+internal fun SupportMessageGroup(
+    group: SupportChatGroup,
+    onImageClick: (String) -> Unit,
+    onRetry: (SupportMessage) -> Unit,
+) {
+    when (group) {
+        is SupportChatGroup.User -> Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
+        ) {
+            group.messages.forEach { message ->
+                SupportMessageBubble(message = message, onImageClick = onImageClick, onRetry = onRetry)
+            }
+        }
+        is SupportChatGroup.Agent -> Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+            ) {
+                AgentAvatar()
+                Text(
+                    text = group.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+            }
+            group.messages.forEach { message ->
+                SupportMessageBubble(message = message, onImageClick = onImageClick, onRetry = onRetry)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgentAvatar() {
+    Image(
+        painter = painterResource(R.drawable.brandmark),
+        contentDescription = null,
+        modifier = Modifier
+            .size(compactIconSize)
+            .clip(CircleShape),
+    )
+}

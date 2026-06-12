@@ -29,12 +29,13 @@ import com.gemwallet.android.data.service.store.database.entities.DbPrice
 import com.gemwallet.android.data.service.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.DbSession
+import com.gemwallet.android.data.service.store.database.entities.DbSupportMessage
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.DbWallet
 
 @Database(
-    version = 79,
+    version = 80,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -65,6 +66,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbWallet
         DbPerpetual::class,
         DbPerpetualPosition::class,
         DbInAppNotification::class,
+        DbSupportMessage::class,
     ]
 )
 @TypeConverters(StoreConverters::class, ChainConverters::class)
@@ -108,4 +110,6 @@ abstract class GemDatabase : RoomDatabase() {
     abstract fun fiatTransactionsDao(): FiatTransactionsDao
 
     abstract fun inAppNotificationsDao(): InAppNotificationsDao
+
+    abstract fun supportMessagesDao(): SupportMessagesDao
 }

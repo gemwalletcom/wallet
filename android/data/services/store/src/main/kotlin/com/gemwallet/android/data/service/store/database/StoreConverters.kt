@@ -14,6 +14,9 @@ import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
 import com.wallet.core.primitives.NFTCollectionId
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.SupportMessageImage
+import com.wallet.core.primitives.SupportMessageSender
+import com.wallet.core.primitives.SupportMessageStatus
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.builtins.ListSerializer
@@ -23,6 +26,25 @@ import kotlinx.serialization.encodeToString
 class StoreConverters {
     private val assetLinksSerializer = ListSerializer(AssetLink.serializer())
     private val nftAttributesSerializer = ListSerializer(NFTAttribute.serializer())
+    private val supportImagesSerializer = ListSerializer(SupportMessageImage.serializer())
+
+    @TypeConverter
+    fun fromSupportSender(value: SupportMessageSender): String = jsonEncoder.encodeToString(value)
+
+    @TypeConverter
+    fun toSupportSender(value: String): SupportMessageSender = jsonEncoder.decodeFromString(value)
+
+    @TypeConverter
+    fun fromSupportImages(value: List<SupportMessageImage>): String = jsonEncoder.encodeToString(supportImagesSerializer, value)
+
+    @TypeConverter
+    fun toSupportImages(value: String): List<SupportMessageImage> = jsonEncoder.decodeFromString(supportImagesSerializer, value)
+
+    @TypeConverter
+    fun fromSupportStatus(value: SupportMessageStatus): String = value.string
+
+    @TypeConverter
+    fun toSupportStatus(value: String): SupportMessageStatus = SupportMessageStatus.entries.first { it.string == value }
 
     @TypeConverter
     fun fromAssetId(value: AssetId): String = value.toIdentifier()

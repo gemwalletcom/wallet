@@ -14,7 +14,7 @@ import com.gemwallet.android.features.settings.price_alerts.presents.PriceAlerts
 import com.gemwallet.android.features.settings.security.presents.SecurityScene
 import com.gemwallet.android.features.settings.settings.presents.views.NotificationsScene
 import com.gemwallet.android.features.settings.settings.presents.views.PreferencesScene
-import com.gemwallet.android.features.settings.settings.presents.views.SupportChatScreen
+import com.gemwallet.android.features.settings.settings.presents.views.SupportChatNavScreen
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
@@ -144,7 +144,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(
     }
 
     entry<SupportRoute> {
-        SupportChatScreen(onCancel = onCancel)
+        SupportChatNavScreen(onCancel = onCancel)
     }
 }
 

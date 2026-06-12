@@ -11,6 +11,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toRecord
@@ -25,6 +26,7 @@ import com.wallet.core.primitives.StreamEvent
 import com.wallet.core.primitives.StreamNotificationUpdate
 import com.wallet.core.primitives.StreamTransactionsUpdate
 import com.wallet.core.primitives.StreamWalletUpdate
+import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.WebSocketPricePayload
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -39,6 +41,7 @@ class StreamEventHandler(
     private val assetsDao: AssetsDao,
     private val updateBalances: UpdateBalances,
     private val inAppNotificationsDao: InAppNotificationsDao,
+    private val supportMessagesDao: SupportMessagesDao,
 ) {
 
     suspend fun handle(event: StreamEvent) {
@@ -51,7 +54,7 @@ class StreamEventHandler(
             is StreamEvent.Perpetual -> { }
             is StreamEvent.InAppNotification -> perform { handleInAppNotification(event.data) }
             is StreamEvent.FiatTransaction -> perform { handleFiatTransaction(event.data) }
-            is StreamEvent.Support -> { }
+            is StreamEvent.Support -> perform { handleSupport(event.data) }
         }
     }
 
@@ -110,6 +113,10 @@ class StreamEventHandler(
 
     private suspend fun handleInAppNotification(update: StreamNotificationUpdate) {
         inAppNotificationsDao.put(listOf(update.notification.toRecord()))
+    }
+
+    private suspend fun handleSupport(message: SupportMessage) {
+        supportMessagesDao.addMessages(listOf(message.toRecord()))
     }
 
     companion object {
