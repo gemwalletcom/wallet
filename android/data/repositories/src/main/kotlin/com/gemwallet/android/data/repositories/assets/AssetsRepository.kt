@@ -1,22 +1,16 @@
 package com.gemwallet.android.data.repositories.assets
 
 import android.util.Log
-import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.operators.GetAsset
 import com.gemwallet.android.blockchain.services.BalancesService
-import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.repositories.tokens.toPriorityQuery
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbAssetBasicUpdate
-import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinkRecord
 import com.gemwallet.android.data.service.store.database.entities.toAssetLinksModel
@@ -25,24 +19,17 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.data.service.store.database.entities.toPriceRecord
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.data.service.store.database.entities.toUpdateRecord
-import com.gemwallet.android.domains.asset.calculateAvailabilityChanges
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
-import com.gemwallet.android.ext.getAssociatedAssetIds
-import com.gemwallet.android.ext.isCompleted
-import com.gemwallet.android.ext.swapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
-import com.wallet.core.primitives.Transaction
-import com.gemwallet.android.model.TransactionExtended
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
@@ -50,12 +37,10 @@ import com.wallet.core.primitives.AssetFull
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.AssetMarket
-import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
-import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -68,9 +53,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -88,16 +70,16 @@ private const val TAG = "AssetsRepository"
 @Singleton
 class AssetsRepository @Inject constructor(
     private val assetsDao: AssetsDao,
-    private val assetsPriorityDao: AssetsPriorityDao,
     private val balancesDao: BalancesDao,
     private val pricesDao: PricesDao,
     private val sessionRepository: SessionRepository,
     private val balancesService: BalancesService,
-    getChangedTransactions: GetChangedTransactions,
-    private val syncStakeDelegations: SyncStakeDelegations,
-    private val syncNfts: SyncNfts,
     private val searchTokensCase: SearchTokensCase,
     private val streamSubscriptionService: StreamSubscriptionService,
+    private val availabilityService: AssetsAvailabilityService,
+    private val currencyRatesService: CurrencyRatesService,
+    private val searchService: AssetsSearchService,
+    private val recentAssetsService: RecentAssetsService,
     private val updateBalances: UpdateBalances = UpdateBalances(balancesDao, balancesService),
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetAsset {
@@ -105,34 +87,26 @@ class AssetsRepository @Inject constructor(
 
     init {
         scope.launch(Dispatchers.IO) {
-            getChangedTransactions.getChangedTransactions().collect {
-                onTransactions(it)
-            }
-        }
-        scope.launch(Dispatchers.IO) {
             sessionRepository.session().collectLatest {
-                changeCurrency(it?.currency ?: return@collectLatest)
+                currencyRatesService.changeCurrency(it?.currency ?: return@collectLatest)
             }
         }
         scope.launch(Dispatchers.IO) {
-            syncSwapSupportChains()
+            availabilityService.syncSwapSupportChains()
         }
     }
 
-    private fun currentWalletId(): Flow<String> = sessionRepository.session()
-        .filterNotNull()
-        .map { it.wallet.id.id }
-        .distinctUntilChanged()
+    private fun currentWalletId(): Flow<String> = sessionRepository.currentWalletId()
 
     suspend fun sync() {
-        getAssetsInfo().firstOrNull()?.updateBalances()?.awaitAll()
+        getAssetsInfo().firstOrNull()?.refreshBalances()?.awaitAll()
     }
 
     suspend fun saveAssetMetadata(assetFull: AssetFull) = withContext(Dispatchers.IO) {
         val assetId = assetFull.asset.id
         val assetIdIdentifier = assetId.toIdentifier()
         val currency = sessionRepository.getCurrentCurrency()
-        val rate = getCurrencyRate(currency).firstOrNull() ?: when (currency) {
+        val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull() ?: when (currency) {
             Currency.USD -> FiatRate(Currency.USD.string, 1.0)
             else -> null
         }
@@ -152,7 +126,7 @@ class AssetsRepository @Inject constructor(
     }
 
     suspend fun updateAssetMarket(assetId: AssetId, market: AssetMarket, currency: Currency) = withContext(Dispatchers.IO) {
-        val rate = getCurrencyRate(currency).firstOrNull()?.rate ?: return@withContext
+        val rate = currencyRatesService.getCurrencyRate(currency).firstOrNull()?.rate ?: return@withContext
         assetsDao.setMarket(market.toRecord(assetId, rate))
     }
 
@@ -262,40 +236,11 @@ class AssetsRepository @Inject constructor(
         return searchTokensCase.search(assetId, currency)
     }
 
-    fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> {
-        val query = tags.toPriorityQuery(query)
-        return currentWalletId().flatMapLatest { walletId ->
-            assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
-                when {
-                    byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query)
-                    byAllWallets -> assetsDao.searchByAllWallets(walletId, query)
-                    hasPriority -> assetsDao.searchWithPriority(walletId, query)
-                    else -> assetsDao.search(walletId, query)
-                }
-            }
-        }
-        .toAssetInfoModel()
-    }
+    fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> =
+        searchService.search(query, tags, byAllWallets)
 
-    fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> {
-        val query = tags.toPriorityQuery(query)
-        val walletChains = wallet.accounts.map { it.chain }
-        val includeChains = byChains.filter { walletChains.contains(it) }
-        val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
-        return assetsPriorityDao.hasPriorities(query).map { it > 0 }.flatMapLatest { hasPriority ->
-                if (hasPriority) {
-                    assetsDao.swapSearchWithPriority(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
-                } else {
-                    assetsDao.swapSearch(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
-                }
-            }
-            .toAssetInfoModel()
-            .map { assets ->
-                assets.filter { asset ->
-                    asset.metadata?.isEnabled == true
-                }
-            }
-    }
+    fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> =
+        searchService.swapSearch(wallet, query, byChains, byAssets, tags)
 
     /**
      * Check and add new coins and active tokens
@@ -348,7 +293,11 @@ class AssetsRepository @Inject constructor(
     }
 
     suspend fun updateBalances(vararg tokens: AssetId) {
-        getAssetsInfo(tokens.toList()).firstOrNull()?.updateBalances()?.awaitAll()
+        getAssetsInfo(tokens.toList()).firstOrNull()?.refreshBalances()?.awaitAll()
+    }
+
+    suspend fun updateBalances(assetInfos: List<AssetInfo>) {
+        assetInfos.refreshBalances().awaitAll()
     }
 
     suspend fun add(walletId: String, asset: Asset, visible: Boolean) {
@@ -425,62 +374,9 @@ class AssetsRepository @Inject constructor(
         assetsDao.setWalletAssetVisibility(walletId, assetIdIdentifier, visible)
     }
 
-    suspend fun updateBuyAvailable(assets: List<String>) {
-        syncAvailability(
-            currentEnabledAssetIds = assetsDao.getBuyAvailableAssetIds(),
-            targetEnabledAssetIds = assets,
-            setAvailability = assetsDao::setBuyAvailable,
-        )
-    }
+    suspend fun updateBuyAvailable(assets: List<String>) = availabilityService.updateBuyAvailable(assets)
 
-    suspend fun updateSellAvailable(assets: List<String>) {
-        syncAvailability(
-            currentEnabledAssetIds = assetsDao.getSellAvailableAssetIds(),
-            targetEnabledAssetIds = assets,
-            setAvailability = assetsDao::setSellAvailable,
-        )
-    }
-
-    private fun onTransactions(transactions: List<TransactionExtended>) = scope.launch {
-        processTransactions(transactions)
-    }
-
-    internal suspend fun processTransactions(transactions: List<TransactionExtended>) = withContext(Dispatchers.IO) {
-        transactions.map { transactionExtended ->
-            async {
-                val transaction = transactionExtended.transaction
-                val assetInfos = getAssetsInfo(transaction.getAssociatedAssetIds()).firstOrNull().orEmpty()
-                assetInfos.updateBalances()
-                val walletId = assetInfos.firstNotNullOfOrNull { it.walletId } ?: return@async
-                if (transaction.state.isCompleted()) {
-                    processCompleteTransaction(walletId, transaction, assetInfos)
-                }
-            }
-        }.awaitAll()
-    }
-
-    private suspend fun processCompleteTransaction(
-        walletId: WalletId,
-        transaction: Transaction,
-        assetInfos: List<AssetInfo>,
-    ) {
-        when (transaction.type) {
-            TransactionType.StakeDelegate,
-            TransactionType.StakeUndelegate,
-            TransactionType.StakeRewards,
-            TransactionType.StakeRedelegate,
-            TransactionType.StakeWithdraw,
-            TransactionType.StakeFreeze,
-            TransactionType.StakeUnfreeze -> syncStakeDelegations.sync(
-                walletId = walletId,
-                assetId = transaction.assetId,
-                address = transaction.from,
-                apr = assetInfos.firstOrNull { it.id() == transaction.assetId }?.stakeApr ?: 0.0,
-            )
-            TransactionType.TransferNFT -> syncNfts.sync(walletId)
-            else -> Unit
-        }
-    }
+    suspend fun updateSellAvailable(assets: List<String>) = availabilityService.updateSellAvailable(assets)
 
     fun getAssetLinks(id: AssetId): Flow<List<AssetLink>> {
         return assetsDao.getAssetLinks(id.toIdentifier())
@@ -498,38 +394,7 @@ class AssetsRepository @Inject constructor(
         return visibleByDefault.contains(chain) || type != WalletType.Multicoin
     }
 
-    private suspend fun syncSwapSupportChains() {
-        val nativeAssetIds = Chain.entries.map { it.asset().id.toIdentifier() }
-        syncAvailability(
-            currentEnabledAssetIds = assetsDao.getSwapAvailableAssetIds(nativeAssetIds),
-            targetEnabledAssetIds = Chain.swapSupport()
-                .map { it.asset().id.toIdentifier() },
-            trackedAssetIds = nativeAssetIds,
-            setAvailability = assetsDao::setSwapAvailable,
-        )
-    }
-
-    private suspend fun syncAvailability(
-        currentEnabledAssetIds: List<String>,
-        targetEnabledAssetIds: List<String>,
-        setAvailability: suspend (List<String>, Boolean) -> Unit,
-        trackedAssetIds: List<String> = (currentEnabledAssetIds + targetEnabledAssetIds).distinct(),
-    ) {
-        val changes = calculateAvailabilityChanges(
-            currentEnabledAssetIds = currentEnabledAssetIds,
-            targetEnabledAssetIds = targetEnabledAssetIds,
-            trackedAssetIds = trackedAssetIds,
-        )
-
-        if (changes.idsToDisable.isNotEmpty()) {
-            setAvailability(changes.idsToDisable, false)
-        }
-        if (changes.idsToEnable.isNotEmpty()) {
-            setAvailability(changes.idsToEnable, true)
-        }
-    }
-
-    private suspend fun List<AssetInfo>.updateBalances(): List<Deferred<List<AssetBalance>>> = withContext(Dispatchers.IO) {
+    private suspend fun List<AssetInfo>.refreshBalances(): List<Deferred<List<AssetBalance>>> = withContext(Dispatchers.IO) {
         groupBy { it.walletId }
             .mapValues { wallet ->
                 val walletId = wallet.key ?: return@mapValues null
@@ -550,48 +415,19 @@ class AssetsRepository @Inject constructor(
             .flatten()
     }
 
-    private suspend fun changeCurrency(currency: Currency) {
-        val rate = pricesDao.getRates(currency).map { it?.toDTO() }.firstOrNull() ?: return
-        pricesDao.getAll().firstOrNull()?.map {
-            it.copy(value = (it.usdValue ?: 0.0) * rate.rate, currency = currency.string)
-        }?.let { pricesDao.insert(it) }
-    }
-
-    fun getCurrencyRate(currency: Currency): Flow<FiatRate?> {
-        return pricesDao.getRates(currency).map { it?.toDTO() }
-    }
+    fun getCurrencyRate(currency: Currency): Flow<FiatRate?> = currencyRatesService.getCurrencyRate(currency)
 
     suspend fun addRecentActivity(
         assetId: AssetId,
         walletId: String,
         type: RecentType,
         toAssetId: AssetId? = null,
-    ) {
-        return assetsDao.addRecentActivity(
-            DbRecentActivity(
-                assetId = assetId.toIdentifier(),
-                walletId = walletId,
-                toAssetId = toAssetId?.toIdentifier(),
-                type = type,
-                addedAt = System.currentTimeMillis(),
-            )
-        )
-    }
+    ) = recentAssetsService.addRecentActivity(assetId, walletId, type, toAssetId)
 
-    fun getRecentAssets(request: RecentAssetsRequest): Flow<List<RecentAsset>> {
-        return currentWalletId()
-            .flatMapLatest { walletId -> assetsDao.getRecentAssets(walletId, request.types, request.filters, request.limit) }
-            .map { items ->
-                items.mapNotNull { row ->
-                    val asset = row.asset.toDTO() ?: return@mapNotNull null
-                    RecentAsset(asset = asset, addedAt = row.addedAt)
-                }
-            }
-    }
+    fun getRecentAssets(request: RecentAssetsRequest): Flow<List<RecentAsset>> = recentAssetsService.getRecentAssets(request)
 
-    suspend fun clearRecentAssets(walletId: WalletId, types: List<RecentType>) {
-        assetsDao.clearRecentAssets(walletId.id, types)
-    }
+    suspend fun clearRecentAssets(walletId: WalletId, types: List<RecentType>) =
+        recentAssetsService.clearRecentAssets(walletId, types)
 }
 
 private fun DbAsset.toBasicUpdateRecord() = DbAssetBasicUpdate(

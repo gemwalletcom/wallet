@@ -4,9 +4,7 @@ use super::{
     model::{FeeSide, PoolRoute},
     tx_builder,
 };
-use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, fees::quote_value_after_reserve_by_chain,
-};
+use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData};
 use async_trait::async_trait;
 use gem_sui::coin_type_matches;
 use primitives::Chain;
@@ -21,8 +19,12 @@ impl Swapper for CetusClmm {
         vec![SwapperChainAsset::All(Chain::Sui)]
     }
 
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let from_value = quote_value_after_reserve_by_chain(request)?;
+        let from_value = request.value.clone();
         let from_asset = request.from_asset.asset_id();
         let to_asset = request.to_asset.asset_id();
         let amount = from_value.parse::<u64>()?;

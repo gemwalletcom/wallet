@@ -1,9 +1,6 @@
 package com.gemwallet.android.data.repositories.assets
 
-import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.BalancesService
-import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -22,7 +19,6 @@ import com.gemwallet.android.data.service.store.database.entities.mockDbAssetInf
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.available
-import com.gemwallet.android.ext.getAssociatedAssetIds
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toIdentifier
@@ -35,9 +31,7 @@ import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
-import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.testkit.mockChartValuePercentage
@@ -47,8 +41,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -56,12 +48,10 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
-import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -78,9 +68,6 @@ class AssetsRepositoryTest {
     private val pricesDao = mockk<PricesDao>(relaxed = true)
     private val sessionRepository = mockk<SessionRepository>()
     private val balancesService = mockk<BalancesService>(relaxed = true)
-    private val getChangedTransactions = mockk<GetChangedTransactions>()
-    private val syncStakeDelegations = mockk<SyncStakeDelegations>(relaxed = true)
-    private val syncNfts = mockk<SyncNfts>(relaxed = true)
     private val searchTokensCase = mockk<SearchTokensCase>(relaxed = true)
     private val streamSubscriptionService = mockk<StreamSubscriptionService>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
@@ -89,16 +76,16 @@ class AssetsRepositoryTest {
 
     private fun createSubject() = AssetsRepository(
         assetsDao = assetsDao,
-        assetsPriorityDao = assetsPriorityDao,
         balancesDao = balancesDao,
         pricesDao = pricesDao,
         sessionRepository = sessionRepository,
         balancesService = balancesService,
-        getChangedTransactions = getChangedTransactions,
-        syncStakeDelegations = syncStakeDelegations,
-        syncNfts = syncNfts,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
+        availabilityService = AssetsAvailabilityService(assetsDao),
+        currencyRatesService = CurrencyRatesService(pricesDao),
+        searchService = AssetsSearchService(assetsDao, assetsPriorityDao, sessionRepository),
+        recentAssetsService = RecentAssetsService(assetsDao, sessionRepository),
         updateBalances = updateBalances,
         scope = scope,
     )
@@ -110,71 +97,7 @@ class AssetsRepositoryTest {
     }
 
     @Test
-    fun completeStakeTransaction_syncsDelegations() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
-        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
-        every { sessionRepository.session() } returns sessionFlow
-        val asset = mockAssetSolana()
-        every { assetsDao.getAssetsInfo("wallet-1", listOf(asset.id.toIdentifier())) } returns flowOf(
-            listOf(
-                mockDbAssetInfo(
-                    chain = asset.id.chain,
-                    id = asset.id.toIdentifier(),
-                    name = asset.name,
-                    symbol = asset.symbol,
-                    decimals = asset.decimals,
-                    type = asset.type,
-                    address = "solana-sender",
-                    stakingApr = 7.5,
-                )
-            )
-        )
-
-        val subject = createSubject()
-        subject.processTransactions(
-            listOf(TransactionState.Confirmed, TransactionState.Failed, TransactionState.Reverted).map { state ->
-                mockTransactionExtended(
-                    transaction = mockTransaction(
-                        assetId = asset.id,
-                        from = "solana-sender",
-                        type = TransactionType.StakeDelegate,
-                        state = state,
-                    ),
-                    asset = asset,
-                )
-            }
-        )
-
-        coVerify(exactly = 3) {
-            syncStakeDelegations.sync(mockWalletId("wallet-1"), asset.id, "solana-sender", apr = 7.5)
-        }
-        coVerify(exactly = 0) { syncNfts.sync(any()) }
-    }
-
-    @Test
-    fun completeNftTransfer_syncsWalletNfts() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
-        sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
-        every { sessionRepository.session() } returns sessionFlow
-        val transaction = mockTransaction(type = TransactionType.TransferNFT)
-        every { assetsDao.getAssetsInfo("wallet-1", transaction.getAssociatedAssetIds().map { it.toIdentifier() }) } returns flowOf(
-            listOf(mockDbAssetInfo(chain = transaction.assetId.chain, id = transaction.assetId.toIdentifier()))
-        )
-
-        val subject = createSubject()
-        subject.processTransactions(
-            listOf(TransactionState.Confirmed, TransactionState.Failed, TransactionState.Reverted).map { state ->
-                mockTransactionExtended(transaction = transaction.copy(state = state))
-            }
-        )
-
-        coVerify(exactly = 3) { syncNfts.sync(mockWalletId()) }
-        coVerify(exactly = 0) { syncStakeDelegations.sync(any(), any(), any(), any()) }
-    }
-
-    @Test
     fun saveAssetMetadata_storesLinksPriceAndMarketFromAssetResponse() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolana()
@@ -238,7 +161,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun saveAssetMetadata_persistsUnknownAssetAndMarketInOneAtomicCall() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolanaUSDC()
@@ -263,7 +185,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun updateBuyAvailable_appliesAvailabilityDiffWithoutResettingAllRows() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         coEvery { assetsDao.getSwapAvailableAssetIds(any()) } returns emptyList()
         coEvery { assetsDao.getBuyAvailableAssetIds() } returns listOf("bitcoin", "ethereum")
@@ -277,7 +198,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun updateSellAvailable_appliesAvailabilityDiffWithoutResettingAllRows() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         coEvery { assetsDao.getSwapAvailableAssetIds(any()) } returns emptyList()
         coEvery { assetsDao.getSellAvailableAssetIds() } returns listOf("bitcoin", "ethereum")
@@ -291,7 +211,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun addApiAsset_insertsApiRank() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         val asset = mockAssetSolana()
         val assetBasic = AssetBasic(
@@ -335,7 +254,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun addApiAssets_updatesExistingRowsWithApiRank() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolanaUSDC()
@@ -356,7 +274,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun linkAssetToWallet_visibleAssetSubscribesToPriceStream() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolanaUSDC()
@@ -376,7 +293,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun linkAssetToWallet_hiddenAssetDoesNotSubscribeToPriceStream() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolanaUSDC()
@@ -396,7 +312,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun addLocalAsset_insertsDefaultTokenRank() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val asset = mockAssetSolanaUSDC()
@@ -428,7 +343,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun updateNativeAssetRanks_repairsLegacyNativeRanks() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         mockkStatic("com.gemwallet.android.ext.ChainKt")
         mockkStatic("uniffi.gemstone.GemstoneKt")
@@ -451,7 +365,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun switchVisibility_hideUnlinkedAsset_doesNotCreateWalletAsset() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
         every { assetsDao.getAssetInfo("wallet-1", "solana", Chain.Solana) } returns flowOf(null)
@@ -464,7 +377,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun switchVisibility_showUnlinkedAsset_linksOnce() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
         every { assetsDao.getAssetInfo("wallet-1", "solana", Chain.Solana) } returns flowOf(null)
@@ -484,7 +396,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun swapSearch_includesEnabledHiddenAndUnlinkedAssets() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         every { assetsPriorityDao.hasPriorities("") } returns flowOf(0)
 
@@ -551,7 +462,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
         every { assetsPriorityDao.hasPriorities("usd") } returns flowOf(2)
 
@@ -590,7 +500,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun getAssetsInfo_returnsStoreRowsWithoutRepositoryDedupe() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         sessionFlow.value = mockSession(wallet = mockWallet(id = "wallet-1"))
         every { sessionRepository.session() } returns sessionFlow
 
@@ -610,7 +519,6 @@ class AssetsRepositoryTest {
 
     @Test
     fun getNativeAssets_returnsNativeWalletAssetsFromDao() = runBlocking {
-        every { getChangedTransactions.getChangedTransactions() } returns emptyFlow()
         every { sessionRepository.session() } returns sessionFlow
 
         val wallet = mockWallet(id = "wallet-1")

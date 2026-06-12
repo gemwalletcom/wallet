@@ -69,11 +69,7 @@ pub fn mock_transfer_swap_input(chain: BitcoinChain, memo: &str) -> SignerInput 
 }
 
 pub fn mock_contract_swap_input(chain: BitcoinChain, nulldata_hex: &str, use_max_amount: bool) -> SignerInput {
-    mock_contract_swap_input_with_provider(chain, nulldata_hex, use_max_amount, SwapProvider::Chainflip)
-}
-
-pub fn mock_contract_swap_input_with_provider(chain: BitcoinChain, nulldata_hex: &str, use_max_amount: bool, provider: SwapProvider) -> SignerInput {
-    mock_swap_input(chain, provider, Some(use_max_amount), |destination_address, value| {
+    mock_swap_input(chain, SwapProvider::Chainflip, Some(use_max_amount), |destination_address, value| {
         SwapQuoteData::new_contract(destination_address, value, nulldata_hex.to_string(), None, None)
     })
 }
@@ -106,21 +102,6 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
             data: quote_data(destination_address, value),
         },
     );
-    input
-}
-
-pub fn mock_p2wpkh_contract_swap_input(nulldata_hex: &str, use_max_amount: bool) -> SignerInput {
-    let p2wpkh_sender = mock_p2wpkh_address();
-    let mut input = mock_contract_swap_input(BitcoinChain::Bitcoin, nulldata_hex, use_max_amount);
-    input.input.sender_address = p2wpkh_sender.clone();
-    let TransactionLoadMetadata::Bitcoin { utxos } = &mut input.input.metadata else {
-        unreachable!()
-    };
-    utxos[0].address = p2wpkh_sender.clone();
-    let TransactionInputType::Swap(_, _, swap) = &mut input.input.input_type else {
-        unreachable!()
-    };
-    swap.quote.from_address = p2wpkh_sender;
     input
 }
 

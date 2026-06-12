@@ -4,14 +4,16 @@ import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
 import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
-import com.gemwallet.android.application.transactions.coordinators.GetChangedTransactions
 import com.gemwallet.android.blockchain.services.BalancesService
 import com.gemwallet.android.blockchain.services.PerpetualService
 import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.cases.stake.SyncStakeDelegations
 import com.gemwallet.android.cases.tokens.SearchTokensCase
 import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
+import com.gemwallet.android.data.repositories.assets.RecentAssetsService
 import com.gemwallet.android.data.repositories.assets.UpdateBalances
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.repositories.stream.ExponentialReconnection
@@ -20,7 +22,6 @@ import com.gemwallet.android.data.repositories.stream.StreamObserverService
 import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
 import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
-import com.gemwallet.android.data.service.store.database.AssetsPriorityDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
@@ -41,28 +42,28 @@ object AssetsModule {
     @Singleton
     fun provideAssetsRepository(
         assetsDao: AssetsDao,
-        assetsPriorityDao: AssetsPriorityDao,
         balancesDao: BalancesDao,
         pricesDao: PricesDao,
         sessionRepository: SessionRepository,
         balancesService: BalancesService,
-        getChangedTransactions: GetChangedTransactions,
-        syncStakeDelegations: SyncStakeDelegations,
-        syncNfts: SyncNfts,
         searchTokensCase: SearchTokensCase,
         streamSubscriptionService: StreamSubscriptionService,
+        availabilityService: AssetsAvailabilityService,
+        currencyRatesService: CurrencyRatesService,
+        searchService: AssetsSearchService,
+        recentAssetsService: RecentAssetsService,
     ): AssetsRepository = AssetsRepository(
         assetsDao = assetsDao,
-        assetsPriorityDao = assetsPriorityDao,
         balancesDao = balancesDao,
         pricesDao = pricesDao,
         sessionRepository = sessionRepository,
-        getChangedTransactions = getChangedTransactions,
         balancesService = balancesService,
-        syncStakeDelegations = syncStakeDelegations,
-        syncNfts = syncNfts,
         searchTokensCase = searchTokensCase,
         streamSubscriptionService = streamSubscriptionService,
+        availabilityService = availabilityService,
+        currencyRatesService = currencyRatesService,
+        searchService = searchService,
+        recentAssetsService = recentAssetsService,
     )
 
     @Provides

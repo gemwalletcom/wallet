@@ -1,4 +1,4 @@
-use primitives::{Asset, BitcoinChain, SignerError, SignerInput, SwapProvider, UTXO, decode_hex, swap::SwapQuoteDataType};
+use primitives::{Asset, BitcoinChain, SignerError, SignerInput, UTXO, swap::SwapQuoteDataType};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SpendRequest {
@@ -7,7 +7,6 @@ pub(crate) struct SpendRequest {
     pub(crate) destination_address: String,
     pub(crate) amount: u64,
     pub(crate) is_max: bool,
-    pub(crate) force_change_output: bool,
     pub(crate) fee_rate: u64,
     pub(crate) memo: Option<Vec<u8>>,
     pub(crate) utxos: Vec<UTXO>,
@@ -23,7 +22,6 @@ impl SpendRequest {
             destination_address: input.destination_address.clone(),
             amount: input.value_as_u64()?,
             is_max: input.is_max_value,
-            force_change_output: false,
             fee_rate: spend_fee_rate(chain, input)?,
             memo: input.get_memo().map(|memo| memo.as_bytes().to_vec()),
             utxos: input.metadata.get_utxos()?,
@@ -38,17 +36,7 @@ impl SpendRequest {
         validate_native_chain_asset(chain, input.input_type.get_asset(), "unsupported Bitcoin swap asset")?;
         let memo = match &swap.data.data_type {
             SwapQuoteDataType::Transfer => swap.data.memo.as_ref().map(|memo| memo.as_bytes().to_vec()),
-            SwapQuoteDataType::Contract => Some(decode_hex(&swap.data.data)?),
-        };
-        let force_change_output = matches!(
-            (&swap.data.data_type, swap.quote.provider_data.provider),
-            (SwapQuoteDataType::Contract, SwapProvider::Chainflip)
-        );
-        let is_max = match (&swap.data.data_type, swap.quote.provider_data.provider, swap.quote.use_max_amount) {
-            // Chainflip vault swaps require a third change output as the refund address.
-            (SwapQuoteDataType::Contract, SwapProvider::Chainflip, _) => false,
-            (SwapQuoteDataType::Contract | SwapQuoteDataType::Transfer, _, Some(use_max)) => use_max,
-            (SwapQuoteDataType::Contract | SwapQuoteDataType::Transfer, _, None) => input.is_max_value,
+            SwapQuoteDataType::Contract => return SignerError::invalid_input_err("unsupported Bitcoin contract swap"),
         };
 
         Ok(Self {
@@ -60,8 +48,7 @@ impl SpendRequest {
                 .value
                 .parse::<u64>()
                 .map_err(|_| SignerError::invalid_input(format!("invalid {} swap amount", chain.get_chain())))?,
-            is_max,
-            force_change_output,
+            is_max: swap.quote.use_max_amount.unwrap_or(input.is_max_value),
             fee_rate: spend_fee_rate(chain, input)?,
             memo,
             utxos: input.metadata.get_utxos()?,

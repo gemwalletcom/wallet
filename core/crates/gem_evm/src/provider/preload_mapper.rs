@@ -99,11 +99,13 @@ pub fn get_transaction_params(chain: EVMChain, input: &TransactionLoadInput) -> 
                 ))
             } else {
                 match from_asset.id.token_subtype() {
-                    AssetSubtype::NATIVE => Ok(TransactionParams::new(
-                        swap_data.data.to.clone(),
-                        hex::decode(swap_data.data.data.clone())?,
-                        BigInt::from_str_radix(&swap_data.data.value, 10)?,
-                    )),
+                    AssetSubtype::NATIVE => {
+                        let value = match swap_data.data.data_type {
+                            SwapQuoteDataType::Transfer if input.is_max_value => BigInt::ZERO,
+                            _ => BigInt::from_str_radix(&swap_data.data.value, 10)?,
+                        };
+                        Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, value))
+                    }
                     AssetSubtype::TOKEN => match swap_data.data.data_type {
                         SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, BigInt::ZERO)),
                         SwapQuoteDataType::Transfer => {

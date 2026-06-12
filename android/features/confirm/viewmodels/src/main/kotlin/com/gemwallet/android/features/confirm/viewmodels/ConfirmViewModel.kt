@@ -264,12 +264,13 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(params: ConfirmParams, walletConnectSimulation: SimulationResult? = null) {
         viewModelScope.launch(Dispatchers.IO) {
-            state.update { ConfirmState.Prepare }
             walletConnectSimulationState.value = walletConnectSimulation
-            // reset
-            savedStateHandle[RouteArgument.Params.key] = null
-            // load
-            savedStateHandle[RouteArgument.Params.key] = params.pack()
+            val pack = params.pack()
+            if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
+                return@launch
+            }
+            state.update { ConfirmState.Prepare }
+            savedStateHandle[RouteArgument.Params.key] = pack
         }
     }
 

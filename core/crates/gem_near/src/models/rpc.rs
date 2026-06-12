@@ -19,11 +19,6 @@ pub struct ChunkHeader {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Chunk {
-    pub transactions: Vec<Transaction>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Transaction {
     pub hash: String,
     pub signer_id: String,
@@ -39,10 +34,4 @@ pub enum Action {
     },
     #[serde(untagged)]
     Other(serde_json::Value),
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct AccessKey {
-    pub nonce: i64,
-    pub permission: String,
 }

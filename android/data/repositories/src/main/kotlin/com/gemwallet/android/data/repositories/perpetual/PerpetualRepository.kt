@@ -34,7 +34,7 @@ interface PerpetualRepository {
 
     suspend fun putAsset(asset: Asset)
 
-    suspend fun putBalance(walletId: WalletId, assetId: AssetId, balance: PerpetualBalance)
+    suspend fun putBalance(walletId: WalletId, asset: Asset, balance: PerpetualBalance)
 
     fun getBalance(walletId: WalletId, assetId: AssetId): Flow<PerpetualBalance?>
 

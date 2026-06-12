@@ -8,18 +8,16 @@ use super::{
     wormhole_chain,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
-    SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
+    SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
-    fees::{default_referral_address, default_referral_fees, quote_value_after_reserve, quote_value_after_reserve_by_chain},
+    fees::{default_referral_address, default_referral_fees},
 };
 use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{Chain, ChainType};
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
-
-const SOLANA_NATIVE_SWAP_RESERVE: &str = "5000000";
 
 #[derive(Debug)]
 pub struct Mayan<C>
@@ -94,12 +92,16 @@ where
         mayan_supported_assets()
     }
 
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         if !self.supports_chain_pair(request.from_asset.chain(), request.to_asset.chain()) {
             return Err(SwapperError::NotSupportedChain);
         }
 
-        let from_value = quote_value_after_mayan_reserve(request)?;
+        let from_value = request.value.clone();
         let from_asset = request.from_asset.asset_id();
         let to_asset = request.to_asset.asset_id();
         let referral_fees = default_referral_fees();
@@ -187,13 +189,6 @@ where
             send: send.into_iter().collect(),
         })
     }
-}
-
-fn quote_value_after_mayan_reserve(request: &QuoteRequest) -> Result<String, SwapperError> {
-    if request.options.use_max_amount && request.from_asset.chain() == Chain::Solana && request.from_asset.is_native() {
-        return quote_value_after_reserve(request, SOLANA_NATIVE_SWAP_RESERVE);
-    }
-    quote_value_after_reserve_by_chain(request)
 }
 
 impl<C> Mayan<C>
@@ -396,26 +391,6 @@ mod tests {
 
         assert!(provider.supports_chain_pair(Chain::Hyperliquid, Chain::HyperCore));
         assert!(!provider.supports_chain_pair(Chain::HyperCore, Chain::Hyperliquid));
-    }
-
-    #[test]
-    fn test_quote_value_after_mayan_reserve_uses_larger_solana_native_reserve() {
-        let mut request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
-            wallet_address: "address".to_string(),
-            destination_address: "address".to_string(),
-            value: "105814789".to_string(),
-            options: Options {
-                use_max_amount: true,
-                ..Default::default()
-            },
-        };
-
-        assert_eq!(quote_value_after_mayan_reserve(&request).unwrap(), "100814789");
-
-        request.from_asset = SwapperQuoteAsset::from(AssetId::from_token(Chain::Solana, SOLANA_USDC_TOKEN_ID));
-        assert_eq!(quote_value_after_mayan_reserve(&request).unwrap(), "105814789");
     }
 }
 

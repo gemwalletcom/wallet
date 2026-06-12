@@ -6,6 +6,7 @@ pub enum SignerError {
     SigningError(String),
     DustThreshold,
     InsufficientFunds,
+    SwapValueBelowMinimum,
 }
 
 impl std::fmt::Display for SignerError {
@@ -15,6 +16,7 @@ impl std::fmt::Display for SignerError {
             SignerError::SigningError(msg) => write!(f, "Signing error: {}", msg),
             SignerError::DustThreshold => write!(f, "transaction amount is below the dust threshold"),
             SignerError::InsufficientFunds => write!(f, "insufficient balance"),
+            SignerError::SwapValueBelowMinimum => write!(f, "swap value after fee is below the provider minimum"),
         }
     }
 }

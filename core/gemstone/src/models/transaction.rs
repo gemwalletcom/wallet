@@ -1,3 +1,4 @@
+use crate::address::checksum_address;
 use crate::models::*;
 use chrono::{DateTime, Utc};
 use num_bigint::BigInt;
@@ -522,10 +523,12 @@ impl From<GemTransactionStateRequest> for TransactionStateRequest {
 
 impl From<GemTransactionLoadInput> for TransactionLoadInput {
     fn from(value: GemTransactionLoadInput) -> Self {
+        let input_type: TransactionInputType = value.input_type.into();
+        let destination_address = checksum_address(&value.destination_address, input_type.get_asset().chain);
         TransactionLoadInput {
-            input_type: value.input_type.into(),
+            input_type,
             sender_address: value.sender_address,
-            destination_address: value.destination_address,
+            destination_address,
             value: value.value,
             gas_price: value.gas_price.into(),
             memo: value.memo,

@@ -16,11 +16,6 @@ pub struct InjectiveNameClient {
 
 // request
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Resolver {
-    resolver: ResolverNode,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
 pub struct ResolverNode {
     node: Vec<u8>,
 }

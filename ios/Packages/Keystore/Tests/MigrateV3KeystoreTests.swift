@@ -51,8 +51,37 @@ struct MigrateV3KeystoreTests {
             source: .import,
         )
 
-        #expect(try await keystore.migrateV3Keystore(for: migrated) == nil)
+        let failures = try await keystore.migrateV3Keystores(for: [migrated])
+        #expect(failures.isEmpty)
         #expect(mockPassword.getPasswordCallsCount == 0)
+    }
+
+    @Test
+    func migrationWithEmptyPasswordReportsFailures() async throws {
+        let directory = "migrate-test-\(UUID().uuidString)"
+        let baseDir = try FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appending(path: directory, directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: baseDir) }
+
+        let keystore = LocalKeystore(
+            directory: directory,
+            keystorePassword: MockKeystorePassword(memoryPassword: ""),
+        )
+        let legacy = Wallet.mock(
+            id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
+            type: .privateKey,
+            source: .import,
+        )
+        let fixtureURL = try #require(Bundle.module.url(forResource: "v3_ios_private_key", withExtension: "json"))
+        let v3URL = baseDir.appending(path: legacy.legacyV3Id, directoryHint: .notDirectory)
+        try FileManager.default.copyItem(at: fixtureURL, to: v3URL)
+
+        let failures = try await keystore.migrateV3Keystores(for: [legacy])
+
+        #expect(failures.count == 1)
+        #expect(failures.first?.walletId == legacy.id)
+        #expect(FileManager.default.fileExists(atPath: v3URL.path), "a failed migration must keep the v3 file for retry")
     }
 
     @Test
@@ -76,8 +105,9 @@ struct MigrateV3KeystoreTests {
         let v3URL = baseDir.appending(path: legacy.legacyV3Id, directoryHint: .notDirectory)
         try FileManager.default.copyItem(at: fixtureURL, to: v3URL)
 
-        let keystoreId = try #require(try await keystore.migrateV3Keystore(for: legacy))
-        let v4URL = baseDir.appending(path: "\(keystoreId).json")
+        let failures = try await keystore.migrateV3Keystores(for: [legacy])
+        #expect(failures.isEmpty)
+        let v4URL = baseDir.appending(path: "\(legacy.keystoreId).json")
         #expect(FileManager.default.fileExists(atPath: v4URL.path))
         #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
 
@@ -93,24 +123,29 @@ struct MigrateV3KeystoreTests {
             .appending(path: directory, directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
+        let mockPassword = MockKeystorePassword(memoryPassword: Self.password)
         let keystore = LocalKeystore(
             directory: directory,
-            keystorePassword: MockKeystorePassword(memoryPassword: Self.password),
+            keystorePassword: mockPassword,
         )
 
         let fixtureURL = try #require(Bundle.module.url(forResource: "v3_ios_private_key", withExtension: "json"))
         let v3URL = baseDir.appending(path: legacy.legacyV3Id, directoryHint: .notDirectory)
         try FileManager.default.copyItem(at: fixtureURL, to: v3URL)
 
-        let keystoreId = try #require(try await keystore.migrateV3Keystore(for: legacy))
-        #expect(keystoreId == legacy.keystoreId)
+        let failures = try await keystore.migrateV3Keystores(for: [legacy])
+        #expect(failures.isEmpty)
+        let keystoreId = legacy.keystoreId
         #expect(FileManager.default.fileExists(atPath: baseDir.appending(path: "\(keystoreId).json").path))
         #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
 
         let key = try await keystore.getPrivateKey(wallet: legacy, chain: .ethereum)
         #expect(key.hex == Self.expectedPrivateKey)
 
-        #expect(try await keystore.migrateV3Keystore(for: legacy) == nil)
+        let passwordReadsBefore = mockPassword.getPasswordCallsCount
+        let secondRunFailures = try await keystore.migrateV3Keystores(for: [legacy])
+        #expect(secondRunFailures.isEmpty)
+        #expect(mockPassword.getPasswordCallsCount == passwordReadsBefore, "an already migrated wallet must not read the password again")
         let keyAgain = try await keystore.getPrivateKey(wallet: legacy, chain: .ethereum)
         #expect(keyAgain.hex == Self.expectedPrivateKey)
 

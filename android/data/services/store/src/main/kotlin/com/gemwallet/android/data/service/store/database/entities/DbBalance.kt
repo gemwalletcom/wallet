@@ -83,6 +83,7 @@ fun DbBalance.toDTO(): AssetBalance? {
             pending = pending,
             rewards = rewards,
             reserved = reserved,
+            withdrawable = withdrawable,
         ),
         balanceAmount = Balance(
             available = availableAmount,
@@ -92,6 +93,7 @@ fun DbBalance.toDTO(): AssetBalance? {
             pending = pendingAmount,
             rewards = rewardsAmount,
             reserved = reservedAmount,
+            withdrawable = withdrawableAmount,
         ),
         totalAmount = totalAmount,
         isActive = isActive,

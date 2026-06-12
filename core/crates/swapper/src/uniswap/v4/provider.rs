@@ -3,7 +3,8 @@ use async_trait::async_trait;
 use std::{collections::HashSet, fmt, str::FromStr, sync::Arc, vec};
 
 use crate::{
-    FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
+    SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
     approval::get_swap_gas_limit_with_approval,
@@ -104,6 +105,10 @@ impl Swapper for UniswapV4 {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         Chain::all().iter().filter(|x| self.support_chain(x)).map(|x| SwapperChainAsset::All(*x)).collect()
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

@@ -7,16 +7,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.perpetual.PerpetualConfig
+import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualMarketViewModel
+import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.RecentType
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 
 @Composable
 fun PerpetualMarketNavScreen(
     onCancel: () -> Unit,
     onOpenPerpetualDetails: AssetIdAction,
+    amountAction: AmountTransactionAction,
     viewModel: PerpetualMarketViewModel = hiltViewModel(),
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
@@ -46,8 +51,8 @@ fun PerpetualMarketNavScreen(
             when (action) {
                 PerpetualMarketAction.Refresh -> viewModel.onRefresh()
                 PerpetualMarketAction.Close -> onCancel()
-                PerpetualMarketAction.Withdraw -> Unit
-                PerpetualMarketAction.Deposit -> Unit
+                PerpetualMarketAction.Withdraw -> amountAction(AmountParams.Withdraw(HypercoreUSDC.id))
+                PerpetualMarketAction.Deposit -> amountAction(AmountParams.Deposit(PerpetualConfig.depositAssetId))
                 is PerpetualMarketAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
                 is PerpetualMarketAction.OpenPerpetual -> {
                     onOpenPerpetualDetails(action.assetId)

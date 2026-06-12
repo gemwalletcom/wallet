@@ -10,6 +10,7 @@ import uniffi.gemstone.GemKeystoreAccount
 import java.io.File
 
 const val KEYSTORE_TEST_PASSWORD = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+const val KEYSTORE_TEST_ETH_ADDRESS = "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3"
 
 fun includeGemstoneLibs() {
     System.loadLibrary("gemstone")

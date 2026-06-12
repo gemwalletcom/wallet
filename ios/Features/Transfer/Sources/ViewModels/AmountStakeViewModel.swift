@@ -107,7 +107,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case .unstake, .unfreeze, .claimRewards:
             .zero
         case .withdraw:
-            asset.symbol == "USDC" ? AmountPerpetualLimits.minDeposit : .zero
+            asset.symbol == "USDC" ? PerpetualConfig.minDeposit : .zero
         }
     }
 

@@ -57,12 +57,6 @@ pub struct CommunityData {
     pub twitter_followers: Option<i64>,
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DeveloperData {
-    pub stars: Option<i64>,
-    pub subscribers: Option<i64>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DetailPlatform {
     pub decimal_place: Option<i32>,
     pub contract_address: Option<String>,

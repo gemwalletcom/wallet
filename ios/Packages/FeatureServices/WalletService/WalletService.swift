@@ -129,12 +129,9 @@ public struct WalletService: Sendable {
 
     public func migrateV3Keystores() async throws {
         let wallets = try walletStore.getWallets()
-        for wallet in wallets {
-            do {
-                _ = try await keystore.migrateV3Keystore(for: wallet)
-            } catch {
-                debugLog("v3 keystore migration failed for \(wallet.id.id): \(error)")
-            }
+        let failures = try await keystore.migrateV3Keystores(for: wallets)
+        for failure in failures {
+            debugLog("v3 keystore migration failed for \(failure.walletId.id): \(failure.error)")
         }
     }
 

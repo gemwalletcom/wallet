@@ -13,9 +13,6 @@ pub(crate) const NFT_TRANSFER_ATTACHMENT: u64 = 50_000_000;
 pub const TON_PROXY_JETTON_ADDRESS: &str = "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c";
 
 // Failed operation opcodes - operations that may show blockchain success but represent failed application operations
-pub const JETTON_FAILED_OPERATION_OPCODE: &str = "0x93be2305";
-
-// Additional potential failure opcodes found in test data
 pub const FAILED_OPERATION_OPCODES: &[&str] = &[
     "0x93be2305", // Failed jetton operation
     "0xd6182fce", // Another failure pattern

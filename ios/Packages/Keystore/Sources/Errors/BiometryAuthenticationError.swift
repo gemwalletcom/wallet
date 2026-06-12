@@ -3,24 +3,26 @@
 import Foundation
 import LocalAuthentication
 
-public enum BiometryAuthenticationError: Error {
+public enum BiometryAuthenticationError: Error, Equatable {
     case biometryUnavailable
-    case cancelled
+    case cancelledByUser
+    case cancelledBySystem
     case authenticationFailed
 
     init(error: NSError) {
         switch error {
-        case let urlError as LAError:
-            switch urlError {
-            case LAError.biometryNotAvailable,
-                 LAError.passcodeNotSet:
+        case let laError as LAError:
+            switch laError.code {
+            case .biometryNotAvailable,
+                 .passcodeNotSet:
                 self = .biometryUnavailable
-            case LAError.userCancel,
-                 LAError.userFallback,
-                 LAError.biometryLockout,
-                 LAError.systemCancel,
-                 LAError.appCancel:
-                self = .cancelled
+            case .userCancel,
+                 .userFallback,
+                 .biometryLockout:
+                self = .cancelledByUser
+            case .systemCancel,
+                 .appCancel:
+                self = .cancelledBySystem
             default:
                 self = .authenticationFailed
             }
@@ -31,7 +33,7 @@ public enum BiometryAuthenticationError: Error {
 
     public var isAuthenticationCancelled: Bool {
         switch self {
-        case .cancelled: true
+        case .cancelledByUser, .cancelledBySystem: true
         case .biometryUnavailable, .authenticationFailed: false
         }
     }

@@ -24,7 +24,6 @@ pub struct DcaParameters {
 #[derive(Debug)]
 pub enum VaultSwapExtras {
     Evm(VaultSwapEvmExtras),
-    Bitcoin(VaultSwapBtcExtras),
     Solana(VaultSwapSolanaExtras),
     None,
 }
@@ -35,14 +34,6 @@ pub struct VaultSwapEvmExtras {
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str", serialize_with = "serialize_biguint_to_hex_str")]
     pub input_amount: BigUint,
     pub refund_parameters: RefundParameters,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VaultSwapBtcExtras {
-    pub chain: String,
-    #[serde(deserialize_with = "deserialize_biguint_from_hex_str", serialize_with = "serialize_biguint_to_hex_str")]
-    pub min_output_amount: BigUint,
-    pub retry_duration: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,7 +49,6 @@ pub struct VaultSwapSolanaExtras {
 #[serde(untagged)]
 pub enum VaultSwapResponse {
     Evm(EvmVaultSwapResponse),
-    Bitcoin(BitcoinVaultSwapResponse),
     Solana(SolanaVaultSwapResponse),
 }
 
@@ -68,12 +58,6 @@ pub struct EvmVaultSwapResponse {
     #[serde(deserialize_with = "deserialize_biguint_from_hex_str", serialize_with = "serialize_biguint_to_hex_str")]
     pub value: BigUint,
     pub to: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct BitcoinVaultSwapResponse {
-    pub nulldata_payload: String,
-    pub deposit_address: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

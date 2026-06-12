@@ -13,9 +13,9 @@ use super::{
     model::{RelayAppFee, RelayQuoteRequest, RelayQuoteResponse},
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
-    SwapperQuoteData, approval::check_approval_erc20, config::get_swap_proxy_url, cross_chain::VaultAddresses, fees::DEFAULT_REFERRER, fees::default_referral_fees,
-    fees::quote_value_after_reserve_by_chain,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
+    SwapperProvider, SwapperQuoteData, approval::check_approval_erc20, config::get_swap_proxy_url, cross_chain::VaultAddresses, fees::DEFAULT_REFERRER,
+    fees::default_referral_fees,
 };
 
 #[derive(Debug)]
@@ -64,6 +64,10 @@ where
         SUPPORTED_CHAINS.clone()
     }
 
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = RelayChain::from_chain(&request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let to_chain = RelayChain::from_chain(&request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
@@ -74,7 +78,7 @@ where
         let origin_currency = asset_to_currency(&from_asset_id)?;
         let destination_currency = asset_to_currency(&to_asset_id)?;
         let app_fees = resolve_app_fees();
-        let from_value = quote_value_after_reserve_by_chain(request)?;
+        let from_value = request.value.clone();
 
         let relay_request = RelayQuoteRequest {
             user: request.wallet_address.clone(),

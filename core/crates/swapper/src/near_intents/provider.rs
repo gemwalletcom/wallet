@@ -5,8 +5,8 @@ use super::{
     supported_assets,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
-    SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
+    SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
     client_factory::create_sui_client,
     cross_chain::VaultAddresses,
     fees::DEFAULT_REFERRER,
@@ -123,7 +123,6 @@ where
 
         let deadline_minutes = Self::get_deadline_by_chain(from_chain).max(Self::get_deadline_by_chain(to_chain));
         let deadline = (Utc::now() + Duration::minutes(deadline_minutes)).to_rfc3339();
-
         Ok(NearQuoteRequest {
             origin_asset,
             destination_asset,
@@ -276,6 +275,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         self.supported_assets.clone()
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Flexible
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

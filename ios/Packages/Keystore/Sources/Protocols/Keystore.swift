@@ -12,8 +12,8 @@ public protocol Keystore: Sendable {
     @discardableResult
     func importWallet(name: String, type: KeystoreImportType, isWalletsEmpty: Bool, source: WalletSource) async throws -> Wallet
     func setupChains(chains: [Chain], for wallets: [Wallet]) throws -> [Wallet]
-    /// Migrates a v3 keystore to v4; returns the new keystore_id, or nil if already v4.
-    func migrateV3Keystore(for wallet: Wallet) async throws -> String?
+    /// Migrates pending v3 keystores to v4, reading the password at most once; returns per-wallet failures.
+    func migrateV3Keystores(for wallets: [Wallet]) async throws -> [KeystoreMigrationFailure]
     func deleteKey(for wallet: Wallet) async throws
     func sign(wallet: Wallet, input: SignerInput) async throws -> [String]
     func signMessage(signer: MessageSigner, wallet: Wallet) async throws -> String

@@ -1,9 +1,9 @@
 use super::{client::PanoraClient, model};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
-    SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
+    SwapperQuoteAsset, SwapperQuoteData,
     config::get_swap_proxy_url,
-    fees::{ReferralFee, bps_to_percent_string, default_referral_fees, quote_value_after_reserve_by_chain},
+    fees::{ReferralFee, bps_to_percent_string, default_referral_fees},
 };
 use async_trait::async_trait;
 use gem_aptos::{APTOS_NATIVE_COIN, ENTRY_FUNCTION_PAYLOAD_TYPE, TransactionPayload};
@@ -69,8 +69,12 @@ where
         vec![SwapperChainAsset::All(Chain::Aptos)]
     }
 
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let from_value = quote_value_after_reserve_by_chain(request)?;
+        let from_value = request.value.clone();
         let response = self.client.get_quote(&Self::build_request(request, &from_value)?).await?;
         let quote = response.quotes.first().ok_or(SwapperError::NoQuoteAvailable)?;
 

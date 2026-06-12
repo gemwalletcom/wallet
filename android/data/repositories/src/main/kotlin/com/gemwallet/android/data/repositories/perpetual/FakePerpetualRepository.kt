@@ -104,7 +104,7 @@ class FakePerpetualRepository @Inject constructor() : PerpetualRepository {
 
     override suspend fun putAsset(asset: Asset) {}
 
-    override suspend fun putBalance(walletId: WalletId, assetId: AssetId, balance: PerpetualBalance) {
+    override suspend fun putBalance(walletId: WalletId, asset: Asset, balance: PerpetualBalance) {
         balancesFlow.value = balancesFlow.value.toMutableMap().apply { put(walletId.id, balance) }
     }
 

@@ -248,7 +248,7 @@ pub use self::perpetual::{
     PerpetualModifyPositionType, PerpetualPositionData, PerpetualPositionsSummary, PerpetualReduceData, PerpetualSearchData, PerpetualType, TPSLOrderData,
 };
 pub mod search;
-pub use self::search::SearchResponse;
+pub use self::search::{AssetList, SearchResponse};
 pub mod perpetual_id;
 pub use self::perpetual_id::PerpetualId;
 pub mod perpetual_provider;
