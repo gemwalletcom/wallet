@@ -36,7 +36,6 @@ extension ConfirmNetworkFeeViewModel {
             .init(
                 title: title,
                 subtitle: networkFeeValue,
-                subtitleExtra: networkFeeFiatValue,
                 placeholders: [.subtitle],
                 infoAction: infoAction,
             ),
@@ -48,23 +47,8 @@ extension ConfirmNetworkFeeViewModel {
 // MARK: - Private
 
 extension ConfirmNetworkFeeViewModel {
-    private var isCalculatorError: Bool {
-        switch state.value?.transferAmount {
-        case .success, .none: false
-        case .failure: true
-        }
-    }
-
     private var networkFeeValue: String? {
         if state.isError { return "-" }
-        if isCalculatorError { return value }
         return fiatValue ?? value
-    }
-
-    private var networkFeeFiatValue: String? {
-        if isCalculatorError {
-            return fiatValue
-        }
-        return nil
     }
 }

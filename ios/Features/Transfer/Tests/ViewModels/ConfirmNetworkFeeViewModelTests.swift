@@ -79,8 +79,8 @@ struct ConfirmNetworkFeeViewModelTests {
         )
 
         guard case let .networkFee(item, selectable) = model.itemModel else { return }
-        #expect(item.subtitle == value)
-        #expect(item.subtitleExtra == fiatValue)
+        #expect(item.subtitle == fiatValue)
+        #expect(item.subtitleExtra == nil)
         #expect(selectable == true)
     }
 }

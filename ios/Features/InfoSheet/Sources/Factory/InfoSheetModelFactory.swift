@@ -27,20 +27,21 @@ public enum InfoSheetModelFactory {
                 description: Localized.Info.InsufficientBalance.description(asset.symbol.boldMarkdown()),
                 image: .assetImage(image),
             )
-        case let .insufficientNetworkFee(asset, image, required, action):
-            let formatter = ValueFormatter(style: .auto)
-            let value = if let required {
-                formatter.string(required, decimals: asset.chain.asset.decimals.asInt, currency: asset.chain.asset.symbol)
+        case let .insufficientNetworkFee(asset, image, required, price, currency, action):
+            let feeAsset = asset.chain.asset
+            let value: String
+            if let required {
+                value = Self.requiredFeeText(required, feeAsset: feeAsset, price: price, currency: currency)
             } else {
-                asset.chain.asset.symbol
+                value = feeAsset.symbol
             }
             let description = Localized.Info.InsufficientNetworkFeeBalance.description(
                 value.boldMarkdown(),
-                asset.chain.asset.name.boldMarkdown(),
-                asset.chain.asset.symbol.boldMarkdown(),
+                feeAsset.name.boldMarkdown(),
+                feeAsset.symbol.boldMarkdown(),
             )
             return InfoSheetModel(
-                title: Localized.Info.InsufficientNetworkFeeBalance.title(asset.chain.asset.symbol),
+                title: Localized.Info.InsufficientNetworkFeeBalance.title(feeAsset.symbol),
                 description: description,
                 image: .assetImage(image),
                 button: .action(title: Localized.Asset.buyAsset(asset.feeAsset.symbol), action: action),
@@ -214,5 +215,17 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Logo.logo),
             )
         }
+    }
+
+    private static func requiredFeeText(_ required: BigInt, feeAsset: Asset, price: Price?, currency: String) -> String {
+        let feeDisplay = NumericViewModel(
+            data: AssetValuePrice(asset: feeAsset, value: required, price: price?.price == 0 ? nil : price),
+            style: AmountDisplayStyle(currencyCode: currency),
+        )
+        let feeText = feeDisplay.amount.text
+        guard let fiatText = feeDisplay.fiat?.text else {
+            return feeText
+        }
+        return "\(feeText) (~\(fiatText))"
     }
 }

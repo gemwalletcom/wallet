@@ -19,7 +19,6 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.SignerParams
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -217,15 +216,6 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val feeValue = combine(preloadData, feeAssetInfo) { signerParams, feeAssetInfo ->
-        val amount = signerParams?.fee()?.amount
-        if (amount == null || feeAssetInfo == null) {
-            return@combine ""
-        }
-        ValueFormatter(style = ValueFormatter.Style.Auto).string(amount, feeAssetInfo.asset)
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, "")
-
     val feeUIModel = combine(preloadData, feeAssetInfo, state) { signerParams, feeAssetInfo, state ->
         val amount = signerParams?.fee()?.amount
         val result = if (state is ConfirmState.Prepare) {
@@ -258,6 +248,9 @@ class ConfirmViewModel @Inject constructor(
         result
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val feeValue = feeUIModel.map { (it as? FeeUIModel.FeeInfo)?.cryptoAmountWithFiat.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val feeRates = preloadData.map { it?.feeRates.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

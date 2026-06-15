@@ -13,6 +13,8 @@ import Components
 import EventPresenterService
 import EventPresenterServiceTestKit
 import FiatServiceTestKit
+import Foundation
+import InfoSheet
 import KeystoreTestKit
 import Localization
 import NodeService
@@ -27,6 +29,7 @@ import Testing
 import TransactionStateServiceTestKit
 @testable import Transfer
 import TransferTestKit
+import Validators
 
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
@@ -425,6 +428,48 @@ struct ConfirmTransferSceneViewModelTests {
             return
         }
         #expect(symbol == "BTC")
+    }
+
+    @Test
+    func insufficientNetworkFeeErrorShowsRequiredAmount() {
+        let model = ConfirmTransferSceneViewModel.mock()
+        let required = BigInt(21_000_000_000_000)
+        model.onSelectListError(error: TransferAmountCalculatorError.insufficientNetworkFee(.mockEthereum(), required: required))
+
+        guard case let .info(.insufficientNetworkFee(_, _, sheetRequired, _, _, _)) = model.isPresentingSheet else {
+            Issue.record("Expected insufficientNetworkFee sheet")
+            return
+        }
+        #expect(sheetRequired == required)
+    }
+
+    @Test
+    func insufficientNetworkFeeSheetShowsRequiredFeeWithFiat() {
+        let asset = Asset.mockEthereum()
+        let feeAsset = asset.chain.asset
+        let image = AssetViewModel(asset: asset).assetImage
+        let required = BigInt(2_000_000_000_000_000)
+
+        let withPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
+            asset, image: image, required: required,
+            price: Price(price: 2000, priceChangePercentage24h: 0, updatedAt: Date()),
+            currency: "USD", action: {},
+        ))
+        let withoutPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
+            asset, image: image, required: required,
+            price: nil, currency: "USD", action: {},
+        ))
+
+        #expect(withPrice.description == Localized.Info.InsufficientNetworkFeeBalance.description(
+            "0.002 ETH (~$4.00)".boldMarkdown(),
+            feeAsset.name.boldMarkdown(),
+            feeAsset.symbol.boldMarkdown(),
+        ))
+        #expect(withoutPrice.description == Localized.Info.InsufficientNetworkFeeBalance.description(
+            "0.002 ETH".boldMarkdown(),
+            feeAsset.name.boldMarkdown(),
+            feeAsset.symbol.boldMarkdown(),
+        ))
     }
 
     private func verifyNonEmpty(_ model: any ItemModelProvidable<ConfirmTransferItemModel>) {

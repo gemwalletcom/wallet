@@ -28,5 +28,9 @@ sealed interface FeeUIModel {
             else CurrencyFormatter(currency = currency)
                 .string(CryptoFiatConverter.toFiat(Crypto(amount), feeAsset.decimals, price).atomicValue)
         }
+
+        val cryptoAmountWithFiat: String by lazy {
+            if (fiatAmount.isEmpty()) cryptoAmount else "$cryptoAmount (~$fiatAmount)"
+        }
     }
 }
