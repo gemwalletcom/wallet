@@ -9,6 +9,7 @@
   - `./gradlew :app:testGoogleDebugUnitTest` — app module only
   - `./gradlew :<module>:testDebugUnitTest` — one feature or shared module
 - Run the narrowest relevant target while iterating, then finish with broader validation
+- For local instrumented tests, start the emulator from the repo root first with `just start-emulator`, then run `just android test-integration` or `cd android && ./gradlew connectedGoogleDebugAndroidTest`
 
 ## Test Structure
 
