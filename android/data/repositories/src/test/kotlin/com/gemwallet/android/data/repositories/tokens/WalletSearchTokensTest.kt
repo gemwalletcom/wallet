@@ -50,7 +50,7 @@ class WalletSearchTokensTest {
 
         assertTrue(result)
         coVerify { perpetualRepository.putPerpetuals(any()) }
-        coVerify { searchDao.put(match { priorities -> priorities.any { it.type == "perpetual" } }) }
+        coVerify { searchDao.put(match { records -> records.any { it.perpetualId != null } }) }
     }
 
     @Test

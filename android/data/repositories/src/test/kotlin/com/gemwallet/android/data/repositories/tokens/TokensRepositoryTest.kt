@@ -99,7 +99,7 @@ class TokensRepositoryTest {
         coVerify { searchDao.put(capture(priorities)) }
         val captured = priorities.captured
 
-        assertEquals(listOf(firstResult.asset.id.toIdentifier(), secondResult.asset.id.toIdentifier()), captured.map { it.itemId })
+        assertEquals(listOf(firstResult.asset.id.toIdentifier(), secondResult.asset.id.toIdentifier()), captured.map { it.assetId })
         assertTrue("first response item must outrank later items", captured[0].priority < captured[1].priority)
     }
 
