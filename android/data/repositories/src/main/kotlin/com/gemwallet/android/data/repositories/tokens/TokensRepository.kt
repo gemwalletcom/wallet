@@ -48,6 +48,7 @@ class TokensRepository (
 
     internal suspend fun storeAssets(query: String, tokens: List<AssetBasic>, currency: Currency, priorityQuery: String): Boolean {
         return if (tokens.isEmpty()) {
+            searchDao.deleteAssets(priorityQuery)
             val assets = tokenService.search(query)
             runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
             assets.isNotEmpty()
