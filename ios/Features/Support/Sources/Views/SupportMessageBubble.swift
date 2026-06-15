@@ -11,6 +11,7 @@ struct SupportMessageBubble: View {
     private enum Constants {
         static let imageWidth: CGFloat = 240
         static let imageHeight: CGFloat = 180
+        static let maxWidth: CGFloat = 300
     }
 
     var body: some View {
@@ -22,21 +23,28 @@ struct SupportMessageBubble: View {
                 textBubble
             }
         }
+        .frame(maxWidth: Constants.maxWidth, alignment: .leading)
     }
 
     private var textBubble: some View {
-        HStack(alignment: .lastTextBaseline, spacing: .small) {
-            Text(.init(model.content))
-                .font(.body)
-                .foregroundStyle(model.palette.text)
-                .tint(model.palette.link)
-                .textSelection(.enabled)
-            statusView
-        }
-        .padding(.vertical, .small)
-        .padding(.horizontal, .space12)
-        .background(model.palette.background)
-        .clipShape(RoundedRectangle(cornerRadius: .space16))
+        (Text(.init(model.content)) + timeSpacer)
+            .font(.body)
+            .foregroundStyle(model.palette.text)
+            .tint(model.palette.link)
+            .overlay(alignment: .bottomTrailing) {
+                statusView
+            }
+            .padding(.vertical, .small)
+            .padding(.horizontal, .space12)
+            .background(model.palette.background)
+            .clipShape(RoundedRectangle(cornerRadius: .space16))
+            .contextMenu(.copy(value: model.content))
+    }
+
+    private var timeSpacer: Text {
+        Text(verbatim: "  \(model.time)")
+            .font(.caption2)
+            .foregroundStyle(Color.clear)
     }
 
     private var imagesView: some View {

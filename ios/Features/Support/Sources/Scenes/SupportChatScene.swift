@@ -44,6 +44,18 @@ public struct SupportChatScene: View {
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: .small) {
+                    AssetImageView(
+                        assetImage: AssetImage(imageURL: nil, placeholder: Images.Support.agent),
+                        size: .image.small,
+                    )
+                    Text(model.title)
+                        .font(.headline)
+                }
+            }
+        }
         .interactiveDismissDisabled()
         .task {
             await model.fetch()

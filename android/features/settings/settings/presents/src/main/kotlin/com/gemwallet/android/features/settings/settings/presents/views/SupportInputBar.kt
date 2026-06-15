@@ -18,12 +18,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -42,6 +45,9 @@ private val messageInputCornerRadius = 24.dp
 internal fun SupportInputBar(onPickImage: () -> Unit, onSend: (String) -> Unit) {
     var input by remember { mutableStateOf("") }
     val canSend = input.isNotBlank()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     fun send() {
         val text = input.trim()
@@ -71,7 +77,7 @@ internal fun SupportInputBar(onPickImage: () -> Unit, onSend: (String) -> Unit) 
                 BasicTextField(
                     value = input,
                     onValueChange = { input = it },
-                    modifier = Modifier.weight(1f).padding(end = paddingDefault),
+                    modifier = Modifier.weight(1f).padding(end = paddingDefault).focusRequester(focusRequester),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     maxLines = 5,

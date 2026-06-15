@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -33,6 +32,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.gemwallet.android.ui.R
@@ -86,6 +88,12 @@ internal fun SupportMessageBubble(
             val context = LocalContext.current
             val clipboard = LocalClipboard.current.nativeClipboard
             var menuExpanded by remember { mutableStateOf(false) }
+            val markdown = parseMarkdownToAnnotatedString(message.content)
+            val timeSpacerStyle = MaterialTheme.typography.labelSmall.toSpanStyle().copy(color = Color.Transparent)
+            val text = buildAnnotatedString {
+                append(markdown)
+                withStyle(timeSpacerStyle) { append("  $time") }
+            }
             DropDownContextItem(
                 isExpanded = menuExpanded,
                 onDismiss = { menuExpanded = false },
@@ -107,18 +115,19 @@ internal fun SupportMessageBubble(
                         shape = RoundedCornerShape(messageBubbleCornerRadius),
                         modifier = contentModifier,
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = space12, vertical = paddingSmall),
-                            verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
-                        ) {
+                        Box(modifier = Modifier.padding(horizontal = space12, vertical = paddingSmall)) {
                             Text(
-                                text = parseMarkdownToAnnotatedString(message.content),
+                                text = text,
                                 color = textColor,
                                 style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.weight(1f, fill = false),
                             )
-                            MessageMeta(message = message, time = time, color = metaColor, onRetry = onRetry)
+                            MessageMeta(
+                                message = message,
+                                time = time,
+                                color = metaColor,
+                                onRetry = onRetry,
+                                modifier = Modifier.align(Alignment.BottomEnd),
+                            )
                         }
                     }
                 },
@@ -133,8 +142,9 @@ private fun MessageMeta(
     time: String,
     color: Color,
     onRetry: (SupportMessage) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Box(contentAlignment = Alignment.Center) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Text(
             text = time,
             style = MaterialTheme.typography.labelSmall,
