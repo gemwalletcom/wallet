@@ -20,6 +20,7 @@ import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 
@@ -35,6 +36,7 @@ class TokensRepository (
         if (query.isEmpty() && tags.isEmpty()) {
             return@withContext false
         }
+        val nodeAssets = async { tokenService.search(query) }
         val tokens = try {
             searchAssets.search(
                 query = query,
@@ -42,18 +44,16 @@ class TokensRepository (
                 tags = tags,
             )
         } catch (_: Throwable) {
+            nodeAssets.cancel()
             return@withContext false
         }
-        val assets = if (tokens.isEmpty()) {
-            val assets = tokenService.search(query)
-            runCatching { assetsDao.insert(assets.map { it.toRecord() }) }
-            assets
-        } else {
-            updateAssets(tokens, currency)
-            assetsPriorityDao.put(tokens.toRecordPriority(tags.toPriorityQuery(query)))
-            tokens
+        val assets = (tokens + nodeAssets.await()).distinctBy { it.asset.id }
+        if (assets.isEmpty()) {
+            return@withContext false
         }
-        assets.isNotEmpty()
+        updateAssets(assets, currency)
+        assetsPriorityDao.put(assets.toRecordPriority(tags.toPriorityQuery(query)))
+        true
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean {

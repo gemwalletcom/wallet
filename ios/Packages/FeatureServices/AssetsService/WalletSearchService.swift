@@ -31,12 +31,39 @@ public struct WalletSearchService: Sendable {
     }
 
     public func search(wallet: Wallet, query: String, tag: AssetTag? = nil) async throws {
-        let response = try await searchProvider.search(
-            query: query,
-            chains: WalletSearchScope.chains(for: wallet),
-            tags: [tag].compactMap(\.self),
-        )
-        let prices: [AssetPrice] = response.assets.compactMap { asset in
+        let scopeChains = WalletSearchScope.chains(for: wallet)
+        let chains = tag == nil ? (scopeChains.isEmpty ? Chain.allCases : scopeChains) : []
+
+        async let networkAssets = assetsService.searchNetworkAsset(tokenId: query, chains: chains)
+        async let response = searchProvider.search(query: query, chains: scopeChains, tags: [tag].compactMap(\.self))
+        let assets = try await response.assets + networkAssets
+
+        let searchKey = searchHistoryKey(query: query, tag: tag)
+        try store(assets: assets, wallet: wallet, searchKey: searchKey)
+        if tag == nil {
+            try await store(perpetuals: response.perpetuals, searchKey: searchKey)
+        }
+    }
+}
+
+// MARK: - Private
+
+private extension WalletSearchService {
+    func store(assets: [AssetBasic], wallet: Wallet, searchKey: String) throws {
+        try assetsService.addAssets(assets: assets)
+        try priceStore.updatePrices(prices: prices(from: assets), currency: preferences.currency)
+        try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: assets.map(\.asset.id))
+        try searchStore.add(type: .asset, query: searchKey, ids: assets.map(\.asset.id.identifier))
+    }
+
+    func store(perpetuals: [PerpetualSearchData], searchKey: String) throws {
+        try assetsService.addAssets(assets: perpetuals.map(\.assetBasic))
+        try perpetualStore.upsertPerpetuals(perpetuals.map(\.perpetual))
+        try searchStore.add(type: .perpetual, query: searchKey, ids: perpetuals.map(\.perpetual.id.identifier))
+    }
+
+    func prices(from assets: [AssetBasic]) -> [AssetPrice] {
+        assets.compactMap { asset in
             guard let price = asset.price else { return nil }
             return AssetPrice(
                 assetId: asset.asset.id,
@@ -45,22 +72,9 @@ public struct WalletSearchService: Sendable {
                 updatedAt: price.updatedAt,
             )
         }
+    }
 
-        try assetsService.addAssets(assets: response.assets)
-        try priceStore.updatePrices(prices: prices, currency: preferences.currency)
-        if tag == nil {
-            try assetsService.addAssets(assets: response.perpetuals.map(\.assetBasic))
-            try perpetualStore.upsertPerpetuals(response.perpetuals.map(\.perpetual))
-        }
-        try assetsService.addBalancesIfMissing(
-            walletId: wallet.id,
-            assetIds: response.assets.map(\.asset.id),
-        )
-
-        let searchKey = tag.map { query.isEmpty ? "tag:\($0.rawValue)" : query } ?? query
-        try searchStore.add(type: .asset, query: searchKey, ids: response.assets.map(\.asset.id.identifier))
-        if tag == nil {
-            try searchStore.add(type: .perpetual, query: searchKey, ids: response.perpetuals.map(\.perpetual.id.identifier))
-        }
+    func searchHistoryKey(query: String, tag: AssetTag?) -> String {
+        tag.map { query.isEmpty ? "tag:\($0.rawValue)" : query } ?? query
     }
 }

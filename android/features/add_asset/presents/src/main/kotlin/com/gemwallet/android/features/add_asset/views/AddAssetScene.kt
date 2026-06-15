@@ -60,6 +60,7 @@ fun AddAssetScene(
     network: Asset,
     token: Asset?,
     explorerLink: BlockExplorerLink?,
+    isLoading: Boolean,
     onScan: () -> Unit,
     onAddAsset: () -> Unit,
     onChainSelect: (() -> Unit)?,
@@ -79,6 +80,7 @@ fun AddAssetScene(
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
                 enabled = searchState is TokenSearchState.Idle && token != null,
+                loading = isLoading,
                 onClick = onAddAsset,
             )
         },

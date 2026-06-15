@@ -145,42 +145,24 @@ public final class AssetsService: Sendable {
     // search
 
     public func searchAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {
-        try await withThrowingTaskGroup(of: [AssetBasic]?.self) { group in
-            var assets = [AssetBasic]()
-
-            group.addTask {
-                try await self.searchAPIAssets(query: query, chains: chains, tags: tags)
-            }
-            group.addTask {
-                try await self.searchNetworkAsset(tokenId: query, chains: chains.isEmpty ? Chain.allCases : chains)
-            }
-
-            for try await result in group {
-                if let result, result.count > 0 {
-                    assets.append(contentsOf: result)
-                }
-            }
-            return assets
-        }
+        async let apiAssets = assetsProvider.getSearchAssets(query: query, chains: chains, tags: tags)
+        async let networkAssets = searchNetworkAsset(tokenId: query, chains: chains.isEmpty ? Chain.allCases : chains)
+        return try await apiAssets + networkAssets
     }
 
-    func searchAPIAssets(query: String, chains: [Chain], tags: [AssetTag]) async throws -> [AssetBasic] {
-        try await assetsProvider.getSearchAssets(query: query, chains: chains, tags: tags)
-    }
-
-    func searchNetworkAsset(tokenId: String, chains: [Chain]) async throws -> [AssetBasic] {
-        try await withThrowingTaskGroup(of: AssetBasic?.self) { group in
+    func searchNetworkAsset(tokenId: String, chains: [Chain]) async -> [AssetBasic] {
+        await withTaskGroup(of: AssetBasic?.self) { group in
             for chain in chains {
                 group.addTask {
                     let service = self.chainServiceFactory.service(for: chain)
-                    guard try await service.getIsTokenAddress(tokenId: tokenId),
+                    guard (try? await service.getIsTokenAddress(tokenId: tokenId)) == true,
                           let asset = try? await service.getTokenData(tokenId: tokenId)
                     else { return nil }
 
                     return asset.defaultBasic
                 }
             }
-            return try await group.reduce(into: [AssetBasic]()) { if let asset = $1 { $0.append(asset) } }
+            return await group.reduce(into: [AssetBasic]()) { if let asset = $1 { $0.append(asset) } }
         }
     }
 

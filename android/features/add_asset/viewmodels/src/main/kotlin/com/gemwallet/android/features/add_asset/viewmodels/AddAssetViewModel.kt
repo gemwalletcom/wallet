@@ -17,10 +17,12 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.Explorer
+import uniffi.gemstone.checksumAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -32,7 +34,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,7 +76,7 @@ class AddAssetViewModel @Inject constructor(
     val addressQuery = snapshotFlow { addressState.value }
 
     val searchState = addressQuery.combine(selectedChain) { address, chain ->
-        Pair(address, chain)
+        Pair(normalizedAddress(chain, address), chain)
     }.flatMapLatest {
         val (address, chain) = it
         flow {
@@ -92,7 +93,7 @@ class AddAssetViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, TokenSearchState.Idle)
 
     val token = combine(addressQuery, selectedChain) { address, chain ->
-        Pair(address.trim(), chain)
+        Pair(normalizedAddress(chain, address), chain)
     }
     .flatMapLatest {
         val (address, chain) = it
@@ -143,15 +144,20 @@ class AddAssetViewModel @Inject constructor(
     }
 
     fun addAsset(onFinish: () -> Unit) = viewModelScope.launch {
+        val assetId = token.value?.id ?: return@launch
+        state.update { it.copy(isImporting = true) }
+        runCatching {
+            withContext(Dispatchers.IO) {
+                addCustomToken(selectedChain.value, assetId)
+            }
+        }
         onFinish()
-        async(Dispatchers.IO) {
-            addCustomToken(selectedChain.value, token.value?.id ?: return@async)
-        }.await()
     }
 
     private data class State(
         val isQrScan: Boolean = false,
         val isSelectChain: Boolean = false,
+        val isImporting: Boolean = false,
     ) {
         fun toUIState(): AddAssetUIState {
             return AddAssetUIState(
@@ -160,10 +166,14 @@ class AddAssetViewModel @Inject constructor(
                     isSelectChain -> AddAssetUIState.Scene.SelectChain
                     else -> AddAssetUIState.Scene.Form
                 },
+                isLoading = isImporting,
             )
         }
     }
 }
+
+private fun normalizedAddress(chain: Chain, address: String): String =
+    checksumAddress(address = address.trim(), chain = chain.string)
 
 suspend fun searchToken(
     searchCustomToken: SearchCustomToken,
