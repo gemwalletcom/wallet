@@ -16,6 +16,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.DbRecentActivity
 import com.gemwallet.android.data.service.store.database.entities.DbRecentAsset
 import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentType
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.flow.Flow
@@ -265,8 +266,9 @@ interface AssetsDao {
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
             OR SUBSTR(id, INSTR(id, '_') + 1) LIKE '%' || :query || '%' COLLATE NOCASE)
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
+            LIMIT :limit
         """)
-    fun search(walletId: String, query: String, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
+    fun search(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -279,8 +281,9 @@ interface AssetsDao {
             AND assetRank > 0
             AND search.`query` = :query
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
+            LIMIT :limit
         """)
-    fun searchWithPriority(walletId: String, query: String, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
+    fun searchWithPriority(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -291,8 +294,9 @@ interface AssetsDao {
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
             OR SUBSTR(id, INSTR(id, '_') + 1) LIKE '%' || :query || '%' COLLATE NOCASE)
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
+            LIMIT :limit
         """)
-    fun searchByAllWallets(walletId: String, query: String): Flow<List<DbAssetInfo>>
+    fun searchByAllWallets(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -303,8 +307,9 @@ interface AssetsDao {
             AND
             search.`query` = :query
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
+            LIMIT :limit
         """)
-    fun searchByAllWalletsWithPriority(walletId: String, query: String): Flow<List<DbAssetInfo>>
+    fun searchByAllWalletsWithPriority(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*

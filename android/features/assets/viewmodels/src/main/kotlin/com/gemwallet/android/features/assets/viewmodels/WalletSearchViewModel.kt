@@ -120,6 +120,8 @@ class WalletSearchViewModel @Inject constructor(
         else -> WalletSearchConfig.assetsInitialLimit
     }
 
+    override fun assetsSearchLimit(query: String, tag: AssetTag?): Int = assetsLimit(query, tag) + 1
+
     fun onPinAsset(assetId: AssetId) {
         val willPin = (pinned.value + unpinned.value).firstOrNull { it.asset.id == assetId }?.metadata?.isPinned != true
         onTogglePin(assetId)

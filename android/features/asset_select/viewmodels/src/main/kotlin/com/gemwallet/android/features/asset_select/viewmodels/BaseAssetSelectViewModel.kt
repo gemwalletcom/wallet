@@ -9,6 +9,7 @@ import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVi
 import com.gemwallet.android.application.asset_select.coordinators.ToggleAssetPin
 import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
 import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.coordinators.GetSession
 import com.gemwallet.android.cases.tokens.SearchTokensCase
@@ -85,7 +86,7 @@ open class BaseAssetSelectViewModel(
         chainFilter,
         balanceFilter,
     ) { session, query, tag, chainFilter, hasBalance ->
-        SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, tag = tag)
+        SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, tag = tag, limit = assetsSearchLimit(query, tag))
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -235,6 +236,8 @@ open class BaseAssetSelectViewModel(
     open val recentTypes: List<RecentType> get() = RecentType.entries
 
     open fun assetFilters(): Set<AssetFilter> = emptySet()
+
+    open fun assetsSearchLimit(query: String, tag: AssetTag?): Int = NO_QUERY_LIMIT
 
     private data class SearchRequest(
         val query: String,

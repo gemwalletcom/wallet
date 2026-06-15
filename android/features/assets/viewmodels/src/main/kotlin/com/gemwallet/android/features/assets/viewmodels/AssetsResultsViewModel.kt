@@ -53,6 +53,8 @@ class AssetsResultsViewModel @Inject constructor(
         queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
     }
 
+    override fun assetsSearchLimit(query: String, tag: AssetTag?): Int = WalletSearchConfig.resultsLimit
+
     val cappedAssets: StateFlow<List<AssetItemUIModel>> = combine(pinned, unpinned) { pinned, unpinned ->
         unpinned.take((WalletSearchConfig.resultsLimit - pinned.size).coerceAtLeast(0))
     }

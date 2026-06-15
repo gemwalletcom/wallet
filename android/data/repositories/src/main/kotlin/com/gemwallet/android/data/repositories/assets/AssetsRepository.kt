@@ -27,6 +27,7 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
@@ -236,8 +237,8 @@ class AssetsRepository @Inject constructor(
         return searchTokensCase.search(assetId, currency)
     }
 
-    fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> =
-        searchService.search(query, tags, byAllWallets)
+    fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean, limit: Int = NO_QUERY_LIMIT): Flow<List<AssetInfo>> =
+        searchService.search(query, tags, byAllWallets, limit)
 
     fun swapSearch(wallet: Wallet, query: String, byChains: List<Chain>, byAssets: List<AssetId>, tags: List<AssetTag>): Flow<List<AssetInfo>> =
         searchService.swapSearch(wallet, query, byChains, byAssets, tags)
