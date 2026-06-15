@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
 import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
 import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
@@ -129,15 +130,23 @@ fun WalletSearchScreen(
         state = state,
         isAddAvailable = isAddAssetAvailable,
         searchable = false,
-        onChainFilter = {},
-        onBalanceFilter = {},
-        onClearFilters = {},
-        onCancel = { handleAction(WalletSearchAction.Cancel) },
-        onAddAsset = if (isAddAssetAvailable) ({ handleAction(WalletSearchAction.AddAsset) }) else null,
-        onSelect = { handleAction(WalletSearchAction.OpenAsset(it)) },
-        onSelectRecent = { handleAction(WalletSearchAction.OpenRecent(it)) },
-        onOpenRecentsSheet = { handleAction(WalletSearchAction.OpenRecentsSheet) },
-        onTagSelect = { handleAction(WalletSearchAction.SelectTag(it)) },
+        onAction = { action ->
+            when (action) {
+                AssetSelectAction.Cancel -> handleAction(WalletSearchAction.Cancel)
+                AssetSelectAction.AddAsset -> handleAction(WalletSearchAction.AddAsset)
+                AssetSelectAction.OpenRecentsSheet -> handleAction(WalletSearchAction.OpenRecentsSheet)
+                AssetSelectAction.ShowAllAssets -> handleAction(
+                    WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag)
+                )
+                is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.assetId))
+                is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.assetId))
+                is AssetSelectAction.SelectTag -> handleAction(WalletSearchAction.SelectTag(action.tag))
+                is AssetSelectAction.ChainFilter,
+                is AssetSelectAction.BalanceFilter,
+                AssetSelectAction.ClearFilters -> Unit
+            }
+        },
+        recentsSheetEnabled = true,
         itemTrailing = { asset -> getBalanceInfo(asset)() },
         contextActions = AssetContextActions(
             onTogglePin = { handleAction(WalletSearchAction.PinAsset(it)) },
@@ -146,11 +155,7 @@ fun WalletSearchScreen(
         pinnedPerpetualRows = pinnedPerpetualRows,
         perpetualsContent = perpetualsContent,
         assetsHeaderRes = R.string.assets_title,
-        onAssetsHeaderClick = if (hasMoreAssets) {
-            { handleAction(WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString(), selectedTag)) }
-        } else {
-            null
-        },
+        assetsHeaderClickable = hasMoreAssets,
     )
 
     RecentsSheetHost(viewModel = recentsViewModel, onSelect = { handleAction(WalletSearchAction.OpenRecent(it)) })

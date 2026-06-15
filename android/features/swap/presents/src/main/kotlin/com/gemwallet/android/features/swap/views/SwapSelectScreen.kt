@@ -11,6 +11,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetItemUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
+import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
 import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHost
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
@@ -64,21 +65,30 @@ fun SwapSelectScreen(
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
-        onChainFilter = viewModel::onChainFilter,
-        onBalanceFilter = viewModel::onBalanceFilter,
-        onClearFilters = viewModel::onClearFilters,
-        onSelect = { viewModel.updateRecent(it, RecentType.SwapSelect); onSelectAsset(it) },
-        onSelectRecent = onSelectAsset,
-        onOpenRecentsSheet = { recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes) },
-        onCancel = onCancel,
-        onAddAsset = null,
+        onAction = { action ->
+            when (action) {
+                is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)
+                is AssetSelectAction.BalanceFilter -> viewModel.onBalanceFilter(action.onlyWithBalance)
+                AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
+                is AssetSelectAction.Select -> {
+                    viewModel.updateRecent(action.assetId, RecentType.SwapSelect)
+                    onSelectAsset(action.assetId)
+                }
+                is AssetSelectAction.SelectRecent -> onSelectAsset(action.assetId)
+                AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes)
+                AssetSelectAction.Cancel -> onCancel()
+                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
+                AssetSelectAction.AddAsset,
+                AssetSelectAction.ShowAllAssets -> Unit
+            }
+        },
+        recentsSheetEnabled = true,
         itemTrailing = { getBalanceInfo(it)() },
         support = {
             if (it.asset.id.type() == AssetSubtype.NATIVE) null else {
                 @Composable { ListItemSupportText(it.asset.id.chain.asset().name) }
             }
         },
-        onTagSelect = viewModel::onTagSelect
     )
 
     RecentsSheetHost(viewModel = recentsViewModel, onSelect = onSelectAsset)

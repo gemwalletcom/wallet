@@ -67,12 +67,20 @@ fun AssetsManageScreen(
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
         searchable = true,
-        onChainFilter = viewModel::onChainFilter,
-        onBalanceFilter = viewModel::onBalanceFilter,
-        onClearFilters = viewModel::onClearFilters,
-        onCancel = onCancel,
-        onAddAsset = if (isAddAssetAvailable) onAddAsset else null,
-        onSelect = null,
+        onAction = { action ->
+            when (action) {
+                is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)
+                is AssetSelectAction.BalanceFilter -> viewModel.onBalanceFilter(action.onlyWithBalance)
+                AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
+                AssetSelectAction.Cancel -> onCancel()
+                AssetSelectAction.AddAsset -> onAddAsset()
+                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
+                is AssetSelectAction.Select,
+                is AssetSelectAction.SelectRecent,
+                AssetSelectAction.OpenRecentsSheet,
+                AssetSelectAction.ShowAllAssets -> Unit
+            }
+        },
         actions = {
             if (isAddAssetAvailable) {
                 IconButton(onClick = onAddAsset) {
@@ -80,7 +88,6 @@ fun AssetsManageScreen(
                 }
             }
         },
-        onTagSelect = viewModel::onTagSelect,
         itemTrailing = { asset ->
             Switch(
                 checked = asset.metadata?.isBalanceEnabled == true,

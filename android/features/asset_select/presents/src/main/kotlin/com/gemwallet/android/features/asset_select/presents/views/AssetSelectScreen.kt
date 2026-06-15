@@ -73,18 +73,22 @@ fun AssetSelectScreen(
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
-        onChainFilter = viewModel::onChainFilter,
-        onBalanceFilter = viewModel::onBalanceFilter,
-        onClearFilters = viewModel::onClearFilters,
-        onSelect = selectAsset,
-        onSelectRecent = onSelectRecent,
-        onOpenRecentsSheet = if (onSelectRecent != null) {
-            { recentsViewModel.show(filters = viewModel.assetFilters()) }
-        } else null,
-        onCancel = onCancel,
-        onAddAsset = onAddAsset,
+        onAction = { action ->
+            when (action) {
+                is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)
+                is AssetSelectAction.BalanceFilter -> viewModel.onBalanceFilter(action.onlyWithBalance)
+                AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
+                is AssetSelectAction.Select -> selectAsset?.invoke(action.assetId)
+                is AssetSelectAction.SelectRecent -> onSelectRecent?.invoke(action.assetId)
+                AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
+                AssetSelectAction.Cancel -> onCancel()
+                AssetSelectAction.AddAsset -> onAddAsset?.invoke()
+                is AssetSelectAction.SelectTag -> viewModel.onTagSelect(action.tag)
+                AssetSelectAction.ShowAllAssets -> Unit
+            }
+        },
+        recentsSheetEnabled = onSelectRecent != null,
         itemTrailing = itemTrailing,
-        onTagSelect = viewModel::onTagSelect,
         selectedTag = selectedTag,
         tags = viewModel.getTags(),
     )
