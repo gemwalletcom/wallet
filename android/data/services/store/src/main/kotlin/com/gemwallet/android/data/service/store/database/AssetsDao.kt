@@ -314,7 +314,7 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO WHERE
-            (chain IN (:byChains) OR id IN (:byAssets) )
+            (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
             AND assetRank > 0
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE)
@@ -327,7 +327,7 @@ interface AssetsDao {
         FROM $ASSET_INFO
         JOIN search ON asset_info.id = search.assetId
         WHERE
-            (chain IN (:byChains) OR id IN (:byAssets) )
+            (chain IN (:byChains) OR asset_info.id IN (:byAssets) )
             AND assetRank > 0
             AND search.`query` = :query
             ORDER BY search.priority ASC, assetRank DESC
