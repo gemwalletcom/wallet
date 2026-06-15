@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "Leveraj Lalai";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit lalai";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss lalai";
+"support.state_empty_title" = "Bagaimana kami boleh membantu?";
+"support.state_empty_description" = "Tanya kami apa sahaja. Kami sedia membantu.";
+"support.message_placeholder" = "Mesej";
 "errors.transfer" = "Ralat Pemindahan: %@";
 "errors.validation" = "Ralat Pengesahan: %@";
 "errors.create_wallet" = "Ralat Cipta Wallet: %@";

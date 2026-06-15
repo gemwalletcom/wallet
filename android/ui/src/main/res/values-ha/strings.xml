@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Tsohuwar Leverage</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit na asali</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss na asali</string>
+  <string name="support_state_empty_title">Yaya za mu taimaka?</string>
+  <string name="support_state_empty_description">Tambaye mu kome. Muna nan don taimaka maka.</string>
+  <string name="support_message_placeholder">Saƙo</string>
   <string name="errors_transfer">Kuskuren Canja wurin: %1$s</string>
   <string name="errors_validation">Kuskuren Tabbatarwa: %1$s</string>
   <string name="errors_create_wallet">Ƙirƙiri Kuskuren Wallet: %1$s</string>

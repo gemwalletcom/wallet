@@ -13,6 +13,8 @@ import PrimitivesComponents
 import RewardsService
 import Settings
 import Store
+import Support
+import SupportChatService
 import SwiftUI
 import WalletConnector
 import WalletSessionService
@@ -41,6 +43,7 @@ struct SettingsNavigationStack: View {
     @Environment(\.inAppNotificationService) private var inAppNotificationService
     @Environment(\.contactService) private var contactService
     @Environment(\.nameService) private var nameService
+    @Environment(\.supportChatService) private var supportChatService
 
     @State private var isPresentingWallets = false
     @State private var currencyModel: CurrencySceneViewModel
@@ -78,7 +81,6 @@ struct SettingsNavigationStack: View {
                 ),
                 isPresentingWallets: $isPresentingWallets,
                 isPresentingSupport: $isPresentingSupport,
-                deviceId: (try? SecurePreferences.standard.getDeviceId()) ?? "",
             )
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Scenes.Security.self) { _ in
@@ -198,6 +200,12 @@ struct SettingsNavigationStack: View {
             }
             .sheet(isPresented: $isPresentingWallets) {
                 WalletsNavigationStack()
+            }
+            .sheet(isPresented: $isPresentingSupport) {
+                NavigationStack {
+                    SupportChatScene(model: SupportChatSceneViewModel(service: supportChatService))
+                        .toolbarDismissItem(type: .close, placement: .topBarLeading)
+                }
             }
         }
     }

@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Standaard hefboomwerking</string>
   <string name="settings_preferences_perpetual_default_take_profit">Standaard take profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Standaard stop loss</string>
+  <string name="support_state_empty_title">Hoe kunnen we helpen?</string>
+  <string name="support_state_empty_description">Vraag ons wat je maar wilt. We staan voor je klaar.</string>
+  <string name="support_message_placeholder">Bericht</string>
   <string name="errors_transfer">Overdrachtsfout: %1$s</string>
   <string name="errors_validation">Validatiefout: %1$s</string>
   <string name="errors_create_wallet">Fout bij het aanmaken van een portemonnee: %1$s</string>

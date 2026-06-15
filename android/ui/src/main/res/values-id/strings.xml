@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Leverage Default</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit default</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss default</string>
+  <string name="support_state_empty_title">Apa yang bisa kami bantu?</string>
+  <string name="support_state_empty_description">Tanyakan apa saja kepada kami. Kami siap membantu.</string>
+  <string name="support_message_placeholder">Pesan</string>
   <string name="errors_transfer">Kesalahan Transfer: %1$s</string>
   <string name="errors_validation">Kesalahan Validasi: %1$s</string>
   <string name="errors_create_wallet">Kesalahan Pembuatan Dompet: %1$s</string>

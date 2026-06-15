@@ -6,10 +6,9 @@ use storage::database::devices::DevicesStore;
 use storage::models::{DeviceRow, WalletRow};
 use storage::{Database, DatabaseClient, WalletsRepository};
 
-use crate::devices::auth_config::AuthConfig;
-use crate::devices::constants::{DEVICE_ID_LENGTH, HEADER_DEVICE_ID, HEADER_WALLET_ID};
+use crate::devices::constants::DEVICE_ID_LENGTH;
 use crate::devices::error::DeviceError;
-use crate::devices::signature::{parse_auth_components, verify_request_signature};
+use crate::devices::signature::verify_request_auth;
 use crate::responders::cache_error;
 
 pub(super) struct AuthResult {
@@ -24,6 +23,7 @@ pub(super) fn auth_error_outcome<T>(req: &Request<'_>, error: DeviceError, devic
         | DeviceError::InvalidTimestamp
         | DeviceError::TimestampExpired
         | DeviceError::InvalidSignature
+        | DeviceError::MissingWalletId
         | DeviceError::InvalidAuthorizationFormat => Status::Unauthorized,
         DeviceError::DeviceNotFound | DeviceError::WalletNotFound => Status::NotFound,
         DeviceError::DatabaseUnavailable | DeviceError::DatabaseError => Status::InternalServerError,
@@ -45,42 +45,21 @@ fn format_auth_error_message(error: &DeviceError, device_id: Option<&str>, walle
 }
 
 pub(super) async fn authenticate<T>(req: &Request<'_>) -> Result<AuthResult, Outcome<T, String>> {
-    let Success(config) = req.guard::<&rocket::State<AuthConfig>>().await else {
-        panic!("AuthConfig not configured");
+    let auth = match verify_request_auth(req).await {
+        Ok(auth) => auth,
+        Err((status, message)) => {
+            cache_error(req, &message);
+            return Err(Error((status, message)));
+        }
     };
 
-    if !config.enabled {
-        let device_id = req
-            .headers()
-            .get_one(HEADER_DEVICE_ID)
-            .ok_or_else(|| auth_error_outcome(req, DeviceError::MissingHeader(HEADER_DEVICE_ID), None, None))?;
-
-        if device_id.len() != DEVICE_ID_LENGTH {
-            return Err(auth_error_outcome(req, DeviceError::InvalidDeviceId, Some(device_id), None));
-        }
-
-        return Ok(AuthResult {
-            device_id: device_id.to_string(),
-            wallet_id: req.headers().get_one(HEADER_WALLET_ID).map(|s| s.to_string()),
-        });
+    if auth.device_id.len() != DEVICE_ID_LENGTH {
+        return Err(auth_error_outcome(req, DeviceError::InvalidDeviceId, Some(&auth.device_id), None));
     }
-
-    let components = parse_auth_components(req).map_err(|e| auth_error_outcome(req, e, None, None))?;
-
-    if components.device_id.len() != DEVICE_ID_LENGTH {
-        return Err(auth_error_outcome(req, DeviceError::InvalidDeviceId, Some(&components.device_id), None));
-    }
-
-    verify_request_signature(req, &components, config.tolerance.as_millis() as u64).map_err(|(status, msg)| {
-        cache_error(req, &msg);
-        Error((status, msg))
-    })?;
-
-    let wallet_id = components.wallet_id.clone().or_else(|| req.headers().get_one(HEADER_WALLET_ID).map(|s| s.to_string()));
 
     Ok(AuthResult {
-        device_id: components.device_id,
-        wallet_id,
+        device_id: auth.device_id.clone(),
+        wallet_id: auth.wallet_id.clone(),
     })
 }
 

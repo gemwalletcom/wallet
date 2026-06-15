@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Standardgearing</string>
   <string name="settings_preferences_perpetual_default_take_profit">Standard Take Profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Standard Stop Loss</string>
+  <string name="support_state_empty_title">Hvordan kan vi hjælpe?</string>
+  <string name="support_state_empty_description">Spørg os om hvad som helst. Vi er her for at hjælpe.</string>
+  <string name="support_message_placeholder">Besked</string>
   <string name="errors_transfer">Overførselsfejl: %1$s</string>
   <string name="errors_validation">Valideringsfejl: %1$s</string>
   <string name="errors_create_wallet">Fejl ved oprettelse af tegnebog: %1$s</string>

@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Njia Chaguomsingi
 settings_preferences_perpetual_default_take_profit = Take Profit chaguomsingi
 settings_preferences_perpetual_default_stop_loss = Stop Loss chaguomsingi
 
+# Support
+
+support_state_empty_title = Tunawezaje kukusaidia?
+support_state_empty_description = Tuulize chochote. Tupo hapa kukusaidia.
+support_message_placeholder = Ujumbe
+
 # Errors
 
 errors_transfer = Hitilafu ya Kuhamisha: %@

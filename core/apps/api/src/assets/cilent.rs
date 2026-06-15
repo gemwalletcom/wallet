@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 
-use super::filter::{build_assets_filters, build_filter};
+use super::filter::{build_assets_filters, build_filter, build_perpetuals_filters};
 use super::model::SearchRequest;
 use chrono::{DateTime, Utc};
 use pricer::PriceClient;
@@ -113,9 +113,11 @@ impl SearchClient {
     }
 
     pub async fn get_perpetuals_search(&self, request: &SearchRequest) -> Result<Vec<PerpetualSearchData>, Box<dyn Error + Send + Sync>> {
+        let filters = build_perpetuals_filters(request);
+
         let perpetuals: Vec<PerpetualDocument> = self
             .client
-            .search(PERPETUALS_INDEX_NAME, &request.query, &build_filter(vec![]), [].as_ref(), request.limit, request.offset)
+            .search(PERPETUALS_INDEX_NAME, &request.query, &build_filter(filters), [].as_ref(), request.limit, request.offset)
             .await?;
 
         Ok(perpetuals.into_iter().map(Into::into).collect())

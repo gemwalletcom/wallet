@@ -29,6 +29,7 @@ import ScanService
 import StakeService
 import Store
 import StreamService
+import SupportChatService
 import SwiftUI
 import TransactionsService
 import TransactionStateService
@@ -76,4 +77,5 @@ extension EnvironmentValues {
     @Entry var inAppNotificationService: InAppNotificationService = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: PortfolioService = AppResolver.main.services.portfolioService
     @Entry var contactService: ContactService = AppResolver.main.services.contactService
+    @Entry var supportChatService: SupportChatService = AppResolver.main.services.supportChatService
 }

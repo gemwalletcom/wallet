@@ -1,20 +1,14 @@
 use crate::DatabaseClient;
 use crate::models::{NewPerpetualRow, PerpetualRow};
 use crate::schema::{perpetuals, perpetuals_assets};
-use chrono::NaiveDateTime;
 use diesel::{prelude::*, upsert::excluded};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum PerpetualFilter {
-    UpdatedSince(NaiveDateTime),
-}
 
 pub(crate) trait PerpetualsStore {
     fn perpetuals_update(&mut self, values: Vec<NewPerpetualRow>) -> Result<usize, diesel::result::Error>;
 
     fn get_perpetuals_for_asset(&mut self, asset_id_value: &str) -> Result<Vec<PerpetualRow>, diesel::result::Error>;
 
-    fn get_perpetuals_by_filter(&mut self, filters: Vec<PerpetualFilter>) -> Result<Vec<PerpetualRow>, diesel::result::Error>;
+    fn get_perpetual_rows(&mut self) -> Result<Vec<PerpetualRow>, diesel::result::Error>;
 }
 
 impl PerpetualsStore for DatabaseClient {
@@ -48,17 +42,7 @@ impl PerpetualsStore for DatabaseClient {
             .load(&mut self.connection)
     }
 
-    fn get_perpetuals_by_filter(&mut self, filters: Vec<PerpetualFilter>) -> Result<Vec<PerpetualRow>, diesel::result::Error> {
-        let mut query = perpetuals::table.into_boxed();
-
-        for filter in filters {
-            match filter {
-                PerpetualFilter::UpdatedSince(value) => {
-                    query = query.filter(perpetuals::updated_at.gt(value));
-                }
-            }
-        }
-
-        query.select(PerpetualRow::as_select()).load(&mut self.connection)
+    fn get_perpetual_rows(&mut self) -> Result<Vec<PerpetualRow>, diesel::result::Error> {
+        perpetuals::table.select(PerpetualRow::as_select()).load(&mut self.connection)
     }
 }

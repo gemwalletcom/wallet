@@ -22,6 +22,7 @@ public struct StoreManager: Sendable {
     public let inAppNotificationStore: InAppNotificationStore
     public let contactStore: ContactStore
     public let fiatTransactionStore: FiatTransactionStore
+    public let supportChatStore: SupportChatStore
 
     public init(db: DB) {
         assetStore = AssetStore(db: db)
@@ -43,5 +44,6 @@ public struct StoreManager: Sendable {
         inAppNotificationStore = InAppNotificationStore(db: db)
         contactStore = ContactStore(db: db)
         fiatTransactionStore = FiatTransactionStore(db: db)
+        supportChatStore = SupportChatStore(db: db)
     }
 }

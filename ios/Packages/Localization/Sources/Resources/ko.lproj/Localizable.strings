@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "기본 레버리지";
 "settings.preferences.perpetual.default_take_profit" = "기본 익절";
 "settings.preferences.perpetual.default_stop_loss" = "기본 손절";
+"support.state_empty_title" = "무엇을 도와드릴까요?";
+"support.state_empty_description" = "무엇이든 물어보세요. 저희가 도와드리겠습니다.";
+"support.message_placeholder" = "메시지";
 "errors.transfer" = "전송 오류: %@";
 "errors.validation" = "유효성 검사 오류: %@";
 "errors.create_wallet" = "지갑 생성 오류: %@";

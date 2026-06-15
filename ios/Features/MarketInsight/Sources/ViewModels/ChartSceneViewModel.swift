@@ -18,14 +18,16 @@ import SwiftUI
 public final class ChartSceneViewModel: ChartListViewable {
     private let service: ChartService
     private let priceService: PriceService
-    private let preferences: Preferences = .standard
+    private let preferences: Preferences
 
     let walletId: WalletId
     let assetModel: AssetViewModel
     let priceAlertService: PriceAlertService
 
     public var chartState: StateViewType<ChartValuesViewModel> = .loading
-    public var selectedPeriod: ChartPeriod
+    public var selectedPeriod: ChartPeriod {
+        didSet { preferences.chartPeriod = selectedPeriod }
+    }
 
     public let priceQuery: ObservableQuery<PriceRequest>
     var priceData: PriceData? {
@@ -57,15 +59,16 @@ public final class ChartSceneViewModel: ChartListViewable {
         assetModel: AssetViewModel,
         priceAlertService: PriceAlertService,
         walletId: WalletId,
-        currentPeriod: ChartPeriod = ChartValuesViewModel.defaultPeriod,
+        preferences: Preferences = .standard,
         onSetPriceAlert: @escaping (Asset) -> Void,
     ) {
         self.service = service
         self.priceService = priceService
+        self.preferences = preferences
         self.assetModel = assetModel
         self.priceAlertService = priceAlertService
         self.walletId = walletId
-        selectedPeriod = currentPeriod
+        selectedPeriod = preferences.chartPeriod
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
         self.onSetPriceAlert = onSetPriceAlert
     }

@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Výchozí pákový efekt</string>
   <string name="settings_preferences_perpetual_default_take_profit">Výchozí take profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Výchozí stop loss</string>
+  <string name="support_state_empty_title">Jak vám můžeme pomoci?</string>
+  <string name="support_state_empty_description">Zeptejte se nás na cokoli. Jsme tu, abychom vám pomohli.</string>
+  <string name="support_message_placeholder">Zpráva</string>
   <string name="errors_transfer">Chyba přenosu: %1$s</string>
   <string name="errors_validation">Chyba ověření: %1$s</string>
   <string name="errors_create_wallet">Chyba vytvoření peněženky: %1$s</string>

@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Leveraj Lalai
 settings_preferences_perpetual_default_take_profit = Take Profit lalai
 settings_preferences_perpetual_default_stop_loss = Stop Loss lalai
 
+# Support
+
+support_state_empty_title = Bagaimana kami boleh membantu?
+support_state_empty_description = Tanya kami apa sahaja. Kami sedia membantu.
+support_message_placeholder = Mesej
+
 # Errors
 
 errors_transfer = Ralat Pemindahan: %@

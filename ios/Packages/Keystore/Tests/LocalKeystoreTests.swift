@@ -268,6 +268,59 @@ struct LocalKeystoreTests {
     }
 
     @Test
+    func setupChainsContinuesAfterWalletFailure() async throws {
+        let context = try LocalKeystore.mockContext()
+        defer { try? FileManager.default.removeItem(at: context.baseDir) }
+
+        let ethWallet = try await context.keystore.importWallet(
+            name: "ETH only",
+            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            isWalletsEmpty: false,
+            source: .import,
+        )
+        let solWallet = try await context.keystore.importWallet(
+            name: "SOL only",
+            type: .phrase(words: context.keystore.createWallet(), chains: [.solana]),
+            isWalletsEmpty: false,
+            source: .import,
+        )
+        try Data("{}".utf8).write(to: v4URL(for: ethWallet, in: context.baseDir))
+
+        let updated = try context.keystore.setupChains(
+            chains: chains,
+            for: [ethWallet, solWallet],
+        )
+
+        let wallet = try #require(updated.first)
+        #expect(updated.count == 1)
+        #expect(wallet.id == solWallet.id)
+        #expect(wallet.accounts.map(\.chain).asSet() == chains.asSet())
+    }
+
+    @Test
+    func setupChainsSkipsMissingV4KeystoreWithoutReadingPassword() async throws {
+        let context = try LocalKeystore.mockContext()
+        defer { try? FileManager.default.removeItem(at: context.baseDir) }
+
+        let wallet = try await context.keystore.importWallet(
+            name: "ETH only",
+            type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
+            isWalletsEmpty: false,
+            source: .import,
+        )
+        try FileManager.default.removeItem(at: v4URL(for: wallet, in: context.baseDir))
+        let passwordReads = context.password.getPasswordCallsCount
+
+        let updated = try context.keystore.setupChains(
+            chains: chains,
+            for: [wallet],
+        )
+
+        #expect(updated.isEmpty)
+        #expect(context.password.getPasswordCallsCount == passwordReads)
+    }
+
+    @Test
     func setupChainsAddNoMissingChains() async {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
@@ -302,6 +355,10 @@ struct LocalKeystoreTests {
         )
 
         #expect(try mockPassword.getPassword().count == 64)
+    }
+
+    private func v4URL(for wallet: Wallet, in baseDir: URL) -> URL {
+        baseDir.appending(path: "\(wallet.keystoreId).json")
     }
 
     @Test

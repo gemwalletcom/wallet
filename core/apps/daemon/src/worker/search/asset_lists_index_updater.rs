@@ -15,7 +15,7 @@ impl AssetListsIndexUpdater {
     }
 
     pub async fn update(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        let tags = self.database.tag()?.get_asset_list_tags()?;
+        let tags = [self.database.tag()?.get_asset_list_tags()?, self.database.tag()?.get_perpetual_list_tags()?].concat();
         let documents = tags.iter().map(|tag| AssetListDocument::from(tag.as_primitive())).collect::<Vec<_>>();
 
         self.search_index.replace_documents(ASSET_LISTS_INDEX_NAME, documents).await

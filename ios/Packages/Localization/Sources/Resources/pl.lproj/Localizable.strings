@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "Domyślna dźwignia";
 "settings.preferences.perpetual.default_take_profit" = "Domyślny take profit";
 "settings.preferences.perpetual.default_stop_loss" = "Domyślny stop loss";
+"support.state_empty_title" = "Jak możemy pomóc?";
+"support.state_empty_description" = "Zapytaj nas o cokolwiek. Jesteśmy tu, aby pomóc.";
+"support.message_placeholder" = "Wiadomość";
 "errors.transfer" = "Błąd transferu: %@";
 "errors.validation" = "Błąd walidacji: %@";
 "errors.create_wallet" = "Błąd tworzenia portfela: %@";

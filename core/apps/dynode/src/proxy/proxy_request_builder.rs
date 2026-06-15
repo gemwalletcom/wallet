@@ -30,7 +30,19 @@ impl ProxyRequestBuilder {
     }
 
     fn prepare_paths(uri: &str) -> (String, String) {
-        (Self::remove_chain_from_path(&Self::extract_path(uri)), Self::remove_chain_from_path(uri))
+        let path_with_query = Self::canonicalize_path(&Self::remove_chain_from_path(uri));
+        let path = Self::extract_path(&path_with_query);
+        (path, path_with_query)
+    }
+
+    fn canonicalize_path(path_with_query: &str) -> String {
+        Url::parse("http://0.0.0.0")
+            .and_then(|base| base.join(path_with_query))
+            .map(|resolved| match resolved.query() {
+                Some(query) => format!("{}?{}", resolved.path(), query),
+                None => resolved.path().to_string(),
+            })
+            .unwrap_or_else(|_| path_with_query.to_string())
     }
 
     fn parse_hostname(host_header: &str) -> String {
@@ -65,6 +77,23 @@ mod tests {
         assert_eq!(ProxyRequestBuilder::remove_chain_from_path("/bitcoin"), "/");
         assert_eq!(ProxyRequestBuilder::remove_chain_from_path("/solana?query=1"), "/?query=1");
         assert_eq!(ProxyRequestBuilder::remove_chain_from_path("/chain/path?foo=bar&baz=qux"), "/path?foo=bar&baz=qux");
+    }
+
+    #[test]
+    fn test_prepare_paths() {
+        assert_eq!(
+            ProxyRequestBuilder::prepare_paths("/bitcoin/api/v2/address/../block/900000"),
+            ("/api/v2/block/900000".to_string(), "/api/v2/block/900000".to_string())
+        );
+        assert_eq!(
+            ProxyRequestBuilder::prepare_paths("/bitcoin/api/v2/address/%2e%2e/block"),
+            ("/api/v2/block".to_string(), "/api/v2/block".to_string())
+        );
+        assert_eq!(ProxyRequestBuilder::prepare_paths("/ethereum/../secret"), ("/secret".to_string(), "/secret".to_string()));
+        assert_eq!(
+            ProxyRequestBuilder::prepare_paths("/bitcoin/api/v2/address/bc1qtest?page=1"),
+            ("/api/v2/address/bc1qtest".to_string(), "/api/v2/address/bc1qtest?page=1".to_string())
+        );
     }
 
     #[test]

@@ -27,6 +27,7 @@ import RewardsService
 import ScanService
 import StakeService
 import StreamService
+import SupportChatService
 import SwapService
 import TransactionsService
 import TransactionStateService
@@ -87,6 +88,7 @@ extension AppResolver {
         let portfolioService: PortfolioService
         let fiatService: FiatService
         let contactService: ContactService
+        let supportChatService: SupportChatService
 
         init(
             assetsService: AssetsService,
@@ -139,6 +141,7 @@ extension AppResolver {
             portfolioService: PortfolioService,
             fiatService: FiatService,
             contactService: ContactService,
+            supportChatService: SupportChatService,
         ) {
             self.assetsService = assetsService
             self.balanceService = balanceService
@@ -191,6 +194,7 @@ extension AppResolver {
             self.portfolioService = portfolioService
             self.fiatService = fiatService
             self.contactService = contactService
+            self.supportChatService = supportChatService
         }
     }
 }

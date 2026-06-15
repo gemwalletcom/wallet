@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = 기본 레버리지
 settings_preferences_perpetual_default_take_profit = 기본 익절
 settings_preferences_perpetual_default_stop_loss = 기본 손절
 
+# Support
+
+support_state_empty_title = 무엇을 도와드릴까요?
+support_state_empty_description = 무엇이든 물어보세요. 저희가 도와드리겠습니다.
+support_message_placeholder = 메시지
+
 # Errors
 
 errors_transfer = 전송 오류: %@

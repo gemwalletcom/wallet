@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Плечо по умолчан
 settings_preferences_perpetual_default_take_profit = Take Profit по умолчанию
 settings_preferences_perpetual_default_stop_loss = Stop Loss по умолчанию
 
+# Support
+
+support_state_empty_title = Чем мы можем помочь?
+support_state_empty_description = Спросите нас о чём угодно. Мы всегда рады помочь.
+support_message_placeholder = Сообщение
+
 # Errors
 
 errors_transfer = Ошибка передачи: %@

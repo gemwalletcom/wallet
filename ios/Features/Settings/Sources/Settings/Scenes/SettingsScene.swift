@@ -4,7 +4,6 @@ import Components
 import Localization
 import Primitives
 import PrimitivesComponents
-import Support
 import SwiftUI
 
 public struct SettingsScene: View {
@@ -13,18 +12,15 @@ public struct SettingsScene: View {
     @State private var model: SettingsViewModel
     @Binding private var isPresentingWallets: Bool
     @Binding private var isPresentingSupport: Bool
-    private let deviceId: String
 
     public init(
         model: SettingsViewModel,
         isPresentingWallets: Binding<Bool>,
         isPresentingSupport: Binding<Bool>,
-        deviceId: String,
     ) {
         _model = State(initialValue: model)
         _isPresentingWallets = isPresentingWallets
         _isPresentingSupport = isPresentingSupport
-        self.deviceId = deviceId
     }
 
     public var body: some View {
@@ -41,12 +37,6 @@ public struct SettingsScene: View {
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
-        .sheet(isPresented: $isPresentingSupport) {
-            SupportScene(model: SupportSceneViewModel(
-                deviceId: deviceId,
-                isPresentingSupport: $isPresentingSupport,
-            ))
-        }
     }
 }
 

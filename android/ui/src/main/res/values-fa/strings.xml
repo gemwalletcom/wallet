@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">اهرم پیش‌فرض</string>
   <string name="settings_preferences_perpetual_default_take_profit">حد سود پیشفرض</string>
   <string name="settings_preferences_perpetual_default_stop_loss">حد ضرر پیشفرض</string>
+  <string name="support_state_empty_title">چطور می‌توانیم کمک کنیم؟</string>
+  <string name="support_state_empty_description">هر سوالی دارید از ما بپرسید. ما اینجا هستیم تا کمک کنیم.</string>
+  <string name="support_message_placeholder">پیام</string>
   <string name="errors_transfer">خطای انتقال: %1$s</string>
   <string name="errors_validation">خطای اعتبارسنجی: %1$s</string>
   <string name="errors_create_wallet">خطای ایجاد کیف پول: %1$s</string>

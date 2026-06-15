@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "ডিফল্ট লিভারেজ";
 "settings.preferences.perpetual.default_take_profit" = "ডিফল্ট টেক প্রফিট";
 "settings.preferences.perpetual.default_stop_loss" = "ডিফল্ট স্টপ লস";
+"support.state_empty_title" = "আমরা কীভাবে সাহায্য করতে পারি?";
+"support.state_empty_description" = "আমাদের যেকোনো প্রশ্ন করুন। আমরা সাহায্য করতে এখানে আছি।";
+"support.message_placeholder" = "বার্তা";
 "errors.transfer" = "স্থানান্তর ত্রুটি: %@";
 "errors.validation" = "যাচাইকরণ ত্রুটি: %@";
 "errors.create_wallet" = "ওয়ালেট তৈরির ত্রুটি: %@";

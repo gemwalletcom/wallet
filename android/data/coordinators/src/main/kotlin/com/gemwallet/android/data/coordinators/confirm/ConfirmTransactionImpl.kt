@@ -53,9 +53,9 @@ class ConfirmTransactionImpl(
         }
 
         var lastHash = ""
-        for (sign in signs) {
+        for ((index, sign) in signs.withIndex()) {
             val transactionHash = broadcastService.send(account, sign, signerParams.input.getTransactionType())
-            if (!sign.contentEquals(signs.last())) {
+            if (index < signs.lastIndex) {
                 delay(500)
             } else {
                 lastHash = transactionHash

@@ -55,6 +55,7 @@ let package = Package(
         .library(name: "ConnectionsService", targets: ["ConnectionsService"]),
         .library(name: "ConnectionsServiceTestKit", targets: ["ConnectionsServiceTestKit"]),
         .library(name: "ContactService", targets: ["ContactService"]),
+        .library(name: "SupportChatService", targets: ["SupportChatService"]),
         .library(name: "EarnService", targets: ["EarnService"]),
         .library(name: "EarnServiceTestKit", targets: ["EarnServiceTestKit"]),
         .library(name: "FiatService", targets: ["FiatService"]),
@@ -556,6 +557,15 @@ let package = Package(
                 "Store",
             ],
             path: "ContactService",
+        ),
+        .target(
+            name: "SupportChatService",
+            dependencies: [
+                "Primitives",
+                "Store",
+                "GemAPI",
+            ],
+            path: "SupportChatService",
         ),
         .target(
             name: "RewardsService",

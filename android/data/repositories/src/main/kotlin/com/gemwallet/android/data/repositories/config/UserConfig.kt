@@ -14,8 +14,9 @@ import com.gemwallet.android.cases.config.GetLockInterval
 import com.gemwallet.android.cases.config.HideWelcomeBanner
 import com.gemwallet.android.cases.config.IsWelcomeBannerHidden
 import com.gemwallet.android.cases.config.SetLockInterval
-import com.gemwallet.android.model.AppUpdateInfo
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
+import com.gemwallet.android.model.AppUpdateInfo
+import com.wallet.core.primitives.ChartPeriod
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -52,6 +53,22 @@ class UserConfig(
 
     fun increaseLaunchNumber() {
         putInt(Keys.LaunchNumber, getInt(Keys.LaunchNumber) + 1)
+    }
+
+    fun chartPeriod(): ChartPeriod {
+        return getString(Keys.ChartPeriod).toChartPeriod(default = ChartPeriod.Day)
+    }
+
+    fun setChartPeriod(period: ChartPeriod) {
+        putString(Keys.ChartPeriod, period.string)
+    }
+
+    fun perpetualChartPeriod(): ChartPeriod {
+        return getString(Keys.PerpetualChartPeriod).toChartPeriod(default = ChartPeriod.Day)
+    }
+
+    fun setPerpetualChartPeriod(period: ChartPeriod) {
+        putString(Keys.PerpetualChartPeriod, period.string)
     }
 
     fun isHideBalances(): Flow<Boolean> = context.dataStore.data
@@ -201,9 +218,15 @@ class UserConfig(
         getStore().edit().putBoolean(key.buildKey(), value).apply()
     }
 
+    private fun String.toChartPeriod(default: ChartPeriod): ChartPeriod {
+        return ChartPeriod.entries.firstOrNull { it.string == this } ?: default
+    }
+
     enum class Keys(val string: String) {
         Auth("auth"),
+        ChartPeriod("chart_period"),
         DevelopEnabled("develop_enabled"),
+        PerpetualChartPeriod("perpetual_chart_period"),
         SubscriptionVersion("subscription_version"),
         SubscriptionVersionHasChange("subscription_version_has_change"),
         LaunchNumber("launch_number"),

@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = デフォルトレバレッジ
 settings_preferences_perpetual_default_take_profit = デフォルト利確
 settings_preferences_perpetual_default_stop_loss = デフォルト損切り
 
+# Support
+
+support_state_empty_title = どのようなご用件でしょうか？
+support_state_empty_description = 何でもお気軽にお尋ねください。私たちがサポートいたします。
+support_message_placeholder = メッセージ
+
 # Errors
 
 errors_transfer = 転送エラー: %@

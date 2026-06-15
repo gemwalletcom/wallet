@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
+import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
+import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.transactions.coordinators.GetTransactions
 import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
@@ -50,6 +52,8 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val syncAssetTransactions: SyncAssetTransactions,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
+    getPerpetualChartPeriod: GetPerpetualChartPeriod,
+    private val setPerpetualChartPeriod: SetPerpetualChartPeriod,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -95,7 +99,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val period = MutableStateFlow(ChartPeriod.Day)
+    val period = MutableStateFlow(getPerpetualChartPeriod())
 
     private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
     val chartState: StateFlow<ChartViewState> = viewState.asStateFlow()
@@ -130,6 +134,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), emptyList())
 
     fun period(period: ChartPeriod) {
+        setPerpetualChartPeriod(period)
         this.period.update { period }
     }
 

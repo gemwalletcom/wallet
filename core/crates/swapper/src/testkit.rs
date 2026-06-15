@@ -1,6 +1,6 @@
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Route, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
-    SwapperSlippageMode,
+    FetchQuoteData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    SwapperSlippage, SwapperSlippageMode,
 };
 use async_trait::async_trait;
 use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
@@ -145,6 +145,10 @@ impl Swapper for MockSwapper {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         self.supported_assets.clone()
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
     }
 
     async fn get_quote(&self, _request: &QuoteRequest) -> Result<Quote, SwapperError> {

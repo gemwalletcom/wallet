@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">ডিফল্ট লিভারেজ</string>
   <string name="settings_preferences_perpetual_default_take_profit">ডিফল্ট টেক প্রফিট</string>
   <string name="settings_preferences_perpetual_default_stop_loss">ডিফল্ট স্টপ লস</string>
+  <string name="support_state_empty_title">আমরা কীভাবে সাহায্য করতে পারি?</string>
+  <string name="support_state_empty_description">আমাদের যেকোনো প্রশ্ন করুন। আমরা সাহায্য করতে এখানে আছি।</string>
+  <string name="support_message_placeholder">বার্তা</string>
   <string name="errors_transfer">স্থানান্তর ত্রুটি: %1$s</string>
   <string name="errors_validation">যাচাইকরণ ত্রুটি: %1$s</string>
   <string name="errors_create_wallet">ওয়ালেট তৈরির ত্রুটি: %1$s</string>

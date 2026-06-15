@@ -156,10 +156,6 @@ impl JobHandle {
         &self.name
     }
 
-    pub fn is_finished(&self) -> bool {
-        self.finished.load(Ordering::Relaxed)
-    }
-
     pub fn status_flag(&self) -> Arc<AtomicBool> {
         self.finished.clone()
     }

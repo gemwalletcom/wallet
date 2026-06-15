@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Levier implicit</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit implicit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss implicit</string>
+  <string name="support_state_empty_title">Cum te putem ajuta?</string>
+  <string name="support_state_empty_description">Întreabă-ne orice. Suntem aici să te ajutăm.</string>
+  <string name="support_message_placeholder">Mesaj</string>
   <string name="errors_transfer">Eroare de transfer: %1$s</string>
   <string name="errors_validation">Eroare de validare: %1$s</string>
   <string name="errors_create_wallet">Eroare la crearea portofelului: %1$s</string>

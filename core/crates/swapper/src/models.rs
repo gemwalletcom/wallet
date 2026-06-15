@@ -175,6 +175,12 @@ impl FetchQuoteData {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SwapAmountMode {
+    Fixed,
+    Flexible,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum SwapperChainAsset {
     All(Chain),

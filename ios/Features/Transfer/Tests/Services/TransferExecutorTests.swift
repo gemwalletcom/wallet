@@ -72,6 +72,52 @@ struct TransferExecutorTests {
     }
 
     @Test
+    func hyperCoreSpotSwapStoresOnlyFinalOrder() async throws {
+        let hype = Asset.mockHypercore()
+        let usdc = Asset.hypercoreSpotUSDC()
+        let db = DB.mockAssets(assets: [.mock(asset: hype), .mock(asset: usdc)])
+        let transactionStore = TransactionStore(db: db)
+        let executor = TransferExecutor(
+            signer: TransactionSignerMock(signedData: [
+                "approve_referral",
+                "approve_agent",
+                "place_order",
+            ]),
+            chainService: ChainServiceMock.mock(broadcastResponses: [
+                "action:1",
+                "action:2",
+                "order:413978262893",
+            ]),
+            assetsEnabler: .mock(),
+            balanceService: .mock(),
+            transactionStateScheduler: .mock(transactionStore: transactionStore),
+        )
+        let swapData = SwapData.mock(
+            quote: .mock(
+                providerData: SwapProviderData(
+                    provider: .hyperliquid,
+                    name: "Hyperliquid",
+                    protocolName: "Hyperliquid",
+                ),
+            ),
+        )
+
+        let input = TransferConfirmationInput(
+            data: .mock(type: .swap(hype, usdc, swapData)),
+            wallet: .mock(accounts: [Account.mock(chain: .hyperCore)]),
+            transactionData: .mock(),
+            amount: .mock(),
+            delegate: nil,
+        )
+        try await executor.execute(input: input)
+
+        let transactions = try transactionStore.getTransactions(state: .pending)
+        #expect(transactions.count == 1)
+        #expect(transactions.first?.id.hash == "order:413978262893")
+        #expect(transactions.first?.type == .swap)
+    }
+
+    @Test
     func hyperCoreUnstakeStoresFinalAction() async throws {
         let db = DB.mockAssets(assets: [
             .mock(asset: .mockHypercore()),

@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">預設槓桿</string>
   <string name="settings_preferences_perpetual_default_take_profit">預設止盈</string>
   <string name="settings_preferences_perpetual_default_stop_loss">預設止損</string>
+  <string name="support_state_empty_title">有什麼可以幫您?</string>
+  <string name="support_state_empty_description">有任何問題都可以問我們。我們隨時為您提供協助。</string>
+  <string name="support_message_placeholder">訊息</string>
   <string name="errors_transfer">傳輸錯誤： %1$s</string>
   <string name="errors_validation">驗證錯誤： %1$s</string>
   <string name="errors_create_wallet">建立錢包錯誤： %1$s</string>

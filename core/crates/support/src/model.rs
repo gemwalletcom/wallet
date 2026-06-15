@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{Device, SupportAgent, SupportMessage, SupportMessageDeliveryStatus, SupportMessageImage, SupportMessageSender, SupportTypingStatus};
+use primitives::{Device, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTypingStatus};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -147,7 +147,7 @@ impl ChatwootWebhookPayload {
             self.content_type.as_deref(),
             self.private,
             sender,
-            SupportMessageDeliveryStatus::Sent,
+            SupportMessageStatus::Sent,
             self.created_at.as_ref()?.datetime()?,
             &self.attachments,
         )
@@ -236,7 +236,6 @@ pub(crate) struct ChatwootMessagesResponse {
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct ChatwootContactUpdate {
     pub(crate) identifier: String,
-    pub(crate) name: String,
     pub(crate) custom_attributes: HashMap<String, String>,
 }
 
@@ -244,7 +243,6 @@ impl ChatwootContactUpdate {
     pub(crate) fn new(device: &Device) -> Self {
         Self {
             identifier: device.id.clone(),
-            name: device.model.clone(),
             custom_attributes: HashMap::from([
                 ("device_id".to_string(), device.id.clone()),
                 ("platform".to_string(), format!("{}: {}", device.platform_store.as_ref(), device.os)),
@@ -301,7 +299,7 @@ fn support_message(
     content_type: Option<&str>,
     private: Option<bool>,
     sender: SupportMessageSender,
-    status: SupportMessageDeliveryStatus,
+    status: SupportMessageStatus,
     created_at: DateTime<Utc>,
     attachments: &[Attachment],
 ) -> Option<SupportMessage> {
@@ -333,10 +331,10 @@ fn support_images(attachments: &[Attachment]) -> Vec<SupportMessageImage> {
     attachments.iter().filter_map(Attachment::support_image).collect()
 }
 
-fn support_delivery_status(status: Option<&str>) -> SupportMessageDeliveryStatus {
+fn support_delivery_status(status: Option<&str>) -> SupportMessageStatus {
     match status {
-        Some(CHATWOOT_DELIVERY_STATUS_SENT) | Some(CHATWOOT_DELIVERY_STATUS_DELIVERED) | Some(CHATWOOT_DELIVERY_STATUS_READ) | None => SupportMessageDeliveryStatus::Sent,
-        Some(_) => SupportMessageDeliveryStatus::Failed,
+        Some(CHATWOOT_DELIVERY_STATUS_SENT) | Some(CHATWOOT_DELIVERY_STATUS_DELIVERED) | Some(CHATWOOT_DELIVERY_STATUS_READ) | None => SupportMessageStatus::Sent,
+        Some(_) => SupportMessageStatus::Failed,
     }
 }
 
@@ -347,7 +345,7 @@ fn datetime_from_unix_timestamp(value: i64) -> Option<DateTime<Utc>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{SupportAgent, SupportMessageDeliveryStatus, SupportMessageSender};
+    use primitives::{SupportAgent, SupportMessageSender, SupportMessageStatus};
 
     #[test]
     fn test_support_public_messages_maps_widget_messages_without_private() {
@@ -372,7 +370,7 @@ mod tests {
         assert_eq!(messages[0].id, "1");
         assert_eq!(messages[0].content, "from agent");
         assert_eq!(messages[0].sender, SupportMessageSender::Agent(SupportAgent { name: "Test Agent".to_string() }));
-        assert_eq!(messages[0].status, SupportMessageDeliveryStatus::Sent);
+        assert_eq!(messages[0].status, SupportMessageStatus::Sent);
     }
 
     #[test]

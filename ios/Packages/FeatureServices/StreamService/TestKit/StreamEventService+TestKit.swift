@@ -32,6 +32,7 @@ public extension StreamEventService {
         nftService: NFTService = .mock(),
         perpetualService: any HyperliquidPerpetualServiceable = PerpetualServiceMock(),
         fiatService: FiatService = .mock(),
+        supportChatStore: SupportChatStore = .mock(),
         preferences: Preferences = .mock(),
     ) -> StreamEventService {
         StreamEventService(
@@ -44,6 +45,7 @@ public extension StreamEventService {
             nftService: nftService,
             perpetualService: perpetualService,
             fiatService: fiatService,
+            supportChatStore: supportChatStore,
             preferences: preferences,
         )
     }

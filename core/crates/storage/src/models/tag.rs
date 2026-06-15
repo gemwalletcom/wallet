@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use primitives::{AssetList, AssetTag};
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::AssetId;
+use crate::sql_types::{AssetId, PerpetualIdRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, Clone)]
 #[diesel(table_name = crate::schema::tags)]
@@ -17,6 +17,15 @@ pub struct TagRow {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct AssetTagRow {
     pub asset_id: AssetId,
+    pub tag_id: String,
+    pub order: Option<i32>,
+}
+
+#[derive(Debug, Queryable, Selectable, Clone)]
+#[diesel(table_name = crate::schema::perpetuals_tags)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct PerpetualTagRow {
+    pub perpetual_id: PerpetualIdRow,
     pub tag_id: String,
     pub order: Option<i32>,
 }

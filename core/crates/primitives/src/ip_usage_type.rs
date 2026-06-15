@@ -17,12 +17,6 @@ pub enum IpUsageType {
     Unknown,
 }
 
-impl IpUsageType {
-    pub fn is_datacenter(&self) -> bool {
-        matches!(self, Self::DataCenter | Self::Hosting)
-    }
-}
-
 impl FromStr for IpUsageType {
     type Err = std::convert::Infallible;
 

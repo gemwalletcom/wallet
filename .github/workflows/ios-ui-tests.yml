@@ -9,6 +9,8 @@ on:
       - "core"
       - "core/**"
       - ".gitmodules"
+      - ".github/actions/setup-ios-ci/**"
+      - ".github/actions/setup-rust-ci/**"
       - ".github/workflows/ios-ui-tests.yml"
   pull_request:
     branches: ["main"]
@@ -17,59 +19,33 @@ on:
       - "core"
       - "core/**"
       - ".gitmodules"
+      - ".github/actions/setup-ios-ci/**"
+      - ".github/actions/setup-rust-ci/**"
       - ".github/workflows/ios-ui-tests.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   ui_test:
     name: Build and UI Test iPhone simulator
-    runs-on: [self-hosted, macOS]
+    runs-on: macos-26
 
     steps:
-      - name: Setup simulator for runner
-        run: |
-          SIMULATOR_NAME="${{ runner.name }}-iPhone"
-          echo "SIMULATOR_NAME=$SIMULATOR_NAME" >> $GITHUB_ENV
-          xcrun simctl list devices -j | jq -r ".devices[][] | select(.name == \"$SIMULATOR_NAME\") | .udid" | xargs -I {} xcrun simctl delete {} 2>/dev/null || true
-          xcrun simctl create "$SIMULATOR_NAME" "iPhone 17"
-
-      - name: Setup sccache for GitHub-hosted
-        if: runner.environment == 'github-hosted'
-        run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
 
-      - name: Cache Cargo Dependencies
-        if: runner.environment == 'github-hosted'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('core/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-deps-
-
-      - name: Cache Cargo Target
-        if: runner.environment == 'github-hosted'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: |
-            core/target
-          key: ${{ runner.os }}-cargo-target-${{ hashFiles('core/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-target-
+      - name: Setup iOS CI
+        uses: ./.github/actions/setup-ios-ci
 
       - name: Cache Swift Package Manager
-        if: runner.environment == 'github-hosted'
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
@@ -78,14 +54,6 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-
-      - name: Run sccache-cache
-        if: runner.environment == 'github-hosted'
-        uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
-
-      - name: Install just
-        if: runner.environment == 'github-hosted'
-        run: brew install just
 
       - name: Install dependencies
         working-directory: ios

@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "Varsayılan Kaldıraç";
 "settings.preferences.perpetual.default_take_profit" = "Varsayılan Take Profit";
 "settings.preferences.perpetual.default_stop_loss" = "Varsayılan Stop Loss";
+"support.state_empty_title" = "Size nasıl yardımcı olabiliriz?";
+"support.state_empty_description" = "Bize her şeyi sorabilirsiniz. Yardım için buradayız.";
+"support.message_placeholder" = "Mesaj";
 "errors.transfer" = "Transfer Hatası: %@";
 "errors.validation" = "Doğrulama Hatası: %@";
 "errors.create_wallet" = "Cüzdan Oluşturma Hatası: %@";

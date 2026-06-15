@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Varsayılan Kaldıraç</string>
   <string name="settings_preferences_perpetual_default_take_profit">Varsayılan Take Profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Varsayılan Stop Loss</string>
+  <string name="support_state_empty_title">Size nasıl yardımcı olabiliriz?</string>
+  <string name="support_state_empty_description">Bize her şeyi sorabilirsiniz. Yardım için buradayız.</string>
+  <string name="support_message_placeholder">Mesaj</string>
   <string name="errors_transfer">Transfer Hatası: %1$s</string>
   <string name="errors_validation">Doğrulama Hatası: %1$s</string>
   <string name="errors_create_wallet">Cüzdan Oluşturma Hatası: %1$s</string>

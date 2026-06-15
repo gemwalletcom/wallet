@@ -552,6 +552,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    perpetuals_tags (perpetual_id, tag_id) {
+        #[max_length = 128]
+        perpetual_id -> Varchar,
+        #[max_length = 64]
+        tag_id -> Varchar,
+        order -> Nullable<Int4>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     price_alerts (id) {
         id -> Int4,
         #[max_length = 512]
@@ -960,6 +971,8 @@ diesel::joinable!(parser_state -> chains (chain));
 diesel::joinable!(perpetuals -> assets (asset_id));
 diesel::joinable!(perpetuals_assets -> assets (asset_id));
 diesel::joinable!(perpetuals_assets -> perpetuals (perpetual_id));
+diesel::joinable!(perpetuals_tags -> perpetuals (perpetual_id));
+diesel::joinable!(perpetuals_tags -> tags (tag_id));
 diesel::joinable!(price_alerts -> assets (asset_id));
 diesel::joinable!(price_alerts -> devices (device_id));
 diesel::joinable!(price_alerts -> fiat_rates (currency));
@@ -1023,6 +1036,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     parser_state,
     perpetuals,
     perpetuals_assets,
+    perpetuals_tags,
     price_alerts,
     prices,
     prices_assets,

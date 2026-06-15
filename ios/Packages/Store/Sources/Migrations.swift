@@ -494,6 +494,10 @@ struct Migrations {
             )
         }
 
+        migrator.registerMigration("Create \(SupportMessageRecord.databaseTableName)") { db in
+            try SupportMessageRecord.create(db: db)
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

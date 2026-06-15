@@ -35,6 +35,7 @@ extension View {
             .environment(\.releaseService, services.appReleaseService)
             .environment(\.viewModelFactory, services.viewModelFactory)
             .environment(\.inAppNotificationService, services.inAppNotificationService)
+            .environment(\.supportChatService, services.supportChatService)
     }
 
     private func inject(storages: AppResolver.Storages) -> some View {

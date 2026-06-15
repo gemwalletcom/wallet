@@ -3,7 +3,7 @@ use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use gem_encoding::{decode_base64, encode_base64};
 use zeroize::Zeroizing;
 
-pub const GEM_AUTH_SCHEME: &str = "Gem ";
+const GEM_AUTH_SCHEME: &str = "Gem ";
 
 const ED25519_SEED_LENGTH: usize = 32;
 
@@ -43,14 +43,7 @@ pub fn verify_device_auth(header_value: &str, method: &str, path: &str, body: &[
     verify_device_signature(&payload.device_id, &message, &payload.signature)
 }
 
-#[derive(Debug, PartialEq)]
-pub enum AuthScheme {
-    Gem,
-    Legacy,
-}
-
 pub struct DeviceAuthPayload {
-    pub scheme: AuthScheme,
     pub device_id: String,
     pub timestamp: String,
     pub wallet_id: Option<String>,
@@ -67,18 +60,12 @@ pub fn parse_device_auth(header_value: &str) -> Option<DeviceAuthPayload> {
         return None;
     }
     Some(DeviceAuthPayload {
-        scheme: AuthScheme::Gem,
         device_id: parts[0].to_string(),
         timestamp: parts[1].to_string(),
         wallet_id: if parts[2].is_empty() { None } else { Some(parts[2].to_string()) },
         body_hash: parts[3].to_string(),
         signature: hex::decode(parts[4]).ok()?,
     })
-}
-
-// TODO: remove base64 fallback once all clients use hex signatures
-pub fn decode_signature(value: &str) -> Option<Vec<u8>> {
-    hex::decode(value).ok().or_else(|| decode_base64(value).ok())
 }
 
 pub fn verify_device_signature(public_key_hex: &str, message: &str, signature: &[u8]) -> bool {
@@ -105,34 +92,39 @@ mod tests {
     use ed25519_dalek::{Signer, SigningKey};
     use gem_encoding::encode_base64;
 
+    const TIMESTAMP: &str = "1706000000000";
+    const METHOD: &str = "GET";
+    const PATH: &str = "/v2/devices";
+    const BODY_HASH: &str = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
     #[test]
     fn test_verify_valid_signature() {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let message = "v1.1706000000000.GET./v1/devices/abc.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let message = device_auth_message(TIMESTAMP, METHOD, PATH, "", BODY_HASH);
         let signature = signing_key.sign(message.as_bytes());
 
-        assert!(verify_device_signature(&public_key_hex, message, &signature.to_bytes()));
+        assert!(verify_device_signature(&public_key_hex, &message, &signature.to_bytes()));
     }
 
     #[test]
     fn test_reject_invalid_signature() {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let message = "v1.1706000000000.GET./v1/devices/abc.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let message = device_auth_message(TIMESTAMP, METHOD, PATH, "", BODY_HASH);
 
-        assert!(!verify_device_signature(&public_key_hex, message, &[0u8; 64]));
+        assert!(!verify_device_signature(&public_key_hex, &message, &[0u8; 64]));
     }
 
     #[test]
     fn test_reject_tampered_message() {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let message = "v1.1706000000000.GET./v1/devices/abc.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let message = device_auth_message(TIMESTAMP, METHOD, PATH, "", BODY_HASH);
         let signature = signing_key.sign(message.as_bytes());
 
-        let tampered = "v1.1706000000000.POST./v1/devices/abc.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        assert!(!verify_device_signature(&public_key_hex, tampered, &signature.to_bytes()));
+        let tampered = device_auth_message(TIMESTAMP, "POST", PATH, "", BODY_HASH);
+        assert!(!verify_device_signature(&public_key_hex, &tampered, &signature.to_bytes()));
     }
 
     #[test]
@@ -140,10 +132,10 @@ mod tests {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let wrong_key = SigningKey::from_bytes(&[2u8; 32]);
         let wrong_public_key_hex = hex::encode(wrong_key.verifying_key().as_bytes());
-        let message = "v1.1706000000000.GET./v1/devices/abc.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+        let message = device_auth_message(TIMESTAMP, METHOD, PATH, "", BODY_HASH);
         let signature = signing_key.sign(message.as_bytes());
 
-        assert!(!verify_device_signature(&wrong_public_key_hex, message, &signature.to_bytes()));
+        assert!(!verify_device_signature(&wrong_public_key_hex, &message, &signature.to_bytes()));
     }
 
     #[test]
@@ -155,21 +147,19 @@ mod tests {
     fn test_parse_device_auth() {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let timestamp = "1706000000000";
-        let body_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         let wallet_id = "multicoin_0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
         let signature = signing_key.sign(b"test");
         let signature_hex = hex::encode(signature.to_bytes());
 
-        let payload = format!("{}.{}.{}.{}.{}", public_key_hex, timestamp, wallet_id, body_hash, signature_hex);
+        let payload = format!("{}.{}.{}.{}.{}", public_key_hex, TIMESTAMP, wallet_id, BODY_HASH, signature_hex);
         let encoded = encode_base64(payload.as_bytes());
         let header = format!("Gem {}", encoded);
 
         let result = parse_device_auth(&header).unwrap();
         assert_eq!(result.device_id, public_key_hex);
-        assert_eq!(result.timestamp, timestamp);
+        assert_eq!(result.timestamp, TIMESTAMP);
         assert_eq!(result.wallet_id.as_deref(), Some(wallet_id));
-        assert_eq!(result.body_hash, body_hash);
+        assert_eq!(result.body_hash, BODY_HASH);
         assert_eq!(result.signature, signature.to_bytes());
     }
 
@@ -185,20 +175,18 @@ mod tests {
     fn test_parse_device_auth_empty_wallet_id() {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let timestamp = "1706000000000";
-        let body_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
         let signature = signing_key.sign(b"test");
         let signature_hex = hex::encode(signature.to_bytes());
 
-        let payload = format!("{}.{}..{}.{}", public_key_hex, timestamp, body_hash, signature_hex);
+        let payload = format!("{}.{}..{}.{}", public_key_hex, TIMESTAMP, BODY_HASH, signature_hex);
         let encoded = encode_base64(payload.as_bytes());
         let header = format!("Gem {}", encoded);
 
         let result = parse_device_auth(&header).unwrap();
         assert_eq!(result.device_id, public_key_hex);
-        assert_eq!(result.timestamp, timestamp);
+        assert_eq!(result.timestamp, TIMESTAMP);
         assert_eq!(result.wallet_id, None);
-        assert_eq!(result.body_hash, body_hash);
+        assert_eq!(result.body_hash, BODY_HASH);
     }
 
     #[test]
@@ -206,8 +194,7 @@ mod tests {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
         let wallet_id = "multicoin_0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
-        let body_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let message = format!("1706000000000.GET./v1/devices/abc.{}.{}", wallet_id, body_hash);
+        let message = device_auth_message(TIMESTAMP, METHOD, PATH, wallet_id, BODY_HASH);
         let signature = signing_key.sign(message.as_bytes());
 
         assert!(verify_device_signature(&public_key_hex, &message, &signature.to_bytes()));
@@ -217,8 +204,7 @@ mod tests {
     fn test_verify_signature_empty_wallet_id() {
         let signing_key = SigningKey::from_bytes(&[1u8; 32]);
         let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let body_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-        let message = format!("1706000000000.GET./v1/devices/abc..{}", body_hash);
+        let message = device_auth_message(TIMESTAMP, METHOD, PATH, "", BODY_HASH);
         let signature = signing_key.sign(message.as_bytes());
 
         assert!(verify_device_signature(&public_key_hex, &message, &signature.to_bytes()));

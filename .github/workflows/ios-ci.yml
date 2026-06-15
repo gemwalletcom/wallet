@@ -10,16 +10,23 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   unit_test:
     name: Build and Test iPhone simulator
-    runs-on: [self-hosted, macOS]
+    runs-on: macos-26
 
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
+
+      - name: Setup iOS CI
+        uses: ./.github/actions/setup-ios-ci
 
       - name: Install dependencies
         working-directory: ios

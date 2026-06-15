@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "ڈیفالٹ لیوریج";
 "settings.preferences.perpetual.default_take_profit" = "ڈیفالٹ ٹیک پرافٹ";
 "settings.preferences.perpetual.default_stop_loss" = "ڈیفالٹ اسٹاپ لاس";
+"support.state_empty_title" = "ہم آپ کی کیسے مدد کر سکتے ہیں؟";
+"support.state_empty_description" = "ہم سے کچھ بھی پوچھیں۔ ہم مدد کے لیے موجود ہیں۔";
+"support.message_placeholder" = "پیغام";
 "errors.transfer" = "منتقلی کی خرابی: %@";
 "errors.validation" = "توثیق کی خرابی: %@";
 "errors.create_wallet" = "والیٹ کی خرابی بنائیں: %@";

@@ -5,9 +5,11 @@ import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
+import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
+import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
 import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
 import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
@@ -16,13 +18,16 @@ import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsIm
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalanceImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalancesImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartDataImpl
+import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartPeriodImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
+import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualChartPeriodImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.TogglePerpetualPinImpl
+import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
 import com.gemwallet.android.data.repositories.session.SessionRepository
 import com.gemwallet.android.data.service.store.database.PricesDao
@@ -150,6 +155,26 @@ object PerpetualModule {
     ): GetPerpetualChartData {
         return GetPerpetualChartDataImpl(
             perpetualService = perpetualService,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetPerpetualChartPeriod(
+        userConfig: UserConfig,
+    ): GetPerpetualChartPeriod {
+        return GetPerpetualChartPeriodImpl(
+            userConfig = userConfig,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSetPerpetualChartPeriod(
+        userConfig: UserConfig,
+    ): SetPerpetualChartPeriod {
+        return SetPerpetualChartPeriodImpl(
+            userConfig = userConfig,
         )
     }
 

@@ -1,6 +1,5 @@
 use std::sync::{Arc, OnceLock};
 use std::time::Duration;
-use tracing_subscriber::EnvFilter;
 use tracing_subscriber::FmtSubscriber;
 
 pub use tracing;
@@ -9,11 +8,6 @@ static TRACING_SUBSCRIBER: OnceLock<Arc<FmtSubscriber>> = OnceLock::new();
 
 pub fn get_subscriber() -> Arc<FmtSubscriber> {
     TRACING_SUBSCRIBER.get_or_init(|| Arc::new(tracing_subscriber::fmt().with_target(false).finish())).clone()
-}
-
-pub fn init_tracing(default_filter: &str) {
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default_filter));
-    let _ = tracing_subscriber::fmt().with_env_filter(filter).with_target(false).try_init();
 }
 
 pub fn human_duration(duration: Duration) -> String {

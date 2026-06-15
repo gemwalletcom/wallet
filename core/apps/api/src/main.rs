@@ -15,6 +15,8 @@ mod responders;
 mod status;
 mod support;
 mod swap;
+#[cfg(test)]
+mod testkit;
 mod webhooks;
 mod websocket;
 mod websocket_prices;
@@ -260,7 +262,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn std::er
         secret: settings.api.auth.jwt.secret.clone(),
         expiry: settings.api.auth.jwt.expiry,
     };
-    let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.enabled, settings.api.auth.tolerance, jwt_config);
+    let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.tolerance, jwt_config);
     let mut rocket = rocket::build()
         .manage(auth_config)
         .manage(database)
@@ -331,7 +333,7 @@ async fn rocket_ws_stream(settings: Settings) -> Rocket<Build> {
         secret: settings.api.auth.jwt.secret.clone(),
         expiry: settings.api.auth.jwt.expiry,
     };
-    let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.enabled, settings.api.auth.tolerance, jwt_config);
+    let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.tolerance, jwt_config);
 
     rocket::build()
         .manage(auth_config)

@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Default na Leverage
 settings_preferences_perpetual_default_take_profit = Default na Take Profit
 settings_preferences_perpetual_default_stop_loss = Default na Stop Loss
 
+# Support
+
+support_state_empty_title = Paano ka namin matutulungan?
+support_state_empty_description = Magtanong ka sa amin ng kahit ano. Nandito kami para tumulong.
+support_message_placeholder = Mensahe
+
 # Errors
 
 errors_transfer = Error sa Paglipat: %@

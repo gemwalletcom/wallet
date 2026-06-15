@@ -1,9 +1,4 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PaybisData<T> {
-    pub data: T,
-}
+use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]

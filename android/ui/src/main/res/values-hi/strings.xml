@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">डिफ़ॉल्ट उत्तोलन</string>
   <string name="settings_preferences_perpetual_default_take_profit">डिफ़ॉल्ट टेक प्रॉफिट</string>
   <string name="settings_preferences_perpetual_default_stop_loss">डिफ़ॉल्ट स्टॉप लॉस</string>
+  <string name="support_state_empty_title">हम आपकी कैसे मदद कर सकते हैं?</string>
+  <string name="support_state_empty_description">हमसे कुछ भी पूछें। हम मदद के लिए यहाँ हैं।</string>
+  <string name="support_message_placeholder">संदेश</string>
   <string name="errors_transfer">स्थानांतरण त्रुटि: %1$s</string>
   <string name="errors_validation">सत्यापन त्रुटि: %1$s</string>
   <string name="errors_create_wallet">वॉलेट बनाने में त्रुटि: %1$s</string>

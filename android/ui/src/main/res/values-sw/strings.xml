@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Njia Chaguomsingi</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit chaguomsingi</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss chaguomsingi</string>
+  <string name="support_state_empty_title">Tunawezaje kukusaidia?</string>
+  <string name="support_state_empty_description">Tuulize chochote. Tupo hapa kukusaidia.</string>
+  <string name="support_message_placeholder">Ujumbe</string>
   <string name="errors_transfer">Hitilafu ya Kuhamisha: %1$s</string>
   <string name="errors_validation">Hitilafu ya Uthibitishaji: %1$s</string>
   <string name="errors_create_wallet">Hitilafu ya kuunda Wallet: %1$s</string>

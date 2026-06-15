@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = מינוף ברירת מחדל
 settings_preferences_perpetual_default_take_profit = Take Profit כברירת מחדל
 settings_preferences_perpetual_default_stop_loss = Stop Loss כברירת מחדל
 
+# Support
+
+support_state_empty_title = איך נוכל לעזור?
+support_state_empty_description = שאלו אותנו כל דבר. אנחנו כאן כדי לעזור.
+support_message_placeholder = הודעה
+
 # Errors
 
 errors_transfer = שגיאת העברה: %@

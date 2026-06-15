@@ -20,7 +20,6 @@ pub use self::database::{
     charts::ChartFilter,
     fiat::FiatAssetFilter,
     nft::{NftAssetFilter, NftCollectionFilter},
-    perpetuals::PerpetualFilter,
     prices::{AssetsWithPricesFilter, PriceUpdate},
     referrals::{AbusePatterns, ReferralUpdate},
     rewards::{RewardsFilter, RewardsUpdate},

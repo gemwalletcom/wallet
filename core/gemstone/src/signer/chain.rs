@@ -18,7 +18,7 @@ use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
 use primitives::swap::{SwapData, SwapQuoteDataType};
-use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, EVMChain, SignerError, SignerInput, TransactionInputType};
+use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType};
 use zeroize::Zeroizing;
 
 pub struct GemChainSigner {
@@ -29,7 +29,7 @@ pub struct GemChainSigner {
 impl GemChainSigner {
     pub fn new(chain: Chain) -> Self {
         let signer: Box<dyn ChainSigner> = match chain.chain_type() {
-            ChainType::Ethereum => Box::new(EvmChainSigner::new(EVMChain::from_chain(chain).unwrap())),
+            ChainType::Ethereum => Box::new(EvmChainSigner),
             ChainType::Aptos => Box::new(AptosChainSigner),
             ChainType::HyperCore => Box::new(HyperCoreSigner),
             ChainType::Sui => Box::new(SuiChainSigner),
@@ -211,6 +211,16 @@ mod tests {
         DelegationValidator, StakeType, SwapProvider, TransactionLoadMetadata, TransferDataExtra, WalletConnectionSessionAppMetadata, contract_call_data::ContractCallData,
         nft::NFTAsset,
     };
+
+    #[test]
+    fn test_sign_input_checksums_destination() {
+        let mut gem: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer(Asset::mock()), "0", 21000).into();
+        gem.input.destination_address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a".to_string();
+
+        let signer_input: SignerInput = gem.into();
+
+        assert_eq!(signer_input.input.destination_address, "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+    }
 
     #[test]
     fn test_sign_input_routing() {

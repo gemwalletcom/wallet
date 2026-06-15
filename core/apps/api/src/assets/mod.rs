@@ -68,7 +68,11 @@ pub async fn get_search(
         vec![]
     };
     let perpetuals = search_client.get_perpetuals_search(&request).await?;
-    let nfts = search_client.get_nfts_search(&request).await?;
+    let nfts = if request.has_tag_filter() {
+        vec![]
+    } else {
+        search_client.get_nfts_search(&request).await?
+    };
 
     Ok(SearchResponse { assets, perpetuals, nfts, lists }.into())
 }

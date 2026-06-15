@@ -4,7 +4,7 @@ use std::sync::Arc;
 use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, swap::ApprovalData};
+use primitives::{Chain, ChainType, swap::ApprovalData};
 
 use num_bigint::BigInt;
 
@@ -16,11 +16,8 @@ use super::{
     quote_data_mapper, swap_mapper,
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
-    approval::check_approval_erc20,
-    cross_chain::VaultAddresses,
-    fees::{default_referral_fees, quote_value_after_reserve_by_chain},
-    thorchain::client::ThorChainSwapClient,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
+    SwapperQuoteData, approval::check_approval_erc20, cross_chain::VaultAddresses, fees::default_referral_fees, thorchain::client::ThorChainSwapClient,
 };
 
 impl ThorChain<RpcClient> {
@@ -40,13 +37,6 @@ impl ThorChain<RpcClient> {
     }
 }
 
-fn quote_input_value(from_asset: &THORChainAsset, request: &QuoteRequest) -> Result<String, SwapperError> {
-    if from_asset.use_evm_router() || from_asset.chain.is_evm_chain() {
-        return quote_value_after_reserve_by_chain(request);
-    }
-    Ok(request.value.clone())
-}
-
 #[async_trait]
 impl<C> Swapper for ThorChain<C>
 where
@@ -61,6 +51,13 @@ where
             .iter()
             .map(|name| SwapperChainAsset::Assets(name.chain(), name.token_assets().into_iter().map(|asset| asset.id).collect()))
             .collect()
+    }
+
+    fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
+        match request.from_asset.chain().chain_type() {
+            ChainType::Ethereum => SwapAmountMode::Fixed,
+            _ => SwapAmountMode::Flexible,
+        }
     }
 
     async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
@@ -78,8 +75,7 @@ where
         let from_asset = THORChainAsset::from_asset_id(self.network, &request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset = THORChainAsset::from_asset_id(self.network, &request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
 
-        let from_value = quote_input_value(&from_asset, request)?;
-        let value = super::asset::value_from(&from_value, from_asset.decimals as i32);
+        let value = super::asset::value_from(&request.value, from_asset.decimals as i32);
 
         if !(self.network == THORChainNetwork::Thorchain && from_asset.chain.chain() == Chain::Thorchain) {
             let inbound_addresses = self.client.get_inbound_addresses().await?;
@@ -119,7 +115,7 @@ where
         };
 
         let quote = Quote {
-            from_value,
+            from_value: request.value.clone(),
             min_from_value: None,
             to_value: to_value.to_string(),
             data: ProviderData {
@@ -248,11 +244,15 @@ mod tests {
         );
     }
     #[test]
-    fn test_quote_input_value_bitcoin_max_passes_value_through() {
-        let from_asset = THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Bitcoin.as_ref()).unwrap();
-        let request = mock_bitcoin_max_quote(SwapperQuoteAsset::from(Chain::Solana.as_asset_id()));
+    fn test_amount_mode_fixed_for_evm_flexible_for_deposit_chains() {
+        let provider = ThorChain::with_endpoint("http://localhost".into(), Arc::new(ProviderMock::new(String::new())), THORChainNetwork::Thorchain);
 
-        assert_eq!(quote_input_value(&from_asset, &request).unwrap(), "89100");
+        let bitcoin_request = mock_bitcoin_max_quote(SwapperQuoteAsset::from(Chain::Solana.as_asset_id()));
+        assert_eq!(provider.amount_mode(&bitcoin_request), SwapAmountMode::Flexible);
+
+        let mut ethereum_request = mock_bitcoin_max_quote(SwapperQuoteAsset::from(Chain::Solana.as_asset_id()));
+        ethereum_request.from_asset = SwapperQuoteAsset::from(Chain::Ethereum.as_asset_id());
+        assert_eq!(provider.amount_mode(&ethereum_request), SwapAmountMode::Fixed);
     }
 
     #[tokio::test]

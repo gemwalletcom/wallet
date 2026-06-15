@@ -1,7 +1,7 @@
 use crate::{
-    AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset, SwapperError,
-    SwapperProvider, SwapperProviderMode, SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses, hyperliquid, jupiter, mayan,
-    near_intents, panora, proxy::provider_factory, relay, squid, stonfi, thorchain, uniswap,
+    AssetList, FetchQuoteData, Permit2ApprovalData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, Swapper, SwapperChainAsset,
+    SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData, across, alien::RpcProvider, cetus_clmm, chainflip, cross_chain::VaultAddresses,
+    fees::max_quote_value_with_fee_reserve, hyperliquid, jupiter, mayan, near_intents, panora, proxy::provider_factory, relay, squid, stonfi, thorchain, uniswap,
 };
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
@@ -156,7 +156,10 @@ impl GemSwapper {
 
         let quotes_futures = providers.into_iter().map(|x| {
             let provider_id = x.provider().id.id().to_string();
-            async move { x.get_quote(request).await.map_err(|e| (provider_id, e)) }
+            async move {
+                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|e| (provider_id.clone(), e))?;
+                x.get_quote(&request).await.map_err(|e| (provider_id, e))
+            }
         });
 
         let quote_results = futures::future::join_all(quotes_futures).await;
@@ -176,7 +179,18 @@ impl GemSwapper {
 
     pub async fn get_quote_by_provider(&self, provider: SwapperProvider, request: QuoteRequest) -> Result<Quote, SwapperError> {
         let provider = self.get_swapper_by_provider(&provider)?;
+        let request = Self::quote_request_for_mode(provider.amount_mode(&request), &request)?;
         provider.get_quote(&request).await
+    }
+
+    fn quote_request_for_mode(mode: SwapAmountMode, request: &QuoteRequest) -> Result<QuoteRequest, SwapperError> {
+        match mode {
+            SwapAmountMode::Fixed => Ok(QuoteRequest {
+                value: max_quote_value_with_fee_reserve(request)?,
+                ..request.clone()
+            }),
+            SwapAmountMode::Flexible => Ok(request.clone()),
+        }
     }
 
     pub async fn get_permit2_for_quote(&self, quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {

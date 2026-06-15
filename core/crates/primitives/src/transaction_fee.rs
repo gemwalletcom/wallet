@@ -79,6 +79,10 @@ impl TransactionFee {
         }
     }
 
+    pub fn fee(&self) -> Result<u64, SignerError> {
+        self.fee.to_u64().ok_or_else(|| SignerError::invalid_input("invalid fee"))
+    }
+
     pub fn gas_limit(&self) -> Result<u64, SignerError> {
         let gas_limit = self.gas_limit.to_u64().ok_or_else(|| SignerError::invalid_input("invalid gas limit"))?;
 

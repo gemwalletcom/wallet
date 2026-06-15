@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">デフォルトレバレッジ</string>
   <string name="settings_preferences_perpetual_default_take_profit">デフォルト利確</string>
   <string name="settings_preferences_perpetual_default_stop_loss">デフォルト損切り</string>
+  <string name="support_state_empty_title">どのようなご用件でしょうか？</string>
+  <string name="support_state_empty_description">何でもお気軽にお尋ねください。私たちがサポートいたします。</string>
+  <string name="support_message_placeholder">メッセージ</string>
   <string name="errors_transfer">転送エラー: %1$s</string>
   <string name="errors_validation">検証エラー: %1$s</string>
   <string name="errors_create_wallet">ウォレット作成エラー: %1$s</string>

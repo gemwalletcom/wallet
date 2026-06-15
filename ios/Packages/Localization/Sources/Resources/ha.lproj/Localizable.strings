@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "Tsohuwar Leverage";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit na asali";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss na asali";
+"support.state_empty_title" = "Yaya za mu taimaka?";
+"support.state_empty_description" = "Tambaye mu kome. Muna nan don taimaka maka.";
+"support.message_placeholder" = "Saƙo";
 "errors.transfer" = "Kuskuren Canja wurin: %@";
 "errors.validation" = "Kuskuren Tabbatarwa: %@";
 "errors.create_wallet" = "Ƙirƙiri Kuskuren Wallet: %@";

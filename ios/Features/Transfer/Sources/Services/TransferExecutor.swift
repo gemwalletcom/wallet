@@ -129,6 +129,11 @@ extension TransferExecutor {
                 return []
             case .perpetual where !transaction.id.hash.hasPrefix(Self.hyperCoreOrderIdPrefix):
                 return []
+            case let .swap(_, toAsset, data)
+                where toAsset.chain == .hyperCore
+                && data.quote.providerData.provider == .hyperliquid
+                && transactionIndex < totalTransactions - 1:
+                return []
             case .stake, .perpetual, .transfer, .deposit, .withdrawal, .transferNft, .swap, .tokenApprove, .generic, .account, .earn:
                 break
             }

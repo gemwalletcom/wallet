@@ -90,12 +90,6 @@ impl Meta {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct AccountKey {
-    pub pubkey: String,
-}
-
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Transaction {

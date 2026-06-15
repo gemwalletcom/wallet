@@ -30,6 +30,8 @@ public final class Preferences: @unchecked Sendable {
         static let isAcceptTermsCompleted = "is_accepted_terms"
         static let skippedReleaseVersion = "skipped_release_version"
         static let isWalletConnectActivated = "is_walletconnect_activated"
+        static let chartPeriod = "chart_period"
+        static let perpetualChartPeriod = "perpetual_chart_period"
         static let perpetualsMarketsUpdatedAt = "perpetual_markets_updated_at"
         static let perpetualPricesUpdatedAt = "perpetual_prices_updated_at"
         static let isPerpetualEnabled = "is_perpetual_enabled"
@@ -102,6 +104,12 @@ public final class Preferences: @unchecked Sendable {
     @ConfigurableDefaults(key: Keys.isWalletConnectActivated, defaultValue: nil)
     public var isWalletConnectActivated: Bool?
 
+    @ConfigurableDefaults(key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
+    private var chartPeriodRawValue: String
+
+    @ConfigurableDefaults(key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
+    private var perpetualChartPeriodRawValue: String
+
     @ConfigurableDefaults(key: Keys.perpetualsMarketsUpdatedAt, defaultValue: nil)
     public var perpetualMarketsUpdatedAt: Date?
 
@@ -158,6 +166,8 @@ public final class Preferences: @unchecked Sendable {
         configure(\._isAcceptTermsCompleted, key: Keys.isAcceptTermsCompleted, defaultValue: false)
         configure(\._skippedReleaseVersion, key: Keys.skippedReleaseVersion, defaultValue: nil)
         configure(\._isWalletConnectActivated, key: Keys.isWalletConnectActivated, defaultValue: nil)
+        configure(\._chartPeriodRawValue, key: Keys.chartPeriod, defaultValue: ChartPeriod.day.rawValue)
+        configure(\._perpetualChartPeriodRawValue, key: Keys.perpetualChartPeriod, defaultValue: ChartPeriod.day.rawValue)
         configure(\._perpetualMarketsUpdatedAt, key: Keys.perpetualsMarketsUpdatedAt, defaultValue: nil)
         configure(\._perpetualPricesUpdatedAt, key: Keys.perpetualPricesUpdatedAt, defaultValue: nil)
         configure(\._isPerpetualEnabled, key: Keys.isPerpetualEnabled, defaultValue: false)
@@ -197,6 +207,16 @@ public final class Preferences: @unchecked Sendable {
 
     public func explorerName(chain: Chain) -> String? {
         defaults.string(forKey: "\(ExplorerKeys.explorerName)_\(chain.rawValue)")
+    }
+
+    public var chartPeriod: ChartPeriod {
+        get { ChartPeriod(rawValue: chartPeriodRawValue) ?? .day }
+        set { chartPeriodRawValue = newValue.rawValue }
+    }
+
+    public var perpetualChartPeriod: ChartPeriod {
+        get { ChartPeriod(rawValue: perpetualChartPeriodRawValue) ?? .day }
+        set { perpetualChartPeriodRawValue = newValue.rawValue }
     }
 
     public func showPerpetuals(for wallet: Wallet) -> Bool {

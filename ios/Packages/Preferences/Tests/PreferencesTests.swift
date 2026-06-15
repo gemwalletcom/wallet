@@ -31,6 +31,8 @@ struct PreferencesTests {
         #expect(!preferences.isDeveloperEnabled)
         #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.skippedReleaseVersion == nil)
+        #expect(preferences.chartPeriod == .day)
+        #expect(preferences.perpetualChartPeriod == .day)
         #expect(preferences.perpetualLeverage == 0)
     }
 
@@ -114,6 +116,12 @@ struct PreferencesTests {
         preferences.skippedReleaseVersion = "1.2.3"
         #expect(preferences.skippedReleaseVersion == "1.2.3")
 
+        preferences.chartPeriod = .hour
+        #expect(preferences.chartPeriod == .hour)
+
+        preferences.perpetualChartPeriod = .month
+        #expect(preferences.perpetualChartPeriod == .month)
+
         preferences.perpetualLeverage = 25
         #expect(preferences.perpetualLeverage == 25)
     }
@@ -139,6 +147,8 @@ struct PreferencesTests {
         preferences.isHideBalanceEnabled = true
         preferences.setExplorerName(chain: .bitcoin, name: "btc")
         preferences.skippedReleaseVersion = "1.0.0"
+        preferences.chartPeriod = .hour
+        preferences.perpetualChartPeriod = .month
         preferences.perpetualLeverage = 25
 
         #expect(preferences.currency == Currency.eur.rawValue)
@@ -160,6 +170,8 @@ struct PreferencesTests {
         #expect(preferences.isHideBalanceEnabled)
         #expect(preferences.explorerName(chain: .bitcoin) == "btc")
         #expect(preferences.skippedReleaseVersion == "1.0.0")
+        #expect(preferences.chartPeriod == .hour)
+        #expect(preferences.perpetualChartPeriod == .month)
 
         preferences.clear()
 
@@ -182,6 +194,8 @@ struct PreferencesTests {
         #expect(!preferences.isHideBalanceEnabled)
         #expect(preferences.explorerName(chain: .bitcoin) == nil)
         #expect(preferences.skippedReleaseVersion == nil)
+        #expect(preferences.chartPeriod == .day)
+        #expect(preferences.perpetualChartPeriod == .day)
         #expect(preferences.perpetualLeverage == 0)
     }
 

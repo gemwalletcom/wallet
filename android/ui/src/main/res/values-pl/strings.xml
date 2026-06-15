@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Domyślna dźwignia</string>
   <string name="settings_preferences_perpetual_default_take_profit">Domyślny take profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Domyślny stop loss</string>
+  <string name="support_state_empty_title">Jak możemy pomóc?</string>
+  <string name="support_state_empty_description">Zapytaj nas o cokolwiek. Jesteśmy tu, aby pomóc.</string>
+  <string name="support_message_placeholder">Wiadomość</string>
   <string name="errors_transfer">Błąd transferu: %1$s</string>
   <string name="errors_validation">Błąd walidacji: %1$s</string>
   <string name="errors_create_wallet">Błąd tworzenia portfela: %1$s</string>

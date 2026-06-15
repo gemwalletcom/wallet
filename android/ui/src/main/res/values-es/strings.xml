@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Apalancamiento por defecto</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit predeterminado</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss predeterminado</string>
+  <string name="support_state_empty_title">¿Cómo podemos ayudarte?</string>
+  <string name="support_state_empty_description">Pregúntanos lo que quieras. Estamos aquí para ayudarte.</string>
+  <string name="support_message_placeholder">Mensaje</string>
   <string name="errors_transfer">Error de transferencia: %1$s</string>
   <string name="errors_validation">Error de validación: %1$s</string>
   <string name="errors_create_wallet">Error al crear billetera: %1$s</string>

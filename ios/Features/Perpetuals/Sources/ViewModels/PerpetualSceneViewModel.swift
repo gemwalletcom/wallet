@@ -55,13 +55,15 @@ public final class PerpetualSceneViewModel {
     }
 
     public var state: StateViewType<[ChartCandleStick]> = .loading
-    public var currentPeriod: ChartPeriod = .day
+    public var currentPeriod: ChartPeriod {
+        didSet { preferences.perpetualChartPeriod = currentPeriod }
+    }
 
     public var isPresentingInfoSheet: InfoSheetType?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: Bool = false
 
-    let preference = Preferences.standard
+    private let preferences: Preferences
 
     private var observeTask: Task<Void, Never>?
 
@@ -71,6 +73,7 @@ public final class PerpetualSceneViewModel {
         perpetualService: PerpetualServiceable,
         transactionsService: TransactionsService,
         observerService: any PerpetualObservable,
+        preferences: Preferences = .standard,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
     ) {
@@ -79,6 +82,8 @@ public final class PerpetualSceneViewModel {
         self.perpetualService = perpetualService
         self.transactionsService = transactionsService
         self.observerService = observerService
+        self.preferences = preferences
+        currentPeriod = preferences.perpetualChartPeriod
         self.onTransferData = onTransferData
         self.onPerpetualRecipientData = onPerpetualRecipientData
 
@@ -101,7 +106,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var currency: String {
-        preference.currency
+        preferences.currency
     }
 
     public var hasOpenPosition: Bool {

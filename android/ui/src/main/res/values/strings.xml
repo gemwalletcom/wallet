@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Default Leverage</string>
   <string name="settings_preferences_perpetual_default_take_profit">Default Take Profit</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Default Stop Loss</string>
+  <string name="support_state_empty_title">How can we help?</string>
+  <string name="support_state_empty_description">Ask us anything. We are here to help.</string>
+  <string name="support_message_placeholder">Message</string>
   <string name="errors_transfer">Transfer Error: %1$s</string>
   <string name="errors_validation">Validation Error: %1$s</string>
   <string name="errors_create_wallet">Create Wallet Error: %1$s</string>

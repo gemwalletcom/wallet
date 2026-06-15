@@ -3,7 +3,9 @@ package com.gemwallet.android.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -14,6 +16,7 @@ import androidx.compose.ui.unit.sp
 fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
     // Define regex patterns
     val linkRegex = """\[(.*?)\]\((.*?)\)""".toRegex()
+    val autolinkRegex = """<(https?://[^>\s]+)>""".toRegex()
     val boldRegex = """\*\*(.*?)\*\*""".toRegex()
     val italicRegex = """\*(.*?)\*""".toRegex()
     val codeBlockRegex = """```([\s\S]*?)```""".toRegex()
@@ -39,6 +42,7 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
     addMatches(codeBlockRegex, TokenType.CODE_BLOCK, 1)
     addMatches(inlineCodeRegex, TokenType.INLINE_CODE, 1)
     addMatches(linkRegex, TokenType.LINK, 2)
+    addMatches(autolinkRegex, TokenType.AUTOLINK, 1)
     addMatches(boldRegex, TokenType.BOLD, 1)
     addMatches(italicRegex, TokenType.ITALIC, 1)
     addMatches(headingRegex, TokenType.HEADING, 2)
@@ -47,6 +51,7 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
 
     tokens.sortBy { it.start }
 
+    val linkStyle = SpanStyle(color = Color.Blue, textDecoration = TextDecoration.Underline)
     val builder = AnnotatedString.Builder()
     var currentIndex = 0
 
@@ -95,21 +100,13 @@ fun parseMarkdownToAnnotatedString(markdown: String): AnnotatedString {
                 val (linkText, linkUrl) = token.groups
                 val styleStart = builder.length
                 builder.append(linkText)
-                builder.addStyle(
-                    SpanStyle(
-                        color = Color.Blue,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    styleStart,
-                    builder.length
-                )
-                // Attach a string annotation with tag = "URL"
-                builder.addStringAnnotation(
-                    tag = "URL",
-                    annotation = linkUrl,
-                    start = styleStart,
-                    end = builder.length
-                )
+                builder.addLink(LinkAnnotation.Url(linkUrl, TextLinkStyles(linkStyle)), styleStart, builder.length)
+            }
+            TokenType.AUTOLINK -> {
+                val url = token.groups[0]
+                val styleStart = builder.length
+                builder.append(url)
+                builder.addLink(LinkAnnotation.Url(url, TextLinkStyles(linkStyle)), styleStart, builder.length)
             }
             TokenType.BOLD -> {
                 val boldContent = token.groups[0]
@@ -185,6 +182,7 @@ private enum class TokenType {
     CODE_BLOCK,
     INLINE_CODE,
     LINK,
+    AUTOLINK,
     BOLD,
     ITALIC,
     HEADING,

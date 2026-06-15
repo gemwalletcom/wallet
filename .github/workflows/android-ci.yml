@@ -11,15 +11,13 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
-  ANDROID_COMPILE_SDK: "36"
-  ANDROID_API: "35"
-  ANDROID_AVD_NAME: "ci-emulator"
-  ANDROID_EMULATOR_DEVICE: "pixel_6"
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
 
 jobs:
   unit_test:
     name: Unit Tests
-    runs-on: [self-hosted, macOS]
+    runs-on: macos-26
     env:
       UNIT_TESTS: "true"
     defaults:
@@ -31,6 +29,9 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
+
+      - name: Setup Android CI
+        uses: ./.github/actions/setup-android-ci
 
       - name: Bootstrap
         run: just bootstrap
@@ -49,51 +50,3 @@ jobs:
         env:
           GPR_USERNAME: ${{ github.actor }}
           GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # instrumented_test:
-  #   name: Instrumented Tests
-  #   needs: unit_test
-  #   runs-on: [self-hosted, macOS]
-  #   defaults:
-  #     run:
-  #       working-directory: android
-
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v6
-  #       with:
-  #         submodules: recursive
-
-  #     - name: Bootstrap
-  #       run: just bootstrap
-
-  #     - name: Clean Android build outputs
-  #       run: just clean
-
-  #     - name: Provision Android SDK and emulator
-  #       run: just provision-emulator
-
-  #     - name: Build
-  #       run: just build
-  #       env:
-  #         GPR_USERNAME: ${{ github.actor }}
-  #         GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Start emulator
-  #       run: just start-emulator
-
-  #     - name: Build instrumented tests
-  #       run: just build-test
-  #       env:
-  #         GPR_USERNAME: ${{ github.actor }}
-  #         GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Run instrumented tests
-  #       run: just test-integration
-  #       env:
-  #         GPR_USERNAME: ${{ github.actor }}
-  #         GPR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Stop emulator
-  #       if: always()
-  #       run: just stop-emulator

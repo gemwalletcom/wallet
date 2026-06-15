@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = effet de levier par défaut
 settings_preferences_perpetual_default_take_profit = Take Profit par défaut
 settings_preferences_perpetual_default_stop_loss = Stop Loss par défaut
 
+# Support
+
+support_state_empty_title = Comment pouvons-nous vous aider ?
+support_state_empty_description = Posez-nous toutes vos questions. Nous sommes là pour vous aider.
+support_message_placeholder = Message
+
 # Errors
 
 errors_transfer = Erreur de transfert : %@

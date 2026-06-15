@@ -35,16 +35,7 @@ impl UtxoPlanner {
         let memo_output = request.memo.as_deref().map(op_return_output).transpose()?;
         let spendable_inputs = spendable_inputs(request.chain, &request.sender_address, request.utxos)?;
         let target = if request.is_max { SpendTarget::Max } else { SpendTarget::Exact(request.amount) };
-        Self::select_inputs_and_build_plan(
-            request.chain,
-            target,
-            request.fee_rate,
-            payment_script,
-            change_script,
-            memo_output,
-            spendable_inputs,
-            request.force_change_output,
-        )
+        Self::select_inputs_and_build_plan(request.chain, target, request.fee_rate, payment_script, change_script, memo_output, spendable_inputs)
     }
 
     fn select_inputs_and_build_plan(
@@ -55,7 +46,6 @@ impl UtxoPlanner {
         change_script: ScriptBuf,
         memo_output: Option<PlanOutput>,
         mut spendable_inputs: Vec<PlanInput>,
-        force_change_output: bool,
     ) -> Result<SpendPlan, SignerError> {
         // Smallest-first so Exact selects the fewest inputs; Max spends all, so sorting just keeps it deterministic.
         spendable_inputs.sort_by(|left, right| {
@@ -82,17 +72,7 @@ impl UtxoPlanner {
                 SpendTarget::Max => return Self::build_max_plan(chain, fee_rate, &payment_script, &memo_output, &selected, selected_amount),
                 SpendTarget::Exact(value) => value,
             };
-            if let Some(plan) = Self::build_exact_plan(
-                chain,
-                value,
-                fee_rate,
-                &payment_script,
-                &change_script,
-                &memo_output,
-                &selected,
-                selected_amount,
-                force_change_output,
-            )? {
+            if let Some(plan) = Self::build_exact_plan(chain, value, fee_rate, &payment_script, &change_script, &memo_output, &selected, selected_amount)? {
                 return Ok(plan);
             }
         }
@@ -132,7 +112,6 @@ impl UtxoPlanner {
         memo_output: &Option<PlanOutput>,
         selected: &[PlanInput],
         selected_amount: u64,
-        force_change_output: bool,
     ) -> Result<Option<SpendPlan>, SignerError> {
         let mut outputs = spend_outputs(value, payment_script.clone(), memo_output.clone());
 
@@ -152,10 +131,6 @@ impl UtxoPlanner {
                 fee: fee_with_change,
             }));
         }
-        if force_change_output {
-            return Ok(None);
-        }
-
         let fee_without_change = estimate_fee(chain, selected, &outputs, fee_rate);
         let Some(remainder) = selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee_without_change)) else {
             return Ok(None);

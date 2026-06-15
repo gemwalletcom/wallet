@@ -9,6 +9,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.ext.keystoreId
 import com.gemwallet.android.ext.v4KeystorePasswordBytes
 import com.gemwallet.android.math.hex
+import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockWallet
@@ -49,7 +50,7 @@ class MigrateV3KeystoreServiceTest {
 
     @Test
     fun migrateMnemonicWallet_createsV4AtDeterministicIdAndIsIdempotent() = runBlocking {
-        val walletId = WalletId("multicoin_$ETH_ADDRESS")
+        val walletId = WalletId("multicoin_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.Multicoin, source = WalletSource.Import)
         every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_mnemonic.json")
@@ -68,7 +69,7 @@ class MigrateV3KeystoreServiceTest {
 
     @Test
     fun migratePrivateKeyWallet_createsV4AtDeterministicIdAndIsIdempotent() = runBlocking {
-        val walletId = WalletId("privateKey_ethereum_$ETH_ADDRESS")
+        val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
         every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId, "v3_android_private_key.json")
@@ -94,8 +95,8 @@ class MigrateV3KeystoreServiceTest {
 
     private fun cleanup() {
         baseDir.listFiles { file -> file.extension == "json" }?.forEach { it.delete() }
-        File(baseDir, "multicoin_$ETH_ADDRESS").delete()
-        File(baseDir, "privateKey_ethereum_$ETH_ADDRESS").delete()
+        File(baseDir, "multicoin_$KEYSTORE_TEST_ETH_ADDRESS").delete()
+        File(baseDir, "privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS").delete()
     }
 
     companion object {
@@ -103,7 +104,6 @@ class MigrateV3KeystoreServiceTest {
             includeGemstoneLibs()
         }
 
-        private const val ETH_ADDRESS = "0x5a8f70b44aFa00Cb70615D9c9CCb9A24933ED2D3"
         private const val EXPECTED_PRIVATE_KEY = "ae8794f84919b14ff9d1f0f7cf490a4c04e608de16864f53fe8b40af127b9da3"
     }
 }

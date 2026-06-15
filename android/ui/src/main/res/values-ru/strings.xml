@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Плечо по умолчанию</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit по умолчанию</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss по умолчанию</string>
+  <string name="support_state_empty_title">Чем мы можем помочь?</string>
+  <string name="support_state_empty_description">Спросите нас о чём угодно. Мы всегда рады помочь.</string>
+  <string name="support_message_placeholder">Сообщение</string>
   <string name="errors_transfer">Ошибка передачи: %1$s</string>
   <string name="errors_validation">Ошибка проверки: %1$s</string>
   <string name="errors_create_wallet">Ошибка создания кошелька: %1$s</string>

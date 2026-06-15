@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "Levier implicit";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit implicit";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss implicit";
+"support.state_empty_title" = "Cum te putem ajuta?";
+"support.state_empty_description" = "Întreabă-ne orice. Suntem aici să te ajutăm.";
+"support.message_placeholder" = "Mesaj";
 "errors.transfer" = "Eroare de transfer: %@";
 "errors.validation" = "Eroare de validare: %@";
 "errors.create_wallet" = "Eroare la crearea portofelului: %@";

@@ -2,14 +2,16 @@ use crate::DatabaseError;
 
 use crate::DatabaseClient;
 use crate::database::tag::TagStore;
-use crate::models::{AssetTagRow, TagRow};
+use crate::models::{AssetTagRow, PerpetualTagRow, TagRow};
 use primitives::AssetId;
 
 pub trait TagRepository {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, DatabaseError>;
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, DatabaseError>;
     fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
+    fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError>;
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, DatabaseError>;
+    fn get_perpetuals_tags(&mut self) -> Result<Vec<PerpetualTagRow>, DatabaseError>;
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, DatabaseError>;
     fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, DatabaseError>;
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, DatabaseError>;
@@ -29,8 +31,16 @@ impl TagRepository for DatabaseClient {
         Ok(TagStore::get_asset_list_tags(self)?)
     }
 
+    fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, DatabaseError> {
+        Ok(TagStore::get_perpetual_list_tags(self)?)
+    }
+
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, DatabaseError> {
         Ok(TagStore::get_assets_tags(self)?)
+    }
+
+    fn get_perpetuals_tags(&mut self) -> Result<Vec<PerpetualTagRow>, DatabaseError> {
+        Ok(TagStore::get_perpetuals_tags(self)?)
     }
 
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, DatabaseError> {

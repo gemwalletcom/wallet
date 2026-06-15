@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
 import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
+import com.gemwallet.android.application.assets.coordinators.GetChartPeriod
+import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
 import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
@@ -37,12 +39,14 @@ class ChartViewModel internal constructor(
     getAssetTokenInfo: GetAssetTokenInfo,
     getCurrentCurrency: GetCurrentCurrency,
     private val getAssetChartData: GetAssetChartData,
+    getChartPeriod: GetChartPeriod,
+    private val setChartPeriod: SetChartPeriod,
     private val assetId: AssetId,
 ) : ViewModel() {
     private val assetPriceInfo = getAssetTokenInfo(assetId)
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    private val selectedPeriod = MutableStateFlow(ChartPeriod.Day)
+    private val selectedPeriod = MutableStateFlow(getChartPeriod())
     private val viewState = MutableStateFlow<ChartViewState>(ChartViewState.Loading)
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
@@ -91,6 +95,7 @@ class ChartViewModel internal constructor(
         if (period == selectedPeriod.value) {
             return
         }
+        setChartPeriod(period)
         selectedPeriod.value = period
         viewState.value = ChartViewState.Loading
     }
@@ -106,11 +111,15 @@ class ChartViewModel internal constructor(
         getAssetTokenInfo: GetAssetTokenInfo,
         getCurrentCurrency: GetCurrentCurrency,
         getAssetChartData: GetAssetChartData,
+        getChartPeriod: GetChartPeriod,
+        setChartPeriod: SetChartPeriod,
         savedStateHandle: SavedStateHandle,
     ) : this(
         getAssetTokenInfo = getAssetTokenInfo,
         getCurrentCurrency = getCurrentCurrency,
         getAssetChartData = getAssetChartData,
+        getChartPeriod = getChartPeriod,
+        setChartPeriod = setChartPeriod,
         assetId = savedStateHandle.requireAssetId(),
     )
 

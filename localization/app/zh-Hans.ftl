@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = 默认杠杆
 settings_preferences_perpetual_default_take_profit = 默认止盈
 settings_preferences_perpetual_default_stop_loss = 默认止损
 
+# Support
+
+support_state_empty_title = 有什么可以帮您?
+support_state_empty_description = 有任何问题都可以问我们。我们随时为您提供帮助。
+support_message_placeholder = 消息
+
 # Errors
 
 errors_transfer = 传输错误： %@

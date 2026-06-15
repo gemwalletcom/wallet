@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Alavancagem padrão
 settings_preferences_perpetual_default_take_profit = Take Profit padrão
 settings_preferences_perpetual_default_stop_loss = Stop Loss padrão
 
+# Support
+
+support_state_empty_title = Como podemos ajudar?
+support_state_empty_description = Pergunte o que quiser. Estamos aqui para ajudar.
+support_message_placeholder = Mensagem
+
 # Errors
 
 errors_transfer = Erro de transferência: %@

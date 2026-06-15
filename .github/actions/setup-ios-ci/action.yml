@@ -1,0 +1,12 @@
+name: Setup iOS CI
+description: Configure Rust, just, sccache, and Xcode for iOS CI.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust-ci
+
+    - name: Select Xcode 26
+      shell: bash
+      run: sudo xcode-select -s /Applications/Xcode.app

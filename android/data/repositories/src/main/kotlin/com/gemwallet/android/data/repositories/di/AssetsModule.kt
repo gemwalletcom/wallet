@@ -26,6 +26,7 @@ import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PriceAlertsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.services.gemapi.http.DeviceRequestSigner
 import com.gemwallet.android.data.services.gemapi.http.GemDeviceRequestSigner
 import dagger.Module
@@ -97,6 +98,7 @@ object AssetsModule {
         assetsDao: AssetsDao,
         updateBalances: UpdateBalances,
         inAppNotificationsDao: InAppNotificationsDao,
+        supportMessagesDao: SupportMessagesDao,
     ): StreamEventHandler = StreamEventHandler(
         pricesDao = pricesDao,
         sessionRepository = sessionRepository,
@@ -108,6 +110,7 @@ object AssetsModule {
         assetsDao = assetsDao,
         updateBalances = updateBalances,
         inAppNotificationsDao = inAppNotificationsDao,
+        supportMessagesDao = supportMessagesDao,
     )
 
     @Provides

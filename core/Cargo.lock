@@ -648,10 +648,8 @@ dependencies = [
  "futures",
  "gem_auth",
  "gem_client",
- "gem_hash",
  "gem_rewards",
  "gem_tracing",
- "hex",
  "in_app_notifications",
  "localizer",
  "name_resolver",
@@ -676,7 +674,6 @@ dependencies = [
  "support",
  "swapper",
  "tokio",
- "unic-langid",
 ]
 
 [[package]]
@@ -3719,7 +3716,6 @@ dependencies = [
  "gem_hash",
  "hex",
  "num-bigint",
- "num-traits",
  "number_formatter",
  "primitives",
  "reqwest 0.13.4",
@@ -5791,6 +5787,7 @@ dependencies = [
  "num-traits",
  "serde",
  "serde_json",
+ "serde_serializers",
  "strum",
  "typeshare",
  "url",

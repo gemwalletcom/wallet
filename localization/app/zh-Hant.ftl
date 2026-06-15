@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = 預設槓桿
 settings_preferences_perpetual_default_take_profit = 預設止盈
 settings_preferences_perpetual_default_stop_loss = 預設止損
 
+# Support
+
+support_state_empty_title = 有什麼可以幫您?
+support_state_empty_description = 有任何問題都可以問我們。我們隨時為您提供協助。
+support_message_placeholder = 訊息
+
 # Errors
 
 errors_transfer = 傳輸錯誤： %@

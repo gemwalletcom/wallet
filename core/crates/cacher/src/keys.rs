@@ -66,10 +66,6 @@ pub enum CacheKey<'a> {
     PendingTransactions(&'a str),
 }
 
-pub fn cache_keys<'a, T: AsRef<str>>(items: &'a [T], variant: impl Fn(&'a str) -> CacheKey<'a>) -> Vec<String> {
-    items.iter().map(|item| variant(item.as_ref()).key()).collect()
-}
-
 impl CacheKey<'_> {
     pub fn key(&self) -> String {
         match self {

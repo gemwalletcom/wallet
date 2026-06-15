@@ -1,0 +1,14 @@
+name: Setup Android CI
+description: Configure Rust, just, sccache, and Java for Android CI.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Rust
+      uses: ./.github/actions/setup-rust-ci
+
+    - name: Select Java 17
+      shell: bash
+      run: |
+        echo "JAVA_HOME=$JAVA_HOME_17_arm64" >> "$GITHUB_ENV"
+        echo "$JAVA_HOME_17_arm64/bin" >> "$GITHUB_PATH"

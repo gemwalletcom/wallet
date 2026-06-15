@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">기본 레버리지</string>
   <string name="settings_preferences_perpetual_default_take_profit">기본 익절</string>
   <string name="settings_preferences_perpetual_default_stop_loss">기본 손절</string>
+  <string name="support_state_empty_title">무엇을 도와드릴까요?</string>
+  <string name="support_state_empty_description">무엇이든 물어보세요. 저희가 도와드리겠습니다.</string>
+  <string name="support_message_placeholder">메시지</string>
   <string name="errors_transfer">전송 오류: %1$s</string>
   <string name="errors_validation">유효성 검사 오류: %1$s</string>
   <string name="errors_create_wallet">지갑 생성 오류: %1$s</string>

@@ -356,6 +356,15 @@ settings_preferences_perpetual_default_take_profit = Default Take Profit
 # Settings > Preferences > Perpetuals row for the default stop-loss percentage on new perpetual positions.
 settings_preferences_perpetual_default_stop_loss = Default Stop Loss
 
+# Support
+
+# Used in Support chat screen for the state empty title.
+support_state_empty_title = How can we help?
+# Used in Support chat screen for the state empty description.
+support_state_empty_description = Ask us anything. We are here to help.
+# Used in Support chat input field as placeholder.
+support_message_placeholder = Message
+
 # Errors
 
 # Used in error cards and validation UI for the transfer label. Contains 1 string placeholder.

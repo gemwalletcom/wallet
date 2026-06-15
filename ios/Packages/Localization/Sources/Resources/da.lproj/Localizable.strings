@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "Standardgearing";
 "settings.preferences.perpetual.default_take_profit" = "Standard Take Profit";
 "settings.preferences.perpetual.default_stop_loss" = "Standard Stop Loss";
+"support.state_empty_title" = "Hvordan kan vi hjælpe?";
+"support.state_empty_description" = "Spørg os om hvad som helst. Vi er her for at hjælpe.";
+"support.message_placeholder" = "Besked";
 "errors.transfer" = "Overførselsfejl: %@";
 "errors.validation" = "Valideringsfejl: %@";
 "errors.create_wallet" = "Fejl ved oprettelse af tegnebog: %@";

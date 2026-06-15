@@ -5,7 +5,7 @@ pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     filters.push("properties.isEnabled = true".to_string());
     filters.push(format!("score.rank > {}", request.rank_threshold()));
 
-    if !request.tags.is_empty() {
+    if request.has_tag_filter() {
         filters.push(filter_array("tags", request.tags.clone()));
     }
 
@@ -14,6 +14,14 @@ pub fn build_assets_filters(request: &SearchRequest) -> Vec<String> {
     }
 
     filters
+}
+
+pub fn build_perpetuals_filters(request: &SearchRequest) -> Vec<String> {
+    if request.has_tag_filter() {
+        vec![filter_array("tags", request.tags.clone())]
+    } else {
+        vec![]
+    }
 }
 
 pub fn build_filter(filters: Vec<String>) -> String {
@@ -58,6 +66,14 @@ mod tests {
         let filters = build_assets_filters(&request);
 
         assert_eq!(filters, vec!["properties.isEnabled = true", "score.rank > 5", "asset.chain IN [\"ethereum\"]"]);
+    }
+
+    #[test]
+    fn build_perpetuals_filters_with_tags() {
+        let request = SearchRequest::new("longquery", None, Some("stocks"), None, None);
+        let filters = build_perpetuals_filters(&request);
+
+        assert_eq!(filters, vec!["tags IN [\"stocks\"]"]);
     }
 
     #[test]

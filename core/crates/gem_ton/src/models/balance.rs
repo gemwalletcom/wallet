@@ -28,18 +28,6 @@ pub struct JettonOffchainMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JettonBalances {
-    pub balances: Vec<JettonBalance>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JettonBalance {
-    #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    pub balance: BigUint,
-    pub jetton: Jetton,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Jetton {
     pub address: String,
 }

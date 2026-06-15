@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Leveraj Lalai</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit lalai</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss lalai</string>
+  <string name="support_state_empty_title">Bagaimana kami boleh membantu?</string>
+  <string name="support_state_empty_description">Tanya kami apa sahaja. Kami sedia membantu.</string>
+  <string name="support_message_placeholder">Mesej</string>
   <string name="errors_transfer">Ralat Pemindahan: %1$s</string>
   <string name="errors_validation">Ralat Pengesahan: %1$s</string>
   <string name="errors_create_wallet">Ralat Cipta Wallet: %1$s</string>

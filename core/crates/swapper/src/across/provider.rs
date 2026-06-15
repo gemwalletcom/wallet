@@ -5,7 +5,7 @@ use super::{
     hubpool::HubPoolClient,
 };
 use crate::{
-    SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
+    SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     across::{DEFAULT_DEPOSIT_GAS_LIMIT, DEFAULT_FILL_GAS_LIMIT},
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
@@ -359,6 +359,10 @@ impl Swapper for Across {
             SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_USDC.id.clone(), HYPEREVM_USDT.id.clone()]),
             SwapperChainAsset::Assets(Chain::Plasma, vec![PLASMA_USDT.id.clone()]),
         ]
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

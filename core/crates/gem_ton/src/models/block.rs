@@ -12,10 +12,3 @@ pub struct BlockInfo {
     pub seqno: u64,
     pub root_hash: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockRef {
-    pub workchain: i32,
-    pub shard: String,
-    pub seqno: i64,
-}

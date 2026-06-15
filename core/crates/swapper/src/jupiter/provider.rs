@@ -4,8 +4,8 @@ use super::{
     model::{QuoteDataRequest, QuoteRequest as JupiterRequest, QuoteResponse},
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, error::INVALID_ADDRESS,
-    fees::default_referral_fees, solana,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    error::INVALID_ADDRESS, fees::default_referral_fees, solana,
 };
 use alloy_primitives::U256;
 use async_trait::async_trait;
@@ -113,6 +113,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Solana)]
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

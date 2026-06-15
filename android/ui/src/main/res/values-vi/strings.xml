@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Đòn bẩy mặc định</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit mặc định</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss mặc định</string>
+  <string name="support_state_empty_title">Chúng tôi có thể giúp gì cho bạn?</string>
+  <string name="support_state_empty_description">Hãy hỏi chúng tôi bất cứ điều gì. Chúng tôi luôn sẵn sàng hỗ trợ bạn.</string>
+  <string name="support_message_placeholder">Tin nhắn</string>
   <string name="errors_transfer">Lỗi chuyển giao: %1$s</string>
   <string name="errors_validation">Lỗi xác thực: %1$s</string>
   <string name="errors_create_wallet">Lỗi tạo ví: %1$s</string>

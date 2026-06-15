@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Leva finanziaria predefinita
 settings_preferences_perpetual_default_take_profit = Take Profit predefinito
 settings_preferences_perpetual_default_stop_loss = Stop Loss predefinito
 
+# Support
+
+support_state_empty_title = Come possiamo aiutarti?
+support_state_empty_description = Chiedici qualsiasi cosa. Siamo qui per aiutarti.
+support_message_placeholder = Messaggio
+
 # Errors
 
 errors_transfer = Errore di trasferimento: %@

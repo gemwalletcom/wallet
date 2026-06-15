@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Leverage Default
 settings_preferences_perpetual_default_take_profit = Take Profit default
 settings_preferences_perpetual_default_stop_loss = Stop Loss default
 
+# Support
+
+support_state_empty_title = Apa yang bisa kami bantu?
+support_state_empty_description = Tanyakan apa saja kepada kami. Kami siap membantu.
+support_message_placeholder = Pesan
+
 # Errors
 
 errors_transfer = Kesalahan Transfer: %@

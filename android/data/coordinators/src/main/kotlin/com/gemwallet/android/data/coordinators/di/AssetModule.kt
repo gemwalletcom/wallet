@@ -10,6 +10,7 @@ import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
 import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
 import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
+import com.gemwallet.android.application.assets.coordinators.GetChartPeriod
 import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
 import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
 import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
@@ -19,6 +20,7 @@ import com.gemwallet.android.application.assets.coordinators.HideAsset
 import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
 import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
 import com.gemwallet.android.application.assets.coordinators.SearchAssets
+import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
 import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
 import com.gemwallet.android.application.assets.coordinators.SyncAssets
 import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
@@ -35,6 +37,7 @@ import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
+import com.gemwallet.android.data.coordinators.asset.GetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
@@ -45,6 +48,7 @@ import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SearchAssetsImpl
+import com.gemwallet.android.data.coordinators.asset.SetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleAssetPinImpl
@@ -234,6 +238,18 @@ object AssetModule {
     fun provideToggleHideBalances(
         userConfig: UserConfig,
     ): ToggleHideBalances = ToggleHideBalancesImpl(userConfig)
+
+    @Provides
+    @Singleton
+    fun provideGetChartPeriod(
+        userConfig: UserConfig,
+    ): GetChartPeriod = GetChartPeriodImpl(userConfig)
+
+    @Provides
+    @Singleton
+    fun provideSetChartPeriod(
+        userConfig: UserConfig,
+    ): SetChartPeriod = SetChartPeriodImpl(userConfig)
 
     @Provides
     @Singleton

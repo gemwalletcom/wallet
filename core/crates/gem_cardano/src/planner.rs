@@ -41,14 +41,14 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
 
     let mut fee = estimate_fee(input, &selected_utxos, requested_amount, input.is_max_value)?;
     let amount = if input.is_max_value {
-        available_amount.checked_sub(fee).ok_or_else(|| SignerError::invalid_input("insufficient balance"))?
+        available_amount.checked_sub(fee).ok_or(SignerError::InsufficientFunds)?
     } else {
         requested_amount
     };
 
     let spent = amount.checked_add(fee).ok_or_else(|| SignerError::invalid_input("Cardano amount overflow"))?;
     if spent > available_amount {
-        return SignerError::invalid_input_err("insufficient balance");
+        return Err(SignerError::InsufficientFunds);
     }
     let mut change = available_amount - spent;
     if change > 0 && change < MIN_OUTPUT_LOVELACE {

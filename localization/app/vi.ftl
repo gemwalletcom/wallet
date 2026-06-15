@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Đòn bẩy mặc định
 settings_preferences_perpetual_default_take_profit = Take Profit mặc định
 settings_preferences_perpetual_default_stop_loss = Stop Loss mặc định
 
+# Support
+
+support_state_empty_title = Chúng tôi có thể giúp gì cho bạn?
+support_state_empty_description = Hãy hỏi chúng tôi bất cứ điều gì. Chúng tôi luôn sẵn sàng hỗ trợ bạn.
+support_message_placeholder = Tin nhắn
+
 # Errors
 
 errors_transfer = Lỗi chuyển giao: %@

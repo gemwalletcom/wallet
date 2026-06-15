@@ -129,7 +129,7 @@ pub mod transaction_direction;
 pub use self::transaction_direction::TransactionDirection;
 pub mod subscription;
 pub mod transaction_utxo;
-pub use self::subscription::{AddressChains, DeviceSubscription, WalletSubscription, WalletSubscriptionChains, WalletSubscriptionLegacy};
+pub use self::subscription::{AddressChains, DeviceSubscription, WalletSubscription, WalletSubscriptionChains};
 pub use self::transaction_utxo::TransactionUtxoInput;
 pub mod address;
 pub use self::address::{Address, AddressError};
@@ -227,9 +227,7 @@ pub use self::websocket::{WebSocketPriceAction, WebSocketPriceActionType, WebSoc
 pub mod stream;
 pub use self::stream::{StreamBalanceUpdate, StreamEvent, StreamMessage, StreamMessagePrices, StreamTransactionsUpdate, StreamWalletUpdate, device_stream_channel};
 pub mod support;
-pub use self::support::{
-    SupportAction, SupportAgent, SupportMessage, SupportMessageDeliveryStatus, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportTypingStatus,
-};
+pub use self::support::{SupportAction, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageInput, SupportMessageSender, SupportMessageStatus, SupportTypingStatus};
 pub mod asset_balance;
 pub use self::asset_balance::{AddressBalances, AssetBalance, Balance};
 pub mod chain_address;

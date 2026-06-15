@@ -2,6 +2,7 @@ package com.gemwallet.android.data.repositories.bridge
 
 import com.gemwallet.android.data.service.store.database.entities.DbConnection
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ext.walletConnectAppName
@@ -26,7 +27,7 @@ internal fun Wallet.Model.Session.toConnectionRecord(
         state = WalletConnectionState.Active,
         chains = accounts().map { it.chain }.distinct(),
         createdAt = createdAt,
-        expireAt = expiry * 1000L,
+        expireAt = expiry.secondsToMillis(),
         appName = walletConnectAppName(metaData?.name, metaData?.url),
         appDescription = metaData?.description ?: "",
         appUrl = metaData?.url ?: "",

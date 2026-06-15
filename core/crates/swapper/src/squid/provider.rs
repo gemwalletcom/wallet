@@ -7,11 +7,11 @@ use primitives::{AssetId, Chain, chain_cosmos::CosmosChain, swap::SwapQuoteDataT
 
 use super::{SQUID_COSMOS_MULTICALL, SUPPORTED_CHAINS, client::SquidClient, model::*};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapResult, Swapper, SwapperChainAsset, SwapperError, SwapperProvider,
-    SwapperQuoteData,
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
+    SwapperProvider, SwapperQuoteData,
     config::{DEFAULT_SWAP_FEE_BPS, get_swap_proxy_url},
     cross_chain::VaultAddresses,
-    fees::{default_referral_fees, quote_value_after_reserve_by_chain},
+    fees::default_referral_fees,
 };
 
 #[derive(Debug)]
@@ -110,8 +110,12 @@ where
         SUPPORTED_CHAINS.clone()
     }
 
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let from_value = quote_value_after_reserve_by_chain(request)?;
+        let from_value = request.value.clone();
         let (response, _, _) = self.fetch_route(request, &from_value, true).await?;
 
         Ok(Quote {

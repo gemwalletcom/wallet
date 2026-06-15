@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "מינוף ברירת מחדל";
 "settings.preferences.perpetual.default_take_profit" = "Take Profit כברירת מחדל";
 "settings.preferences.perpetual.default_stop_loss" = "Stop Loss כברירת מחדל";
+"support.state_empty_title" = "איך נוכל לעזור?";
+"support.state_empty_description" = "שאלו אותנו כל דבר. אנחנו כאן כדי לעזור.";
+"support.message_placeholder" = "הודעה";
 "errors.transfer" = "שגיאת העברה: %@";
 "errors.validation" = "שגיאת אימות: %@";
 "errors.create_wallet" = "שגיאת יצירת ארנק: %@";

@@ -1,4 +1,5 @@
 pub mod auth_config;
+pub(crate) mod body;
 pub mod client;
 pub mod clients;
 pub mod constants;
@@ -6,13 +7,11 @@ pub mod error;
 pub mod guard;
 pub mod signature;
 use crate::assets::AssetsClient;
-use crate::params::{
-    AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, DeviceParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, TransactionIdParam, UserAgent,
-};
+use crate::params::{AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, TransactionIdParam, UserAgent};
 use crate::responders::{ApiError, ApiResponse};
 use auth_config::AuthConfig;
+use body::DeviceJson;
 pub use client::DevicesClient;
-pub(crate) use clients::WalletSubscriptionInput;
 pub use clients::{
     AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, ScanProviderFactory, TransactionsClient,
     WalletConfigurationClient, WalletsClient,
@@ -29,17 +28,17 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult, RewardRedemptionO
 use primitives::{
     AddressName, AssetId, AuthNonce, ChainAddress, FiatAssets, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuotes, InAppNotification, NFTData, PortfolioAssets,
     PortfolioAssetsRequest, PriceAlerts, ReportNft, RewardEvent, Rewards, ScanTransaction, ScanTransactionPayload, Transaction, TransactionsResponse, WalletConfigurationResult,
-    WalletSubscriptionChains,
+    WalletId, WalletSubscription, WalletSubscriptionChains,
 };
-use rocket::{State, delete, get, post, put, serde::json::Json, tokio::sync::Mutex};
+use rocket::{State, delete, get, post, put, tokio::sync::Mutex};
 use std::sync::Arc;
 use streamer::{StreamProducer, StreamProducerQueue};
 
 use crate::auth::WalletSigned;
 
 #[post("/devices", format = "json", data = "<device>")]
-pub async fn add_device_v2(device_id: VerifiedDeviceId, device: DeviceParam, client: &State<Mutex<DevicesClient>>) -> Result<ApiResponse<Device>, ApiError> {
-    let device = device.0;
+pub async fn add_device_v2(device_id: VerifiedDeviceId, device: DeviceJson<Device>, client: &State<Mutex<DevicesClient>>) -> Result<ApiResponse<Device>, ApiError> {
+    let device = device.into_inner();
     if device.id != device_id.0 {
         return Err(ApiError::BadRequest("Device id mismatch".to_string()));
     }
@@ -105,7 +104,7 @@ async fn get_device_transaction(id: TransactionIdParam, client: &State<Mutex<Tra
 #[post("/devices/address_names", format = "json", data = "<requests>")]
 pub async fn get_device_address_names_v2(
     _device: AuthenticatedDevice,
-    requests: Json<Vec<ChainAddress>>,
+    requests: DeviceJson<Vec<ChainAddress>>,
     client: &State<Mutex<AddressNamesClient>>,
 ) -> Result<ApiResponse<Vec<AddressName>>, ApiError> {
     Ok(client.lock().await.get_address_names(requests.into_inner())?.into())
@@ -193,7 +192,7 @@ pub async fn redeem_device_rewards_v2(
     request: WalletSigned<RedemptionRequest>,
     client: &State<Mutex<RewardsRedemptionClient>>,
 ) -> Result<ApiResponse<RedemptionResult>, ApiError> {
-    if !request.matches_multicoin_wallet(&device.wallet_identifier) {
+    if WalletId::Multicoin(request.address.clone()) != device.wallet_identifier {
         return Err(ApiError::BadRequest("Wallet signature mismatch".to_string()));
     }
 
@@ -205,13 +204,13 @@ pub async fn redeem_device_rewards_v2(
         .into())
 }
 
-#[put("/devices", format = "json", data = "<device_param>")]
-pub async fn update_device_v2(device: AuthenticatedDevice, device_param: DeviceParam, client: &State<Mutex<DevicesClient>>) -> Result<ApiResponse<Device>, ApiError> {
-    let device_param = device_param.0;
-    if device_param.id != device.device_row.device_id {
+#[put("/devices", format = "json", data = "<device_input>")]
+pub async fn update_device_v2(device: AuthenticatedDevice, device_input: DeviceJson<Device>, client: &State<Mutex<DevicesClient>>) -> Result<ApiResponse<Device>, ApiError> {
+    let device_input = device_input.into_inner();
+    if device_input.id != device.device_row.device_id {
         return Err(ApiError::BadRequest("Device id mismatch".to_string()));
     }
-    Ok(client.lock().await.update_device(device_param)?.into())
+    Ok(client.lock().await.update_device(device_input)?.into())
 }
 
 #[post("/devices/push-notification")]
@@ -227,7 +226,8 @@ pub async fn send_push_notification_device_v2(device: AuthenticatedDevice, clien
 }
 
 #[post("/devices/nft/report", format = "json", data = "<request>")]
-pub async fn report_device_nft_v2(device: AuthenticatedDevice, request: Json<ReportNft>, client: &State<NFTClient>) -> Result<ApiResponse<bool>, ApiError> {
+pub async fn report_device_nft_v2(device: AuthenticatedDevice, request: DeviceJson<ReportNft>, client: &State<NFTClient>) -> Result<ApiResponse<bool>, ApiError> {
+    let request = request.into_inner();
     let asset_id = request
         .asset_id
         .as_deref()
@@ -256,10 +256,10 @@ pub async fn get_device_name_resolve_v2(
 #[post("/devices/scan/transaction", data = "<request>")]
 pub async fn scan_device_transaction_v2(
     _device: AuthenticatedDevice,
-    request: Json<ScanTransactionPayload>,
+    request: DeviceJson<ScanTransactionPayload>,
     client: &State<Mutex<ScanClient>>,
 ) -> Result<ApiResponse<ScanTransaction>, ApiError> {
-    Ok(client.lock().await.get_scan_transaction(request.0).await?.into())
+    Ok(client.lock().await.get_scan_transaction(request.into_inner()).await?.into())
 }
 
 #[get("/devices/wallet_configuration")]
@@ -292,20 +292,19 @@ pub async fn get_device_subscriptions_v2(device: AuthenticatedDevice, client: &S
 #[post("/devices/subscriptions", format = "json", data = "<subscriptions>")]
 pub async fn add_device_subscriptions_v2(
     device: AuthenticatedDevice,
-    subscriptions: Json<Vec<WalletSubscriptionInput>>,
+    subscriptions: DeviceJson<Vec<WalletSubscription>>,
     client: &State<Mutex<WalletsClient>>,
 ) -> Result<ApiResponse<usize>, ApiError> {
-    let wallet_subscriptions = subscriptions.0.into_iter().map(|x| x.into_wallet_subscription()).collect();
-    Ok(client.lock().await.add_subscriptions(device.device_row.id, wallet_subscriptions).await?.into())
+    Ok(client.lock().await.add_subscriptions(device.device_row.id, subscriptions.into_inner()).await?.into())
 }
 
 #[delete("/devices/subscriptions", format = "json", data = "<subscriptions>")]
 pub async fn delete_device_subscriptions_v2(
     device: AuthenticatedDevice,
-    subscriptions: Json<Vec<WalletSubscriptionChains>>,
+    subscriptions: DeviceJson<Vec<WalletSubscriptionChains>>,
     client: &State<Mutex<WalletsClient>>,
 ) -> Result<ApiResponse<usize>, ApiError> {
-    Ok(client.lock().await.delete_subscriptions(device.device_row.id, subscriptions.0).await?.into())
+    Ok(client.lock().await.delete_subscriptions(device.device_row.id, subscriptions.into_inner()).await?.into())
 }
 
 #[get("/devices/auth/nonce")]
@@ -335,19 +334,24 @@ pub async fn get_device_price_alerts_v2(
 #[post("/devices/price_alerts", format = "json", data = "<price_alerts>")]
 pub async fn add_device_price_alerts_v2(
     device: AuthenticatedDevice,
-    price_alerts: Json<PriceAlerts>,
+    price_alerts: DeviceJson<PriceAlerts>,
     client: &State<Mutex<pricer::PriceAlertClient>>,
 ) -> Result<ApiResponse<usize>, ApiError> {
-    Ok(client.lock().await.add_price_alerts(&device.device_row.device_id, price_alerts.0).await?.into())
+    Ok(client.lock().await.add_price_alerts(&device.device_row.device_id, price_alerts.into_inner()).await?.into())
 }
 
 #[delete("/devices/price_alerts", format = "json", data = "<price_alerts>")]
 pub async fn delete_device_price_alerts_v2(
     device: AuthenticatedDevice,
-    price_alerts: Json<PriceAlerts>,
+    price_alerts: DeviceJson<PriceAlerts>,
     client: &State<Mutex<pricer::PriceAlertClient>>,
 ) -> Result<ApiResponse<usize>, ApiError> {
-    Ok(client.lock().await.delete_price_alerts(&device.device_row.device_id, price_alerts.0).await?.into())
+    Ok(client
+        .lock()
+        .await
+        .delete_price_alerts(&device.device_row.device_id, price_alerts.into_inner())
+        .await?
+        .into())
 }
 
 #[get("/devices/fiat/transactions")]
@@ -416,8 +420,8 @@ pub async fn get_fiat_quote_url_v2(
 pub async fn get_device_portfolio_assets_v2(
     _device: AuthenticatedDevice,
     period: ChartPeriodParam,
-    request: Json<PortfolioAssetsRequest>,
+    request: DeviceJson<PortfolioAssetsRequest>,
     portfolio_client: &State<Mutex<PortfolioClient>>,
 ) -> Result<ApiResponse<PortfolioAssets>, ApiError> {
-    Ok(portfolio_client.lock().await.get_portfolio_charts(request.0.assets, period.0)?.into())
+    Ok(portfolio_client.lock().await.get_portfolio_charts(request.into_inner().assets, period.0)?.into())
 }

@@ -39,6 +39,7 @@ import ScanService
 import StakeService
 import Store
 import StreamService
+import SupportChatService
 import SwapService
 import SwiftHTTPClient
 import TransactionsService
@@ -201,6 +202,7 @@ struct ServicesFactory {
             nftService: nftService,
             perpetualService: perpetualService,
             fiatService: fiatService,
+            supportChatStore: storeManager.supportChatStore,
             preferences: preferences,
         )
         let streamObserverService = StreamObserverService(
@@ -302,6 +304,8 @@ struct ServicesFactory {
 
         let contactService = ContactService(store: storeManager.contactStore, addressStore: storeManager.addressStore)
 
+        let supportChatService = SupportChatService(store: storeManager.supportChatStore, provider: apiService)
+
         let appLifecycleService = AppLifecycleService(
             preferences: preferences,
             connectionsService: connectionsService,
@@ -384,6 +388,7 @@ struct ServicesFactory {
             portfolioService: portfolioService,
             fiatService: fiatService,
             contactService: contactService,
+            supportChatService: supportChatService,
         )
     }
 }

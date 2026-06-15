@@ -1,6 +1,5 @@
 use gem_hash::sha2::sha256;
 use num_bigint::BigUint;
-use num_traits::ToPrimitive;
 use primitives::{Address as _, SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData};
 use signer::{SignatureScheme, Signer};
 
@@ -11,7 +10,7 @@ const ABI_WORD_LEN: usize = 32;
 const TRC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
 
 pub(crate) fn sign_transfer(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-    sign_native_transfer(input, &input.destination_address, private_key)
+    sign_native_transfer(input, &input.destination_address, input.value_as_u64()?, private_key)
 }
 
 pub(crate) fn sign_token_transfer(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
@@ -25,20 +24,20 @@ pub(crate) fn sign_swap(input: &SignerInput, private_key: &[u8]) -> Result<Vec<S
     let result = if from_asset.id.is_token() {
         sign_token_transfer_to(input, &swap.data.to, private_key)?
     } else {
-        sign_native_transfer(input, &swap.data.to, private_key)?
+        sign_native_transfer(input, &swap.data.to, input.swap_value_u64()?, private_key)?
     };
 
     Ok(vec![result])
 }
 
-fn sign_native_transfer(input: &SignerInput, destination: &str, private_key: &[u8]) -> Result<String, SignerError> {
+fn sign_native_transfer(input: &SignerInput, destination: &str, value: u64, private_key: &[u8]) -> Result<String, SignerError> {
     let owner = validate_sender(input, private_key)?;
     let contract = TronContract::Transfer {
         owner,
         to: TronAddress::parse(destination)?,
-        amount: input.value_as_u64()?,
+        amount: value,
     };
-    let fee_limit = input.fee.fee.to_u64().ok_or_else(|| SignerError::invalid_input("invalid Tron fee"))?;
+    let fee_limit = input.fee.fee()?;
     sign_contract(input, contract, fee_limit, private_key)
 }
 
@@ -54,14 +53,14 @@ fn sign_token_transfer_to(input: &SignerInput, destination: &str, private_key: &
         call_token_value: None,
         token_id: None,
     };
-    let fee_limit = input.fee.gas_limit.to_u64().ok_or_else(|| SignerError::invalid_input("invalid Tron fee limit"))?;
+    let fee_limit = input.fee.gas_limit()?;
     sign_contract(input, contract, fee_limit, private_key)
 }
 
 pub(crate) fn sign_stake(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
     let stake_type = input.input_type.get_stake_type().map_err(SignerError::invalid_input)?;
     let owner = validate_sender(input, private_key)?;
-    let fee_limit = input.fee.fee.to_u64().ok_or_else(|| SignerError::invalid_input("invalid Tron fee"))?;
+    let fee_limit = input.fee.fee()?;
     let TransactionLoadMetadata::Tron { stake_data, .. } = &input.metadata else {
         return SignerError::invalid_input_err("Missing tron metadata");
     };

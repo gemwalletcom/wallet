@@ -44,15 +44,12 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
 #[cfg(test)]
 mod tests {
     use bitcoin::consensus::encode::deserialize;
-    use primitives::{BitcoinChain, ChainSigner, SignerInput, SwapProvider, TransactionLoadMetadata, decode_hex};
+    use primitives::{BitcoinChain, ChainSigner};
 
-    use super::{BitcoinChainSigner, address::script_for_address};
+    use super::BitcoinChainSigner;
     use crate::testkit::signer_mock::{
-        TEST_PRIVATE_KEY, mock_contract_swap_input, mock_contract_swap_input_with_provider, mock_funded_transfer_input, mock_p2wpkh_contract_swap_input,
-        mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input,
+        TEST_PRIVATE_KEY, mock_contract_swap_input, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input,
     };
-
-    const CHAINFLIP_NULLDATA_HEX: &str = "deadbeef001122";
 
     fn sign_transfer(chain: BitcoinChain) -> String {
         BitcoinChainSigner::new(chain).sign_transfer(&mock_transfer_input(chain), &TEST_PRIVATE_KEY).unwrap()
@@ -63,15 +60,6 @@ mod tests {
         assert_eq!(bytes[0], 0x6a);
         assert_eq!(bytes[1] as usize, payload.len());
         assert_eq!(&bytes[2..], payload);
-    }
-
-    fn sign_contract_swap(input: &SignerInput) -> bitcoin::Transaction {
-        let raw = BitcoinChainSigner::new(BitcoinChain::Bitcoin).sign_swap(input, &TEST_PRIVATE_KEY).unwrap().remove(0);
-        deserialize(&hex::decode(raw).unwrap()).unwrap()
-    }
-
-    fn sender_script(input: &SignerInput) -> bitcoin::ScriptBuf {
-        script_for_address(BitcoinChain::Bitcoin, &input.sender_address).unwrap().script_pubkey
     }
 
     #[test]
@@ -206,71 +194,10 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_chainflip_bitcoin_max_intent_produces_change_for_refund() {
-        let nulldata = decode_hex(CHAINFLIP_NULLDATA_HEX).unwrap();
-        let input = mock_p2wpkh_contract_swap_input(CHAINFLIP_NULLDATA_HEX, true);
-        let refund_script = sender_script(&input);
-        let transaction = sign_contract_swap(&input);
-
-        assert_eq!(transaction.output.len(), 3);
-        assert_eq!(transaction.output[0].value.to_sat(), 10_000);
-        assert_eq!(transaction.output[1].value.to_sat(), 0);
-        assert_op_return_payload(&transaction.output[1].script_pubkey, &nulldata);
-        assert_eq!(transaction.output[2].value.to_sat(), 99_989_838);
-        assert_eq!(transaction.output[2].script_pubkey, refund_script);
-    }
-
-    #[test]
-    fn test_sign_chainflip_bitcoin_exact_swap_with_change() {
-        let nulldata = decode_hex(CHAINFLIP_NULLDATA_HEX).unwrap();
-        let input = mock_contract_swap_input(BitcoinChain::Bitcoin, CHAINFLIP_NULLDATA_HEX, false);
-        let transaction = sign_contract_swap(&input);
-
-        assert_eq!(transaction.output.len(), 3);
-        assert_eq!(transaction.output[0].value.to_sat(), 10_000);
-        assert_eq!(transaction.output[1].value.to_sat(), 0);
-        assert_op_return_payload(&transaction.output[1].script_pubkey, &nulldata);
-        assert_eq!(transaction.output[2].value.to_sat(), 99_989_756);
-    }
-
-    #[test]
-    fn test_chainflip_contract_swap_always_has_refund_output() {
-        let nulldata = decode_hex(CHAINFLIP_NULLDATA_HEX).unwrap();
-        for use_max_amount in [true, false] {
-            let input = mock_contract_swap_input(BitcoinChain::Bitcoin, CHAINFLIP_NULLDATA_HEX, use_max_amount);
-            let refund_script = sender_script(&input);
-            let transaction = sign_contract_swap(&input);
-
-            assert_eq!(transaction.output.len(), 3, "{use_max_amount}");
-            assert_eq!(transaction.output[1].value.to_sat(), 0, "{use_max_amount}");
-            assert_op_return_payload(&transaction.output[1].script_pubkey, &nulldata);
-            assert_eq!(transaction.output[2].script_pubkey, refund_script, "{use_max_amount}");
-        }
-    }
-
-    #[test]
-    fn test_chainflip_contract_swap_fails_without_refund_output_budget() {
-        let mut input = mock_contract_swap_input(BitcoinChain::Bitcoin, CHAINFLIP_NULLDATA_HEX, false);
-        let TransactionLoadMetadata::Bitcoin { utxos } = &mut input.input.metadata else {
-            unreachable!()
-        };
-        // 10_000 payment + 244 fee would leave no non-dust refund output.
-        utxos[0].value = "10244".to_string();
-
+    fn test_sign_contract_swap_rejected() {
+        let input = mock_contract_swap_input(BitcoinChain::Bitcoin, "deadbeef001122", false);
         let error = BitcoinChainSigner::new(BitcoinChain::Bitcoin).sign_swap(&input, &TEST_PRIVATE_KEY).unwrap_err().to_string();
 
-        assert!(error.contains("insufficient balance"));
-    }
-
-    #[test]
-    fn test_non_chainflip_contract_swap_honors_max_flag() {
-        let nulldata = decode_hex(CHAINFLIP_NULLDATA_HEX).unwrap();
-        let input = mock_contract_swap_input_with_provider(BitcoinChain::Bitcoin, CHAINFLIP_NULLDATA_HEX, true, SwapProvider::Thorchain);
-        let transaction = sign_contract_swap(&input);
-
-        assert_eq!(transaction.output.len(), 2);
-        assert_eq!(transaction.output[0].value.to_sat(), 100_000_000 - 210);
-        assert_eq!(transaction.output[1].value.to_sat(), 0);
-        assert_op_return_payload(&transaction.output[1].script_pubkey, &nulldata);
+        assert!(error.contains("unsupported Bitcoin contract swap"));
     }
 }

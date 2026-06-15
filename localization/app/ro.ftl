@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = Levier implicit
 settings_preferences_perpetual_default_take_profit = Take Profit implicit
 settings_preferences_perpetual_default_stop_loss = Stop Loss implicit
 
+# Support
+
+support_state_empty_title = Cum te putem ajuta?
+support_state_empty_description = Întreabă-ne orice. Suntem aici să te ajutăm.
+support_message_placeholder = Mesaj
+
 # Errors
 
 errors_transfer = Eroare de transfer: %@

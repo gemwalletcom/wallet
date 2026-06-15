@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = เลเวอเรจเร
 settings_preferences_perpetual_default_take_profit = Take Profit เริ่มต้น
 settings_preferences_perpetual_default_stop_loss = Stop Loss เริ่มต้น
 
+# Support
+
+support_state_empty_title = เราช่วยอะไรคุณได้บ้าง?
+support_state_empty_description = ถามเราได้ทุกเรื่อง เราพร้อมช่วยเหลือคุณ
+support_message_placeholder = ข้อความ
+
 # Errors
 
 errors_transfer = ข้อผิดพลาดในการโอน: %@

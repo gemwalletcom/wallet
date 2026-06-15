@@ -17,6 +17,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Configure Cargo color
+      shell: bash
+      run: echo "CARGO_TERM_COLOR=always" >> "$GITHUB_ENV"
+
     - name: Restore cargo cache
       if: ${{ inputs.restore-cache == 'true' }}
       uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1

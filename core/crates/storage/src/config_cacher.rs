@@ -63,10 +63,6 @@ impl ConfigCacher {
         Ok(value)
     }
 
-    pub fn get_i32(&self, key: ConfigKey) -> Result<i32, DatabaseError> {
-        Ok(self.get(key)?.parse()?)
-    }
-
     pub fn get_i64(&self, key: ConfigKey) -> Result<i64, DatabaseError> {
         Ok(self.get(key)?.parse()?)
     }
@@ -89,10 +85,6 @@ impl ConfigCacher {
 
     pub fn get_param_duration(&self, param: &ConfigParamKey) -> Result<Duration, DatabaseError> {
         parse_duration(&self.get_param_value(param))
-    }
-
-    pub fn get_param_f64(&self, param: &ConfigParamKey) -> Result<f64, DatabaseError> {
-        Ok(self.get_param_value(param).parse()?)
     }
 
     pub fn get_datetime(&self, key: ConfigKey) -> Result<NaiveDateTime, DatabaseError> {

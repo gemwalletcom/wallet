@@ -10,6 +10,7 @@ import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.InAppNotificationsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
+import com.gemwallet.android.data.service.store.database.SupportMessagesDao
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.testkit.mockTransactionId
 import com.gemwallet.android.testkit.mockWallet
@@ -43,6 +44,7 @@ class StreamEventHandlerTest {
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val updateBalances = mockk<UpdateBalances>(relaxed = true)
     private val inAppNotificationsDao = mockk<InAppNotificationsDao>(relaxed = true)
+    private val supportMessagesDao = mockk<SupportMessagesDao>(relaxed = true)
 
     private val handler = StreamEventHandler(
         pricesDao = pricesDao,
@@ -55,6 +57,7 @@ class StreamEventHandlerTest {
         assetsDao = assetsDao,
         updateBalances = updateBalances,
         inAppNotificationsDao = inAppNotificationsDao,
+        supportMessagesDao = supportMessagesDao,
     )
 
     private val walletId = mockWalletId("w1")

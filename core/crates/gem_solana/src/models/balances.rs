@@ -6,7 +6,3 @@ use super::UInt64;
 pub struct SolanaBalance {
     pub value: UInt64,
 }
-
-pub struct SolanaBalanceValue {
-    pub amount: String,
-}

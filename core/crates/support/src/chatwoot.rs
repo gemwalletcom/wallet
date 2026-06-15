@@ -164,7 +164,7 @@ fn messages_from_timestamp(messages: Vec<SupportMessage>, from_timestamp: Option
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{SupportMessageDeliveryStatus, SupportMessageSender};
+    use primitives::{SupportMessageSender, SupportMessageStatus};
 
     #[test]
     fn test_messages_from_timestamp() {
@@ -181,7 +181,7 @@ mod tests {
             id: id.to_string(),
             content: id.to_string(),
             sender: SupportMessageSender::User,
-            status: SupportMessageDeliveryStatus::Sent,
+            status: SupportMessageStatus::Sent,
             created_at: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
             images: vec![],
         }

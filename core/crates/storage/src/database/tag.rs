@@ -6,7 +6,9 @@ pub(crate) trait TagStore {
     fn add_tags(&mut self, values: Vec<TagRow>) -> Result<usize, diesel::result::Error>;
     fn add_assets_tags(&mut self, values: Vec<AssetTagRow>) -> Result<usize, diesel::result::Error>;
     fn get_asset_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error>;
+    fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error>;
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, diesel::result::Error>;
+    fn get_perpetuals_tags(&mut self) -> Result<Vec<PerpetualTagRow>, diesel::result::Error>;
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, diesel::result::Error>;
     fn delete_assets_tags(&mut self, _tag_id: &str) -> Result<usize, diesel::result::Error>;
     fn set_assets_tags_for_tag(&mut self, _tag_id: &str, asset_ids: Vec<AssetId>) -> Result<usize, diesel::result::Error>;
@@ -34,9 +36,24 @@ impl TagStore for DatabaseClient {
             .load(&mut self.connection)
     }
 
+    fn get_perpetual_list_tags(&mut self) -> Result<Vec<TagRow>, diesel::result::Error> {
+        use crate::schema::{perpetuals_tags, tags};
+        tags::table
+            .inner_join(perpetuals_tags::table)
+            .select(TagRow::as_select())
+            .distinct()
+            .order(tags::id.asc())
+            .load(&mut self.connection)
+    }
+
     fn get_assets_tags(&mut self) -> Result<Vec<AssetTagRow>, diesel::result::Error> {
         use crate::schema::assets_tags::dsl::*;
         assets_tags.select(AssetTagRow::as_select()).load(&mut self.connection)
+    }
+
+    fn get_perpetuals_tags(&mut self) -> Result<Vec<PerpetualTagRow>, diesel::result::Error> {
+        use crate::schema::perpetuals_tags::dsl::*;
+        perpetuals_tags.select(PerpetualTagRow::as_select()).load(&mut self.connection)
     }
 
     fn get_assets_tags_for_tag(&mut self, _tag_id: &str) -> Result<Vec<AssetTagRow>, diesel::result::Error> {

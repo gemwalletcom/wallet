@@ -58,7 +58,7 @@ pub use self::reward::{
 pub use self::scan_addresses::{NewScanAddressRow, ScanAddressRow};
 pub use self::subscription_address_exclude::SubscriptionAddressExcludeRow;
 pub use self::support_session::{NewSupportSessionRow, SupportSessionRow};
-pub use self::tag::{AssetTagRow, TagRow};
+pub use self::tag::{AssetTagRow, PerpetualTagRow, TagRow};
 pub use self::transaction::{NewTransactionRow, TransactionRow};
 pub use self::transaction_addresses::{AddressChainIdResultRow, NewTransactionAddressesRow, TransactionAddressesRow};
 pub use self::username::{NewUsernameRow, UsernameRow};

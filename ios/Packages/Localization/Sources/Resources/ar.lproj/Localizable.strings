@@ -159,6 +159,9 @@
 "settings.preferences.perpetual.default_leverage" = "الرافعة المالية الافتراضية";
 "settings.preferences.perpetual.default_take_profit" = "جني الأرباح الافتراضي";
 "settings.preferences.perpetual.default_stop_loss" = "إيقاف الخسارة الافتراضي";
+"support.state_empty_title" = "كيف يمكننا مساعدتك؟";
+"support.state_empty_description" = "اسألنا أي شيء. نحن هنا للمساعدة.";
+"support.message_placeholder" = "رسالة";
 "errors.transfer" = "خطأ النقل: %@";
 "errors.validation" = "خطأ التحقق: %@";
 "errors.create_wallet" = "خطأ إنشاء المحفظة: %@";

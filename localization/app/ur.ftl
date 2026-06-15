@@ -188,6 +188,12 @@ settings_preferences_perpetual_default_leverage = ڈیفالٹ لیوریج
 settings_preferences_perpetual_default_take_profit = ڈیفالٹ ٹیک پرافٹ
 settings_preferences_perpetual_default_stop_loss = ڈیفالٹ اسٹاپ لاس
 
+# Support
+
+support_state_empty_title = ہم آپ کی کیسے مدد کر سکتے ہیں؟
+support_state_empty_description = ہم سے کچھ بھی پوچھیں۔ ہم مدد کے لیے موجود ہیں۔
+support_message_placeholder = پیغام
+
 # Errors
 
 errors_transfer = منتقلی کی خرابی: %@

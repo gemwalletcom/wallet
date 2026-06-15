@@ -166,6 +166,9 @@
   <string name="settings_preferences_perpetual_default_leverage">Плече за замовчуванням</string>
   <string name="settings_preferences_perpetual_default_take_profit">Take Profit за замовчуванням</string>
   <string name="settings_preferences_perpetual_default_stop_loss">Stop Loss за замовчуванням</string>
+  <string name="support_state_empty_title">Чим ми можемо допомогти?</string>
+  <string name="support_state_empty_description">Запитуйте нас про що завгодно. Ми завжди раді допомогти.</string>
+  <string name="support_message_placeholder">Повідомлення</string>
   <string name="errors_transfer">Помилка перенесення: %1$s</string>
   <string name="errors_validation">Помилка перевірки: %1$s</string>
   <string name="errors_create_wallet">Помилка створення гаманця: %1$s</string>

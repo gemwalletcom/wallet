@@ -50,6 +50,7 @@
 		AA0000032F26000000000002 /* ConnectionsService in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F26000000000002 /* ConnectionsService */; };
 		B604C2E82F3F538000CBAFDC /* Contacts in Frameworks */ = {isa = PBXBuildFile; productRef = B604C2E92F3F538100CBAFDC /* Contacts */; };
 		B60C6C352E68848900899BAC /* Support in Frameworks */ = {isa = PBXBuildFile; productRef = B60C6C342E68848900899BAC /* Support */; };
+		SUPPCHATSVC0000000000002 /* SupportChatService in Frameworks */ = {isa = PBXBuildFile; productRef = SUPPCHATSVC0000000000001 /* SupportChatService */; };
 		B617D60B2D5B75F0001697A6 /* AvatarService in Frameworks */ = {isa = PBXBuildFile; productRef = B617D60A2D5B75F0001697A6 /* AvatarService */; };
 		B62F6B9D2DE61ADF00AF56AB /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = B62F6B9C2DE61ADF00AF56AB /* Onboarding */; };
 		B66AFC6C2DDB260A0082C026 /* AppService in Frameworks */ = {isa = PBXBuildFile; productRef = B66AFC6B2DDB260A0082C026 /* AppService */; };
@@ -383,6 +384,7 @@
 				B66DEDB02D49F0EA00309D53 /* ImageGalleryService in Frameworks */,
 				83D6808B2CCA90D900B45089 /* InfoSheet in Frameworks */,
 				D829BF542CBF314100DEB2E8 /* PriceAlertService in Frameworks */,
+				SUPPCHATSVC0000000000002 /* SupportChatService in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -871,6 +873,7 @@
 				B60C6C342E68848900899BAC /* Support */,
 				83D0114E2EFB6341009274B8 /* TransactionStateService */,
 				AA0000022F26000000000002 /* ConnectionsService */,
+				SUPPCHATSVC0000000000001 /* SupportChatService */,
 			);
 			productName = wallet;
 			productReference = C30952B0299C39D70004C0F9 /* Gem.app */;
@@ -1493,7 +1496,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gem/Resources/Gem.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
@@ -1527,7 +1530,7 @@
 				);
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.86;
+				MARKETING_VERSION = 2.89;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-lgemstone",
@@ -1558,7 +1561,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
@@ -1594,7 +1597,7 @@
 				);
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.86;
+				MARKETING_VERSION = 2.89;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-lgemstone",
@@ -1623,7 +1626,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1644,7 +1647,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1664,7 +1667,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1685,7 +1688,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1710,7 +1713,7 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1724,7 +1727,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.86;
+				MARKETING_VERSION = 2.89;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1745,7 +1748,7 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1759,7 +1762,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.86;
+				MARKETING_VERSION = 2.89;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1777,7 +1780,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1800,7 +1803,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 143;
+				CURRENT_PROJECT_VERSION = 146;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1878,6 +1881,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		SUPPCHATSVC0000000000001 /* SupportChatService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SupportChatService;
+		};
 		074168392D3AFDBB00AC26A4 /* NFT */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NFT;

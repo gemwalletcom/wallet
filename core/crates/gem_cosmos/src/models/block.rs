@@ -2,22 +2,6 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_f64_from_str;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockResponseLegacy {
-    pub block: BlockLegacy,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockLegacy {
-    pub header: Header,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Header {
-    pub chain_id: String,
-    pub height: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NodeInfoResponse {
     pub default_node_info: NodeInfo,
 }

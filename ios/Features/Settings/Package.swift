@@ -28,7 +28,6 @@ let package = Package(
         .package(name: "Formatters", path: "../../Packages/Formatters"),
         .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "QRScanner", path: "../QRScanner"),
-        .package(name: "Support", path: "../Support"),
     ],
     targets: [
         .target(
@@ -60,7 +59,6 @@ let package = Package(
                 .product(name: "NodeService", package: "ChainServices"),
                 .product(name: "ExplorerService", package: "ChainServices"),
                 "QRScanner",
-                "Support",
             ],
             path: "Sources",
         ),
