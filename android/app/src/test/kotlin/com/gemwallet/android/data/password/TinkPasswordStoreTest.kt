@@ -26,18 +26,24 @@ class TinkPasswordStoreTest {
     fun getPassword_migratesLegacyValue() {
         legacyStore.putString(TEST_WALLET_KEY, LEGACY_PASSWORD)
 
-        assertEquals(LEGACY_PASSWORD, passwordStore.getPassword(TEST_WALLET_KEY))
+        val migratedPassword = passwordStore.getPassword(TEST_WALLET_KEY)
+        val storedPassword = passwordStore.getPassword(TEST_WALLET_KEY)
+
+        assertEquals(LEGACY_PASSWORD, migratedPassword)
+        assertEquals(LEGACY_PASSWORD, storedPassword)
         assertEquals(LEGACY_PASSWORD, encryptedStore.getString(TEST_WALLET_KEY))
         assertEquals(null, legacyStore.getString(TEST_WALLET_KEY))
+        assertEquals(1, legacyStore.removeCount(TEST_WALLET_KEY))
     }
 
     @Test
-    fun getPassword_prefersEncryptedValueAndRemovesLegacyValue() {
+    fun getPassword_prefersEncryptedValueWithoutRemovingLegacyValue() {
         encryptedStore.putString(TEST_WALLET_KEY, ENCRYPTED_PASSWORD)
         legacyStore.putString(TEST_WALLET_KEY, LEGACY_PASSWORD)
 
         assertEquals(ENCRYPTED_PASSWORD, passwordStore.getPassword(TEST_WALLET_KEY))
-        assertEquals(null, legacyStore.getString(TEST_WALLET_KEY))
+        assertEquals(LEGACY_PASSWORD, legacyStore.getString(TEST_WALLET_KEY))
+        assertEquals(0, legacyStore.removeCount(TEST_WALLET_KEY))
     }
 
     @Test
@@ -80,6 +86,7 @@ class TinkPasswordStoreTest {
 
     private class InMemorySecureStringStore : SecureStringStore {
         private val values = mutableMapOf<String, String>()
+        private val removeCounts = mutableMapOf<String, Int>()
 
         override fun contains(key: String): Boolean = values.containsKey(key)
 
@@ -90,9 +97,12 @@ class TinkPasswordStoreTest {
         }
 
         override fun removeString(key: String): Boolean {
+            removeCounts[key] = removeCount(key) + 1
             values.remove(key)
             return true
         }
+
+        fun removeCount(key: String): Int = removeCounts[key] ?: 0
     }
 
     private class IncrementingSecureRandom : SecureRandom() {

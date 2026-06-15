@@ -44,9 +44,13 @@ class TinkSecurityStore(
 
     override suspend fun getValue(key: Any): String = withContext(Dispatchers.IO) {
         val keyValue = key.toString()
-        val value = encryptedStore.getString(keyValue) ?: getLegacyValue(keyValue)?.also {
-            encryptedStore.putString(keyValue, it)
-        } ?: throw IllegalStateException("Data not found")
+        val currentValue = encryptedStore.getString(keyValue)
+        if (currentValue != null) {
+            return@withContext currentValue
+        }
+
+        val value = getLegacyValue(keyValue) ?: throw IllegalStateException("Data not found")
+        encryptedStore.putString(keyValue, value)
         removeLegacyValue(keyValue)
         value
     }

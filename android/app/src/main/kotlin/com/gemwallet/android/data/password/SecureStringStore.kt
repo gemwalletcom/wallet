@@ -11,9 +11,13 @@ internal interface SecureStringStore {
 }
 
 internal fun SecureStringStore.getOrMigrate(legacyStore: SecureStringStore, key: String): String? {
-    val value = getString(key) ?: legacyStore.getString(key)?.also {
-        putString(key, it)
-    } ?: return null
+    val currentValue = getString(key)
+    if (currentValue != null) {
+        return currentValue
+    }
+
+    val legacyValue = legacyStore.getString(key) ?: return null
+    putString(key, legacyValue)
     legacyStore.removeString(key)
-    return value
+    return legacyValue
 }
