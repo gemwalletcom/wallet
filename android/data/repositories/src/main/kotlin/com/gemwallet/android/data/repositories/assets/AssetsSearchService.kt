@@ -10,7 +10,6 @@ import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetTag
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SearchItemType
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +30,7 @@ class AssetsSearchService @Inject constructor(
     fun search(query: String, tags: List<AssetTag>, byAllWallets: Boolean): Flow<List<AssetInfo>> {
         val query = tags.toPriorityQuery(query)
         return sessionRepository.currentWalletId().flatMapLatest { walletId ->
-            searchDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
+            searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 when {
                     byAllWallets && hasPriority -> assetsDao.searchByAllWalletsWithPriority(walletId, query)
                     byAllWallets -> assetsDao.searchByAllWallets(walletId, query)
@@ -48,7 +47,7 @@ class AssetsSearchService @Inject constructor(
         val walletChains = wallet.accounts.map { it.chain }
         val includeChains = byChains.filter { walletChains.contains(it) }
         val includeAssetIds = byAssets.filter { walletChains.contains(it.chain) }
-        return searchDao.hasPriorities(query, SearchItemType.Asset.string).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
+        return searchDao.hasAssetPriorities(query).map { it > 0 }.distinctUntilChanged().flatMapLatest { hasPriority ->
                 if (hasPriority) {
                     assetsDao.swapSearchWithPriority(wallet.id.id, query, includeChains, includeAssetIds.map { it.toIdentifier() })
                 } else {

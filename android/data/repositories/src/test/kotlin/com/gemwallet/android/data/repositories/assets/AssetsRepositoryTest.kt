@@ -397,7 +397,7 @@ class AssetsRepositoryTest {
     @Test
     fun swapSearch_includesEnabledHiddenAndUnlinkedAssets() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        every { searchDao.hasPriorities("", "asset") } returns flowOf(0)
+        every { searchDao.hasAssetPriorities("") } returns flowOf(0)
 
         val wallet = mockWallet(
             id = "wallet-1",
@@ -463,7 +463,7 @@ class AssetsRepositoryTest {
     @Test
     fun swapSearch_usesPriorityDaoAndPreservesOrderWhenPrioritiesExist() = runBlocking {
         every { sessionRepository.session() } returns sessionFlow
-        every { searchDao.hasPriorities("usd", "asset") } returns flowOf(2)
+        every { searchDao.hasAssetPriorities("usd") } returns flowOf(2)
 
         val wallet = mockWallet(
             id = "wallet-1",

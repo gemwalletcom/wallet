@@ -37,7 +37,7 @@ interface PerpetualDao {
     @Transaction
     @Query("""
         SELECT perpetuals.* FROM perpetuals
-        JOIN search ON perpetuals.id = search.item_id AND search.type = 'perpetual'
+        JOIN search ON perpetuals.id = search.perpetualId
         WHERE search.`query` = :query
         ORDER BY search.priority ASC, perpetuals.volume24h DESC
     """)

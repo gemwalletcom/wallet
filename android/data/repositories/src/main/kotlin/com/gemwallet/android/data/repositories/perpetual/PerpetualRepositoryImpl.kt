@@ -21,7 +21,6 @@ import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
-import com.wallet.core.primitives.SearchItemType
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +47,7 @@ class PerpetualRepositoryImpl(
         if (searchQuery.isEmpty()) {
             return perpetualDao.getPerpetualsData().toPerpetualData()
         }
-        return searchDao.hasPriorities(searchQuery, SearchItemType.Perpetual.string)
+        return searchDao.hasPerpetualPriorities(searchQuery)
             .map { it > 0 }
             .distinctUntilChanged()
             .flatMapLatest { hasPriority ->

@@ -12,17 +12,24 @@ import kotlinx.coroutines.flow.Flow
 interface SearchDao {
 
     @Insert(onConflict = REPLACE)
-    suspend fun insert(priorities: List<DbSearch>)
+    suspend fun insert(records: List<DbSearch>)
 
-    @Query("DELETE FROM search WHERE `query` = :query AND type = :type")
-    suspend fun deleteByQuery(query: String, type: String)
+    @Query("DELETE FROM search WHERE `query` = :query AND assetId IS NOT NULL")
+    suspend fun deleteAssets(query: String)
+
+    @Query("DELETE FROM search WHERE `query` = :query AND perpetualId IS NOT NULL")
+    suspend fun deletePerpetuals(query: String)
 
     @Transaction
-    suspend fun put(priorities: List<DbSearch>) {
-        priorities.firstOrNull()?.let { deleteByQuery(it.query, it.type) }
-        insert(priorities)
+    suspend fun put(records: List<DbSearch>) {
+        val first = records.firstOrNull() ?: return
+        if (first.assetId != null) deleteAssets(first.query) else deletePerpetuals(first.query)
+        insert(records)
     }
 
-    @Query("SELECT COUNT(item_id) FROM search WHERE `query` = :query AND type = :type")
-    fun hasPriorities(query: String, type: String): Flow<Int>
+    @Query("SELECT COUNT(*) FROM search WHERE `query` = :query AND assetId IS NOT NULL")
+    fun hasAssetPriorities(query: String): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM search WHERE `query` = :query AND perpetualId IS NOT NULL")
+    fun hasPerpetualPriorities(query: String): Flow<Int>
 }

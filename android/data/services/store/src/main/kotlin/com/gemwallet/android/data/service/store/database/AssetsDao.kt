@@ -271,7 +271,7 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search ON asset_info.id = search.item_id AND search.type = 'asset'
+        JOIN search ON asset_info.id = search.assetId
         WHERE
             asset_info.id NOT IN (:exclude)
             AND chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
@@ -297,7 +297,7 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search ON asset_info.id = search.item_id AND search.type = 'asset'
+        JOIN search ON asset_info.id = search.assetId
         WHERE
             assetRank > 0
             AND
@@ -320,7 +320,7 @@ interface AssetsDao {
     @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO
-        JOIN search ON asset_info.id = search.item_id AND search.type = 'asset'
+        JOIN search ON asset_info.id = search.assetId
         WHERE
             (chain IN (:byChains) OR id IN (:byAssets) )
             AND assetRank > 0
